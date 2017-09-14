@@ -1,0 +1,25 @@
+{
+  "name": "pipeline-driver",
+  "version": "1.0.0",
+  "description": "pipeline-driver",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "dependencies": {
+    "bull": "^3.2.0",
+    "djsv": "^1.4.0",
+    "ioredis": "^3.1.4",
+    "node-etcd": "^5.1.0"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^3.5.3"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "RAF",
+  "license": "ISC"
+}
