@@ -1,0 +1,18 @@
+{
+  "name": "client-negotiator",
+  "version": "1.0.0",
+  "description": "web server. API entry point to the algoritm running system",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@greenape.ddns.net:soundFactory/client-negotiator.git"
+  },
+  "author": "avivh",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.4"
+  }
+}
