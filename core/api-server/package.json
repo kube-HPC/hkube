@@ -13,7 +13,7 @@
   "author": "avivh",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.15.4"
-	"swagger-ui-express": "latest"
+    "express": "^4.15.4",
+    "swagger-ui-express": "latest"
   }
 }

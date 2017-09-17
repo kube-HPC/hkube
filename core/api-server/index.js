@@ -1,5 +1,6 @@
-const { Producer } = require('raf-producer-consumer');
+//const { Producer } = require('raf-producer-consumer');
 const api = require('./api/app-server')
+
 
 const options = {
     job: {
@@ -22,6 +23,7 @@ const options = {
 }
 
 
-const producer = new Producer(options);
-const job = producer.createJob(options);
+//const producer = new Producer(options);
+//const job = producer.createJob(options);
+
 
