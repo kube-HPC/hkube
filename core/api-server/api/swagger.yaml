@@ -1,0 +1,351 @@
+---
+swagger: "2.0"
+info:
+  description: "algorithm flows extraordinaire"
+  version: "1.0.0"
+  title: "algo API"
+host: "localhost:3000"
+basePath: "/v1"
+schemes:
+- "http"
+produces:
+- "application/json"
+paths:
+  /run:
+    post:
+      tags:
+      - "Execution"
+      summary: "run algorithm flow"
+      description: "The run endpoint initiates an algorithm flow with the input recieved\
+        \ and returns the ID of the running pipeline. ID returned can be used as a\
+        \ reference for the flow run to retrieve run status, stop it, etc."
+      operationId: "runPOST"
+      parameters:
+      - in: "body"
+        name: "pipelineRunData"
+        description: "an object representing all information needed for pipeline execution"
+        required: true
+        schema:
+          $ref: "#/definitions/runRequest"
+      responses:
+        200:
+          description: "pipeline execution data"
+          schema:
+            $ref: "#/definitions/pipelineExecutionStatus"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Execution"
+  /runStored:
+    post:
+      tags:
+      - "Execution"
+      summary: "run algorithm flow"
+      description: "The run endpoint initiates an algorithm flow with the input recieved\
+        \ and returns the ID of the running pipeline. ID returned can be used as a\
+        \ reference for the flow run to retrieve run status, stop it, etc."
+      operationId: "runStoredPOST"
+      parameters:
+      - in: "body"
+        name: "storedpipelineRunData"
+        description: "an object representing all information needed for stored pipeline\
+          \ execution"
+        required: true
+        schema:
+          $ref: "#/definitions/runStoredRequest"
+      responses:
+        200:
+          description: "pipeline execution data"
+          schema:
+            $ref: "#/definitions/pipelineExecutionStatus"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Execution"
+  /stop:
+    post:
+      tags:
+      - "Execution"
+      summary: "stop pipeline execution"
+      description: "call to stop the flow execution\n"
+      operationId: "stopPOST"
+      parameters:
+      - name: "flow_execution_id"
+        in: "query"
+        description: "Unique identifier representing wokflow execution - is given\
+          \ in response to calling pipeline run method ."
+        required: true
+        type: "string"
+        format: "uuid"
+      - name: "reason"
+        in: "query"
+        description: "reason for stopping."
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "the OK string"
+          schema:
+            type: "string"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Execution"
+  /status:
+    get:
+      tags:
+      - "Execution"
+      summary: "wokflow execution status"
+      description: "reurns a status for the current pipeline."
+      operationId: "statusGET"
+      parameters:
+      - name: "flow_execution_id"
+        in: "query"
+        description: "Unique identifier representing wokflow execution - is given\
+          \ in response to calling pipeline run method ."
+        required: false
+        type: "string"
+        format: "uuid"
+      responses:
+        200:
+          description: "An array of products"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/pipelineExecutionStatus"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Execution"
+  /store/{pipelineName}:
+    get:
+      tags:
+      - "Store"
+      summary: "get pipeline data from store"
+      description: "returns stored pipeline"
+      operationId: "storePipelineNameGET"
+      parameters:
+      - name: "pipelineName"
+        in: "path"
+        description: "pipeline name to get from the store"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "action summery"
+          schema:
+            $ref: "#/definitions/defaultResponse"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Store"
+    delete:
+      tags:
+      - "Store"
+      summary: "delete stored pipeline"
+      description: "removes selected stored pipeline from store"
+      operationId: "storePipelineNameDELETE"
+      parameters:
+      - name: "pipelineName"
+        in: "path"
+        description: "pipeline name to get from the store"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "action summery"
+          schema:
+            $ref: "#/definitions/defaultResponse"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Store"
+  /store:
+    get:
+      tags:
+      - "Store"
+      summary: "get all pipelines"
+      description: "returns all pipelines that are currently in the store (names list)"
+      operationId: "storeGET"
+      parameters: []
+      responses:
+        200:
+          description: "action summery"
+          schema:
+            $ref: "#/definitions/defaultResponse"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Store"
+    post:
+      tags:
+      - "Store"
+      summary: "add a pipeline"
+      description: "adds the given pipeline to the store."
+      operationId: "storePOST"
+      parameters:
+      - in: "body"
+        name: "pipeline"
+        description: "pipeline descriptor to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/pipeline"
+      responses:
+        200:
+          description: "Profile information for a user"
+          schema:
+            $ref: "#/definitions/defaultResponse"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Store"
+  /results/{executionID}:
+    get:
+      tags:
+      - "Execution"
+      summary: "get run result"
+      description: "returns result (json) for the execution of a spesific pipeline\
+        \ run. if called before result is determined - returns error."
+      operationId: "resultsExecutionIDGET"
+      parameters:
+      - name: "executionID"
+        in: "path"
+        description: "executionID to getresults for"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "action summery"
+          schema:
+            $ref: "#/definitions/pipelineExecutionResult"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "Execution"
+definitions:
+  pipelineNode:
+    type: "object"
+    properties:
+      nodeName:
+        type: "string"
+      algorithmName:
+        type: "string"
+        description: "Unique identifier representing a specific function. e.g. \"\
+          Average\""
+      isBatch:
+        type: "boolean"
+        description: "true signals this step expects an array of inputs and should\
+          \ be executed as many times as the input array has elements and return an\
+          \ array of answers."
+      input:
+        type: "array"
+        description: "extra input, in addition to the output from parent step."
+        items:
+          type: "string"
+  pipelineLink:
+    type: "object"
+    properties:
+      source:
+        type: "string"
+        description: "Unique identifier representing a specific node"
+      target:
+        type: "string"
+        description: "Unique identifier representing a specific node"
+  pipeline:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      nodes:
+        type: "array"
+        description: "Unique identifier representing a specific function. e.g. \"\
+          Average\""
+        items:
+          $ref: "#/definitions/pipelineNode"
+      links:
+        type: "array"
+        description: "Unique identifier representing a specific function. e.g. \"\
+          Average\""
+        items:
+          $ref: "#/definitions/pipelineLink"
+    description: "systemwide unique name"
+  Webhook:
+    type: "object"
+    properties:
+      progressHook:
+        type: "string"
+        description: "uri to activate upon error"
+      resultHook:
+        type: "string"
+        description: "uri to activate upon flow termination (be it a sucessfull one\
+          \ or not"
+    description: "uri's to call uopn events during algorithm flow execution"
+  pipelineExecutionStatus:
+    type: "object"
+    properties:
+      executionID:
+        type: "string"
+        format: "uuid"
+      status:
+        type: "string"
+    description: "status for pipeline execution"
+    example:
+      executionID: "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+      status: "status"
+  defaultResponse:
+    type: "object"
+    properties:
+      message:
+        type: "string"
+    example:
+      message: "message"
+  Error:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      message:
+        type: "string"
+      fields:
+        type: "string"
+  runRequest:
+    type: "object"
+    properties:
+      pipelineDescriptor:
+        $ref: "#/definitions/pipeline"
+      flowInput:
+        type: "object"
+        description: "input object"
+        properties: {}
+      Webhook:
+        $ref: "#/definitions/Webhook"
+  runStoredRequest:
+    type: "object"
+    properties:
+      storedpipelineId:
+        type: "string"
+      flowInput:
+        type: "object"
+        description: "input object"
+        properties: {}
+      Webhook:
+        $ref: "#/definitions/Webhook"
+  pipelineExecutionResult:
+    type: "object"
+    properties:
+      result:
+        type: "object"
+        description: "input object"
+        properties: {}
+    example:
+      result: "{}"

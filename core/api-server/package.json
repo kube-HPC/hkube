@@ -1,19 +1,20 @@
 {
-  "name": "client-negotiator",
+  "name": "algo-api",
   "version": "1.0.0",
-  "description": "web server. API entry point to the algoritm running system",
+  "description": "algorithm flows extraordinaire",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "prestart": "npm install",
+    "start": "node index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@greenape.ddns.net:soundFactory/client-negotiator.git"
-  },
-  "author": "avivh",
-  "license": "ISC",
+  "keywords": [
+    "swagger"
+  ],
+  "license": "Unlicense",
+  "private": true,
   "dependencies": {
-    "express": "^4.15.4",
-    "swagger-ui-express": "latest"
+    "connect": "^3.2.0",
+    "js-yaml": "^3.3.0",
+    "swagger-tools": "0.10.1"
   }
 }

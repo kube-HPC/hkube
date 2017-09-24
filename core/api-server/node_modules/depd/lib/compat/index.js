@@ -1,29 +1,23 @@
 /*!
  * depd
- * Copyright(c) 2014-2015 Douglas Christopher Wilson
+ * Copyright(c) 2014 Douglas Christopher Wilson
  * MIT Licensed
  */
 
-'use strict'
-
-/**
- * Module dependencies.
- * @private
- */
-
-var EventEmitter = require('events').EventEmitter
-
 /**
  * Module exports.
- * @public
  */
 
-lazyProperty(module.exports, 'callSiteToString', function callSiteToString () {
+lazyProperty(module.exports, 'bufferConcat', function bufferConcat() {
+  return Buffer.concat || require('./buffer-concat')
+})
+
+lazyProperty(module.exports, 'callSiteToString', function callSiteToString() {
   var limit = Error.stackTraceLimit
   var obj = {}
   var prep = Error.prepareStackTrace
 
-  function prepareObjectStackTrace (obj, stack) {
+  function prepareObjectStackTrace(obj, stack) {
     return stack
   }
 
@@ -42,16 +36,12 @@ lazyProperty(module.exports, 'callSiteToString', function callSiteToString () {
   return stack[0].toString ? toString : require('./callsite-tostring')
 })
 
-lazyProperty(module.exports, 'eventListenerCount', function eventListenerCount () {
-  return EventEmitter.listenerCount || require('./event-listener-count')
-})
-
 /**
  * Define a lazy property.
  */
 
-function lazyProperty (obj, prop, getter) {
-  function get () {
+function lazyProperty(obj, prop, getter) {
+  function get() {
     var val = getter()
 
     Object.defineProperty(obj, prop, {
@@ -74,6 +64,6 @@ function lazyProperty (obj, prop, getter) {
  * Call toString() on the obj
  */
 
-function toString (obj) {
+function toString(obj) {
   return obj.toString()
 }
