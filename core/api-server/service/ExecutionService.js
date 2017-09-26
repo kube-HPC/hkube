@@ -1,5 +1,7 @@
 'use strict';
 
+const { Producer } = require('producer-consumer.rf');
+
 var Etcd = require('node-etcd');
 var etcd = new Etcd("http://localhost:4001");
 var options = { recursive: true };
@@ -120,14 +122,49 @@ exports.statusGET = function (flow_execution_id) {
  * returns String
  **/
 exports.stopPOST = function (flow_execution_id, reason) {
-  return new Promise(function (resolve, reject) {
-    var examples = {};
-    examples['application/json'] = "";
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
+  //return new Promise(function (resolve, reject) {
+    //check status if already stopped?
+    const options = {
+        job: {
+            type: 'stop-job',
+            data: { 
+              action: 'please stop this job',
+              pipeline_execution_id: flow_execution_id,
+              reason: reason
+            },
+            waitingTimeout: 5000
+        },
+        queue: {
+            priority: 1,
+            delay: 1000,
+            timeout: 5000,
+            attempts: 3,
+            removeOnComplete: true,
+            removeOnFail: false
+        },
+        setting: {
+            queueName: 'sf-queue',
+            prefix: 'sf-jobs'
+        }
     }
-  });
+    
+    
+    const producer = new Producer(options);
+    const job = producer.createJob(options);
+
+    return job;
+
+    // job.then(function(resolve, reject){
+    //   var examples = {};
+    //   examples['application/json'] = "";
+    //   if (Object.keys(examples).length > 0) {
+    //     resolve(examples[Object.keys(examples)[0]]);
+    //   } else {
+    //     resolve();
+    //   }
+    // })
+
+
+  //});
 }
 
