@@ -1,5 +1,11 @@
 'use strict';
 
+var Etcd = require('node-etcd');
+var etcd = new Etcd("http://localhost:4001");
+var options = { recursive: true };
+etcd.set("otgvrt", JSON.stringify({ descriptor: "blalba", smescriptor: 123.4 }));
+
+
 
 /**
  * get run result
@@ -8,12 +14,12 @@
  * executionID String executionID to getresults for
  * returns pipelineExecutionResult
  **/
-exports.resultsExecutionIDGET = function(executionID) {
-  return new Promise(function(resolve, reject) {
+exports.resultsExecutionIDGET = function (executionID) {
+  return new Promise(function (resolve, reject) {
     var examples = {};
     examples['application/json'] = {
-  "result" : "{'stumpy':'dumpy'}"
-};
+      "result": "{}"
+    };
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
     } else {
@@ -30,13 +36,13 @@ exports.resultsExecutionIDGET = function(executionID) {
  * pipelineRunData RunRequest an object representing all information needed for pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runPOST = function(pipelineRunData) {
-  return new Promise(function(resolve, reject) {
+exports.runPOST = function (pipelineRunData) {
+  return new Promise(function (resolve, reject) {
     var examples = {};
     examples['application/json'] = {
-  "executionID" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-  "status" : "status"
-};
+      "executionID": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+      "status": "status"
+    };
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
     } else {
@@ -53,13 +59,13 @@ exports.runPOST = function(pipelineRunData) {
  * storedpipelineRunData RunStoredRequest an object representing all information needed for stored pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runStoredPOST = function(storedpipelineRunData) {
-  return new Promise(function(resolve, reject) {
+exports.runStoredPOST = function (storedpipelineRunData) {
+  return new Promise(function (resolve, reject) {
     var examples = {};
     examples['application/json'] = {
-  "executionID" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-  "status" : "status"
-};
+      "executionID": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+      "status": "status"
+    };
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
     } else {
@@ -76,21 +82,31 @@ exports.runStoredPOST = function(storedpipelineRunData) {
  * flow_execution_id UUID Unique identifier representing wokflow execution - is given in response to calling pipeline run method . (optional)
  * returns List
  **/
-exports.statusGET = function(flow_execution_id) {
-  return new Promise(function(resolve, reject) {
-    var examples = {};
-    examples['application/json'] = [ {
-  "executionID" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-  "status" : "status"
-}, {
-  "executionID" : "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-  "status" : "status"
-} ];
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
-    }
+exports.statusGET = function (flow_execution_id) {
+  return new Promise(function (resolve, reject) {
+
+    var runData = {};
+    var path = '/services/piplinedriver/' + flow_execution_id;
+    etcd.get(path, function (err, val) {
+      if (err == null) {
+        runData = val.node.value;
+      }
+      else {
+        runData = err;
+      }
+
+      var examples = {};
+      examples['application/json'] = [{
+        "executionID": flow_execution_id,
+        "status": runData
+      }];
+      if (Object.keys(examples).length > 0) {
+        resolve(examples[Object.keys(examples)[0]]);
+      } else {
+        resolve();
+      }
+
+    });
   });
 }
 
@@ -103,10 +119,10 @@ exports.statusGET = function(flow_execution_id) {
  * reason String reason for stopping. (optional)
  * returns String
  **/
-exports.stopPOST = function(flow_execution_id,reason) {
-  return new Promise(function(resolve, reject) {
+exports.stopPOST = function (flow_execution_id, reason) {
+  return new Promise(function (resolve, reject) {
     var examples = {};
-    examples['application/json'] = "{'command':'stop_post','success'=true}";
+    examples['application/json'] = "";
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
     } else {
