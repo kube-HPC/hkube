@@ -1,0 +1,30 @@
+# OS generated files #
+######################
+lib-cov
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# node.js related
+node_modules
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+pids
+logs
+results
+
+npm-debug.log
+test/runner.js
+
+test/support/logstash/*
