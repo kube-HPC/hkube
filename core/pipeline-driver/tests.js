@@ -145,17 +145,18 @@ class Tests {
                 },
                 {
                     "nodeName": "node-2",
-                    "algorithmName": "blue-ipak",
+                    "algorithmName": "green-bla",
                     "input": "flowInput.data2",
-                    "batchInput": "flowInput.files2"
+                    "batchInput": "flowInput.files2",
+                    "waitAll": true
                 }
             ],
-            "links": [
-                {
-                    "source": "node-1",
-                    "target": "node-2"
-                },
-            ],
+            // "links": [
+            //     {
+            //         "source": "node-1",
+            //         "target": "node-2"
+            //     }
+            // ],
             "flowInput": {
                 str: "my str",
                 files1: ['links-1', 'links-2'],

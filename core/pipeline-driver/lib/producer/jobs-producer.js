@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
 const validate = require('djsv');
-const objectPath = require('object-path');
 const schema = require('./schema');
 const NodesMap = require('../graph/nodes-map');
 const { Producer } = require('producer-consumer.rf');
@@ -8,7 +7,7 @@ const consumer = require('../consumer/jobs-consumer');
 const stateManager = require('../state/state-manager');
 const Graph = require('../graph/graph-handler');
 const NodeState = require('../state/NodeState');
-const Node = require('../graph/Node');
+const inputParser = require('../parsers/input-parser');
 const debug = require('debug')('driver:producer');
 
 class JobProducer extends EventEmitter {
@@ -60,28 +59,14 @@ class JobProducer extends EventEmitter {
             }
         });
 
-        consumer.on('job-start', async (job) => {
-            this._currentJob = job;
-            this._parseInput(job.data);
-            this._driverKey = job.id;
-            this._graph = new Graph(job.data)
-            this._nodesMap = new NodesMap();
+        consumer.on('job-start', (job) => {
 
-            console.log('isDirected: ' + this._graph.isDirected());
-            console.log('isAcyclic: ' + this._graph.isAcyclic());
-            console.log('Cycles: ' + this._graph.findCycles());
+            this._onJobStart(job);
 
-            // first we will try to get the state for this job
-            let state = await stateManager.getWorkersState({ key: job.id });
-            if (false) {
-                stateManager.setDriverState({ key: job.id, value: { status: 'recovering' } });
-                this._producer.setJobsState(state);
-            }
-            else {
-                //stateManager.setDriverState({ key: job.id, value: { status: 'starting' } });
+            // console.log('isDirected: ' + this._graph.isDirected());
+            // console.log('isAcyclic: ' + this._graph.isAcyclic());
+            // console.log('Cycles: ' + this._graph.findCycles());
 
-                await this._runNodes(job.data);
-            }
             // Get data from Neo4j
             // console.log(job)
             // format the job data
@@ -90,14 +75,35 @@ class JobProducer extends EventEmitter {
         });
     }
 
-    _setWorkerState(data, status, result) {
-        const node = data.options.internalData.node;
-        const nodeState = new NodeState({ jobID: data.jobID, status: status, internalData: data.options.internalData });
-        stateManager.setWorkerState({ driverKey: this._driverKey, workerKey: data.jobID, value: nodeState });
-        this._nodesMap.updateState(node, status, result);
+    async _onJobStart(job) {
+        this._currentJob = job;
+        this._parseInput(job.data);
+        this._driverKey = job.id;
+        this._graph = new Graph(job.data)
+        this._nodesMap = new NodesMap(job.data);
+
+        // first we will try to get the state for this job
+        let state = await stateManager.getWorkersState({ key: job.id });
+        if (false) {
+            stateManager.setDriverState({ key: job.id, value: { status: 'recovering' } });
+            this._producer.setJobsState(state);
+        }
+        else {
+            //stateManager.setDriverState({ key: job.id, value: { status: 'starting' } });
+
+            this._runNodes(job.data);
+        }
     }
 
-    async _runNodes(options) {
+    _setWorkerState(data, status, result) {
+        const internal = data.options.internalData;
+        const nodeID = internal.batchID || internal.node;
+        const nodeState = new NodeState({ jobID: data.jobID, status: status, internalData: data.options.internalData });
+        stateManager.setWorkerState({ driverKey: this._driverKey, workerKey: data.jobID, value: nodeState });
+        this._nodesMap.updateState(nodeID, status, result);
+    }
+
+    _runNodes(options) {
         const entryNodes = this._graph.findEntryNodes();
         if (entryNodes.length === 0) {
             throw new Error('unable to find entry nodes');
@@ -108,13 +114,13 @@ class JobProducer extends EventEmitter {
     _runNode(nodeName, prevInput) {
         const current = this._graph.node(nodeName);
         if (current.batchInput.length > 0) {
-            current.batchInput.forEach((batch, i) => {
-                const node = new Node({ name: current.nodeName, batchID: `${current.nodeName}#${i}`, algorithm: current.algorithmName, input: batch });
+            current.batchInput.forEach((b, i) => {
+                const node = this._nodesMap.getNode(`${current.nodeName}#${i}`);
                 this._createJob(node, prevInput);
             })
         }
         else {
-            const node = new Node({ name: current.nodeName, algorithm: current.algorithmName, input: current.input });
+            const node = this._nodesMap.getNode(current.nodeName);
             this._createJob(node, prevInput);
         }
     }
@@ -124,8 +130,11 @@ class JobProducer extends EventEmitter {
             job: {
                 type: node.algorithm,
                 data: {
-                    input: node.input,
-                    prevInput: prevInput
+                    inputs: {
+                        standard: node.inputs.standard,
+                        batch: node.inputs.batch,
+                        previous: prevInput
+                    }
                 },
                 internalData: {
                     node: node.name,
@@ -133,7 +142,6 @@ class JobProducer extends EventEmitter {
                 }
             }
         }
-        this._nodesMap.addNode(node);
         this._producer.createJob(options);
     }
 
@@ -142,54 +150,10 @@ class JobProducer extends EventEmitter {
         return parents.map(p => this._nodesMap.getState(p)).every(s => s === 'completed');
     }
 
-    _parseValue(data, input) {
-        if (typeof input == null) {
-            return null;
-        }
-        else if (typeof input === 'string') {
-            input = objectPath.get(data, input);
-        }
-        else if (typeof input === 'object' && !Array.isArray(input)) {
-            this._recursivelyObject(data, input);
-        }
-        else if (Array.isArray(input)) {
-            this._recursivelyArray(data, input);
-        }
-        return input;
-    }
-
-    _recursivelyArray(data, array) {
-        array.forEach((a, i) => {
-            if (Array.isArray(a)) {
-                this._recursivelyArray(data, a);
-            }
-            else if (typeof a === 'object' && !Array.isArray(a)) {
-                this._recursivelyObject(data, a);
-            }
-            else if (typeof array[a] !== 'object') {
-                array[i] = objectPath.get(data, a);
-            }
-        })
-    }
-
-    _recursivelyObject(data, object) {
-        Object.entries(object).forEach(([key, val]) => {
-            if (Array.isArray(val)) {
-                this._recursivelyArray(data, val);
-            }
-            else if (typeof val === 'object' && !Array.isArray(val)) {
-                this._recursivelyObject(data, val);
-            }
-            else if (typeof object[key] !== 'object') {
-                object[key] = objectPath.get(data, val);
-            }
-        })
-    }
-
     _parseInput(options) {
         options.nodes.forEach(node => {
-            node.input = this._parseValue(options, node.input);
-            node.batchInput = this._parseValue(options, node.batchInput);
+            node.input = inputParser.parseValue(options, node.input);
+            node.batchInput = inputParser.parseValue(options, node.batchInput);
         });
     }
 }

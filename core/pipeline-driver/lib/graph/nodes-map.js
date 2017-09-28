@@ -4,6 +4,24 @@ class NodesMap {
 
     constructor(options) {
         this._map = new Map();
+        options.nodes.forEach(node => {
+            if (node.batchInput.length > 0) {
+                node.batchInput.forEach((b, i) => {
+                    this.addNode(new Node({
+                        name: node.nodeName,
+                        batchID: `${node.nodeName}#${i}`,
+                        algorithm: node.algorithmName,
+                        inputs: {
+                            standard: node.input,
+                            batch: b,
+                        }
+                    }));
+                })
+            }
+            else {
+                this.addNode(new Node({ name: node.nodeName, algorithm: node.algorithmName, inputs: { standard: node.input } }));
+            }
+        });
     }
 
     getNode(name) {
@@ -11,7 +29,7 @@ class NodesMap {
     }
 
     addNode(node) {
-        this._map.set(node.name, node);
+        this._map.set(node.batchID || node.name, node);
     }
 
     updateState(name, state, result) {
@@ -26,7 +44,7 @@ class NodesMap {
         return node.state;
     }
 
-    isAllNodesFinished(node) {
+    isAllNodesFinished() {
         const values = Array.from(this._map.values());
         return values.every(s => s.state === 'completed');
     }
@@ -36,6 +54,7 @@ class NodesMap {
         return values.map(n => {
             return {
                 name: n.name,
+                batchID: n.batchID,
                 algorithm: n.algorithm,
                 result: n.result
             }
