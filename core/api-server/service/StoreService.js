@@ -5,13 +5,13 @@
  * get all pipelines
  * returns all pipelines that are currently in the store (names list)
  *
- * returns defaultResponse
+ * returns piplineNames
  **/
 exports.storeGET = function() {
   return new Promise(function(resolve, reject) {
     var examples = {};
     examples['application/json'] = {
-  "message" : "message"
+  "piplineNamesList" : [ "piplineNamesList", "piplineNamesList" ]
 };
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
@@ -71,14 +71,12 @@ exports.storePipelineNameDELETE = function(pipelineName) {
  * returns stored pipeline
  *
  * pipelineName String pipeline name to get from the store
- * returns defaultResponse
+ * returns piplineNamesList
  **/
 exports.storePipelineNameGET = function(pipelineName) {
   return new Promise(function(resolve, reject) {
     var examples = {};
-    examples['application/json'] = {
-  "message" : "message"
-};
+    examples['application/json'] = "";
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
     } else {
