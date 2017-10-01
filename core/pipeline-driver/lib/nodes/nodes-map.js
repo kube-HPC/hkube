@@ -1,13 +1,15 @@
-const Node = require('./Node');
+const Node = require('lib/nodes/Node');
+const States = require('lib/state/States');
 
 class NodesMap {
 
     constructor(options) {
         this._map = new Map();
+        this._currentState = States.PENDING;
         options.nodes.forEach(node => {
-            if (node.batchInput.length > 0) {
+            if (Array.isArray(node.batchInput) && node.batchInput.length > 0) {
                 node.batchInput.forEach((b, i) => {
-                    this.addNode(new Node({
+                    this.addNode(`${node.nodeName}#${i}`, new Node({
                         name: node.nodeName,
                         batchID: `${node.nodeName}#${i}`,
                         algorithm: node.algorithmName,
@@ -19,7 +21,7 @@ class NodesMap {
                 })
             }
             else {
-                this.addNode(new Node({ name: node.nodeName, algorithm: node.algorithmName, inputs: { standard: node.input } }));
+                this.addNode(node.nodeName, new Node({ name: node.nodeName, algorithm: node.algorithmName, inputs: { standard: node.input } }));
             }
         });
     }
@@ -28,25 +30,34 @@ class NodesMap {
         return this._map.get(name);
     }
 
-    addNode(node) {
-        this._map.set(node.batchID || node.name, node);
-    }
-
-    updateState(name, state, result) {
-        const node = this._map.get(name);
-        node.state = state;
-        node.result = result;
+    addNode(name, node) {
         this._map.set(name, node);
     }
 
-    getState(name) {
+    updateNodeState(name, options) {
+        const node = this._map.get(name);
+        node.state = options.state;
+        node.result = options.result;
+        node.error = options.error;
+        this._map.set(name, node);
+    }
+
+    getNodeState(name) {
         const node = this._map.get(name);
         return node.state;
     }
 
-    isAllNodesFinished() {
+    set currentState(state) {
+        this._currentState = state;
+    }
+
+    get currentState() {
+        return this._currentState;
+    }
+
+    isAllNodesInState(state) {
         const values = Array.from(this._map.values());
-        return values.every(s => s.state === 'completed');
+        return values.every(s => s.state === state);
     }
 
     allNodesResults(node) {

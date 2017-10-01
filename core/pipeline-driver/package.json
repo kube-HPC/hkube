@@ -10,9 +10,9 @@
   "dependencies": {
     "bull": "^3.2.0",
     "config.rf": "^1.0.0",
-    "debug": "^3.0.1",
+    "debug": "^3.1.0",
     "djsv": "^1.4.2",
-    "etcd.rf": "^1.1.0",
+    "etcd.rf": "^1.1.1",
     "graphlib": "^2.1.1",
     "ioredis": "^3.1.4",
     "logger.rf": "^1.0.2",

@@ -11,9 +11,9 @@ const tests = require('./tests');
 let log;
 
 const modules = [
+    'lib/state/state-manager',
     'lib/producer/jobs-producer',
-    'lib/consumer/jobs-consumer',
-    'lib/state/state-manager'
+    'lib/consumer/jobs-consumer'
 ];
 
 class Bootstrap {
@@ -32,7 +32,7 @@ class Bootstrap {
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component: componentName.MAIN });
             });
-            await monitor.check(main.redis);
+            monitor.check(main.redis);
 
             await Promise.all(modules.map(m => require(m).init(main)));
 

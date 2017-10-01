@@ -1,3 +1,4 @@
+const States = require('lib/state/States');
 
 class Node {
 
@@ -11,7 +12,8 @@ class Node {
         this.inputs.batch = options.inputs.batch;
         this.inputs.previous = options.inputs.previous;
 
-        this.state = 'pending';
+        this.state = States.PENDING;
+        this.error = null;
         this.result = null;
     }
 }

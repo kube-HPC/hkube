@@ -11,7 +11,7 @@ class InputParser {
             return null;
         }
         else if (typeof input === 'string') {
-            input = objectPath.get(data, input);
+            input = this._tryGetPath(data, input);
         }
         else if (typeof input === 'object' && !Array.isArray(input)) {
             this._recursivelyObject(data, input);
@@ -30,10 +30,18 @@ class InputParser {
             else if (typeof a === 'object' && !Array.isArray(a)) {
                 this._recursivelyObject(data, a);
             }
-            else if (typeof array[a] !== 'object') {
-                array[i] = objectPath.get(data, a);
+            else if (typeof a !== 'object') {
+                array[i] = this._tryGetPath(data, a);
             }
         })
+    }
+
+    _tryGetPath(object, path) {
+        let result = path;
+        if (typeof path === 'string') {
+            result = objectPath.get(object, path, path);
+        }
+        return result;
     }
 
     _recursivelyObject(data, object) {
@@ -45,7 +53,7 @@ class InputParser {
                 this._recursivelyObject(data, val);
             }
             else if (typeof object[key] !== 'object') {
-                object[key] = objectPath.get(data, val);
+                object[key] = this._tryGetPath(data, val);
             }
         })
     }

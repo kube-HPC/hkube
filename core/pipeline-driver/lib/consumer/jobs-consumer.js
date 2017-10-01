@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const validate = require('djsv');
 const { Consumer } = require('producer-consumer.rf');
 const schema = require('./schema');
-const stateManager = require('../state/state-manager');
+const stateManager = require('lib/state/state-manager');
 
 class JobConsumer extends EventEmitter {
 
@@ -28,7 +28,7 @@ class JobConsumer extends EventEmitter {
                 if (res.action === 'set' && res.node.value) {
                     const r = JSON.parse(res.node.value);
                     if (r.status === 'stopped') {
-                        //this.emit('job-stop', job);
+                        this.emit('job-stop', job);
                     }
                 }
             });

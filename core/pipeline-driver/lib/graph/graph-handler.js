@@ -1,5 +1,5 @@
-const Graph = require("graphlib").Graph;
-const alg = require("graphlib").alg;
+const Graph = require('graphlib').Graph;
+const alg = require('graphlib').alg;
 
 class GraphHandler {
 

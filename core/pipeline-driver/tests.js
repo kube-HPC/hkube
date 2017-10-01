@@ -14,31 +14,31 @@ class Tests {
                 {
                     "nodeName": "green-bla-1",
                     "algorithmName": "green-bla-1",
-                    //"batchIndices": [0, 1],
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["flowInput.files", "flowInput.data1"]
                 },
                 {
                     "nodeName": "green-bla-2",
                     "algorithmName": "green-bla-2",
-                    //"batchIndex": 1,
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["green-bla-1.data", "flowInput.data2"]
                 },
                 {
                     "nodeName": "green-bla-3",
                     "algorithmName": "green-bla-3",
-                    //"batchIndex": 1,
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["green-bla-2.data", "flowInput.data3"]
                 },
                 {
                     "nodeName": "green-bla-4",
                     "algorithmName": "green-bla-4",
-                    //"batchIndex": 1,
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["green-bla-1.data", "green-bla-2.data", "green-bla-3.data"]
                 },
                 {
                     "nodeName": "green-bla-5",
                     "algorithmName": "green-bla-4",
-                    //"batchIndex": 1,
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["green-bla-1.data", "green-bla-2.data", "green-bla-3.data"]
                 }
             ],
@@ -77,25 +77,25 @@ class Tests {
                 {
                     "nodeName": "green-bla-1",
                     "algorithmName": "green-bla-1",
-                    //"batchIndices": [0, 1],
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["flowInput.files"]
                 },
                 {
                     "nodeName": "green-bla-2",
                     "algorithmName": "green-bla-2",
-                    //"batchIndex": 1,
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["flowInput.files"]
                 },
                 {
                     "nodeName": "green-bla-3",
                     "algorithmName": "green-bla-3",
-                    //"batchIndex": 1,
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["flowInput.files"]
                 },
                 {
                     "nodeName": "green-bla-4",
                     "algorithmName": "green-bla-4",
-                    //"batchIndex": 1,
+                    "batchInput": [1, 2, 3, 4],
                     "input": ["flowInput.files"]
                 }
             ],
@@ -125,6 +125,12 @@ class Tests {
             "name": "string",
             "nodes": [
                 {
+                    "nodeName": "node-test",
+                    "algorithmName": "green-bla",
+                    "input": [false, true, 0, 4, "bla", "flowInput.files1", { data: "flowInput.files2" }],
+                    "batchInput": "valds"
+                },
+                {
                     "nodeName": "node-1",
                     "algorithmName": "green-bla",
                     "input": [{
@@ -146,21 +152,22 @@ class Tests {
                 {
                     "nodeName": "node-2",
                     "algorithmName": "green-bla",
-                    "input": "flowInput.data2",
-                    "batchInput": "flowInput.files2",
+                    "input": "flowInput.data1",
+                    "batchInput": [1, 2, 3, 4],
                     "waitAll": true
                 }
             ],
-            // "links": [
-            //     {
-            //         "source": "node-1",
-            //         "target": "node-2"
-            //     }
-            // ],
+            "links": [
+                {
+                    "source": "node-1",
+                    "target": "node-2"
+                }
+            ],
             "flowInput": {
                 str: "my str",
                 files1: ['links-1', 'links-2'],
                 files2: ['links-3', 'links-4'],
+                files3: ['links-1', 'links-2', 'links-3', 'links-4'],
                 data1: "use this data 1",
                 data2: "use this data 2"
             },
@@ -196,14 +203,17 @@ class Tests {
         const p = new Producer(setting);
         setting.job.data = example3;
         p.createJob(setting);
+        p.on('job-failed', (data) => {
+            console.error(data.error);
+        });
     }
 }
 
 module.exports = new Tests();
 
-// setTimeout(() => {
-//    stateManager.setDriverState({ key: 'pipeline-driver-job:1046d36f-41fd-49a1-85c6-144fdf7d2129', value: { status: 'stopped' } });
-// }, 10000);
+setTimeout(() => {
+    stateManager.setDriverState({ key: 'pipeline-driver-job:1046d36f-41fd-49a1-85c6-144fdf7d2129', value: { status: 'stopped' } });
+}, 10000);
 
 //p.createJob(setting);
 //p.createJob(setting);
