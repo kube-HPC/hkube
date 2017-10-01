@@ -15,11 +15,6 @@ module.exports = {
         "setting": {
             "type": "object",
             "properties": {
-                "queueName": {
-                    "type": "string",
-                    "default": "queue-pipeline",
-                    "description": "the queue name"
-                },
                 "prefix": {
                     "type": "string",
                     "default": "jobs-pipeline",

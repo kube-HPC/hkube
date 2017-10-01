@@ -4,16 +4,26 @@ const alg = require('graphlib').alg;
 class GraphHandler {
 
     constructor(options) {
-        options.links = options.links || [];
         this._graph = new Graph();
 
-        if (!Array.isArray(options.nodes)) {
-            throw new ReferenceError('nodes');
-        }
         options.nodes.forEach(node => {
             this._graph.setNode(node.nodeName, node);
         });
-        options.links.forEach(link => {
+
+        const links = [];
+        options.nodes.forEach(node => {
+            node.input.forEach(input => {
+                if (typeof input === 'string' && input.charAt(0) !== '#') {
+                    const nodeName = input.split('.')[0];
+                    const n = this._graph.node(nodeName);
+                    if (n) {
+                        links.push({ source: n.nodeName, target: node.nodeName })
+                    }
+                }
+            })
+        });
+
+        links.forEach(link => {
             this._graph.setEdge(link.source, link.target);
         });
     }

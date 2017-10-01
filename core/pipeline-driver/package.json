@@ -12,13 +12,13 @@
     "config.rf": "^1.0.0",
     "debug": "^3.1.0",
     "djsv": "^1.4.2",
-    "etcd.rf": "^1.1.1",
+    "etcd.rf": "^1.1.3",
     "graphlib": "^2.1.1",
     "ioredis": "^3.1.4",
     "logger.rf": "^1.0.2",
     "node-etcd": "^5.1.0",
     "object-path": "^0.11.4",
-    "producer-consumer.rf": "^1.0.0",
+    "producer-consumer.rf": "^1.0.2",
     "redis-utils.rf": "^1.0.0"
   },
   "devDependencies": {

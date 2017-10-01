@@ -75,46 +75,30 @@ class Tests {
             "name": "string",
             "nodes": [
                 {
-                    "nodeName": "green-bla-1",
-                    "algorithmName": "green-bla-1",
-                    "batchInput": [1, 2, 3, 4],
-                    "input": ["flowInput.files"]
+                    "nodeName": "green-1",
+                    "algorithmName": "green-bla",
+                    "input": ["#flowInput.files1", false, 4]
                 },
                 {
-                    "nodeName": "green-bla-2",
-                    "algorithmName": "green-bla-2",
-                    "batchInput": [1, 2, 3, 4],
-                    "input": ["flowInput.files"]
+                    "nodeName": "green-2",
+                    "algorithmName": "green-bla",
+                    "input": ["green-1.result"]
                 },
                 {
-                    "nodeName": "green-bla-3",
-                    "algorithmName": "green-bla-3",
-                    "batchInput": [1, 2, 3, 4],
-                    "input": ["flowInput.files"]
+                    "nodeName": "green-3",
+                    "algorithmName": "green-bla",
+                    "input": ["green-1.result"]
                 },
                 {
-                    "nodeName": "green-bla-4",
-                    "algorithmName": "green-bla-4",
-                    "batchInput": [1, 2, 3, 4],
-                    "input": ["flowInput.files"]
-                }
-            ],
-            "links": [
-                {
-                    "source": "green-bla-1",
-                    "target": "green-bla-2"
-                },
-                {
-                    "source": "green-bla-2",
-                    "target": "green-bla-3"
-                },
-                {
-                    "source": "green-bla-3",
-                    "target": "green-bla-4"
+                    "nodeName": "green-4",
+                    "algorithmName": "green-bla",
+                    "input": ["green-2.result"]
                 }
             ],
             "flowInput": {
-                files: ['links-1', 'links-2', 'links-3']
+                file: 'links-1',
+                files1: ['links-1', 'links-2', 'links-3'],
+                files2: ['links-4', 'links-5', 'links-6']
             },
             "Webhook": {
                 "progressHook": "string",
@@ -124,31 +108,31 @@ class Tests {
         const example3 = {
             "name": "string",
             "nodes": [
-                {
-                    "nodeName": "node-test",
-                    "algorithmName": "green-bla",
-                    "input": [false, true, 0, 4, "bla", "flowInput.files1", { data: "flowInput.files2" }],
-                    "batchInput": "valds"
-                },
-                {
-                    "nodeName": "node-1",
-                    "algorithmName": "green-bla",
-                    "input": [{
-                        str: "flowInput.str",
-                        arrOfStr: ["flowInput.data2"],
-                        nestedObj: {
-                            b: {
-                                c: ["flowInput.data2"]
-                            }
-                        },
-                        arrOfObjects: [{
-                            e: "flowInput.data2"
-                        }, {
-                            f: "flowInput.data2"
-                        }]
-                    }],
-                    "batchInput": "flowInput.files1"
-                },
+                // {
+                //     "nodeName": "node-test",
+                //     "algorithmName": "green-bla",
+                //     "input": [false, true, 0, 4, "bla", "flowInput.files1", { data: "flowInput.files2" }],
+                //     "batchInput": "valds"
+                // },
+                // {
+                //     "nodeName": "node-1",
+                //     "algorithmName": "green-bla",
+                //     "input": [{
+                //         str: "flowInput.str",
+                //         arrOfStr: ["flowInput.data2"],
+                //         nestedObj: {
+                //             b: {
+                //                 c: ["flowInput.data2"]
+                //             }
+                //         },
+                //         arrOfObjects: [{
+                //             e: "flowInput.data2"
+                //         }, {
+                //             f: "flowInput.data2"
+                //         }]
+                //     }],
+                //     "batchInput": "flowInput.files1"
+                // },
                 {
                     "nodeName": "node-2",
                     "algorithmName": "green-bla",
@@ -157,12 +141,12 @@ class Tests {
                     "waitAll": true
                 }
             ],
-            "links": [
-                {
-                    "source": "node-1",
-                    "target": "node-2"
-                }
-            ],
+            // "links": [
+            //     {
+            //         "source": "node-1",
+            //         "target": "node-2"
+            //     }
+            // ],
             "flowInput": {
                 str: "my str",
                 files1: ['links-1', 'links-2'],
@@ -201,7 +185,7 @@ class Tests {
         const setting = {};
         const res = validate(schema, setting);
         const p = new Producer(setting);
-        setting.job.data = example3;
+        setting.job.data = example2;
         p.createJob(setting);
         p.on('job-failed', (data) => {
             console.error(data.error);

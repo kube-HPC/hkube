@@ -32,10 +32,6 @@ class JobProducer extends EventEmitter {
         }).on('job-active', (data) => {
             this._setWorkerState(data, States.ACTIVE);
         }).on('job-completed', (data) => {
-            if (this._nodesMap.currentState === States.FAILED) {
-                return;
-            }
-
             this._setWorkerState(data, States.COMPLETED);
             const node = data.options.internalData.node;
             const childs = this._graph.childs(node);
@@ -46,7 +42,7 @@ class JobProducer extends EventEmitter {
                 }
             });
 
-            if (this._nodesMap.isAllNodesInState(States.COMPLETED)) {
+            if (this._nodesMap.isAllNodesActive()) {
                 const results = this._nodesMap.allNodesResults();
                 this._currentJob.done(null, results);
             }
@@ -56,7 +52,6 @@ class JobProducer extends EventEmitter {
                 return;
             }
             this._setWorkerState(data, States.FAILED);
-            this._nodesMap.currentState = States.FAILED;
             this._currentJob.done(new Error('job has failed'));
         });
 
@@ -85,8 +80,8 @@ class JobProducer extends EventEmitter {
         this._currentJob = job;
         this._parseInput(job.data);
         this._driverKey = job.id;
-        this._graph = new Graph(job.data)
         this._nodesMap = new NodesMap(job.data);
+        this._graph = new Graph(job.data);
 
         // first we will try to get the state for this job
         const state = await stateManager.getState({ key: job.id });
@@ -96,7 +91,7 @@ class JobProducer extends EventEmitter {
             }
             else {
                 stateManager.setDriverState({ key: job.id, value: { status: States.RECOVERING } });
-                this._producer.setJobsState(state.workers);
+                this._producer.setJobsState(state.jobs);
             }
         }
         else {
@@ -112,7 +107,7 @@ class JobProducer extends EventEmitter {
     _stopWorkers(workers) {
         workers.forEach(w => {
             const nodeState = new NodeState({ jobID: w.jobID, status: States.STOPPED });
-            stateManager.setWorkerState({ driverKey: this._driverKey, workerKey: w.jobID, value: nodeState });
+            stateManager.setWorkerState({ key: w.jobID, value: nodeState });
         })
     }
 
@@ -133,16 +128,14 @@ class JobProducer extends EventEmitter {
     }
 
     _runNode(nodeName, prevInput) {
-        const current = this._graph.node(nodeName);
-        if (Array.isArray(current.batchInput) && current.batchInput.length > 0) {
-            current.batchInput.forEach((b, i) => {
-                const node = this._nodesMap.getNode(`${current.nodeName}#${i}`);
+        const nodes = this._nodesMap.getNodes(nodeName);
+        if (Array.isArray(nodes) && nodes.length > 1) {
+            nodes.forEach(node => {
                 this._createJob(node, prevInput);
             })
         }
         else {
-            const node = this._nodesMap.getNode(current.nodeName);
-            this._createJob(node, prevInput);
+            this._createJob(nodes[0], prevInput);
         }
     }
 
@@ -150,13 +143,7 @@ class JobProducer extends EventEmitter {
         const options = {
             job: {
                 type: node.algorithm,
-                data: {
-                    inputs: {
-                        standard: node.inputs.standard,
-                        batch: node.inputs.batch,
-                        previous: prevInput
-                    }
-                },
+                data: { input: node.input },
                 internalData: {
                     node: node.name,
                     batchID: node.batchID
@@ -174,7 +161,8 @@ class JobProducer extends EventEmitter {
     _parseInput(options) {
         options.nodes.forEach(node => {
             node.input = inputParser.parseValue(options, node.input);
-            node.batchInput = inputParser.parseValue(options, node.batchInput);
+
+            //node.batchInput = inputParser.parseValue(options, node.batchInput);
         });
     }
 }

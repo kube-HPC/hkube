@@ -28,7 +28,6 @@ const globalOptions = {
         removeOnFail: false
     },
     setting: {
-        queueName: 'sf-queue',
         prefix: 'sf-jobs',
         createClient: function (type) {
             return createClient();
@@ -293,7 +292,6 @@ describe('Test', function () {
                         data: { action: 'test' }
                     },
                     setting: {
-                        queueName: 'queue-stress-2',
                         prefix: 'jobs-stress-2',
                         createClient: (type) => {
                             switch (type) {

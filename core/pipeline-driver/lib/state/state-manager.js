@@ -23,12 +23,9 @@ class StateManager {
 
     _getDriverState(options) {
         return new Promise((resolve) => {
-            this._etcd.get(`${DRIVERS_PATH}/${options.key}`, { recursive: true }, (err, res) => {
+            this._etcd.get(`${DRIVERS_PATH}/${options.key}/instance`, (err, res) => {
                 if (err) {
-                    if (err.errorCode === 100) {
-                        return resolve();
-                    }
-                    return reject(err);
+                    return resolve();
                 }
                 return resolve(this._tryParseJSON(res.node.value));
             });
@@ -44,6 +41,21 @@ class StateManager {
                     }
                     return reject(err);
                 }
+                const jobs = res.node.nodes.map(n => this._tryParseJSON(n.value));
+                return resolve(jobs);
+            });
+        })
+    }
+
+    _getWorkersState(options) {
+        return new Promise((resolve) => {
+            this._etcd.get(`${WORKERS_PATH}`, { recursive: true }, (err, res) => {
+                if (err) {
+                    if (err.errorCode === 100) {
+                        return resolve();
+                    }
+                    return reject(err);
+                }
                 const workers = res.node.nodes.map(n => this._tryParseJSON(n.value));
                 return resolve(workers);
             });
@@ -53,8 +65,10 @@ class StateManager {
     async getState(options) {
         const driver = await this._getDriverState(options);
         if (driver) {
-            const workers = await this._getJobsState(options);
+            const jobs = await this._getJobsState(options);
+            const workers = await this._getWorkersState(options);
             const result = Object.assign({}, driver);
+            result.jobs = jobs;
             result.workers = workers;
             return result;
         }
@@ -62,7 +76,7 @@ class StateManager {
     }
 
     setWorkerState(options) {
-        this._etcd.set(`${DRIVERS_PATH}/${options.driverKey}/jobs/${options.workerKey}`, JSON.stringify(options.value), 1000, (err, res) => {
+        this._etcd.set(`${WORKERS_PATH}/${options.key}`, JSON.stringify(options.value), (err, res) => {
             if (err) {
                 return;
             }
