@@ -18,10 +18,9 @@ const config = {
 let log;
 describe('worker communication', () => {
     before(async () => {
-        const config = await configIt.load();
-
-        log = new Logger(config.main.serviceName, config.logger);
-        log.plugins.use(new VerbosityPlugin(config.main.redis));
+        const {main, logger} = await configIt.load();
+        log = new Logger(main.serviceName, logger);
+        log.plugins.use(new VerbosityPlugin(main.redis));
     })
     it('should create loopback adapter', async () => {
 

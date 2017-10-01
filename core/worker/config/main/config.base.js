@@ -1,7 +1,7 @@
 
 const config = module.exports = {};
 
-config.serviceName = 'worker';
+config.serviceName = 'workers';
 const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
 
 config.redis = {
@@ -11,6 +11,29 @@ config.redis = {
 };
 
 config.workerCommunication = {
-    adapterName:'loopback',
-    config:{}
+    adapterName: 'loopback',
+    config: {}
+}
+
+config.etcdDiscovery = {
+    init: {
+        etcd: {
+            host: process.env.ETCD_SERVICE_HOST || 'localhost',
+            port: process.env.ETCD_SERVICE_PORT || 4001,
+        },
+        serviceName:config.serviceName
+    },
+    register:{
+        // use defaults for now
+    }
+}
+
+config.jobConsumer={
+    job: {
+        type: process.env.JOB_TYPE || 'green-bla'
+    },
+    setting: {
+        queueName: 'queue-workers',
+        prefix: 'jobs-workers'
+    }
 }

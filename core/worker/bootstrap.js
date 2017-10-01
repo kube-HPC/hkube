@@ -10,7 +10,10 @@ const componentName = require('common/consts/componentNames');
 let log;
 
 const modules = [
-    'lib/algorunnerCommunication/workerCommunication.js'
+    'lib/algorunnerCommunication/workerCommunication.js',
+    'lib/consumer/JobConsumer.js',
+    'lib/states/discovery.js',
+    'lib/states/stateManager.js'
 ];
 
 class Bootstrap {
@@ -32,7 +35,6 @@ class Bootstrap {
             await monitor.check(main.redis);
 
             await Promise.all(modules.map(m => require(m).init(main)));
-
 
             return main;
         }

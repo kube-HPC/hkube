@@ -9,6 +9,7 @@
             "type": "node",
             "request": "launch",
             "name": "app",
+            "outputCapture": "std",       
             "program": "${workspaceRoot}/app.js"
         },
         {
@@ -17,6 +18,7 @@
             "type": "node",
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
+            "outputCapture": "std",
             "args": [
                 "test"
             ],
