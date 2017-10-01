@@ -18,5 +18,5 @@ cache:
 test_async:
   script: 
    - npm --registry http://greenape.ddns.net/npm/ install
-   - npm run test
+   - REDIS_SERVICE_HOST=redis npm run test
 
