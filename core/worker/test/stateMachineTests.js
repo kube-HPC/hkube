@@ -30,5 +30,7 @@ describe('state machine', () => {
         stateMachine.done();
         expect(stateMachine.state).to.eql(workerStates.ready)
     });
-
+    it('should fail to transition from ready to working', () => {
+        expect(stateMachine.start).to.throw()
+    });
 })

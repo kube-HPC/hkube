@@ -5,6 +5,7 @@ const { workerStates } = require('../../common/consts/states');
 class StateManager {
     constructor() {
         this._stateMachine = null;
+        this._job=null;
     }
     async init(options) {
         this._initStateMachine();
@@ -25,9 +26,6 @@ class StateManager {
 
     get state(){
         return this._stateMachine.state;
-    }
-    set state(s){
-        return this._stateMachine.state=s;
     }
 
     /**
@@ -83,10 +81,25 @@ class StateManager {
     error(options) {
         this._stateMachine.error();
     }
+    setJob(job){
+        this._job=job;
+    }
 
+    /**
+     * sets the new worker state
+     * 
+     * @param {any} options 
+     * @param {string} options.transition the required state transition
+     * @memberof StateManager
+     */
     async setWorkerState(options) {
-        const { job } = options;
-        await etcdDiscovery.setState({ data: { job } })
+        const { transition } = options;
+        const transitionFunc = this._stateMachine[transition].bind(this._stateMachine);
+        if (!transitionFunc){
+            throw new Error(`Invalid transition ${transition}`);
+        }
+        transitionFunc();
+        await etcdDiscovery.setState({ data: { job:this._job,state: this.state } })
     }
 }
 

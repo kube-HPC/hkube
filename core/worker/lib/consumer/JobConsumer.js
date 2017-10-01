@@ -21,7 +21,8 @@ class JobConsumer extends EventEmitter {
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.on('job', async (job) => {
             log.info(`Job arrived with inputs: ${JSON.stringify(job.inputs)}`)
-            await stateManager.setWorkerState({job});
+            stateManager.setJob({job});
+            await stateManager.setWorkerState({transition:'prepare'})
             this.emit('job',job);
         })
         this._consumer.register(this._options.jobConsumer)
