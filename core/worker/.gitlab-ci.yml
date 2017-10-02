@@ -25,5 +25,6 @@ test_async:
    - npm --registry http://greenape.ddns.net/npm/ install
    - export ETCD_SERVICE_HOST=etcd
    - export REDIS_SERVICE_HOST=redis 
+   - wget -qO- http://${ETCD_SERVICE_HOST}:4001/version
    - npm run test
 
