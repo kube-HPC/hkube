@@ -33,7 +33,7 @@ class Bootstrap {
                 log.error(data.error.message, { component: componentName.MAIN });
             });
             await monitor.check(main.redis);
-
+6
             await Promise.all(modules.map(m => require(m).init(main)));
 
             return main;

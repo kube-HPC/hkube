@@ -19,6 +19,10 @@
             "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
             "stopOnEntry": false,
             "outputCapture": "std",
+            "env": {
+                "REDIS_SERVICE_PORT":"9999"
+                
+            },
             "args": [
                 "test"
             ],

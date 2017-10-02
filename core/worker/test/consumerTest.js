@@ -1,7 +1,7 @@
 const configIt = require('config.rf');
 const Logger = require('logger.rf');
 const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
-
+const bootstrap = require('../bootstrap')
 const Consumer = require('../lib/consumer/JobConsumer');
 const discovery = require('../lib/states/discovery');
 const { Producer } = require('producer-consumer.rf');
@@ -16,13 +16,14 @@ const jobConsumerConfig = {
         setting: {
             queueName: 'queue-workers',
             prefix: 'jobs-workers',
-            redis:{
-                host: process.env.REDIS_SERVICE_HOST || 'localhost',
-                port: process.env.REDIS_SERVICE_PORT || 6379
-            }
+            
             
         }
     
+    },
+    redis:{
+        host: process.env.REDIS_SERVICE_HOST || 'localhost',
+        port: process.env.REDIS_SERVICE_PORT || 6379
     }
 }
 
@@ -39,7 +40,11 @@ const testProducer = {
 const producerSettings={
     setting:{
         queueName: 'queue-workers',
-        prefix: 'jobs-workers'
+        prefix: 'jobs-workers',
+        redis:{
+            host: process.env.REDIS_SERVICE_HOST || 'localhost',
+            port: process.env.REDIS_SERVICE_PORT || 6379
+        }
     }
 }
 let log;
@@ -47,10 +52,11 @@ let consumer;
 let producer;
 describe('consumer', () => {
     before(async () => {
-        const {main, logger} = await configIt.load();
-        log = new Logger(main.serviceName, logger);
-        log.plugins.use(new VerbosityPlugin(main.redis));
-        await discovery.init(main)
+        // const {main, logger} = await configIt.load();
+        // log = new Logger(main.serviceName, logger);
+        // log.plugins.use(new VerbosityPlugin(main.redis));
+        // await discovery.init(main)
+        await bootstrap.init();
         consumer = Consumer;
         await consumer.init(jobConsumerConfig);
 
