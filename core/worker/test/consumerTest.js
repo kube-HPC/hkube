@@ -5,7 +5,7 @@ const bootstrap = require('../bootstrap')
 const Consumer = require('../lib/consumer/JobConsumer');
 const discovery = require('../lib/states/discovery');
 const { Producer } = require('producer-consumer.rf');
-
+const stateManager = require('../lib/states/stateManager.js')
 const expect = require('chai').expect
 
 const jobConsumerConfig = {
@@ -74,6 +74,7 @@ describe('consumer', () => {
         
         producer = new Producer(producerSettings);
         consumer.on('job',(job=>{
+            expect(stateManager.state).to.eql('init');
             done();
         }))
         producer.createJob(testProducer)

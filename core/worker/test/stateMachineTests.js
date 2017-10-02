@@ -1,6 +1,10 @@
 const stateMachine = require('../lib/states/stateManager')
+const { stateEvents } = require('../common/consts/events');
+
 const { workerStates } = require('../common/consts/states')
 const { expect } = require('chai')
+const sinon = require('sinon');
+
 describe('state machine', () => {
     beforeEach(() => {
         stateMachine._initStateMachine();
@@ -28,6 +32,19 @@ describe('state machine', () => {
         stateMachine.start();
         stateMachine.finish();
         stateMachine.done();
+        expect(stateMachine.state).to.eql(workerStates.ready)
+    });
+    it('should raise event on state enter', () => {
+        const spy = sinon.spy();
+        stateMachine.on(stateEvents.stateEntered,spy);
+        stateMachine.prepare();
+        expect(spy.callCount).to.eql(1);
+        stateMachine.start();
+        expect(spy.callCount).to.eql(2);
+        stateMachine.finish();
+        expect(spy.callCount).to.eql(3);
+        stateMachine.done();
+        expect(spy.callCount).to.eql(4);
         expect(stateMachine.state).to.eql(workerStates.ready)
     });
     it('should fail to transition from ready to working', () => {
