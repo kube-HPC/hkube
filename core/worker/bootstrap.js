@@ -13,7 +13,8 @@ const modules = [
     'lib/algorunnerCommunication/workerCommunication.js',
     'lib/consumer/JobConsumer.js',
     'lib/states/discovery.js',
-    'lib/states/stateManager.js'
+    'lib/states/stateManager.js',
+    'lib/inputAdapters/inputAdapters.js'
 ];
 
 class Bootstrap {

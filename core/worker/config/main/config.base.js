@@ -37,3 +37,7 @@ config.jobConsumer={
         prefix: 'jobs-workers'
     }
 }
+
+config.inputAdapters={
+    storagePath:process.env.SHARED_STORAGE_PATH || './sharedStorage'
+}
