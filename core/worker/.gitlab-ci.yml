@@ -13,6 +13,7 @@ services:
     alias: etcd
 variables:
   ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379,http://0.0.0.0:4001"
+  ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379,http://etcd:4001"
 # This folder is cached between builds
 # http://docs.gitlab.com/ce/ci/yaml/README.html#cache
 cache:
