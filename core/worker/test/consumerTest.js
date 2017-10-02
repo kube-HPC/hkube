@@ -16,6 +16,10 @@ const jobConsumerConfig = {
         setting: {
             queueName: 'queue-workers',
             prefix: 'jobs-workers',
+            redis:{
+                host: process.env.REDIS_SERVICE_HOST || 'localhost',
+                port: process.env.REDIS_SERVICE_PORT || 6379
+            }
             
         }
     
