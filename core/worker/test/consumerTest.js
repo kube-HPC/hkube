@@ -15,7 +15,8 @@ const jobConsumerConfig = {
         },
         setting: {
             queueName: 'queue-workers',
-            prefix: 'jobs-workers'
+            prefix: 'jobs-workers',
+            
         }
     
     }

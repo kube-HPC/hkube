@@ -13,11 +13,14 @@ class JobConsumer extends EventEmitter {
 
     async init(options) {
         log = Logger.GetLogFromContainer();
-        this._options = options || {};
+        this._options = Object.assign({},options);
+        this._options.jobConsumer.setting.redis=options.redis
         if (this._consumer){
             this._consumer.removeAllListeners();
             this._consumer=null;
         }
+
+
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.on('job', async (job) => {
             log.info(`Job arrived with inputs: ${JSON.stringify(job.inputs)}`)
