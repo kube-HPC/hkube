@@ -27,7 +27,7 @@ class StateManager extends EventEmitter {
 
     _initStateMachine() {
         if (this._stateMachine){
-            // this.removeAllListeners();
+             this.removeAllListeners();
         }
         this._stateMachine = new stateMachine({
             init: workerStates.ready,

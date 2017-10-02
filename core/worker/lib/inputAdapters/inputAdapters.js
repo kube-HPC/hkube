@@ -3,8 +3,8 @@ const Logger = require('logger.rf');
 let log;
 const djsv = require('djsv');
 const schema = require('./inputAdaptersSchema').inputAdaptersSchema;
-const loopbackAdapter = require('./loopbackAdapter');
-const copyFileAdapter = require('./copyFileAdapter');
+const LoopbackAdapter = require('./loopbackAdapter');
+const CopyFileAdapter = require('./copyFileAdapter');
 const adapters = require('./consts').adapters;
 const stateManager = require('../states/stateManager');
 const { stateEvents } = require('../../common/consts/events');
@@ -15,8 +15,8 @@ class InputAdapters extends EventEmitter {
         super();
         this._options = null;
         this._adapters = {};
-        this._adapters[adapters.copyFile] = copyFileAdapter;
-        this._adapters[adapters.loopback] = loopbackAdapter;
+        this._adapters[adapters.copyFile] = new CopyFileAdapter();
+        this._adapters[adapters.loopback] = new LoopbackAdapter();
         this.adapter = null;
 
     }
@@ -32,10 +32,17 @@ class InputAdapters extends EventEmitter {
             throw new Error(validatedOptions.errorDescription);
         }
 
-        stateManager.on(stateEvents.stateEntered+workerStates.init,({job,state})=>{
+        await Promise.all(Object.keys(this._adapters).map(async adapterName=>{
+            await this._adapters[adapterName].init(options.inputAdapters[adapterName]);
+        }))
+        stateManager.on(stateEvents.stateEntered+workerStates.init,async ({job,state})=>{
             log.info(`input adapters activated with data: ${JSON.stringify(job.data.inputs)}`)
-            // this.handleInputs(job,job.data.inputs)
+            await this.handleInputs(job,job.data.inputs)
         })
+    }
+
+    async handleInputs(job,inputs){
+        
     }
 }
 

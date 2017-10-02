@@ -32,7 +32,10 @@ const testProducer = {
         type: 'test-job',
         data: {
             inputs: {
-                standard: 'input-1',
+                standard: [
+                    'input-1',
+                    'input-2'
+                ],
             }
         }
     }
