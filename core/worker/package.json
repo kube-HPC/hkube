@@ -16,7 +16,7 @@
     "axon": "^2.0.3",
     "config.rf": "^1.0.0",
     "djsv": "^1.4.0",
-    "etcd.rf": "^1.1.3",
+    "etcd.rf": "^1.1.4",
     "forward-emitter": "^0.1.1",
     "javascript-state-machine": "^3.0.1",
     "logger.rf": "^1.0.2",

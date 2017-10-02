@@ -47,14 +47,23 @@ describe('consumer', () => {
 
         consumer = Consumer;
         await consumer.init(jobConsumerConfig);
+
+        process.on('unhandledRejection', (error) => {
+            console.error('unhandledRejection: ' + error.message);
+        });
+        process.on('uncaughtException', (error) => {
+            console.error('uncaughtException: ' + error.message);
+        });
+
     })
 
   
     it('should get job', (done) => {
+        
         producer = new Producer(producerSettings);
         consumer.on('job',(job=>{
-            done();
+            setTimeout(done,3000)
         }))
         producer.createJob(testProducer)
-    })
+    }).timeout(5000)
 })
