@@ -3,6 +3,7 @@ const Logger = require('logger.rf');
 const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
 
 const Consumer = require('../lib/consumer/JobConsumer');
+const discovery = require('../lib/states/discovery');
 const { Producer } = require('producer-consumer.rf');
 
 const expect = require('chai').expect
@@ -44,7 +45,7 @@ describe('consumer', () => {
         const {main, logger} = await configIt.load();
         log = new Logger(main.serviceName, logger);
         log.plugins.use(new VerbosityPlugin(main.redis));
-
+        await discovery.init(main)
         consumer = Consumer;
         await consumer.init(jobConsumerConfig);
 
@@ -62,7 +63,7 @@ describe('consumer', () => {
         
         producer = new Producer(producerSettings);
         consumer.on('job',(job=>{
-            setTimeout(done,3000)
+            done();
         }))
         producer.createJob(testProducer)
     }).timeout(5000)
