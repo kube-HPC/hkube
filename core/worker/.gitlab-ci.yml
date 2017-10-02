@@ -11,7 +11,8 @@ services:
     alias: redis
   - name: quay.io/coreos/etcd:v2.3.8
     alias: etcd
-
+variables:
+  - ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379,http://0.0.0.0:4001"
 # This folder is cached between builds
 # http://docs.gitlab.com/ce/ci/yaml/README.html#cache
 cache:
@@ -21,5 +22,7 @@ cache:
 test_async:
   script: 
    - npm --registry http://greenape.ddns.net/npm/ install
-   - ETCD_SERVICE_HOST=etcd REDIS_SERVICE_HOST=redis npm run test
+   - export ETCD_SERVICE_HOST=etcd
+   - export REDIS_SERVICE_HOST=redis 
+   - npm run test
 
