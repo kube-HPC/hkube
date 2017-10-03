@@ -6,36 +6,29 @@ class NodesMap {
 
     constructor(options) {
         this._map = new Map();
-        this._currentState = States.PENDING;
+        const nodes = options.nodes.map((item) => item.nodeName);
+        const duplicates = this._findDuplicates(nodes);
+
+        if (duplicates.length > 0) {
+            throw new Error(`found duplicate nodes ${duplicates.join(',')}`);
+        }
         options.nodes.forEach(node => {
             if (!Array.isArray(node.input)) {
                 throw new Error(`node ${node.nodeName} input must be an array`);
             }
-            const index = this._findBatch(node.input);
-            if (index > -1) {
-                const inputs = inputParser.parseValue(options, node.input[index].substr(1));
-                if (!Array.isArray(inputs)) {
-                    throw new Error(`node ${node.nodeName} batch input must be an array`);
-                }
-                inputs.forEach((inp, ind) => {
-                    const input = node.input.slice();
-                    input[index] = inp;
-                    this.addNode(`${node.nodeName}#${ind}`, new Node({
-                        name: node.nodeName,
-                        batchID: `${node.nodeName}#${ind}`,
-                        algorithm: node.algorithmName,
-                        input: input
-                    }));
-                })
-            }
-            else {
-                this.addNode(node.nodeName, new Node({ name: node.nodeName, algorithm: node.algorithmName, input: node.input }));
-            }
         });
     }
 
-    _findBatch(input) {
-        return input.findIndex(i => typeof i === 'string' && i.charAt(0) === '#')
+    _findDuplicates(data) {
+        let result = [];
+        data.forEach((element, index) => {
+            if (data.indexOf(element, index + 1) > -1) {
+                if (result.indexOf(element) === -1) {
+                    result.push(element);
+                }
+            }
+        });
+        return result;
     }
 
     getNode(name) {
@@ -61,11 +54,10 @@ class NodesMap {
 
     getNodeState(name) {
         const node = this._map.get(name);
+        if (!node) {
+            console.log('p');
+        }
         return node.state;
-    }
-
-    set currentState(state) {
-        this._currentState = state;
     }
 
     get currentState() {
@@ -80,6 +72,11 @@ class NodesMap {
     isAllNodesActive() {
         const values = Array.from(this._map.values());
         return values.every(s => s.state !== States.PENDING);
+    }
+
+    nodeResults(node) {
+        const nodes = this.getNodes(node);
+        return nodes.map(n => n.result);
     }
 
     allNodesResults(node) {

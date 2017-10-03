@@ -1,5 +1,6 @@
 const Graph = require('graphlib').Graph;
 const alg = require('graphlib').alg;
+const inputParser = require('lib/parsers/input-parser');
 
 class GraphHandler {
 
@@ -13,9 +14,10 @@ class GraphHandler {
         const links = [];
         options.nodes.forEach(node => {
             node.input.forEach(input => {
-                if (typeof input === 'string' && input.charAt(0) !== '#') {
-                    const nodeName = input.split('.')[0];
-                    const n = this._graph.node(nodeName);
+                if ((typeof input === 'string') && (input.charAt(0) === '@' || input.charAt(0) === '#')) {
+                    const nodeName = input.substr(1);
+                    const result = inputParser.extractObject(nodeName);
+                    const n = this._graph.node(result.object);
                     if (n) {
                         links.push({ source: n.nodeName, target: node.nodeName })
                     }
