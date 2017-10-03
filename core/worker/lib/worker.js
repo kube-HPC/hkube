@@ -23,7 +23,7 @@ class Worker {
         })
 
         algoRunnerCommunication.on(messages.incomming.initialized, (data) => {
-
+             stateManager.start();
         })
 
     }

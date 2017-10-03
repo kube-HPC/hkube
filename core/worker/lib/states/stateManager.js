@@ -37,9 +37,14 @@ class StateManager extends EventEmitter {
                 { name: 'finish', from: workerStates.working, to: workerStates.shutdown },
                 { name: 'done', from: workerStates.shutdown, to: workerStates.ready },
                 { name: 'error', from: workerStates.working, to: workerStates.error },
-            ]
+            ],
+            methods:{
+                onPendingTransition :(transition, from, to)=>{
+
+                }
+            }
         });
-        this._stateMachine.observe('onEnterState', (state) => {
+        this._stateMachine.observe('onAfterTransition', (state) => {
             log.info(`entered state: ${state.from} -> ${state.to}`);
             this.emit(stateEvents.stateEntered,{
                 job:this._job,

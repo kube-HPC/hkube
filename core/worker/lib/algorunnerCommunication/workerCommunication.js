@@ -18,6 +18,10 @@ class WorkerCommunication extends EventEmitter {
         this.adapter = null;
     }
     async init(options) {
+        if (this.adapter){
+            this.adapter.removeAllListeners();
+            this.adapter=null;
+        }
         log = Logger.GetLogFromContainer();
         options = options || {};
         const validator = djsv(schema);

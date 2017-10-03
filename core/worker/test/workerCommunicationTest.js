@@ -1,8 +1,9 @@
 const configIt = require('config.rf');
 const Logger = require('logger.rf');
 const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
-
-
+const bootstrap = require('../bootstrap')
+const stateManager = require('../lib/states/stateManager')
+global.stateManager = stateManager;
 const messages = require('../lib/algorunnerCommunication/messages')
 const expect = require('chai').expect
 const sinon = require('sinon');
@@ -17,10 +18,10 @@ const config = {
 }
 let log;
 describe('worker communication', () => {
-    before(async () => {
-        const {main, logger} = await configIt.load();
-        log = new Logger(main.serviceName, logger);
-        log.plugins.use(new VerbosityPlugin(main.redis));
+    beforeEach(async () => {
+        await bootstrap.init();
+        await workerCommunication.init(config);
+        
     })
     it('should create loopback adapter', async () => {
 
@@ -29,7 +30,6 @@ describe('worker communication', () => {
     })
     it('should pass events', async () => {
         const spy = sinon.spy();
-        await workerCommunication.init(config);
         const adapter = workerCommunication.adapter;
         workerCommunication.on(messages.incomming.ping, spy)
         adapter.emit(messages.incomming.ping, '1', '2');
@@ -39,9 +39,12 @@ describe('worker communication', () => {
 
     it('should pass message.command events', async () => {
         const spy = sinon.spy();
-        await workerCommunication.init(config);
         const adapter = workerCommunication.adapter;
         workerCommunication.on(messages.incomming.initialized, spy)
+        expect(stateManager.state).to.equal('ready')
+        stateManager.prepare();
+        expect(stateManager.state).to.equal('init')
+        
         adapter.send({command:messages.outgoing.initialize,data:{xxx:'yyy'}});
         expect(spy.callCount).to.eq(1);
         expect(spy.getCall(0).args[0]).to.eql({xxx:'yyy'})
