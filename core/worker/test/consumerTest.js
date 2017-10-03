@@ -97,7 +97,7 @@ describe('consumer', () => {
     }).timeout(5000)
 
     it('should send init to worker', (done) => {
-        workerCommunication.on(messages.incomming.initialized, (data) => {
+        workerCommunication.once(messages.incomming.initialized, (data) => {
             done();
         })
         producer = new Producer(producerSettings);
