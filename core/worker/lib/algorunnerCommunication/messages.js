@@ -1,8 +1,19 @@
 module.exports={
     incomming:{
-        ping:'ping'
+        pong:'pong',
+        initialized:'initialized',
+        started:'started',
+        stopped:'stopped',
+        progress:'progress',
+        done:'done'
+
     },
     outgoing:{
-        pong:'pong'
+        ping:'ping',
+        initialize:'initialize',
+        start:'start',
+        cleanup:'cleanup',
+        stop:'stop'
+
     }
 }

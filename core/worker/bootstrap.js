@@ -8,13 +8,15 @@ const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
 const monitor = require('redis-utils.rf').Monitor;
 const componentName = require('common/consts/componentNames');
 let log;
+const worker = require('./lib/worker');
 
 const modules = [
     'lib/algorunnerCommunication/workerCommunication.js',
     'lib/consumer/JobConsumer.js',
     'lib/states/discovery.js',
     'lib/states/stateManager.js',
-    'lib/inputAdapters/inputAdapters.js'
+    'lib/inputAdapters/inputAdapters.js',
+    
 ];
 
 class Bootstrap {
@@ -34,8 +36,10 @@ class Bootstrap {
                 log.error(data.error.message, { component: componentName.MAIN });
             });
             await monitor.check(main.redis);
-6
+
             await Promise.all(modules.map(m => require(m).init(main)));
+            
+            await worker.init(main);
 
             return main;
         }

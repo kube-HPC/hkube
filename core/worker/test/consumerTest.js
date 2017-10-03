@@ -7,21 +7,23 @@ const discovery = require('../lib/states/discovery');
 const { Producer } = require('producer-consumer.rf');
 const stateManager = require('../lib/states/stateManager.js')
 const expect = require('chai').expect
+const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication')
+const messages = require('../lib/algorunnerCommunication/messages');
 
 const jobConsumerConfig = {
-    jobConsumer:{
+    jobConsumer: {
         job: {
             type: 'test-job'
         },
         setting: {
             queueName: 'queue-workers',
             prefix: 'jobs-workers',
-            
-            
+
+
         }
-    
+
     },
-    redis:{
+    redis: {
         host: process.env.REDIS_SERVICE_HOST || 'localhost',
         port: process.env.REDIS_SERVICE_PORT || 6379
     }
@@ -40,14 +42,21 @@ const testProducer = {
         }
     }
 }
-const producerSettings={
-    setting:{
+const producerSettings = {
+    setting: {
         queueName: 'queue-workers',
         prefix: 'jobs-workers',
-        redis:{
+        redis: {
             host: process.env.REDIS_SERVICE_HOST || 'localhost',
             port: process.env.REDIS_SERVICE_PORT || 6379
         }
+    }
+}
+const workerCommunicationConfig = {
+    workerCommunication:
+    {
+        adapterName: 'loopback',
+        config: {}
     }
 }
 let log;
@@ -59,9 +68,7 @@ describe('consumer', () => {
         // log = new Logger(main.serviceName, logger);
         // log.plugins.use(new VerbosityPlugin(main.redis));
         // await discovery.init(main)
-        await bootstrap.init();
-        consumer = Consumer;
-        await consumer.init(jobConsumerConfig);
+
 
         process.on('unhandledRejection', (error) => {
             console.error('unhandledRejection: ' + error.message);
@@ -72,14 +79,35 @@ describe('consumer', () => {
 
     })
 
-  
+    beforeEach(async () => {
+        await bootstrap.init();
+        consumer = Consumer;
+        await consumer.init(jobConsumerConfig);
+        await workerCommunication.init(workerCommunicationConfig);
+
+    });
     it('should get job', (done) => {
-        
+
         producer = new Producer(producerSettings);
-        consumer.on('job',(job=>{
+        consumer.once('job', (job => {
             expect(stateManager.state).to.eql('init');
             done();
         }))
         producer.createJob(testProducer)
     }).timeout(5000)
+
+    it('should send init to worker', (done) => {
+        workerCommunication.on(messages.incomming.initialized, (data) => {
+            done();
+        })
+        producer = new Producer(producerSettings);
+
+        producer.createJob(testProducer)
+
+    }).timeout(5000)
+
+
+
+
+
 })

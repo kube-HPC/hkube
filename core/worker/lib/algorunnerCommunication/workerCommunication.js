@@ -7,6 +7,7 @@ const socketAdapter = require('./socketWorkerCommunication');
 const loopbackAdapter = require('./loopbackWorkerCommunication');
 const adapters = require('./consts').adapters;
 const forward_emitter = require('forward-emitter');
+
 class WorkerCommunication extends EventEmitter {
     constructor() {
         super();
@@ -35,8 +36,23 @@ class WorkerCommunication extends EventEmitter {
         this.adapter = new adapterClass();
         await this.adapter.init(this._options.config);
         forward_emitter(this.adapter, this);
-
+        this.adapter.on('message',(message)=>{
+            this.emit(message.command,message.data);
+        })
     }
+
+    /**
+     * 
+     * 
+     * @param {any} message the message to send to the algoRunner.
+     * @param {string} message.command the command for the runner. one of messages.outgoing
+     * @param {object} message.data the data for the command
+     * @memberof WorkerCommunication
+     */
+    async send(message){
+        return await this.adapter.send(message);
+    }
+
 }
 
 module.exports = new WorkerCommunication();

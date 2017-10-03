@@ -32,8 +32,18 @@ describe('worker communication', () => {
         await workerCommunication.init(config);
         const adapter = workerCommunication.adapter;
         workerCommunication.on(messages.incomming.ping, spy)
-        adapter._loopback.emit(messages.incomming.ping, '1', '2');
+        adapter.emit(messages.incomming.ping, '1', '2');
         expect(spy.callCount).to.eq(1);
         expect(spy.getCall(0).args).to.eql(['1', '2'])
+    })
+
+    it('should pass message.command events', async () => {
+        const spy = sinon.spy();
+        await workerCommunication.init(config);
+        const adapter = workerCommunication.adapter;
+        workerCommunication.on(messages.incomming.initialized, spy)
+        adapter.send({command:messages.outgoing.initialize,data:{xxx:'yyy'}});
+        expect(spy.callCount).to.eq(1);
+        expect(spy.getCall(0).args[0]).to.eql({xxx:'yyy'})
     })
 })

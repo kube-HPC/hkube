@@ -8,24 +8,41 @@ class LoopbackWorkerCommunication extends EventEmitter {
     constructor() {
         super();
         this._options = null;
-        this._loopback=new EventEmitter();
     }
     async init(options) {
         options = options || {};
         const validator = djsv(schema);
-        const validatedOptions = validator(options);
-        if (validatedOptions.valid) {
-            this._options = validatedOptions.instance;
+        const validatadOptions = validator(options);
+        if (validatadOptions.valid) {
+            this._options = validatadOptions.instance;
         }
         else {
-            throw new Error(validatedOptions.errorDescription);
+            throw new Error(validatadOptions.errorDescription);
         }
-        Object.keys(messages.incomming).forEach((key)=>{
-            const eventName = messages.incomming[key];
-            this._loopback.on(eventName,(...args)=>{
-                this.emit(eventName,...args);
-            });
-        })
+
+
+    }
+
+    send(message) {
+        switch (message.command) {
+            case messages.outgoing.initialize:
+                this.emit('message', { command: messages.incomming.initialized, data: message.data })
+                break;
+            case messages.outgoing.start:
+                this.emit('message', { command: messages.incomming.started, data: message.data })
+                break;
+            case messages.outgoing.cleanup:
+                this.emit('message', { command: messages.incomming.done, data: message.data })
+                break;
+            case messages.outgoing.stop:
+                this.emit('message', { command: messages.incomming.stopped, data: message.data })
+                break;
+            case messages.outgoing.ping:
+                this.emit('message', { command: messages.incomming.pong, data: message.data })
+                break;
+            default:
+
+        }
     }
 }
 
