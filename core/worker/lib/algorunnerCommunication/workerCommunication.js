@@ -21,6 +21,8 @@ class WorkerCommunication extends EventEmitter {
         if (this.adapter){
             this.adapter.removeAllListeners();
             this.adapter=null;
+            this.removeAllListeners();
+            
         }
         log = Logger.GetLogFromContainer();
         options = options || {};

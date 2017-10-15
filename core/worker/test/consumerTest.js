@@ -70,12 +70,12 @@ describe('consumer', () => {
         // await discovery.init(main)
 
 
-        process.on('unhandledRejection', (error) => {
-            console.error('unhandledRejection: ' + error.message);
-        });
-        process.on('uncaughtException', (error) => {
-            console.error('uncaughtException: ' + error.message);
-        });
+        // process.on('unhandledRejection', (error) => {
+        //     console.error('unhandledRejection: ' + error.message);
+        // });
+        // process.on('uncaughtException', (error) => {
+        //     console.error('uncaughtException: ' + error.message);
+        // });
 
     })
 

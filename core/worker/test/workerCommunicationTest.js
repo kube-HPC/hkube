@@ -11,17 +11,17 @@ const workerCommunication = require('../lib/algorunnerCommunication/workerCommun
 const socketioclient = require('socket.io-client');
 const config = {
     workerCommunication:
-    {
-        adapterName: 'loopback',
-        config: {}
-    }
+        {
+            adapterName: 'loopback',
+            config: {}
+        }
 }
 let log;
 describe('worker communication', () => {
     beforeEach(async () => {
         await bootstrap.init();
         await workerCommunication.init(config);
-        
+
     })
     it('should create loopback adapter', async () => {
 
@@ -39,14 +39,14 @@ describe('worker communication', () => {
 
     it('should pass message.command events', async () => {
         const spy = sinon.spy();
-        const adapter = workerCommunication.adapter;
-        workerCommunication.on(messages.incomming.initialized, spy)
+
         expect(stateManager.state).to.equal('ready')
         stateManager.prepare();
         expect(stateManager.state).to.equal('init')
-        
-        adapter.send({command:messages.outgoing.initialize,data:{xxx:'yyy'}});
+        const adapter = workerCommunication.adapter;
+        workerCommunication.on(messages.incomming.initialized, spy)
+        adapter.send({ command: messages.outgoing.initialize, data: { xxx: 'yyy' } });
         expect(spy.callCount).to.eq(1);
-        expect(spy.getCall(0).args[0]).to.eql({xxx:'yyy'})
+        expect(spy.getCall(0).args[0]).to.eql({ xxx: 'yyy' })
     })
 })

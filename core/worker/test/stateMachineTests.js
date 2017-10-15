@@ -1,11 +1,32 @@
+const configIt = require('config.rf');
+const Logger = require('logger.rf');
+const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
+
 const stateMachine = require('../lib/states/stateManager')
 const { stateEvents } = require('../common/consts/events');
 
 const { workerStates } = require('../common/consts/states')
 const { expect } = require('chai')
 const sinon = require('sinon');
-
+let log;
 describe('state machine', () => {
+    before(async () => {
+        const {main, logger} = await configIt.load();
+        log = new Logger(main.serviceName, logger);
+        log.plugins.use(new VerbosityPlugin(main.redis));
+        await stateMachine.init(main);
+        // await discovery.init(main)
+
+
+        // process.on('unhandledRejection', (error) => {
+        //     console.error('unhandledRejection: ' + error.message);
+        // });
+        // process.on('uncaughtException', (error) => {
+        //     console.error('uncaughtException: ' + error.message);
+        // });
+
+    })
+
     beforeEach(() => {
         stateMachine._initStateMachine();
     });
