@@ -21,10 +21,6 @@ const socketWorkerCommunicationSchema = {
                     type:'integer',
                     default:3000
                 },
-                path:{
-                    type:'string',
-                    default:'/socket'
-                },
                 protocol:{
                     type:'string',
                     default:'ws'

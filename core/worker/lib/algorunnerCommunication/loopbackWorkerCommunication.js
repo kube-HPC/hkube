@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const log = require('logger.rf').GetLogFromContainer();
 const djsv = require('djsv');
-const schema = require('./workerCommunicatioConfigSchema').socketWorkerCommunicationSchema;
+const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const messages = require('./messages');
 
 class LoopbackWorkerCommunication extends EventEmitter {

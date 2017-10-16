@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const Logger = require('logger.rf');
 let log;
 const djsv = require('djsv');
-const schema = require('./workerCommunicatioConfigSchema').workerCommunicationSchema;
+const schema = require('./workerCommunicationConfigSchema').workerCommunicationSchema;
 const socketAdapter = require('./socketWorkerCommunication');
 const loopbackAdapter = require('./loopbackWorkerCommunication');
 const adapters = require('./consts').adapters;

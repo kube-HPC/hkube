@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const log = require('logger.rf').GetLogFromContainer();
 const djsv = require('djsv');
-const schema = require('./workerCommunicatioConfigSchema').socketWorkerCommunicationSchema;
+const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const socketio = require('socket.io');
 const forward_emitter = require('forward-emitter');
 
@@ -26,10 +26,7 @@ class SocketWorkerCommunication extends EventEmitter {
                     return reject(new Error(validatedOptions.errorDescription));
                 }
                 this._socketServer = socketio.listen(this._options.httpServer, { pingTimeout: this._options.pingTimeout });
-                const path = this._options.connection.path;
-                const ns = path.substring(path.lastIndexOf('/'));
-                this._sockerServerNamespace = this._socketServer.of(ns);
-                this._sockerServerNamespace.on('connection', (socket) => {
+                this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!')
                     this._registerSocketMessages(socket);
                 })
