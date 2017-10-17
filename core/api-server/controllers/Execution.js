@@ -1,10 +1,10 @@
 'use strict';
 
-var utils = require('../utils/writer.js');
-var Execution = require('../service/ExecutionService');
+const utils = require('../utils/writer.js');
+const Execution = require('../service/ExecutionService');
 
 module.exports.resultsExecutionIDGET = function resultsExecutionIDGET (req, res, next) {
-  var executionID = req.swagger.params['executionID'].value;
+  let executionID = req.swagger.params['executionID'].value;
   Execution.resultsExecutionIDGET(executionID)
     .then(function (response) {
       utils.writeJson(res, response);
@@ -15,7 +15,7 @@ module.exports.resultsExecutionIDGET = function resultsExecutionIDGET (req, res,
 };
 
 module.exports.runPOST = function runPOST (req, res, next) {
-  var pipelineRunData = req.swagger.params['pipelineRunData'].value;
+  let pipelineRunData = req.swagger.params['pipelineRunData'].value;
   Execution.runPOST(pipelineRunData)
     .then(function (response) {
       utils.writeJson(res, response);

@@ -1,5 +1,7 @@
 'use strict';
 
+const storedPipelinesMap = require('../service/storedPipelinesMap.js')
+
 const { Producer } = require('producer-consumer.rf');
 
 var Etcd = require('node-etcd');
@@ -61,18 +63,65 @@ exports.runPOST = function (pipelineRunData) {
  * storedpipelineRunData RunStoredRequest an object representing all information needed for stored pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runStoredPOST = function (storedpipelineRunData) {
-  return new Promise(function (resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-      "executionID": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-      "status": "status"
+exports.runStoredPOST = (storedpipelineRunData) => {
+  return new Promise((resolve, reject)=> {
+    let requestedPipe = storedPipelinesMap[storedpipelineRunData.storedpipelineId];
+    
+    //construct job data
+    let jobdata = {
+        "pipelineDescriptor": requestedPipe,
+        "flowInput": storedpipelineRunData.flowInput,
+        "Webhook": storedpipelineRunData.Webhook,
+      };
+
+    //fill response data
+    let retVal = {
+      "executionID": guid(),
+      "status": "pipeline sent to be created",
     };
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
+
+    let success = true;
+
+    //publish a job and set response when it finishes 
+    const options = {
+      job: {
+          type: 'test-job-stress-consume',
+          data: { action: 'test' }
+      },
+      setting: {
+          prefix: 'jobs-stress-2',
+          createClient: (type) => {
+              switch (type) {
+                  case 'client':
+                      return client;
+                  case 'subscriber':
+                      return subscriber;
+                  default:
+                      return createClient();
+              }
+          }
+      }
+    }
+    const producer = new Producer(options);
+
+    const setting = {};
+    const res = validate(schema, setting);
+    const p = new Producer(setting);
+    setting.job.data = example2;
+    p.createJob(setting);
+    p.on('job-failed', (data) => {
+        console.error(data.error);
+    });
+
+    //return job retVal in case of success;
+
+    // send response
+    if (success) {
+      resolve(examples[retVal]);
     } else {
       resolve();
     }
+
   });
 }
 
