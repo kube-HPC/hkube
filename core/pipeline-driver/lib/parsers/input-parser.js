@@ -24,6 +24,42 @@ class InputParser {
         return input;
     }
 
+    isWaitAny(input) {
+        return typeof input === 'string' && input.startsWith('*');
+    }
+
+    isWaitAnyBatch(input) {
+        return (typeof input === 'string') && input.startsWith('*#');
+    }
+
+    isWaitAnyNode(input) {
+        return typeof input === 'string' && input.startsWith('*@');
+    }
+
+    isBatch(input) {
+        return typeof input === 'string' && input.startsWith('#');
+    }
+
+    isNode(input) {
+        return typeof input === 'string' && input.startsWith('@');
+    }
+
+    waitAnyInputIndex(input) {
+        return input.findIndex(i => this.isWaitAny(i));
+    }
+
+    batchInputIndex(input) {
+        return input.findIndex(i => this.isBatch(i));
+    }
+
+    waitAnyBatchInputIndex(input) {
+        return input.findIndex(i => this.isWaitAnyBatch(i));
+    }
+
+    nodeInputIndex(input) {
+        return input.findIndex(i => this.isNode(i))
+    }
+
     extractObject(input) {
         const array = input.split('.');
         const object = array.shift();

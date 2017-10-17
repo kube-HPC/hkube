@@ -16,6 +16,11 @@ class NodesMap {
             if (!Array.isArray(node.input)) {
                 throw new Error(`node ${node.nodeName} input must be an array`);
             }
+            const batchIndex = inputParser.batchInputIndex(node.input);
+            const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
+            if (batchIndex > -1 && waitAnyIndex > -1) {
+                throw new Error(`node ${node.nodeName} input cannot be batch and waitAny`);
+            }
         });
     }
 
@@ -54,9 +59,6 @@ class NodesMap {
 
     getNodeState(name) {
         const node = this._map.get(name);
-        if (!node) {
-            console.log('p');
-        }
         return node.state;
     }
 

@@ -14,8 +14,8 @@ class GraphHandler {
         const links = [];
         options.nodes.forEach(node => {
             node.input.forEach(input => {
-                if ((typeof input === 'string') && (input.charAt(0) === '@' || input.charAt(0) === '#')) {
-                    const nodeName = input.substr(1);
+                const nodeName = this._findNodeFromInput(input);
+                if (nodeName) {
                     const result = inputParser.extractObject(nodeName);
                     const n = this._graph.node(result.object);
                     if (n) {
@@ -28,6 +28,17 @@ class GraphHandler {
         links.forEach(link => {
             this._graph.setEdge(link.source, link.target);
         });
+    }
+
+    _findNodeFromInput(input) {
+        let nodeName;
+        if ((inputParser.isBatch(input) || inputParser.isNode(input))) {
+            nodeName = input.substr(1);
+        }
+        else if (inputParser.isWaitAny(input)) {
+            nodeName = input.substr(2);
+        }
+        return nodeName;
     }
 
     findEntryNodes() {

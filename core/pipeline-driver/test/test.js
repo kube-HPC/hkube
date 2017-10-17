@@ -1,43 +1,5 @@
 const { expect } = require('chai');
 const Redis = require('ioredis');
-const { Producer, Consumer } = require('../index');
-const Queue = require('bull');
-
-const redisHost = process.env.REDIS_CLUSTER_SERVICE_HOST || '127.0.0.1';
-const redisPort = process.env.REDIS_CLUSTER_SERVICE_PORT || 6379;
-const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
-const redisConfig = { host: redisHost, port: redisPort };
-
-const client = createClient();
-const subscriber = createClient();
-
-const globalOptions = {
-    job: {
-        resolveOnStart: false,
-        resolveOnComplete: false,
-        type: 'test-job-global',
-        data: { action: 'bla' },
-        waitingTimeout: 5000
-    },
-    queue: {
-        priority: 1,
-        delay: 1000,
-        timeout: 5000,
-        attempts: 3,
-        removeOnComplete: true,
-        removeOnFail: false
-    },
-    setting: {
-        prefix: 'sf-jobs',
-        createClient: function (type) {
-            return createClient();
-        }
-    }
-}
-
-function createClient() {
-    return useCluster ? new Redis.Cluster([redisConfig]) : new Redis(redisConfig)
-}
 
 describe('Test', function () {
     describe('Producer', function () {
