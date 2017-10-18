@@ -1,16 +1,15 @@
 const States = require('lib/state/States');
 
-class Node {
+class NodeBase {
 
     constructor(options) {
         this.name = options.name;
-        this.batchID = options.batchID;
         this.algorithm = options.algorithm;
         this.input = options.input;
-        this.state = States.PENDING;
+        this.state = States.NONE;
         this.error = null;
         this.result = null;
     }
 }
 
-module.exports = Node;
+module.exports = NodeBase;

@@ -12,30 +12,37 @@ class Tests {
             "name": "string",
             "nodes": [
                 {
-                    "nodeName": "green-1",
+                    "nodeName": "green",
                     "algorithmName": "green-alg",
-                    "input": ["#flowInput.files1"]
+                    "input": ["@flowInput.files.links1", { "data": "#@flowInput.files.links1" }]
                 },
                 {
-                    "nodeName": "green-2",
-                    "algorithmName": "green-alg-x",
-                    "input": ["@green-1", "@green-1.data.result", "flowInput.files1"]
+                    "nodeName": "yellow",
+                    "algorithmName": "yellow-alg",
+                    "input": [3, { "data": "@green.data.result", "data2": "@green.data.result" }, 4, "@flowInput.files.links1", 6]
                 },
-                {
-                    "nodeName": "green-3",
-                    "algorithmName": "green-alg",
-                    "input": ["@green-1", "@green-2", true, 4, "bla", "flowInput.files1", { "data": "flowInput.files2" }],
-                },
-                {
-                    "nodeName": "green-4",
-                    "algorithmName": "green-alg",
-                    "input": ["@green-1", "mooo", "@green-2", "mooo", "@green-3"]
-                }
+                // {
+                //     "nodeName": "yellow",
+                //     "algorithmName": "yellow-alg",
+                //     "input": ["#['@green','@green']", "@green.data.result", "flowInput.files1"]
+                // },
+                // {
+                //     "nodeName": "black",
+                //     "algorithmName": "green-alg",
+                //     "input": ["@white", "@green-2", true, 4, "bla", "flowInput.files1", { "data": "flowInput.files2" }],
+                // },
+                // {
+                //     "nodeName": "green-4",
+                //     "algorithmName": "green-alg",
+                //     "input": ["@green-1", "mooo", "@green-2", "mooo", "@green-3"]
+                // }
             ],
             "flowInput": {
-                file: 'links-1',
-                files1: ['links-1', 'links-2', 'links-3'],
-                files2: ['links-4', 'links-5', 'links-6']
+                "files": {
+                    "link": 'links-1',
+                    "links1": ['links-1', 'links-2', 'links-3'],
+                    "links2": ['links-4', 'links-5', 'links-6']
+                }
             },
             "Webhook": {
                 "progressHook": "string",

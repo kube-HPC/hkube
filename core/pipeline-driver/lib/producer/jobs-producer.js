@@ -2,23 +2,21 @@ const EventEmitter = require('events');
 const validate = require('djsv');
 const { Producer } = require('producer-consumer.rf');
 const schema = require('lib/producer/schema');
-const NodesMap = require('lib/nodes/nodes-map');
 const consumer = require('lib/consumer/jobs-consumer');
 const stateManager = require('lib/state/state-manager');
-const Graph = require('lib/graph/graph-handler');
+const NodesHandler = require('lib/nodes/nodes-handler');
 const States = require('lib/state/States');
 const NodeState = require('lib/state/NodeState');
 const inputParser = require('lib/parsers/input-parser');
-const Node = require('lib/nodes/Node');
+const Batch = require('lib/nodes/batch');
 
 class JobProducer extends EventEmitter {
 
     constructor() {
         super();
         this._driverKey = null;
-        this._nodesMap = null;
         this._producer = null;
-        this._graph = null;
+        this._nodes = null;
     }
 
     init(options) {
@@ -36,9 +34,9 @@ class JobProducer extends EventEmitter {
         }).on('job-completed', (data) => {
             this._setWorkerState(data, States.COMPLETED);
             const nodeName = data.options.internalData.node;
-            const childs = this._graph.childs(nodeName);
+            const childs = this._nodes.childs(nodeName);
             childs.forEach(child => {
-                const node = this._graph.node(child);
+                const node = this._nodes.getNode(child);
                 const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
                 if (waitAnyIndex > -1) {
                     this._runWaitAny(child, data.result);
@@ -46,7 +44,7 @@ class JobProducer extends EventEmitter {
                 else {
                     const allFinished = this._isAllParentsFinished(child);
                     if (allFinished) {
-                        const results = this._nodesMap.nodeResults(nodeName);
+                        const results = this._nodes.nodeResults(nodeName);
                         this._runNode(child, results);
                     }
                 }
@@ -61,7 +59,6 @@ class JobProducer extends EventEmitter {
             let state = await stateManager.getState({ key: job.id });
             this._onJobStop(state);
         });
-
         consumer.on('job-start', (job) => {
             this._onJobStart(job);
             // console.log('isDirected: ' + this._graph.isDirected());
@@ -76,7 +73,7 @@ class JobProducer extends EventEmitter {
     }
 
     _runNode(nodeName, nodeInput) {
-        const node = this._graph.node(nodeName);
+        const node = this._nodes.getNode(nodeName);
         const batchIndex = inputParser.batchInputIndex(node.input);
         const nodeIndex = inputParser.nodeInputIndex(node.input);
         const options = Object.assign({}, this._options, node);
@@ -86,34 +83,27 @@ class JobProducer extends EventEmitter {
                 input = nodeInput;
             }
             else {
-                input = inputParser.parseValue(options, node.input[batchIndex].substr(1));
+                //const obj = inputParser.extractObjectFromInput(node.input[batchIndex]);
+                input = inputParser.parseValue(options, node.input[batchIndex]);
             }
             this._runBatch(nodeName, input, batchIndex);
         }
-        else if (nodeIndex > -1) {
+        else {
             const input = node.input.slice();
-            node.input.forEach((inp, ind) => {
-                if (inputParser.isNode(inp)) {
-                    const output = this._getNodeOutput(inp);
-                    input[ind] = output;
-                }
-                else {
-                    input[ind] = inputParser.parseValue(options, inp);
+            input.forEach((inp, ind) => {
+                if (nodeInput) {
+                    nodeInput.forEach((ni) => {
+                        inputParser.parseNodeInput(ni, inp);
+                    })
                 }
             })
-            const n = new Node({ name: node.nodeName, algorithm: node.algorithmName, input: input });
-            this._nodesMap.addNode(n.name, n);
-            this._createJob(n);
-        }
-        else {
-            const n = new Node({ name: node.nodeName, algorithm: node.algorithmName, input: node.input });
-            this._nodesMap.addNode(n.name, n);
-            this._createJob(n);
+            this._nodes.setNode(node.name, { input: input });
+            this._createJob(node);
         }
     }
 
     _runBatch(nodeName, nodeInput, inputIndex) {
-        const node = this._graph.node(nodeName);
+        const node = this._nodes.getNode(nodeName);
         if (!Array.isArray(nodeInput)) {
             throw new Error(`node ${nodeName} batch input must be an array`);
         }
@@ -130,19 +120,19 @@ class JobProducer extends EventEmitter {
                 }
             });
             input[inputIndex] = inp;
-            const n = new Node({
-                name: node.nodeName,
-                batchID: `${node.nodeName}#${(ind + 1)}`,
-                algorithm: node.algorithmName,
+            const batch = new Batch({
+                name: node.name,
+                batchID: `${node.name}#${(ind + 1)}`,
+                algorithm: node.algorithm,
                 input: input
             });
-            this._nodesMap.addNode(n.batchID, n);
-            this._createJob(n);
+            this._nodes.addBatch(batch);
+            this._createJob(batch);
         })
     }
 
     _runWaitAny(nodeName, nodeInput) {
-        const node = this._graph.node(nodeName);
+        const node = this._nodes.getNode(nodeName);
         const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
         const input = node.input.slice();
         input.forEach((inp, ind) => {
@@ -161,14 +151,13 @@ class JobProducer extends EventEmitter {
                 input[ind] = inputParser.parseValue(nodeInput, result.path);
             }
         });
-        const n = new Node({ name: node.nodeName, algorithm: node.algorithmName, input: input });
-        this._nodesMap.addNode(n.name, n);
-        this._createJob(n);
+        this._nodes.setNode(node.name, { input: input });
+        this._createJob(node);
     }
 
     _jobDone() {
-        if (this._nodesMap.isAllNodesActive()) {
-            const results = this._nodesMap.allNodesResults();
+        if (this._nodes.isAllNodesDone()) {
+            const results = this._nodes.allNodesResults();
             this._currentJob.done(null, results);
         }
     }
@@ -176,8 +165,7 @@ class JobProducer extends EventEmitter {
     _getNodeOutput(node) {
         const nodeName = node.substr(1);
         const result = inputParser.extractObject(nodeName);
-        const nodes = this._nodesMap.getNodes(result.object);
-        const results = nodes.map(n => n.result);
+        const results = this._nodes.getNodeResults(result.object);
         const output = results.map(r => inputParser.parseValue(r, result.path));
         return output;
     }
@@ -185,8 +173,7 @@ class JobProducer extends EventEmitter {
     async _onJobStart(job) {
         this._currentJob = job;
         this._driverKey = job.id;
-        this._nodesMap = new NodesMap(job.data);
-        this._graph = new Graph(job.data);
+        this._nodes = new NodesHandler(job.data);
         this._options = job.data;
 
         // first we will try to get the state for this job
@@ -219,14 +206,13 @@ class JobProducer extends EventEmitter {
 
     _setWorkerState(data, state) {
         const internal = data.options.internalData;
-        const nodeID = internal.batchID || internal.node;
-        this._nodesMap.updateNodeState(nodeID, { state: state, error: data.error, result: data.result });
+        this._nodes.updateNodeState(internal.node, internal.batchID, { state: state, error: data.error, result: data.result });
         const nodeState = new NodeState({ jobID: data.jobID, state: state, internalData: internal, error: data.error, result: data.result });
         stateManager.setWorkerState({ driverKey: this._driverKey, workerKey: data.jobID, value: nodeState });
     }
 
     _startNodes(options) {
-        const entryNodes = this._graph.findEntryNodes();
+        const entryNodes = this._nodes.findEntryNodes();
         if (entryNodes.length === 0) {
             throw new Error('unable to find entry nodes');
         }
@@ -248,13 +234,10 @@ class JobProducer extends EventEmitter {
     }
 
     _isAllParentsFinished(node) {
-        const parents = this._graph.parents(node);
-        const states = [];
+        const parents = this._nodes.parents(node);
+        let states = [];
         parents.forEach(p => {
-            const nodes = this._nodesMap.getNodes(p);
-            nodes.forEach(n => {
-                states.push(this._nodesMap.getNodeState(n.batchID || n.name));
-            })
+            states = states.concat(this._nodes.getNodeStates(p));
         })
         return states.every(s => s === States.COMPLETED);
     }

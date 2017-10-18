@@ -1,6 +1,7 @@
-const Node = require('lib/nodes/Node');
+const Node = require('lib/nodes/node');
 const States = require('lib/state/States');
 const inputParser = require('lib/parsers/input-parser');
+const deepExtend = require('deep-extend');
 
 class NodesMap {
 
@@ -21,6 +22,7 @@ class NodesMap {
             if (batchIndex > -1 && waitAnyIndex > -1) {
                 throw new Error(`node ${node.nodeName} input cannot be batch and waitAny`);
             }
+            this.addNode(node.nodeName, new Node({ name: node.nodeName, algorithm: node.algorithmName, input: node.input }));
         });
     }
 
@@ -47,6 +49,21 @@ class NodesMap {
 
     addNode(name, node) {
         this._map.set(name, node);
+    }
+
+    addBatch(batch) {
+        const node = this._map.get(batch.name);
+        if (node) {
+            node.batch.push(batch);
+        }
+    }
+
+    setNode(name, node) {
+        const n = this._map.get(name);
+        if (n) {
+            deepExtend(n, node);
+            this._map.set(name, n);
+        }
     }
 
     updateNodeState(name, options) {
@@ -92,7 +109,6 @@ class NodesMap {
             }
         });
     }
-
 }
 
 module.exports = NodesMap;

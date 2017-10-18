@@ -11,6 +11,7 @@
     "bull": "^3.2.0",
     "config.rf": "^1.0.0",
     "debug": "^3.1.0",
+    "deep-extend": "^0.5.0",
     "djsv": "^1.4.2",
     "etcd.rf": "^1.1.4",
     "graphlib": "^2.1.1",
