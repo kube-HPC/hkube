@@ -11,7 +11,7 @@ config.redis = {
 };
 
 config.workerCommunication = {
-    adapterName: 'loopback',
+    adapterName: 'socket',
     config: {}
 }
 

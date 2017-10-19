@@ -10,7 +10,11 @@
             "request": "launch",
             "name": "app",
             "outputCapture": "std",       
-            "program": "${workspaceRoot}/app.js"
+            "program": "${workspaceRoot}/app.js",
+            "env": {
+                "REDIS_SERVICE_PORT":"9999"
+                
+            },
         },
         {
             "name": "Run mocha",

@@ -30,10 +30,6 @@ const socketWorkerCommunicationSchema = {
         pingTimeout:{
             type:'integer',
             default:30000
-        },
-        httpServer:{
-            type:'object',
-            required:'true'
         }
     }
 }

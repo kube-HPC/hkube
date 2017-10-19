@@ -25,7 +25,9 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.initialized, (data) => {
              stateManager.start();
         })
-
+        algoRunnerCommunication.on('message', (message) => {
+            log.info(`got: ${JSON.stringify(message)}`)
+        })
     }
 
 

@@ -1,10 +1,11 @@
 const EventEmitter = require('events');
-const log = require('logger.rf').GetLogFromContainer();
+const Logger = require('logger.rf');
 const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const socketio = require('socket.io');
 const forward_emitter = require('forward-emitter');
-
+const http = require('http');
+let log;
 class SocketWorkerCommunication extends EventEmitter {
     constructor() {
         super();
@@ -14,6 +15,7 @@ class SocketWorkerCommunication extends EventEmitter {
 
     }
     init(options) {
+        log = Logger.GetLogFromContainer();
         return new Promise((resolve, reject) => {
             try {
                 options = options || {};
@@ -25,12 +27,18 @@ class SocketWorkerCommunication extends EventEmitter {
                 else {
                     return reject(new Error(validatedOptions.errorDescription));
                 }
-                this._socketServer = socketio.listen(this._options.httpServer, { pingTimeout: this._options.pingTimeout });
+                const server = this._options.httpServer||http.createServer();
+                this._socketServer = socketio.listen(server, { pingTimeout: this._options.pingTimeout });
                 this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!')
                     this._registerSocketMessages(socket);
+                    this.emit('connection');
                 })
-                return resolve();
+                if (!this._options.httpServer){
+                    server.listen(this._options.connection.port,()=>{
+                        return resolve();
+                    })
+                }
             } catch (error) {
                 return reject(error);
             }
@@ -39,7 +47,9 @@ class SocketWorkerCommunication extends EventEmitter {
 
     _registerSocketMessages(socket) {
         this._socket = socket;
-        forward_emitter(socket, this);
+        socket.on('message',(message)=>{
+            this.emit('message',message);
+        });
         socket.on('disconnect',()=>{
             log.info('socket disconnected');
             this._socket=null;
@@ -59,7 +69,7 @@ class SocketWorkerCommunication extends EventEmitter {
             log.error(error);
             throw new Error(error)
         }
-        this._socket.send(message);
+        this._socket.emit('message',message);
     }
 
     async sendForReply(message){

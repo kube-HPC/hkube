@@ -13,7 +13,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axon": "^2.0.3",
     "config.rf": "^1.0.0",
     "djsv": "^1.4.0",
     "etcd.rf": "^1.1.4",
