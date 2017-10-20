@@ -63,66 +63,50 @@ exports.runPOST = function (pipelineRunData) {
  * storedpipelineRunData RunStoredRequest an object representing all information needed for stored pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runStoredPOST = (storedpipelineRunData) => {
-  return new Promise((resolve, reject)=> {
-    let requestedPipe = storedPipelinesMap[storedpipelineRunData.storedpipelineId];
-    
-    //construct job data
-    let jobdata = {
-        "pipelineDescriptor": requestedPipe,
-        "flowInput": storedpipelineRunData.flowInput,
-        "Webhook": storedpipelineRunData.Webhook,
-      };
+exports.runStoredPOST = async (storedpipelineRunData) => {
+  let requestedPipe = storedPipelinesMap[storedpipelineRunData.name];
 
-    //fill response data
-    let retVal = {
-      "executionID": guid(),
-      "status": "pipeline sent to be created",
-    };
+  const jobdata = Object.assign({}, requestedPipe, storedpipelineRunData);
 
-    let success = true;
+  //fill response data
+  let retVal = {
+    "executionID": "4234234234242-23232-32", //guid(),
+    "status": "pipeline sent to be created",
+  };
 
-    //publish a job and set response when it finishes 
-    const options = {
-      job: {
-          type: 'test-job-stress-consume',
-          data: { action: 'test' }
-      },
-      setting: {
-          prefix: 'jobs-stress-2',
-          createClient: (type) => {
-              switch (type) {
-                  case 'client':
-                      return client;
-                  case 'subscriber':
-                      return subscriber;
-                  default:
-                      return createClient();
-              }
-          }
+  etcd.set("/PipelineJobs/" + retVal.executionID, JSON.stringify(jobdata));
+
+  //publish a job and set response when it finishes 
+  const options = {
+    job: {
+      type: 'pipeline-driver-job',
+      data: jobdata,
+      waitingTimeout: 15000
+    },
+    setting: {
+      prefix: 'jobs-pipeline',
+      redis: {
+        host: 'localhost',
+        port: 6379,
+        cluster: false,
+        sentinel: false
       }
     }
-    const producer = new Producer(options);
-
-    const setting = {};
-    const res = validate(schema, setting);
-    const p = new Producer(setting);
-    setting.job.data = example2;
-    p.createJob(setting);
-    p.on('job-failed', (data) => {
-        console.error(data.error);
-    });
-
-    //return job retVal in case of success;
-
-    // send response
-    if (success) {
-      resolve(examples[retVal]);
-    } else {
-      resolve();
-    }
-
+  }
+  const producer = new Producer(options);
+  producer.on('job-waiting', (data) => {
+  }).on('job-active', (data) => {
+  }).on('job-completed', (data) => {
+    console.log(data);    //const result = data.result.map(r => r.result);
+  }).on('job-failed', (data) => {
+    console.log(data);
   });
+
+  return await producer.createJob(options);
+
+  //return job retVal in case of success;
+  // send response
+
 }
 
 
@@ -172,46 +156,46 @@ exports.statusGET = function (flow_execution_id) {
  **/
 exports.stopPOST = function (flow_execution_id, reason) {
   //return new Promise(function (resolve, reject) {
-    //check status if already stopped?
-    const options = {
-        job: {
-            type: 'stop-job',
-            data: { 
-              action: 'please stop this job',
-              pipeline_execution_id: flow_execution_id,
-              reason: reason
-            },
-            waitingTimeout: 5000
-        },
-        queue: {
-            priority: 1,
-            delay: 1000,
-            timeout: 5000,
-            attempts: 3,
-            removeOnComplete: true,
-            removeOnFail: false
-        },
-        setting: {
-            queueName: 'sf-queue',
-            prefix: 'sf-jobs'
-        }
+  //check status if already stopped?
+  const options = {
+    job: {
+      type: 'stop-job',
+      data: {
+        action: 'please stop this job',
+        pipeline_execution_id: flow_execution_id,
+        reason: reason
+      },
+      waitingTimeout: 5000
+    },
+    queue: {
+      priority: 1,
+      delay: 1000,
+      timeout: 5000,
+      attempts: 3,
+      removeOnComplete: true,
+      removeOnFail: false
+    },
+    setting: {
+      queueName: 'sf-queue',
+      prefix: 'sf-jobs'
     }
-    
-    
-    const producer = new Producer(options);
-    const job = producer.createJob(options);
+  }
 
-    return job;
 
-    // job.then(function(resolve, reject){
-    //   var examples = {};
-    //   examples['application/json'] = "";
-    //   if (Object.keys(examples).length > 0) {
-    //     resolve(examples[Object.keys(examples)[0]]);
-    //   } else {
-    //     resolve();
-    //   }
-    // })
+  const producer = new Producer(options);
+  const job = producer.createJob(options);
+
+  return job;
+
+  // job.then(function(resolve, reject){
+  //   var examples = {};
+  //   examples['application/json'] = "";
+  //   if (Object.keys(examples).length > 0) {
+  //     resolve(examples[Object.keys(examples)[0]]);
+  //   } else {
+  //     resolve();
+  //   }
+  // })
 
 
   //});

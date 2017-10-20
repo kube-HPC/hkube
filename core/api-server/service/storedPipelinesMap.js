@@ -6,23 +6,23 @@ pipelines.myFlow = {
         {
             "nodeName": "green-1",
             "algorithmName": "green-bla",
-            "input": ["#flowInput.files1"]
+            "input": ["@flowInput.files1"]
         },
-        {
-            "nodeName": "green-2",
-            "algorithmName": "green-bla",
-            "input": ["@green-1.data.result", '{a:green-1.data.res.final, b:green-1.c}', "mooo"]
-        },
-        {
-            "nodeName": "green-3",
-            "algorithmName": "green-bla",
-            "input": ["@green-1", "mooo", "@green-2"]
-        },
-        {
-            "nodeName": "green-4",
-            "algorithmName": "green-bla",
-            "input": ["@green-1", "mooo", "@green-2", "mooo", "@green-3"]
-        }
+        // {
+        //     "nodeName": "green-2",
+        //     "algorithmName": "green-bla",
+        //     "input": ["@green-1.data.result", '{a:green-1.data.res.final, b:green-1.c}', "mooo"]
+        // },
+        // {
+        //     "nodeName": "green-3",
+        //     "algorithmName": "green-bla",
+        //     "input": ["@green-1", "mooo", "@green-2"]
+        // },
+        // {
+        //     "nodeName": "green-4",
+        //     "algorithmName": "green-bla",
+        //     "input": ["@green-1", "mooo", "@green-2", "mooo", "@green-3"]
+        // }
     ],
     "flowInput": {
         file: 'links-1',
