@@ -6,12 +6,12 @@
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
-    "input": ["some string", false, "#flowInput.files1", 980]
+    "input": ["some string", false, "#@flowInput.files1", 980]
 },
 {
     "nodeName": "yellow",
     "algorithmName": "yellow-alg",
-    "input": ["@green", "@green.data.result", "flowInput.files1"]
+    "input": ["@green", "@green.data.result", {"custom": "@flowInput.files1"}]
 }],
 "flowInput": {
     "file": 'links-1',
@@ -28,15 +28,14 @@ input: 'Array'
 The input of the node indicates how the pipeline will work
 these symbols can be used:
 
-- #  - run as batch
-- @  - reffer to another node output
+- @  - reffer to <node> or <flowInput>
+- #@ - run as batch
 - *# - for each run as batch
 - *@ - for each reffer to another node output
 
-
 In the example above, yellow node is depend on green node, you can see it in yellow input.  
 green node run as a batch becuase of the # sign,   
-and the batch is flowInput.files1 (['links-1', 'links-2', 'links-3'])  
+and the batch is on flowInput.files1 (['links-1', 'links-2', 'links-3'])  
 This will create 3 workers with 3 differrent inputs:  
 
 ```js
@@ -51,9 +50,9 @@ In this example each worker will return a result
 So the output of green node batch is an array of 3 result:  
 ```js
 [
-    {data: result: "links-1-result"},
-    {data: result: "links-2-result"},
-    {data: result: "links-3-result"}
+        {"data": "result": "links-1-result"},
+        {"data": "result": "links-2-result"},
+        {"data": "result": "links-3-result"}
 ]
 ```
 when green node completes his job, yellow node will start.  
@@ -62,9 +61,9 @@ So the input of yellow node will look like this:
 ```js
 [
     [
-        {data: result: "links-1-result"},
-        {data: result: "links-2-result"},
-        {data: result: "links-3-result"}
+        {"data": "result": "links-1-result"},
+        {"data": "result": "links-2-result"},
+        {"data": "result": "links-3-result"}
     ],
     [
         "links-1-result",
@@ -72,9 +71,9 @@ So the input of yellow node will look like this:
         "links-3-result"
     ],
     [
-        'links-1', 
-        'links-2', 
-        'links-3'
+        {"custom": 'links-1'}, 
+        {"custom": 'links-2'}, 
+        {"custom":'links-3'}
     ]
 ]
 

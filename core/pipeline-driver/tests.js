@@ -14,16 +14,21 @@ class Tests {
                 {
                     "nodeName": "green",
                     "algorithmName": "green-alg",
-                    "input": ["@flowInput.files.links1", { "data": "#@flowInput.files.links1" }]
+                    "input": ["#@flowInput.files.links1", { "a": { "b": [{ "c": "@flowInput.files.links1" }] } }]
                 },
                 {
                     "nodeName": "yellow",
                     "algorithmName": "yellow-alg",
-                    "input": [3, { "data": "@green.data.result", "data2": "@green.data.result" }, 4, "@flowInput.files.links1", 6]
+                    "input": [{ "d": "@green" }, { "e": "@green.data.result", "f": "@green.data" }, "@flowInput.files.links1"]
+                },
+                {
+                    "nodeName": "black",
+                    "algorithmName": "black-alg",
+                    "input": ["@green", "@yellow", "@flowInput.files"]
                 },
                 // {
-                //     "nodeName": "yellow",
-                //     "algorithmName": "yellow-alg",
+                //     "nodeName": "black",
+                //     "algorithmName": "black-alg",
                 //     "input": ["#['@green','@green']", "@green.data.result", "flowInput.files1"]
                 // },
                 // {

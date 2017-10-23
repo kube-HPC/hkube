@@ -44,7 +44,7 @@ class JobProducer extends EventEmitter {
                 else {
                     const allFinished = this._isAllParentsFinished(child);
                     if (allFinished) {
-                        const results = this._nodes.nodeResults(nodeName);
+                        const results = this._parentsResults(child);
                         this._runNode(child, results);
                     }
                 }
@@ -61,70 +61,48 @@ class JobProducer extends EventEmitter {
         });
         consumer.on('job-start', (job) => {
             this._onJobStart(job);
-            // console.log('isDirected: ' + this._graph.isDirected());
-            // console.log('isAcyclic: ' + this._graph.isAcyclic());
-            // console.log('Cycles: ' + this._graph.findCycles());
-
-            // Get data from Neo4j
-            // console.log(job)
-            // format the job data
-            // console.log(result);
         });
     }
 
     _runNode(nodeName, nodeInput) {
         const node = this._nodes.getNode(nodeName);
-        const batchIndex = inputParser.batchInputIndex(node.input);
-        const nodeIndex = inputParser.nodeInputIndex(node.input);
         const options = Object.assign({}, this._options, node);
-        if (batchIndex > -1) {
-            let input;
+        const batch = inputParser.parseBatchInput(options, node.input, nodeInput);
+        const isBatch = batch.length > 0;
+        const input = isBatch ? batch : node.input;
+        this._runNodeInner(node, input, isBatch, options, nodeInput);
+    }
+
+    _runNodeInner(node, input, isBatch, options, nodeInput) {
+        input.forEach((ni, ind) => {
+            node.input[ind] = inputParser.parseFlowInput(options, ni);
             if (nodeInput) {
-                input = nodeInput;
+                node.input[ind] = inputParser.parseNodeInput(nodeInput, ni);
             }
-            else {
-                //const obj = inputParser.extractObjectFromInput(node.input[batchIndex]);
-                input = inputParser.parseValue(options, node.input[batchIndex]);
-            }
-            this._runBatch(nodeName, input, batchIndex);
+        })
+        if (isBatch) {
+            this._runBatch(node.name, input);
         }
         else {
-            const input = node.input.slice();
-            input.forEach((inp, ind) => {
-                if (nodeInput) {
-                    nodeInput.forEach((ni) => {
-                        inputParser.parseNodeInput(ni, inp);
-                    })
-                }
-            })
             this._nodes.setNode(node.name, { input: input });
             this._createJob(node);
         }
     }
 
-    _runBatch(nodeName, nodeInput, inputIndex) {
+    _runBatch(nodeName, batchArray) {
         const node = this._nodes.getNode(nodeName);
-        if (!Array.isArray(nodeInput)) {
+        if (!Array.isArray(batchArray)) {
             throw new Error(`node ${nodeName} batch input must be an array`);
         }
         const options = Object.assign({}, this._options, node);
-        nodeInput.forEach((inp, ind) => {
-            const input = node.input.slice();
-            input.forEach((inp, ind) => {
-                if (inputParser.isNode(inp)) {
-                    const output = this._getNodeOutput(inp);
-                    input[ind] = output;
-                }
-                else {
-                    input[ind] = inputParser.parseValue(options, inp);
-                }
-            });
-            input[inputIndex] = inp;
+        batchArray.forEach((inp, ind) => {
+            //const output = this._getNodeOutput(inp);
+            //batchArray[ind] = inputParser.parseFlowInput(options, inp);
             const batch = new Batch({
                 name: node.name,
                 batchID: `${node.name}#${(ind + 1)}`,
                 algorithm: node.algorithm,
-                input: input
+                input: inp
             });
             this._nodes.addBatch(batch);
             this._createJob(batch);
@@ -240,6 +218,15 @@ class JobProducer extends EventEmitter {
             states = states.concat(this._nodes.getNodeStates(p));
         })
         return states.every(s => s === States.COMPLETED);
+    }
+
+    _parentsResults(node) {
+        const parents = this._nodes.parents(node);
+        let results = [];
+        parents.forEach(p => {
+            results = results.concat(this._nodes.nodeResults(p));
+        })
+        return results;
     }
 }
 
