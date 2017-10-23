@@ -42,9 +42,9 @@ class JobProducer extends EventEmitter {
                     this._runWaitAny(child, data.result);
                 }
                 else {
-                    const allFinished = this._isAllParentsFinished(child);
+                    const allFinished = this._nodes.isAllParentsFinished(child);
                     if (allFinished) {
-                        const results = this._parentsResults(child);
+                        const results = this._nodes.parentsResults(child);
                         this._runNode(child, results);
                     }
                 }
@@ -67,7 +67,7 @@ class JobProducer extends EventEmitter {
     _runNode(nodeName, nodeInput) {
         const node = this._nodes.getNode(nodeName);
         const options = Object.assign({}, this._options, node);
-        const batch = inputParser.parseBatchInput(options, node.input, nodeInput);
+        const batch = inputParser.parseBatchInput(options, node.input);
         const isBatch = batch.length > 0;
         const input = isBatch ? batch : node.input;
         this._runNodeInner(node, input, isBatch, options, nodeInput);
@@ -75,9 +75,12 @@ class JobProducer extends EventEmitter {
 
     _runNodeInner(node, input, isBatch, options, nodeInput) {
         input.forEach((ni, ind) => {
-            node.input[ind] = inputParser.parseFlowInput(options, ni);
+            input[ind] = inputParser.parseFlowInput(options, ni);
             if (nodeInput) {
-                node.input[ind] = inputParser.parseNodeInput(nodeInput, ni);
+                let res = inputParser.parseNodeInput(nodeInput, ni);
+                if (res) {
+                    input[ind] = res;
+                }
             }
         })
         if (isBatch) {
@@ -209,24 +212,6 @@ class JobProducer extends EventEmitter {
             }
         }
         this._producer.createJob(options);
-    }
-
-    _isAllParentsFinished(node) {
-        const parents = this._nodes.parents(node);
-        let states = [];
-        parents.forEach(p => {
-            states = states.concat(this._nodes.getNodeStates(p));
-        })
-        return states.every(s => s === States.COMPLETED);
-    }
-
-    _parentsResults(node) {
-        const parents = this._nodes.parents(node);
-        let results = [];
-        parents.forEach(p => {
-            results = results.concat(this._nodes.nodeResults(p));
-        })
-        return results;
     }
 }
 

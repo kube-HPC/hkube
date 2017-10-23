@@ -19,7 +19,7 @@ class Tests {
                 {
                     "nodeName": "yellow",
                     "algorithmName": "yellow-alg",
-                    "input": [{ "d": "@green" }, { "e": "@green.data.result", "f": "@green.data" }, "@flowInput.files.links1"]
+                    "input": [{ "d1": "@green", "d2": "@green.data.result" }, { "e": "@green.data.result", "f": "@green.data" }, "@flowInput.files.links1"]
                 },
                 {
                     "nodeName": "black",

@@ -162,6 +162,24 @@ class NodesHandler {
         return results;
     }
 
+    parentsResults(node) {
+        const parents = this.parents(node);
+        const results = Object.create(null);
+        parents.forEach(p => {
+            results[p] = this.nodeResults(p);
+        })
+        return results;
+    }
+
+    isAllParentsFinished(node) {
+        const parents = this.parents(node);
+        let states = [];
+        parents.forEach(p => {
+            states = states.concat(this.getNodeStates(p));
+        })
+        return states.every(s => s === States.COMPLETED);
+    }
+
     allNodesResults() {
         const results = [];
         const nodesNames = this._graph.nodes();

@@ -272,11 +272,11 @@ class InputParser {
         options = options || {};
         let result = path;
         if (this.isReffernce(path)) {
-            let obj = this.extractObjectFromInput(path);
+            const obj = this.extractObjectFromInput(path);
             const construct = this.constructObject(obj);
             if (options.checkFlow || options.parseFlow) {
                 if (construct.object === 'flowInput') {
-                    let val = objectPath.get(object, obj);
+                    const val = objectPath.get(object, obj);
                     if (options.checkFlow) {
                         if (val == null) {
                             throw new Error(`unable to find ${obj}`);
@@ -288,11 +288,20 @@ class InputParser {
                 }
             }
             else if (options.parseNode) {
-                let array = [];
-                object.forEach(i => {
-                    array.push(objectPath.get(i, construct.path));
-                })
-                result = array;
+                if (construct.object === 'flowInput') {
+                    return null;
+                }
+                const array = [];
+                const ni = object[construct.object];
+                if (ni) {
+                    ni.forEach(i => {
+                        array.push(objectPath.get(i, construct.path));
+                    });
+                    result = array;
+                }
+                else {
+                    result = array;
+                }
             }
             else {
                 result = objectPath.get(object, obj);
