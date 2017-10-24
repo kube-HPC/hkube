@@ -1,7 +1,7 @@
 'use strict';
 
-const utils = require('../utils/writer.js');
-const Execution = require('../service/ExecutionService');
+const utils = require('lib/utils/writer.js');
+const Execution = require('lib/service/ExecutionService');
 
 module.exports.resultsExecutionIDGET = function resultsExecutionIDGET (req, res, next) {
   let executionID = req.swagger.params['executionID'].value;

@@ -6,13 +6,15 @@ const configIt = require('config.rf');
 const Logger = require('logger.rf');
 const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
 const monitor = require('redis-utils.rf').Monitor;
-const componentNames = require('./common/consts/componentNames.js');
+const componentNames = require('common/consts/componentNames.js');
 //const tests = require('./tests');
 let log;
 
 const modules = [
-    'lib/apiServer'//,
-    //'lib/statusReportService'
+    'lib/apiServer',
+    'lib/statusReportService',
+    'lib/utils/etcdRfSinglton'
+
 ];
 
 class Bootstrap {
@@ -21,6 +23,7 @@ class Bootstrap {
             const { maincfg, logger } = await configIt.load();
             this._handleErrors();
 
+            
             log = new Logger(maincfg.serviceName, logger);
             log.plugins.use(new VerbosityPlugin(maincfg.redis));
             log.info('running application in ' + configIt.env() + ' environment', { component: componentNames.MAIN });

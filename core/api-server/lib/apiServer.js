@@ -5,8 +5,6 @@ const path = require('path');
 const http = require('http');
 const app = require('connect')();
 
-//const statusReportService = require('./service/statusReportService.js')
-//statusReportService.init();
 
 const swaggerTools = require('swagger-tools');
 const jsyaml = require('js-yaml');
@@ -17,7 +15,7 @@ const serverPort = 3000;
 
 const configrf = require('config.rf');
 const Logger = require('logger.rf');
-const componentNames = require('../common/consts/componentNames.js');
+const componentNames = require('common/consts/componentNames.js');
 
 
 class apiServer{
@@ -31,7 +29,7 @@ class apiServer{
       // swaggerRouter configuration
       const options = {
         swaggerUi: path.join(__dirname, '/../api/swagger.json'),
-        controllers: path.join(__dirname, '../controllers'),
+        controllers: path.join(__dirname, 'controllers'),
         useStubs: process.env.NODE_ENV === 'development' // Conditionally turn on stubs (mock mode)
       };
       
@@ -64,11 +62,11 @@ class apiServer{
           console.log('Your server is listening on port %d (http://localhost:%d)', serverPort, serverPort);
           console.log('Swagger-ui is available on http://localhost:%d/docs', serverPort);
         });
-      })
-      //}).catch(err=>{
+      });
+      // .catch(err=>{
       //  log.info('error occured in app initialization. exiting. ( ' + err + ')', { component: componentNames.MAIN });
       //  process.exit(-1);
-      //});
+      // });
     
     };
 }
