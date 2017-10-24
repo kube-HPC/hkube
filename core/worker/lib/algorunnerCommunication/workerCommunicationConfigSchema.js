@@ -18,7 +18,7 @@ const socketWorkerCommunicationSchema = {
                     default:'localhost'
                 },
                 port:{
-                    type:'integer',
+                    type: ['integer', 'string'],
                     default:3000
                 },
                 protocol:{

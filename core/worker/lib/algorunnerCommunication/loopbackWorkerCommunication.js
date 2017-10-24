@@ -20,9 +20,11 @@ class LoopbackWorkerCommunication extends EventEmitter {
             throw new Error(validatadOptions.errorDescription);
         }
 
+    }
+    start(){
+        this.emit('connection')
 
     }
-
     send(message) {
         switch (message.command) {
             case messages.outgoing.initialize:

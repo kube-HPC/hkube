@@ -19,6 +19,7 @@ class StateManager extends EventEmitter {
         super();
         this._stateMachine = null;
         this._job = null;
+        this._results = null;
     }
     async init(options) {
         log = Logger.GetLogFromContainer();
@@ -30,12 +31,14 @@ class StateManager extends EventEmitter {
              this.removeAllListeners();
         }
         this._stateMachine = new stateMachine({
-            init: workerStates.ready,
+            init: workerStates.bootstrap,
             transitions: [
+                { name: 'reset', from: '*', to: workerStates.bootstrap},
+                { name: 'bootstrap', from: workerStates.bootstrap, to: workerStates.ready},
                 { name: 'prepare', from: workerStates.ready, to: workerStates.init },
                 { name: 'start', from: workerStates.init, to: workerStates.working },
                 { name: 'finish', from: workerStates.working, to: workerStates.shutdown },
-                { name: 'done', from: workerStates.shutdown, to: workerStates.ready },
+                { name: 'done', from: [workerStates.shutdown,workerStates.working], to: workerStates.ready },
                 { name: 'error', from: workerStates.working, to: workerStates.error },
             ],
             methods:{
@@ -46,14 +49,13 @@ class StateManager extends EventEmitter {
         });
         this._stateMachine.observe('onAfterTransition', (state) => {
             log.info(`entered state: ${state.from} -> ${state.to}`);
-            this.emit(stateEvents.stateEntered,{
-                job:this._job,
-                state:this._stateMachine.state
-            })
-            this.emit(stateEvents.stateEntered+this._stateMachine.state,{
-                job:this._job,
-                state:this._stateMachine.state
-            })
+            const data = Object.assign({},
+                {job:this._job},
+                {state:this._stateMachine.state},
+                this.results?{results:this.results}:null);
+
+            this.emit(stateEvents.stateEntered,data);
+            this.emit(stateEvents.stateEntered+this._stateMachine.state,data);
         })
     }
 
@@ -61,6 +63,16 @@ class StateManager extends EventEmitter {
         return this._stateMachine.state;
     }
 
+
+    /**
+     * transitions from bootstrap to ready
+     * Should happen after all local init (including connecting to socket)
+     *
+     * @memberof StateManager
+     */
+    bootstrap(){
+        this._stateMachine.bootstrap();
+    }
     /**
      * transitions from ready to init
      * Performs init of the data via adapters.
@@ -81,6 +93,7 @@ class StateManager extends EventEmitter {
      * @memberof StateManager
      */
     start(options) {
+        this._results=null;
         this._stateMachine.start();
     }
     /**
@@ -98,10 +111,11 @@ class StateManager extends EventEmitter {
      * transitions from shutdown to ready
      * finishes the processing, and ready for a new job
      * 
-     * @param {object} options 
+     * @param {object} results
      * @memberof StateManager
      */
-    done(options) {
+    done(results) {
+        this._results = results;
         this._stateMachine.done();
     }
     /**
@@ -117,23 +131,28 @@ class StateManager extends EventEmitter {
     setJob(job) {
         this._job = job;
     }
-
-    /**
-     * sets the new worker state
-     * 
-     * @param {any} options 
-     * @param {string} options.transition the required state transition
-     * @memberof StateManager
-     */
-    async setWorkerState(options) {
-        const { transition } = options;
-        const transitionFunc = this._stateMachine[transition].bind(this._stateMachine);
-        if (!transitionFunc) {
-            throw new Error(`Invalid transition ${transition}`);
-        }
-        transitionFunc();
-        await etcdDiscovery.setState({ data: { job: this._job, state: this.state } })
+    get job(){
+        return this._job;
     }
+    get results()  {
+        return this._results;
+    }
+    // /**
+    //  * sets the new worker state
+    //  *
+    //  * @param {any} options
+    //  * @param {string} options.transition the required state transition
+    //  * @memberof StateManager
+    //  */
+    // async setWorkerState(options) {
+    //     const { transition } = options;
+    //     const transitionFunc = this._stateMachine[transition].bind(this._stateMachine);
+    //     if (!transitionFunc) {
+    //         throw new Error(`Invalid transition ${transition}`);
+    //     }
+    //     transitionFunc();
+    //     await etcdDiscovery.setState({ data: { job: this._job, state: this.state } })
+    // }
 }
 
 module.exports = new StateManager();

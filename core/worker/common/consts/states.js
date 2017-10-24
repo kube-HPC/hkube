@@ -1,5 +1,6 @@
 module.exports = {
     workerStates: {
+        bootstrap:'bootstrap',
         ready: 'ready',
         init: 'init',
         working: 'working',

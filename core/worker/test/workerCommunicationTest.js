@@ -40,7 +40,8 @@ describe('worker communication', () => {
     it('should pass message.command events', async () => {
         const spy = sinon.spy();
 
-        expect(stateManager.state).to.equal('ready')
+        expect(stateManager.state).to.equal('bootstrap')
+        stateManager.bootstrap();
         stateManager.prepare();
         expect(stateManager.state).to.equal('init')
         const adapter = workerCommunication.adapter;

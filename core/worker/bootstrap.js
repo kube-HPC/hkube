@@ -7,6 +7,8 @@ const Logger = require('logger.rf');
 const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
 const monitor = require('redis-utils.rf').Monitor;
 const componentName = require('common/consts/componentNames');
+const discovery = require('lib/states/discovery.js');
+const jobConsumer = require('lib/consumer/JobConsumer');
 let log;
 const worker = require('./lib/worker');
 
@@ -42,49 +44,48 @@ class Bootstrap {
             await worker.init(main);
 
             // tmp
-            const comm = require('./lib/algorunnerCommunication/workerCommunication');
-            comm.once('connection',()=>{
-                // comm.send({command:'initialize',data:{job:'xxx'}})
-                const producerSettings = {
-                    setting: {
-                        queueName: 'queue-workers',
-                        prefix: 'jobs-workers',
-                        redis: {
-                            host: process.env.REDIS_SERVICE_HOST || 'localhost',
-                            port: process.env.REDIS_SERVICE_PORT || 6379
-                        }
-                    }
-                }
-                const testProducer = {
-                    job: {
-                        type: 'green-bla',
-                        data: {
-                            inputs: {
-                                standard: [
-                                    'input-1',
-                                    'input-2'
-                                ],
-                            }
-                        }
-                    }
-                }
-                const { Producer } = require('producer-consumer.rf');
-                const producer = new Producer(producerSettings);
-                producer.on('job-failed',(jobData)=>{
-                    log.error(`job failed: ${jobData}`)
-                })
-                producer.on('job-active',(jobData)=>{
-                    log.error(`job active: ${jobData}`)
-                })
-                producer.on('job-waiting',(jobData)=>{
-                    log.error(`job waiting: ${jobData}`)
-                })
-                producer.on('job-completed',(jobData)=>{
-                    log.error(`job completed: ${jobData}`)
-                })
-                producer.createJob(testProducer)
-
-            })
+            // const comm = require('./lib/algorunnerCommunication/workerCommunication');
+            // comm.once('connection',()=>{
+            //     const producerSettings = {
+            //         setting: {
+            //             queueName: 'queue-workers',
+            //             prefix: 'jobs-workers',
+            //             redis: {
+            //                 host: process.env.REDIS_SERVICE_HOST || 'localhost',
+            //                 port: process.env.REDIS_SERVICE_PORT || 6379
+            //             }
+            //         }
+            //     }
+            //     const testProducer = {
+            //         job: {
+            //             type: 'green-bla',
+            //             data: {
+            //                 inputs: {
+            //                     standard: [
+            //                         'input-1',
+            //                         'input-2'
+            //                     ],
+            //                 }
+            //             }
+            //         }
+            //     }
+            //     const { Producer } = require('producer-consumer.rf');
+            //     const producer = new Producer(producerSettings);
+            //     producer.on('job-failed',(jobData)=>{
+            //         log.error(`job failed: ${JSON.stringify(jobData)}`)
+            //     })
+            //     producer.on('job-active',(jobData)=>{
+            //         log.info(`job active: ${JSON.stringify(jobData)}`)
+            //     })
+            //     producer.on('job-waiting',(jobData)=>{
+            //         log.info(`job waiting: ${JSON.stringify(jobData)}`)
+            //     })
+            //     producer.on('job-completed',(jobData)=>{
+            //         log.info(`job completed: ${JSON.stringify(jobData)}`)
+            //     })
+            //     producer.createJob(testProducer)
+            //
+            // })
             return main;
         }
         catch (error) {
@@ -110,6 +111,7 @@ class Bootstrap {
         });
         process.on('SIGINT', () => {
             log.info('SIGINT', { component: componentName.MAIN });
+
             process.exit(1);
         });
         process.on('SIGTERM', () => {

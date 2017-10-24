@@ -6,7 +6,6 @@ let log;
 class EtcdDiscovery {
     constructor() {
         this._etcdDiscovery=null;
-        this._id=uuidv4();
     }
 
     async init(options){
@@ -20,9 +19,12 @@ class EtcdDiscovery {
         const {data}=options;
         await this._etcdDiscovery.set({
             data,
-            instanceId:this.id,
             postfix:'state'
         });
+    }
+
+    async unregister(){
+
     }
 }
 

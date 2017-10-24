@@ -12,7 +12,11 @@ config.redis = {
 
 config.workerCommunication = {
     adapterName: 'socket',
-    config: {}
+    config: {
+        connection:{
+            port: process.env.WORKER_SOCKET_PORT || 3000
+        }
+    }
 }
 
 config.etcdDiscovery = {
@@ -30,7 +34,7 @@ config.etcdDiscovery = {
 
 config.jobConsumer={
     job: {
-        type: process.env.JOB_TYPE || 'green-bla'
+        type: process.env.JOB_TYPE || 'green-alg'
     },
     setting: {
         queueName: 'queue-workers',

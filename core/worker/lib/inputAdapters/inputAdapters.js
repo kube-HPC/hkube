@@ -36,8 +36,8 @@ class InputAdapters extends EventEmitter {
             await this._adapters[adapterName].init(options.inputAdapters[adapterName]);
         }))
         stateManager.on(stateEvents.stateEntered+workerStates.init,async ({job,state})=>{
-            log.info(`input adapters activated with data: ${JSON.stringify(job.data.inputs)}`)
-            await this.handleInputs(job,job.data.inputs)
+            log.info(`input adapters activated with data: ${JSON.stringify(job.data.input)}`)
+            await this.handleInputs(job,job.data.input)
         })
     }
 

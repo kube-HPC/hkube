@@ -79,11 +79,25 @@ describe('consumer', () => {
 
     })
 
-    beforeEach(async () => {
-        await bootstrap.init();
-        consumer = Consumer;
-        await consumer.init(jobConsumerConfig);
-        await workerCommunication.init(workerCommunicationConfig);
+    beforeEach((done) => {
+
+        bootstrap.init().then(()=>{
+            consumer = Consumer;
+
+        }).then(()=>{
+
+            return consumer.init(jobConsumerConfig);
+        // }).then(()=>{
+        //    return workerCommunication.init(workerCommunicationConfig);
+        }).then(()=>{
+            stateManager.on('stateEnteredready', () => {
+                done()
+            })
+            workerCommunication.adapter.start();
+        });
+
+
+
 
     });
     it('should get job', (done) => {

@@ -30,25 +30,33 @@ describe('state machine', () => {
     beforeEach(() => {
         stateMachine._initStateMachine();
     });
+    it('should set inititial state to bootstrap', () => {
+        expect(stateMachine.state).to.eql(workerStates.bootstrap)
+    });
     it('should set inititial state to ready', () => {
+        stateMachine.bootstrap();
         expect(stateMachine.state).to.eql(workerStates.ready)
     });
     it('should transition from ready to init', () => {
+        stateMachine.bootstrap();
         stateMachine.prepare();
         expect(stateMachine.state).to.eql(workerStates.init)
     });
     it('should transition from init to working', () => {
+        stateMachine.bootstrap();
         stateMachine.prepare();
         stateMachine.start();
         expect(stateMachine.state).to.eql(workerStates.working)
     });
     it('should transition from working to shutdown', () => {
+        stateMachine.bootstrap();
         stateMachine.prepare();
         stateMachine.start();
         stateMachine.finish();
         expect(stateMachine.state).to.eql(workerStates.shutdown)
     });
     it('should transition from shutdown to ready', () => {
+        stateMachine.bootstrap();
         stateMachine.prepare();
         stateMachine.start();
         stateMachine.finish();
@@ -56,6 +64,7 @@ describe('state machine', () => {
         expect(stateMachine.state).to.eql(workerStates.ready)
     });
     it('should raise event on state enter', () => {
+        stateMachine.bootstrap();
         const spy = sinon.spy();
         stateMachine.on(stateEvents.stateEntered,spy);
         stateMachine.prepare();

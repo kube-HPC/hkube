@@ -25,7 +25,7 @@ class SocketWorkerCommunication extends EventEmitter {
                     this._options = validatedOptions.instance;
                 }
                 else {
-                    return reject(new Error(validatedOptions.errorDescription));
+                    return reject(new Error(validatedOptions.errors[0]));
                 }
                 const server = this._options.httpServer||http.createServer();
                 this._socketServer = socketio.listen(server, { pingTimeout: this._options.pingTimeout });
