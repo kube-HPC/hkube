@@ -19,7 +19,7 @@ class Tests {
                 {
                     "nodeName": "yellow",
                     "algorithmName": "yellow-alg",
-                    "input": [{ "d1": "@green", "d2": "@green.data.result" }, { "e": "@green.data.result", "f": "@green.data" }, "@flowInput.files.links1"]
+                    "input": [{ "d1": "#@green", "d2": "@green.data.result" }, { "e": "@green.data.result", "f": "@green.data" }, "@flowInput.files.links1"]
                 },
                 {
                     "nodeName": "black",
@@ -95,26 +95,6 @@ class Tests {
                 "progressHook": "string",
                 "resultHook": "string"
             }
-        }
-
-        const client = createClient();
-        const subscriber = createClient();
-
-        const options = {
-            createClient: function (type) {
-                switch (type) {
-                    case 'client':
-                        return client;
-                    case 'subscriber':
-                        return subscriber;
-                    default:
-                        return createClient();
-                }
-            }
-        }
-
-        function createClient() {
-            return config.redis.useCluster ? new Redis.Cluster([config.redis]) : new Redis(config.redis)
         }
 
         const setting = {};

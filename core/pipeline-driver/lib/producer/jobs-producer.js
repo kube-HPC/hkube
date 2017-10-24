@@ -20,8 +20,9 @@ class JobProducer extends EventEmitter {
     }
 
     init(options) {
-        const setting = {};
+        let setting = {};
         const res = validate(schema.properties.setting, setting);
+        setting = Object.assign({}, setting, { redis: options.redis });
         if (!res.valid) {
             throw new Error(res.errors[0].stack);
         }
@@ -64,30 +65,19 @@ class JobProducer extends EventEmitter {
         });
     }
 
-    _runNode(nodeName, nodeInput) {
+    _runNode(nodeName, nodesInput) {
         const node = this._nodes.getNode(nodeName);
-        const options = Object.assign({}, this._options, node);
-        const batch = inputParser.parseBatchInput(options, node.input);
-        const isBatch = batch.length > 0;
-        const input = isBatch ? batch : node.input;
-        this._runNodeInner(node, input, isBatch, options, nodeInput);
+        const options = Object.assign({}, { flowInput: this._options.flowInput }, { input: node.input });
+        const result = inputParser.parse(options, node.input, nodesInput);
+        this._runNodeInner(node, result);
     }
 
-    _runNodeInner(node, input, isBatch, options, nodeInput) {
-        input.forEach((ni, ind) => {
-            input[ind] = inputParser.parseFlowInput(options, ni);
-            if (nodeInput) {
-                let res = inputParser.parseNodeInput(nodeInput, ni);
-                if (res) {
-                    input[ind] = res;
-                }
-            }
-        })
-        if (isBatch) {
-            this._runBatch(node.name, input);
+    _runNodeInner(node, data) {
+        if (data.batch) {
+            this._runBatch(node.name, data.input);
         }
         else {
-            this._nodes.setNode(node.name, { input: input });
+            this._nodes.setNode(node.name, { input: data.input });
             this._createJob(node);
         }
     }

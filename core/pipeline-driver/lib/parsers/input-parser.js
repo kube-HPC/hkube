@@ -6,6 +6,26 @@ class InputParser {
     constructor() {
     }
 
+    parse(options, input, nodesInput) {
+        const batch = this.parseBatchInput(options, input);
+        const isBatch = batch.length > 0;
+        const inputObj = isBatch ? batch : input;
+
+        inputObj.forEach((ni, ind) => {
+            inputObj[ind] = this.parseFlowInput(options, ni);
+            if (nodesInput) {
+                let res = this.parseNodeInput(nodesInput, ni);
+                if (res) {
+                    inputObj[ind] = res;
+                }
+            }
+        })
+        return {
+            batch: isBatch,
+            input: inputObj
+        }
+    }
+
     parseValue(object, input, options) {
         if (typeof input == null) {
             return null;
