@@ -5,7 +5,7 @@ pipelines.myFlow = {
     "nodes": [
         {
             "nodeName": "green-1",
-            "algorithmName": "green-bla",
+            "algorithmName": "green-alg",
             "input": ["@flowInput.files1"]
         },
         // {
