@@ -3,7 +3,9 @@
  */
 
 var Components = {
-    MAIN: 'Main'
+    MAIN: 'Main',
+    JOBS_CONSUMER: 'Job-Consumer',
+    JOBS_PRODUCER: 'Job-Producer'
 };
 
 module.exports = Components;

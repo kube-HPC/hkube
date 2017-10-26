@@ -101,6 +101,9 @@ class NodesHandler {
 
     updateNodeState(nodeName, batchID, options) {
         const node = this._graph.node(nodeName);
+        if (!node) {
+            throw new Error(`unable to find node ${nodeName}`)
+        }
         if (batchID) {
             const batch = node.batch.find(b => b.batchID === batchID);
             batch.state = options.state;

@@ -12,6 +12,11 @@
     "nodeName": "yellow",
     "algorithmName": "yellow-alg",
     "input": ["@green", "@green.data.result", {"custom": "@flowInput.files1"}]
+},
+{
+    "nodeName": "red",
+    "algorithmName": "red-alg",
+    "input": ["@yellow", "@green.data.result"]
 }],
 "flowInput": {
     "file": 'links-1',
@@ -29,7 +34,7 @@ The input of the node indicates how the pipeline will work
 these symbols can be used:
 
 - @  - reffer to <node> or <flowInput>
-- #@ - run as batch
+- #@ - run as batch on <node> or <flowInput>
 - *# - for each run as batch
 - *@ - for each reffer to another node output
 
@@ -50,25 +55,25 @@ In this example each worker will return a result
 So the output of green node batch is an array of 3 result:  
 ```js
 [
-        {"data": "result": "links-1-result"},
-        {"data": "result": "links-2-result"},
-        {"data": "result": "links-3-result"}
+        {"data": "result": "green-1-result"},
+        {"data": "result": "green-2-result"},
+        {"data": "result": "green-3-result"}
 ]
 ```
-when green node completes his job, yellow node will start.  
+when green node completes its job, yellow node will start.  
 You can see that yellow node needs the green node results, the inner results, and flowInput.files1  
 So the input of yellow node will look like this:  
 ```js
 [
     [
-        {"data": "result": "links-1-result"},
-        {"data": "result": "links-2-result"},
-        {"data": "result": "links-3-result"}
+        {"data": "result": "green-1-result"},
+        {"data": "result": "green-2-result"},
+        {"data": "result": "green-3-result"}
     ],
     [
-        "links-1-result",
-        "links-2-result",
-        "links-3-result"
+        "green-1-result",
+        "green-2-result",
+        "green-3-result"
     ],
     [
         {"custom": 'links-1'}, 
@@ -78,4 +83,16 @@ So the input of yellow node will look like this:
 ]
 
 ```
+When yellow node completes its job, red node will start.  
+The output of the yellow node is for example {"data":{"result":"yellow-result"}}
+Red node run as a batch becuase of the # sign and the batch is on the yellow node ([3,7,9]).  
+This will create 3 workers with 3 differrent inputs: 
+```js
 
+[
+   [{"data":{"result": "yellow-result"}}],
+   ["green-1-result","green-2-result", "green-3-result"]
+]
+
+
+```

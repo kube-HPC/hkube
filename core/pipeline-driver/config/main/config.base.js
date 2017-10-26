@@ -12,6 +12,6 @@ config.redis = {
 
 config.etcd = {
     protocol: 'http',
-    host: process.env.ETCD_SERVICE_HOST || 'localhost',
+    hostname: process.env.ETCD_SERVICE_HOST || 'localhost',
     port: process.env.ETCD_SERVICE_PORT || 4001
 };

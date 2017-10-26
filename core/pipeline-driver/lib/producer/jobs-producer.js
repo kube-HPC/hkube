@@ -9,12 +9,16 @@ const States = require('lib/state/States');
 const NodeState = require('lib/state/NodeState');
 const inputParser = require('lib/parsers/input-parser');
 const Batch = require('lib/nodes/batch');
+const Logger = require('logger.rf');
+const log = Logger.GetLogFromContainer();
+const components = require('common/consts/componentNames');
+const url = require('url');
 
 class JobProducer extends EventEmitter {
 
     constructor() {
         super();
-        this._driverKey = null;
+        this._job = null;
         this._producer = null;
         this._nodes = null;
     }
@@ -29,35 +33,24 @@ class JobProducer extends EventEmitter {
 
         this._producer = new Producer({ setting: setting });
         this._producer.on('job-waiting', (data) => {
-            this._setWorkerState(data, States.PENDING);
+            log.info(`job waiting ${data.jobID}`, { component: components.JOBS_PRODUCER });
+            let task = Object.assign({}, { jobID: data.jobID }, data.options.internalData);
+            this._setJobState(task, States.PENDING);
         }).on('job-active', (data) => {
-            this._setWorkerState(data, States.ACTIVE);
+            log.info(`job active ${data.jobID}`, { component: components.JOBS_PRODUCER });
+            let task = Object.assign({}, { jobID: data.jobID }, data.options.internalData);
+            this._setJobState(task, States.ACTIVE);
         }).on('job-completed', (data) => {
-            this._setWorkerState(data, States.COMPLETED);
-            const nodeName = data.options.internalData.node;
-            const childs = this._nodes.childs(nodeName);
-            childs.forEach(child => {
-                const node = this._nodes.getNode(child);
-                const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
-                if (waitAnyIndex > -1) {
-                    this._runWaitAny(child, data.result);
-                }
-                else {
-                    const allFinished = this._nodes.isAllParentsFinished(child);
-                    if (allFinished) {
-                        const results = this._nodes.parentsResults(child);
-                        this._runNode(child, results);
-                    }
-                }
-            });
-            this._jobDone();
+            log.info(`job completed ${data.jobID}`, { component: components.JOBS_PRODUCER });
         }).on('job-failed', (data) => {
-            this._setWorkerState(data, States.FAILED);
-            this._jobDone();
+            log.error(`job failed ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER });
+            let task = Object.assign({}, { jobID: data.jobID, error: data.error }, data.options.internalData);
+            this._setJobState(task, States.FAILED);
+            this._jobDone(data.error);
         });
 
         consumer.on('job-stop', async (job) => {
-            let state = await stateManager.getState({ key: job.id });
+            let state = await stateManager.getState({ jobID: job.id });
             this._onJobStop(state);
         });
         consumer.on('job-start', (job) => {
@@ -65,9 +58,28 @@ class JobProducer extends EventEmitter {
         });
     }
 
+    _runCompleted(nodeName) {
+        const childs = this._nodes.childs(nodeName);
+        childs.forEach(child => {
+            const node = this._nodes.getNode(child);
+            const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
+            if (waitAnyIndex > -1) {
+                this._runWaitAny(child, data.result);
+            }
+            else {
+                const allFinished = this._nodes.isAllParentsFinished(child);
+                if (allFinished) {
+                    const results = this._nodes.parentsResults(child);
+                    this._runNode(child, results);
+                }
+            }
+        });
+        this._jobDone();
+    }
+
     _runNode(nodeName, nodesInput) {
         const node = this._nodes.getNode(nodeName);
-        const options = Object.assign({}, { flowInput: this._options.flowInput }, { input: node.input });
+        const options = Object.assign({}, { flowInput: this._job.data.flowInput }, { input: node.input });
         const result = inputParser.parse(options, node.input, nodesInput);
         this._runNodeInner(node, result);
     }
@@ -87,10 +99,8 @@ class JobProducer extends EventEmitter {
         if (!Array.isArray(batchArray)) {
             throw new Error(`node ${nodeName} batch input must be an array`);
         }
-        const options = Object.assign({}, this._options, node);
+        const options = Object.assign({}, this._job.data, node);
         batchArray.forEach((inp, ind) => {
-            //const output = this._getNodeOutput(inp);
-            //batchArray[ind] = inputParser.parseFlowInput(options, inp);
             const batch = new Batch({
                 name: node.name,
                 batchID: `${node.name}#${(ind + 1)}`,
@@ -126,10 +136,15 @@ class JobProducer extends EventEmitter {
         this._createJob(node);
     }
 
-    _jobDone() {
-        if (this._nodes.isAllNodesDone()) {
+    _jobDone(error) {
+        if (error) {
+            this._job.done(error);
+        }
+        else if (this._nodes.isAllNodesDone()) {
+            log.info(`job completed ${this._job.id}`, { component: components.JOBS_PRODUCER });
             const results = this._nodes.allNodesResults();
-            this._currentJob.done(null, results);
+            // stateManager.setJobsState(results);
+            this._job.done(null, results);
         }
     }
 
@@ -142,24 +157,24 @@ class JobProducer extends EventEmitter {
     }
 
     async _onJobStart(job) {
-        this._currentJob = job;
-        this._driverKey = job.id;
+        log.info(`job arrived ${job.id}`, { component: components.JOBS_CONSUMER });
+        this._job = job;
+        this._jobID = job.id;
         this._nodes = new NodesHandler(job.data);
-        this._options = job.data;
 
         // first we will try to get the state for this job
-        const data = await stateManager.getState({ key: job.id });
-        if (false) {
-            if (data.state === States.STOPPED) {
-                this._onJobStop(data);
+        const state = await stateManager.getState({ jobID: job.id });
+        if (state) {
+            if (state.state === States.STOPPED) {
+                this._onJobStop(state);
             }
             else {
-                stateManager.setDriverState({ key: job.id, value: { state: States.RECOVERING } });
-                this._producer.setJobsState(state.jobs);
+                stateManager.setDriverState({ jobID: job.id, value: { state: States.RECOVERING } });
+                // this._producer.setJobsState(state.jobs);
             }
         }
         else {
-            stateManager.setDriverState({ key: job.id, value: { state: States.ACTIVE } });
+            stateManager.setDriverState({ jobID: job.id, value: { state: States.ACTIVE } });
             this._startNodes(job.data);
         }
     }
@@ -168,18 +183,10 @@ class JobProducer extends EventEmitter {
         this._stopWorkers(state.workers);
     }
 
-    _stopWorkers(workers) {
-        workers.forEach(w => {
-            const nodeState = new NodeState({ jobID: w.jobID, state: States.STOPPED });
-            stateManager.setWorkerState({ key: w.jobID, value: nodeState });
-        })
-    }
-
-    _setWorkerState(data, state) {
-        const internal = data.options.internalData;
-        this._nodes.updateNodeState(internal.node, internal.batchID, { state: state, error: data.error, result: data.result });
-        const nodeState = new NodeState({ jobID: data.jobID, state: state, internalData: internal, error: data.error, result: data.result });
-        stateManager.setWorkerState({ driverKey: this._driverKey, workerKey: data.jobID, value: nodeState });
+    _setJobState(data, state) {
+        this._nodes.updateNodeState(data.nodeName, data.batchID, { state: state, error: data.error, result: data.result });
+        const nodeState = new NodeState({ jobID: data.jobID, state: state, internalData: data, error: data.error, result: data.result });
+        stateManager.setTaskState({ jobID: this._jobID, taskID: data.jobID, value: nodeState });
     }
 
     _startNodes(options) {
@@ -190,18 +197,44 @@ class JobProducer extends EventEmitter {
         entryNodes.forEach(n => this._runNode(n));
     }
 
-    _createJob(node) {
+    async _createJob(node) {
         const options = {
             job: {
                 type: node.algorithm,
-                data: { input: node.input, node: node.batchID || node.name },
+                data: {
+                    input: node.input,
+                    node: node.batchID || node.name,
+                    jobID: this._jobID
+                },
                 internalData: {
-                    node: node.name,
+                    nodeName: node.name,
                     batchID: node.batchID
                 }
             }
         }
-        this._producer.createJob(options);
+
+        const taskID = await this._producer.createJob(options);
+        stateManager.setTaskState({
+            jobID: this._jobID,
+            taskID: taskID,
+            value: {
+                internalData: {
+                    nodeName: node.name,
+                    batchID: node.batchID
+                }
+            }
+        })
+        stateManager.watch(`/jobs/${this._jobID}/tasks/${taskID}/info/result`, async (res) => {
+            const result = JSON.parse(res.node.value);
+            let taskID = res.node.key;
+            taskID = taskID.substr(taskID.indexOf('/tasks') + 6);
+            taskID = taskID.substr(0, taskID.indexOf('/info'))
+            const taskState = await stateManager.getTaskState({ jobID: this._jobID, taskID: taskID });
+            const task = Object.assign({}, { result: result }, { jobID: this._jobID }, taskState.internalData);
+            log.info(`job completed ${taskID}`, { component: components.JOBS_PRODUCER });
+            this._setJobState(task, States.COMPLETED);
+            this._runCompleted(task.nodeName);
+        });
     }
 }
 

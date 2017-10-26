@@ -3,6 +3,9 @@ const validate = require('djsv');
 const { Consumer } = require('producer-consumer.rf');
 const schema = require('./schema');
 const stateManager = require('lib/state/state-manager');
+const Logger = require('logger.rf');
+const log = Logger.GetLogFromContainer();
+const components = require('common/consts/componentNames');
 
 class JobConsumer extends EventEmitter {
 
@@ -23,8 +26,8 @@ class JobConsumer extends EventEmitter {
         this._consumer = new Consumer(setting);
         this._consumer.register(setting);
         this._consumer.on('job', (job) => {
-            job.id = 'pipeline-driver-job:1046d36f-41fd-49a1-85c6-144fdf7d2129';
-            stateManager.setDriverWatch({ key: job.id }, (res) => {
+            job.id = 'pipeline-id:aea80705-fe25-4ef2-b631-70ec037c2161';
+            stateManager.watch(`/jobs/${job.id}/state`, (res) => {
                 if (res.action === 'set' && res.node.value) {
                     const r = JSON.parse(res.node.value);
                     if (r.status === 'stopped') {

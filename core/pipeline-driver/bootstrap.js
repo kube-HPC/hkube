@@ -7,7 +7,6 @@ const Logger = require('logger.rf');
 const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
 const monitor = require('redis-utils.rf').Monitor;
 const componentName = require('common/consts/componentNames');
-const tests = require('./tests');
 let log;
 
 const modules = [
@@ -35,8 +34,6 @@ class Bootstrap {
             monitor.check(main.redis);
 
             await Promise.all(modules.map(m => require(m).init(main)));
-
-            tests.run(main);
 
             return main;
         }

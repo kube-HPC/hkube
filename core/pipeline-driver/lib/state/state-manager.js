@@ -2,6 +2,8 @@ const path = require('path');
 const Etcd = require('node-etcd');
 const DRIVERS_PATH = `/services/pipeline-drivers`;
 const WORKERS_PATH = `/services/workers`;
+const JOBS_PATH = `/jobs/jobResults`;
+const url = require('url');
 
 class StateManager {
 
@@ -10,20 +12,21 @@ class StateManager {
     }
 
     init(options) {
-        this._etcd = new Etcd('http://127.0.0.1:4001', { timeout: 10000 });
+        const uri = url.format(options.etcd);
+        this._etcd = new Etcd(uri, { timeout: 10000 });
     }
 
     setDriverState(options) {
-        this._etcd.set(`${DRIVERS_PATH}/${options.key}/instance`, JSON.stringify(options.value));
+        this._etcd.set(`${DRIVERS_PATH}/${options.jobID}/instance`, JSON.stringify(options.value));
     }
 
     deleteDriverState(options) {
-        this._etcd.delete(`${DRIVERS_PATH}/${options.key}/instance`);
+        this._etcd.delete(`${DRIVERS_PATH}/${options.jobID}/instance`);
     }
 
     _getDriverState(options) {
         return new Promise((resolve) => {
-            this._etcd.get(`${DRIVERS_PATH}/${options.key}/instance`, (err, res) => {
+            this._etcd.get(`${DRIVERS_PATH}/${options.jobID}/instance`, (err, res) => {
                 if (err) {
                     return resolve();
                 }
@@ -32,9 +35,42 @@ class StateManager {
         })
     }
 
+    getWorkersTasks(options) {
+        return new Promise((resolve, reject) => {
+            this._etcd.get(`${DRIVERS_PATH}/${options.jobID}/jobs/${options.taskID}/info`, (err, res) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(this._tryParseJSON(res.node.value))
+            });
+        })
+    }
+
+    getTaskState(options) {
+        return new Promise((resolve, reject) => {
+            this._etcd.get(`${DRIVERS_PATH}/${options.jobID}/jobs/${options.taskID}/info`, (err, res) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(this._tryParseJSON(res.node.value))
+            });
+        })
+    }
+
+    setTaskState(options) {
+        return new Promise((resolve, reject) => {
+            this._etcd.set(`${DRIVERS_PATH}/${options.jobID}/jobs/${options.taskID}/info`, JSON.stringify(options.value), (err, res) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(this._tryParseJSON(res.node.value))
+            });
+        })
+    }
+
     _getJobsState(options) {
         return new Promise((resolve) => {
-            this._etcd.get(`${DRIVERS_PATH}/${options.key}/jobs`, { recursive: true }, (err, res) => {
+            this._etcd.get(`${DRIVERS_PATH}/${options.jobID}/jobs`, { recursive: true }, (err, res) => {
                 if (err) {
                     if (err.errorCode === 100) {
                         return resolve();
@@ -49,7 +85,7 @@ class StateManager {
 
     _getWorkersState(options) {
         return new Promise((resolve) => {
-            this._etcd.get(`${WORKERS_PATH}`, { recursive: true }, (err, res) => {
+            this._etcd.get(`jobs/${options.jobID}/tasks`, { recursive: true }, (err, res) => {
                 if (err) {
                     if (err.errorCode === 100) {
                         return resolve();
@@ -75,16 +111,8 @@ class StateManager {
         return null;
     }
 
-    setWorkerState(options) {
-        this._etcd.set(`${WORKERS_PATH}/${options.key}`, JSON.stringify(options.value), (err, res) => {
-            if (err) {
-                return;
-            }
-        });
-    }
-
-    setDriverWatch(options, callback) {
-        const watcher = this._etcd.watcher(`${DRIVERS_PATH}/${options.key}/instance`);
+    watch(path, callback) {
+        const watcher = this._etcd.watcher(path);
         //watcher.on('change', this._onKeyChanged);
         watcher.on('set', (callback));
         watcher.on('delete', callback);
