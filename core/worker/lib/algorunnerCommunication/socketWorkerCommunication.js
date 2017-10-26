@@ -28,7 +28,7 @@ class SocketWorkerCommunication extends EventEmitter {
                     return reject(new Error(validatedOptions.errors[0]));
                 }
                 const server = this._options.httpServer||http.createServer();
-                this._socketServer = socketio.listen(server, { pingTimeout: this._options.pingTimeout });
+                this._socketServer = socketio.listen(server, { pingTimeout: this._options.pingTimeout});
                 this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!')
                     this._registerSocketMessages(socket);
@@ -47,8 +47,8 @@ class SocketWorkerCommunication extends EventEmitter {
 
     _registerSocketMessages(socket) {
         this._socket = socket;
-        socket.on('message',(message)=>{
-            this.emit('message',message);
+        socket.on('commandMessage',(message)=>{
+            this.emit('commandMessage',message);
         });
         socket.on('disconnect',()=>{
             log.info('socket disconnected');
@@ -69,7 +69,7 @@ class SocketWorkerCommunication extends EventEmitter {
             log.error(error);
             throw new Error(error)
         }
-        this._socket.emit('message',message);
+        this._socket.emit('commandMessage',message);
     }
 
     async sendForReply(message){

@@ -42,7 +42,7 @@ class WorkerCommunication extends EventEmitter {
         this.adapter = new adapterClass();
         forward_emitter(this.adapter, this);
         await this.adapter.init(this._options.config);
-        this.adapter.on('message',(message)=>{
+        this.adapter.on('commandMessage',(message)=>{
             this.emit(message.command,message.data);
         })
     }
