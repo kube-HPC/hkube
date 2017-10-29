@@ -26,5 +26,5 @@ test_async:
    - export ETCD_SERVICE_HOST=etcd
    - export REDIS_SERVICE_HOST=redis 
    - wget -qO- http://${ETCD_SERVICE_HOST}:4001/version
-   - npm run test
+   - NODE_ENV=test npm run test
 
