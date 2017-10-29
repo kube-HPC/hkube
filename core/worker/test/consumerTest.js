@@ -111,7 +111,8 @@ describe('consumer', () => {
     }).timeout(5000)
 
     it('should send init to worker', (done) => {
-        workerCommunication.once(messages.incomming.initialized, (data) => {
+        workerCommunication.once('commandMessage', (message) => {
+            expect(message.command).to.eql(messages.incomming.initialized);
             done();
         })
         producer = new Producer(producerSettings);

@@ -48,7 +48,7 @@ class LoopbackWorkerCommunication extends EventEmitter {
     }
 
     _simulateSend(message) {
-        this.emit('message', message)
+        this.emit('commandMessage', message)
         // return new Promise((resolve, reject)=> {
         //     this.emit('message', message);
         //     resolve();
