@@ -22,8 +22,8 @@ config.workerCommunication = {
 config.etcdDiscovery = {
     init: {
         etcd: {
-            host: process.env.ETCD_SERVICE_HOST || 'localhost',
-            port: process.env.ETCD_SERVICE_PORT || 4001,
+            host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
+            port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
         },
         serviceName:config.serviceName
     },
