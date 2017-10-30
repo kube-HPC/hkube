@@ -27,14 +27,14 @@ class JobConsumer extends EventEmitter {
         this._consumer.register(setting);
         this._consumer.on('job', (job) => {
             job.id = 'pipeline-id:aea80705-fe25-4ef2-b631-70ec037c2161';
-            stateManager.watch(`/jobs/${job.id}/state`, (res) => {
-                if (res.action === 'set' && res.node.value) {
-                    const r = JSON.parse(res.node.value);
-                    if (r.status === 'stopped') {
-                        this.emit('job-stop', job);
-                    }
-                }
-            });
+            // stateManager.watch(`/jobs/${job.id}/state`, (res) => {
+            //     if (res.action === 'set' && res.node.value) {
+            //         const r = JSON.parse(res.node.value);
+            //         if (r.status === 'stopped') {
+            //             this.emit('job-stop', job);
+            //         }
+            //     }
+            // });
             this.emit('job-start', job);
         })
     }

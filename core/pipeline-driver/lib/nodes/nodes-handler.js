@@ -106,6 +106,9 @@ class NodesHandler {
         }
         if (batchID) {
             const batch = node.batch.find(b => b.batchID === batchID);
+            if (!batch) {
+                throw new Error(`unable to find batch ${batchID}`)
+            }
             batch.state = options.state;
             batch.result = options.result;
             batch.error = options.error;
