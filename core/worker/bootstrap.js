@@ -44,48 +44,48 @@ class Bootstrap {
             await worker.init(main);
 
            // tmp
-            const comm = require('./lib/algorunnerCommunication/workerCommunication');
-            comm.once('connection',()=>{
-                const producerSettings = {
-                    setting: {
-                        queueName: 'queue-workers',
-                        prefix: 'jobs-workers',
-                        redis: {
-                            host: process.env.REDIS_SERVICE_HOST || 'localhost',
-                            port: process.env.REDIS_SERVICE_PORT || 6379
-                        }
-                    }
-                }
-                const testProducer = {
-                    job: {
-                        type: 'green-alg',
-                        data: {
-                            inputs: {
-                                standard: [
-                                    'input-1',
-                                    'input-2'
-                                ],
-                            }
-                        }
-                    }
-                }
-                const { Producer } = require('producer-consumer.rf');
-                const producer = new Producer(producerSettings);
-                producer.on('job-failed',(jobData)=>{
-                    log.error(`job failed: ${JSON.stringify(jobData)}`)
-                })
-                producer.on('job-active',(jobData)=>{
-                    log.info(`job active: ${JSON.stringify(jobData)}`)
-                })
-                producer.on('job-waiting',(jobData)=>{
-                    log.info(`job waiting: ${JSON.stringify(jobData)}`)
-                })
-                producer.on('job-completed',(jobData)=>{
-                    log.info(`job completed: ${JSON.stringify(jobData)}`)
-                })
-                producer.createJob(testProducer)
-
-            })
+           //  const comm = require('./lib/algorunnerCommunication/workerCommunication');
+           //  comm.once('connection',()=>{
+           //      const producerSettings = {
+           //          setting: {
+           //              queueName: 'queue-workers',
+           //              prefix: 'jobs-workers',
+           //              redis: {
+           //                  host: process.env.REDIS_SERVICE_HOST || 'localhost',
+           //                  port: process.env.REDIS_SERVICE_PORT || 6379
+           //              }
+           //          }
+           //      }
+           //      const testProducer = {
+           //          job: {
+           //              type: 'green-alg',
+           //              data: {
+           //                  inputs: {
+           //                      standard: [
+           //                          'input-1',
+           //                          'input-2'
+           //                      ],
+           //                  }
+           //              }
+           //          }
+           //      }
+           //      const { Producer } = require('producer-consumer.rf');
+           //      const producer = new Producer(producerSettings);
+           //      producer.on('job-failed',(jobData)=>{
+           //          log.error(`job failed: ${JSON.stringify(jobData)}`)
+           //      })
+           //      producer.on('job-active',(jobData)=>{
+           //          log.info(`job active: ${JSON.stringify(jobData)}`)
+           //      })
+           //      producer.on('job-waiting',(jobData)=>{
+           //          log.info(`job waiting: ${JSON.stringify(jobData)}`)
+           //      })
+           //      producer.on('job-completed',(jobData)=>{
+           //          log.info(`job completed: ${JSON.stringify(jobData)}`)
+           //      })
+           //      producer.createJob(testProducer)
+           //
+           //  })
             return main;
         }
         catch (error) {

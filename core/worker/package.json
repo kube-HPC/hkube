@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha test"
+    "test": "node_modules/mocha/bin/mocha test",
+    "build": "dockerfile/build.sh worker"
   },
   "repository": {
     "type": "git",
@@ -19,7 +20,7 @@
     "forward-emitter": "^0.1.1",
     "javascript-state-machine": "^3.0.1",
     "logger.rf": "^1.0.2",
-    "producer-consumer.rf": "^1.0.4",
+    "producer-consumer.rf": "^1.0.6",
     "redis-utils.rf": "^1.0.1",
     "socket.io": "^1.7.2",
     "uuid": "^3.1.0"
@@ -28,6 +29,6 @@
     "chai": "^4.1.2",
     "mocha": "^3.5.3",
     "sinon": "^3.3.0",
-    "socket.io-client": "^2.0.3"
+    "socket.io-client": "^2.0.4"
   }
 }
