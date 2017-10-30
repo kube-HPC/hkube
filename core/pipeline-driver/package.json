@@ -28,7 +28,8 @@
   },
   "scripts": {
     "test": "mocha",
-    "start": "node index"
+    "start": "node index",
+    "build": "./dockerfile/build.sh pipeline-driver"
   },
   "author": "RAF",
   "license": "ISC"
