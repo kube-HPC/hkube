@@ -4,6 +4,7 @@ const Logger = require('logger.rf');
 const stateManager = require('../states/stateManager');
 const { stateEvents } = require('../../common/consts/events');
 const {workerStates} = require('../../common/consts/states');
+const etcd = require('../states/discovery');
 let log;
 
 class JobConsumer extends EventEmitter {
@@ -31,6 +32,8 @@ class JobConsumer extends EventEmitter {
             this._job = job;
             stateManager.setJob(job);
             stateManager.prepare(job);
+            etcd.updateInit({ jobId: job.data.jobID, taskId: job.id });
+
             this.emit('job',job);
         });
 
@@ -53,10 +56,12 @@ class JobConsumer extends EventEmitter {
             this._register();
         })
     }
-    finishJob(result){
+    async finishJob(result){
         if (!this._job)
             return;
-        this._job.done(null,result);
+        // TODO: handle error
+        await etcd.update({status: 'completed', result: result});
+        this._job.done(null);
         this._job = null;
     }
 }
