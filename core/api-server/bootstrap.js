@@ -7,14 +7,13 @@ const Logger = require('logger.rf');
 const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
 const monitor = require('redis-utils.rf').Monitor;
 const componentNames = require('common/consts/componentNames.js');
-//const tests = require('./tests');
 let log;
 
 const modules = [
     'lib/apiServer',
-    'lib/statusReportService',
-    'lib/utils/etcdRfSinglton'
-
+    'lib/state/state-manager',
+    'lib/producer/jobs-producer',
+    'lib/webhook/webhooks-handler'
 ];
 
 class Bootstrap {
@@ -23,7 +22,6 @@ class Bootstrap {
             const { maincfg, logger } = await configIt.load();
             this._handleErrors();
 
-            
             log = new Logger(maincfg.serviceName, logger);
             log.plugins.use(new VerbosityPlugin(maincfg.redis));
             log.info('running application in ' + configIt.env() + ' environment', { component: componentNames.MAIN });
@@ -39,11 +37,10 @@ class Bootstrap {
             //load all modules
             await Promise.all(modules.map(m => require(m).init(maincfg)));
 
-            //tests.run(maincfg);
-
             return maincfg;
         }
         catch (error) {
+            log.error(error);
             this._onInitFailed(new Error(`unable to start application. ${error.message}`));
         }
     }

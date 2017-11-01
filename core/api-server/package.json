@@ -1,5 +1,5 @@
 {
-  "name": "algo-api",
+  "name": "api-server",
   "version": "1.0.0",
   "description": "algorithm flows extraordinaire",
   "main": "index.js",
@@ -15,11 +15,13 @@
   "dependencies": {
     "config.rf": "^1.0.0",
     "connect": "^3.6.5",
-    "etcd.rf": "^1.1.4",
+    "djsv": "^1.4.2",
+    "etcd.rf": "^1.1.5",
     "js-yaml": "^3.3.0",
     "logger.rf": "^1.0.2",
     "node-etcd": "^5.1.0",
-    "producer-consumer.rf": "^1.0.3",
+    "producer-consumer.rf": "^1.0.6",
+    "requestretry": "^1.12.2",
     "swagger-tools": "0.10.1"
   }
 }

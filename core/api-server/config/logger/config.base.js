@@ -3,7 +3,7 @@ const config = module.exports = {};
 config.transport = {
     console: true,
     logstash: false,
-    file: true
+    file: false
 };
 
 config.extraDetails = false;

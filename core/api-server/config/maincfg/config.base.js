@@ -1,6 +1,4 @@
 
-//config.serviceName = 'client-negotiator';
-
 var package = require(process.cwd() + '/package.json');
 var config = module.exports = {};
 
@@ -18,5 +16,3 @@ config.etcd = {
     host: process.env.ETCD_SERVICE_HOST || 'localhost',
     port: process.env.ETCD_SERVICE_PORT || 4001
 };
-
-config.serviceName = "apiServer";

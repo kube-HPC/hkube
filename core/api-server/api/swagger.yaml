@@ -332,7 +332,7 @@ definitions:
   runStoredRequest:
     type: "object"
     properties:
-      storedpipelineId:
+      name:
         type: "string"
       flowInput:
         type: "object"
