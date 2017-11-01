@@ -63,7 +63,7 @@ exports.runStoredPOST = async (pipeline) => {
   }
   const jobdata = Object.assign({}, requestedPipe, pipeline);
 
-  return await producer.createJob(jobdata, pipeline);
+  await producer.createJob(jobdata, pipeline);
 }
 
 /**
