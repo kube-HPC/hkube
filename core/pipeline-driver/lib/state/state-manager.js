@@ -3,10 +3,6 @@ const Etcd = require('etcd.rf');
 
 class StateManager {
 
-    constructor() {
-        this._etcd = null;
-    }
-
     init({ serviceName, etcd }) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
@@ -17,53 +13,41 @@ class StateManager {
         this._etcd.updateInitSetting({ jobId });
     }
 
-    async setDriverState(options) {
-        await this._etcd.services.pipelineDriver.setState(options.value);
-    }
-
-    deleteDriverState(options) {
-        this._etcd.delete(`${DRIVERS_PATH}/${options.jobID}/instance`);
-    }
-
-    async _getDriverState(options) {
-        return await this._etcd.services.pipelineDriver.getState();
-    }
-
     async getTaskState(options) {
-        return await this._etcd.services.pipelineDriver.getTaskState(options.taskID);
+        return await this._etcd.services.pipelineDriver.getTaskState(options.taskId);
     }
 
     async setTaskState(options) {
-        return await this._etcd.services.pipelineDriver.setTaskState(options.taskID, options.value);
+        return await this._etcd.services.pipelineDriver.setTaskState(options.taskId, options.value);
     }
 
     async setJobResults(options) {
         return await this._etcd.jobs.setJobResults(options);
     }
 
-    async _getDriverTasks(options) {
-        return await this._etcd.services.pipelineDriver.getDriverTasks();
-    }
-
-    async _getJobTasks(options) {
-        return await this._etcd.jobs.getJobsTasks();
-    }
-
-    async getState(options) {
-        const driver = await this._getDriverState(options);
+    async getState() {
+        const driver = await this._etcd.services.pipelineDriver.getState();
         if (driver) {
-            const driverTasks = await this._getDriverTasks(options);
-            const jobTasks = await this._getJobTasks(options);
+            const driverTasks = await this._etcd.services.pipelineDriver.getDriverTasks();
+            const jobTasks = await this._etcd.jobs.getJobsTasks();
             const result = Object.assign({}, driver);
             result.driverTasks = driverTasks || [];
-            result.jobTasks = jobTasks || [];
+            result.jobTasks = jobTasks || new Map();
             return result;
         }
         return null;
     }
 
-    onJobResult(options, callback) {
-        this._etcd.jobs.onJobResult(options, callback);
+    async setState(options) {
+        await this._etcd.services.pipelineDriver.setState(options);
+    }
+
+    async deleteState() {
+        return await this._etcd.services.pipelineDriver.deleteState();
+    }
+
+    onTaskResult(options, callback) {
+        this._etcd.jobs.onTaskResult(options, callback);
     }
 }
 

@@ -39,7 +39,6 @@ class JobProducer extends EventEmitter {
                 batchID: internal.batchID,
                 status: States.PENDING
             });
-            this._watchWorker(data.jobID);
             this._setTaskState(data.jobID, node);
         }).on('job-active', (data) => {
             log.info(`job active ${data.jobID}`, { component: components.JOBS_PRODUCER });
@@ -66,7 +65,7 @@ class JobProducer extends EventEmitter {
         });
 
         consumer.on('job-stop', async (job) => {
-            let state = await stateManager.getState({ jobID: job.id });
+            let state = await stateManager.getState();
             this._onJobStop(state);
         });
         consumer.on('job-start', (job) => {
@@ -74,17 +73,16 @@ class JobProducer extends EventEmitter {
         });
     }
 
-    _watchWorker(taskID) {
-        stateManager.onJobResult({ taskID: taskID }, async (result) => {
-            const taskState = await stateManager.getTaskState({ taskID: taskID });
+    async _watchWorker(options) {
+        await stateManager.onTaskResult({ taskId: options.taskId }, (result) => {
             const node = new NodeState({
-                nodeName: taskState.nodeName,
-                batchID: taskState.batchID,
+                nodeName: options.nodeName,
+                batchID: options.batchID,
                 result: result,
                 status: States.COMPLETED
             });
-            log.info(`job completed ${taskID}`, { component: components.JOBS_PRODUCER });
-            this._setTaskState(taskID, node);
+            log.info(`job completed ${options.taskId}`, { component: components.JOBS_PRODUCER });
+            this._setTaskState(options.taskId, node);
             this._runCompleted(node.nodeName);
         });
     }
@@ -173,8 +171,8 @@ class JobProducer extends EventEmitter {
         }
         else if (this._nodes.isAllNodesDone()) {
             log.info(`pipeline completed ${this._job.id}`, { component: components.JOBS_PRODUCER });
-            const results = this._nodes.allNodesResults();
-            stateManager.setJobResults({ data: results });
+            const res = this._nodes.allNodesResults();
+            stateManager.setJobResults({ data: { result: res, webhook: this._job.data.webhook } });
             this._job.done(null);
         }
     }
@@ -200,12 +198,12 @@ class JobProducer extends EventEmitter {
                 this._onJobStop(state);
             }
             else {
-                stateManager.setDriverState({ value: { state: States.RECOVERING } });
+                stateManager.setState({ state: States.RECOVERING });
                 this._recover(state);
             }
         }
         else {
-            stateManager.setDriverState({ value: { state: States.ACTIVE } });
+            stateManager.setState({ state: States.ACTIVE });
             this._startNodes(job.data);
         }
     }
@@ -238,7 +236,7 @@ class JobProducer extends EventEmitter {
         });
 
         state.driverTasks.forEach(driverTask => {
-            const jobTask = state.jobTasks.get(driverTask.taskID);
+            const jobTask = state.jobTasks.get(driverTask.taskId);
             if (jobTask && jobTask.status !== driverTask.status) {
                 if (jobTask.status === States.COMPLETED) {
                     const node = new NodeState({
@@ -247,8 +245,8 @@ class JobProducer extends EventEmitter {
                         result: jobTask.result,
                         status: States.COMPLETED
                     });
-                    log.info(`found completed job ${driverTask.taskID} after recover`, { component: components.JOBS_PRODUCER });
-                    this._setTaskState(driverTask.taskID, node);
+                    log.info(`found completed job ${driverTask.taskId} after recover`, { component: components.JOBS_PRODUCER });
+                    this._setTaskState(driverTask.taskId, node);
                     this._runCompleted(node.nodeName);
                 }
                 else if (jobTask.status === States.FAILED) {
@@ -258,20 +256,24 @@ class JobProducer extends EventEmitter {
                         error: jobTask.result,
                         status: States.FAILED
                     });
-                    log.info(`found failed job ${driverTask.taskID} after recover`, { component: components.JOBS_PRODUCER });
-                    this._setTaskState(driverTask.taskID, node);
+                    log.info(`found failed job ${driverTask.taskId} after recover`, { component: components.JOBS_PRODUCER });
+                    this._setTaskState(driverTask.taskId, node);
                     this._jobDone(jobTask.result);
                 }
                 else {
-                    this._watchWorker(driverTask.taskID);
+                    this._watchWorker({
+                        taskId: driverTask.taskId,
+                        nodeName: driverTask.nodeName,
+                        batchID: driverTask.batchID
+                    });
                 }
             }
         });
     }
 
-    _setTaskState(taskID, data) {
+    _setTaskState(taskId, data) {
         this._nodes.updateNodeState(data.nodeName, data.batchID, { state: data.status, error: data.error, result: data.result });
-        stateManager.setTaskState({ taskID: taskID, value: data });
+        stateManager.setTaskState({ taskId: taskId, value: data });
     }
 
     _startNodes(options) {
@@ -282,9 +284,11 @@ class JobProducer extends EventEmitter {
         entryNodes.forEach(n => this._runNode(n));
     }
 
-    _createJob(node) {
+    async _createJob(node) {
+        const taskId = this._producer.createJobID(node.algorithm);
         const options = {
             job: {
+                id: taskId,
                 type: node.algorithm,
                 data: {
                     input: node.input,
@@ -297,6 +301,7 @@ class JobProducer extends EventEmitter {
                 }
             }
         }
+        await this._watchWorker({ taskId: taskId, nodeName: node.name, batchID: node.batchID });
         this._producer.createJob(options);
     }
 }
