@@ -13,7 +13,7 @@ config.redis = {
 config.workerCommunication = {
     adapterName: 'socket',
     config: {
-        connection:{
+        connection: {
             port: process.env.WORKER_SOCKET_PORT || 3000
         }
     }
@@ -25,14 +25,14 @@ config.etcdDiscovery = {
             host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
             port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
         },
-        serviceName:config.serviceName
+        serviceName: config.serviceName
     },
-    register:{
+    register: {
         // use defaults for now
     }
 }
 
-config.jobConsumer={
+config.jobConsumer = {
     job: {
         type: process.env.JOB_TYPE || 'green-alg'
     },
@@ -42,6 +42,6 @@ config.jobConsumer={
     }
 }
 
-config.inputAdapters={
-    storagePath:process.env.SHARED_STORAGE_PATH || './sharedStorage'
+config.inputAdapters = {
+    storagePath: process.env.SHARED_STORAGE_PATH || './sharedStorage'
 }

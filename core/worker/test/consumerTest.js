@@ -10,18 +10,20 @@ const expect = require('chai').expect
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication')
 const messages = require('../lib/algorunnerCommunication/messages');
 
+const jobID = 'test-jobID-3232dd-124fdg4-sdffs234-cs3424';
+
 const jobConsumerConfig = {
     jobConsumer: {
         job: {
-            type: 'test-job'
+            type: 'test-job',
+            data: {
+                jobID: jobID
+            }
         },
         setting: {
             queueName: 'queue-workers',
             prefix: 'jobs-workers',
-
-
         }
-
     },
     redis: {
         host: process.env.REDIS_SERVICE_HOST || 'localhost',
@@ -33,6 +35,7 @@ const testProducer = {
     job: {
         type: 'test-job',
         data: {
+            jobID: jobID,
             inputs: {
                 standard: [
                     'input-1',
@@ -81,23 +84,20 @@ describe('consumer', () => {
 
     beforeEach((done) => {
 
-        bootstrap.init().then(()=>{
+        bootstrap.init().then(() => {
             consumer = Consumer;
 
-        }).then(()=>{
+        }).then(() => {
 
             return consumer.init(jobConsumerConfig);
-        // }).then(()=>{
-        //    return workerCommunication.init(workerCommunicationConfig);
-        }).then(()=>{
+            // }).then(()=>{
+            //    return workerCommunication.init(workerCommunicationConfig);
+        }).then(() => {
             stateManager.on('stateEnteredready', () => {
                 done()
             })
             workerCommunication.adapter.start();
         });
-
-
-
 
     });
     it('should get job', (done) => {
