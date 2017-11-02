@@ -9,27 +9,27 @@ class StateManager {
         this._etcd.discovery.register({ serviceName });
     }
 
-    updateInit(jobId) {
-        this._etcd.updateInitSetting({ jobId });
-    }
-
     async getTaskState(options) {
-        return await this._etcd.services.pipelineDriver.getTaskState(options.taskId);
+        return await this._etcd.services.pipelineDriver.getTaskState(options);
     }
 
     async setTaskState(options) {
-        return await this._etcd.services.pipelineDriver.setTaskState(options.taskId, options.value);
+        return await this._etcd.services.pipelineDriver.setTaskState(options);
     }
 
     async setJobResults(options) {
-        return await this._etcd.jobs.setJobResults(options);
+        return await this._etcd.jobs.setResults(options);
     }
 
-    async getState() {
-        const driver = await this._etcd.services.pipelineDriver.getState();
+    async setJobStatus(options) {
+        return await this._etcd.jobs.setStatus(options);
+    }
+
+    async getState(options) {
+        const driver = await this._etcd.services.pipelineDriver.getState(options);
         if (driver) {
-            const driverTasks = await this._etcd.services.pipelineDriver.getDriverTasks();
-            const jobTasks = await this._etcd.jobs.getJobsTasks();
+            const driverTasks = await this._etcd.services.pipelineDriver.getDriverTasks(options);
+            const jobTasks = await this._etcd.tasks.list(options);
             const result = Object.assign({}, driver);
             result.driverTasks = driverTasks || [];
             result.jobTasks = jobTasks || new Map();
@@ -42,12 +42,12 @@ class StateManager {
         await this._etcd.services.pipelineDriver.setState(options);
     }
 
-    async deleteState() {
-        return await this._etcd.services.pipelineDriver.deleteState();
+    async deleteState(optionsoptions) {
+        return await this._etcd.services.pipelineDriver.deleteState(options);
     }
 
     onTaskResult(options, callback) {
-        this._etcd.jobs.onTaskResult(options, callback);
+        this._etcd.tasks.onResult(options, callback);
     }
 }
 
