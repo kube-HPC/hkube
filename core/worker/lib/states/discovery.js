@@ -31,13 +31,11 @@ class EtcdDiscovery {
     }
 
     async _updateResult(options) {
-        const opt = Object.assign({}, { jobId: options.jobId, taskId: options.taskId }, { result: options.result });
-        await this._etcd.tasks.setResult(opt);
+        await this._etcd.tasks.setResult(options);
     }
 
     async _updateStatus(options) {
-        const opt = Object.assign({}, { jobId: options.jobId, taskId: options.taskId }, { status: options.status });
-        await this._etcd.tasks.setStatus(opt);
+        await this._etcd.tasks.setStatus(options);
     }
 }
 
