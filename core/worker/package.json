@@ -16,11 +16,11 @@
   "dependencies": {
     "config.rf": "^1.0.0",
     "djsv": "^1.4.2",
-    "etcd.rf": "^2.1.10",
+    "etcd.rf": "^2.1.16",
     "forward-emitter": "^0.1.1",
     "javascript-state-machine": "^3.0.1",
     "logger.rf": "^1.0.2",
-    "producer-consumer.rf": "^1.0.7",
+    "producer-consumer.rf": "^1.0.8",
     "redis-utils.rf": "^1.0.1",
     "socket.io": "^1.7.2",
     "uuid": "^3.1.0"
