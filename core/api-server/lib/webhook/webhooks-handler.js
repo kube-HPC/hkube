@@ -7,30 +7,41 @@ const components = require('common/consts/componentNames');
 
 class WebhooksHandler {
 
-    init() {
-        stateManager.on('job-result', (data) => {
+    init({ webhookSettings }) {
+        stateManager.on('job-result', (response) => {
             const webhook = new Webhook({
-                webhookID: data.jobId,
-                data: data.result
+                webhookID: response.jobId,
+                data: response.data.result
             });
-            log.info(`job result event. trying to callback webhook ${data.webhook.resultHook}`, { component: components.MAIN });
-            this._request(data.webhook.resultHook, webhook);
+            const webhookUrl = response.data.webhook.resultHook;
+            log.info(`job result event. trying to call webhook ${webhookUrl}`, { component: components.WEBHOOK_HANDLER });
+            this._request(webhookUrl, webhookSettings.resultHook, webhook);
+        })
+
+        stateManager.on('job-status', (response) => {
+            const webhook = new Webhook({
+                webhookID: response.jobId,
+                data: response.data.status
+            });
+            const webhookUrl = response.data.webhook.progressHook;
+            log.info(`job progress event. trying to call webhook ${webhookUrl}`, { component: components.WEBHOOK_HANDLER });
+            this._request(webhookUrl, webhookSettings.progressHook, webhook);
         })
     }
 
-    _request(url, webhook) {
+    _request(url, settings, body) {
         request({
             method: 'POST',
             uri: url,
-            body: webhook,
+            body: body,
             json: true,
-            maxAttempts: 1,
-            retryDelay: 5000,
+            maxAttempts: settings.maxAttempts,
+            retryDelay: settings.retryDelay,
             retryStrategy: request.RetryStrategies.HTTPOrNetworkError
         }).then((response) => {
-            log.info(`webhook completed with status ${response.statusCode} ${response.statusMessage}`, { component: components.MAIN });
+            log.info(`webhook completed with status ${response.statusCode} ${response.statusMessage}, attempts: ${response.attempts}`, { component: components.WEBHOOK_HANDLER });
         }).catch((error) => {
-            log.error(`webhook failed ${error.message}`, { component: components.MAIN });
+            log.error(`webhook failed ${error.message}`, { component: components.WEBHOOK_HANDLER });
         });
     }
 }

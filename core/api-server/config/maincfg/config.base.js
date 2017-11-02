@@ -16,3 +16,14 @@ config.etcd = {
     host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
+
+config.webhookSettings = {
+    progressHook: {
+        maxAttempts: 3,
+        retryDelay: 5000
+    },
+    resultHook: {
+        maxAttempts: 3,
+        retryDelay: 5000
+    }
+}

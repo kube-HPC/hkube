@@ -17,11 +17,12 @@
         "config.rf": "^1.0.0",
         "connect": "^3.6.5",
         "djsv": "^1.4.2",
-        "etcd.rf": "^1.1.5",
+        "etcd.rf": "^2.1.16",
         "js-yaml": "^3.3.0",
         "logger.rf": "^1.0.2",
         "node-etcd": "^5.1.0",
-        "producer-consumer.rf": "^1.0.6",
+        "producer-consumer.rf": "^1.0.8",
+        "redis-utils.rf": "^1.0.1",
         "requestretry": "^1.12.2",
         "swagger-tools": "0.10.1"
     }

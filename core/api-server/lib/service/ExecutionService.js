@@ -1,7 +1,6 @@
-'use strict';
-
 const storedPipelinesMap = require('../service/storedPipelinesMap.js')
 const producer = require('lib/producer/jobs-producer');
+const stateManager = require('lib/state/state-manager');
 
 /**
  * get run result
@@ -11,18 +10,8 @@ const producer = require('lib/producer/jobs-producer');
  * executionID String executionID to getresults for
  * returns pipelineExecutionResult
  **/
-exports.resultsExecutionIDGET = function (executionID) {
-  return new Promise(function (resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-      "result": "{}"
-    };
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
-    }
-  });
+exports.resultsExecutionIDGET = async (executionID) => {
+  return await stateManager.getJobResult({ jobId: executionID });
 }
 
 /**
@@ -33,19 +22,8 @@ exports.resultsExecutionIDGET = function (executionID) {
  * pipelineRunData RunRequest an object representing all information needed for pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runPOST = function (pipelineRunData) {
-  return new Promise(function (resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-      "executionID": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-      "status": "status"
-    };
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
-    }
-  });
+exports.runPOST = async (pipeline) => {
+  return await producer.createJob(pipeline);
 }
 
 /**
@@ -62,8 +40,7 @@ exports.runStoredPOST = async (pipeline) => {
     throw new Error(`unable to find pipeline ${pipeline.name}`);
   }
   const jobdata = Object.assign({}, requestedPipe, pipeline);
-
-  await producer.createJob(jobdata, pipeline);
+  return await producer.createJob(jobdata);
 }
 
 /**
@@ -85,6 +62,6 @@ exports.statusGET = async (flow_execution_id) => {
  * reason String reason for stopping. (optional)
  * returns String
  **/
-exports.stopPOST = function (flow_execution_id, reason) {
+exports.stopPOST = async (flow_execution_id, reason) => {
 
 }

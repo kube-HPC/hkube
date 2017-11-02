@@ -3,7 +3,8 @@
  */
 
 var Components = {
-    MAIN: 'Main'
+    MAIN: 'Main',
+    WEBHOOK_HANDLER: 'Webhook-handler'
 };
 
 module.exports = Components;
