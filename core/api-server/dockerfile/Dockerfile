@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:8
 MAINTAINER yehiyam@gmail.com
 RUN apt update && apt install nano
 RUN mkdir /sound-factory && npm install -g nodemon
