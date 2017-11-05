@@ -1,27 +1,15 @@
-# Created by https://www.gitignore.io/api/node,linux
-
-### Linux ###
-*~
-
-# temporary files which can be created if a process still has a handle open of a deleted file
-.fuse_hidden*
-
-# KDE directory preferences
-.directory
-
-# Linux trash folder which might appear on any partition or disk
-.Trash-*
-
-# .nfs files are created when an open file is removed but is still being accessed
-.nfs*
-
-### Node ###
 # Logs
 logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# IDE
+.idea
+.dist
+.vscode
+*~
 
 # Runtime data
 pids
@@ -47,7 +35,7 @@ bower_components
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (http://nodejs.org/api/addons.html)
+# Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 
 # Dependency directories
@@ -74,8 +62,3 @@ typings/
 
 # dotenv environment variables file
 .env
-
-
-# End of https://www.gitignore.io/api/node,linux
-
-./node_modules/*

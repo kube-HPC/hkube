@@ -7,25 +7,28 @@ const components = require('common/consts/componentNames');
 
 class WebhooksHandler {
 
-    init({ webhookSettings }) {
-        stateManager.on('job-result', (response) => {
+    init(options) {
+        this._options = options;
+        stateManager.on('job-result', async (response) => {
             const webhook = new Webhook({
                 webhookID: response.jobId,
                 data: response.data.result
             });
-            const webhookUrl = response.data.webhook.resultHook;
+            const pipeline = await stateManager.getPipeline({ name: response.data.name });
+            const webhookUrl = pipeline.webhook.resultHook;
             log.info(`job result event. trying to call webhook ${webhookUrl}`, { component: components.WEBHOOK_HANDLER });
-            this._request(webhookUrl, webhookSettings.resultHook, webhook);
+            this._request(webhookUrl, this._options.webhook.resultHook, webhook);
         })
 
-        stateManager.on('job-status', (response) => {
+        stateManager.on('job-status', async (response) => {
             const webhook = new Webhook({
                 webhookID: response.jobId,
                 data: response.data.status
             });
-            const webhookUrl = response.data.webhook.progressHook;
+            const pipeline = await stateManager.getPipeline({ name: response.data.name });
+            const webhookUrl = pipeline.webhook.progressHook;
             log.info(`job progress event. trying to call webhook ${webhookUrl}`, { component: components.WEBHOOK_HANDLER });
-            this._request(webhookUrl, webhookSettings.progressHook, webhook);
+            this._request(webhookUrl, this._options.webhook.progressHook, webhook);
         })
     }
 

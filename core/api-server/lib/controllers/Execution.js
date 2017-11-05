@@ -3,7 +3,7 @@
 const utils = require('lib/utils/writer.js');
 const Execution = require('lib/service/ExecutionService');
 
-module.exports.resultsExecutionIDGET = function resultsExecutionIDGET (req, res, next) {
+module.exports.resultsExecutionIDGET = function resultsExecutionIDGET(req, res, next) {
   let executionID = req.swagger.params['executionID'].value;
   Execution.resultsExecutionIDGET(executionID)
     .then(function (response) {
@@ -14,7 +14,7 @@ module.exports.resultsExecutionIDGET = function resultsExecutionIDGET (req, res,
     });
 };
 
-module.exports.runPOST = function runPOST (req, res, next) {
+module.exports.runPOST = function runPOST(req, res, next) {
   let pipelineRunData = req.swagger.params['pipelineRunData'].value;
   Execution.runPOST(pipelineRunData)
     .then(function (response) {
@@ -25,7 +25,7 @@ module.exports.runPOST = function runPOST (req, res, next) {
     });
 };
 
-module.exports.runStoredPOST = function runStoredPOST (req, res, next) {
+module.exports.runStoredPOST = function runStoredPOST(req, res, next) {
   var storedpipelineRunData = req.swagger.params['storedpipelineRunData'].value;
   Execution.runStoredPOST(storedpipelineRunData)
     .then(function (response) {
@@ -36,7 +36,7 @@ module.exports.runStoredPOST = function runStoredPOST (req, res, next) {
     });
 };
 
-module.exports.statusGET = function statusGET (req, res, next) {
+module.exports.statusGET = function statusGET(req, res, next) {
   var flow_execution_id = req.swagger.params['flow_execution_id'].value;
   Execution.statusGET(flow_execution_id)
     .then(function (response) {
@@ -47,10 +47,10 @@ module.exports.statusGET = function statusGET (req, res, next) {
     });
 };
 
-module.exports.stopPOST = function stopPOST (req, res, next) {
+module.exports.stopPOST = function stopPOST(req, res, next) {
   var flow_execution_id = req.swagger.params['flow_execution_id'].value;
   var reason = req.swagger.params['reason'].value;
-  Execution.stopPOST(flow_execution_id,reason)
+  Execution.stopPOST(flow_execution_id, reason)
     .then(function (response) {
       utils.writeJson(res, response);
     })

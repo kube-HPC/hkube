@@ -1,4 +1,3 @@
-const storedPipelinesMap = require('../service/storedPipelinesMap.js')
 const producer = require('lib/producer/jobs-producer');
 const stateManager = require('lib/state/state-manager');
 
@@ -23,6 +22,7 @@ exports.resultsExecutionIDGET = async (executionID) => {
  * returns pipelineExecutionStatus
  **/
 exports.runPOST = async (pipeline) => {
+  await stateManager.setPipeline({ name: pipeline.name, data: pipeline });
   return await producer.createJob(pipeline);
 }
 
@@ -35,12 +35,13 @@ exports.runPOST = async (pipeline) => {
  * returns pipelineExecutionStatus
  **/
 exports.runStoredPOST = async (pipeline) => {
-  const requestedPipe = storedPipelinesMap[pipeline.name];
+  const requestedPipe = await stateManager.getPipeline({ name: pipeline.name });
   if (!requestedPipe) {
     throw new Error(`unable to find pipeline ${pipeline.name}`);
   }
-  const jobdata = Object.assign({}, requestedPipe, pipeline);
-  return await producer.createJob(jobdata);
+  const newPipe = Object.assign({}, requestedPipe, pipeline);
+  await stateManager.setPipeline({ name: newPipe.name, data: newPipe });
+  return await producer.createJob(newPipe);
 }
 
 /**
@@ -51,7 +52,7 @@ exports.runStoredPOST = async (pipeline) => {
  * returns List
  **/
 exports.statusGET = async (flow_execution_id) => {
-
+  return await stateManager.getPipeline({ name: pipeline.name });
 }
 
 /**
@@ -63,5 +64,5 @@ exports.statusGET = async (flow_execution_id) => {
  * returns String
  **/
 exports.stopPOST = async (flow_execution_id, reason) => {
-
+  return await stateManager.getPipeline({ name: pipeline.name });
 }

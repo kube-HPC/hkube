@@ -1,6 +1,6 @@
-const pipelines = module.exports = {};
 
-pipelines.myFlow = {
+
+module.exports = {
     "name": "myFlow",
     "nodes": [
         {
@@ -32,7 +32,7 @@ pipelines.myFlow = {
         }
     },
     "webhook": {
-        "progressHook": "string",
-        "resultHook": "http://localhost:9988/webhook"
+        "progressHook": "http://localhost:9988/webhook/progress",
+        "resultHook": "http://localhost:9988/webhook/result"
     }
 };

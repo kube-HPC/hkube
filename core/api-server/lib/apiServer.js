@@ -4,14 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const app = require('connect')();
-
-
 const swaggerTools = require('swagger-tools');
 const jsyaml = require('js-yaml');
 
 const serverPort = 3000;
-
-//log initialization
 
 const configrf = require('config.rf');
 const Logger = require('logger.rf');
@@ -21,10 +17,6 @@ const componentNames = require('common/consts/componentNames.js');
 class apiServer {
 
   async init() {
-
-    const { maincfg, logger } = await configrf.load();
-
-    let log = new Logger(maincfg.serviceName, logger);
 
     // swaggerRouter configuration
     const options = {

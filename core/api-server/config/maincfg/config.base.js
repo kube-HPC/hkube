@@ -17,7 +17,7 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
-config.webhookSettings = {
+config.webhook = {
     progressHook: {
         maxAttempts: 3,
         retryDelay: 5000

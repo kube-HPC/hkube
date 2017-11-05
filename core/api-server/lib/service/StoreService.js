@@ -7,12 +7,12 @@
  *
  * returns piplineNames
  **/
-exports.storeGET = function() {
-  return new Promise(function(resolve, reject) {
+exports.storeGET = function () {
+  return new Promise(function (resolve, reject) {
     var examples = {};
     examples['application/json'] = {
-  "piplineNamesList" : [ "piplineNamesList", "piplineNamesList" ]
-};
+      "piplineNamesList": ["pipl6ineNamesList", "piplineNamesList"]
+    };
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
     } else {
@@ -29,12 +29,12 @@ exports.storeGET = function() {
  * pipeline Pipeline pipeline descriptor to be added to the store
  * returns defaultResponse
  **/
-exports.storePOST = function(pipeline) {
-  return new Promise(function(resolve, reject) {
+exports.storePOST = function (pipeline) {
+  return new Promise(function (resolve, reject) {
     var examples = {};
     examples['application/json'] = {
-  "message" : "message"
-};
+      "message": "message"
+    };
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
     } else {
@@ -51,12 +51,12 @@ exports.storePOST = function(pipeline) {
  * pipelineName String pipeline name to get from the store
  * returns defaultResponse
  **/
-exports.storePipelineNameDELETE = function(pipelineName) {
-  return new Promise(function(resolve, reject) {
+exports.storePipelineNameDELETE = function (pipelineName) {
+  return new Promise(function (resolve, reject) {
     var examples = {};
     examples['application/json'] = {
-  "message" : "message"
-};
+      "message": "message"
+    };
     if (Object.keys(examples).length > 0) {
       resolve(examples[Object.keys(examples)[0]]);
     } else {
@@ -73,8 +73,8 @@ exports.storePipelineNameDELETE = function(pipelineName) {
  * pipelineName String pipeline name to get from the store
  * returns piplineNamesList
  **/
-exports.storePipelineNameGET = function(pipelineName) {
-  return new Promise(function(resolve, reject) {
+exports.storePipelineNameGET = function (pipelineName) {
+  return new Promise(function (resolve, reject) {
     var examples = {};
     examples['application/json'] = "";
     if (Object.keys(examples).length > 0) {

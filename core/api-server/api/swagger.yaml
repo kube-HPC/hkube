@@ -278,7 +278,7 @@ definitions:
         items:
           $ref: "#/definitions/pipelineLink"
     description: "systemwide unique name"
-  Webhook:
+  webhook:
     type: "object"
     properties:
       progressHook:
@@ -327,8 +327,8 @@ definitions:
         type: "object"
         description: "input object"
         properties: {}
-      Webhook:
-        $ref: "#/definitions/Webhook"
+      webhook:
+        $ref: "#/definitions/webhook"
   runStoredRequest:
     type: "object"
     properties:
@@ -338,8 +338,8 @@ definitions:
         type: "object"
         description: "input object"
         properties: {}
-      Webhook:
-        $ref: "#/definitions/Webhook"
+      webhook:
+        $ref: "#/definitions/webhook"
   pipelineExecutionResult:
     type: "object"
     properties:
