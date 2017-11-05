@@ -4,8 +4,8 @@ const { Producer } = require('producer-consumer.rf');
 const schema = require('lib/producer/schema');
 const consumer = require('lib/consumer/jobs-consumer');
 const stateManager = require('lib/state/state-manager');
-const progressManager = require('lib/progress/progress-manager');
-const NodesHandler = require('lib/nodes/nodes-handler');
+const NodesProgress = require('lib/progress/nodes-progress');
+const NodesMap = require('lib/nodes/nodes-map');
 const States = require('lib/state/States');
 const NodeState = require('lib/state/NodeState');
 const inputParser = require('lib/parsers/input-parser');
@@ -75,7 +75,7 @@ class JobProducer extends EventEmitter {
     }
 
     async _watchWorker(options) {
-        await stateManager.onTaskResult({ jobId: this._job.id, taskId: options.taskId }, (result) => {
+        await stateManager.onTaskResult({ taskId: options.taskId }, (result) => {
             const node = new NodeState({
                 nodeName: options.nodeName,
                 batchID: options.batchID,
@@ -85,6 +85,7 @@ class JobProducer extends EventEmitter {
             log.info(`job completed ${options.taskId}`, { component: components.JOBS_PRODUCER });
             this._setTaskState(options.taskId, node);
             this._runCompleted(node.nodeName);
+            this._progress.calc(node);
         });
     }
 
@@ -168,14 +169,14 @@ class JobProducer extends EventEmitter {
 
     _jobDone(error) {
         if (error) {
-            stateManager.setJobStatus({ jobId: this._job.id, data: { status: States.FAILED, webhook: this._job.data.webhook } });
+            stateManager.setJobStatus({ status: States.FAILED });
             this._job.done(error);
         }
         else if (this._nodes.isAllNodesDone()) {
             log.info(`pipeline completed ${this._job.id}`, { component: components.JOBS_PRODUCER });
-            const res = this._nodes.allNodesResults();
-            stateManager.setJobResults({ jobId: this._job.id, data: { result: res, webhook: this._job.data.webhook } });
-            stateManager.setJobStatus({ jobId: this._job.id, data: { status: States.COMPLETED, webhook: this._job.data.webhook } });
+            const result = this._nodes.allNodesResults();
+            stateManager.setJobResults({ result: result });
+            stateManager.setJobStatus({ status: States.COMPLETED });
             this._job.done(null);
         }
     }
@@ -191,22 +192,27 @@ class JobProducer extends EventEmitter {
     async _onJobStart(job) {
         log.info(`job arrived ${job.id}`, { component: components.JOBS_CONSUMER });
         this._job = job;
-        this._nodes = new NodesHandler(job.data);
+        this._nodes = new NodesMap(job.data);
+        this._progress = new NodesProgress(this._nodes);
+        this._progress.on('progress', (progress) => {
+            stateManager.setJobStatus({ status: progress });
+        });
+        stateManager.setCurrentJob(job);
 
         // first we will try to get the state for this job
-        const state = await stateManager.getState({ jobId: this._job.id });
+        const state = await stateManager.getState();
         if (state) {
             if (state.state === States.STOPPED) {
                 this._onJobStop(state);
             }
             else {
-                stateManager.setState({ jobId: this._job.id, data: States.RECOVERING });
+                stateManager.setState({ data: States.RECOVERING });
                 this._recover(state);
             }
         }
         else {
-            stateManager.setState({ jobId: this._job.id, data: States.ACTIVE });
-            stateManager.setJobStatus({ jobId: this._job.id, data: { status: States.ACTIVE, webhook: this._job.data.webhook } });
+            stateManager.setState({ data: States.ACTIVE });
+            stateManager.setJobStatus({ status: States.ACTIVE });
             this._startNodes(job.data);
         }
     }
@@ -276,7 +282,7 @@ class JobProducer extends EventEmitter {
 
     _setTaskState(taskId, data) {
         this._nodes.updateNodeState(data.nodeName, data.batchID, { state: data.status, error: data.error, result: data.result });
-        stateManager.setTaskState({ jobId: this._job.id, taskId: taskId, data: data });
+        stateManager.setTaskState({ taskId: taskId, data: data });
     }
 
     _startNodes(options) {

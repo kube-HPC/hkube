@@ -5,7 +5,7 @@ const Node = require('lib/nodes/node');
 const States = require('lib/state/States');
 const inputParser = require('lib/parsers/input-parser');
 
-class NodesHandler {
+class NodesMap {
 
     constructor(options) {
 
@@ -156,6 +156,21 @@ class NodesHandler {
         return states.every(s => s === States.FAILED || s === States.COMPLETED);
     }
 
+    getllNodes() {
+        const nodesList = [];
+        const nodesNames = this._graph.nodes();
+        const nodes = nodesNames.map(n => this._graph.node(n));
+        nodes.forEach(n => {
+            if (n.batch.length > 0) {
+                n.batch.forEach(b => nodesList.push(b));
+            }
+            else {
+                nodesList.push(n);
+            }
+        })
+        return nodesList;
+    }
+
     nodeResults(nodeName) {
         let results = [];
         const node = this._graph.node(nodeName);
@@ -229,6 +244,10 @@ class NodesHandler {
     childs(node) {
         return this._graph.successors(node);
     }
+
+    nodes(node) {
+        return this._graph.nodes();
+    }
 }
 
-module.exports = NodesHandler;
+module.exports = NodesMap;

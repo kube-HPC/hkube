@@ -9,23 +9,28 @@ class StateManager {
         this._etcd.discovery.register({ serviceName });
     }
 
+    setCurrentJob(job) {
+        this._job = job;
+    }
+
     async getTaskState(options) {
         return await this._etcd.services.pipelineDriver.getTaskState(options);
     }
 
     async setTaskState(options) {
-        return await this._etcd.services.pipelineDriver.setTaskState(options);
+        return await this._etcd.services.pipelineDriver.setTaskState({ jobId: this._job.id, taskId: options.taskId, data: options.data });
     }
 
     async setJobResults(options) {
-        return await this._etcd.jobs.setResults(options);
+        return await this._etcd.jobs.setResults({ jobId: this._job.id, data: { result: options.result, name: this._job.data.name } });
     }
 
     async setJobStatus(options) {
-        return await this._etcd.jobs.setStatus(options);
+        return await this._etcd.jobs.setStatus({ jobId: this._job.id, data: { status: options.status, name: this._job.data.name } });
     }
 
-    async getState(options) {
+    async getState() {
+        const options = { jobId: this._job.id };
         const driver = await this._etcd.services.pipelineDriver.getState(options);
         if (driver) {
             const driverTasks = await this._etcd.services.pipelineDriver.getDriverTasks(options);
@@ -39,7 +44,7 @@ class StateManager {
     }
 
     async setState(options) {
-        await this._etcd.services.pipelineDriver.setState(options);
+        await this._etcd.services.pipelineDriver.setState({ jobId: this._job.id, data: options.data });
     }
 
     async deleteState(optionsoptions) {
@@ -47,7 +52,7 @@ class StateManager {
     }
 
     onTaskResult(options, callback) {
-        this._etcd.tasks.onResult(options, callback);
+        this._etcd.tasks.onResult({ jobId: this._job.id, taskId: options.taskId }, callback);
     }
 }
 
