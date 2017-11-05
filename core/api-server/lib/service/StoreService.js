@@ -8,19 +8,8 @@
  * returns piplineNames
  **/
 exports.storeGET = function () {
-  return new Promise(function (resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-      "piplineNamesList": ["pipl6ineNamesList", "piplineNamesList"]
-    };
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
-    }
-  });
-}
 
+}
 
 /**
  * add a pipeline
@@ -30,19 +19,8 @@ exports.storeGET = function () {
  * returns defaultResponse
  **/
 exports.storePOST = function (pipeline) {
-  return new Promise(function (resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-      "message": "message"
-    };
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
-    }
-  });
-}
 
+}
 
 /**
  * delete stored pipeline
@@ -52,19 +30,8 @@ exports.storePOST = function (pipeline) {
  * returns defaultResponse
  **/
 exports.storePipelineNameDELETE = function (pipelineName) {
-  return new Promise(function (resolve, reject) {
-    var examples = {};
-    examples['application/json'] = {
-      "message": "message"
-    };
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
-    }
-  });
-}
 
+}
 
 /**
  * get pipeline data from store
@@ -74,14 +41,6 @@ exports.storePipelineNameDELETE = function (pipelineName) {
  * returns piplineNamesList
  **/
 exports.storePipelineNameGET = function (pipelineName) {
-  return new Promise(function (resolve, reject) {
-    var examples = {};
-    examples['application/json'] = "";
-    if (Object.keys(examples).length > 0) {
-      resolve(examples[Object.keys(examples)[0]]);
-    } else {
-      resolve();
-    }
-  });
+
 }
 

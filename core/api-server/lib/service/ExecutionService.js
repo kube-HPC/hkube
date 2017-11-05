@@ -9,7 +9,7 @@ const stateManager = require('lib/state/state-manager');
  * executionID String executionID to getresults for
  * returns pipelineExecutionResult
  **/
-exports.resultsExecutionIDGET = async (executionID) => {
+exports.getJobResult = async (executionID) => {
   return await stateManager.getJobResult({ jobId: executionID });
 }
 
@@ -21,7 +21,7 @@ exports.resultsExecutionIDGET = async (executionID) => {
  * pipelineRunData RunRequest an object representing all information needed for pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runPOST = async (pipeline) => {
+exports.runRaw = async (pipeline) => {
   await stateManager.setPipeline({ name: pipeline.name, data: pipeline });
   return await producer.createJob(pipeline);
 }
@@ -34,7 +34,7 @@ exports.runPOST = async (pipeline) => {
  * pipeline RunStoredRequest an object representing all information needed for stored pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runStoredPOST = async (pipeline) => {
+exports.runStored = async (pipeline) => {
   const requestedPipe = await stateManager.getPipeline({ name: pipeline.name });
   if (!requestedPipe) {
     throw new Error(`unable to find pipeline ${pipeline.name}`);
@@ -51,8 +51,8 @@ exports.runStoredPOST = async (pipeline) => {
  * flow_execution_id UUID Unique identifier representing wokflow execution - is given in response to calling pipeline run method . (optional)
  * returns List
  **/
-exports.statusGET = async (flow_execution_id) => {
-  return await stateManager.getPipeline({ name: pipeline.name });
+exports.getJobStatus = async (executionID) => {
+  return await stateManager.getJobStatus({ jobId: executionID });
 }
 
 /**
@@ -63,6 +63,6 @@ exports.statusGET = async (flow_execution_id) => {
  * reason String reason for stopping. (optional)
  * returns String
  **/
-exports.stopPOST = async (flow_execution_id, reason) => {
-  return await stateManager.getPipeline({ name: pipeline.name });
+exports.stop = async (executionID, reason) => {
+  return await stateManager.getPipeline({ jobId: executionID });
 }

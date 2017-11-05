@@ -10,7 +10,6 @@ const componentNames = require('common/consts/componentNames.js');
 let log;
 
 const modules = [
-    'lib/apiServer',
     'lib/state/state-manager',
     'lib/producer/jobs-producer',
     'lib/webhook/webhooks-handler'
@@ -33,6 +32,10 @@ class Bootstrap {
                 log.error(data.error.message, { component: componentNames.MAIN });
             });
             monitor.check(maincfg.redis);
+
+            const appServer = require('api/rest-api/app-server');
+            const dataRest = await appServer.init(maincfg);
+            log.info(dataRest.message, { component: componentNames.REST_API });
 
             //load all modules
             await Promise.all(modules.map(m => require(m).init(maincfg)));

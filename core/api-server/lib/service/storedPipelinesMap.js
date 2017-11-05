@@ -6,7 +6,7 @@ module.exports = {
         {
             "nodeName": "green",
             "algorithmName": "green-alg",
-            "input": ["@flowInput.files.links1", "@flowInput.files.links1"]
+            "input": ["#@flowInput.files.links1"],
         },
         {
             "nodeName": "yellow",
@@ -24,6 +24,7 @@ module.exports = {
         //     "input": ["#['@green','@green']", "@green.data.result", "flowInput.files1"]
         // }
     ],
+    "batchTolerance": 90,
     "flowInput": {
         "files": {
             "link": 'links-1',

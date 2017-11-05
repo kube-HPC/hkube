@@ -8,21 +8,18 @@
         "start": "node index.js",
         "build": "./dockerfile/build.sh api-server"
     },
-    "keywords": [
-        "swagger"
-    ],
-    "license": "Unlicense",
+    "license": "MIT",
     "private": true,
     "dependencies": {
         "config.rf": "^1.0.0",
-        "connect": "^3.6.5",
         "djsv": "^1.4.2",
-        "etcd.rf": "^2.1.18",
+        "etcd.rf": "^2.1.19",
+        "express": "^4.16.2",
         "js-yaml": "^3.3.0",
         "logger.rf": "^1.0.2",
         "producer-consumer.rf": "^1.0.8",
         "redis-utils.rf": "^1.0.1",
         "requestretry": "^1.12.2",
-        "swagger-tools": "0.10.1"
+        "rest-server.rf": "^1.0.0"
     }
 }

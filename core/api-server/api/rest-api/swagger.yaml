@@ -4,14 +4,12 @@ info:
   description: "algorithm flows extraordinaire"
   version: "1.0.0"
   title: "algo API"
-#host: "localhost:3000"
-basePath: "/v1"
 schemes:
 - "http"
 produces:
 - "application/json"
 paths:
-  /run:
+  /run/raw:
     post:
       tags:
       - "Execution"
@@ -19,7 +17,6 @@ paths:
       description: "The run endpoint initiates an algorithm flow with the input recieved\
         \ and returns the ID of the running pipeline. ID returned can be used as a\
         \ reference for the flow run to retrieve run status, stop it, etc."
-      operationId: "runPOST"
       parameters:
       - in: "body"
         name: "pipelineRunData"
@@ -36,8 +33,7 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Execution"
-  /runStored:
+  /run/stored:
     post:
       tags:
       - "Execution"
@@ -45,7 +41,6 @@ paths:
       description: "The run endpoint initiates an algorithm flow with the input recieved\
         \ and returns the ID of the running pipeline. ID returned can be used as a\
         \ reference for the flow run to retrieve run status, stop it, etc."
-      operationId: "runStoredPOST"
       parameters:
       - in: "body"
         name: "storedpipelineRunData"
@@ -63,27 +58,20 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Execution"
   /stop:
     post:
       tags:
       - "Execution"
       summary: "stop pipeline execution"
       description: "call to stop the flow execution\n"
-      operationId: "stopPOST"
       parameters:
-      - name: "flow_execution_id"
-        in: "query"
+      - name: "storedpipelineRunData"
+        in: "body"
         description: "Unique identifier representing wokflow execution - is given\
           \ in response to calling pipeline run method ."
         required: true
-        type: "string"
-        format: "uuid"
-      - name: "reason"
-        in: "query"
-        description: "reason for stopping."
-        required: false
-        type: "string"
+        schema:
+          $ref: "#/definitions/stopRequest"
       responses:
         200:
           description: "the OK string"
@@ -93,17 +81,15 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Execution"
-  /status:
+  /status/{executionID}:
     get:
       tags:
       - "Execution"
       summary: "wokflow execution status"
       description: "reurns a status for the current pipeline."
-      operationId: "statusGET"
       parameters:
-      - name: "flow_execution_id"
-        in: "query"
+      - name: "executionID"
+        in: "path"
         description: "Unique identifier representing wokflow execution - is given\
           \ in response to calling pipeline run method ."
         required: false
@@ -120,14 +106,12 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Execution"
   /store/{pipelineName}:
     get:
       tags:
       - "Store"
       summary: "get pipeline data from store"
       description: "returns stored pipeline"
-      operationId: "storePipelineNameGET"
       parameters:
       - name: "pipelineName"
         in: "path"
@@ -143,13 +127,11 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Store"
     delete:
       tags:
       - "Store"
       summary: "delete stored pipeline"
       description: "removes selected stored pipeline from store"
-      operationId: "storePipelineNameDELETE"
       parameters:
       - name: "pipelineName"
         in: "path"
@@ -165,31 +147,12 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Store"
   /store:
-    get:
-      tags:
-      - "Store"
-      summary: "get all pipelines"
-      description: "returns all pipelines that are currently in the store (names list)"
-      operationId: "storeGET"
-      parameters: []
-      responses:
-        200:
-          description: "action summery"
-          schema:
-            $ref: "#/definitions/defaultResponse"
-        default:
-          description: "Unexpected error"
-          schema:
-            $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Store"
-    post:
+   post:
       tags:
       - "Store"
       summary: "add a pipeline"
       description: "adds the given pipeline to the store."
-      operationId: "storePOST"
       parameters:
       - in: "body"
         name: "pipeline"
@@ -206,7 +169,22 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Store"
+  /store/list:
+    get:
+      tags:
+      - "Store"
+      summary: "get all pipelines"
+      description: "returns all pipelines that are currently in the store (names list)"
+      parameters: []
+      responses:
+        200:
+          description: "action summery"
+          schema:
+            $ref: "#/definitions/defaultResponse"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
   /results/{executionID}:
     get:
       tags:
@@ -214,7 +192,6 @@ paths:
       summary: "get run result"
       description: "returns result (json) for the execution of a spesific pipeline\
         \ run. if called before result is determined - returns error."
-      operationId: "resultsExecutionIDGET"
       parameters:
       - name: "executionID"
         in: "path"
@@ -230,7 +207,6 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-      x-swagger-router-controller: "Execution"
 definitions:
   pipelineNode:
     type: "object"
@@ -301,6 +277,18 @@ definitions:
     example:
       executionID: "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
       status: "status"
+  stopRequest:
+    type: "object"
+    properties:
+      executionID:
+        type: "string"
+        format: "uuid"
+      reason:
+        type: "string"
+    description: "reason for pipeline execution"
+    example:
+      executionID: "046b6c7f-0b8a-43b9-b35d-6489e6daee91"
+      reason: "cancel now"
   defaultResponse:
     type: "object"
     properties:
