@@ -322,6 +322,7 @@ definitions:
     properties:
       name:
         type: "string"
+        example: "myFlow"
       flowInput:
         type: "object"
         description: "input object"
