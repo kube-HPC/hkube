@@ -1,18 +1,18 @@
 {
   "name": "hkube-admin",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "clone": "node git.js",
+    "clone": "node clone.js",
     "npm": "node npm.js"
   },
   "bin": {
     "clone": "./bin/clone.js",
     "npm": "./bin/npm.js"
   },
-  "preferGlobal": true,
+  //"preferGlobal": true,
   "keywords": [],
   "author": "maty zisserman",
   "license": "ISC",
