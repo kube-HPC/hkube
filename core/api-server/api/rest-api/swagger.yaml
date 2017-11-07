@@ -4,8 +4,6 @@ info:
   description: "algorithm flows extraordinaire"
   version: "1.0.0"
   title: "algo API"
-schemes:
-- "http"
 produces:
 - "application/json"
 paths:
@@ -23,7 +21,7 @@ paths:
         description: "an object representing all information needed for pipeline execution"
         required: true
         schema:
-          $ref: "#/definitions/runRequest"
+          $ref: "#/definitions/pipeline"
       responses:
         200:
           description: "pipeline execution data"
@@ -253,6 +251,12 @@ definitions:
           Average\""
         items:
           $ref: "#/definitions/pipelineLink"
+      flowInput:
+        type: "object"
+        description: "input object"
+        properties: {}
+      webhook:
+        $ref: "#/definitions/webhook"
     description: "systemwide unique name"
   webhook:
     type: "object"
@@ -306,17 +310,6 @@ definitions:
         type: "string"
       fields:
         type: "string"
-  runRequest:
-    type: "object"
-    properties:
-      pipelineDescriptor:
-        $ref: "#/definitions/pipeline"
-      flowInput:
-        type: "object"
-        description: "input object"
-        properties: {}
-      webhook:
-        $ref: "#/definitions/webhook"
   runStoredRequest:
     type: "object"
     properties:

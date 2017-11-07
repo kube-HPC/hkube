@@ -13,13 +13,13 @@
     "dependencies": {
         "config.rf": "^1.0.0",
         "djsv": "^1.4.2",
-        "etcd.rf": "^2.1.19",
+        "etcd.rf": "^2.1.25",
         "express": "^4.16.2",
         "js-yaml": "^3.3.0",
         "logger.rf": "^1.0.2",
         "producer-consumer.rf": "^1.0.8",
         "redis-utils.rf": "^1.0.1",
         "requestretry": "^1.12.2",
-        "rest-server.rf": "^1.0.0"
+        "rest-server.rf": "^1.0.2"
     }
 }

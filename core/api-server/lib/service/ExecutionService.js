@@ -1,5 +1,7 @@
 const producer = require('lib/producer/jobs-producer');
 const stateManager = require('lib/state/state-manager');
+const ResourceNotFoundError = require('lib/errors/ResourceNotFoundError');
+const InvalidNameError = require('lib/errors/InvalidNameError');
 
 /**
  * get run result
@@ -22,6 +24,9 @@ exports.getJobResult = async (executionID) => {
  * returns pipelineExecutionStatus
  **/
 exports.runRaw = async (pipeline) => {
+  if (!pipeline.name) {
+    throw new InvalidNameError('pipeline');
+  }
   await stateManager.setPipeline({ name: pipeline.name, data: pipeline });
   return await producer.createJob(pipeline);
 }
@@ -35,9 +40,12 @@ exports.runRaw = async (pipeline) => {
  * returns pipelineExecutionStatus
  **/
 exports.runStored = async (pipeline) => {
+  if (!pipeline.name) {
+    throw new InvalidNameError('pipeline');
+  }
   const requestedPipe = await stateManager.getPipeline({ name: pipeline.name });
   if (!requestedPipe) {
-    throw new Error(`unable to find pipeline ${pipeline.name}`);
+    throw new ResourceNotFoundError('pipeline', pipeline.name);
   }
   const newPipe = Object.assign({}, requestedPipe, pipeline);
   await stateManager.setPipeline({ name: newPipe.name, data: newPipe });
@@ -63,6 +71,10 @@ exports.getJobStatus = async (executionID) => {
  * reason String reason for stopping. (optional)
  * returns String
  **/
-exports.stop = async (executionID, reason) => {
-  return await stateManager.getPipeline({ jobId: executionID });
+exports.stopJob = async (options) => {
+  if (!options.executionID) {
+    throw new InvalidNameError('executionID');
+  }
+  await producer.stopJob({ jobId: options.executionID });
+  return await stateManager.stopJob({ jobId: options.executionID, reason: options.reason });
 }

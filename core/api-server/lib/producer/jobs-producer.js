@@ -43,6 +43,10 @@ class JobProducer extends EventEmitter {
         await this._producer.createJob(options);
         return jobId;
     }
+
+    async stopJob(options) {
+        return await this._producer.stopJob({ type: 'pipeline-driver-job', jobID: options.jobId });
+    }
 }
 
 module.exports = new JobProducer();

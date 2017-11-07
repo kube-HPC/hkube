@@ -6,8 +6,6 @@
 
 const RestServer = require('rest-server.rf');
 const rest = new RestServer();
-const execution = require('./routes/execution');
-const store = require('./routes/store');
 const fs = require('fs');
 const path = require('path');
 const jsyaml = require('js-yaml');
@@ -20,25 +18,33 @@ class AppServer {
 
     init(options) {
         return new Promise((resolve, reject) => {
-            const routes = [
-                { route: '/', router: execution(options) },
-                { route: '/', router: store(options) }
-            ];
             rest.on('error', (res) => {
                 log.error('Error response, status=' + res.status + ', message=' + res.error.message, { component: componentName.REST_API });
             });
+
+            const prefix = options.rest.prefix;
+            const routes = [];
+            for (const v of options.rest.versions) {
+                routes.push(
+                    { route: `/${prefix}${v}`, router: require(`./routes${v}/execution`)() },
+                    { route: `/${prefix}${v}`, router: require(`./routes${v}/store`)() }
+                );
+            }
 
             const spec = fs.readFileSync(path.join(__dirname, 'swagger.yaml'), 'utf8');
             const swagger = jsyaml.safeLoad(spec);
 
             swagger.host = options.swaggerPath.host + ':' + options.swaggerPath.port;
-            swagger.basePath = options.swaggerPath.path + '/v1';
+            swagger.basePath = options.swaggerPath.path;
 
             const opt = {
                 swagger: swagger,
+                poweredBy: options.rest.poweredBy,
                 name: options.serviceName,
-                routes,
-                port: options.rest.port
+                routes: routes,
+                prefix: prefix,
+                port: options.rest.port,
+                versions: options.rest.versions
             };
             rest.start(opt).then((data) => {
                 //versionHelper(options.serviceName, data.app, log);
