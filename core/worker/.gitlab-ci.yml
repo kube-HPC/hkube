@@ -22,7 +22,7 @@ cache:
 
 test_async:
   script: 
-   - npm --registry http://greenape.ddns.net/npm/ install
+   - npm --registry http://npmhkube.ddns.net:4873 install
    - export ETCD_CLIENT_SERVICE_HOST=etcd
    - export REDIS_SERVICE_HOST=redis 
    - wget -qO- http://${ETCD_CLIENT_SERVICE_HOST}:4001/version
