@@ -22,11 +22,11 @@ class StateManager {
     }
 
     async setJobResults(options) {
-        return await this._etcd.jobs.setResults({ jobId: this._job.id, data: { result: options.result, name: this._job.data.name } });
+        return await this._etcd.jobResults.setResults({ jobId: this._job.id, data: { result: options.result, name: this._job.data.name } });
     }
 
     async setJobStatus(options) {
-        return await this._etcd.jobs.setStatus({ jobId: this._job.id, data: { status: options.status, name: this._job.data.name } });
+        return await this._etcd.jobResults.setStatus({ jobId: this._job.id, data: { status: options.status, name: this._job.data.name } });
     }
 
     async getState() {
@@ -53,6 +53,10 @@ class StateManager {
 
     onTaskResult(options, callback) {
         this._etcd.tasks.onResult({ jobId: this._job.id, taskId: options.taskId }, callback);
+    }
+
+    onJobStopped(options, callback) {
+        this._etcd.jobs.onStopped({ jobId: this._job.id }, callback);
     }
 }
 

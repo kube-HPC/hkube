@@ -89,6 +89,12 @@ class JobProducer extends EventEmitter {
         });
     }
 
+    async _onJobStopped(options) {
+        await stateManager.onJobStopped((result) => {
+
+        });
+    }
+
     _runCompleted(nodeName) {
         const childs = this._nodes.childs(nodeName);
         childs.forEach(child => {
