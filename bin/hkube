@@ -3,8 +3,8 @@ var argv = require('minimist')(process.argv.slice(2));
 const clone = require('../clone');
 const npm = require('../npm');
 const meow = require('meow');
-console.dir(argv);
-console.log(Object.keys(argv)[1]);
+// console.dir(argv);
+// console.log(Object.keys(argv)[1]);
 switch (argv._[0]) {
     case 'clone':
         clone(Object.keys(argv)[1]);
