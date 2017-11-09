@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+var argv = require('minimist')(process.argv.slice(2));
+const clone = require('../clone');
+const npm = require('../npm');
+const meow = require('meow');
+console.dir(argv);
+console.log(Object.keys(argv)[1]);
+switch (argv._[0]) {
+    case 'clone':
+        clone(Object.keys(argv)[1]);
+        break;
+    case 'npm':
+        npm(Object.keys(argv)[1]);
+        break;
+    case 'cloneWithNpm':
+        clone(Object.keys(argv)[1]).then(res => {
+            npm(Object.keys(argv)[1]);
+        });
+    default:
+        console.log(`
+        Usage
+          $ clone <options>
+          $ npm <options>  
+          $ cloneWithNpm <options>  
+        Options
+        --dev, Include only hkube folder
+        --common, Include only hkube-common folder
+        --all, Includes  hkube and hkube-common folder
+        
+    ,`);
+
+}

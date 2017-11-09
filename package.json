@@ -1,6 +1,6 @@
 {
   "name": "hkube-admin",
-  "version": "1.6.0",
+  "version": "2.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -8,17 +8,18 @@
     "clone": "node clone.js",
     "npm": "node npm.js"
   },
-  "bin": {
-    "clone": "./bin/clone.js",
-    "npm": "./bin/npm.js"
-  },
-  //"preferGlobal": true,
+  "preferGlobal": "true",
   "keywords": [],
   "author": "maty zisserman",
   "license": "ISC",
   "dependencies": {
     "colors": "^1.1.2",
+    "meow": "^3.7.0",
+    "minimist": "^1.2.0",
     "npm-i": "0.0.2",
     "simple-git": "^1.80.1"
+  },
+  "bin": {
+    "hkube": "./bin/hkube"
   }
 }

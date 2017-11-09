@@ -8,7 +8,11 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/git.js"
+            "program": "${workspaceFolder}/bin/hkube",
+            "args": [
+                "clone",
+                "--all"
+            ]
         }
     ]
 }
