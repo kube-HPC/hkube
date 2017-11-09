@@ -41,4 +41,6 @@ echo worker for algorithm ${alg}
 
 export JOB_TYPE=${alg}
 export WORKER_SOCKET_PORT=${port}
-run_parallel "node app worker" "node ../algorunner/app algo"
+export DLL_PATH="../libStub/build/liblibStub.so"
+#run_parallel "node app worker" "node ../algorunner/app algo"
+run_parallel "node app worker" "python3 ../algoPackage/wrapper/wrapper.py"

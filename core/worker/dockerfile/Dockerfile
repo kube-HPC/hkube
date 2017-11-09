@@ -1,7 +1,7 @@
 FROM node:8
 MAINTAINER yehiyam@gmail.com
 RUN apt update && apt install nano
-RUN mkdir /sound-factory && npm install -g nodemon
+RUN mkdir /sound-factory
 COPY . /sound-factory/worker
 WORKDIR /sound-factory/worker
-CMD ["nodemon", "app.js"]
+CMD ["node", "app.js"]
