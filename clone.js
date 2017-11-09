@@ -8,9 +8,11 @@ const gitPrefix = "git@gitlab.com:greenapes/hkube/"
 const stringToRepos = require('./stringToRepos');
 
 const clone = (reposTypes) => {
+    const promiseArr = [];
     stringToRepos(reposTypes).forEach(r => {
-        cloneInternal(r);
+        promiseArr.push(cloneInternal(r));
     })
+    return Promise.all(promiseArr);
 }
 
 
@@ -45,7 +47,9 @@ const cloneInternal = (reposObj) => {
             promiseArr.push(prom);
         });
         Promise.all(promiseArr)
-            .then(res => resolve(res))
+            .then(res => {
+                resolve(res)
+            })
             .catch(err => reject(err))
     });
 }

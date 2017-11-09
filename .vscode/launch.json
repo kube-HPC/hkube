@@ -10,7 +10,7 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
-                "clone",
+                "cloneWithNpm",
                 "--dev"
             ]
         }
