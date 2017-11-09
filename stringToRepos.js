@@ -5,17 +5,17 @@ const { commonReposNames, reposNames } = require('./repos');
 const _stringToRepo = (r) => {
     switch (r) {
         case REPOS.dev:
-            return {
+            return [{
                 folder: FOLDERS.dev,
                 git: GIT_PREFIX.dev,
                 repo: reposNames
-            };
+            }];
         case REPOS.common:
-            return {
+            return [{
                 folder: FOLDERS.common,
                 git: GIT_PREFIX.common,
                 repo: commonReposNames
-            };
+            }];
         case REPOS.all:
 
             return [
