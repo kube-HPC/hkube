@@ -37,6 +37,10 @@ class StateManager extends EventEmitter {
         return await this._etcd.jobResults.getStatus(options);
     }
 
+    async setJobStatus(options) {
+        return await this._etcd.jobResults.setStatus(options);
+    }
+
     async stopJob(options) {
         return await this._etcd.jobs.stop(options);
     }

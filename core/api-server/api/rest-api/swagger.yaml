@@ -125,6 +125,26 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
+    put:
+      tags:
+      - "Store"
+      summary: "get pipeline data from store"
+      description: "returns stored pipeline"
+      parameters:
+      - name: "pipelineName"
+        in: "path"
+        description: "pipeline name to get from the store"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "action summery"
+          schema:
+            $ref: "#/definitions/defaultResponse"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
     delete:
       tags:
       - "Store"
@@ -146,6 +166,21 @@ paths:
           schema:
             $ref: "#/definitions/Error"
   /store:
+   get:
+      tags:
+      - "Store"
+      summary: "get all pipelines"
+      description: "returns all pipelines that are currently in the store (names list)"
+      parameters: []
+      responses:
+        200:
+          description: "action summery"
+          schema:
+            $ref: "#/definitions/defaultResponse"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
    post:
       tags:
       - "Store"
@@ -161,22 +196,6 @@ paths:
       responses:
         200:
           description: "Profile information for a user"
-          schema:
-            $ref: "#/definitions/defaultResponse"
-        default:
-          description: "Unexpected error"
-          schema:
-            $ref: "#/definitions/Error"
-  /store/list:
-    get:
-      tags:
-      - "Store"
-      summary: "get all pipelines"
-      description: "returns all pipelines that are currently in the store (names list)"
-      parameters: []
-      responses:
-        200:
-          description: "action summery"
           schema:
             $ref: "#/definitions/defaultResponse"
         default:
@@ -316,12 +335,6 @@ definitions:
       name:
         type: "string"
         example: "myFlow"
-      flowInput:
-        type: "object"
-        description: "input object"
-        properties: {}
-      webhook:
-        $ref: "#/definitions/webhook"
   pipelineExecutionResult:
     type: "object"
     properties:

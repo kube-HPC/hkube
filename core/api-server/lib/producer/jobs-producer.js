@@ -31,13 +31,13 @@ class JobProducer extends EventEmitter {
         });
     }
 
-    async createJob(jobdata) {
-        const jobId = this._producer.createJobID(jobdata.name);
+    async createJob(pipeline) {
+        const jobId = this._producer.createJobID(pipeline.name);
         const options = {
             job: {
                 id: jobId,
                 type: 'pipeline-driver-job',
-                data: jobdata
+                data: { pipelineName: pipeline.name }
             }
         }
         await this._producer.createJob(options);

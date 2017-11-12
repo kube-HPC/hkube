@@ -1,5 +1,6 @@
 const producer = require('lib/producer/jobs-producer');
 const stateManager = require('lib/state/state-manager');
+const States = require('lib/state/States');
 const ResourceNotFoundError = require('lib/errors/ResourceNotFoundError');
 const InvalidNameError = require('lib/errors/InvalidNameError');
 
@@ -11,8 +12,8 @@ const InvalidNameError = require('lib/errors/InvalidNameError');
  * executionID String executionID to getresults for
  * returns pipelineExecutionResult
  **/
-exports.getJobResult = async (executionID) => {
-  return await stateManager.getJobResult({ jobId: executionID });
+exports.getJobResult = async (options) => {
+  return await stateManager.getJobResult({ jobId: options.executionID });
 }
 
 /**
@@ -23,12 +24,12 @@ exports.getJobResult = async (executionID) => {
  * pipelineRunData RunRequest an object representing all information needed for pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runRaw = async (pipeline) => {
-  if (!pipeline.name) {
+exports.runRaw = async (options) => {
+  if (!options.name) {
     throw new InvalidNameError('pipeline');
   }
-  await stateManager.setPipeline({ name: pipeline.name, data: pipeline });
-  return await producer.createJob(pipeline);
+  await stateManager.setPipeline({ name: options.name, data: options });
+  return await producer.createJob(options);
 }
 
 /**
@@ -39,17 +40,17 @@ exports.runRaw = async (pipeline) => {
  * pipeline RunStoredRequest an object representing all information needed for stored pipeline execution
  * returns pipelineExecutionStatus
  **/
-exports.runStored = async (pipeline) => {
-  if (!pipeline.name) {
+exports.runStored = async (options) => {
+  if (!options.name) {
     throw new InvalidNameError('pipeline');
   }
-  const requestedPipe = await stateManager.getPipeline({ name: pipeline.name });
+  const requestedPipe = await stateManager.getPipeline({ name: options.name });
   if (!requestedPipe) {
-    throw new ResourceNotFoundError('pipeline', pipeline.name);
+    throw new ResourceNotFoundError('pipeline', options.name);
   }
-  const newPipe = Object.assign({}, requestedPipe, pipeline);
-  await stateManager.setPipeline({ name: newPipe.name, data: newPipe });
-  return await producer.createJob(newPipe);
+  const jobId = await producer.createJob({ name: options.name });
+  await stateManager.setJobStatus({ jobId: jobId, data: { status: States.PENDING, name: options.name } });
+  return jobId;
 }
 
 /**
@@ -59,8 +60,8 @@ exports.runStored = async (pipeline) => {
  * flow_execution_id UUID Unique identifier representing wokflow execution - is given in response to calling pipeline run method . (optional)
  * returns List
  **/
-exports.getJobStatus = async (executionID) => {
-  return await stateManager.getJobStatus({ jobId: executionID });
+exports.getJobStatus = async (options) => {
+  return await stateManager.getJobStatus({ jobId: options.executionID });
 }
 
 /**
@@ -75,6 +76,11 @@ exports.stopJob = async (options) => {
   if (!options.executionID) {
     throw new InvalidNameError('executionID');
   }
+  const job = await stateManager.getJobStatus({ jobId: options.executionID });
+  if (!job) {
+    throw new ResourceNotFoundError('executionID', options.executionID);
+  }
   await producer.stopJob({ jobId: options.executionID });
-  return await stateManager.stopJob({ jobId: options.executionID, reason: options.reason });
+  await stateManager.stopJob({ jobId: options.executionID, reason: options.reason });
+  await stateManager.setJobResult({ jobId: executionID });
 }

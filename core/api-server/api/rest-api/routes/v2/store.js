@@ -15,10 +15,30 @@ var routes = function () {
     router.get('/', function (req, res) {
         res.json({ message: 'catalog api' });
     });
-
+    router.get('/store', (req, res, next) => {
+        Store.getPipelines().then((response) => {
+            res.json(response);
+        }).catch((response) => {
+            return next(error);
+        });
+    });
     router.get('/store/:pipelineName', (req, res, next) => {
         const pipelineName = req.params.pipelineName;
-        Store.storePipelineNameGET(pipelineName).then((response) => {
+        Store.getPipeline(pipelineName).then((response) => {
+            res.json(response);
+        }).catch((response) => {
+            return next(error);
+        });
+    });
+    router.post('/store', (req, res, next) => {
+        Store.updatePipeline(req.body).then((response) => {
+            res.json(response);
+        }).catch((response) => {
+            return next(error);
+        });
+    });
+    router.put('/store:pipelineName', (req, res, next) => {
+        Store.updatePipeline(req.body).then((response) => {
             res.json(response);
         }).catch((response) => {
             return next(error);
@@ -26,22 +46,7 @@ var routes = function () {
     });
     router.delete('/store/:pipelineName', (req, res, next) => {
         const pipelineName = req.params.pipelineName;
-        Store.storePipelineNameDELETE(pipelineName).then((response) => {
-            res.json(response);
-        }).catch((response) => {
-            return next(error);
-        });
-    });
-    router.get('/store', (req, res, next) => {
-        Store.storeGET().then((response) => {
-            res.json(response);
-        }).catch((response) => {
-            return next(error);
-        });
-    });
-    router.post('/store', (req, res, next) => {
-        const pipeline = req.body;
-        Store.storePOST(pipeline).then(function (response) {
+        Store.deletePipeline(pipelineName).then((response) => {
             res.json(response);
         }).catch((response) => {
             return next(error);

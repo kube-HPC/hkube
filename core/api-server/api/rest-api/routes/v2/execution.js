@@ -10,6 +10,7 @@
 const Execution = require('lib/service/ExecutionService');
 const express = require('express');
 
+
 const routes = function () {
     const router = express.Router();
 
@@ -17,26 +18,14 @@ const routes = function () {
         res.json({ message: 'api server' });
     });
     router.post('/run/raw', (req, res, next) => {
-        const data = req.body;
-        if (!data.name) {
-            var error = new Error('invalid pipeline name');
-            error.status = 400;
-            return next(error);
-        }
-        Execution.runRaw(data).then((response) => {
+        Execution.runRaw(req.body).then((response) => {
             res.json(response);
         }).catch((error) => {
             res.json(error);
         });
     });
-    router.post('/run/stored', (req, res, next) => {
-        const data = req.body;
-        if (!data.name) {
-            var error = new Error('invalid pipeline name');
-            error.status = 400;
-            return next(error);
-        }
-        Execution.runStored(data).then((response) => {
+    router.post('/run/stored', async (req, res, next) => {
+        Execution.runStored(req.body).then((response) => {
             res.json({ executionID: response });
         }).catch((error) => {
             return next(error);
@@ -44,7 +33,7 @@ const routes = function () {
     });
     router.get('/status/:executionID', (req, res, next) => {
         const executionID = req.params.executionID;
-        Execution.getJobStatus(executionID).then((response) => {
+        Execution.getJobStatus({ executionID }).then((response) => {
             res.json(response);
         }).catch((error) => {
             return next(error);
@@ -52,21 +41,15 @@ const routes = function () {
     });
     router.get('/results/:executionID', (req, res, next) => {
         const executionID = req.params.executionID;
-        Execution.getJobResult(executionID).then((response) => {
+        Execution.getJobResult({ executionID }).then((response) => {
             res.json(response);
         }).catch((error) => {
             res.json(error);
         });
     });
     router.post('/stop', (req, res, next) => {
-        const executionID = req.body.executionID;
-        if (!executionID) {
-            var error = new Error('invalid executionID');
-            error.status = 400;
-            return next(error);
-        }
-        Execution.stop(executionID, req.body.reason).then((response) => {
-            res.json(response);
+        Execution.stopJob(req.body).then((response) => {
+            res.json({ message: 'pipeline stopped successfully' });
         }).catch((error) => {
             return next(error);
         });

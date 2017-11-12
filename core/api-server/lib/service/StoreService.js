@@ -1,15 +1,5 @@
-'use strict';
+const stateManager = require('lib/state/state-manager');
 
-
-/**
- * get all pipelines
- * returns all pipelines that are currently in the store (names list)
- *
- * returns piplineNames
- **/
-exports.storeGET = function () {
-
-}
 
 /**
  * add a pipeline
@@ -18,8 +8,8 @@ exports.storeGET = function () {
  * pipeline Pipeline pipeline descriptor to be added to the store
  * returns defaultResponse
  **/
-exports.storePOST = function (pipeline) {
-
+exports.updatePipeline = async (options) => {
+    return await stateManager.setPipeline();
 }
 
 /**
@@ -29,7 +19,7 @@ exports.storePOST = function (pipeline) {
  * pipelineName String pipeline name to get from the store
  * returns defaultResponse
  **/
-exports.storePipelineNameDELETE = function (pipelineName) {
+exports.deletePipeline = async (options) => {
 
 }
 
@@ -40,7 +30,16 @@ exports.storePipelineNameDELETE = function (pipelineName) {
  * pipelineName String pipeline name to get from the store
  * returns piplineNamesList
  **/
-exports.storePipelineNameGET = function (pipelineName) {
-
+exports.getPipeline = async (options) => {
+    return await stateManager.getPipeline(options);
 }
 
+/**
+ * get all pipelines
+ * returns all pipelines that are currently in the store (names list)
+ *
+ * returns piplineNames
+ **/
+exports.getPipelines = async () => {
+    return await stateManager.getPipeline();
+}

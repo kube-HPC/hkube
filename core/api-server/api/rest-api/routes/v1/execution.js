@@ -33,7 +33,7 @@ const routes = function () {
     });
     router.get('/status/:executionID', (req, res, next) => {
         const executionID = req.params.executionID;
-        Execution.getJobStatus(executionID).then((response) => {
+        Execution.getJobStatus({ executionID }).then((response) => {
             res.json(response);
         }).catch((error) => {
             return next(error);
@@ -41,7 +41,7 @@ const routes = function () {
     });
     router.get('/results/:executionID', (req, res, next) => {
         const executionID = req.params.executionID;
-        Execution.getJobResult(executionID).then((response) => {
+        Execution.getJobResult({ executionID }).then((response) => {
             res.json(response);
         }).catch((error) => {
             res.json(error);
