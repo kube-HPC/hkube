@@ -6,6 +6,8 @@ stages:
 #  - deploy
 
 version:
+  variables:
+    CI_DEBUG_TRACE: "true"
   stage: version
   only:
     - master
