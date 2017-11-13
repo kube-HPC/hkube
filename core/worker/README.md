@@ -1,0 +1,1 @@
+api from worker to algorunner: https://docs.google.com/document/d/1B4SUERfIsm_w0zG-wDl45TrUQXLbmvdfKPAJaZSDNT0/edit?usp=sharing
