@@ -16,7 +16,7 @@ version:
     - triggers
   script:
 #    - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe 's#.*@(.+?(\:\d+)?)/#git@\1:#' | perl -pe 's/:gitlab\//:\//'`
-    - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe "s#(.*)\/\/(.*)@(.*)/#\1\/\/yehiyam:${HKUBE_CI_TOKEN}@\3:#"`
+    - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe "s#(.*)\/\/(.*)@(.*)#\1\/\/yehiyam:${HKUBE_CI_TOKEN}@\3:#"`
 #    - eval $(ssh-agent -s)
 #    - ssh-add <(echo "$CI_KEY")
     - export TMP_BRANCH_NAME=ci_processing_$CI_JOB_ID
