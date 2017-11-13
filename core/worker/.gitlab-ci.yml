@@ -2,12 +2,12 @@ image: node:8
 stages:
   - test
   - version
-#  - build
-#  - deploy
+  - build
+  - deploy
 
 version:
-  variables:
-    CI_DEBUG_TRACE: "true"
+#  variables:
+#    CI_DEBUG_TRACE: "true"
   stage: version
   only:
     - master
@@ -30,6 +30,22 @@ version:
     - git push origin $TMP_BRANCH_NAME:${CI_COMMIT_REF_NAME} --follow-tags
     - curl -X POST -F "token=${CI_JOB_TOKEN}" -F "ref=$(git describe --abbrev=0 --tags)" "http://gitlab.com/gitlab/api/v3/projects/$CI_PROJECT_ID/trigger/builds"
 
+build:
+  stage: build
+  only:
+    - triggers
+  script:
+    - npm --registry=http://npmhkube.ddns.net:4873 install
+    - npm run build
+
+.deploy:
+  stage: deploy
+  only:
+    - triggers
+  script:
+    - VERSION=$(git describe --abbrev=0 --tags);VERSION=${VERSION%.*}
+    - MESSAGE="Triggered by ${CI_PROJECT_NAME:-Unknown}. $(git log -1 --pretty=%B)"
+    - curl -X POST -H "PRIVATE-TOKEN:MXgU_4aWxXLfzWQPHv9M" -F tag_name="${VERSION}.$(date +%s)" -F release_description="Version ${VERSION} $(date)" -F message="${MESSAGE}" -F ref=master http://gitlab.rms/gitlab/api/v3/projects/47/repository/tags
 
 cache:
   paths:
