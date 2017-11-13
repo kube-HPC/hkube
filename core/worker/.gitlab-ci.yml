@@ -19,6 +19,8 @@ version:
     - export TMP_BRANCH_NAME=ci_processing_$CI_JOB_ID
     - git checkout -b $TMP_BRANCH_NAME
     - git remote set-url --push origin "$CI_PUSH_REPO"
+    - git config user.name "${GITLAB_USER_NAME}"
+    - git config user.email "${GITLAB_USER_EMAIL}"
     - npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
     - echo push url "$TMP_BRANCH_NAME:${CI_COMMIT_REF_NAME}"
     - git remote -v
@@ -30,7 +32,7 @@ cache:
   paths:
   - node_modules/
 
-test:
+.test:
   stage: test
   services:
     - name: redis:latest
