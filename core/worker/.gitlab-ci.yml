@@ -1,27 +1,46 @@
-# This file is a template, and might need editing before it works on your project.
-# Official framework image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/node/tags/
 image: node:8
+stages:
+  - test
+  - version
+  - build
+  - deploy
 
-# Pick zero or more services to be used on all builds.
-# Only needed when using a docker container to run your tests in.
-# Check out: http://docs.gitlab.com/ce/ci/docker/using_docker_images.html#what-is-a-service
-services:
-  - name: redis:latest
-    alias: redis
-  - name: quay.io/coreos/etcd:v2.3.8
-    alias: etcd
-variables:
-  ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379,http://0.0.0.0:4001"
-  ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379,http://etcd:4001"
-# This folder is cached between builds
-# http://docs.gitlab.com/ce/ci/yaml/README.html#cache
+version:
+  stage: version
+  only:
+    - master
+  except:
+    - tags
+    - triggers
+  script:
+    - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe 's#.*@(.+?(\:\d+)?)/#git@\1:#' | perl -pe 's/:gitlab\//:\//'`
+#    - eval $(ssh-agent -s)
+#    - ssh-add <(echo "$CI_KEY")
+    - export TMP_BRANCH_NAME=ci_processing_$CI_JOB_ID
+    - git checkout -b $TMP_BRANCH_NAME
+    - git remote set-url --push origin "$CI_PUSH_REPO"
+    - npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
+    - echo push url "$TMP_BRANCH_NAME:${CI_COMMIT_REF_NAME}"
+    - git remote -v
+    - git push origin $TMP_BRANCH_NAME:${CI_COMMIT_REF_NAME} --follow-tags
+    - curl -X POST -F "token=${CI_JOB_TOKEN}" -F "ref=$(git describe --abbrev=0 --tags)" "http://gitlab.com/gitlab/api/v3/projects/$CI_PROJECT_ID/trigger/builds"
+
+
 cache:
   paths:
   - node_modules/
 
-test_async:
-  script: 
+test:
+  stage: test
+  services:
+    - name: redis:latest
+      alias: redis
+    - name: quay.io/coreos/etcd:v2.3.8
+      alias: etcd
+  variables:
+    ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379,http://0.0.0.0:4001"
+    ETCD_ADVERTISE_CLIENT_URLS: "http://etcd:2379,http://etcd:4001"
+  script:
    - npm --registry http://npmhkube.ddns.net:4873 install
    - export ETCD_CLIENT_SERVICE_HOST=etcd
    - export REDIS_SERVICE_HOST=redis 
