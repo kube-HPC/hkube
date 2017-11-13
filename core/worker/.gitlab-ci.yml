@@ -2,8 +2,8 @@ image: node:8
 stages:
   - test
   - version
-  - build
-  - deploy
+#  - build
+#  - deploy
 
 version:
   stage: version
