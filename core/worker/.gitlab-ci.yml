@@ -15,12 +15,13 @@ version:
     - tags
     - triggers
   script:
-    - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe 's#.*@(.+?(\:\d+)?)/#git@\1:#' | perl -pe 's/:gitlab\//:\//'`
+#    - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe 's#.*@(.+?(\:\d+)?)/#git@\1:#' | perl -pe 's/:gitlab\//:\//'`
+    - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe 's#(.*)\/\/(.*)@(.*)/#\1\/\/yehiyam:HKUBE_CI_TOKEN@\3:#'`
 #    - eval $(ssh-agent -s)
 #    - ssh-add <(echo "$CI_KEY")
     - export TMP_BRANCH_NAME=ci_processing_$CI_JOB_ID
     - git checkout -b $TMP_BRANCH_NAME
-#    - git remote set-url --push origin "$CI_PUSH_REPO"
+    - git remote set-url --push origin "$CI_PUSH_REPO"
     - git config user.name "${GITLAB_USER_NAME}"
     - git config user.email "${GITLAB_USER_EMAIL}"
     - npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
