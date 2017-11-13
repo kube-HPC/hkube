@@ -28,7 +28,7 @@ version:
     - echo push url "$TMP_BRANCH_NAME:${CI_COMMIT_REF_NAME}"
     - git remote -v
     - git push origin $TMP_BRANCH_NAME:${CI_COMMIT_REF_NAME} --follow-tags
-    - curl -X POST -F "token=${CI_JOB_TOKEN}" -F "ref=$(git describe --abbrev=0 --tags)" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/trigger/pipeline"
+    - curl -X POST -F "token=${TRIGGER_TOKEN}" -F "ref=$(git describe --abbrev=0 --tags)" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/trigger/pipeline"
 
 build:
   stage: build
