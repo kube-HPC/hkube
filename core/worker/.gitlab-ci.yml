@@ -31,13 +31,16 @@ version:
     - curl -X POST -F "token=${TRIGGER_TOKEN}" -F "ref=$(git describe --abbrev=0 --tags)" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/trigger/pipeline"
 
 build:
+  image: docker:latest
+  services:
+    - docker:dind
   stage: build
   only:
     - triggers
   script:
-    - npm --registry=http://npmhkube.ddns.net:4873 install
-    - npm run build
-
+#    - npm --registry=http://npmhkube.ddns.net:4873 install
+#    - npm run build
+    - dockerfile/build.sh worker
 .deploy:
   stage: deploy
   only:
