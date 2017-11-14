@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 REPO_NAME=$1
 #IMAGE_NAME=private.registry:5000/sound/${REPO_NAME}
 if [ -v PRIVATE_REGISTRY ]

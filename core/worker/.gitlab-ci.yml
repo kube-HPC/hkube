@@ -42,7 +42,7 @@ build:
 #    - npm --registry=http://npmhkube.ddns.net:4873 install
 #    - npm run build
     - echo ${HKUBE_CI_TOKEN} | docker login -u yehiyam --password-stdin registry.gitlab.com
-    - PRIVATE_REGISTRY=registry.gitlab.com/greenapes/hkube/registry dockerfile/build.sh worker
+    - PRIVATE_REGISTRY=registry.gitlab.com/greenapes/hkube/registry npm run build
 #    - docker build -t registry.gitlab.com/greenapes/hkube/registry/hkube/worker -f dockerfile/Dockerfile .
 .deploy:
   stage: deploy
