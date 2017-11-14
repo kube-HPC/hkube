@@ -31,8 +31,8 @@ stages:
     - curl -X POST -F "token=${TRIGGER_TOKEN}" -F "ref=$(git describe --abbrev=0 --tags)" "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/trigger/pipeline"
 
 build:
-#  image: yehiyam/docker-node:8
-  image: docker:latest
+  image: yehiyam/docker-node:8
+#  image: docker:latest
   services:
     - docker:dind
   stage: build
