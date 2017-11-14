@@ -36,8 +36,8 @@ build:
   services:
     - docker:dind
   stage: build
-#  only:
-#    - triggers
+  only:
+    - triggers
   script:
 #    - npm --registry=http://npmhkube.ddns.net:4873 install
 #    - npm run build
@@ -60,6 +60,8 @@ cache:
 
 test:
   stage: test
+  only:
+    - master
   services:
     - name: redis:latest
       alias: redis
