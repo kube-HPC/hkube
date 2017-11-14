@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 REPO_NAME=$1
 #IMAGE_NAME=private.registry:5000/sound/${REPO_NAME}
 if [ -v PRIVATE_REGISTRY ]
 then
-  IMAGE_NAME=${PRIVATE_REGISTRY}/sound/${REPO_NAME}
+  IMAGE_NAME=${PRIVATE_REGISTRY}/hkube/${REPO_NAME}
 else
-  IMAGE_NAME=sound/${REPO_NAME}
+  IMAGE_NAME=hkube/${REPO_NAME}
 fi
 if [ -n "$2" ]
 then

@@ -5,7 +5,7 @@ stages:
   - build
   - deploy
 
-version:
+.version:
 #  variables:
 #    CI_DEBUG_TRACE: "true"
   stage: version
@@ -35,12 +35,13 @@ build:
   services:
     - docker:dind
   stage: build
-  only:
-    - triggers
+#  only:
+#    - triggers
   script:
 #    - npm --registry=http://npmhkube.ddns.net:4873 install
 #    - npm run build
-    - dockerfile/build.sh worker
+    - echo ${HKUBE_CI_TOKEN} | docker login -u yehiyam --password-stdin registry.gitlab.com
+    - PRIVATE_REGISTRY=registry.gitlab.com/greenapes/hkube/registry dockerfile/build.sh worker
 .deploy:
   stage: deploy
   only:
