@@ -5,7 +5,7 @@ stages:
   - build
   - deploy
 
-.version:
+version:
 #  variables:
 #    CI_DEBUG_TRACE: "true"
   stage: version
@@ -58,7 +58,7 @@ cache:
   paths:
   - node_modules/
 
-.test:
+test:
   stage: test
   services:
     - name: redis:latest
