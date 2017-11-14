@@ -1,17 +1,10 @@
 #!/usr/bin/env bash
 REPO_NAME=$1
-#IMAGE_NAME=private.registry:5000/sound/${REPO_NAME}
 if [ -v PRIVATE_REGISTRY ]
 then
   IMAGE_NAME=${PRIVATE_REGISTRY}/hkube/${REPO_NAME}
 else
   IMAGE_NAME=hkube/${REPO_NAME}
-fi
-if [ -n "$2" ]
-then
-  VERSION_TYPE=$2
-else
-  VERSION_TYPE="patch"
 fi
 
 VERSION="${npm_package_version}"

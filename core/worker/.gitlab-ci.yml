@@ -6,8 +6,6 @@ stages:
   - deploy
 
 version:
-#  variables:
-#    CI_DEBUG_TRACE: "true"
   stage: version
   only:
     - master
@@ -15,10 +13,7 @@ version:
     - tags
     - triggers
   script:
-#    - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe 's#.*@(.+?(\:\d+)?)/#git@\1:#' | perl -pe 's/:gitlab\//:\//'`
     - export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe "s#(.*)\/\/(.*)@(.*)#\1\/\/yehiyam:${HKUBE_CI_TOKEN}@\3#"`
-#    - eval $(ssh-agent -s)
-#    - ssh-add <(echo "$CI_KEY")
     - export TMP_BRANCH_NAME=ci_processing_$CI_JOB_ID
     - git checkout -b $TMP_BRANCH_NAME
     - git remote set-url --push origin "$CI_PUSH_REPO"
@@ -32,7 +27,6 @@ version:
 
 build:
   image: yehiyam/docker-node:8
-#  image: docker:latest
   services:
     - docker:dind
   stage: build
@@ -40,11 +34,9 @@ build:
     - triggers
   script:
 #    - npm --registry=http://npmhkube.ddns.net:4873 install
-#    - npm run build
     - echo ${HKUBE_CI_TOKEN} | docker login -u yehiyam --password-stdin registry.gitlab.com
     - export PRIVATE_REGISTRY=registry.gitlab.com/greenapes/hkube/registry
     - npm run build
-#    - docker build -t registry.gitlab.com/greenapes/hkube/registry/hkube/worker -f dockerfile/Dockerfile .
 .deploy:
   stage: deploy
   only:
