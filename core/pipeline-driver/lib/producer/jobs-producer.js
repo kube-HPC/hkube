@@ -202,7 +202,7 @@ class JobProducer extends EventEmitter {
         const jobState = await stateManager.onJobStopped((result) => {
             this._onJobStop();
         });
-        if (jobState.state === States.STOPPED) {
+        if (jobState && jobState.state === States.STOPPED) {
             this._onJobStop();
         }
 
