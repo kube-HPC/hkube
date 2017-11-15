@@ -10,6 +10,26 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
+                "minikube",
+                "--init"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch minikube",
+            "program": "${workspaceFolder}/minikube/minikube.js",
+            "args": [
+                "cloneWithNpm",
+                "--dev"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch kuberApi",
+            "program": "${workspaceFolder}/minikube/kubernetes-api.js",
+            "args": [
                 "cloneWithNpm",
                 "--dev"
             ]

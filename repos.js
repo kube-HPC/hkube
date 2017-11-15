@@ -1,4 +1,4 @@
-const reposNames = ['simulator', 'pipeline-driver', 'client-negotiator', 'worker', 'algoPackage', 'algorunner'];
+const reposNames = ['simulator', 'pipeline-driver', 'client-negotiator', 'worker', 'algoPackage', 'algorunner', 'common'];
 
 const commonReposNames = ['statistic-check.rf', 'rest-server.rf',
     'producer-consumer.rf', 'etcd.rf', 'backoff.rf', 'request-reply.rf',
