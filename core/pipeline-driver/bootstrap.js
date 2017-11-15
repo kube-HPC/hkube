@@ -54,7 +54,6 @@ class Bootstrap {
         }
         process.exit(1);
     }
-
     _handleErrors() {
         process.on('exit', (code) => {
             log.info('exit' + (code ? ' code ' + code : ''), { component: componentName.MAIN });
