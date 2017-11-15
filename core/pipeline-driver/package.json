@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "pipeline-driver",
   "main": "index.js",
   "directories": {
