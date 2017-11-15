@@ -6,7 +6,7 @@ config.serviceName = package.name;
 const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
 
 config.rest = {
-    port: process.env.API_SERVER_PORT || 3000,
+    port: process.env.API_SERVER_REST_PORT || 3000,
     prefix: 'api',
     versions: ['/v1', '/v2'],
     poweredBy: 'Algo Server'
