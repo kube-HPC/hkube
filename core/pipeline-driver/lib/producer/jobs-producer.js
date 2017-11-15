@@ -85,13 +85,7 @@ class JobProducer extends EventEmitter {
             log.info(`job completed ${options.taskId}`, { component: components.JOBS_PRODUCER });
             this._setTaskState(options.taskId, node);
             this._runCompleted(node.nodeName);
-            this._progress.calc(node);
-        });
-    }
-
-    async _onJobStopped(options) {
-        await stateManager.onJobStopped((result) => {
-
+            this._progress.calc();
         });
     }
 
@@ -116,7 +110,7 @@ class JobProducer extends EventEmitter {
 
     _runNode(nodeName, nodesInput) {
         const node = this._nodes.getNode(nodeName);
-        const options = Object.assign({}, { flowInput: this._job.data.flowInput }, { input: node.input });
+        const options = Object.assign({}, { flowInput: this._pipeline.flowInput }, { input: node.input });
         const result = inputParser.parse(options, node.input, nodesInput);
         this._runNodeInner(node, result);
     }
@@ -136,7 +130,7 @@ class JobProducer extends EventEmitter {
         if (!Array.isArray(batchArray)) {
             throw new Error(`node ${nodeName} batch input must be an array`);
         }
-        const options = Object.assign({}, this._job.data, node);
+        const options = Object.assign({}, this._pipeline, node);
         batchArray.forEach((inp, ind) => {
             const batch = new Batch({
                 name: node.name,
@@ -197,24 +191,26 @@ class JobProducer extends EventEmitter {
 
     async _onJobStart(job) {
         log.info(`job arrived ${job.id}`, { component: components.JOBS_CONSUMER });
+        this._pipeline = await stateManager.getPipeline({ name: job.data.pipelineName });
         this._job = job;
-        this._nodes = new NodesMap(job.data);
+        this._nodes = new NodesMap(this._pipeline);
         this._progress = new NodesProgress(this._nodes);
         this._progress.on('progress', (progress) => {
             stateManager.setJobStatus({ status: progress });
         });
-        stateManager.setCurrentJob(job);
+        stateManager.setCurrentJob(this._job, this._pipeline);
+        const jobState = await stateManager.onJobStopped((result) => {
+            this._onJobStop();
+        });
+        if (jobState.state === States.STOPPED) {
+            this._onJobStop();
+        }
 
         // first we will try to get the state for this job
         const state = await stateManager.getState();
         if (state) {
-            if (state.state === States.STOPPED) {
-                this._onJobStop(state);
-            }
-            else {
-                stateManager.setState({ data: States.RECOVERING });
-                this._recover(state);
-            }
+            stateManager.setState({ data: States.RECOVERING });
+            this._recover(state);
         }
         else {
             stateManager.setState({ data: States.ACTIVE });
@@ -223,15 +219,16 @@ class JobProducer extends EventEmitter {
         }
     }
 
-    async _onJobStop(state) {
-        this._stopWorkers(state.workers);
+    async _onJobStop() {
+        log.info(`pipeline stopped ${this._job.id}`, { component: components.JOBS_PRODUCER });
+        this._job.done(null);
     }
 
     _recover(state) {
         const nodes = state.driverTasks.map(t => t.nodeName).filter((v, i, a) => a.indexOf(v) === i);
         nodes.forEach(n => {
             const node = this._nodes.getNode(n);
-            const options = Object.assign({}, { flowInput: this._job.data.flowInput }, { input: node.input });
+            const options = Object.assign({}, { flowInput: this._pipeline.flowInput }, { input: node.input });
             const result = inputParser.parse(options, node.input);
 
             if (result.batch) {

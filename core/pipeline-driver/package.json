@@ -8,13 +8,13 @@
     "test": "test"
   },
   "dependencies": {
-    "bull": "^3.3.5",
+    "bull": "^3.3.6",
     "clone": "^2.1.1",
     "config.rf": "^1.0.0",
     "debug": "^3.1.0",
     "deep-extend": "^0.5.0",
     "djsv": "^1.4.2",
-    "etcd.rf": "^2.1.25",
+    "etcd.rf": "^2.1.26",
     "graphlib": "^2.1.1",
     "ioredis": "^3.2.1",
     "lodash.groupby": "^4.6.0",

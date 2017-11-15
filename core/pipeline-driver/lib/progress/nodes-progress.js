@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const States = require('lib/state/States');
 const groupBy = require('lodash.groupby');
+const Progress = require('lib/progress/Progress');
 
 class ProgressManager extends EventEmitter {
 
@@ -9,7 +10,7 @@ class ProgressManager extends EventEmitter {
         this._nodes = nodesMap;
     }
 
-    calc(node) {
+    calc() {
         const nodes = this._nodes.getllNodes();
         const groupedStates = groupBy(nodes, 'state');
         const completed = groupedStates.completed ? groupedStates.completed.length : 0;
@@ -20,7 +21,7 @@ class ProgressManager extends EventEmitter {
             states.push(`${value.length} ${key}`);
         });
         const details = `nodes state: ${states.join(', ')}`;
-        this.emit('progress', { percent, details });
+        this.emit('progress', new Progress({ percent, details }));
     }
 }
 
