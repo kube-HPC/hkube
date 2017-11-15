@@ -41,5 +41,5 @@ exports.getPipeline = async (options) => {
  * returns piplineNames
  **/
 exports.getPipelines = async () => {
-    return await stateManager.getPipeline();
+    return await stateManager.getPipelines();
 }

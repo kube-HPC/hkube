@@ -82,5 +82,5 @@ exports.stopJob = async (options) => {
   }
   await producer.stopJob({ jobId: options.executionID });
   await stateManager.stopJob({ jobId: options.executionID, reason: options.reason });
-  await stateManager.setJobResult({ jobId: executionID });
+  await stateManager.setJobResult({ jobId: options.executionID });
 }

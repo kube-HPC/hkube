@@ -23,6 +23,10 @@ class StateManager extends EventEmitter {
         return await this._etcd.pipelines.getPipeline(options);
     }
 
+    async getPipelines() {
+        return await this._etcd.pipelines.getPipelines();
+    }
+
     async _watchJobResults() {
         await this._etcd.jobResults.onResult((result) => {
             this.emit(`job-${result.type}`, result);
