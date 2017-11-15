@@ -37,14 +37,14 @@ build:
     - echo ${HKUBE_CI_TOKEN} | docker login -u yehiyam --password-stdin registry.gitlab.com
     - export PRIVATE_REGISTRY=registry.gitlab.com/greenapes/hkube/registry
     - npm run build
-.deploy:
+deploy:
   stage: deploy
   only:
     - triggers
   script:
     - VERSION=$(git describe --abbrev=0 --tags);VERSION=${VERSION%.*}
     - MESSAGE="Triggered by ${CI_PROJECT_NAME:-Unknown}. $(git log -1 --pretty=%B)"
-    - curl -X POST -H "PRIVATE-TOKEN:MXgU_4aWxXLfzWQPHv9M" -F tag_name="${VERSION}.$(date +%s)" -F release_description="Version ${VERSION} $(date)" -F message="${MESSAGE}" -F ref=master http://gitlab.rms/gitlab/api/v3/projects/47/repository/tags
+    - curl -X POST -F "token=4c7785e026e9ce1cb8914b0add0ed2" -F "ref=master" "https://gitlab.com/api/v4/projects/4650308/trigger/pipeline"
 
 cache:
   paths:
