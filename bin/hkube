@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 var argv = require('minimist')(process.argv.slice(2));
 const clone = require('../clone');
+const pull = require('../pull');
 const npm = require('../npm');
 const minikube = require('../minikube/minikube');
 
@@ -11,11 +12,18 @@ switch (argv._[0]) {
     case 'clone':
         clone(Object.keys(argv)[1]);
         break;
+    case 'pull':
+        pull(Object.keys(argv)[1]);
+        break;
     case 'npm':
         npm(Object.keys(argv)[1]);
         break;
     case 'cloneWithNpm':
         clone(Object.keys(argv)[1]).then(res => {
+            npm(Object.keys(argv)[1]);
+        });
+    case 'pullWithNpm':
+        pull(Object.keys(argv)[1]).then(res => {
             npm(Object.keys(argv)[1]);
         });
     case `minikube`:
@@ -25,9 +33,10 @@ switch (argv._[0]) {
         console.log(`
         Usage
         $ clone <options>
-        $ npm <options>  
+        $ pull  <options>
+        $ npm <options> 
         $ cloneWithNpm <options>  
-        $ cloneWithNpm <options>  
+        $ pullWithNpm <options>  
         Options
         --dev, Include only hkube folder
         --common, Include only hkube-common folder
@@ -39,7 +48,7 @@ switch (argv._[0]) {
         --restart, stop and run minikube
         --cleanAndRestartMinikube, stop and run minikube
         --initAndStart, init and then start minikube
-        
-    ,`);
+        --applyCore  reload hkube core modules
+    `);
 
 }

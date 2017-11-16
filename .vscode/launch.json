@@ -17,11 +17,11 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch minikube",
-            "program": "${workspaceFolder}/minikube/minikube.js",
+            "name": "Launch pull",
+            "program": "${workspaceFolder}/bin/hkube",
             "args": [
-                "cloneWithNpm",
-                "--dev"
+                "pull",
+                "--all"
             ]
         },
         {

@@ -26,8 +26,10 @@ const _minikube = async (opt) => {
          return await startMinikube();
         case MINIKUBE.cleanAndRestartMinikube:
         return  cleanAndRestartMinikube();
+        case MINIKUBE.applyCore:
+            return runCore();            
         default:
-        return    startMinikube();
+        return  startMinikube();
     }
 
 }

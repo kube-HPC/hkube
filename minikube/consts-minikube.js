@@ -10,7 +10,8 @@ const MINIKUBE = {
     start: `start`,
     restart: `restart`,
     cleanAndRestartMinikube: `cleanAndRestartMinikube`,
-    initAndStart: `initAndSrart`
+    initAndStart: `initAndSrart`,
+    applyCore:`applyCore`
 
 
 
