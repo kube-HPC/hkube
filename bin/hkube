@@ -22,10 +22,12 @@ switch (argv._[0]) {
         clone(Object.keys(argv)[1]).then(res => {
             npm(Object.keys(argv)[1]);
         });
+        break;
     case 'pullWithNpm':
         pull(Object.keys(argv)[1]).then(res => {
             npm(Object.keys(argv)[1]);
         });
+        break;
     case `minikube`:
         minikube(Object.keys(argv)[1]);
         break;
@@ -41,7 +43,7 @@ switch (argv._[0]) {
         --dev, Include only hkube folder
         --common, Include only hkube-common folder
         --all, Includes  hkube and hkube-common folder
-        $ minikube
+        $ minikube <options>
         Options
         --init, get all prerequisite for running minikube
         --start, running hkube on minikube 
