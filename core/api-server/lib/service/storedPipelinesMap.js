@@ -33,7 +33,7 @@ module.exports = {
         }
     },
     "webhook": {
-        "progressHook": "http://localhost:9988/webhook/progress",
-        "resultHook": "http://localhost:9988/webhook/result"
+        "progressHook": "http://webhook-stub-ui:3002/webhook/progress",
+        "resultHook": "http://webhook-stub-ui:3002/webhook/result"
     }
 };
