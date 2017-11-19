@@ -13,23 +13,23 @@ const routes = function () {
     const router = express.Router();
 
     router.get('/', (req, res) => {
-        res.json({ message: 'api server' });
+        res.json({ message: 'exec server' });
     });
-    router.post('/exec/run/raw', (req, res, next) => {
+    router.post('/raw', (req, res, next) => {
         Execution.runRaw(req.body).then((response) => {
             res.json(response);
         }).catch((error) => {
             return next(error);
         });
     });
-    router.post('/exec/run/stored', async (req, res, next) => {
+    router.post('/stored', async (req, res, next) => {
         Execution.runStored(req.body).then((response) => {
             res.json({ executionID: response });
         }).catch((error) => {
             return next(error);
         });
     });
-    router.get('/exec/status/:executionID', (req, res, next) => {
+    router.get('/status/:executionID', (req, res, next) => {
         const executionID = req.params.executionID;
         Execution.getJobStatus({ executionID }).then((response) => {
             res.json(response);
@@ -37,7 +37,7 @@ const routes = function () {
             return next(error);
         });
     });
-    router.get('/exec/results/:executionID', (req, res, next) => {
+    router.get('/results/:executionID', (req, res, next) => {
         const executionID = req.params.executionID;
         Execution.getJobResult({ executionID }).then((response) => {
             res.json(response);
@@ -45,7 +45,7 @@ const routes = function () {
             return next(error);
         });
     });
-    router.post('/exec/stop', (req, res, next) => {
+    router.post('/stop', (req, res, next) => {
         Execution.stopJob(req.body).then((response) => {
             res.json({ message: 'pipeline stopped successfully' });
         }).catch((error) => {

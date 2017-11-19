@@ -26,8 +26,8 @@ class AppServer {
             const routes = [];
             for (const v of options.rest.versions) {
                 routes.push(
-                    { route: `/${prefix}${v}`, router: require(`./routes${v}/execution`)() },
-                    { route: `/${prefix}${v}`, router: require(`./routes${v}/store`)() }
+                    { route: path.join('/', prefix, v, 'exec'), router: require(`./routes${v}/execution`)() },
+                    { route: path.join('/', prefix, v, 'store'), router: require(`./routes${v}/store`)() }
                 );
             }
 

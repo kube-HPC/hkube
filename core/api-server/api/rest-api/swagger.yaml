@@ -3,11 +3,11 @@ swagger: "2.0"
 info:
   description: "algorithm flows extraordinaire"
   version: "1.0.0"
-  title: "algo API"
+  title: "H-Kube API"
 produces:
 - "application/json"
 paths:
-  /exec/run/raw:
+  /exec/raw:
     post:
       tags:
       - "Execution"
@@ -17,7 +17,7 @@ paths:
         \ reference for the flow run to retrieve run status, stop it, etc."
       parameters:
       - in: "body"
-        name: "pipelineRunData"
+        name: "options"
         description: "an object representing all information needed for pipeline execution"
         required: true
         schema:
@@ -31,7 +31,7 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-  /exec/run/stored:
+  /exec/stored:
     post:
       tags:
       - "Execution"
@@ -41,7 +41,7 @@ paths:
         \ reference for the flow run to retrieve run status, stop it, etc."
       parameters:
       - in: "body"
-        name: "storedpipelineRunData"
+        name: "options"
         description: "an object representing all information needed for stored pipeline\
           \ execution"
         required: true
@@ -63,7 +63,7 @@ paths:
       summary: "stop pipeline execution"
       description: "call to stop the flow execution\n"
       parameters:
-      - name: "storedpipelineRunData"
+      - name: "options"
         in: "body"
         description: "Unique identifier representing wokflow execution - is given\
           \ in response to calling pipeline run method ."
@@ -104,28 +104,30 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-  /store/{pipelineName}:
+  /exec/results/{executionID}:
     get:
       tags:
-      - "Store"
-      summary: "get pipeline data from store"
-      description: "returns stored pipeline"
+      - "Execution"
+      summary: "get run result"
+      description: "returns result (json) for the execution of a spesific pipeline\
+        \ run. if called before result is determined - returns error."
       parameters:
-      - name: "pipelineName"
+      - name: "executionID"
         in: "path"
-        description: "pipeline name to get from the store"
+        description: "executionID to getresults for"
         required: true
         type: "string"
       responses:
         200:
           description: "action summery"
           schema:
-            $ref: "#/definitions/defaultResponse"
+            $ref: "#/definitions/pipelineExecutionResult"
         default:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-    put:
+  /store/pipelines/{pipelineName}:
+    get:
       tags:
       - "Store"
       summary: "get pipeline data from store"
@@ -165,7 +167,7 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-  /store:
+  /store/pipelines:
    get:
       tags:
       - "Store"
@@ -202,24 +204,23 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-  /exec/results/{executionID}:
-    get:
+   put:
       tags:
-      - "Execution"
-      summary: "get run result"
-      description: "returns result (json) for the execution of a spesific pipeline\
-        \ run. if called before result is determined - returns error."
+      - "Store"
+      summary: "get pipeline data from store"
+      description: "returns stored pipeline"
       parameters:
-      - name: "executionID"
-        in: "path"
-        description: "executionID to getresults for"
+      - in: "body"
+        name: "options"
+        description: "pipeline descriptor to be added to the store"
         required: true
-        type: "string"
+        schema:
+          $ref: "#/definitions/pipeline"
       responses:
         200:
           description: "action summery"
           schema:
-            $ref: "#/definitions/pipelineExecutionResult"
+            $ref: "#/definitions/defaultResponse"
         default:
           description: "Unexpected error"
           schema:
