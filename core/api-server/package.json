@@ -18,6 +18,7 @@
         "js-yaml": "^3.3.0",
         "logger.rf": "^1.0.2",
         "producer-consumer.rf": "^1.0.8",
+        "prom-client": "^10.2.2",
         "redis-utils.rf": "^1.0.1",
         "requestretry": "^1.12.2",
         "rest-server.rf": "^1.0.2"

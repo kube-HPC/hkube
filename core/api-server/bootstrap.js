@@ -12,7 +12,9 @@ let log;
 const modules = [
     'lib/state/state-manager',
     'lib/producer/jobs-producer',
-    'lib/webhook/webhooks-handler'
+    'lib/webhook/webhooks-handler',
+    'lib/utils/prometheus'
+
 ];
 
 class Bootstrap {
