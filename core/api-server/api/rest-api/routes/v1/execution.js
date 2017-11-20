@@ -69,7 +69,7 @@ const routes = function () {
             route: req.originalUrl,
             code: res.statusCode
         }).observe(responseTimeInMs);
-        metrics.requestCounter.inc({method: req.method, path: req.route.path, code: res.statusCode});
+        metrics.requestCounter({method: req.method, path: req.route.path, code: res.statusCode});
         next()
     });
 
