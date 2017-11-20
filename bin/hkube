@@ -4,53 +4,70 @@ const clone = require('../clone');
 const pull = require('../pull');
 const npm = require('../npm');
 const minikube = require('../minikube/minikube');
-
+const package = require('../package.json')
 const meow = require('meow');
-// console.dir(argv);
-// console.log(Object.keys(argv)[1]);
-switch (argv._[0]) {
-    case 'clone':
-        clone(Object.keys(argv)[1]);
-        break;
-    case 'pull':
-        pull(Object.keys(argv)[1]);
-        break;
-    case 'npm':
-        npm(Object.keys(argv)[1]);
-        break;
-    case 'cloneWithNpm':
-        clone(Object.keys(argv)[1]).then(res => {
-            npm(Object.keys(argv)[1]);
-        });
-        break;
-    case 'pullWithNpm':
-        pull(Object.keys(argv)[1]).then(res => {
-            npm(Object.keys(argv)[1]);
-        });
-        break;
-    case `minikube`:
-        minikube(Object.keys(argv)[1]);
-        break;
-    default:
-        console.log(`
+const colors = require('colors');
+const usage = `
         Usage
-        $ clone <options>
-        $ pull  <options>
-        $ npm <options> 
-        $ cloneWithNpm <options>  
-        $ pullWithNpm <options>  
+        $ --version,-v return current hkube version
+        $ --help,-h return usage information
+        $ clone ,c <options> default --all
+        $ pull ,p  <options> default --all
+        $ npm ,n <options> default --all
+        $ cloneWithNpm, cwn <options> default --all 
+        $ pullWithNpm, pwn <options>  default --all
         Options
-        --dev, Include only hkube folder
-        --common, Include only hkube-common folder
-        --all, Includes  hkube and hkube-common folder
-        $ minikube <options>
+        --dev,-d  Include only hkube folder
+        --common,-c Include only hkube-common folder
+        --all,-a Includes  hkube and hkube-common folder
+        $ minikube, m <options>
         Options
-        --init, get all prerequisite for running minikube
-        --start, running hkube on minikube 
-        --restart, stop and run minikube
-        --cleanAndRestartMinikube, stop and run minikube
-        --initAndStart, init and then start minikube
-        --applyCore  reload hkube core modules
-    `);
+        --init,-i get all prerequisite for running minikube
+        --start,-s running hkube on minikube 
+        --restart,-r stop and run minikube
+        --cleanAndRestartMinikube,-car stop and run minikube
+        --initAndStart,-ias init and then start minikube
+        --applyCore,-ac  reload hkube core modules
+        `
 
+if (argv.version || argv.v) {
+    console.log(`version: ${package.version}`.green)
+}
+else if (argv.help || argv.h) {
+    console.log(usage);
+}
+else {
+    switch (argv._[0]) {
+        case 'clone':
+        case 'c':
+            clone(Object.keys(argv)[1]);
+            break;
+        case 'pull':
+        case 'p':
+            pull(Object.keys(argv)[1]);
+            break;
+        case 'npm':
+        case 'n':
+            npm(Object.keys(argv)[1]);
+            break;
+        case 'cloneWithNpm':
+        case 'cwn':
+            clone(Object.keys(argv)[1]).then(res => {
+                npm(Object.keys(argv)[1]);
+            });
+            break;
+        case 'pullWithNpm':
+        case 'pwn':
+            pull(Object.keys(argv)[1]).then(res => {
+                npm(Object.keys(argv)[1]);
+            });
+            break;
+        case `minikube`:
+        case 'm':
+            minikube(Object.keys(argv)[1]);
+            break;
+        default:
+            console.log(usage);
+
+    }
 }

@@ -1,7 +1,10 @@
 const REPOS = {
     dev: 'dev',
+    devShort: 'd',
     common: 'common',
-    all: 'all'
+    commonShort: 'c',
+    all: 'all',
+    allShort: 'a',
 }
 
 

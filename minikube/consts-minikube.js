@@ -7,11 +7,17 @@ const YAML_PATH = {
 
 const MINIKUBE = {
     init: `init`,
+    initShort: `i`,
     start: `start`,
+    startShort: `s`,
     restart: `restart`,
+    restartShort: `r`,
     cleanAndRestartMinikube: `cleanAndRestartMinikube`,
+    cleanAndRestartMinikubeShort: `car`,
     initAndStart: `initAndSrart`,
-    applyCore:`applyCore`
+    initAndStartShort: `ias`,
+    applyCore: `applyCore`,
+    applyCoreShort: `ac`
 
 
 

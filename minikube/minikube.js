@@ -16,17 +16,23 @@ const Api = require('kubernetes-client');
 const _minikube = async (opt) => {
     switch (opt) {
         case MINIKUBE.init:
+        case MINIKUBE.initShort:
             return await init();
         case MINIKUBE.start:
+        case MINIKUBE.startShort:
             return await startMinikube();
         case MINIKUBE.restart:
+        case MINIKUBE.restartShort:
             return await restartMinikube();
         case MINIKUBE.initAndStart:
+        case MINIKUBE.initAndStartShort:
          return  await init();
          return await startMinikube();
-        case MINIKUBE.cleanAndRestartMinikube:
+         case MINIKUBE.initAndStart:
+         case MINIKUBE.cleanAndRestartMinikubeShort:
         return  cleanAndRestartMinikube();
         case MINIKUBE.applyCore:
+        case MINIKUBE.applyCoreShort:
             return runCore();            
         default:
         return  startMinikube();
