@@ -12,7 +12,7 @@ class kubernetesApi {
     constructor() {
 
     }
-    
+
     async listenToK8sStatus(podName, status) {
         this.config = Api.config.fromKubeconfig();
         this.config.promises = true;
@@ -55,9 +55,14 @@ class kubernetesApi {
     async createPodsSync(yamlPath) {
         let files = fs.readdirSync(yamlPath)
         for (var file of files) {
-            let yml = jsYaml.safeLoad(fs.readFileSync(path.join(yamlPath, file), 'utf8'));
+            let yml
+            try {
+                yml = jsYaml.loadAll(fs.readFileSync(path.join(yamlPath, file), 'utf8'));
+            } catch (e) {
+                console.log(e);
+            }
             //console.log(`run kubectl create -f ${file}`);
-            let deploymentName = yml.metadata.name;
+            let deploymentName = yml[0].metadata.name;
             await syncSpawn(`kubectl`, `apply -f ${yamlPath}/${file} `)
             await this.listenToK8sStatus(deploymentName, `Running`)
         }
