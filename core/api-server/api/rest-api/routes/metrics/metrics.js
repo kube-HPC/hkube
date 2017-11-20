@@ -11,7 +11,6 @@ const express = require('express');
 
 const routes = function () {
     const router = express.Router();
-
     router.get('/', (req, res) => {
         res.send(prom.metrics())
     });
