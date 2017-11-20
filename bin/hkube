@@ -9,10 +9,12 @@ const meow = require('meow');
 const colors = require('colors');
 const usage = `
         Usage
-    ------------__
+    ------------
+    main:
         $ --version,-v return current hkube version
         $ --help,-h return usage information
-        
+    
+    git:
         $ clone ,c <options> default --all
         $ pull ,p  <options> default --all
         $ npm ,n <options> default --all
@@ -24,7 +26,9 @@ const usage = `
             --dev,-d  Include only hkube folder
             --common,-c Include only hkube-common folder
             --all,-a Includes  hkube and hkube-common folder
-        
+    
+    minikube:
+
         $ minikube, m <options>
         
         Options
