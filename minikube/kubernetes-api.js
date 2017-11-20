@@ -9,12 +9,13 @@ const colors = require('colors');
 const fs = require('fs');
 class kubernetesApi {
     constructor() {
+
+    }
+    
+    async listenToK8sStatus(podName, status) {
         this.config = Api.config.fromKubeconfig();
         this.config.promises = true;
         this.core = new Api.Core(this.config);
-    }
-
-    async listenToK8sStatus(podName, status) {
         let sema = new semaphore();
         const jsonStream = new JSONStream();
         try {
