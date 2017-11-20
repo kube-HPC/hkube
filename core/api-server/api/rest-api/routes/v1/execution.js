@@ -22,44 +22,44 @@ const routes = function () {
     router.post('/raw', (req, res, next) => {
         Execution.runRaw(req.body).then((response) => {
             res.json(response);
+            next()
         }).catch((error) => {
             return next(error);
         });
-        next()
     });
     router.post('/stored', async (req, res, next) => {
         Execution.runStored(req.body).then((response) => {
             res.json({executionID: response});
+            next()
         }).catch((error) => {
             return next(error);
         });
-        next()
     });
     router.get('/status/:executionID', (req, res, next) => {
         const executionID = req.params.executionID;
         Execution.getJobStatus({executionID}).then((response) => {
             res.json(response);
+            next()
         }).catch((error) => {
             return next(error);
         });
-        next()
     });
     router.get('/results/:executionID', (req, res, next) => {
         const executionID = req.params.executionID;
         Execution.getJobResult({executionID}).then((response) => {
             res.json(response);
+            next()
         }).catch((error) => {
             return next(error);
         });
-        next()
     });
     router.post('/stop', (req, res, next) => {
         Execution.stopJob(req.body).then((response) => {
             res.json({message: 'pipeline stopped successfully'});
+            next()
         }).catch((error) => {
             return next(error);
         });
-        next()
     });
 
     router.use((req, res, next) => {
@@ -67,8 +67,9 @@ const routes = function () {
         metrics.httpRequestDurationMicroseconds({
             method: req.method,
             route: req.originalUrl,
-            code: res.statusCode
-        }).observe(responseTimeInMs);
+            code: res.statusCode,
+            duration: responseTimeInMs
+        });
         metrics.requestCounter({method: req.method, path: req.route.path, code: res.statusCode});
         next()
     });

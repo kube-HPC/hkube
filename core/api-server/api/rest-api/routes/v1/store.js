@@ -22,52 +22,53 @@ var routes = function () {
     router.get('/pipelines', (req, res, next) => {
         Store.getPipelines().then((response) => {
             res.json(response);
+            next()
         }).catch((response) => {
             return next(error);
         });
-        next()
     });
     router.get('/pipelines/:pipelineName', (req, res, next) => {
         const pipelineName = req.params.pipelineName;
         Store.getPipeline(pipelineName).then((response) => {
             res.json(response);
+            next()
         }).catch((response) => {
             return next(error);
         });
-        next()
     });
     router.post('/pipelines', (req, res, next) => {
         Store.updatePipeline(req.body).then((response) => {
             res.json(response);
+            next()
         }).catch((response) => {
             return next(error);
         });
-        next()
     });
     router.put('/pipelines', (req, res, next) => {
         Store.updatePipeline(req.body).then((response) => {
             res.json(response);
+            next()
         }).catch((response) => {
             return next(error);
         });
-        next()
     });
     router.delete('/pipelines/:pipelineName', (req, res, next) => {
         const pipelineName = req.params.pipelineName;
         Store.deletePipeline(pipelineName).then((response) => {
             res.json(response);
+            next()
         }).catch((response) => {
             return next(error);
         });
-        next()
     });
     router.use( (req, res, next)=>{
         const responseTimeInMs = Date.now() - res.locals.startEpoch;
         metrics.httpRequestDurationMicroseconds({
             method: req.method,
             route: req.originalUrl,
-            code: res.statusCode
-        }).observe(responseTimeInMs);
+            code: res.statusCode,
+            duration: responseTimeInMs
+        });
         metrics.requestCounter.inc({method: req.method, path: req.route.path, code: res.statusCode});
         next()
     });
