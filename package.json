@@ -17,6 +17,7 @@
     "await-done": "^1.0.2",
     "colors": "^1.1.2",
     "fs-extra": "^4.0.2",
+    "js-yaml": "^3.10.0",
     "json-stream": "^1.0.0",
     "kubernetes-client": "^3.16.1",
     "meow": "^3.7.0",

@@ -21,7 +21,7 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "m",
-                "-ac"
+                "-s"
             ]
         },
         {

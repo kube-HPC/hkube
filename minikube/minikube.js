@@ -7,6 +7,7 @@ const syncSpawn = require('./sync-spawn');
 const delay = require('await-delay');
 const colors = require('colors');
 const kubernetesApi = require('./kubernetes-api');
+const jsYaml = require('js-yaml');
 const { URL_PATH, YAML_PATH, REGISTRY, GITLAB, MINIKUBE } = require('./consts-minikube');
 const Api = require('kubernetes-client');
 
