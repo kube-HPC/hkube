@@ -1,6 +1,6 @@
 {
   "name": "hkube-admin",
-  "version": "3.2.14",
+  "version": "3.2.15",
   "description": "",
   "main": "index.js",
   "scripts": {
