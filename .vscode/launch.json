@@ -20,7 +20,8 @@
             "name": "Launch pull",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
-                "-v"
+                "m",
+                "-ac"
             ]
         },
         {

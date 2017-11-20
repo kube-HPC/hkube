@@ -24,18 +24,18 @@ const _minikube = async (opt) => {
         case MINIKUBE.restart:
         case MINIKUBE.restartShort:
             return await restartMinikube();
-        case MINIKUBE.initAndStart:
-        case MINIKUBE.initAndStartShort:
-         return  await init();
-         return await startMinikube();
-         case MINIKUBE.cleanAndRestartMinikube:
-         case MINIKUBE.cleanAndRestartMinikubeShort:
-        return  cleanAndRestartMinikube();
-        case MINIKUBE.applyCore:
-        case MINIKUBE.applyCoreShort:
-            return runCore();            
+        case MINIKUBE.build:
+        case MINIKUBE.buildShort:
+            return await init();
+            return await startMinikube();
+        case MINIKUBE.update:
+        case MINIKUBE.updateShort:
+            return cleanAndRestartMinikube();
+        case MINIKUBE.apply:
+        case MINIKUBE.applyShort:
+            return runCore();
         default:
-        return  startMinikube();
+            return startMinikube();
     }
 
 }
@@ -53,10 +53,10 @@ const init = async () => {
 const _instalVirtualBox = async () => {
     return new Promise(async (resolve, reject) => {
         console.log(`downloading virtualBox`.green);
-      await  syncSpawn(`wget`, `-q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -`)
-      await  syncSpawn(`apt-get`, `update`)
+        await syncSpawn(`wget`, `-q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -`)
+        await syncSpawn(`apt-get`, `update`)
         console.log(`installing virtualBox`.green);
-      await  syncSpawn(`apt-get`, `install -y virtualbox`)
+        await syncSpawn(`apt-get`, `install -y virtualbox`)
         resolve();
 
     });

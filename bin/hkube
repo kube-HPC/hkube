@@ -25,9 +25,9 @@ const usage = `
         --init,-i get all prerequisite for running minikube
         --start,-s running hkube on minikube 
         --restart,-r stop and run minikube
-        --cleanAndRestartMinikube,-car stop and run minikube
-        --initAndStart,-ias init and then start minikube
-        --applyCore,-ac  reload hkube core modules
+        --update,-u stop and run minikube
+        --build,-b init and then start minikube
+        --apply,-a  reload hkube core modules
         `
 
 if (argv.version || argv.v) {

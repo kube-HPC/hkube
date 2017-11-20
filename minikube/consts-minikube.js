@@ -12,12 +12,12 @@ const MINIKUBE = {
     startShort: `s`,
     restart: `restart`,
     restartShort: `r`,
-    cleanAndRestartMinikube: `cleanAndRestartMinikube`,
-    cleanAndRestartMinikubeShort: `car`,
-    initAndStart: `initAndSrart`,
-    initAndStartShort: `ias`,
-    applyCore: `applyCore`,
-    applyCoreShort: `ac`
+    update: `update`,
+    updateShort: `u`,
+    build: `build`,
+    buildShort: `b`,
+    apply: `apply`,
+    applyShort: `a`
 
 
 
