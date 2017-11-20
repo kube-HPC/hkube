@@ -9,32 +9,40 @@ const meow = require('meow');
 const colors = require('colors');
 const usage = `
         Usage
+    ------------__
         $ --version,-v return current hkube version
         $ --help,-h return usage information
+        
         $ clone ,c <options> default --all
         $ pull ,p  <options> default --all
         $ npm ,n <options> default --all
         $ cloneWithNpm, cwn <options> default --all 
         $ pullWithNpm, pwn <options>  default --all
+
         Options
-        --dev,-d  Include only hkube folder
-        --common,-c Include only hkube-common folder
-        --all,-a Includes  hkube and hkube-common folder
+        
+            --dev,-d  Include only hkube folder
+            --common,-c Include only hkube-common folder
+            --all,-a Includes  hkube and hkube-common folder
+        
         $ minikube, m <options>
+        
         Options
-        --init,-i get all prerequisite for running minikube
-        --start,-s running hkube on minikube 
-        --restart,-r stop and run minikube
-        --update,-u stop and run minikube
-        --build,-b init and then start minikube
-        --apply,-a  reload hkube core modules
+        
+            --init,-i get all prerequisite for running minikube
+            --start,-s running hkube on minikube 
+            --restart,-r stop and run minikube
+            --update,-u stop and run minikube
+            --build,-b init and then start minikube
+            --apply,-a  reload hkube core modules
+            
         `
 
 if (argv.version || argv.v) {
     console.log(`version: ${package.version}`.green)
 }
 else if (argv.help || argv.h) {
-    console.log(usage);
+    console.log(usage.cyan);
 }
 else {
     switch (argv._[0]) {
@@ -67,7 +75,7 @@ else {
             minikube(Object.keys(argv)[1]);
             break;
         default:
-            console.log(usage);
+            console.log(usage.cyan);
 
     }
 }
