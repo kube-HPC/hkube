@@ -22,7 +22,7 @@ class Worker {
     _registerToCommunicationEvents() {
         algoRunnerCommunication.on('connection', () => {
             stateManager.bootstrap();
-        })
+        });
         algoRunnerCommunication.on('disconnect', () => {
             log.warning('algorithm runner has disconnected');
             stateManager.reset();
