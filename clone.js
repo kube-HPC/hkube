@@ -4,7 +4,7 @@ const git = require('simple-git')(folder);
 const i = require('npm-i')
 const fs = require('fs');
 const colors = require('colors');
-const gitPrefix = "git@gitlab.com:greenapes/hkube/"
+const gitPrefix = "git@github.com/kube-HPC/"
 const stringToRepos = require('./stringToRepos');
 
 const clone = (reposTypes) => {

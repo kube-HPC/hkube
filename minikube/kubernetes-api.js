@@ -65,10 +65,13 @@ class kubernetesApi {
 
                 //console.log(`run kubectl create -f ${file}`);
                 let deploymentName = this._getDeploymentName(yamlPath, file);
-                await syncSpawn(`kubectl`, `apply -f ${yamlPath} `)
+                await syncSpawn(`kubectl`, `apply -f ${file} `)
                 await this.listenToK8sStatus(deploymentName, `Running`)
             }
+            callDone()
         });
+
+        await done();
 
     }
 

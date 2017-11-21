@@ -9,8 +9,8 @@ const REPOS = {
 
 
 const GIT_PREFIX = {
-    dev: "git@gitlab.com:greenapes/hkube/",
-    common: "git@gitlab.com:greenapes/hkube-common"
+    dev: "git@github.com:kube-HPC",
+    common: "git@github.com:kube-HPC"
 }
 
 const FOLDERS = {
