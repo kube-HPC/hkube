@@ -2,10 +2,6 @@ const EventEmitter = require('events');
 const validate = require('djsv');
 const { Consumer } = require('producer-consumer.rf');
 const schema = require('./schema');
-const stateManager = require('lib/state/state-manager');
-const Logger = require('logger.rf');
-const log = Logger.GetLogFromContainer();
-const components = require('common/consts/componentNames');
 
 class JobConsumer extends EventEmitter {
 

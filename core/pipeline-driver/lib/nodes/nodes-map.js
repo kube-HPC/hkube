@@ -7,7 +7,7 @@ const inputParser = require('lib/parsers/input-parser');
 
 class NodesMap {
 
-    constructor(options) {
+    constructor(options, config) {
 
         const nodes = options.nodes.map((item) => item.nodeName);
         const duplicates = this._findDuplicates(nodes);
@@ -20,6 +20,9 @@ class NodesMap {
         const links = [];
 
         options.nodes.forEach(node => {
+            if (!config.knownAlgorithms.includes(node.algorithmName)) {
+                throw new Error(`node ${node.nodeName} has invalid algorithmName ${node.algorithmName}`);
+            }
             if (node.nodeName === 'flowInput') {
                 throw new Error(`node ${node.nodeName} has invalid reserved name flowInput`);
             }
@@ -154,6 +157,21 @@ class NodesMap {
             }
         })
         return states.every(s => s === States.FAILED || s === States.COMPLETED);
+    }
+
+    getNodesByStatus(status) {
+        let states = [];
+        const nodesNames = this._graph.nodes();
+        const nodes = nodesNames.map(n => this._graph.node(n));
+        nodes.forEach(n => {
+            if (n.batch.length > 0) {
+                states = states.concat(n.batch.map(b => b.state));
+            }
+            else {
+                states.push(n.state);
+            }
+        })
+        return states.filter(s => s === status);
     }
 
     getllNodes() {
