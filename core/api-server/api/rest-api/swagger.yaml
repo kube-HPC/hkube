@@ -261,6 +261,10 @@ definitions:
         properties: {}
       webhook:
         $ref: "#/definitions/webhook"
+      batchTolerance:
+        type: "integer"
+      verbosityLevel:
+        type: "string"
     description: "systemwide unique name"
   webhook:
     type: "object"

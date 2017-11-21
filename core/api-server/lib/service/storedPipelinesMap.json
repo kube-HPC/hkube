@@ -24,14 +24,15 @@
             ]
         }
     ],
-    "batchTolerance": 90,
     "flowInput": {
         "files": {
             "link": "links-1",
             "links1": [
                 "links-1",
                 "links-2",
-                "links-3"
+                "links-3",
+                "links-4",
+                "links-5"
             ],
             "links2": [
                 "links-4",
@@ -43,5 +44,7 @@
     "webhook": {
         "progressHook": "http://webhook-stub-ui:3002/webhook/progress",
         "resultHook": "http://webhook-stub-ui:3002/webhook/result"
-    }
+    },
+    "batchTolerance": 30,
+    "verbosityLevel": "debug"
 }
