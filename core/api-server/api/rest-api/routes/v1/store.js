@@ -8,14 +8,9 @@
 
 const express = require('express');
 const Store = require('lib/service/StoreService');
-const metrics = require('../../../../lib/utils/prometheus');
 
 var routes = function () {
     const router = express.Router();
-    router.use( (req, res, next)=>{
-        res.locals.startEpoch = Date.now();
-        next();
-    });
     router.get('/', function (req, res) {
         res.json({ message: 'store api' });
     });
@@ -60,17 +55,6 @@ var routes = function () {
         }).catch((response) => {
             return next(error);
         });
-    });
-    router.use( (req, res, next)=>{
-        const responseTimeInMs = Date.now() - res.locals.startEpoch;
-        metrics.httpRequestDurationMicroseconds({
-            method: req.method,
-            route: req.originalUrl,
-            code: res.statusCode,
-            duration: responseTimeInMs
-        });
-        metrics.requestCounter.inc({method: req.method, path: req.route.path, code: res.statusCode});
-        next()
     });
 
     return router;

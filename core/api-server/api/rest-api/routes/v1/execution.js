@@ -8,13 +8,8 @@
 
 const Execution = require('lib/service/ExecutionService');
 const express = require('express');
-const metrics = require('../../../../lib/utils/prometheus');
 const routes = function () {
     const router = express.Router();
-    router.use((req, res, next) => {
-        res.locals.startEpoch = Date.now();
-        next();
-    });
     router.get('/', (req, res) => {
         res.json({message: 'exec server'});
         next()
@@ -62,17 +57,7 @@ const routes = function () {
         });
     });
 
-    router.use((req, res, next) => {
-        const responseTimeInMs = Date.now() - res.locals.startEpoch;
-        metrics.httpRequestDurationMicroseconds({
-            method: req.method,
-            route: req.originalUrl,
-            code: res.statusCode,
-            duration: responseTimeInMs
-        });
-        metrics.requestCounter({method: req.method, path: req.route.path, code: res.statusCode});
-        next()
-    });
+
 
     return router;
 };
