@@ -23,6 +23,7 @@
     "meow": "^3.7.0",
     "minimist": "^1.2.0",
     "npm-i": "0.0.2",
+    "recursive-readdir": "^2.2.1",
     "request": "^2.83.0",
     "simple-git": "^1.80.1"
   },

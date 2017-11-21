@@ -8,6 +8,8 @@ const colors = require('colors');
 const jsYaml = require('js-yaml');
 const fs = require('fs-extra');
 const path = require('path');
+const recursiveDir = require('recursive-readdir');
+
 class kubernetesApi {
     constructor() {
 
@@ -50,29 +52,35 @@ class kubernetesApi {
 
 
 
-
+    _ignoreFileFunc(file, stats) {
+        // return stats.isDirectory() && path.extname(file) != "yml";
+        return path.extname(file) != ".yml";
+    }
 
     async createPodsSync(yamlPath) {
-        let files = fs.readdirSync(yamlPath)
-        for (var file of files) {
+        // let files = fs.readdirSync(yamlPath)
+        recursiveDir(yamlPath, [this._ignoreFileFunc], async (err, files) => {
+            console.log(files);
+            for (var file of files) {
 
-            //console.log(`run kubectl create -f ${file}`);
-            let deploymentName = this._getDeploymentName(yamlPath, file);
-            await syncSpawn(`kubectl`, `apply -f ${yamlPath}/${file} `)
-            await this.listenToK8sStatus(deploymentName, `Running`)
-        }
+                //console.log(`run kubectl create -f ${file}`);
+                let deploymentName = this._getDeploymentName(yamlPath, file);
+                await syncSpawn(`kubectl`, `apply -f ${yamlPath} `)
+                await this.listenToK8sStatus(deploymentName, `Running`)
+            }
+        });
 
     }
 
     _getDeploymentName(yamlPath, file) {
         try {
-            let yamlPathWithFile = path.join(yamlPath, file);
-            let yml = jsYaml.loadAll(fs.readFileSync(yamlPathWithFile, 'utf8'));
+            let yamlPathWithFile = file;
+            let yml = jsYaml.loadAll(fs.readFileSync(file, 'utf8'));
             let deploy = yml.find(y => y.kind == 'Deployment');
             if (deploy) {
                 return deploy.metadata.name;
             }
-            console.log(`cant find deployment for ${yamlPathWithFile} return the first kind ${yml[0].kind} `);
+            console.log(`cant find deployment for ${file} return the first kind ${yml[0].kind} `);
             return yml[0].metadata.name;
         } catch (e) {
             console.log(e);
