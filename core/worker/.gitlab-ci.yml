@@ -34,8 +34,8 @@ build:
     - triggers
   script:
 #    - npm --registry=http://npmhkube.ddns.net:4873 install
-    - echo ${HKUBE_CI_TOKEN} | docker login -u yehiyam --password-stdin registry.gitlab.com
-    - export PRIVATE_REGISTRY=registry.gitlab.com/greenapes/hkube/registry
+    # - echo ${HKUBE_CI_TOKEN} | docker login -u yehiyam --password-stdin registry.gitlab.com
+    - export PRIVATE_REGISTRY="gcr.io/hkube-185114/api-server"
     - npm run build
 deploy:
   stage: deploy
