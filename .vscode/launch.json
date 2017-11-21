@@ -17,6 +17,12 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch repos",
+            "program": "${workspaceFolder}/repos.js"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch pull",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
