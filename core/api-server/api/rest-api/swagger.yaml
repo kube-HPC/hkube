@@ -79,15 +79,15 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-  /exec/status/{executionID}:
+  /exec/status:
     get:
       tags:
       - "Execution"
       summary: "wokflow execution status"
       description: "reurns a status for the current pipeline."
       parameters:
-      - name: "executionID"
-        in: "path"
+      - name: "id"
+        in: "query"
         description: "Unique identifier representing wokflow execution - is given\
           \ in response to calling pipeline run method ."
         required: false
@@ -104,7 +104,7 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-  /exec/results/{executionID}:
+  /exec/results:
     get:
       tags:
       - "Execution"
@@ -112,9 +112,9 @@ paths:
       description: "returns result (json) for the execution of a spesific pipeline\
         \ run. if called before result is determined - returns error."
       parameters:
-      - name: "executionID"
-        in: "path"
-        description: "executionID to getresults for"
+      - name: "id"
+        in: "query"
+        description: "executionID to get results for"
         required: true
         type: "string"
       responses:
@@ -126,17 +126,37 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-  /store/pipelines/{pipelineName}:
+  /store/pipelines/{name}:
     get:
       tags:
       - "Store"
-      summary: "get pipeline data from store"
+      summary: "get all pipelines or specific pipeline data from store"
       description: "returns stored pipeline"
       parameters:
-      - name: "pipelineName"
+      - name: "name"
         in: "path"
         description: "pipeline name to get from the store"
+        type: "string"
         required: true
+      responses:
+        200:
+          description: "action summery"
+          schema:
+            $ref: "#/definitions/defaultResponse"
+        default:
+          description: "Unexpected error"
+          schema:
+            $ref: "#/definitions/Error"
+  /store/pipelines:
+    get:
+      tags:
+      - "Store"
+      summary: "get all pipelines or specific pipeline data from store"
+      description: "returns stored pipeline"
+      parameters:
+      - name: "sort"
+        in: "query"
+        description: "pipeline name to get from the store"
         type: "string"
       responses:
         200:
@@ -153,8 +173,8 @@ paths:
       summary: "delete stored pipeline"
       description: "removes selected stored pipeline from store"
       parameters:
-      - name: "pipelineName"
-        in: "path"
+      - name: "name"
+        in: "query"
         description: "pipeline name to get from the store"
         required: true
         type: "string"
@@ -167,23 +187,7 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-  /store/pipelines:
-   get:
-      tags:
-      - "Store"
-      summary: "get all pipelines"
-      description: "returns all pipelines that are currently in the store (names list)"
-      parameters: []
-      responses:
-        200:
-          description: "action summery"
-          schema:
-            $ref: "#/definitions/defaultResponse"
-        default:
-          description: "Unexpected error"
-          schema:
-            $ref: "#/definitions/Error"
-   post:
+    post:
       tags:
       - "Store"
       summary: "add a pipeline"
@@ -204,7 +208,7 @@ paths:
           description: "Unexpected error"
           schema:
             $ref: "#/definitions/Error"
-   put:
+    put:
       tags:
       - "Store"
       summary: "get pipeline data from store"
@@ -235,25 +239,11 @@ definitions:
         type: "string"
         description: "Unique identifier representing a specific function. e.g. \"\
           Average\""
-      isBatch:
-        type: "boolean"
-        description: "true signals this step expects an array of inputs and should\
-          \ be executed as many times as the input array has elements and return an\
-          \ array of answers."
       input:
         type: "array"
         description: "extra input, in addition to the output from parent step."
         items:
           type: "string"
-  pipelineLink:
-    type: "object"
-    properties:
-      source:
-        type: "string"
-        description: "Unique identifier representing a specific node"
-      target:
-        type: "string"
-        description: "Unique identifier representing a specific node"
   pipeline:
     type: "object"
     properties:
@@ -265,12 +255,6 @@ definitions:
           Average\""
         items:
           $ref: "#/definitions/pipelineNode"
-      links:
-        type: "array"
-        description: "Unique identifier representing a specific function. e.g. \"\
-          Average\""
-        items:
-          $ref: "#/definitions/pipelineLink"
       flowInput:
         type: "object"
         description: "input object"
@@ -336,6 +320,12 @@ definitions:
       name:
         type: "string"
         example: "myFlow"
+      flowInput:
+        type: "object"
+        description: "input object"
+        properties: {}
+      webhook:
+        $ref: "#/definitions/webhook"
   pipelineExecutionResult:
     type: "object"
     properties:

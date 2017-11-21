@@ -15,44 +15,45 @@ var routes = function () {
         res.json({ message: 'store api' });
     });
     router.get('/pipelines', (req, res, next) => {
+        const sort = req.query.sort;
         Store.getPipelines().then((response) => {
             res.json(response);
-            next()
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });
-    router.get('/pipelines/:pipelineName', (req, res, next) => {
-        const pipelineName = req.params.pipelineName;
-        Store.getPipeline(pipelineName).then((response) => {
+    router.get('/pipelines/:name', (req, res, next) => {
+        const name = req.params.name;
+        Store.getPipeline({ name }).then((response) => {
             res.json(response);
-            next()
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });
     router.post('/pipelines', (req, res, next) => {
         Store.updatePipeline(req.body).then((response) => {
             res.json(response);
-            next()
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });
     router.put('/pipelines', (req, res, next) => {
         Store.updatePipeline(req.body).then((response) => {
             res.json(response);
-            next()
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });
-    router.delete('/pipelines/:pipelineName', (req, res, next) => {
-        const pipelineName = req.params.pipelineName;
-        Store.deletePipeline(pipelineName).then((response) => {
+    router.delete('/pipelines', (req, res, next) => {
+        const name = req.query.name;
+        Store.deletePipeline({ name }).then((response) => {
             res.json(response);
-            next()
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });

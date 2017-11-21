@@ -6,7 +6,10 @@
             "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceRoot}/app.js",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "skipFiles": [
+                "<node_internals>/**"
+            ]
         }
     ]
 }

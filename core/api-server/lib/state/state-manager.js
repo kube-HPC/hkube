@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const Etcd = require('etcd.rf');
-const storedPipelinesMap = require('../service/storedPipelinesMap.js')
+const storedPipelinesMap = require('../service/storedPipelinesMap.json')
 
 class StateManager extends EventEmitter {
 
@@ -15,6 +15,14 @@ class StateManager extends EventEmitter {
         this.setPipeline({ name: storedPipelinesMap.name, data: storedPipelinesMap });
     }
 
+    async setExecution(options) {
+        return await this._etcd.execution.setExecution(options);
+    }
+
+    async getExecution(options) {
+        return await this._etcd.execution.getExecution(options);
+    }
+
     async setPipeline(options) {
         return await this._etcd.pipelines.setPipeline(options);
     }
@@ -25,6 +33,10 @@ class StateManager extends EventEmitter {
 
     async getPipelines() {
         return await this._etcd.pipelines.getPipelines();
+    }
+
+    async deletePipeline(options) {
+        return await this._etcd.pipelines.deletePipeline(options);
     }
 
     async _watchJobResults() {

@@ -14,7 +14,7 @@ class WebhooksHandler {
                 webhookID: response.jobId,
                 data: response.data.result
             });
-            const pipeline = await stateManager.getPipeline({ name: response.data.name });
+            const pipeline = await stateManager.getExecution({ jobId: response.jobId });
             const url = pipeline.webhook.resultHook;
             this._request(url, this._options.webhook.resultHook, webhook, 'result');
         })
@@ -24,7 +24,7 @@ class WebhooksHandler {
                 webhookID: response.jobId,
                 data: response.data.status
             });
-            const pipeline = await stateManager.getPipeline({ name: response.data.name });
+            const pipeline = await stateManager.getExecution({ jobId: response.jobId });
             const url = pipeline.webhook.progressHook;
             this._request(url, this._options.webhook.progressHook, webhook, 'status');
         })

@@ -11,47 +11,47 @@ const express = require('express');
 const routes = function () {
     const router = express.Router();
     router.get('/', (req, res) => {
-        res.json({message: 'exec server'});
+        res.json({ message: 'exec server' });
         next()
     });
     router.post('/raw', (req, res, next) => {
         Execution.runRaw(req.body).then((response) => {
-            res.json(response);
-            next()
+            res.json({ id: response });
+            next();
         }).catch((error) => {
             return next(error);
         });
     });
-    router.post('/stored', async (req, res, next) => {
+    router.post('/stored', (req, res, next) => {
         Execution.runStored(req.body).then((response) => {
-            res.json({executionID: response});
-            next()
+            res.json({ id: response });
+            next();
         }).catch((error) => {
             return next(error);
         });
     });
-    router.get('/status/:executionID', (req, res, next) => {
-        const executionID = req.params.executionID;
-        Execution.getJobStatus({executionID}).then((response) => {
+    router.get('/status', (req, res, next) => {
+        const executionID = req.query.id;
+        Execution.getJobStatus({ executionID }).then((response) => {
             res.json(response);
-            next()
+            next();
         }).catch((error) => {
             return next(error);
         });
     });
-    router.get('/results/:executionID', (req, res, next) => {
-        const executionID = req.params.executionID;
-        Execution.getJobResult({executionID}).then((response) => {
+    router.get('/results', (req, res, next) => {
+        const executionID = req.query.id;
+        Execution.getJobResult({ executionID }).then((response) => {
             res.json(response);
-            next()
+            next();
         }).catch((error) => {
             return next(error);
         });
     });
     router.post('/stop', (req, res, next) => {
         Execution.stopJob(req.body).then((response) => {
-            res.json({message: 'pipeline stopped successfully'});
-            next()
+            res.json({ message: 'pipeline stopped successfully' });
+            next();
         }).catch((error) => {
             return next(error);
         });

@@ -22,5 +22,8 @@
         "redis-utils.rf": "^1.0.1",
         "requestretry": "^1.12.2",
         "rest-server.rf": "^1.0.3"
+    },
+    "devDependencies": {
+        "eslint-config-google": "^0.9.1"
     }
 }

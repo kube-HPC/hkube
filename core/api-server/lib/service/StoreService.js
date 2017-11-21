@@ -1,4 +1,6 @@
 const stateManager = require('lib/state/state-manager');
+const ResourceNotFoundError = require('lib/errors/ResourceNotFoundError');
+const InvalidNameError = require('lib/errors/InvalidNameError');
 
 class StoreService {
 
@@ -9,7 +11,7 @@ class StoreService {
      * pipeline Pipeline pipeline descriptor to be added to the store
      * returns defaultResponse
      **/
-    async   updatePipeline(options) {
+    async updatePipeline(options) {
         return await stateManager.setPipeline();
     }
 
@@ -20,8 +22,8 @@ class StoreService {
      * pipelineName String pipeline name to get from the store
      * returns defaultResponse
      **/
-    async  deletePipeline(options) {
-
+    async deletePipeline(options) {
+        return await stateManager.getPipelines(options);
     }
 
     /**
@@ -32,17 +34,26 @@ class StoreService {
      * returns piplineNamesList
      **/
     async getPipeline(options) {
-        return await stateManager.getPipeline(options);
+        const pipeline = await stateManager.getPipeline({ name: options.name });
+        if (!pipeline) {
+            throw new ResourceNotFoundError('pipeline', options.name);
+        }
+        return pipeline;
+    }
+
+    async getPipelines() {
+        return await stateManager.getPipelines();
     }
 
     /**
-     * get all pipelines
-     * returns all pipelines that are currently in the store (names list)
+     * add a pipeline
+     * adds the given pipeline to the store.
      *
-     * returns piplineNames
+     * pipeline Pipeline pipeline descriptor to be added to the store
+     * returns defaultResponse
      **/
-    async  getPipelines() {
-        return await stateManager.getPipelines();
+    async insertPipeline(options) {
+        return await stateManager.setPipeline();
     }
 }
 
