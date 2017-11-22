@@ -5,6 +5,9 @@ node_js:
 services:
   - docker
   - redis
+branches:
+  only:
+    - master
 before_install:
   - docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:latest /usr/local/bin/etcd --data-dir=data.etcd --name "my-etcd" --cors='*' --initial-advertise-peer-urls http://0.0.0.0:2380 --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:4001 --listen-client-urls http://0.0.0.0:4001     --initial-cluster-state new
 install:
@@ -14,3 +17,13 @@ cache:
     - "node_modules"
 script:
   - NODE_ENV=test npm test
+after_success:
+  - npm version patch -m "[skip ci]"
+  - git push --follow-tags
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: npm run build
+  on:
+    branch: master
+    
