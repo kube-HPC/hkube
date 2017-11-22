@@ -18,8 +18,11 @@ cache:
 script:
   - NODE_ENV=test npm test
 after_success:
-  - npm version patch -m "[skip ci]"
-  - git push --follow-tags
+  - git config --global user.email "travis@travis-ci.org"
+  - git config --global user.name "Travis CI"
+  - git checkout -b version-branch
+  - npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
+  - git push origin version-branch:master --follow-tags 
 deploy:
   skip_cleanup: true
   provider: script
