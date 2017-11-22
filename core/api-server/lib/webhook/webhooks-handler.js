@@ -1,7 +1,7 @@
 const request = require('requestretry');
 const stateManager = require('lib/state/state-manager');
 const Webhook = require('./web-hook');
-const Logger = require('logger.rf');
+const Logger = require('logger.hkube');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
 

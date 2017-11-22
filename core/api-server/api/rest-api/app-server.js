@@ -4,13 +4,13 @@
  * including settings, middleware and routes.
  */
 
-const RestServer = require('rest-server.rf');
+const RestServer = require('rest-server.hkube');
 const rest = new RestServer();
 const fs = require('fs');
 const path = require('path');
 const jsyaml = require('js-yaml');
 //const versionHelper = require('common').VersionHelper;
-const Logger = require('logger.rf');
+const Logger = require('logger.hkube');
 const log = Logger.GetLogFromContanier();
 const componentName = require('common/consts/componentNames');
 
@@ -19,16 +19,16 @@ class AppServer {
   init(options) {
     return new Promise((resolve, reject) => {
       rest.on('error', (res) => {
-        log.error('Error response, status=' + res.status + ', message=' + res.error.message, {component: componentName.REST_API});
+        log.error('Error response, status=' + res.status + ', message=' + res.error.message, { component: componentName.REST_API });
       });
 
       const prefix = options.rest.prefix;
       const routes = [];
-      routes.push({route: '/metrics', router: require('./routes/metrics/metrics')()});
+      //routes.push({ route: '/metrics', router: require('./routes/metrics/metrics')() });
       for (const v of options.rest.versions) {
         routes.push(
-          {route: path.join('/', prefix, v, 'exec'), router: require(`./routes${v}/execution`)()},
-          {route: path.join('/', prefix, v, 'store'), router: require(`./routes${v}/store`)()}
+          { route: path.join('/', prefix, v, 'exec'), router: require(`./routes${v}/execution`)() },
+          { route: path.join('/', prefix, v, 'store'), router: require(`./routes${v}/store`)() }
         );
       }
 

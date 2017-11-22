@@ -45,7 +45,7 @@ class ExecutionService {
     const jobId = producer.createJobID({ name: pipeline.name });
     await stateManager.setExecution({ jobId: jobId, data: pipeline });
     await stateManager.setJobStatus({ jobId: jobId, data: { status: States.PENDING } });
-    await producer.createJob({ jobId: jobId, pipeline: pipeline });
+    await producer.createJob({ jobId: jobId });
     return jobId;
   }
 

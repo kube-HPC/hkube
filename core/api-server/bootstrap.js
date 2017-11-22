@@ -2,10 +2,10 @@
 process.env.NODE_PATH = __dirname;
 require('module').Module._initPaths();
 
-const configIt = require('config.rf');
-const Logger = require('logger.rf');
-const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
-const monitor = require('redis-utils.rf').Monitor;
+const configIt = require('config.hkube');
+const Logger = require('logger.hkube');
+const VerbosityPlugin = require('logger.hkube').VerbosityPlugin;
+const monitor = require('redis-utils.hkube').Monitor;
 const componentNames = require('common/consts/componentNames.js');
 let log;
 

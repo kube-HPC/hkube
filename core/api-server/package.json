@@ -11,17 +11,17 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
-        "config.rf": "^1.0.0",
+        "config.hkube": "^1.0.0",
         "djsv": "^1.4.2",
-        "etcd.rf": "^2.1.30",
+        "etcd.hkube": "^2.1.30",
         "express": "^4.16.2",
         "js-yaml": "^3.3.0",
-        "logger.rf": "^1.0.4",
-        "producer-consumer.rf": "^1.0.8",
+        "logger.hkube": "^1.0.4",
+        "producer-consumer.hkube": "^1.0.8",
         "prom-client": "^10.2.2",
-        "redis-utils.rf": "^1.0.1",
+        "redis-utils.hkube": "^1.0.1",
         "requestretry": "^1.12.2",
-        "rest-server.rf": "^1.0.3"
+        "rest-server.hkube": "^1.0.3"
     },
     "devDependencies": {
         "eslint-config-google": "^0.9.1"

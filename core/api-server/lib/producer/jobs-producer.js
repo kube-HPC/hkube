@@ -1,8 +1,8 @@
 const EventEmitter = require('events');
 const validate = require('djsv');
-const { Producer } = require('producer-consumer.rf');
+const { Producer } = require('producer-consumer.hkube');
 const schema = require('lib/producer/schema');
-const Logger = require('logger.rf');
+const Logger = require('logger.hkube');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
 
@@ -39,8 +39,7 @@ class JobProducer extends EventEmitter {
         const opt = {
             job: {
                 id: options.jobId,
-                type: 'pipeline-driver-job',
-                data: options.pipeline
+                type: 'pipeline-driver-job'
             }
         }
         return await this._producer.createJob(opt);

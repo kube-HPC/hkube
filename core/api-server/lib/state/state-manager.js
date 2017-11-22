@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const Etcd = require('etcd.rf');
+const Etcd = require('etcd.hkube');
 const storedPipelinesMap = require('../service/storedPipelinesMap.json')
 
 class StateManager extends EventEmitter {
