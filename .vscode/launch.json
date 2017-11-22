@@ -17,6 +17,16 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "clone",
+            "program": "${workspaceFolder}/bin/hkube",
+            "args": [
+                "c",
+                "-a"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch repos",
             "program": "${workspaceFolder}/repos.js"
         },

@@ -23,6 +23,7 @@
     "kubernetes-client": "^3.16.1",
     "meow": "^3.7.0",
     "minimist": "^1.2.0",
+    "mkdir-recursive": "^0.3.0",
     "npm-i": "0.0.2",
     "recursive-readdir": "^2.2.1",
     "request": "^2.83.0",

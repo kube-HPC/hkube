@@ -1,13 +1,14 @@
 #!/usr/bin/env node
-const folder = `${process.env.HOME}/dev/hkube/`
-const git = require('simple-git')(folder);
-const i = require('npm-i')
+const fx = require('mkdir-recursive');
+const simpleGit = require('simple-git');
+const i = require('npm-i');
 const fs = require('fs');
 const colors = require('colors');
 const gitPrefix = "git@github.com/kube-HPC/"
 const stringToRepos = require('./stringToRepos');
-
+let git = null;
 const clone = (reposTypes) => {
+    git = simpleGit(_createFolderIfNotExists());
     const promiseArr = [];
     stringToRepos(reposTypes).forEach(r => {
         promiseArr.push(cloneInternal(r));
@@ -15,6 +16,12 @@ const clone = (reposTypes) => {
     return Promise.all(promiseArr);
 }
 
+const _createFolderIfNotExists = () => {
+    const folder = `${process.env.HOME}/dev/hkube/`
+    let err = fx.mkdirSync(`${process.env.HOME}/foo/bar/1`);
+    // simpleGit(folder)
+    return folder;
+}
 
 const cloneInternal = (reposObj) => {
     let promiseArr = [];
