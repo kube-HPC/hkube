@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const validate = require('djsv');
-const { Producer } = require('producer-consumer.rf');
+const { Producer } = require('producer-consumer.hkube');
 const schema = require('lib/producer/schema');
 const consumer = require('lib/consumer/jobs-consumer');
 const stateManager = require('lib/state/state-manager');
@@ -10,7 +10,7 @@ const States = require('lib/state/States');
 const NodeState = require('lib/state/NodeState');
 const inputParser = require('lib/parsers/input-parser');
 const Batch = require('lib/nodes/batch');
-const Logger = require('logger.rf');
+const Logger = require('logger.hkube');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
 
@@ -164,6 +164,7 @@ class JobProducer extends EventEmitter {
         this._createJob(node);
     }
 
+    // TODO: HANDLE BATCH FAILED BELOW batchTolerance
     _jobDone(node) {
         node = node || {};
         if (node.error) {
@@ -198,7 +199,7 @@ class JobProducer extends EventEmitter {
 
     _jobComplete(error) {
         if (this._watchState) {
-            this._watchState.watcher.stop();
+            this._watchState.stop();
         }
         this._job.done(error);
     }

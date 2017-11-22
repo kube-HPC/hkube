@@ -1,5 +1,5 @@
 
-const Etcd = require('etcd.rf');
+const Etcd = require('etcd.hkube');
 
 class StateManager {
 
