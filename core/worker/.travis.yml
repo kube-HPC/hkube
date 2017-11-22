@@ -33,7 +33,7 @@ after_success:
 - git checkout -b version-branch
 - npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
 - git push origin version-branch:master --follow-tags
-- echo ${DOCKER_HUB_PASS} | docker login --username yehiyam --password-stdin
+- docker login --username yehiyam --password ${DOCKER_HUB_PASS}
 deploy:
   skip_cleanup: true
   provider: script
