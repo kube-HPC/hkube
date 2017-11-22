@@ -8,6 +8,10 @@ services:
 branches:
   only:
   - master
+env:
+  global:
+  - secure: FwGku+HBx7IauPE0AffU/pRQOGJZM8TAhm0HEU23ersOnNuHpkGpX/ZoQD4mgEwCB6IsmyE97uzkecGQsyTIAZNFlM1EQlAVYdgkYJdhf5GYKytnPemC2vjS3GNW/dqeUPxZEOZTHIUjZVKQJizd1JVT4yVh7HFs8wdt0Ot6wGQVGmrbEesZ269WS7vCcNdximJOyb1hwx85ZDSRuxGbYr2vbnz2cO0iuS8z76z5lAiwCMZwLki98RfQMnCtQWugy0ISaimGoBaUjbx5Q/R5YkYVj0LvyJJPPjUUoJkDn0jdI+r44Qur12pCP+eI9s7IYHxc6gC1jvsG7/qm76D7z4gpaHKCVOCZYNdqP+PHwDvTZiz+2eI8EFxNYCShrXvt/lDODZjRcnmAMrsXKW4VQcahsT4K+9lPlGjup0AAEzQb2OOnsgCvVsxtSkhJNHU4G9x9LbubBwCGymI0eLsS2B1z22oph0fMhQwOzOgA/M8R/0Dax0PfDilhGmON0MTlRq6BwvFgT/EYEu7YHYkDCIe0zWBO91HyGHSRra4eUrBwWl7zm/ZTqtfxNBp+TzdwCQMaFRN9KVGp3vG5yhPNjFbUuJQg9ILStxTLVV+uSDRA75gql7DPryiTc3/Y9o6P/ADPDvxwhji5xf1CMqtai5TlnP5SDodyc0kJl/pMWBY=
+  - secure: JelxxMwjhALUeFdW7sH/WRCvhS+X6FxNrQJWG5Ac1QWgjbeM9qd6uRfazIhL5Bj19tap6LKxI2fh/kIfxLzIrXzKgScTzE61C2mB0+76SgMWXYb5ob6vsoohfWRRkVfSI5rWgpcI5B32aa+GFMuK0MVFGwAY3GX8XKDgs/1j7rLyujezcYrVgARrRu2U/oAIrMuJlSGPmCZF0oFvLZhfRm44pMcAgkpHJYnYjWF2E/p6sSvNsSFxBWMgxnwXpLk9vZNzmwnDtjcT8n4KRGKgirqUW1FpnhASeFTp4Q+qZ6ABUGwhaGwyBUcSFsEKxm4W7FCWApIaeQODK2g2DYCraFWBkEI6BDGVjA/dmAOz8SCwtqfzNXeibOQ60Wxa1ORZ5c+xUrXDEv+FoZmMfQfRYXdC0pqZiKjNnuVSSl9G+xqDRjrNa5F1R5U0RjTYnBE4vqNaFi8OikOBSfwES+fcePfsX4rPTmWIC1QOf7DRuw7nUUC9iODpNrPicrfsS7rcBObcHhdcCSaWTVq6sOBvGZgzvuGbCafvJR/MIq0MVJfr6Hehh7Il7EWx7RqLb/ZHpIC7akvuFNI4yh3iQMkioH6x5URyYuCKzkMALq66VfeA06pBgLqv6QCqd5GqnaX/EmISFsMXpvKYJrSKwZh1cjYoFmDJOG5cjd1MZkrn4Yg=
 before_install:
 - docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:latest /usr/local/bin/etcd
   --data-dir=data.etcd --name "my-etcd" --cors='*' --initial-advertise-peer-urls http://0.0.0.0:2380
@@ -29,16 +33,10 @@ after_success:
 - git checkout -b version-branch
 - npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
 - git push origin version-branch:master --follow-tags
-- if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
-- source /home/travis/google-cloud-sdk/path.bash.inc
-- gcloud version
-# - gcloud --quiet components update kubectl
+- echo ${DOCKER_HUB_PASS} | docker login --username yehiyam --password-stdin
 deploy:
   skip_cleanup: true
   provider: script
-  script: npm run build
+  script: PRIVATE_REGISTRY=docker.io/hkube npm run build
   on:
     branch: master
-env:
-  global:
-    secure: FwGku+HBx7IauPE0AffU/pRQOGJZM8TAhm0HEU23ersOnNuHpkGpX/ZoQD4mgEwCB6IsmyE97uzkecGQsyTIAZNFlM1EQlAVYdgkYJdhf5GYKytnPemC2vjS3GNW/dqeUPxZEOZTHIUjZVKQJizd1JVT4yVh7HFs8wdt0Ot6wGQVGmrbEesZ269WS7vCcNdximJOyb1hwx85ZDSRuxGbYr2vbnz2cO0iuS8z76z5lAiwCMZwLki98RfQMnCtQWugy0ISaimGoBaUjbx5Q/R5YkYVj0LvyJJPPjUUoJkDn0jdI+r44Qur12pCP+eI9s7IYHxc6gC1jvsG7/qm76D7z4gpaHKCVOCZYNdqP+PHwDvTZiz+2eI8EFxNYCShrXvt/lDODZjRcnmAMrsXKW4VQcahsT4K+9lPlGjup0AAEzQb2OOnsgCvVsxtSkhJNHU4G9x9LbubBwCGymI0eLsS2B1z22oph0fMhQwOzOgA/M8R/0Dax0PfDilhGmON0MTlRq6BwvFgT/EYEu7YHYkDCIe0zWBO91HyGHSRra4eUrBwWl7zm/ZTqtfxNBp+TzdwCQMaFRN9KVGp3vG5yhPNjFbUuJQg9ILStxTLVV+uSDRA75gql7DPryiTc3/Y9o6P/ADPDvxwhji5xf1CMqtai5TlnP5SDodyc0kJl/pMWBY=
