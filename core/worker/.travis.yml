@@ -12,4 +12,5 @@ install:
 cache:
   directories:
     - "node_modules"
-
+script:
+  - NODE_ENV=test npm test
