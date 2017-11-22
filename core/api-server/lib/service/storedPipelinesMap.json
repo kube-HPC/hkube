@@ -42,9 +42,13 @@
         }
     },
     "webhook": {
-        "progressHook": "http://webhook-stub-ui:3002/webhook/progress",
-        "resultHook": "http://webhook-stub-ui:3002/webhook/result"
+        "progressHook": {
+            "url": "http://webhook-stub-ui:3002/webhook/progress",
+            "verbosityLevel": "debug"
+        },
+        "resultHook": {
+            "url": "http://webhook-stub-ui:3002/webhook/result"
+        }
     },
-    "batchTolerance": 30,
-    "verbosityLevel": "debug"
+    "batchTolerance": 30
 }

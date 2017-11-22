@@ -62,7 +62,7 @@ class ExecutionService {
     }
     const status = await stateManager.getJobStatus({ jobId: options.executionID });
     if (!status) {
-      throw new ResourceNotFoundError('execution_id', options.executionID);
+      throw new ResourceNotFoundError('status for', options.executionID);
     }
     return status;
   }
@@ -81,7 +81,7 @@ class ExecutionService {
     }
     const result = await stateManager.getJobResult({ jobId: options.executionID });
     if (!result) {
-      throw new ResourceNotFoundError('execution_id', options.executionID);
+      throw new ResourceNotFoundError('result for', options.executionID);
     }
     return result;
   }

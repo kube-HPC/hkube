@@ -1,11 +1,3 @@
-/*
- * Created by nassi on 15/10/15.
- *
- * This module is a simple handler for /catalog route
- * The module exports the routes function.
- *
- */
-
 const express = require('express');
 const Store = require('lib/service/StoreService');
 

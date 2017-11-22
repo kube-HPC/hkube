@@ -1,9 +1,3 @@
-/*
- * Created by nassi on 15/10/15.
- * This module initialize the express app server
- * including settings, middleware and routes.
- */
-
 const RestServer = require('rest-server.hkube');
 const rest = new RestServer();
 const fs = require('fs');

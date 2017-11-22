@@ -12,7 +12,7 @@ paths:
       tags:
       - "Execution"
       summary: "run algorithm flow"
-      description: "The run endpoint initiates an algorithm flow with the input recieved\
+      description: "The run endpoint initiates an algorithm flow with the input received\
         \ and returns the ID of the running pipeline. ID returned can be used as a\
         \ reference for the flow run to retrieve run status, stop it, etc."
       parameters:
@@ -36,7 +36,7 @@ paths:
       tags:
       - "Execution"
       summary: "run algorithm flow"
-      description: "The run endpoint initiates an algorithm flow with the input recieved\
+      description: "The run endpoint initiates an algorithm flow with the input received\
         \ and returns the ID of the running pipeline. ID returned can be used as a\
         \ reference for the flow run to retrieve run status, stop it, etc."
       parameters:
@@ -83,14 +83,14 @@ paths:
     get:
       tags:
       - "Execution"
-      summary: "wokflow execution status"
-      description: "reurns a status for the current pipeline."
+      summary: "workflow execution status"
+      description: "returns a status for the current pipeline."
       parameters:
-      - name: "id"
+      - name: "execution_id"
         in: "query"
-        description: "Unique identifier representing wokflow execution - is given\
+        description: "Unique identifier representing workflow execution - is given\
           \ in response to calling pipeline run method ."
-        required: false
+        required: true
         type: "string"
         format: "uuid"
       responses:
@@ -109,10 +109,10 @@ paths:
       tags:
       - "Execution"
       summary: "get run result"
-      description: "returns result (json) for the execution of a spesific pipeline\
+      description: "returns result (json) for the execution of a specific pipeline\
         \ run. if called before result is determined - returns error."
       parameters:
-      - name: "id"
+      - name: "execution_id"
         in: "query"
         description: "executionID to get results for"
         required: true
@@ -270,13 +270,20 @@ definitions:
     type: "object"
     properties:
       progressHook:
-        type: "string"
-        description: "uri to activate upon error"
+        type: "object"
+        properties:
+          url:
+            type: "string"
+            description: "uri to activate upon progress"
+          verbosityLevel:
+            type: "string"
       resultHook:
-        type: "string"
-        description: "uri to activate upon flow termination (be it a sucessfull one\
-          \ or not"
-    description: "uri's to call uopn events during algorithm flow execution"
+        type: "object"
+        properties:
+          url:
+            type: "string"
+            description: "uri to activate upon result"
+    description: "uri's to call upon events during algorithm flow execution"
   pipelineExecutionStatus:
     type: "object"
     properties:
