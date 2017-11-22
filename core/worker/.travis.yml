@@ -1,3 +1,8 @@
 language: node_js
 node_js:
   - "8"
+install:
+  - npm --registry http://npmhkube.ddns.net:4873 install
+cache:
+  directories:
+    - "node_modules"
