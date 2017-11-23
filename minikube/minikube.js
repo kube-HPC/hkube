@@ -91,8 +91,8 @@ const startMinikube = async () => {
     await delay(5000)
     console.log('check if common exists');
     await cloneCommon();
-    console.log(`login to docker registry`.green);
-    await registryLogin();
+    // console.log(`login to docker registry`.green);
+    // await registryLogin();
     console.log(`start running system dependencies`.green);
     await runPreRequisite();
     console.log(`running core modules`.green);
@@ -103,17 +103,42 @@ const startMinikube = async () => {
 
 
 const cloneCommon = async () => {
+    console.log(`trying to find if hkube is cloned on your pc`.green);
     if (!fs.existsSync(`${FOLDERS.dev}/common`)) {
         let sema = new semaphore();
         let git = simpleGit(__dirname);
-        let basePath = `${__dirname}/common/scripts/kubernetes/yaml`
+        let commonPath = `${__dirname}/common`
+        let basePath = `${commonPath}/scripts/kubernetes/yaml`
         coreYamlPath = `${basePath}/core`
         thirdPartyYamlPath = `${basePath}/thirdParty`
-        git.clone(`${GIT_PREFIX.dev}/common`, null, `${__dirname}/common`, (error, r) => {
-            console.log(`cloned successfully: ${__dirname}/common`.green)
-            sema.callDone();
-        })
-        await sema.done();
+        console.log(`common folder was not found trying to clone/pull the latest version into the execution path`.green);
+        if (!fs.existsSync(`${commonPath}`)) {
+            console.log(`common is not found under the execution path trying to clone it`.green);
+            git.clone(`${GIT_PREFIX.dev}/common`, null, `${commonPath}`, (error, r) => {
+                console.log(`cloned successfully: ${commonPath}`.green)
+                sema.callDone();
+            })
+            await sema.done();
+        }
+        else {
+            console.log(`common folder already exists trying to get latest version`.green);
+            git.cwd(commonPath).pull(res => {
+                console.log(`repo ${commonPath} pull finished `.green)
+                if (res) {
+                    console.log(res)
+                }
+                else {
+                    console.log(`everything is up to data`.green);
+                }
+                sema.callDone()
+            })
+            await sema.done();
+
+        }
+
+    }
+    else {
+        console.log(`common is already exists in dev folder`.green);
     }
 }
 const restartMinikube = async () => {
