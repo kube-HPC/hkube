@@ -20,7 +20,7 @@ before_install:
 install:
 - npm --registry http://npmhkube.ddns.net:4873 install
 - npm install -g snyk
-- snyk test
+- snyk test && 0
 cache:
   directories:
   - node_modules
