@@ -27,6 +27,16 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "minkube",
+            "program": "${workspaceFolder}/bin/hkube",
+            "args": [
+                "m",
+                "-r"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch repos",
             "program": "${workspaceFolder}/repos.js"
         },

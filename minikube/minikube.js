@@ -4,14 +4,16 @@ const { callDone, done, semaphore } = require('await-done');
 const { spawn, execSync, spawnSync } = require('child_process');
 const cloneAndCopy = require('./clone-and-copy');
 const syncSpawn = require('./sync-spawn');
+const simpleGit = require('simple-git');
 const delay = require('await-delay');
 const colors = require('colors');
 const kubernetesApi = require('./kubernetes-api');
 const jsYaml = require('js-yaml');
-const { URL_PATH, YAML_PATH, REGISTRY, GITLAB, MINIKUBE } = require('./consts-minikube');
+const { FOLDERS, GIT_PREFIX } = require('./../consts.js');
+const { URL_PATH, YAML_PATH, REGISTRY, GITLAB, MINIKUBE, } = require('./consts-minikube');
 const Api = require('kubernetes-client');
-
-
+let coreYamlPath = YAML_PATH.core;
+let thirdPartyYamlPath = YAML_PATH.thirdParty;
 
 
 const _minikube = async (opt) => {
@@ -87,6 +89,8 @@ const startMinikube = async () => {
     console.log(`start new minikube with the following args: ${args}`.green);
     await syncSpawn('minikube', args);
     await delay(5000)
+    console.log('check if common exists');
+    await cloneCommon();
     console.log(`login to docker registry`.green);
     await registryLogin();
     console.log(`start running system dependencies`.green);
@@ -95,6 +99,22 @@ const startMinikube = async () => {
     await runCore();
     console.log(`finished successfully`.green);
 
+}
+
+
+const cloneCommon = async () => {
+    if (!fs.existsSync(`${FOLDERS.dev}/common`)) {
+        let sema = new semaphore();
+        let git = simpleGit(__dirname);
+        let basePath = `${__dirname}/common/scripts/kubernetes/yaml`
+        coreYamlPath = `${basePath}/core`
+        thirdPartyYamlPath = `${basePath}/thirdParty`
+        git.clone(`${GIT_PREFIX.dev}/common`, null, `${__dirname}/common`, (error, r) => {
+            console.log(`cloned successfully: ${__dirname}/common`.green)
+            sema.callDone();
+        })
+        await sema.done();
+    }
 }
 const restartMinikube = async () => {
     console.log(`stopping minikube`.green);
@@ -119,7 +139,7 @@ const cleanAndRestartMinikube = async () => {
 
 
 const runPreRequisite = async () => {
-    await kubernetesApi.createPodsSync(YAML_PATH.thirdParty);
+    await kubernetesApi.createPodsSync(thirdPartyYamlPath);
 }
 
 const registryLogin = async () => {
@@ -129,8 +149,8 @@ const registryLogin = async () => {
 
 }
 const runCore = async () => {
-    fs.readdirSync(YAML_PATH.core).forEach(file => {
-        syncSpawn(`kubectl`, `apply -f ${YAML_PATH.core}/${file}`)
+    fs.readdirSync(coreYamlPath).forEach(file => {
+        syncSpawn(`kubectl`, `apply -f ${coreYamlPath}/${file}`)
     })
 }
 
