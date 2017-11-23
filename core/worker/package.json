@@ -1,7 +1,7 @@
 {
   "name": "worker",
   "version": "1.0.17",
-  "description": "",
+  "description": "worker process",
   "main": "index.js",
   "scripts": {
     "test": "node_modules/mocha/bin/mocha test",
