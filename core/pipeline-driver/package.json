@@ -14,13 +14,13 @@
     "debug": "^3.1.0",
     "deep-extend": "^0.5.0",
     "djsv": "^1.4.2",
-    "etcd.hkube": "^2.1.30",
+    "etcd.hkube": "^2.1.33",
     "graphlib": "^2.1.1",
     "ioredis": "^3.2.1",
     "lodash.groupby": "^4.6.0",
-    "logger.hkube": "^1.0.4",
+    "logger.hkube": "^1.0.7",
     "object-path": "^0.11.4",
-    "producer-consumer.hkube": "^1.0.8",
+    "producer-consumer.hkube": "^1.0.11",
     "redis-utils.hkube": "^1.0.1"
   },
   "devDependencies": {

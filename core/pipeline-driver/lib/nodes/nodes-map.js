@@ -159,22 +159,7 @@ class NodesMap {
         return states.every(s => s === States.FAILED || s === States.COMPLETED);
     }
 
-    getNodesByStatus(status) {
-        let states = [];
-        const nodesNames = this._graph.nodes();
-        const nodes = nodesNames.map(n => this._graph.node(n));
-        nodes.forEach(n => {
-            if (n.batch.length > 0) {
-                states = states.concat(n.batch.map(b => b.state));
-            }
-            else {
-                states.push(n.state);
-            }
-        })
-        return states.filter(s => s === status);
-    }
-
-    getllNodes() {
+    getAllNodes() {
         const nodesList = [];
         const nodesNames = this._graph.nodes();
         const nodes = nodesNames.map(n => this._graph.node(n));

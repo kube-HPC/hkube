@@ -20,7 +20,42 @@ class JobProducer extends EventEmitter {
         super();
         this._job = null;
         this._producer = null;
+        this._pipeline = null;
         this._nodes = null;
+        this._progress = null;
+        this._tasks = null;
+        this._watch();
+    }
+
+    _watch() {
+        stateManager.on('task-change', async (data) => {
+            const task = this._tasks.get(data.taskId);
+            const node = new NodeState({
+                nodeName: task.nodeName,
+                batchID: task.batchID,
+                status: data.status
+            });
+            switch (data.status) {
+                case States.COMPLETED:
+                    await stateManager.unWatchTask({ taskId: task.taskId });
+                    log.info(`task completed ${task.taskId}`, { component: components.JOBS_PRODUCER });
+                    node.result = data.result;
+                    this._setTaskState(task.taskId, node);
+                    this._progress.info({ details: this._progress.calc(), status: States.ACTIVE });
+                    this._taskComplete(node);
+                    break;
+                case States.FAILED:
+                    log.error(`task failed ${task.taskId}, error: ${data.error}`, { component: components.JOBS_PRODUCER });
+                    node.error = data.error;
+                    this._setTaskState(task.taskId, node);
+                    this._taskComplete(node);
+                    break;
+            }
+        });
+
+        stateManager.on('job-change', (data) => {
+            this._onJobStop(data);
+        });
     }
 
     init(options) {
@@ -56,35 +91,14 @@ class JobProducer extends EventEmitter {
             }
             catch (error) {
                 this._progress.error({ status: States.FAILED, error: error.message });
-                this._jobDone({ error: error.message });
+                this._jobComplete({ error: error.message });
             }
         });
     }
 
-    async _watchWorker(options) {
-        await stateManager.onTaskState({ taskId: options.taskId }, (data) => {
-            const node = new NodeState({
-                nodeName: options.nodeName,
-                batchID: options.batchID,
-                status: data.status
-            });
-            switch (data.status) {
-                case States.COMPLETED:
-                    log.info(`task completed ${options.taskId}`, { component: components.JOBS_PRODUCER });
-                    node.result = data.result;
-                    this._setTaskState(options.taskId, node);
-                    this._progress.info({ details: this._progress.calc(), status: States.ACTIVE });
-                    this._runCompleted(node.nodeName);
-                    this._jobDone();
-                    break;
-                case States.FAILED:
-                    log.error(`task failed ${options.taskId}, error: ${data.error}`, { component: components.JOBS_PRODUCER });
-                    node.error = data.error;
-                    this._setTaskState(options.taskId, node);
-                    this._jobDone(node);
-                    break;
-            }
-        });
+    async _watchTask(options) {
+        this._tasks.set(options.taskId, options);
+        await stateManager.watchTask({ taskId: options.taskId });
     }
 
     _runCompleted(nodeName) {
@@ -165,7 +179,7 @@ class JobProducer extends EventEmitter {
     }
 
     // TODO: HANDLE BATCH FAILED BELOW batchTolerance
-    _jobDone(node) {
+    _taskComplete(node) {
         node = node || {};
         if (node.error) {
             if (node.batchID) {
@@ -175,7 +189,7 @@ class JobProducer extends EventEmitter {
                 const percent = failed.length / states.length * 100;
 
                 if (percent >= batchTolerance) {
-                    log.error(`pipeline failed with ${failed.length}/${states.length} failed tasks, (${percent}%), batch tolerance is ${batchTolerance}`, { component: components.JOBS_PRODUCER });
+                    log.error(`pipeline failed with ${failed.length}/${states.length} failed tasks, (${percent}%), batch tolerance is ${batchTolerance}%`, { component: components.JOBS_PRODUCER });
                     this._progress.error({ status: States.FAILED, error: node.error });
                     this._jobComplete(node.error);
                     return;
@@ -195,13 +209,20 @@ class JobProducer extends EventEmitter {
             this._progress.info({ status: States.COMPLETED });
             this._jobComplete(null);
         }
+        else {
+            this._runCompleted(node.nodeName);
+        }
     }
 
-    _jobComplete(error) {
-        if (this._watchState) {
-            this._watchState.stop();
-        }
+    async _jobComplete(error) {
+        await stateManager.unWatchJobState();
         this._job.done(error);
+        this._job = null;
+        this._producer = null;
+        this._pipeline = null;
+        this._nodes = null;
+        this._progress = null;
+        this._tasks = null;
     }
 
     async _onJobStart(job) {
@@ -210,12 +231,11 @@ class JobProducer extends EventEmitter {
         this._job = job;
         stateManager.setCurrentJob(this._job);
         this._nodes = new NodesMap(this._pipeline, this._config);
-        this._progress = new NodesProgress(this._nodes, this._pipeline.verbosityLevel);
+        this._progress = new NodesProgress(this._nodes);
+        this._tasks = new Map();
 
-        this._watchState = await stateManager.onJobStopped((result) => {
-            this._onJobStop();
-        });
-        if (this._watchState && this._watchState.obj.state === States.STOPPED) {
+        const watchState = await stateManager.watchJobState();
+        if (watchState && watchState.obj && watchState.obj.state === States.STOPPED) {
             this._onJobStop();
         }
 
@@ -232,7 +252,7 @@ class JobProducer extends EventEmitter {
         }
     }
 
-    async _onJobStop() {
+    async _onJobStop(data) {
         log.info(`pipeline stopped ${this._job.id}`, { component: components.JOBS_PRODUCER });
         this._progress.info({ status: States.STOPPED });
         this._jobComplete();
@@ -273,7 +293,7 @@ class JobProducer extends EventEmitter {
                     });
                     log.info(`found completed task ${driverTask.taskId} after recover`, { component: components.JOBS_PRODUCER });
                     this._setTaskState(driverTask.taskId, node);
-                    this._runCompleted(node.nodeName);
+                    this._taskComplete(node);
                 }
                 else if (jobTask.status === States.FAILED) {
                     const node = new NodeState({
@@ -284,10 +304,10 @@ class JobProducer extends EventEmitter {
                     });
                     log.info(`found failed task ${driverTask.taskId} after recover`, { component: components.JOBS_PRODUCER });
                     this._setTaskState(driverTask.taskId, node);
-                    this._jobDone(node);
+                    this._taskComplete(node);
                 }
                 else {
-                    this._watchWorker({
+                    this._watchTask({
                         taskId: driverTask.taskId,
                         nodeName: driverTask.nodeName,
                         batchID: driverTask.batchID
@@ -327,7 +347,7 @@ class JobProducer extends EventEmitter {
                 }
             }
         }
-        await this._watchWorker({ taskId: taskId, nodeName: node.name, batchID: node.batchID });
+        await this._watchTask({ taskId: taskId, nodeName: node.name, batchID: node.batchID });
         this._producer.createJob(options);
     }
 }
