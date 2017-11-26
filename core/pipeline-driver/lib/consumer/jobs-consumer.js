@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const validate = require('djsv');
-const { Consumer } = require('producer-consumer.hkube');
+const { Consumer } = require('@hkube/producer-consumer');
 const schema = require('./schema');
 
 class JobConsumer extends EventEmitter {

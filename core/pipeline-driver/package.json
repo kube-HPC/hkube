@@ -10,18 +10,18 @@
   "dependencies": {
     "bull": "^3.3.6",
     "clone": "^2.1.1",
-    "config.hkube": "^1.0.0",
+    "@hkube/config": "^1.0.0",
     "debug": "^3.1.0",
     "deep-extend": "^0.5.0",
     "djsv": "^1.4.2",
-    "etcd.hkube": "^2.1.33",
+    "@hkube/etcd": "^2.1.33",
     "graphlib": "^2.1.1",
     "ioredis": "^3.2.1",
     "lodash.groupby": "^4.6.0",
-    "logger.hkube": "^1.0.7",
+    "@hkube/logger": "^1.0.7",
     "object-path": "^0.11.4",
-    "producer-consumer.hkube": "^1.0.11",
-    "redis-utils.hkube": "^1.0.1"
+    "@hkube/producer-consumer": "^1.0.11",
+    "@hkube/redis-utils": "^1.0.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",

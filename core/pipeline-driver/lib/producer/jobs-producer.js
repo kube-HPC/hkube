@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const validate = require('djsv');
-const { Producer } = require('producer-consumer.hkube');
+const { Producer } = require('@hkube/producer-consumer');
 const schema = require('lib/producer/schema');
 const consumer = require('lib/consumer/jobs-consumer');
 const stateManager = require('lib/state/state-manager');
@@ -10,7 +10,7 @@ const States = require('lib/state/States');
 const NodeState = require('lib/state/NodeState');
 const inputParser = require('lib/parsers/input-parser');
 const Batch = require('lib/nodes/batch');
-const Logger = require('logger.hkube');
+const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
 
