@@ -1,11 +1,11 @@
 const Execution = require('lib/service/ExecutionService');
 const express = require('express');
 
-const routes = function () {
+const routes = function (options) {
     const router = express.Router();
-    router.get('/', (req, res) => {
-        res.json({ message: 'exec server' });
-        next()
+    router.get('/', (req, res, next) => {
+        res.json({ message: `${options.version} ${options.file} api` });
+        next();
     });
     router.post('/raw', (req, res, next) => {
         Execution.runRaw(req.body).then((response) => {

@@ -2,11 +2,11 @@ const RestServer = require('rest-server.hkube');
 const rest = new RestServer();
 const fs = require('fs');
 const path = require('path');
-const jsyaml = require('js-yaml');
-//const versionHelper = require('common').VersionHelper;
+const swagger = require('api/rest-api/swagger');
 const Logger = require('logger.hkube');
 const log = Logger.GetLogFromContanier();
 const componentName = require('common/consts/componentNames');
+const { metricsRoute, beforeRouteMiddleware, afterRouteMiddleware } = require('./routes/metrics/metrics');
 
 class AppServer {
 
@@ -18,23 +18,27 @@ class AppServer {
 
       const prefix = options.rest.prefix;
       const routes = [];
-      //routes.push({ route: '/metrics', router: require('./routes/metrics/metrics')() });
+      routes.push({ route: '/metrics', router: metricsRoute() });
       for (const v of options.rest.versions) {
-        routes.push(
-          { route: path.join('/', prefix, v, 'exec'), router: require(`./routes${v}/execution`)() },
-          { route: path.join('/', prefix, v, 'store'), router: require(`./routes${v}/store`)() }
-        );
+        fs.readdirSync(__dirname + `/routes/${v}`).forEach(f => {
+          const file = path.basename(f, '.js');
+          routes.push({
+            route: path.join('/', prefix, v, file),
+            router: require(`./routes${v}/${file}`)({ version: v, file: file })
+          },
+          );
+        })
       }
-
-      const spec = fs.readFileSync(path.join(__dirname, 'swagger.yaml'), 'utf8');
-      const swagger = jsyaml.safeLoad(spec);
 
       swagger.host = options.swaggerPath.host + ':' + options.swaggerPath.port;
       swagger.basePath = options.swaggerPath.path;
 
-      const beforeRouteMiddleware = [
-
-      ]
+      const beforeRoutesMiddlewares = [
+        beforeRouteMiddleware()
+      ];
+      const afterRoutesMiddlewares = [
+        afterRouteMiddleware()
+      ];
 
       const opt = {
         swagger: swagger,
@@ -44,9 +48,10 @@ class AppServer {
         prefix: prefix,
         port: options.rest.port,
         versions: options.rest.versions,
+        beforeRoutesMiddlewares: beforeRoutesMiddlewares,
+        afterRoutesMiddlewares: afterRoutesMiddlewares
       };
       rest.start(opt).then((data) => {
-        //versionHelper(options.serviceName, data.app, log);
         resolve({
           message: data.message,
           server: data.server

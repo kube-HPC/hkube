@@ -1,8 +1,8 @@
+const uuidv4 = require('uuid/v4');
 const producer = require('lib/producer/jobs-producer');
 const stateManager = require('lib/state/state-manager');
 const States = require('lib/state/States');
-const ResourceNotFoundError = require('lib/errors/ResourceNotFoundError');
-const InvalidNameError = require('lib/errors/InvalidNameError');
+const { ResourceNotFoundError, ResourceExistsError, InvalidDataError, } = require('lib/errors/errors');
 
 class ExecutionService {
 
@@ -16,7 +16,7 @@ class ExecutionService {
    **/
   async runRaw(pipeline) {
     if (!pipeline.name) {
-      throw new InvalidNameError('pipeline');
+      throw new InvalidDataError('pipeline');
     }
     return await this._run(pipeline);
   }
@@ -31,9 +31,9 @@ class ExecutionService {
    **/
   async runStored(options) {
     if (!options.name) {
-      throw new InvalidNameError('pipeline');
+      throw new InvalidDataError('pipeline');
     }
-    const pipe = await stateManager.getPipeline({ name: options.name });
+    const pipe = await stateManager.getPipeline(options);
     if (!pipe) {
       throw new ResourceNotFoundError('pipeline', options.name);
     }
@@ -42,7 +42,7 @@ class ExecutionService {
   }
 
   async _run(pipeline) {
-    const jobId = producer.createJobID({ name: pipeline.name });
+    const jobId = this._createJobID({ name: pipeline.name });
     await stateManager.setExecution({ jobId: jobId, data: pipeline });
     await stateManager.setJobStatus({ jobId: jobId, data: { status: States.PENDING } });
     await producer.createJob({ jobId: jobId });
@@ -58,7 +58,7 @@ class ExecutionService {
    **/
   async getJobStatus(options) {
     if (!options.executionID) {
-      throw new InvalidNameError('execution_id');
+      throw new InvalidDataError('execution_id');
     }
     const status = await stateManager.getJobStatus({ jobId: options.executionID });
     if (!status) {
@@ -77,7 +77,7 @@ class ExecutionService {
    **/
   async getJobResult(options) {
     if (!options.executionID) {
-      throw new InvalidNameError('execution_id');
+      throw new InvalidDataError('execution_id');
     }
     const result = await stateManager.getJobResult({ jobId: options.executionID });
     if (!result) {
@@ -96,7 +96,7 @@ class ExecutionService {
    **/
   async stopJob(options) {
     if (!options.executionID) {
-      throw new InvalidNameError('executionID');
+      throw new InvalidDataError('executionID');
     }
     const job = await stateManager.getJobStatus({ jobId: options.executionID });
     if (!job) {
@@ -104,6 +104,10 @@ class ExecutionService {
     }
     await producer.stopJob({ jobId: options.executionID });
     await stateManager.stopJob({ jobId: options.executionID, reason: options.reason });
+  }
+
+  createJobID(options) {
+    return [options.name, uuidv4()].join(':');
   }
 }
 

@@ -1,6 +1,7 @@
+const validator = require('lib/validation/validator');
+const Pipeline = require('lib/entities/Pipeline')
 const stateManager = require('lib/state/state-manager');
-const ResourceNotFoundError = require('lib/errors/ResourceNotFoundError');
-const InvalidNameError = require('lib/errors/InvalidNameError');
+const { ResourceNotFoundError, ResourceExistsError, InvalidDataError, } = require('lib/errors/errors');
 
 class StoreService {
 
@@ -12,7 +13,16 @@ class StoreService {
      * returns defaultResponse
      **/
     async updatePipeline(options) {
-        return await stateManager.setPipeline();
+        validator.validateUpdatePipeline(options);
+        const pipe = await stateManager.getPipeline(options);
+        if (!pipe) {
+            throw new ResourceNotFoundError('pipeline', options.name);
+        }
+        if (Object.keys(options).length === 1) {
+            throw new InvalidDataError('nothing to update with this request');
+        }
+        const pipeline = Object.assign({}, pipe, options);
+        return await stateManager.setPipeline(pipeline);
     }
 
     /**
@@ -23,7 +33,12 @@ class StoreService {
      * returns defaultResponse
      **/
     async deletePipeline(options) {
-        return await stateManager.getPipelines(options);
+        validator.validateDeletePipeline(options);
+        const pipeline = await stateManager.getPipeline(options);
+        if (!pipeline) {
+            throw new ResourceNotFoundError('pipeline', options.name);
+        }
+        return await stateManager.deletePipeline(options);
     }
 
     /**
@@ -34,7 +49,7 @@ class StoreService {
      * returns piplineNamesList
      **/
     async getPipeline(options) {
-        const pipeline = await stateManager.getPipeline({ name: options.name });
+        const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -53,7 +68,14 @@ class StoreService {
      * returns defaultResponse
      **/
     async insertPipeline(options) {
-        return await stateManager.setPipeline();
+        validator.validatePipeline(options);
+
+        const pipe = await stateManager.getPipeline(options);
+        if (pipe) {
+            throw new ResourceExistsError('pipeline', options.name);
+        }
+        const pipeline = new Pipeline(options);
+        return await stateManager.setPipeline(pipeline);
     }
 }
 

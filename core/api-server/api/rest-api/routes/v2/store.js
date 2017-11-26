@@ -1,54 +1,52 @@
-/*
- * Created by nassi on 15/10/15.
- *
- * This module is a simple handler for /catalog route
- * The module exports the routes function.
- *
- */
-
 const express = require('express');
 const Store = require('lib/service/StoreService');
 
-var routes = function () {
+var routes = function (options) {
     const router = express.Router();
-
-    router.get('/', function (req, res) {
-        res.json({ message: 'catalog api' });
+    router.get('/', function (req, res, next) {
+        res.json({ message: `${options.version} ${options.file} api` });
+        next();
     });
-    router.get('/store', (req, res, next) => {
+    router.get('/pipelines', (req, res, next) => {
+        const sort = req.query.sort;
         Store.getPipelines().then((response) => {
             res.json(response);
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });
-    router.get('/store/:pipelineName', (req, res, next) => {
-        const pipelineName = req.params.pipelineName;
-        Store.getPipeline(pipelineName).then((response) => {
+    router.get('/pipelines/:name', (req, res, next) => {
+        const name = req.params.name;
+        Store.getPipeline({ name }).then((response) => {
             res.json(response);
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });
-    router.post('/store', (req, res, next) => {
+    router.post('/pipelines', (req, res, next) => {
         Store.updatePipeline(req.body).then((response) => {
             res.json(response);
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });
-    router.put('/store:pipelineName', (req, res, next) => {
+    router.put('/pipelines', (req, res, next) => {
         Store.updatePipeline(req.body).then((response) => {
             res.json(response);
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });
-    router.delete('/store/:pipelineName', (req, res, next) => {
-        const pipelineName = req.params.pipelineName;
-        Store.deletePipeline(pipelineName).then((response) => {
+    router.delete('/pipelines', (req, res, next) => {
+        const name = req.query.name;
+        Store.deletePipeline({ name }).then((response) => {
             res.json(response);
-        }).catch((response) => {
+            next();
+        }).catch((error) => {
             return next(error);
         });
     });

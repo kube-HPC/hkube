@@ -1,7 +1,7 @@
 const client = require('prom-client');
 
-class PrometheusClient{
-    async init(){
+class PrometheusClient {
+    async init() {
         const collectDefaultMetrics = client.collectDefaultMetrics;
         collectDefaultMetrics({ timeout: 5000 });
         this._httpRequestDurationMicroseconds = new client.Histogram({
@@ -13,22 +13,23 @@ class PrometheusClient{
         this._requestCounter = new client.Counter({
             name: 'request_counter',
             help: 'Total number of requests',
-            labelNames: ['method', 'route','code']
+            labelNames: ['method', 'route', 'code']
         });
     }
 
-    metrics(){
+    metrics() {
         return client.register.metrics();
     }
-    httpRequestDurationMicroseconds({method,route,code,duration}){
+
+    httpRequestDurationMicroseconds({ method, route, code, duration }) {
         this._httpRequestDurationMicroseconds
             .labels(method, route, code)
             .observe(duration);
     }
-    requestCounter({method,path,code}){
-        this._requestCounter.inc({method, path, code});
-    }
 
+    requestCounter({ method, path, code }) {
+        this._requestCounter.inc({ method, path, code });
+    }
 }
 
 module.exports = new PrometheusClient();

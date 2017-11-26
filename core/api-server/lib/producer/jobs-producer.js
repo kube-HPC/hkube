@@ -31,10 +31,6 @@ class JobProducer extends EventEmitter {
         });
     }
 
-    createJobID(pipeline) {
-        return this._producer.createJobID(pipeline.name);
-    }
-
     async createJob(options) {
         const opt = {
             job: {

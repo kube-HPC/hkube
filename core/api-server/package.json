@@ -12,9 +12,9 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
+        "@hkube/etcd": "^2.1.38",
         "config.hkube": "^1.0.0",
         "djsv": "^1.4.2",
-        "etcd.hkube": "^2.1.36",
         "express": "^4.16.2",
         "js-yaml": "^3.3.0",
         "logger.hkube": "^1.0.7",

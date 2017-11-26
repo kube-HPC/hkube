@@ -1,10 +1,11 @@
 const express = require('express');
 const Store = require('lib/service/StoreService');
 
-var routes = function () {
+var routes = function (options) {
     const router = express.Router();
-    router.get('/', function (req, res) {
-        res.json({ message: 'store api' });
+    router.get('/', function (req, res, next) {
+        res.json({ message: `${options.version} ${options.file} api` });
+        next();
     });
     router.get('/pipelines', (req, res, next) => {
         const sort = req.query.sort;
@@ -25,25 +26,25 @@ var routes = function () {
         });
     });
     router.post('/pipelines', (req, res, next) => {
-        Store.updatePipeline(req.body).then((response) => {
-            res.json(response);
+        Store.insertPipeline(req.body).then(() => {
+            res.status(201).json({ message: 'OK' });
             next();
         }).catch((error) => {
             return next(error);
         });
     });
     router.put('/pipelines', (req, res, next) => {
-        Store.updatePipeline(req.body).then((response) => {
-            res.json(response);
+        Store.updatePipeline(req.body).then(() => {
+            res.json({ message: 'OK' });
             next();
         }).catch((error) => {
             return next(error);
         });
     });
-    router.delete('/pipelines', (req, res, next) => {
-        const name = req.query.name;
-        Store.deletePipeline({ name }).then((response) => {
-            res.json(response);
+    router.delete('/pipelines/:name', (req, res, next) => {
+        const name = req.params.name;
+        Store.deletePipeline({ name }).then(() => {
+            res.json({ message: 'OK' });
             next();
         }).catch((error) => {
             return next(error);
