@@ -1,6 +1,6 @@
-const configIt = require('config.rf');
-const Logger = require('logger.rf');
-const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
+const configIt = require('@hkube/config');
+const Logger = require('@hkube/logger');
+const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
 
 const stateMachine = require('../lib/states/stateManager')
 const { stateEvents } = require('../common/consts/events');

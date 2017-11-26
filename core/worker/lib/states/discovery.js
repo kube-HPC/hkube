@@ -1,5 +1,5 @@
-const etcd_rf = require('etcd.rf');
-const Logger = require('logger.rf');
+const etcd_rf = require('@hkube/etcd');
+const Logger = require('@hkube/logger');
 const uuidv4 = require('uuid/v4');
 let log;
 

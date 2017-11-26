@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const log = require('logger.rf').GetLogFromContainer();
+const log = require('@hkube/logger').GetLogFromContainer();
 const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const messages = require('./messages');

@@ -2,10 +2,10 @@
 process.env.NODE_PATH = __dirname;
 require('module').Module._initPaths();
 
-const configIt = require('config.rf');
-const Logger = require('logger.rf');
-const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
-const monitor = require('redis-utils.rf').Monitor;
+const configIt = require('@hkube/config');
+const Logger = require('@hkube/logger');
+const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
+const monitor = require('@hkube/redis-utils').Monitor;
 const componentName = require('common/consts/componentNames');
 const discovery = require('lib/states/discovery.js');
 const jobConsumer = require('lib/consumer/JobConsumer');
@@ -69,7 +69,7 @@ class Bootstrap {
            //              }
            //          }
            //      }
-           //      const { Producer } = require('producer-consumer.rf');
+           //      const { Producer } = require('producer-consumer');
            //      const producer = new Producer(producerSettings);
            //      producer.on('job-failed',(jobData)=>{
            //          log.error(`job failed: ${JSON.stringify(jobData)}`)

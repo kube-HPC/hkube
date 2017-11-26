@@ -1,10 +1,10 @@
-const configIt = require('config.rf');
-const Logger = require('logger.rf');
-const VerbosityPlugin = require('logger.rf').VerbosityPlugin;
+const configIt = require('@hkube/config');
+const Logger = require('@hkube/logger');
+const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
 const bootstrap = require('../bootstrap')
 const Consumer = require('../lib/consumer/JobConsumer');
 const discovery = require('../lib/states/discovery');
-const { Producer } = require('producer-consumer.rf');
+const { Producer } = require('@hkube/producer-consumer');
 const stateManager = require('../lib/states/stateManager.js')
 const expect = require('chai').expect
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication')

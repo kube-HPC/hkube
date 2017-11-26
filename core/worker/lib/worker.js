@@ -2,7 +2,7 @@ const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorunnerCommunication/workerCommunication');
 const discovery = require('./states/discovery');
-const Logger = require('logger.rf');
+const Logger = require('@hkube/logger');
 let log;
 const {stateEvents} = require('../common/consts/events');
 const {workerStates} = require('../common/consts/states');

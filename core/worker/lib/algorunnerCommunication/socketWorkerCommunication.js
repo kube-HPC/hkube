@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const Logger = require('logger.rf');
+const Logger = require('@hkube/logger');
 const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const socketio = require('socket.io');

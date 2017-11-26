@@ -4,7 +4,7 @@ const WORKERS_PATH = `/services/workers`;
 const stateMachine = require('javascript-state-machine');
 const { workerStates } = require('../../common/consts/states');
 const { stateEvents } = require('../../common/consts/events');
-const Logger = require('logger.rf');
+const Logger = require('@hkube/logger');
 let log;
 
 /**

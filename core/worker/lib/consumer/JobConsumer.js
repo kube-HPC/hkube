@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
-const { Consumer } = require('producer-consumer.rf');
-const Logger = require('logger.rf');
+const { Consumer } = require('@hkube/producer-consumer');
+const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const { stateEvents } = require('../../common/consts/events');
 const { workerStates } = require('../../common/consts/states');
