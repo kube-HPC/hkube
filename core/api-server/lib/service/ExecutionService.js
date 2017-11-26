@@ -106,7 +106,7 @@ class ExecutionService {
     await stateManager.stopJob({ jobId: options.executionID, reason: options.reason });
   }
 
-  createJobID(options) {
+  _createJobID(options) {
     return [options.name, uuidv4()].join(':');
   }
 }
