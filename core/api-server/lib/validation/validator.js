@@ -8,7 +8,7 @@ class Validator {
     constructor() {
         Object.values(schema).forEach((s) => {
             if (s.id) {
-                validator.addSchema(s);
+                // validator.addSchema(s);
             }
         });
     }

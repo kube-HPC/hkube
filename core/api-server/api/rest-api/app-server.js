@@ -30,7 +30,7 @@ class AppServer {
         })
       }
 
-      swagger.host = options.swaggerPath.host + ':' + options.swaggerPath.port;
+      // swagger.host = options.swaggerPath.host + ':' + options.swaggerPath.port;
       swagger.basePath = options.swaggerPath.path;
 
       const beforeRoutesMiddlewares = [
