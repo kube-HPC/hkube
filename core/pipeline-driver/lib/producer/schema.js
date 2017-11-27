@@ -10,7 +10,8 @@ module.exports = {
                     "default": "jobs-workers",
                     "description": "prefix for all queue keys"
                 }
-            }
+            },
+            "default": {}
         }
     }
 }

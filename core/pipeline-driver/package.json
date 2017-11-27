@@ -8,20 +8,20 @@
     "test": "test"
   },
   "dependencies": {
+    "@hkube/config": "^1.0.0",
+    "@hkube/etcd": "^2.1.40",
+    "@hkube/logger": "^1.0.7",
+    "@hkube/producer-consumer": "^1.0.15",
+    "@hkube/redis-utils": "^1.0.1",
     "bull": "^3.3.6",
     "clone": "^2.1.1",
-    "@hkube/config": "^1.0.0",
     "debug": "^3.1.0",
     "deep-extend": "^0.5.0",
-    "djsv": "^1.4.2",
-    "@hkube/etcd": "^2.1.33",
+    "djsv": "^3.0.3",
     "graphlib": "^2.1.1",
     "ioredis": "^3.2.1",
     "lodash.groupby": "^4.6.0",
-    "@hkube/logger": "^1.0.7",
-    "object-path": "^0.11.4",
-    "@hkube/producer-consumer": "^1.0.11",
-    "@hkube/redis-utils": "^1.0.1"
+    "object-path": "^0.11.4"
   },
   "devDependencies": {
     "chai": "^4.1.2",

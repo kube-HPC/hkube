@@ -62,7 +62,7 @@ class JobProducer extends EventEmitter {
         const setting = Object.assign({}, { redis: options.redis });
         const res = validate(schema.properties.setting, setting);
         if (!res.valid) {
-            throw new Error(res.errors[0].stack);
+            throw new Error(res.error);
         }
         this._config = options;
         this._producer = new Producer({ setting: setting });

@@ -10,7 +10,8 @@ module.exports = {
                     "default": "pipeline-driver-job",
                     "description": "the job type of this driver"
                 }
-            }
+            },
+            "default": {}
         },
         "setting": {
             "type": "object",
@@ -20,7 +21,8 @@ module.exports = {
                     "default": "jobs-pipeline",
                     "description": "prefix for all queue keys"
                 }
-            }
+            },
+            "default": {}
         }
     }
 }
