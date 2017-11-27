@@ -14,7 +14,7 @@ before_install:
   --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:4001
   --listen-client-urls http://0.0.0.0:4001     --initial-cluster-state new
 install:
-- npm --registry http://npmhkube.ddns.net:4873 install
+- npm install
 cache:
   directories:
   - node_modules
