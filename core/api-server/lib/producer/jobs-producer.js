@@ -1,8 +1,8 @@
 const EventEmitter = require('events');
 const validate = require('djsv');
-const { Producer } = require('producer-consumer.hkube');
+const { Producer } = require('@hkube/producer-consumer');
 const schema = require('lib/producer/schema');
-const Logger = require('logger.hkube');
+const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
 
@@ -16,7 +16,7 @@ class JobProducer extends EventEmitter {
         const setting = Object.assign({}, { redis: options.redis });
         const res = validate(schema.properties.setting, setting);
         if (!res.valid) {
-            throw new Error(res.errors[0].stack);
+            throw new Error(res.error);
         }
 
         this._producer = new Producer({ setting: setting });

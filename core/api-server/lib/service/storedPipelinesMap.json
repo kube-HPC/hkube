@@ -29,15 +29,17 @@
                 "link": "links-1"
             }
         },
-        "batchTolerance": 30,
         "webhooks": {
             "progressHook": {
-                "url": "http://webhook-stub-ui:3002/webhook/progress",
-                "verbosityLevel": "debug"
+                "url": "http://webhook-stub-ui:30002/webhook/progress"
             },
             "resultHook": {
-                "url": "http://webhook-stub-ui:3002/webhook/result"
+                "url": "http://webhook-stub-ui:30002/webhook/result"
             }
+        },
+        "options": {
+            "batchTolerance": 30,
+            "progressVerbosityLevel": "debug"
         }
     },
     {
@@ -85,11 +87,11 @@
         },
         "webhooks": {
             "progressHook": {
-                "url": "http://webhook-stub-ui:3002/webhook/progress",
+                "url": "http://localhost:3002/webhook/progress",
                 "verbosityLevel": "debug"
             },
             "resultHook": {
-                "url": "http://webhook-stub-ui:3002/webhook/result"
+                "url": "http://localhost:3002/webhook/result"
             }
         },
         "batchTolerance": 30

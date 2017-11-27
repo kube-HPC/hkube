@@ -26,25 +26,25 @@ var routes = function (options) {
         });
     });
     router.post('/pipelines', (req, res, next) => {
-        Store.updatePipeline(req.body).then((response) => {
-            res.json(response);
+        Store.insertPipeline(req.body).then(() => {
+            res.status(201).json({ message: 'OK' });
             next();
         }).catch((error) => {
             return next(error);
         });
     });
     router.put('/pipelines', (req, res, next) => {
-        Store.updatePipeline(req.body).then((response) => {
-            res.json(response);
+        Store.updatePipeline(req.body).then(() => {
+            res.json({ message: 'OK' });
             next();
         }).catch((error) => {
             return next(error);
         });
     });
-    router.delete('/pipelines', (req, res, next) => {
-        const name = req.query.name;
-        Store.deletePipeline({ name }).then((response) => {
-            res.json(response);
+    router.delete('/pipelines/:name', (req, res, next) => {
+        const name = req.params.name;
+        Store.deletePipeline({ name }).then(() => {
+            res.json({ message: 'OK' });
             next();
         }).catch((error) => {
             return next(error);

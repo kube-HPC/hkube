@@ -1,6 +1,7 @@
 const uuidv4 = require('uuid/v4');
 const producer = require('lib/producer/jobs-producer');
 const stateManager = require('lib/state/state-manager');
+const validator = require('lib/validation/api-validator');
 const States = require('lib/state/States');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError, } = require('lib/errors/errors');
 
@@ -14,11 +15,9 @@ class ExecutionService {
    * pipelineRunData RunRequest an object representing all information needed for pipeline execution
    * returns pipelineExecutionStatus
    **/
-  async runRaw(pipeline) {
-    if (!pipeline.name) {
-      throw new InvalidDataError('pipeline');
-    }
-    return await this._run(pipeline);
+  async runRaw(options) {
+    validator.validateRunRawPipeline(options);
+    return await this._run(options);
   }
 
   /**
@@ -30,9 +29,7 @@ class ExecutionService {
    * returns pipelineExecutionStatus
    **/
   async runStored(options) {
-    if (!options.name) {
-      throw new InvalidDataError('pipeline');
-    }
+    validator.validateRunStoredPipeline(options);
     const pipe = await stateManager.getPipeline(options);
     if (!pipe) {
       throw new ResourceNotFoundError('pipeline', options.name);
@@ -57,12 +54,10 @@ class ExecutionService {
    * returns List
    **/
   async getJobStatus(options) {
-    if (!options.executionID) {
-      throw new InvalidDataError('execution_id');
-    }
-    const status = await stateManager.getJobStatus({ jobId: options.executionID });
+    validator.validateExecutionJob(options);
+    const status = await stateManager.getJobStatus({ jobId: options.execution_id });
     if (!status) {
-      throw new ResourceNotFoundError('status for', options.executionID);
+      throw new ResourceNotFoundError('status for', options.execution_id);
     }
     return status;
   }
@@ -72,16 +67,14 @@ class ExecutionService {
    * returns result (json) for the execution of a spesific pipeline run. 
    * if called before result is determined - returns error. 
    *
-   * executionID String executionID to getresults for
+   * execution_id String execution_id to getresults for
    * returns pipelineExecutionResult
    **/
   async getJobResult(options) {
-    if (!options.executionID) {
-      throw new InvalidDataError('execution_id');
-    }
-    const result = await stateManager.getJobResult({ jobId: options.executionID });
+    validator.validateExecutionJob(options);
+    const result = await stateManager.getJobResult({ jobId: options.execution_id });
     if (!result) {
-      throw new ResourceNotFoundError('result for', options.executionID);
+      throw new ResourceNotFoundError('result for', options.execution_id);
     }
     return result;
   }
@@ -95,15 +88,13 @@ class ExecutionService {
    * returns String
    **/
   async stopJob(options) {
-    if (!options.executionID) {
-      throw new InvalidDataError('executionID');
-    }
-    const job = await stateManager.getJobStatus({ jobId: options.executionID });
+    validator.validateExecutionJob(options);
+    const job = await stateManager.getJobStatus({ jobId: options.execution_id });
     if (!job) {
-      throw new ResourceNotFoundError('executionID', options.executionID);
+      throw new ResourceNotFoundError('execution_id', options.execution_id);
     }
-    await producer.stopJob({ jobId: options.executionID });
-    await stateManager.stopJob({ jobId: options.executionID, reason: options.reason });
+    await producer.stopJob({ jobId: options.execution_id });
+    await stateManager.stopJob({ jobId: options.execution_id, reason: options.reason });
   }
 
   _createJobID(options) {

@@ -12,17 +12,16 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
+        "@hkube/config": "^1.0.0",
         "@hkube/etcd": "^2.1.38",
-        "config.hkube": "^1.0.0",
-        "djsv": "^1.4.2",
+        "@hkube/logger": "^1.0.7",
+        "@hkube/producer-consumer": "^1.0.11",
+        "@hkube/redis-utils": "^1.0.1",
+        "@hkube/rest-server": "^1.0.3",
+        "djsv": "^3.0.0",
         "express": "^4.16.2",
-        "js-yaml": "^3.3.0",
-        "logger.hkube": "^1.0.7",
-        "producer-consumer.hkube": "^1.0.11",
         "prom-client": "^10.2.2",
-        "redis-utils.hkube": "^1.0.1",
-        "requestretry": "^1.12.2",
-        "rest-server.hkube": "^1.0.3"
+        "requestretry": "^1.12.2"
     },
     "devDependencies": {
         "eslint-config-google": "^0.9.1"

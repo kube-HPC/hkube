@@ -57,7 +57,7 @@
                         "description": "an object representing all information needed for stored pipeline execution",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/runStoredRequest"
+                            "$ref": "#/definitions/runStoredPipeline"
                         }
                     }
                 ],
@@ -158,7 +158,7 @@
                     {
                         "name": "execution_id",
                         "in": "query",
-                        "description": "executionID to get results for",
+                        "description": "execution id to get results for",
                         "required": true,
                         "type": "string"
                     }
@@ -345,6 +345,7 @@
     },
     "definitions": {
         "pipelineNode": {
+            "id": "#/definitions/pipelineNode",
             "type": "object",
             "properties": {
                 "nodeName": {
@@ -358,10 +359,25 @@
                     "type": "array",
                     "description": "extra input, in addition to the output from parent step.",
                     "items": {
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": [
+                                    "string",
+                                    "boolean",
+                                    "object",
+                                    "array",
+                                    "number"
+                                ]
+                            }
+                        ]
                     }
                 }
-            }
+            },
+            "required": [
+                "nodeName",
+                "algorithmName",
+                "input"
+            ]
         },
         "pipeline": {
             "type": "object",
@@ -384,64 +400,107 @@
                 "webhooks": {
                     "$ref": "#/definitions/webhooks"
                 },
-                "batchTolerance": {
-                    "type": "integer"
+                "options": {
+                    "$ref": "#/definitions/options",
+                    "default": {
+                        "batchTolerance": 80,
+                        "progressVerbosityLevel": "info"
+                    }
                 }
             },
+            "additionalProperties": false,
             "required": [
                 "name",
                 "nodes",
                 "webhooks"
             ]
         },
+        "updatePipeline": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "type": "array",
+                    "description": "Unique identifier representing a specific function. e.g. \"Average\"",
+                    "items": {
+                        "$ref": "#/definitions/pipelineNode"
+                    }
+                },
+                "flowInput": {
+                    "type": "object",
+                    "description": "input object",
+                    "properties": {}
+                },
+                "webhooks": {
+                    "$ref": "#/definitions/webhooks"
+                },
+                "options": {
+                    "$ref": "#/definitions/options",
+                    "default": {
+                        "batchTolerance": 80,
+                        "progressVerbosityLevel": "info"
+                    }
+                }
+            },
+            "additionalProperties": false,
+            "minProperties": 2,
+            "required": [
+                "name"
+            ]
+        },
         "webhooks": {
+            "id": "#/definitions/webhooks",
             "type": "object",
             "properties": {
                 "progressHook": {
                     "type": "object",
-                    "properties": {
-                        "url": {
-                            "type": "string",
-                            "description": "uri to activate upon progress"
-                        },
-                        "verbosityLevel": {
-                            "type": "string"
-                        }
-                    }
+                    "$ref": "#/definitions/webhook",
+                    "description": "uri to activate upon progress"
                 },
                 "resultHook": {
                     "type": "object",
-                    "properties": {
-                        "url": {
-                            "type": "string",
-                            "description": "uri to activate upon result"
-                        }
-                    }
+                    "$ref": "#/definitions/webhook",
+                    "description": "uri to activate upon result"
                 }
             },
-            "description": "uri's to call upon events during algorithm flow execution"
+            "required": [
+                "progressHook",
+                "resultHook"
+            ]
+        },
+        "webhook": {
+            "id": "#/definitions/webhook",
+            "type": "object",
+            "properties": {
+                "url": {
+                    "type": "string",
+                    "format": "url"
+                }
+            },
+            "required": [
+                "url"
+            ]
         },
         "pipelineExecutionStatus": {
             "type": "object",
             "properties": {
-                "executionID": {
+                "execution_id": {
                     "type": "string",
                     "format": "uuid"
-                },
-                "status": {
-                    "type": "string"
                 }
             },
             "description": "status for pipeline execution",
             "example": {
-                "executionID": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+                "execution_id": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
                 "status": "status"
             }
         },
         "stopRequest": {
             "type": "object",
             "properties": {
-                "executionID": {
+                "execution_id": {
                     "type": "string",
                     "format": "uuid"
                 },
@@ -451,7 +510,7 @@
             },
             "description": "reason for pipeline execution",
             "example": {
-                "executionID": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+                "execution_id": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
                 "reason": "cancel now"
             }
         },
@@ -478,7 +537,7 @@
                 }
             }
         },
-        "runStoredRequest": {
+        "runStoredPipeline": {
             "type": "object",
             "properties": {
                 "name": {
@@ -492,8 +551,19 @@
                 },
                 "webhooks": {
                     "$ref": "#/definitions/webhooks"
+                },
+                "options": {
+                    "$ref": "#/definitions/options",
+                    "default": {
+                        "batchTolerance": 80,
+                        "progressVerbosityLevel": "info"
+                    }
                 }
-            }
+            },
+            "additionalProperties": false,
+            "required": [
+                "name"
+            ]
         },
         "pipelineExecutionResult": {
             "type": "object",
@@ -507,6 +577,55 @@
             "example": {
                 "result": "{}"
             }
+        },
+        "options": {
+            "id": "#/definitions/options",
+            "type": "object",
+            "properties": {
+                "batchTolerance": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                "progressVerbosityLevel": {
+                    "type": "string",
+                    "enum": [
+                        "silly",
+                        "debug",
+                        "info",
+                        "warning",
+                        "error",
+                        "critical"
+                    ]
+                }
+            },
+            "description": "optional properties",
+            "example": {
+                "batchTolerance": 60,
+                "progressVerbosityLevel": "info"
+            }
+        },
+        "pipelineName": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ]
+        },
+        "executionJob": {
+            "type": "object",
+            "properties": {
+                "execution_id": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "execution_id"
+            ]
         }
     }
 }

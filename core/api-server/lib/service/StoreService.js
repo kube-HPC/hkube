@@ -1,4 +1,4 @@
-const validator = require('lib/validation/validator');
+const validator = require('lib/validation/api-validator');
 const Pipeline = require('lib/entities/Pipeline')
 const stateManager = require('lib/state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError, } = require('lib/errors/errors');
@@ -49,6 +49,7 @@ class StoreService {
      * returns piplineNamesList
      **/
     async getPipeline(options) {
+        validator.validateGetPipeline(options);
         const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -68,8 +69,7 @@ class StoreService {
      * returns defaultResponse
      **/
     async insertPipeline(options) {
-        validator.validatePipeline(options);
-
+        validator.validateInsertPipeline(options);
         const pipe = await stateManager.getPipeline(options);
         if (pipe) {
             throw new ResourceExistsError('pipeline', options.name);

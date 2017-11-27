@@ -24,8 +24,8 @@ const routes = function (options) {
         });
     });
     router.get('/status', (req, res, next) => {
-        const executionID = req.query.execution_id;
-        Execution.getJobStatus({ executionID }).then((response) => {
+        const execution_id = req.query.execution_id;
+        Execution.getJobStatus({ execution_id }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
@@ -33,8 +33,8 @@ const routes = function (options) {
         });
     });
     router.get('/results', (req, res, next) => {
-        const executionID = req.query.execution_id;
-        Execution.getJobResult({ executionID }).then((response) => {
+        const execution_id = req.query.execution_id;
+        Execution.getJobResult({ execution_id }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
@@ -43,7 +43,7 @@ const routes = function (options) {
     });
     router.post('/stop', (req, res, next) => {
         Execution.stopJob(req.body).then((response) => {
-            res.json({ message: 'pipeline stopped successfully' });
+            res.json({ message: 'OK' });
             next();
         }).catch((error) => {
             return next(error);

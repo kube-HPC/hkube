@@ -1,9 +1,9 @@
-const RestServer = require('rest-server.hkube');
+const RestServer = require('@hkube/rest-server');
 const rest = new RestServer();
 const fs = require('fs');
 const path = require('path');
 const swagger = require('api/rest-api/swagger');
-const Logger = require('logger.hkube');
+const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContanier();
 const componentName = require('common/consts/componentNames');
 const { metricsRoute, beforeRouteMiddleware, afterRouteMiddleware } = require('./routes/metrics/metrics');

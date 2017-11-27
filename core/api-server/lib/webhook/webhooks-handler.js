@@ -1,7 +1,7 @@
 const request = require('requestretry');
 const stateManager = require('lib/state/state-manager');
 const Webhook = require('./web-hook');
-const Logger = require('logger.hkube');
+const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
 
@@ -24,8 +24,7 @@ class WebhooksHandler {
                 data: response.data.result
             });
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
-            const url = pipeline.webhooks.resultHook.url;
-            this._request(url, this._options.webhooks.resultHook, webhook, 'result');
+            this._request(pipeline.webhooks.resultHook.url, this._options.webhooks.resultHook, webhook, 'result');
         })
 
         stateManager.on('job-status', async (response) => {
@@ -34,22 +33,15 @@ class WebhooksHandler {
                 data: response.data.status
             });
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
-            const clientVerbosity = pipeline.webhooks.progressHook.verbosityLevel;
-            const pipelineLevel = this._extractLevel(clientVerbosity);
-            const progressLevel = this._extractLevel(response.data.level);
+            const pipelineLevel = levels[pipeline.options.progressVerbosityLevel];
+            const progressLevel = levels[response.data.level];
 
-            log.info(`got progress event with ${response.data.level} verbosity, client request was ${clientVerbosity} verbosity`, { component: components.WEBHOOK_HANDLER });
+            log.info(`got progress event with ${response.data.level} verbosity, client request was ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER });
 
             if (progressLevel <= pipelineLevel) {
-                const url = pipeline.webhooks.progressHook.url;
-                this._request(url, this._options.webhooks.progressHook, webhook, 'status');
+                this._request(pipeline.webhooks.progressHook.url, this._options.webhooks.progressHook, webhook, 'status');
             }
         })
-    }
-
-    _extractLevel(level) {
-        const verbosity = Object.keys(levels).includes(level) ? level : 'info';
-        return levels[verbosity];
     }
 
     _request(url, settings, body, type) {
