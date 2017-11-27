@@ -1,5 +1,6 @@
 const request = require('request');
 const fs = require('fs-extra');
+const path = require('path');
 const { callDone, done, semaphore } = require('await-done');
 const { spawn, execSync, spawnSync } = require('child_process');
 const cloneAndCopy = require('./clone-and-copy');
@@ -9,6 +10,7 @@ const delay = require('await-delay');
 const colors = require('colors');
 const kubernetesApi = require('./kubernetes-api');
 const jsYaml = require('js-yaml');
+const {getLatestVersions, changeYamlImageVersion} = require('./githubHelper');
 const { FOLDERS, GIT_PREFIX } = require('./../consts.js');
 const { URL_PATH, YAML_PATH, REGISTRY, GITLAB, MINIKUBE, } = require('./consts-minikube');
 const Api = require('kubernetes-client');
@@ -17,7 +19,7 @@ let thirdPartyYamlPath = YAML_PATH.thirdParty;
 
 
 const _minikube = async (opt) => {
-    switch (opt) {
+    switch (opt[0][0]) {
         case MINIKUBE.init:
         case MINIKUBE.initShort:
             return await init();
@@ -36,7 +38,7 @@ const _minikube = async (opt) => {
             return cleanAndRestartMinikube();
         case MINIKUBE.apply:
         case MINIKUBE.applyShort:
-            return runCore();
+            return runCore(opt);
         default:
             return startMinikube();
     }
@@ -148,9 +150,17 @@ const registryLogin = async () => {
     --docker-email=${GITLAB.email}`)
 
 }
-const runCore = async () => {
+const runCore = async (opts) => {
+    let versionPrefix = (opts.find(o=>o[0]===MINIKUBE.apply || o[0]===MINIKUBE.applyShort) || [])[1];
+    if (versionPrefix === true){
+        versionPrefix='latest'
+    }
+    const versions = await getLatestVersions(versionPrefix);
     fs.readdirSync(coreYamlPath).forEach(file => {
-        syncSpawn(`kubectl`, `apply -f ${coreYamlPath}/${file}`)
+        // const projectName = path.basename(file,path.extname(file));
+        // const version = versions.versions.find(v=>v.project === projectName);
+        const tmpFile = changeYamlImageVersion(file,versions)
+        syncSpawn(`kubectl`, `apply -f ${tmpFile}`)
     })
 }
 

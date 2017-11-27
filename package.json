@@ -17,6 +17,7 @@
     "await-done": "^1.0.2",
     "colors": "^1.1.2",
     "fs-extra": "^4.0.2",
+    "github": "^12.0.5",
     "github-repositories": "^3.0.0",
     "js-yaml": "^3.10.0",
     "json-stream": "^1.0.0",
@@ -25,9 +26,13 @@
     "minimist": "^1.2.0",
     "mkdir-recursive": "^0.3.0",
     "npm-i": "0.0.2",
+    "object-path": "^0.11.4",
     "recursive-readdir": "^2.2.1",
     "request": "^2.83.0",
-    "simple-git": "^1.80.1"
+    "request-promise": "^4.2.2",
+    "semver": "^5.4.1",
+    "simple-git": "^1.80.1",
+    "tempfile": "^2.0.0"
   },
   "bin": {
     "hkube": "./bin/hkube"

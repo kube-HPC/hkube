@@ -38,7 +38,7 @@ const usage = `
             --restart,-r stop and run minikube
             --update,-u stop and run minikube
             --build,-b init and then start minikube
-            --apply,-a  reload hkube core modules
+            --apply,-a  reload hkube core modules, optionally also supply version (semver)
             
         `
 
@@ -76,7 +76,7 @@ else {
             break;
         case `minikube`:
         case 'm':
-            minikube(Object.keys(argv)[1]);
+            minikube(Object.entries(argv).slice(1));
             break;
         default:
             console.log(usage.cyan);

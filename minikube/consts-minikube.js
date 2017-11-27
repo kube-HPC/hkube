@@ -1,8 +1,7 @@
-const _defaultYamlPath = `${process.env.HOME}/dev/hkube/common/scripts/kubernetes/yaml`
+const _defaultYamlPath = `${process.env.HOME}/dev/hkube/deployment/kubernetes/yaml`
 const YAML_PATH = {
     core: `${_defaultYamlPath}/core`,
     thirdParty: `${_defaultYamlPath}/thirdParty`,
-
 }
 
 const MINIKUBE = {
