@@ -7,7 +7,7 @@ else
   IMAGE_NAME=hkube/${REPO_NAME}
 fi
 
-VERSION="${npm_package_version}"
+VERSION="v${npm_package_version}"
 TAG_VER="${IMAGE_NAME}:${VERSION}"
 TAG_CUR="${IMAGE_NAME}:latest"
 
