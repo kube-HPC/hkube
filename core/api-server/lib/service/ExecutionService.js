@@ -3,6 +3,7 @@ const producer = require('lib/producer/jobs-producer');
 const stateManager = require('lib/state/state-manager');
 const validator = require('lib/validation/api-validator');
 const States = require('lib/state/States');
+const { levels } = require('lib/progress/progressLevels');
 const { ResourceNotFoundError, ResourceExistsError, InvalidDataError, } = require('lib/errors/errors');
 
 class ExecutionService {
@@ -41,7 +42,7 @@ class ExecutionService {
   async _run(pipeline) {
     const jobId = this._createJobID({ name: pipeline.name });
     await stateManager.setExecution({ jobId: jobId, data: pipeline });
-    await stateManager.setJobStatus({ jobId: jobId, data: { status: States.PENDING } });
+    await stateManager.setJobStatus({ jobId: jobId, data: { status: States.PENDING, level: levels.info } });
     await producer.createJob({ jobId: jobId });
     return jobId;
   }

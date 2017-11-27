@@ -27,19 +27,19 @@ class Validator {
     }
 
     validateDeletePipeline(pipeline) {
-        return this._validate(schema.pipelineName, pipeline);
+        return this._validate(schemas.pipelineName, pipeline);
     }
 
     validateInsertPipeline(pipeline) {
-        return this._validate(schema.pipeline, pipeline);
+        return this._validate(schemas.pipeline, pipeline);
     }
 
     validateGetPipeline(pipeline) {
-        return this._validate(schema.pipelineName, pipeline);
+        return this._validate(schemas.pipelineName, pipeline);
     }
 
     validateExecutionJob(pipeline) {
-        return this._validate(schema.executionJob, pipeline);
+        return this._validate(schemas.executionJob, pipeline);
     }
 
     _validate(schema, object) {

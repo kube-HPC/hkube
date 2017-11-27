@@ -87,14 +87,16 @@
         },
         "webhooks": {
             "progressHook": {
-                "url": "http://localhost:3002/webhook/progress",
-                "verbosityLevel": "debug"
+                "url": "http://localhost:3002/webhook/progress"
             },
             "resultHook": {
                 "url": "http://localhost:3002/webhook/result"
             }
         },
-        "batchTolerance": 30
+        "options": {
+            "batchTolerance": 30,
+            "progressVerbosityLevel": "debug"
+        }
     },
     {
         "name": "myFlow3",
@@ -139,13 +141,15 @@
         },
         "webhooks": {
             "progressHook": {
-                "url": "http://webhook-stub-ui:3002/webhook/progress",
-                "verbosityLevel": "debug"
+                "url": "http://webhook-stub-ui:3002/webhook/progress"
             },
             "resultHook": {
                 "url": "http://webhook-stub-ui:3002/webhook/result"
             }
         },
-        "batchTolerance": 30
+        "options": {
+            "batchTolerance": 30,
+            "progressVerbosityLevel": "debug"
+        }
     }
 ]
