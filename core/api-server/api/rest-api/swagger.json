@@ -402,10 +402,7 @@
                 },
                 "options": {
                     "$ref": "#/definitions/options",
-                    "default": {
-                        "batchTolerance": 80,
-                        "progressVerbosityLevel": "info"
-                    }
+                    "default": {}
                 }
             },
             "additionalProperties": false,
@@ -438,10 +435,7 @@
                 },
                 "options": {
                     "$ref": "#/definitions/options",
-                    "default": {
-                        "batchTolerance": 80,
-                        "progressVerbosityLevel": "info"
-                    }
+                    "default": {}
                 }
             },
             "additionalProperties": false,
@@ -554,10 +548,7 @@
                 },
                 "options": {
                     "$ref": "#/definitions/options",
-                    "default": {
-                        "batchTolerance": 80,
-                        "progressVerbosityLevel": "info"
-                    }
+                    "default": {}
                 }
             },
             "additionalProperties": false,
@@ -584,11 +575,13 @@
             "properties": {
                 "batchTolerance": {
                     "type": "integer",
+                    "default": 80,
                     "minimum": 0,
                     "maximum": 100
                 },
                 "progressVerbosityLevel": {
                     "type": "string",
+                    "default": "info",
                     "enum": [
                         "silly",
                         "debug",
