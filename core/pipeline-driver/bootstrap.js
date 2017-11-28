@@ -12,7 +12,8 @@ let log;
 const modules = [
     'lib/state/state-manager',
     'lib/producer/jobs-producer',
-    'lib/consumer/jobs-consumer'
+    'lib/consumer/jobs-consumer',
+    'lib/nodes/nodes-runner'
 ];
 
 class Bootstrap {

@@ -1,6 +1,7 @@
 const Graph = require('graphlib').Graph;
 const alg = require('graphlib').alg;
 const deepExtend = require('deep-extend');
+const groupBy = require('lodash.groupby');
 const Node = require('lib/nodes/node');
 const States = require('lib/state/States');
 const inputParser = require('lib/parsers/input-parser');
@@ -226,6 +227,20 @@ class NodesMap {
             }
         })
         return results;
+    }
+
+    calc() {
+        const nodes = this.getAllNodes();
+        const groupedStates = groupBy(nodes, 'state');
+        const completed = groupedStates.completed ? groupedStates.completed.length : 0;
+        const progress = (completed / nodes.length * 100).toFixed(2);
+        const states = [];
+
+        Object.entries(groupedStates).forEach(([key, value]) => {
+            states.push(`${value.length} ${key}`);
+        });
+
+        return { progress, details: `${progress}% completed, ${states.join(', ')}` };
     }
 
     isAcyclic() {
