@@ -11,8 +11,8 @@ const stringToRepos = require('./stringToRepos');
 
 const pull = async (reposTypes) => {
     //  const promiseArr = [];
-   
-    let repos = stringToRepos(reposTypes);
+
+    let repos = await stringToRepos(reposTypes);
     for (repo of repos) {
         await pullInternal(repo);
     }

@@ -7,10 +7,11 @@ const colors = require('colors');
 const gitPrefix = "git@github.com/kube-HPC/"
 const stringToRepos = require('./stringToRepos');
 let git = null;
-const clone = (reposTypes) => {
+const clone = async (reposTypes) => {
     git = simpleGit(_createFolderIfNotExists());
     const promiseArr = [];
-    stringToRepos(reposTypes).forEach(r => {
+    let repos = await stringToRepos(reposTypes)
+    repos.forEach(r => {
         promiseArr.push(cloneInternal(r));
     })
     return Promise.all(promiseArr);

@@ -1,8 +1,22 @@
 const { REPOS, GIT_PREFIX, FOLDERS } = require('./consts');
-const { commonReposNames, reposNames } = require('./repos');
+const { gitHubRepos } = require('./repos');
+let reposNames = null;
+let commonReposNames = null;
+const initRepos = async (r) => {
+    if (reposNames === null) {
+        let repos = await gitHubRepos();
+        commonReposNames = repos.commonReposNames;
+        reposNames = repos.reposNames;
+        return _stringToRepo(r);
+    }
+    else {
+        return _stringToRepo(r);
+    }
+
+}
 
 
-const _stringToRepo = (r) => {
+const _stringToRepo = async (r) => {
     switch (r) {
         case REPOS.dev:
         case REPOS.devShort:
@@ -50,4 +64,4 @@ const _stringToRepo = (r) => {
 }
 
 
-module.exports = _stringToRepo;
+module.exports = initRepos;

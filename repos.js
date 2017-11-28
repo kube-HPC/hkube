@@ -1,4 +1,6 @@
 const githubRepos = require('github-repositories');
+const { semaphore } = require('await-done')
+
 // let reposNames = ['hkube', 'simulator', 'pipeline-driver', 'api-server', 'worker', 'algoPackage', 'algorunner', 'common'];
 // let commonReposNames = ['statistic-check.hkube', 'rest-server.hkube',
 //     'producer-consumer.hkube', 'etcd.hkube', 'backoff.hkube', 'request-reply.hkube',
@@ -6,20 +8,27 @@ const githubRepos = require('github-repositories');
 let reposNames = null;
 let commonReposNames = null;
 
-const gitHubRepos = () => {
+const gitHubRepos = async () => {
+    let _semaphore = new semaphore();
     githubRepos('kube-HPC').then(data => {
         let repos = data.map(r => r.name)
         commonReposNames = repos.filter(r => r.split('.')[1] != null);
         reposNames = repos.filter(r => r.split('.')[1] == null);
+        _semaphore.callDone();
+
         //=> [{id: 29258368, name: 'animal-sounds', full_name: 'kevva/animal-sounds', ...}, ...] 
     });
+
+    await _semaphore.done();
+    return { commonReposNames, reposNames }
 
 }
 
 
+
 module.exports = {
-    reposNames,
-    commonReposNames
+
+    gitHubRepos
+
 };
-gitHubRepos();
 
