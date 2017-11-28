@@ -42,6 +42,9 @@ config.jobConsumer = {
     }
 }
 
+config.timeouts = {
+    stop: 10000 // timeout to stop the algorithm in ms
+}
 config.inputAdapters = {
     storagePath: process.env.SHARED_STORAGE_PATH || './sharedStorage'
 }

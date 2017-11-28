@@ -5,6 +5,7 @@ module.exports = {
         init: 'init',
         working: 'working',
         shutdown:'shutdown',
-        error: 'error'
+        error: 'error',
+        stop: 'stop'
     }
 }

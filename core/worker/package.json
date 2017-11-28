@@ -20,6 +20,7 @@
     "@hkube/logger": "^1.0.2",
     "@hkube/producer-consumer": "^1.0.15",
     "@hkube/redis-utils": "^1.0.1",
+    "chalk": "^2.3.0",
     "djsv": "^1.4.2",
     "forward-emitter": "^0.1.1",
     "javascript-state-machine": "^3.0.1",

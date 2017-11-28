@@ -124,6 +124,7 @@ class Bootstrap {
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
+            log.error(JSON.stringify(error))
             process.exit(1);
         });
     }

@@ -1,10 +1,12 @@
+const EventEmitter = require('events');
 const etcd_rf = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const uuidv4 = require('uuid/v4');
 let log;
 
-class EtcdDiscovery {
+class EtcdDiscovery extends EventEmitter {
     constructor() {
+        super();
         this._etcd = null;
     }
 
@@ -13,6 +15,16 @@ class EtcdDiscovery {
         this._etcd = new etcd_rf();
         await this._etcd.init(options.etcdDiscovery.init);
         await this._etcd.discovery.register({ serviceName: options.etcdDiscovery.init.serviceName });
+        this._etcd.jobs.on('change', res => {
+            console.log(JSON.stringify(res));
+            switch (res.state) {
+                case 'stop':
+                this.emit('stop',res);
+                    break;
+                default:
+                    this.emit('change', res);
+            }
+        })
     }
 
     async setState(options) {
@@ -23,14 +35,15 @@ class EtcdDiscovery {
         });
     }
 
+
     async update(options) {
         await this._etcd.tasks.setState(options);
     }
 
-    async watch(options){
+    async watch(options) {
         await this._etcd.jobs.watch(options);
     }
-    async unwatch(options){
+    async unwatch(options) {
         await this._etcd.jobs.unwatch(options);
     }
 }

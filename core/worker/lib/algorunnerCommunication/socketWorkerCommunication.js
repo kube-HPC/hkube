@@ -4,6 +4,7 @@ const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const socketio = require('socket.io');
 const forward_emitter = require('forward-emitter');
+const messages = require('./messages');
 const http = require('http');
 let log;
 class SocketWorkerCommunication extends EventEmitter {
@@ -47,9 +48,14 @@ class SocketWorkerCommunication extends EventEmitter {
 
     _registerSocketMessages(socket) {
         this._socket = socket;
-        socket.on('commandMessage',(message)=>{
-            this.emit('commandMessage',message);
-        });
+        Object.values(messages.incomming).forEach((topic)=>{
+            socket.on(topic,message=>{
+                this.emit(topic,message.data); 
+            })
+        })
+        // socket.on('commandMessage',(message)=>{
+        //     this.emit('commandMessage',message);
+        // });
         socket.on('disconnect',()=>{
             log.info('socket disconnected');
             this._socket=null;
@@ -69,7 +75,7 @@ class SocketWorkerCommunication extends EventEmitter {
             log.error(error);
             throw new Error(error)
         }
-        this._socket.emit('commandMessage',message);
+        this._socket.emit(message.command,message);
     }
 
     async sendForReply(message){

@@ -24,18 +24,22 @@ class JobConsumer extends EventEmitter {
             this._consumer.removeAllListeners();
             this._consumer = null;
         }
+        etcd.on('change',(res)=>{
+            
+        })
+
 
 
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.on('job', async (job) => {
             log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`);
             this._job = job;
-            await etcd.watch({ jobId: job.data.jobID })
+            etcd.watch({ jobId: this._job.data.jobID })
             stateManager.setJob(job);
             stateManager.prepare(job);
             this.emit('job', job);
         });
-
+        
         // this._unRegister();
         stateManager.once(stateEvents.stateEntered, ({ state }) => {
             this._consumer.register(this._options.jobConsumer)

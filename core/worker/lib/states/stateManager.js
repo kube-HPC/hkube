@@ -34,11 +34,12 @@ class StateManager extends EventEmitter {
             init: workerStates.bootstrap,
             transitions: [
                 { name: 'reset', from: '*', to: workerStates.bootstrap},
+                { name: 'stop', from: '*', to: workerStates.stop},
                 { name: 'bootstrap', from: workerStates.bootstrap, to: workerStates.ready},
                 { name: 'prepare', from: workerStates.ready, to: workerStates.init },
                 { name: 'start', from: workerStates.init, to: workerStates.working },
                 { name: 'finish', from: workerStates.working, to: workerStates.shutdown },
-                { name: 'done', from: [workerStates.shutdown,workerStates.working], to: workerStates.ready },
+                { name: 'done', from: [workerStates.shutdown,workerStates.working, workerStates.stop], to: workerStates.ready },
                 { name: 'error', from: workerStates.working, to: workerStates.error },
             ],
             methods:{
@@ -95,6 +96,13 @@ class StateManager extends EventEmitter {
     start(options) {
         this._results=null;
         this._stateMachine.start();
+    }
+
+    /**
+     * transitions to stop state.
+     */
+    stop(){
+        this._stateMachine.stop();
     }
     /**
      * transitions from working to shutdown

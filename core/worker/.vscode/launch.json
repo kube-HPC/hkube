@@ -9,7 +9,11 @@
             "request": "launch",
             "name": "app",
             "outputCapture": "std",
-            "program": "${workspaceRoot}/app.js"
+            "program": "${workspaceRoot}/app.js",
+            "env":{
+                "JOB_TYPE":"green-alg",
+                "WORKER_SOCKET_PORT":"9876"
+            }
         },
         {
             "name": "Run mocha",
