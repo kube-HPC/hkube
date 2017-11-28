@@ -21,7 +21,7 @@ class LoopbackWorkerCommunication extends EventEmitter {
         }
 
     }
-    start(){
+    start() {
         this.emit('connection')
 
     }

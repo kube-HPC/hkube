@@ -24,18 +24,14 @@ class EtcdDiscovery {
     }
 
     async update(options) {
-        await Promise.all([
-            this._updateResult(options),
-            this._updateStatus(options)
-        ]);
+        await this._etcd.tasks.setState(options);
     }
 
-    async _updateResult(options) {
-        await this._etcd.tasks.setResult(options);
+    async watch(options){
+        await this._etcd.jobs.watch(options);
     }
-
-    async _updateStatus(options) {
-        await this._etcd.tasks.setStatus(options);
+    async unwatch(options){
+        await this._etcd.jobs.unwatch(options);
     }
 }
 

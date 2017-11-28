@@ -30,6 +30,7 @@ class JobConsumer extends EventEmitter {
         this._consumer.on('job', async (job) => {
             log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`);
             this._job = job;
+            await etcd.watch({ jobId: job.data.jobID })
             stateManager.setJob(job);
             stateManager.prepare(job);
             this.emit('job', job);
@@ -58,8 +59,9 @@ class JobConsumer extends EventEmitter {
         if (!this._job)
             return;
         // TODO: handle error
+        await etcd.unwatch({ jobId: this._job.data.jobID })
         await etcd.update({ jobId: this._job.data.jobID, taskId: this._job.id, status: 'completed', result: result });
-        this._job.done(null);
+        this._job.done(null,result);
         this._job = null;
     }
 }

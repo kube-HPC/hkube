@@ -83,7 +83,7 @@ describe('consumer', () => {
     })
 
     beforeEach((done) => {
-
+        
         bootstrap.init().then(() => {
             consumer = Consumer;
 
