@@ -7,8 +7,9 @@ const colors = require('colors');
 const stringToRepos = require('./stringToRepos');
 
 
-const npm = (reposTypes) => {
-    stringToRepos(reposTypes).forEach(r => {
+const npm = async (reposTypes) => {
+    let repos = await stringToRepos(reposTypes)
+    repos.forEach(r => {
         npmInternal(r);
     })
 }

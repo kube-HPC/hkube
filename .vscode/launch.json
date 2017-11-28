@@ -37,6 +37,16 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "npm",
+            "program": "${workspaceFolder}/bin/hkube",
+            "args": [
+                "npm",
+                "-d"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch repos",
             "program": "${workspaceFolder}/repos.js"
         },
