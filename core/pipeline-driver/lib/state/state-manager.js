@@ -14,8 +14,8 @@ class StateManager extends EventEmitter {
         this._watch();
     }
 
-    setCurrentJob(job) {
-        this._job = job;
+    setCurrentJobID(jobId) {
+        this._jobId = jobId;
     }
 
     _watch() {
@@ -33,33 +33,33 @@ class StateManager extends EventEmitter {
     }
 
     async setTaskState(options) {
-        return await this._etcd.services.pipelineDriver.setTaskState({ jobId: this._job.id, taskId: options.taskId, data: options.data });
+        return await this._etcd.services.pipelineDriver.setTaskState({ jobId: this._jobId, taskId: options.taskId, data: options.data });
     }
 
     async setJobResults(options) {
-        return await this._etcd.jobResults.setResults({ jobId: this._job.id, data: { result: options.result } });
+        return await this._etcd.jobResults.setResults({ jobId: this._jobId, data: { result: options.result } });
     }
 
     async setJobStatus(options) {
-        return await this._etcd.jobResults.setStatus({ jobId: this._job.id, data: options });
+        return await this._etcd.jobResults.setStatus({ jobId: this._jobId, data: options });
     }
 
     async getState() {
-        const options = { jobId: this._job.id };
+        let result = null;
+        const options = { jobId: this._jobId };
         const driver = await this._etcd.services.pipelineDriver.getState(options);
         if (driver) {
             const driverTasks = await this._etcd.services.pipelineDriver.getDriverTasks(options);
             const jobTasks = await this._etcd.tasks.list(options);
-            const result = Object.assign({}, driver);
+            result = Object.assign({}, driver);
             result.driverTasks = driverTasks || [];
             result.jobTasks = jobTasks || new Map();
-            return result;
         }
-        return null;
+        return result;
     }
 
     async setState(options) {
-        await this._etcd.services.pipelineDriver.setState({ jobId: this._job.id, data: options.data });
+        await this._etcd.services.pipelineDriver.setState({ jobId: this._jobId, data: { state: options.data, startTime: new Date() } });
     }
 
     async deleteState(options) {
@@ -71,19 +71,19 @@ class StateManager extends EventEmitter {
     }
 
     async watchTask(options) {
-        return await this._etcd.tasks.watch({ jobId: this._job.id, taskId: options.taskId });
+        return await this._etcd.tasks.watch({ jobId: this._jobId, taskId: options.taskId });
     }
 
     async unWatchTask(options) {
-        return await this._etcd.tasks.unwatch({ jobId: this._job.id, taskId: options.taskId });
+        return await this._etcd.tasks.unwatch({ jobId: this._jobId, taskId: options.taskId });
     }
 
     async watchJobState() {
-        return await this._etcd.jobs.watch({ jobId: this._job.id });
+        return await this._etcd.jobs.watch({ jobId: this._jobId });
     }
 
     async unWatchJobState() {
-        return await this._etcd.jobs.unwatch({ jobId: this._job.id });
+        return await this._etcd.jobs.unwatch({ jobId: this._jobId });
     }
 }
 

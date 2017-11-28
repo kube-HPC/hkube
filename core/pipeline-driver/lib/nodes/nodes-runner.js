@@ -31,16 +31,16 @@ class NodesRunner {
             });
             switch (data.status) {
                 case States.COMPLETED:
-                    await stateManager.unWatchTask({ taskId: task.taskId });
                     log.info(`task completed ${task.taskId}`, { component: components.JOBS_PRODUCER });
+                    this._unWatchTask({ taskId: task.taskId });
                     node.result = data.result;
                     this._setTaskState(task.taskId, node);
-                    const calc = this._nodes.calc();
-                    progress.info({ progress: calc.progress, details: calc.details, status: States.ACTIVE });
+                    progress.info({ status: States.ACTIVE });
                     this._taskComplete(node);
                     break;
                 case States.FAILED:
                     log.error(`task failed ${task.taskId}, error: ${data.error}`, { component: components.JOBS_PRODUCER });
+                    this._unWatchTask({ taskId: task.taskId });
                     node.error = data.error;
                     this._setTaskState(task.taskId, node);
                     this._taskComplete(node);
@@ -73,11 +73,16 @@ class NodesRunner {
 
     async _jobComplete(error) {
         await stateManager.unWatchJobState();
-
         if (this._tasks) {
             this._tasks.forEach((value, key) => {
-                stateManager.unWatchTask({ taskId: key });
+                this._unWatchTask({ taskId: key });
             })
+        }
+        if (error) {
+            log.error(`pipeline failed ${error}`, { component: components.JOBS_PRODUCER });
+        }
+        else {
+            log.info(`pipeline completed ${this._job.id}`, { component: components.JOBS_PRODUCER });
         }
 
         this._job.done(error);
@@ -88,7 +93,7 @@ class NodesRunner {
     }
 
     async _onJobStop(data) {
-        log.info(`pipeline stopped ${this._job.id}`, { component: components.JOBS_PRODUCER });
+        log.info(`pipeline stopped ${this._job.id}. ${data.reason}`, { component: components.JOBS_PRODUCER });
         progress.info({ status: States.STOPPED });
         this._jobComplete();
     }
@@ -107,7 +112,7 @@ class NodesRunner {
     async _start(job) {
         log.info(`pipeline started ${job.id}`, { component: components.JOBS_PRODUCER });
         this._job = job;
-        stateManager.setCurrentJob(this._job);
+        stateManager.setCurrentJobID(this._job.id);
 
         const watchState = await stateManager.watchJobState();
         if (watchState && watchState.obj && watchState.obj.state === States.STOPPED) {
@@ -116,6 +121,8 @@ class NodesRunner {
         this._pipeline = await stateManager.getExecution({ jobId: job.id });
         this._nodes = new NodesMap(this._pipeline, this._config);
         this._tasks = new Map();
+
+        progress.calcMethod(this._nodes.calc.bind(this._nodes));
 
         // first we will try to get the state for this job
         const state = await stateManager.getState();
@@ -133,6 +140,11 @@ class NodesRunner {
     async _watchTask(options) {
         this._tasks.set(options.taskId, options);
         await stateManager.watchTask({ taskId: options.taskId });
+    }
+
+    async _unWatchTask(options) {
+        this._tasks.delete(options.taskId);
+        await stateManager.unWatchTask({ taskId: options.taskId });
     }
 
     _runCompleted(nodeName) {
@@ -217,27 +229,28 @@ class NodesRunner {
         node = node || {};
         if (node.error) {
             if (node.batchID) {
-                const batchTolerance = this._pipeline.batchTolerance || this._config.defaultBatchTolerance;
+                const batchTolerance = this._pipeline.batchTolerance;
                 const states = this._nodes.getNodeStates(node.nodeName);
                 const failed = states.filter(s => s === States.FAILED);
                 const percent = failed.length / states.length * 100;
 
                 if (percent >= batchTolerance) {
-                    log.error(`pipeline failed with ${failed.length}/${states.length} failed tasks, (${percent}%), batch tolerance is ${batchTolerance}%`, { component: components.JOBS_PRODUCER });
-                    progress.error({ status: States.FAILED, error: node.error });
-                    this._jobComplete(node.error);
+                    const error = new Error(`pipeline failed with ${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${node.error}`);
+                    log.error(error.message, { component: components.JOBS_PRODUCER });
+                    progress.error({ status: States.FAILED, error: error.message });
+                    this._jobComplete(error);
                     return;
                 }
             }
             else {
-                log.error(`pipeline failed ${this._job.id}, error: ${node.error}`, { component: components.JOBS_PRODUCER });
-                progress.error({ status: States.FAILED, error: node.error });
-                this._jobComplete(node.error);
+                const error = new Error(`pipeline failed error: ${node.error}`);
+                log.error(error.message, { component: components.JOBS_PRODUCER });
+                progress.error({ status: States.FAILED, error: error.message });
+                this._jobComplete(error);
                 return;
             }
         }
         if (this._nodes.isAllNodesDone()) {
-            log.info(`pipeline completed ${this._job.id}`, { component: components.JOBS_PRODUCER });
             const result = this._nodes.allNodesResults();
             stateManager.setJobResults({ result: result });
             progress.info({ status: States.COMPLETED });

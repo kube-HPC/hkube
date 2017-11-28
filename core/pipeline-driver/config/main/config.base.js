@@ -16,5 +16,4 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
-config.defaultBatchTolerance = 100;
 config.knownAlgorithms = ['green-alg', 'yellow-alg', 'black-alg'];

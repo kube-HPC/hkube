@@ -234,13 +234,9 @@ class NodesMap {
         const groupedStates = groupBy(nodes, 'state');
         const completed = groupedStates.completed ? groupedStates.completed.length : 0;
         const progress = (completed / nodes.length * 100).toFixed(2);
-        const states = [];
-
-        Object.entries(groupedStates).forEach(([key, value]) => {
-            states.push(`${value.length} ${key}`);
-        });
-
-        return { progress, details: `${progress}% completed, ${states.join(', ')}` };
+        const states = Object.entries(groupedStates).map(([key, value]) => `${value.length} ${key}`);
+        const details = `${progress}% completed, ${states.join(', ')}`;
+        return { progress, details };
     }
 
     isAcyclic() {

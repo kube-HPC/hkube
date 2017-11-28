@@ -11,6 +11,10 @@ const levels = {
 
 class ProgressManager {
 
+    calcMethod(method) {
+        this._calc = method;
+    }
+
     silly(data) {
         this._progress(levels.silly, data);
     }
@@ -35,7 +39,8 @@ class ProgressManager {
         this._progress(levels.critical, data);
     }
 
-    _progress(level, { status, error, progress, details }) {
+    _progress(level, { status, error }) {
+        const { progress, details } = this._calc();
         stateManager.setJobStatus({ level, status, error, progress, details });
     }
 }
