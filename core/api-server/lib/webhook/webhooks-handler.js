@@ -30,7 +30,7 @@ class WebhooksHandler {
         stateManager.on('job-status', async (response) => {
             const webhook = new Webhook({
                 webhookID: response.jobId,
-                data: response.data.status
+                data: response.data
             });
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
             const pipelineLevel = levels[pipeline.options.progressVerbosityLevel];

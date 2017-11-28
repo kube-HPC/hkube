@@ -94,7 +94,7 @@ class ExecutionService {
     if (!job) {
       throw new ResourceNotFoundError('execution_id', options.execution_id);
     }
-    await producer.stopJob({ jobId: options.execution_id });
+    producer.stopJob({ jobId: options.execution_id });
     await stateManager.stopJob({ jobId: options.execution_id, reason: options.reason });
   }
 
