@@ -6,6 +6,7 @@ logs
 npm-debug.log*
 # Runtime data
 pids
+minikube/common/*
 *.pid
 *.seed
 *.pid.lock
