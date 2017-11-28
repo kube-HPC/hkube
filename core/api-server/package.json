@@ -13,7 +13,7 @@
     "private": true,
     "dependencies": {
         "@hkube/config": "^1.0.0",
-        "@hkube/etcd": "^2.1.40",
+        "@hkube/etcd": "^2.1.44",
         "@hkube/logger": "^1.0.7",
         "@hkube/producer-consumer": "^1.0.15",
         "@hkube/redis-utils": "^1.0.1",
