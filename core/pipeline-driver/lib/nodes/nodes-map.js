@@ -157,7 +157,7 @@ class NodesMap {
                 states.push(n.state);
             }
         })
-        return states.every(s => s === States.FAILED || s === States.COMPLETED);
+        return states.every(s => s === States.COMPLETED || s === States.FAILED);
     }
 
     getAllNodes() {
@@ -202,7 +202,7 @@ class NodesMap {
         parents.forEach(p => {
             states = states.concat(this.getNodeStates(p));
         })
-        return states.every(s => s === States.COMPLETED);
+        return states.every(s => s === States.COMPLETED || s === States.FAILED);
     }
 
     allNodesResults() {

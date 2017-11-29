@@ -29,19 +29,33 @@ class StateManager extends EventEmitter {
     }
 
     async getTaskState(options) {
-        return await this._etcd.services.pipelineDriver.getTaskState(options);
+        return await this._etcd.services.pipelineDriver.getTaskState({ jobId: this._jobId, taskId: options.taskId });
     }
 
     async setTaskState(options) {
         return await this._etcd.services.pipelineDriver.setTaskState({ jobId: this._jobId, taskId: options.taskId, data: options.data });
     }
 
+    async getDriverTasks() {
+        return await this._etcd.services.pipelineDriver.getDriverTasks({ jobId: this._jobId });
+    }
+
     async setJobResults(options) {
-        return await this._etcd.jobResults.setResults({ jobId: this._jobId, data: { result: options.result } });
+        const payload = {
+            timestamp: new Date(),
+            execution_id: this._jobId,
+            data: options
+        }
+        return await this._etcd.jobResults.setResults({ jobId: this._jobId, data: payload });
     }
 
     async setJobStatus(options) {
-        return await this._etcd.jobResults.setStatus({ jobId: this._jobId, data: options });
+        const payload = {
+            timestamp: new Date(),
+            execution_id: this._jobId,
+            data: options
+        }
+        return await this._etcd.jobResults.setStatus({ jobId: this._jobId, data: payload });
     }
 
     async getState() {

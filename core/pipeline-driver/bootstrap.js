@@ -13,7 +13,7 @@ const modules = [
     'lib/state/state-manager',
     'lib/producer/jobs-producer',
     'lib/consumer/jobs-consumer',
-    'lib/nodes/nodes-runner'
+    'lib/tasks/task-runner'
 ];
 
 class Bootstrap {
@@ -75,6 +75,7 @@ class Bootstrap {
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
+            log.error(error);
             process.exit(1);
         });
     }

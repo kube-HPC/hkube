@@ -37,19 +37,19 @@ class JobProducer extends EventEmitter {
         });
     }
 
-    async createJob(node, jobID, taskId) {
-        const options = {
+    async createJob(options) {
+        const opt = {
             job: {
-                id: taskId,
-                type: node.algorithm,
-                data: {
-                    input: node.input,
-                    node: node.batchID || node.name,
-                    jobID: jobID
-                }
+                id: options.taskId,
+                type: options.type,
+                data: options.data
             }
         }
-        await this._producer.createJob(options);
+        return await this._producer.createJob(opt);
+    }
+
+    async stopJob(options) {
+        return await this._producer.stopJob({ type: options.type, jobID: options.jobID });
     }
 }
 

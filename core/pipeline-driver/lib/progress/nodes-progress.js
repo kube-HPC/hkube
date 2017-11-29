@@ -40,7 +40,13 @@ class ProgressManager {
     }
 
     _progress(level, { status, error }) {
-        const { progress, details } = this._calc();
+        let progress = 0;
+        let details = '';
+        if (this._calc) {
+            const data = this._calc();
+            progress = data.progress;
+            details = data.details;
+        }
         stateManager.setJobStatus({ level, status, error, progress, details });
     }
 }
