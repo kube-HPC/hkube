@@ -10,7 +10,7 @@ const delay = require('await-delay');
 const colors = require('colors');
 const kubernetesApi = require('./kubernetes-api');
 const jsYaml = require('js-yaml');
-const {getLatestVersions, changeYamlImageVersion} = require('./githubHelper');
+const { getLatestVersions, changeYamlImageVersion } = require('./githubHelper');
 const { FOLDERS, GIT_PREFIX } = require('./../consts.js');
 const { URL_PATH, YAML_PATH, REGISTRY, GITLAB, MINIKUBE, } = require('./consts-minikube');
 const Api = require('kubernetes-client');
@@ -92,7 +92,7 @@ const startMinikube = async () => {
     await syncSpawn('minikube', args);
     await delay(5000)
     console.log('check if common exists');
-    await cloneCommon();
+    await cloneDeployment();
     // console.log(`login to docker registry`.green);
     // await registryLogin();
     console.log(`start running system dependencies`.green);
@@ -104,26 +104,26 @@ const startMinikube = async () => {
 }
 
 
-const cloneCommon = async () => {
+const cloneDeployment = async () => {
     console.log(`trying to find if hkube is cloned on your pc`.green);
-    if (!fs.existsSync(`${FOLDERS.dev}/common`)) {
+    if (!fs.existsSync(`${FOLDERS.dev}/deployment`)) {
         let sema = new semaphore();
         let git = simpleGit(__dirname);
-        let commonPath = `${__dirname}/common`
-        let basePath = `${commonPath}/scripts/kubernetes/yaml`
+        let commonPath = `${__dirname}/deployment`
+        let basePath = `${commonPath}/kubernetes/yaml`
         coreYamlPath = `${basePath}/core`
         thirdPartyYamlPath = `${basePath}/thirdParty`
-        console.log(`common folder was not found trying to clone/pull the latest version into the execution path`.green);
+        console.log(`deployment folder was not found trying to clone/pull the latest version into the execution path`.green);
         if (!fs.existsSync(`${commonPath}`)) {
-            console.log(`common is not found under the execution path trying to clone it`.green);
-            git.clone(`${GIT_PREFIX.dev}/common`, null, `${commonPath}`, (error, r) => {
+            console.log(`deployment is not found under the execution path trying to clone it`.green);
+            git.clone(`${GIT_PREFIX.dev}/deployment`, null, `${commonPath}`, (error, r) => {
                 console.log(`cloned successfully: ${commonPath}`.green)
                 sema.callDone();
             })
             await sema.done();
         }
         else {
-            console.log(`common folder already exists trying to get latest version`.green);
+            console.log(`deployment folder already exists trying to get latest version`.green);
             git.cwd(commonPath).pull(res => {
                 console.log(`repo ${commonPath} pull finished `.green)
                 if (res) {
@@ -140,7 +140,7 @@ const cloneCommon = async () => {
 
     }
     else {
-        console.log(`common is already exists in dev folder`.green);
+        console.log(`deployment is already exists in dev folder`.green);
     }
 }
 const restartMinikube = async () => {
@@ -176,15 +176,15 @@ const registryLogin = async () => {
 
 }
 const runCore = async (opts) => {
-    let versionPrefix = (opts.find(o=>o[0]===MINIKUBE.apply || o[0]===MINIKUBE.applyShort) || [])[1];
-    if (versionPrefix === true){
-        versionPrefix='latest'
+    let versionPrefix = (opts.find(o => o[0] === MINIKUBE.apply || o[0] === MINIKUBE.applyShort) || [])[1];
+    if (versionPrefix === true) {
+        versionPrefix = 'latest'
     }
     const versions = await getLatestVersions(versionPrefix);
     fs.readdirSync(coreYamlPath).forEach(file => {
         // const projectName = path.basename(file,path.extname(file));
         // const version = versions.versions.find(v=>v.project === projectName);
-        const tmpFile = changeYamlImageVersion(file,versions)
+        const tmpFile = changeYamlImageVersion(file, versions)
         syncSpawn(`kubectl`, `apply -f ${tmpFile}`)
     })
 }
