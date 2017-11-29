@@ -6,7 +6,7 @@ const { InvalidDataError, } = require('lib/errors/errors');
 class Validator {
 
     constructor() {
-        validator.addFormat('url', '(http|ftp|https)://[\w-]+(\.[\w-]+)*([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?')
+        //validator.addFormat('url', '(http|ftp|https)://[\w-]+(\.[\w-]+)*([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?')
         Object.values(schemas).forEach((s) => {
             if (s.id) {
                 validator.addSchema(s);

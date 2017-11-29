@@ -19,27 +19,19 @@ class WebhooksHandler {
     init(options) {
         this._options = options;
         stateManager.on('job-result', async (response) => {
-            const webhook = new Webhook({
-                webhookID: response.jobId,
-                data: response.data.result
-            });
-            const pipeline = await stateManager.getExecution({ jobId: response.jobId });
-            this._request(pipeline.webhooks.resultHook.url, this._options.webhooks.resultHook, webhook, 'result');
+            const pipeline = await stateManager.getExecution({ jobId: response.execution_id });
+            this._request(pipeline.webhooks.resultHook.url, this._options.webhooks.resultHook, response, 'result');
         })
 
         stateManager.on('job-status', async (response) => {
-            const webhook = new Webhook({
-                webhookID: response.jobId,
-                data: response.data
-            });
-            const pipeline = await stateManager.getExecution({ jobId: response.jobId });
-            const pipelineLevel = levels[pipeline.options.progressVerbosityLevel];
-            const progressLevel = levels[response.data.level];
+            const pipeline = await stateManager.getExecution({ jobId: response.execution_id });
+            const clientLevel = levels[pipeline.options.progressVerbosityLevel];
+            const pipelineLevel = levels[response.data.level];
 
-            log.info(`got progress event with ${response.data.level} verbosity, client request was ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER });
+            log.info(`progress event with ${response.data.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER });
 
-            if (progressLevel <= pipelineLevel) {
-                this._request(pipeline.webhooks.progressHook.url, this._options.webhooks.progressHook, webhook, 'status');
+            if (clientLevel <= pipelineLevel) {
+                this._request(pipeline.webhooks.progressHook.url, this._options.webhooks.progressHook, response, 'status');
             }
         })
     }

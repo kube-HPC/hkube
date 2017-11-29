@@ -58,7 +58,12 @@ class StateManager extends EventEmitter {
     }
 
     async setJobStatus(options) {
-        return await this._etcd.jobResults.setStatus(options);
+        const payload = {
+            timestamp: new Date(),
+            execution_id: options.jobId,
+            data: options.data
+        }
+        return await this._etcd.jobResults.setStatus({ jobId: options.jobId, data: payload });
     }
 
     async stopJob(options) {
