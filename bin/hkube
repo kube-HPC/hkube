@@ -39,6 +39,7 @@ const usage = `
             --update,-u stop and run minikube
             --build,-b init and then start minikube
             --apply,-a  reload hkube core modules, optionally also supply version (semver)
+            --thirdParty,-t  reload hkube thirdParty modules
             
         `
 

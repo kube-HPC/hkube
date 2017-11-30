@@ -39,6 +39,10 @@ const _minikube = async (opt) => {
         case MINIKUBE.apply:
         case MINIKUBE.applyShort:
             return runCore(opt);
+        case MINIKUBE.thirdParty:
+        case MINIKUBE.thirdPartyShort:
+            return runPreRequisite();
+        
         default:
             return startMinikube();
     }

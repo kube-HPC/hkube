@@ -16,7 +16,9 @@ const MINIKUBE = {
     build: `build`,
     buildShort: `b`,
     apply: `apply`,
-    applyShort: `a`
+    applyShort: `a`,
+    thirdParty: 'thirdParty',
+    thirdPartyShort: 't'
 
 
 
