@@ -91,10 +91,10 @@ const startMinikube = async () => {
     console.log(`start new minikube with the following args: ${args}`.green);
 
 
-    // await syncSpawn('minikube', args);
-    // await delay(5000)
-    // console.log('check if common exists');
-    // await cloneDeployment();
+    await syncSpawn('minikube', args);
+    await delay(5000)
+    console.log('check if common exists');
+    await cloneDeployment();
     
     
     // console.log(`login to docker registry`.green);
