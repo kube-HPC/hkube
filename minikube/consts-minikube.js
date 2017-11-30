@@ -39,13 +39,13 @@ const URL_PATH = {
 
 const GITLAB = {
     user: `maty21`,
-    token: `8D-om2i9raYM_7oKiHGR`,
+    token: `xxxxx`,
     email: `maty21@gmail.com`
 }
 
 const VM = { ip: `192.168.99.100`, port: '8443' };
 
-const REGISTRY = `registry.gitlab.com/greenapes/hkube/registry`;
+const REGISTRY =  null;//`registry.gitlab.com/greenapes/hkube/registry`;
 
 
 module.exports = { YAML_PATH, URL_PATH, VM, REGISTRY, GITLAB, MINIKUBE };

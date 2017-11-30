@@ -91,7 +91,10 @@ const _downloadKubectl = async () => {
 
 
 const startMinikube = async () => {
-    let args = `start --cpus 3 --memory=8192 --insecure-registry ${REGISTRY} `;
+    let args = `start --cpus 3 --memory=8192 `;
+    if (REGISTRY){
+        args+=`--insecure-registry ${REGISTRY} `
+    }
     console.log(`start new minikube with the following args: ${args}`.green);
 
 
