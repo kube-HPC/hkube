@@ -54,7 +54,7 @@ class kubernetesApi {
 
     _ignoreFileFunc(file, stats) {
         // return stats.isDirectory() && path.extname(file) != "yml";
-        return !stats.isDirectory() && path.extname(file) != ".yml";
+        return file.startsWith('#') || (!stats.isDirectory() && path.extname(file) != ".yml");
     }
 
     async createPodsSync(yamlPath) {

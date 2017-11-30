@@ -183,6 +183,9 @@ const runCore = async (opts) => {
     }
     const versions = await getLatestVersions(versionPrefix);
     fs.readdirSync(coreYamlPath).forEach(file => {
+        if (file.startsWith('#')){
+            return;
+        }
         // const projectName = path.basename(file,path.extname(file));
         // const version = versions.versions.find(v=>v.project === projectName);
         const tmpFile = changeYamlImageVersion(file, versions)
