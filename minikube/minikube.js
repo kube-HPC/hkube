@@ -89,10 +89,14 @@ const _downloadKubectl = async () => {
 const startMinikube = async () => {
     let args = `start --cpus 3 --memory=8192 --insecure-registry ${REGISTRY} `;
     console.log(`start new minikube with the following args: ${args}`.green);
-    await syncSpawn('minikube', args);
-    await delay(5000)
-    console.log('check if common exists');
-    await cloneDeployment();
+
+
+    // await syncSpawn('minikube', args);
+    // await delay(5000)
+    // console.log('check if common exists');
+    // await cloneDeployment();
+    
+    
     // console.log(`login to docker registry`.green);
     // await registryLogin();
     console.log(`start running system dependencies`.green);
@@ -183,7 +187,7 @@ const runCore = async (opts) => {
     }
     const versions = await getLatestVersions(versionPrefix);
     fs.readdirSync(coreYamlPath).forEach(file => {
-        if (file.startsWith('#')){
+        if (path.basename(file).startsWith('#')){
             return;
         }
         // const projectName = path.basename(file,path.extname(file));
