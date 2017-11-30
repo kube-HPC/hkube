@@ -4,7 +4,6 @@ const uuidv4 = require('uuid/v4');
 const { Producer } = require('@hkube/producer-consumer');
 const schema = require('lib/producer/schema');
 const stateManager = require('lib/state/state-manager');
-const consumer = require('lib/consumer/jobs-consumer');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
@@ -29,12 +28,6 @@ class JobProducer extends EventEmitter {
         }).on('job-active', (data) => {
             this.emit('task-active', data.jobID);
         });
-        consumer.on('job-start', (job) => {
-            this.emit('job-start', job);
-        });
-        stateManager.on('job-change', (data) => {
-            this.emit('job-stop', data);
-        });
     }
 
     async createJob(options) {
@@ -49,7 +42,15 @@ class JobProducer extends EventEmitter {
     }
 
     async stopJob(options) {
-        return await this._producer.stopJob({ type: options.type, jobID: options.jobID });
+        let result = null;
+        try {
+            result = await this._producer.stopJob({ type: options.type, jobID: options.jobID });
+        }
+        catch (error) {
+            log.error(`pipeline failed ${error}`, { component: components.JOBS_PRODUCER });
+        }
+        return result;
+
     }
 }
 

@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
+const States = require('lib/state/States');
 
 class StateManager extends EventEmitter {
 
@@ -20,11 +21,10 @@ class StateManager extends EventEmitter {
 
     _watch() {
         this._etcd.tasks.on('change', (res) => {
-            this.emit('task-change', res);
+            this.emit(`task-${res.status}`, res);
         });
-
         this._etcd.jobs.on('change', (res) => {
-            this.emit('job-change', res);
+            this.emit(`job-${res.state}`, res);
         });
     }
 
@@ -84,12 +84,12 @@ class StateManager extends EventEmitter {
         return await this._etcd.execution.getExecution(options);
     }
 
-    async watchTask(options) {
-        return await this._etcd.tasks.watch({ jobId: this._jobId, taskId: options.taskId });
+    async watchTasks() {
+        return await this._etcd.tasks.watch({ jobId: this._jobId });
     }
 
-    async unWatchTask(options) {
-        return await this._etcd.tasks.unwatch({ jobId: this._jobId, taskId: options.taskId });
+    async unWatchTasks() {
+        return await this._etcd.tasks.unwatch({ jobId: this._jobId });
     }
 
     async watchJobState() {
