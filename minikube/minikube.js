@@ -176,6 +176,7 @@ const registryLogin = async () => {
 
 }
 const runCore = async (opts) => {
+    opts=opts||[];
     let versionPrefix = (opts.find(o => o[0] === MINIKUBE.apply || o[0] === MINIKUBE.applyShort) || [])[1];
     if (versionPrefix === true) {
         versionPrefix = 'latest'
