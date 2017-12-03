@@ -31,7 +31,9 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "m",
-                "-s"
+                "-s",
+                "--k8s-version",
+                "v1.7.5"
             ]
         },
         {

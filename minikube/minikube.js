@@ -25,10 +25,10 @@ const _minikube = async (opt) => {
             return await init();
         case MINIKUBE.start:
         case MINIKUBE.startShort:
-            return await startMinikube();
+            return await startMinikube(opt);
         case MINIKUBE.restart:
         case MINIKUBE.restartShort:
-            return await restartMinikube();
+            return await restartMinikube(opt);
         case MINIKUBE.build:
         case MINIKUBE.buildShort:
             return await init();
@@ -42,7 +42,7 @@ const _minikube = async (opt) => {
         case MINIKUBE.thirdParty:
         case MINIKUBE.thirdPartyShort:
             return runPreRequisite();
-        
+
         default:
             return startMinikube();
     }
@@ -90,10 +90,14 @@ const _downloadKubectl = async () => {
 
 
 
-const startMinikube = async () => {
+const startMinikube = async (opts) => {
     let args = `start --cpus 3 --memory=8192 `;
-    if (REGISTRY){
-        args+=`--insecure-registry ${REGISTRY} `
+    if (REGISTRY) {
+        args += `--insecure-registry ${REGISTRY} `
+    }
+    const kubeVersion = getOptionOrDefault(opts, ['k8s-version'],null);
+    if (kubeVersion){
+        args += `--kubernetes-version ${kubeVersion} `
     }
     console.log(`start new minikube with the following args: ${args}`.green);
 
@@ -102,8 +106,8 @@ const startMinikube = async () => {
     await delay(5000)
     console.log('check if common exists');
     await cloneDeployment();
-    
-    
+
+
     // console.log(`login to docker registry`.green);
     // await registryLogin();
     console.log(`start running system dependencies`.green);
@@ -154,21 +158,21 @@ const cloneDeployment = async () => {
         console.log(`deployment is already exists in dev folder`.green);
     }
 }
-const restartMinikube = async () => {
+const restartMinikube = async (opts) => {
     console.log(`stopping minikube`.green);
     try {
         await syncSpawn(`minikube`, `stop`);
-        await startMinikube();
+        await startMinikube(opts);
     } catch (e) {
         console.log(e)
     }
 
 }
-const cleanAndRestartMinikube = async () => {
+const cleanAndRestartMinikube = async (opts) => {
     console.log(`cleaning old minikube`.green);
     try {
         await syncSpawn(`minikube`, `delete`);
-        await startMinikube();
+        await startMinikube(opts);
     } catch (e) {
         console.log(e)
     }
@@ -186,15 +190,31 @@ const registryLogin = async () => {
     --docker-email=${GITLAB.email}`)
 
 }
-const runCore = async (opts) => {
-    opts=opts||[];
-    let versionPrefix = (opts.find(o => o[0] === MINIKUBE.apply || o[0] === MINIKUBE.applyShort) || [])[1];
-    if (versionPrefix === true) {
-        versionPrefix = 'latest'
+
+const getOptionOrDefault = (opts, optionName, defaultValue) => {
+    opts = opts || [];
+    let optionPair;
+    if (Array.isArray(optionName)) {
+        optionPair = opts.find(o => optionName.findIndex(opt=>opt===o[0])>=0);
     }
+    else {
+        optionPair = opts.find(o => o[0] === optionName);
+    }
+    if (!optionPair) {
+        return defaultValue;
+    }
+    let option = optionPair[1];
+    if (option === true) {
+        return defaultValue;
+    }
+    return option;
+}
+const runCore = async (opts) => {
+    opts = opts || [];
+    const versionPrefix = getOptionOrDefault(opts, [MINIKUBE.apply, MINIKUBE.applyShort]);
     const versions = await getLatestVersions(versionPrefix);
     fs.readdirSync(coreYamlPath).forEach(file => {
-        if (path.basename(file).startsWith('#')){
+        if (path.basename(file).startsWith('#')) {
             return;
         }
         // const projectName = path.basename(file,path.extname(file));
