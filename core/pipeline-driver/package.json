@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "pipeline-driver manage workers",
   "main": "index.js",
   "directories": {
