@@ -16,7 +16,8 @@ class JobProducer extends EventEmitter {
         this._producer = null;
     }
 
-    init(options) {
+    async init(options) {
+        options = options || {};
         const setting = Object.assign({}, { redis: options.redis });
         const res = validate(schema.properties.setting, setting);
         if (!res.valid) {
@@ -47,7 +48,7 @@ class JobProducer extends EventEmitter {
             result = await this._producer.stopJob({ type: options.type, jobID: options.jobID });
         }
         catch (error) {
-            log.error(`pipeline failed ${error}`, { component: components.JOBS_PRODUCER });
+            log.error(error.message, { component: components.JOBS_PRODUCER });
         }
         return result;
 

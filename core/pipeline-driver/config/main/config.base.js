@@ -16,4 +16,8 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
-config.knownAlgorithms = ['green-alg', 'yellow-alg', 'black-alg'];
+config.jobsSettings = {
+    lockDuration: 10000,
+    stalledInterval: 10000,
+    maxStalledCount: 3
+}

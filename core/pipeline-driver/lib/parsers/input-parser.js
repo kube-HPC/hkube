@@ -4,15 +4,12 @@ const clone = require('clone');
 const CONSTS = {
     BATCH: '#',
     REF: '@',
+    BATCHREF: '#@',
     WAITANY: '*',
     FLOWINPUT: 'flowInput'
-
 }
 
 class InputParser {
-
-    constructor() {
-    }
 
     parse(options, input, nodesInput) {
         const batch = this.parseBatchInput(options, input, nodesInput);
@@ -114,7 +111,7 @@ class InputParser {
         const result = {
             isNode: false
         };
-        if (this.isReffernce(input)) {
+        if (this.isReference(input)) {
             const path = this.extractObjectFromInput(input);
             const obj = this.constructObject(path);
             result.node = obj.object;
@@ -128,7 +125,7 @@ class InputParser {
     }
 
     _isBatchRef(input) {
-        return typeof input === 'string' && input.startsWith('#@');
+        return typeof input === 'string' && input.startsWith(CONSTS.BATCHREF);
     }
 
     isFlowInput(input) {
@@ -139,7 +136,7 @@ class InputParser {
         }
     }
 
-    isReffernce(input) {
+    isReference(input) {
         return this._isObjRef(input) || this._isBatchRef(input);
     }
 
@@ -308,7 +305,7 @@ class InputParser {
         options = options || {};
         nodesInput = nodesInput || {};
         let result = path;
-        if (this.isReffernce(path)) {
+        if (this.isReference(path)) {
             const obj = this.extractObjectFromInput(path);
             const construct = this.constructObject(obj);
             let ni = object[construct.object] || nodesInput[construct.object];

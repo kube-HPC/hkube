@@ -13,14 +13,20 @@ class JobConsumer extends EventEmitter {
      * Init the consumer and register for jobs
      * @param {*} options
      */
-    init(options) {
-        const setting = { setting: { redis: options.redis } };
-        const res = validate(schema, setting);
+    init(option) {
+        option = option || {};
+        const options = {
+            setting: {
+                redis: option.redis,
+                settings: option.jobsSettings
+            }
+        };
+        const res = validate(schema, options);
         if (!res.valid) {
             throw new Error(res.error);
         }
-        this._consumer = new Consumer(setting);
-        this._consumer.register(setting);
+        this._consumer = new Consumer(options);
+        this._consumer.register(options);
         this._consumer.on('job', (job) => {
             this.emit('job-start', job);
         })

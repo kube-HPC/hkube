@@ -8,28 +8,15 @@ const inputParser = require('lib/parsers/input-parser');
 
 class NodesMap {
 
-    constructor(options, config) {
-
-        const nodes = options.nodes.map((item) => item.nodeName);
-        const duplicates = this._findDuplicates(nodes);
-
-        if (duplicates.length > 0) {
-            throw new Error(`found duplicate nodes ${duplicates.join(',')}`);
-        }
-
+    constructor(options) {
         this._graph = new Graph();
         const links = [];
 
+        if (!options || !options.nodes) {
+            throw new Error(`pipeline must have nodes`);
+        }
+
         options.nodes.forEach(node => {
-            if (!config.knownAlgorithms.includes(node.algorithmName)) {
-                throw new Error(`node ${node.nodeName} has invalid algorithmName ${node.algorithmName}`);
-            }
-            if (node.nodeName === 'flowInput') {
-                throw new Error(`node ${node.nodeName} has invalid reserved name flowInput`);
-            }
-            if (!Array.isArray(node.input)) {
-                throw new Error(`node ${node.nodeName} input must be an array`);
-            }
             const batchIndex = inputParser.batchInputIndex(node.input);
             const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
             if (batchIndex > -1 && waitAnyIndex > -1) {
@@ -55,18 +42,6 @@ class NodesMap {
         });
     }
 
-    _findDuplicates(data) {
-        let result = [];
-        data.forEach((element, index) => {
-            if (data.indexOf(element, index + 1) > -1) {
-                if (result.indexOf(element) === -1) {
-                    result.push(element);
-                }
-            }
-        });
-        return result;
-    }
-
     findEntryNodes() {
         const nodes = this._graph.nodes();
         const targets = this._graph.edges().map(l => l.w);
@@ -80,6 +55,9 @@ class NodesMap {
     getNodeResults(nodeName) {
         let results = [];
         const node = this._graph.node(nodeName);
+        if (!node) {
+            throw new Error(`unable to find node ${nodeName}`)
+        }
         if (node.batch.length > 0) {
             results = node.batch.map(n => n.result);
         }
@@ -124,18 +102,12 @@ class NodesMap {
         }
     }
 
-    getNodeState(nodeName, batchID) {
-        const node = this._graph.node(nodeName);
-        if (batchID) {
-            const batch = node.batch.find(b => b.batchID === batchID);
-            return batch.state;
-        }
-        return node.state;
-    }
-
     getNodeStates(nodeName) {
         let states = [];
         const node = this._graph.node(nodeName);
+        if (!node) {
+            throw new Error(`unable to find node ${nodeName}`)
+        }
         if (node.batch.length > 0) {
             states = node.batch.map(n => n.state);
         }
