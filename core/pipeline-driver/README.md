@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/kube-HPC/pipeline-driver.svg?branch=master)](https://travis-ci.org/kube-HPC/pipeline-driver)
+[![Coverage Status](https://coveralls.io/repos/github/kube-HPC/pipeline-driver/badge.svg?branch=master)](https://coveralls.io/github/kube-HPC/pipeline-driver?branch=master)
 
 ## Documentation
 
