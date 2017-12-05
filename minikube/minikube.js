@@ -219,7 +219,7 @@ const runCore = async (opts) => {
         }
         // const projectName = path.basename(file,path.extname(file));
         // const version = versions.versions.find(v=>v.project === projectName);
-        const tmpFile = changeYamlImageVersion(file, versions)
+        const tmpFile = changeYamlImageVersion(file, versions,coreYamlPath)
         syncSpawn(`kubectl`, `apply -f ${tmpFile}`)
     })
 }

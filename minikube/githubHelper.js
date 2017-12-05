@@ -9,8 +9,6 @@ const objectPath = require('object-path');
 
 const HKUBE = 'Kube-HPC'
 const RELEASE_MANAGER_REPO = 'release-manager'
-const { URL_PATH, YAML_PATH, REGISTRY, GITLAB, MINIKUBE, } = require('./consts-minikube');
-const coreYamlPath = YAML_PATH.core;
 
 const getLatestVersions = async (prefix) => {
     const github = new GitHubApi({
@@ -68,7 +66,7 @@ const getLatestVersions = async (prefix) => {
     }
 }
 
-const changeYamlImageVersion = (yamlFile, versions) => {
+const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
     const fullPath = `${coreYamlPath}/${yamlFile}`;
     try {
         const fileContents = fs.readFileSync(fullPath, 'utf8');
