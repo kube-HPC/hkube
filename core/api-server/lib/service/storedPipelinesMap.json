@@ -31,10 +31,10 @@
         },
         "webhooks": {
             "progressHook": {
-                "url": "http://webhook-stub-ui:30002/webhook/progress"
+                "url": "http://webhook-stub-ui:3002/webhook/progress"
             },
             "resultHook": {
-                "url": "http://webhook-stub-ui:30002/webhook/result"
+                "url": "http://webhook-stub-ui:3002/webhook/result"
             }
         },
         "options": {
