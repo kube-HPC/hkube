@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const validate = require('djsv');
 const { Consumer } = require('@hkube/producer-consumer');
 const schema = require('./schema');
+const Events = require('lib/consts/Events');
 
 class JobConsumer extends EventEmitter {
 
@@ -28,7 +29,7 @@ class JobConsumer extends EventEmitter {
         this._consumer = new Consumer(options);
         this._consumer.register(options);
         this._consumer.on('job', (job) => {
-            this.emit('job-start', job);
+            this.emit(Events.JOBS.START, job);
         })
     }
 }

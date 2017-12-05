@@ -4,6 +4,7 @@ const uuidv4 = require('uuid/v4');
 const { Producer } = require('@hkube/producer-consumer');
 const schema = require('lib/producer/schema');
 const stateManager = require('lib/state/state-manager');
+const Events = require('lib/consts/Events');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
@@ -24,10 +25,10 @@ class JobProducer extends EventEmitter {
             throw new Error(res.error);
         }
         this._producer = new Producer({ setting: setting });
-        this._producer.on('job-waiting', (data) => {
-            this.emit('task-waiting', data.jobID);
-        }).on('job-active', (data) => {
-            this.emit('task-active', data.jobID);
+        this._producer.on(Events.JOBS.WAITING, (data) => {
+            this.emit(Events.TASKS.WAITING, data.jobID);
+        }).on(Events.JOBS.ACTIVE, (data) => {
+            this.emit(Events.TASKS.ACTIVE, data.jobID);
         });
     }
 
@@ -51,7 +52,6 @@ class JobProducer extends EventEmitter {
             log.error(error.message, { component: components.JOBS_PRODUCER });
         }
         return result;
-
     }
 }
 

@@ -5,6 +5,7 @@ const stateManager = require('lib/state/state-manager');
 const progress = require('lib/progress/nodes-progress');
 const NodesMap = require('lib/nodes/nodes-map');
 const States = require('lib/state/States');
+const Events = require('lib/consts/Events');
 const Task = require('lib/tasks/Task');
 const inputParser = require('lib/parsers/input-parser');
 const Batch = require('lib/nodes/batch');
@@ -23,13 +24,13 @@ class TaskRunner {
 
     init(options) {
         this._config = options;
-        producer.on('task-waiting', (taskId) => {
+        producer.on(Events.TASKS.WAITING, (taskId) => {
             this._updateState(taskId, { status: States.PENDING });
         })
-        producer.on('task-active', (taskId) => {
+        producer.on(Events.TASKS.ACTIVE, (taskId) => {
             this._updateState(taskId, { status: States.ACTIVE });
         })
-        consumer.on('job-start', async (job) => {
+        consumer.on(Events.JOBS.START, async (job) => {
             try {
                 await this._startPipeline(job);
             }
@@ -37,15 +38,15 @@ class TaskRunner {
                 this._stopPipeline(error);
             }
         });
-        stateManager.on('job-stop', (data) => {
+        stateManager.on(Events.JOB_STOP, (data) => {
             this._stopPipeline(null, data.reason);
         });
-        stateManager.on('task-completed', async (data) => {
-            const task = await this._updateState(data.taskId, { status: data.status, result: data.result });
+        stateManager.on(Events.TASKS.COMPLETED, async (data) => {
+            const task = await this._updateState(data.taskId, { status: States.SUCCEED, result: data.result });
             this._taskComplete(task);
         });
-        stateManager.on('task-failed', async (data) => {
-            const task = await this._updateState(data.taskId, { status: data.status, error: data.error });
+        stateManager.on(Events.TASKS.FAILED, async (data) => {
+            const task = await this._updateState(data.taskId, { status: States.FAILED, error: data.error });
             this._taskComplete(task);
         });
     }
@@ -69,6 +70,7 @@ class TaskRunner {
         // first we will try to get the state for this job
         const state = await stateManager.getState();
         if (state) {
+            log.info(`starting recover process ${job.id}`, { component: components.TASK_RUNNER });
             stateManager.setState({ data: States.RECOVERING });
             this._recover(state);
         }
@@ -262,7 +264,16 @@ class TaskRunner {
     }
 
     async _recover(state) {
-        for (let driverTask of state.driverTasks) {
+        const tasksToRun = [];
+        state.driverTasks.forEach(driverTask => {
+            const jobTask = state.jobTasks.get(driverTask.taskId);
+            if (jobTask && jobTask.status !== driverTask.status) {
+                driverTask.result = jobTask.result;
+                driverTask.status = jobTask.status;
+                driverTask.error = jobTask.error;
+                log.info(`found ${driverTask.status} task ${driverTask.taskId} after recover`, { component: components.TASK_RUNNER });
+                tasksToRun.push(driverTask);
+            }
             if (driverTask.batchID) {
                 this._nodes.addBatch(new Batch({
                     name: driverTask.nodeName,
@@ -284,17 +295,11 @@ class TaskRunner {
                     error: driverTask.error
                 }));
             }
-        }
-        for (let driverTask of state.driverTasks) {
-            const jobTask = state.jobTasks.get(driverTask.taskId);
-            if (jobTask && jobTask.status !== driverTask.status) {
-                driverTask.result = jobTask.result;
-                driverTask.status = jobTask.status;
-                driverTask.error = jobTask.error;
-                log.info(`found ${driverTask.status} task ${driverTask.taskId} after recover`, { component: components.TASK_RUNNER });
-                await this._setTaskState(driverTask);
-                this._taskComplete(driverTask);
-            }
+        })
+
+        for (let task of tasksToRun) {
+            await this._setTaskState(task);
+            this._taskComplete(task);
         }
     }
 

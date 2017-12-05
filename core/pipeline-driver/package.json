@@ -1,8 +1,8 @@
 {
   "name": "pipeline-driver",
   "version": "1.0.18",
-  "description": "pipeline-driver manage workers",
-  "main": "index.js",
+  "description": "pipeline execution based on producer-consumer",
+  "main": "app.js",
   "directories": {
     "lib": "lib",
     "test": "test"
@@ -36,6 +36,6 @@
     "start": "node app",
     "build": "./dockerfile/build.sh pipeline-driver"
   },
-  "author": "RAF",
-  "license": "ISC"
+  "author": "Hkube",
+  "license": "MIT"
 }

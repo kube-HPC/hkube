@@ -129,7 +129,7 @@ class NodesMap {
                 states.push(n.state);
             }
         })
-        return states.every(s => s === States.COMPLETED || s === States.FAILED);
+        return states.every(s => s === States.SUCCEED || s === States.FAILED);
     }
 
     getAllNodes() {
@@ -174,7 +174,7 @@ class NodesMap {
         parents.forEach(p => {
             states = states.concat(this.getNodeStates(p));
         })
-        return states.every(s => s === States.COMPLETED || s === States.FAILED);
+        return states.every(s => s === States.SUCCEED || s === States.FAILED);
     }
 
     allNodesResults() {
@@ -204,7 +204,9 @@ class NodesMap {
     calc() {
         const nodes = this.getAllNodes();
         const groupedStates = groupBy(nodes, 'state');
-        const completed = groupedStates.completed ? groupedStates.completed.length : 0;
+        const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
+        const failed = groupedStates.failed ? groupedStates.failed.length : 0;
+        const completed = succeed + failed;
         const progress = (completed / nodes.length * 100).toFixed(2);
         const states = Object.entries(groupedStates).map(([key, value]) => `${value.length} ${key}`);
         const details = `${progress}% completed, ${states.join(', ')}`;
