@@ -3,14 +3,6 @@
     "version": "1.0.24",
     "description": "algorithm flows extraordinaire",
     "main": "index.js",
-    "scripts": {
-        "prestart": "npm install",
-        "start": "node index.js",
-        "build": "./dockerfile/build.sh api-server",
-        "test": "echo No test defined"
-    },
-    "license": "MIT",
-    "private": true,
     "dependencies": {
         "@hkube/config": "^1.0.0",
         "@hkube/etcd": "^2.1.46",
@@ -24,6 +16,20 @@
         "requestretry": "^1.12.2"
     },
     "devDependencies": {
-        "eslint-config-google": "^0.9.1"
-    }
+        "chai": "^4.1.2",
+        "coveralls": "^3.0.0",
+        "eslint-config-google": "^0.9.1",
+        "istanbul": "^1.1.0-alpha.1",
+        "mocha": "^3.5.3",
+        "request": "^2.83.0",
+        "sinon": "^4.1.2"
+    },
+    "scripts": {
+        "test": "mocha test --colors --recursive",
+        "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test",
+        "start": "node app",
+        "build": "./dockerfile/build.sh api-server"
+    },
+    "author": "Hkube",
+    "license": "MIT"
 }

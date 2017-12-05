@@ -20,11 +20,11 @@ const modules = [
 class Bootstrap {
     async init() {
         try {
-            const { maincfg, logger } = await configIt.load();
+            const { main, logger } = await configIt.load();
             this._handleErrors();
 
-            log = new Logger(maincfg.serviceName, logger);
-            log.plugins.use(new VerbosityPlugin(maincfg.redis));
+            log = new Logger(main.serviceName, logger);
+            log.plugins.use(new VerbosityPlugin(main.redis));
             log.info('running application in ' + configIt.env() + ' environment', { component: componentNames.MAIN });
 
             monitor.on('ready', (data) => {
@@ -33,16 +33,15 @@ class Bootstrap {
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component: componentNames.MAIN });
             });
-            monitor.check(maincfg.redis);
+            monitor.check(main.redis);
 
             const appServer = require('api/rest-api/app-server');
-            const dataRest = await appServer.init(maincfg);
+            const dataRest = await appServer.init(main);
             log.info(dataRest.message, { component: componentNames.REST_API });
 
-            //load all modules
-            await Promise.all(modules.map(m => require(m).init(maincfg)));
+            await Promise.all(modules.map(m => require(m).init(main)));
 
-            return maincfg;
+            return main;
         }
         catch (error) {
             log.error(error);

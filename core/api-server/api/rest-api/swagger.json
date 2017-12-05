@@ -88,7 +88,6 @@
                     {
                         "name": "options",
                         "in": "body",
-                        "description": "Unique identifier representing wokflow execution - is given in response to calling pipeline run method .",
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/stopRequest"
@@ -124,8 +123,7 @@
                         "in": "query",
                         "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
                         "required": true,
-                        "type": "string",
-                        "format": "uuid"
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -158,7 +156,7 @@
                     {
                         "name": "execution_id",
                         "in": "query",
-                        "description": "execution id to get results for",
+                        "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
                         "required": true,
                         "type": "string"
                     }
@@ -353,7 +351,12 @@
                 },
                 "algorithmName": {
                     "type": "string",
-                    "description": "Unique identifier representing a specific function. e.g. \"Average\""
+                    "description": "Unique identifier representing a specific function. e.g. \"Average\"",
+                    "enum": [
+                        "green-alg",
+                        "yellow-alg",
+                        "black-alg"
+                    ]
                 },
                 "input": {
                     "type": "array",
@@ -481,7 +484,7 @@
             "properties": {
                 "execution_id": {
                     "type": "string",
-                    "format": "uuid"
+                    "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method ."
                 }
             },
             "description": "status for pipeline execution",
@@ -495,13 +498,17 @@
             "properties": {
                 "execution_id": {
                     "type": "string",
-                    "format": "uuid"
+                    "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method ."
                 },
                 "reason": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "requested by user",
+                    "description": "reason for stop pipeline"
                 }
             },
-            "description": "reason for pipeline execution",
+            "required": [
+                "execution_id"
+            ],
             "example": {
                 "execution_id": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
                 "reason": "cancel now"
@@ -608,7 +615,7 @@
                 "name"
             ]
         },
-        "executionJob": {
+        "executionID": {
             "type": "object",
             "properties": {
                 "execution_id": {

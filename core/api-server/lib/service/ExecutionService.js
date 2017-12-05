@@ -55,10 +55,10 @@ class ExecutionService {
    * returns List
    **/
   async getJobStatus(options) {
-    validator.validateExecutionJob(options);
+    validator.validateExecutionID(options);
     const status = await stateManager.getJobStatus({ jobId: options.execution_id });
     if (!status) {
-      throw new ResourceNotFoundError('status for', options.execution_id);
+      throw new ResourceNotFoundError('status', options.execution_id);
     }
     return status;
   }
@@ -72,10 +72,10 @@ class ExecutionService {
    * returns pipelineExecutionResult
    **/
   async getJobResult(options) {
-    validator.validateExecutionJob(options);
+    validator.validateExecutionID(options);
     const result = await stateManager.getJobResult({ jobId: options.execution_id });
     if (!result) {
-      throw new ResourceNotFoundError('result for', options.execution_id);
+      throw new ResourceNotFoundError('result', options.execution_id);
     }
     return result;
   }
@@ -89,7 +89,7 @@ class ExecutionService {
    * returns String
    **/
   async stopJob(options) {
-    validator.validateExecutionJob(options);
+    validator.validateStopPipeline(options);
     const job = await stateManager.getJobStatus({ jobId: options.execution_id });
     if (!job) {
       throw new ResourceNotFoundError('execution_id', options.execution_id);

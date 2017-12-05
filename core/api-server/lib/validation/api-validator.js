@@ -15,37 +15,61 @@ class Validator {
     }
 
     validateRunRawPipeline(pipeline) {
-        return this._validate(schemas.pipeline, pipeline);
+        this._validate(schemas.pipeline, pipeline);
     }
 
     validateRunStoredPipeline(pipeline) {
-        return this._validate(schemas.runStoredPipeline, pipeline);
+        this._validate(schemas.runStoredPipeline, pipeline);
+    }
+
+    validateStopPipeline(pipeline) {
+        this._validate(schemas.stopRequest, pipeline);
     }
 
     validateUpdatePipeline(pipeline) {
-        return this._validate(schemas.updatePipeline, pipeline);
+        this._validate(schemas.updatePipeline, pipeline);
     }
 
     validateDeletePipeline(pipeline) {
-        return this._validate(schemas.pipelineName, pipeline);
+        this._validate(schemas.pipelineName, pipeline);
     }
 
     validateInsertPipeline(pipeline) {
-        return this._validate(schemas.pipeline, pipeline);
+        this._validate(schemas.pipeline, pipeline);
     }
 
     validateGetPipeline(pipeline) {
-        return this._validate(schemas.pipelineName, pipeline);
+        this._validate(schemas.pipelineName, pipeline);
     }
 
-    validateExecutionJob(pipeline) {
-        return this._validate(schemas.executionJob, pipeline);
+    validateExecutionID(pipeline) {
+        this._validate(schemas.executionID, pipeline);
     }
 
     _validate(schema, object) {
         const res = validator(schema, object);
         if (!res.valid) {
             throw new InvalidDataError(res.error);
+        }
+        if (object.nodes) {
+            this._validateNodes(object.nodes);
+        }
+    }
+
+    _validateNodes(nodes) {
+        const duplicates = [];
+        nodes.forEach((node, index) => {
+            if (node.nodeName === 'flowInput') {
+                throw new InvalidDataError(`node ${node.nodeName} has invalid reserved name flowInput`);
+            }
+            if (node.nodeName.indexOf(node, index + 1) > -1) {
+                if (duplicates.indexOf(node) === -1) {
+                    duplicates.push(node);
+                }
+            }
+        });
+        if (duplicates.length > 0) {
+            throw new InvalidDataError(`found duplicate nodes ${duplicates.join(',')}`);
         }
     }
 }
