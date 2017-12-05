@@ -347,11 +347,13 @@
             "type": "object",
             "properties": {
                 "nodeName": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                 },
                 "algorithmName": {
                     "type": "string",
                     "description": "Unique identifier representing a specific function. e.g. \"Average\"",
+                    "minLength": 1,
                     "enum": [
                         "green-alg",
                         "yellow-alg",
@@ -361,10 +363,12 @@
                 "input": {
                     "type": "array",
                     "description": "extra input, in addition to the output from parent step.",
+                    "default": [],
                     "items": {
-                        "anyOf": [
+                        "oneOf": [
                             {
                                 "type": [
+                                    "null",
                                     "string",
                                     "boolean",
                                     "object",
@@ -378,15 +382,15 @@
             },
             "required": [
                 "nodeName",
-                "algorithmName",
-                "input"
+                "algorithmName"
             ]
         },
         "pipeline": {
             "type": "object",
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                 },
                 "nodes": {
                     "type": "array",
@@ -419,7 +423,8 @@
             "type": "object",
             "properties": {
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                 },
                 "nodes": {
                     "type": "array",
@@ -451,32 +456,18 @@
             "id": "#/definitions/webhooks",
             "type": "object",
             "properties": {
-                "progressHook": {
-                    "type": "object",
-                    "$ref": "#/definitions/webhook",
-                    "description": "uri to activate upon progress"
+                "progress": {
+                    "type": "string",
+                    "description": "url to activate upon progress"
                 },
-                "resultHook": {
-                    "type": "object",
-                    "$ref": "#/definitions/webhook",
-                    "description": "uri to activate upon result"
+                "complete": {
+                    "type": "string",
+                    "description": "url to activate upon complete"
                 }
             },
             "required": [
-                "progressHook",
-                "resultHook"
-            ]
-        },
-        "webhook": {
-            "id": "#/definitions/webhook",
-            "type": "object",
-            "properties": {
-                "url": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "url"
+                "progress",
+                "complete"
             ]
         },
         "pipelineExecutionStatus": {
@@ -542,7 +533,8 @@
             "properties": {
                 "name": {
                     "type": "string",
-                    "example": "myFlow"
+                    "example": "myFlow",
+                    "minLength": 1
                 },
                 "flowInput": {
                     "type": "object",

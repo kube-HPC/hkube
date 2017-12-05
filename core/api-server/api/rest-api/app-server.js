@@ -25,13 +25,13 @@ class AppServer {
           routes.push({
             route: path.join('/', prefix, v, file),
             router: require(`./routes${v}/${file}`)({ version: v, file: file })
-          },
+          }
           );
         })
       }
 
-      // swagger.host = options.swaggerPath.host + ':' + options.swaggerPath.port;
-      swagger.basePath = options.swaggerPath.path;
+      // swagger.host = options.swagger.host + ':' + options.swagger.port;
+      swagger.basePath = options.swagger.path;
 
       const beforeRoutesMiddlewares = [
         beforeRouteMiddleware()

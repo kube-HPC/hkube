@@ -1,6 +1,5 @@
 const request = require('requestretry');
 const stateManager = require('lib/state/state-manager');
-const Webhook = require('./web-hook');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
@@ -20,7 +19,7 @@ class WebhooksHandler {
         this._options = options;
         stateManager.on('job-result', async (response) => {
             const pipeline = await stateManager.getExecution({ jobId: response.execution_id });
-            this._request(pipeline.webhooks.resultHook.url, this._options.webhooks.resultHook, response, 'result');
+            this._request(pipeline.webhooks.complete, this._options.webhooks.complete, response, 'result');
         })
 
         stateManager.on('job-status', async (response) => {
@@ -31,7 +30,7 @@ class WebhooksHandler {
             log.info(`progress event with ${response.data.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER });
 
             if (clientLevel <= pipelineLevel) {
-                this._request(pipeline.webhooks.progressHook.url, this._options.webhooks.progressHook, response, 'status');
+                this._request(pipeline.webhooks.progress, this._options.webhooks.progress, response, 'status');
             }
         })
     }

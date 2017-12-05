@@ -12,7 +12,7 @@ config.rest = {
     poweredBy: 'H-Kube Server'
 };
 
-config.swaggerPath = {
+config.swagger = {
     protocol: false ? 'https' : 'http',
     host: process.env.BASE_URL_HOST || 'localhost',
     port: process.env.BASE_URL_PORT || config.rest.port,
@@ -32,11 +32,11 @@ config.etcd = {
 };
 
 config.webhooks = {
-    progressHook: {
+    progress: {
         maxAttempts: 3,
         retryDelay: 5000
     },
-    resultHook: {
+    complete: {
         maxAttempts: 3,
         retryDelay: 5000
     }
