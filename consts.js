@@ -16,6 +16,7 @@ const GIT_PREFIX = {
 const FOLDERS = {
     dev: `${process.env.HOME}/dev/hkube/`,
     common: `${process.env.HOME}/dev/hkube-common/`,
+    hkube: `${process.env.HOME}/.hkube`
 
 }
 

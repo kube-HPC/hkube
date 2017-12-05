@@ -123,8 +123,9 @@ const cloneDeployment = async () => {
     console.log(`trying to find if hkube is cloned on your pc`.green);
     if (!fs.existsSync(`${FOLDERS.dev}/deployment`)) {
         let sema = new semaphore();
-        let git = simpleGit(__dirname);
-        let commonPath = `${__dirname}/deployment`
+        fs.mkdirpSync(FOLDERS.hkube);
+        let git = simpleGit(FOLDERS.hkube);
+        let commonPath = `${FOLDERS.hkube}/deployment`
         let basePath = `${commonPath}/kubernetes/yaml`
         coreYamlPath = `${basePath}/core`
         thirdPartyYamlPath = `${basePath}/thirdParty`
