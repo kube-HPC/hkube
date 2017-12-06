@@ -17,6 +17,7 @@
     },
     "devDependencies": {
         "chai": "^4.1.2",
+        "clone": "^2.1.1",
         "coveralls": "^3.0.0",
         "istanbul": "^1.1.0-alpha.1",
         "mocha": "^3.5.3",

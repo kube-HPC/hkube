@@ -8,6 +8,11 @@ const routes = function (options) {
         next();
     });
     router.post('/raw', (req, res, next) => {
+        // if (req.method === 'GET') {
+        //     res.set('Allow', 'POST');
+        //     res.status(405).json('Method Not Allowed');
+        //     return;
+        // }
         Execution.runRaw(req.body).then((response) => {
             res.json({ execution_id: response });
             next();
@@ -23,24 +28,46 @@ const routes = function (options) {
             return next(error);
         });
     });
-    router.get('/status', (req, res, next) => {
-        const execution_id = req.query.execution_id;
-        Execution.getJobStatus({ execution_id }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
+    router.route('/status/:execution_id?')
+        .get((req, res, next) => {
+            const execution_id = req.params.execution_id || req.query.execution_id;
+            Execution.getJobStatus({ execution_id }).then((response) => {
+                res.json(response);
+                next();
+            }).catch((error) => {
+                return next(error);
+            });
+        })
+        .put((req, res, next) => {
+            next(new Error('not implemented'));
+        })
+        .post((req, res, next) => {
+            next(new Error('not implemented'));
+        })
+        .delete((req, res, next) => {
+            next(new Error('not implemented'));
         });
-    });
-    router.get('/results', (req, res, next) => {
-        const execution_id = req.query.execution_id;
-        Execution.getJobResult({ execution_id }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
+
+    router.route('/results/:execution_id?')
+        .get((req, res, next) => {
+            const execution_id = req.params.execution_id || req.query.execution_id;
+            Execution.getJobResult({ execution_id }).then((response) => {
+                res.json(response);
+                next();
+            }).catch((error) => {
+                return next(error);
+            });
+        })
+        .put((req, res, next) => {
+            next(new Error('not implemented'));
+        })
+        .post((req, res, next) => {
+            next(new Error('not implemented'));
+        })
+        .delete((req, res, next) => {
+            next(new Error('not implemented'));
         });
-    });
+
     router.post('/stop', (req, res, next) => {
         Execution.stopJob(req.body).then((response) => {
             res.json({ message: 'OK' });
