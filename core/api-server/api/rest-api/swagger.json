@@ -3,7 +3,7 @@
     "info": {
         "description": "algorithm flows extraordinaire",
         "version": "1.0.0",
-        "title": "H-Kube API"
+        "title": "HKube API"
     },
     "produces": [
         "application/json"
@@ -110,7 +110,7 @@
                 }
             }
         },
-        "/exec/status": {
+        "/exec/status/{name}": {
             "get": {
                 "tags": [
                     "Execution"
@@ -120,7 +120,7 @@
                 "parameters": [
                     {
                         "name": "execution_id",
-                        "in": "query",
+                        "in": "path",
                         "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
                         "required": true,
                         "type": "string"
@@ -145,7 +145,7 @@
                 }
             }
         },
-        "/exec/results": {
+        "/exec/results/{name}": {
             "get": {
                 "tags": [
                     "Execution"
@@ -155,7 +155,7 @@
                 "parameters": [
                     {
                         "name": "execution_id",
-                        "in": "query",
+                        "in": "path",
                         "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
                         "required": true,
                         "type": "string"

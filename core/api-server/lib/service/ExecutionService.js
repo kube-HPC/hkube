@@ -75,7 +75,7 @@ class ExecutionService {
     validator.validateExecutionID(options);
     const result = await stateManager.getJobResult({ jobId: options.execution_id });
     if (!result) {
-      throw new ResourceNotFoundError('result', options.execution_id);
+      throw new ResourceNotFoundError('results', options.execution_id);
     }
     return result;
   }
