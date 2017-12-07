@@ -1,4 +1,3 @@
-const EventEmitter = require('events');
 const validate = require('djsv');
 const { Producer } = require('@hkube/producer-consumer');
 const schema = require('lib/producer/schema');
@@ -6,11 +5,7 @@ const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
 
-class JobProducer extends EventEmitter {
-
-    constructor() {
-        super();
-    }
+class JobProducer {
 
     init(options) {
         const setting = Object.assign({}, { redis: options.redis });

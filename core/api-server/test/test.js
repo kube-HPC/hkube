@@ -9,8 +9,11 @@ const clone = require('clone');
 const bootstrap = require('../bootstrap');
 const stateManager = require('lib/state/state-manager');
 const pipelines = require('./mocks/pipelines.json');
-let restV1;
-let restV2;
+const webhookStub = require('./mocks/webhook-stub');
+let restV1, restV2;
+
+/// TODO: CHECK 201, 405, 409 CODES
+/// TODO: WRITE DOCS ON WEBHOOKS
 
 function _request(options) {
     return new Promise((resolve, reject) => {
@@ -35,6 +38,7 @@ describe('Test', function () {
         restV1 = baseUrl + config.rest.versions[0];
         restV2 = baseUrl + config.rest.versions[1];
         await Promise.all(pipelines.map(p => stateManager.setPipeline(p)));
+        webhookStub.start();
     })
     describe('Rest-API v1', function () {
         describe('Execution', function () {
@@ -846,6 +850,35 @@ describe('Test', function () {
                     const response = await _request(options);
                     expect(response.body).to.have.property('message');
                     expect(response.body.message).to.equal('OK');
+                });
+            });
+        });
+        describe('Webhooks', function () {
+            describe('Results', function () {
+            });
+            describe('Progress', function () {
+                it('should succeed to post a webhook', async function () {
+                    let execution_id = null;
+                    webhookStub.on('progress', async (request) => {
+                        if (request.body.execution_id === execution_id) {
+                            expect(request.body).to.have.property('data');
+                            expect(request.body).to.have.property('execution_id');
+                            expect(request.body).to.have.property('timestamp');
+
+                            const status = {
+                                uri: restV1 + `/exec/status/${execution_id}`,
+                                method: 'GET'
+                            }
+                            const responseStatus = await _request(status);
+                            expect(request.body).to.deep.equal(responseStatus.body);
+                        }
+                    })
+                    const stored = {
+                        uri: restV1 + '/exec/stored',
+                        body: { "name": "webhookFlow" }
+                    }
+                    const response = await _request(stored);
+                    execution_id = response.body.execution_id;
                 });
             });
         });
