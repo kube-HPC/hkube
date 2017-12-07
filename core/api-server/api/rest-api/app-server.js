@@ -19,7 +19,11 @@ class AppServer {
       const prefix = options.rest.prefix;
       const routes = [];
       routes.push({ route: '/metrics', router: metricsRoute() });
+
+      const baseUrl = `${options.swagger.protocol}://${options.swagger.host}:${options.swagger.port}/${options.rest.prefix}`
+
       for (const v of options.rest.versions) {
+        swagger.servers.push({ url: baseUrl + v });
         fs.readdirSync(__dirname + `/routes/${v}`).forEach(f => {
           const file = path.basename(f, '.js');
           routes.push({

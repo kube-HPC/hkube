@@ -1,45 +1,65 @@
 {
-    "swagger": "2.0",
+    "openapi": "3.0.0",
     "info": {
+        "title": "HKube API",
         "description": "algorithm flows extraordinaire",
         "version": "1.0.0",
-        "title": "HKube API"
+        "license": {
+            "name": "MIT",
+            "url": ""
+        }
     },
-    "produces": [
-        "application/json"
-    ],
+    "servers": [],
     "paths": {
         "/exec/raw": {
             "post": {
                 "tags": [
                     "Execution"
                 ],
-                "summary": "run algorithm flow",
-                "description": "The run endpoint initiates an algorithm flow with the input received and returns the ID of the running pipeline. ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "options",
-                        "description": "an object representing all information needed for pipeline execution",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/pipeline"
-                        }
-                    }
-                ],
+                "summary": "run pipeline",
+                "description": "Start pipeline execution with raw input, returns execution_id that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
                 "responses": {
                     "200": {
                         "description": "pipeline execution data",
-                        "schema": {
-                            "$ref": "#/definitions/pipelineExecutionStatus"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/executionID"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/pipeline"
+                            }
+                        }
+                    },
+                    "description": "an object representing all information needed for pipeline execution",
+                    "required": true
                 }
             }
         },
@@ -49,31 +69,59 @@
                     "Execution"
                 ],
                 "summary": "run algorithm flow",
-                "description": "The run endpoint initiates an algorithm flow with the input received and returns the ID of the running pipeline. ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "options",
-                        "description": "an object representing all information needed for stored pipeline execution",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/runStoredPipeline"
-                        }
-                    }
-                ],
+                "description": "Start pipeline execution when the name of the pipeline is known (/store/pipelines), all parameters in this action will be merged with the stored pipeline and then returns execution_id that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
                 "responses": {
                     "200": {
                         "description": "pipeline execution data",
-                        "schema": {
-                            "$ref": "#/definitions/pipelineExecutionStatus"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/executionID"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/runStoredPipeline"
+                            }
+                        }
+                    },
+                    "description": "an object representing all information needed for stored pipeline execution",
+                    "required": true
                 }
             }
         },
@@ -83,95 +131,178 @@
                     "Execution"
                 ],
                 "summary": "stop pipeline execution",
-                "description": "call to stop the flow execution\n",
-                "parameters": [
-                    {
-                        "name": "options",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/stopRequest"
-                        }
-                    }
-                ],
+                "description": "call to stop the flow execution",
                 "responses": {
                     "200": {
                         "description": "the OK string",
-                        "schema": {
-                            "type": "string"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
-                    "default": {
-                        "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
-                    }
-                }
-            }
-        },
-        "/exec/status/{name}": {
-            "get": {
-                "tags": [
-                    "Execution"
-                ],
-                "summary": "workflow execution status",
-                "description": "returns a status for the current pipeline.",
-                "parameters": [
-                    {
-                        "name": "execution_id",
-                        "in": "path",
-                        "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
-                        "required": true,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "An array of products",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/pipelineExecutionStatus"
+                    },
+                    "404": {
+                        "description": "execution_id Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
                             }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/stopRequest"
+                            }
+                        }
+                    },
+                    "required": true
                 }
             }
         },
-        "/exec/results/{name}": {
+        "/exec/status/{execution_id}": {
             "get": {
                 "tags": [
                     "Execution"
                 ],
-                "summary": "get run result",
-                "description": "returns result (json) for the execution of a specific pipeline run. if called before result is determined - returns error.",
+                "summary": "pipeline execution status",
+                "description": "returns a status for the current pipeline.",
                 "parameters": [
                     {
                         "name": "execution_id",
                         "in": "path",
-                        "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
+                        "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "type": "string"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "action summery",
-                        "schema": {
-                            "$ref": "#/definitions/pipelineExecutionResult"
+                        "description": "pipeline result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/pipelineResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "execution_id Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/exec/results/{execution_id}": {
+            "get": {
+                "tags": [
+                    "Execution"
+                ],
+                "summary": "get run result",
+                "description": "returns result for the execution of a specific pipeline run. if called before result is determined - returns error.",
+                "parameters": [
+                    {
+                        "name": "execution_id",
+                        "in": "path",
+                        "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/Error"
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/pipelineResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "execution_id Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
                 }
@@ -182,28 +313,58 @@
                 "tags": [
                     "Store"
                 ],
-                "summary": "get all pipelines or specific pipeline data from store",
-                "description": "returns stored pipeline",
+                "summary": "get specific pipeline from store",
+                "description": "get specific pipeline from store",
                 "parameters": [
                     {
                         "name": "name",
                         "in": "path",
                         "description": "pipeline name to get from the store",
-                        "type": "string",
-                        "required": true
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "action summery",
-                        "schema": {
-                            "$ref": "#/definitions/defaultResponse"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
                 }
@@ -212,28 +373,58 @@
                 "tags": [
                     "Store"
                 ],
-                "summary": "delete stored pipeline",
-                "description": "removes selected stored pipeline from store",
+                "summary": "delete existing pipeline",
+                "description": "delete existing pipeline",
                 "parameters": [
                     {
                         "name": "name",
                         "in": "path",
                         "description": "pipeline name to get from the store",
                         "required": true,
-                        "type": "string"
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "action summery",
-                        "schema": {
-                            "$ref": "#/definitions/defaultResponse"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
                 }
@@ -244,27 +435,37 @@
                 "tags": [
                     "Store"
                 ],
-                "summary": "get all pipelines or specific pipeline data from store",
-                "description": "returns stored pipeline",
+                "summary": "get all pipelines",
+                "description": "get all pipelines",
                 "parameters": [
                     {
                         "name": "sort",
                         "in": "query",
                         "description": "pipeline name to get from the store",
-                        "type": "string"
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "action summery",
-                        "schema": {
-                            "$ref": "#/definitions/defaultResponse"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
                 }
@@ -273,350 +474,388 @@
                 "tags": [
                     "Store"
                 ],
-                "summary": "add a pipeline",
-                "description": "adds the given pipeline to the store.",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "pipeline",
-                        "description": "pipeline descriptor to be added to the store",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/pipeline"
-                        }
-                    }
-                ],
+                "summary": "insert new pipeline",
+                "description": "insert new pipeline",
                 "responses": {
                     "201": {
-                        "description": "Profile information for a user",
-                        "schema": {
-                            "$ref": "#/definitions/defaultResponse"
+                        "description": "pipeline created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
                         }
                     },
                     "409": {
-                        "description": "Profile information for a user",
-                        "schema": {
-                            "$ref": "#/definitions/defaultResponse"
+                        "description": "pipeline conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
+                },
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/pipeline"
                 }
             },
             "put": {
                 "tags": [
                     "Store"
                 ],
-                "summary": "get pipeline data from store",
-                "description": "returns stored pipeline",
-                "parameters": [
-                    {
-                        "in": "body",
-                        "name": "options",
-                        "description": "pipeline descriptor to be added to the store",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/pipeline"
-                        }
-                    }
-                ],
+                "summary": "update existing pipeline",
+                "description": "update existing pipeline",
                 "responses": {
                     "200": {
                         "description": "action summery",
-                        "schema": {
-                            "$ref": "#/definitions/defaultResponse"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     },
                     "default": {
                         "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
                         }
                     }
+                },
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/pipeline"
                 }
             }
         }
     },
-    "definitions": {
-        "pipelineNode": {
-            "id": "#/definitions/pipelineNode",
-            "type": "object",
-            "properties": {
-                "nodeName": {
-                    "type": "string",
-                    "minLength": 1
+    "components": {
+        "requestBodies": {
+            "pipeline": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/pipeline"
+                        }
+                    }
                 },
-                "algorithmName": {
-                    "type": "string",
-                    "description": "Unique identifier representing a specific function. e.g. \"Average\"",
-                    "minLength": 1,
-                    "enum": [
-                        "green-alg",
-                        "yellow-alg",
-                        "black-alg"
-                    ]
+                "description": "pipeline descriptor to be added to the store",
+                "required": true
+            }
+        },
+        "schemas": {
+            "pipeline": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific pipeline",
+                        "minLength": 1
+                    },
+                    "nodes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/pipelineNode"
+                        }
+                    },
+                    "flowInput": {
+                        "type": "object",
+                        "description": "input object",
+                        "properties": {}
+                    },
+                    "webhooks": {
+                        "$ref": "#/components/schemas/webhooks"
+                    },
+                    "options": {
+                        "$ref": "#/components/schemas/options",
+                        "default": {}
+                    }
                 },
-                "input": {
-                    "type": "array",
-                    "description": "extra input, in addition to the output from parent step.",
-                    "default": [],
-                    "items": {
-                        "oneOf": [
-                            {
-                                "type": [
-                                    "null",
-                                    "string",
-                                    "boolean",
-                                    "object",
-                                    "array",
-                                    "number"
-                                ]
-                            }
+                "additionalProperties": false,
+                "required": [
+                    "name",
+                    "nodes",
+                    "webhooks"
+                ]
+            },
+            "pipelineNode": {
+                "id": "#/components/schemas/pipelineNode",
+                "type": "object",
+                "properties": {
+                    "nodeName": {
+                        "type": "string",
+                        "description": "Unique identifier",
+                        "minLength": 1
+                    },
+                    "algorithmName": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific function. e.g. \"Average\"",
+                        "minLength": 1,
+                        "enum": [
+                            "green-alg",
+                            "yellow-alg",
+                            "black-alg"
+                        ]
+                    },
+                    "input": {
+                        "type": "array",
+                        "description": "extra input, in addition to the output from parent step.",
+                        "default": []
+                    }
+                },
+                "required": [
+                    "nodeName",
+                    "algorithmName"
+                ]
+            },
+            "runStoredPipeline": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "myFlow",
+                        "minLength": 1
+                    },
+                    "flowInput": {
+                        "type": "object",
+                        "description": "input object",
+                        "properties": {}
+                    },
+                    "webhooks": {
+                        "$ref": "#/components/schemas/webhooks"
+                    },
+                    "options": {
+                        "$ref": "#/components/schemas/options",
+                        "default": {}
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "name"
+                ]
+            },
+            "updatePipeline": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "nodes": {
+                        "type": "array",
+                        "description": "Unique identifier representing a specific function. e.g. \"Average\"",
+                        "items": {
+                            "$ref": "#/components/schemas/pipelineNode"
+                        }
+                    },
+                    "flowInput": {
+                        "type": "object",
+                        "description": "input object",
+                        "properties": {}
+                    },
+                    "webhooks": {
+                        "$ref": "#/components/schemas/webhooks"
+                    },
+                    "options": {
+                        "$ref": "#/components/schemas/options",
+                        "default": {}
+                    }
+                },
+                "additionalProperties": false,
+                "minProperties": 2,
+                "required": [
+                    "name"
+                ]
+            },
+            "webhooks": {
+                "id": "#/components/schemas/webhooks",
+                "type": "object",
+                "properties": {
+                    "progress": {
+                        "type": "string",
+                        "description": "url to activate upon progress"
+                    },
+                    "complete": {
+                        "type": "string",
+                        "description": "url to activate upon complete"
+                    }
+                },
+                "required": [
+                    "progress",
+                    "complete"
+                ]
+            },
+            "options": {
+                "id": "#/components/schemas/options",
+                "type": "object",
+                "properties": {
+                    "batchTolerance": {
+                        "type": "integer",
+                        "default": 80,
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "progressVerbosityLevel": {
+                        "type": "string",
+                        "default": "info",
+                        "enum": [
+                            "silly",
+                            "debug",
+                            "info",
+                            "warning",
+                            "error",
+                            "critical"
                         ]
                     }
+                },
+                "description": "optional properties",
+                "example": {
+                    "batchTolerance": 60,
+                    "progressVerbosityLevel": "info"
                 }
             },
-            "required": [
-                "nodeName",
-                "algorithmName"
-            ]
-        },
-        "pipeline": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "nodes": {
-                    "type": "array",
-                    "description": "Unique identifier representing a specific function. e.g. \"Average\"",
-                    "items": {
-                        "$ref": "#/definitions/pipelineNode"
+            "stopRequest": {
+                "type": "object",
+                "properties": {
+                    "execution_id": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "default": "requested by user",
+                        "description": "reason for stop pipeline"
                     }
                 },
-                "flowInput": {
-                    "type": "object",
-                    "description": "input object",
-                    "properties": {}
-                },
-                "webhooks": {
-                    "$ref": "#/definitions/webhooks"
-                },
-                "options": {
-                    "$ref": "#/definitions/options",
-                    "default": {}
+                "required": [
+                    "execution_id"
+                ],
+                "example": {
+                    "execution_id": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+                    "reason": "cancel now"
                 }
             },
-            "additionalProperties": false,
-            "required": [
-                "name",
-                "nodes",
-                "webhooks"
-            ]
-        },
-        "updatePipeline": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "nodes": {
-                    "type": "array",
-                    "description": "Unique identifier representing a specific function. e.g. \"Average\"",
-                    "items": {
-                        "$ref": "#/definitions/pipelineNode"
+            "defaultResponse": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
                     }
                 },
-                "flowInput": {
-                    "type": "object",
-                    "description": "input object",
-                    "properties": {}
-                },
-                "webhooks": {
-                    "$ref": "#/definitions/webhooks"
-                },
-                "options": {
-                    "$ref": "#/definitions/options",
-                    "default": {}
+                "example": {
+                    "message": "message"
                 }
             },
-            "additionalProperties": false,
-            "minProperties": 2,
-            "required": [
-                "name"
-            ]
-        },
-        "webhooks": {
-            "id": "#/definitions/webhooks",
-            "type": "object",
-            "properties": {
-                "progress": {
-                    "type": "string",
-                    "description": "url to activate upon progress"
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "pipelineExecutionResult": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "type": "object",
+                        "description": "input object",
+                        "properties": {}
+                    }
                 },
-                "complete": {
-                    "type": "string",
-                    "description": "url to activate upon complete"
+                "example": {
+                    "result": "{}"
                 }
             },
-            "required": [
-                "progress",
-                "complete"
-            ]
-        },
-        "pipelineExecutionStatus": {
-            "type": "object",
-            "properties": {
-                "execution_id": {
-                    "type": "string",
-                    "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method ."
-                }
-            },
-            "description": "status for pipeline execution",
-            "example": {
-                "execution_id": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-                "status": "status"
-            }
-        },
-        "stopRequest": {
-            "type": "object",
-            "properties": {
-                "execution_id": {
-                    "type": "string",
-                    "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method ."
+            "pipelineName": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
                 },
-                "reason": {
-                    "type": "string",
-                    "default": "requested by user",
-                    "description": "reason for stop pipeline"
-                }
+                "required": [
+                    "name"
+                ]
             },
-            "required": [
-                "execution_id"
-            ],
-            "example": {
-                "execution_id": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-                "reason": "cancel now"
-            }
-        },
-        "defaultResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            },
-            "example": {
-                "message": "message"
-            }
-        },
-        "Error": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer",
-                    "format": "int32"
+            "executionID": {
+                "type": "object",
+                "properties": {
+                    "execution_id": {
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
+                    }
                 },
-                "message": {
-                    "type": "string"
+                "required": [
+                    "execution_id"
+                ]
+            },
+            "pipelineResult": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "string"
+                    },
+                    "execution_id": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "timestamp": {
+                                "type": "string"
+                            },
+                            "execution_id": {
+                                "type": "string"
+                            },
+                            "data": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             }
-        },
-        "runStoredPipeline": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "example": "myFlow",
-                    "minLength": 1
-                },
-                "flowInput": {
-                    "type": "object",
-                    "description": "input object",
-                    "properties": {}
-                },
-                "webhooks": {
-                    "$ref": "#/definitions/webhooks"
-                },
-                "options": {
-                    "$ref": "#/definitions/options",
-                    "default": {}
-                }
-            },
-            "additionalProperties": false,
-            "required": [
-                "name"
-            ]
-        },
-        "pipelineExecutionResult": {
-            "type": "object",
-            "properties": {
-                "result": {
-                    "type": "object",
-                    "description": "input object",
-                    "properties": {}
-                }
-            },
-            "example": {
-                "result": "{}"
-            }
-        },
-        "options": {
-            "id": "#/definitions/options",
-            "type": "object",
-            "properties": {
-                "batchTolerance": {
-                    "type": "integer",
-                    "default": 80,
-                    "minimum": 0,
-                    "maximum": 100
-                },
-                "progressVerbosityLevel": {
-                    "type": "string",
-                    "default": "info",
-                    "enum": [
-                        "silly",
-                        "debug",
-                        "info",
-                        "warning",
-                        "error",
-                        "critical"
-                    ]
-                }
-            },
-            "description": "optional properties",
-            "example": {
-                "batchTolerance": 60,
-                "progressVerbosityLevel": "info"
-            }
-        },
-        "pipelineName": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "name"
-            ]
-        },
-        "executionID": {
-            "type": "object",
-            "properties": {
-                "execution_id": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "execution_id"
-            ]
         }
     }
 }

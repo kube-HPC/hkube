@@ -1,6 +1,6 @@
 
 const validator = require('djsv');
-const schemas = require('api/rest-api/swagger.json').definitions;
+const schemas = require('api/rest-api/swagger.json').components.schemas;
 const { InvalidDataError, } = require('lib/errors/errors');
 
 class Validator {
