@@ -6,5 +6,9 @@
 
 ## Documentation
 
+The full doc can be found here
+The Swagger-UI can found at http://localhost:3000/swagger-ui/
 
+## License
 
+  [MIT](LICENSE)
