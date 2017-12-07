@@ -6,7 +6,7 @@
 
 ## Documentation
 
-The full doc can be found here
+The full doc can be found [here](https://kube-hpc.github.io/api-server/docs.html)  
 The Swagger-UI can found at http://localhost:3000/swagger-ui/
 
 ## License
