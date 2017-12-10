@@ -34,15 +34,16 @@ class AppServer {
       // swagger.host = options.swagger.host + ':' + options.swagger.port;
       swagger.basePath = options.swagger.path;
 
-      const opt = Object.assign({
-        swagger: swagger,
+      const opt = {
+        swagger,
         poweredBy: options.rest.poweredBy,
         name: options.serviceName,
-        routes: routes,
-        prefix: prefix,
+        routes,
+        prefix,
         port: options.rest.port,
         versions: options.rest.versions,
-      },metrics.getMiddleware());
+        ...metrics.getMiddleware()
+      };
 
       rest.start(opt).then((data) => {
         resolve({
