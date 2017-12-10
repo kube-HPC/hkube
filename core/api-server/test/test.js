@@ -12,7 +12,6 @@ const pipelines = require('./mocks/pipelines.json');
 const webhookStub = require('./mocks/webhook-stub');
 let config, baseUrl;
 
-/// TODO: CHECK 201, 405, 409 CODES
 /// TODO: WRITE DOCS ON WEBHOOKS
 
 function _request(options) {
@@ -286,6 +285,35 @@ describe('Test', function () {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data should NOT have additional properties");
+                });
+                it('should throw validation error of duplicate nodes', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "string",
+                            "nodes": [
+                                {
+                                    "nodeName": "dup",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                },
+                                {
+                                    "nodeName": "dup",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('found duplicate nodes dup');
                 });
                 it('should succeed and return execution id', async function () {
                     const options = {
@@ -881,6 +909,35 @@ describe('Test', function () {
                     expect(response.body).to.have.property('message');
                     expect(response.body.message).to.equal('OK');
                 });
+                it('should throw validation error of duplicate nodes', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "string",
+                            "nodes": [
+                                {
+                                    "nodeName": "dup",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                },
+                                {
+                                    "nodeName": "dup",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('found duplicate nodes dup');
+                });
             });
             describe('/store/pipelines PUT', function () {
                 it('should throw validation error of required property execution_id', async function () {
@@ -1173,6 +1230,35 @@ describe('Test', function () {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data should NOT have additional properties");
+                });
+                it('should throw validation error of duplicate nodes', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "string",
+                            "nodes": [
+                                {
+                                    "nodeName": "dup",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                },
+                                {
+                                    "nodeName": "dup",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('found duplicate nodes dup');
                 });
                 it('should succeed and return execution id', async function () {
                     const options = {
@@ -1767,6 +1853,35 @@ describe('Test', function () {
                     expect(response.response.statusCode).to.equal(201);
                     expect(response.body).to.have.property('message');
                     expect(response.body.message).to.equal('OK');
+                });
+                it('should throw validation error of duplicate nodes', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "string",
+                            "nodes": [
+                                {
+                                    "nodeName": "dup",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                },
+                                {
+                                    "nodeName": "dup",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('found duplicate nodes dup');
                 });
             });
             describe('/store/pipelines PUT', function () {

@@ -56,13 +56,14 @@ class Validator {
         }
     }
 
-    _validateNodes(nodes) {
+    _validateNodes(options) {
         const duplicates = [];
+        const nodes = options.map(n => n.nodeName);
         nodes.forEach((node, index) => {
-            if (node.nodeName === 'flowInput') {
-                throw new InvalidDataError(`node ${node.nodeName} has invalid reserved name flowInput`);
+            if (node === 'flowInput') {
+                throw new InvalidDataError(`node ${node} has invalid reserved name flowInput`);
             }
-            if (node.nodeName.indexOf(node, index + 1) > -1) {
+            if (nodes.indexOf(node, index + 1) > -1) {
                 if (duplicates.indexOf(node) === -1) {
                     duplicates.push(node);
                 }
