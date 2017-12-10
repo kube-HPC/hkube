@@ -4,7 +4,7 @@ const stateManager = require('lib/state/state-manager');
 const validator = require('lib/validation/api-validator');
 const States = require('lib/state/States');
 const { levels } = require('lib/progress/progressLevels');
-const { ResourceNotFoundError, ResourceExistsError, InvalidDataError, } = require('lib/errors/errors');
+const { ResourceNotFoundError, InvalidDataError, } = require('lib/errors/errors');
 
 class ExecutionService {
 

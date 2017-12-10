@@ -712,14 +712,14 @@
                         "type": "string",
                         "description": "url to activate upon progress"
                     },
-                    "complete": {
+                    "result": {
                         "type": "string",
-                        "description": "url to activate upon complete"
+                        "description": "url to activate upon result"
                     }
                 },
                 "required": [
                     "progress",
-                    "complete"
+                    "result"
                 ]
             },
             "options": {

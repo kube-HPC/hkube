@@ -19,7 +19,7 @@ class WebhooksHandler {
         this._options = options;
         stateManager.on('job-result', async (response) => {
             const pipeline = await stateManager.getExecution({ jobId: response.execution_id });
-            this._request(pipeline.webhooks.complete, this._options.webhooks.complete, response, 'result');
+            this._request(pipeline.webhooks.result, this._options.webhooks.result, response, 'result');
         })
 
         stateManager.on('job-status', async (response) => {

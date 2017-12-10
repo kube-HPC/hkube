@@ -36,7 +36,7 @@ config.webhooks = {
         maxAttempts: 3,
         retryDelay: 5000
     },
-    complete: {
+    result: {
         maxAttempts: 3,
         retryDelay: 5000
     }

@@ -31,7 +31,7 @@
         },
         "webhooks": {
             "progress": "http://webhook-stub-ui:3002/webhook/progress",
-            "complete": "http://webhook-stub-ui:3002/webhook/complete"
+            "result": "http://webhook-stub-ui:3002/webhook/result"
         },
         "options": {
             "batchTolerance": 30,
@@ -83,7 +83,7 @@
         },
         "webhooks": {
             "progress": "http://localhost:3002/webhook/progress",
-            "complete": "http://localhost:3002/webhook/complete"
+            "result": "http://localhost:3002/webhook/result"
         },
         "options": {
             "batchTolerance": 30,
@@ -133,7 +133,7 @@
         },
         "webhooks": {
             "progress": "http://webhook-stub-ui:3002/webhook/progress",
-            "complete": "http://webhook-stub-ui:3002/webhook/complete"
+            "result": "http://webhook-stub-ui:3002/webhook/result"
         },
         "options": {
             "batchTolerance": 30,
