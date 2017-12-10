@@ -24,8 +24,8 @@ class JobConsumer extends EventEmitter {
             this._consumer.removeAllListeners();
             this._consumer = null;
         }
-        etcd.on('change',(res)=>{
-            
+        etcd.on('change', (res) => {
+
         })
 
 
@@ -39,7 +39,7 @@ class JobConsumer extends EventEmitter {
             stateManager.prepare(job);
             this.emit('job', job);
         });
-        
+
         // this._unRegister();
         stateManager.once(stateEvents.stateEntered, ({ state }) => {
             this._consumer.register(this._options.jobConsumer)
@@ -64,8 +64,8 @@ class JobConsumer extends EventEmitter {
             return;
         // TODO: handle error
         await etcd.unwatch({ jobId: this._job.data.jobID })
-        await etcd.update({ jobId: this._job.data.jobID, taskId: this._job.id, status: 'completed', result: result });
-        this._job.done(null,result);
+        await etcd.update({ jobId: this._job.data.jobID, taskId: this._job.id, status: 'succeed', result: result });
+        this._job.done(null, result);
         this._job = null;
     }
 }
