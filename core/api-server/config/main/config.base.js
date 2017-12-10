@@ -41,3 +41,7 @@ config.webhooks = {
         retryDelay: 5000
     }
 }
+
+config.metrics = {
+        collectDefault: true,
+}

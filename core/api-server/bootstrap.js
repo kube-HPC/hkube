@@ -7,14 +7,13 @@ const Logger = require('@hkube/logger');
 const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentNames = require('common/consts/componentNames.js');
+const metrics = require('@hkube/metrics');
 let log;
 
 const modules = [
     'lib/state/state-manager',
     'lib/producer/jobs-producer',
     'lib/webhook/webhooks-handler',
-    'lib/utils/prometheus'
-
 ];
 
 class Bootstrap {
@@ -35,12 +34,13 @@ class Bootstrap {
             });
             monitor.check(main.redis);
 
+            await metrics.init(main.metrics);
             const appServer = require('api/rest-api/app-server');
             const dataRest = await appServer.init(main);
             log.info(dataRest.message, { component: componentNames.REST_API });
 
             await Promise.all(modules.map(m => require(m).init(main)));
-
+            
             return main;
         }
         catch (error) {

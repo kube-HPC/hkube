@@ -6,7 +6,7 @@ const swagger = require('api/rest-api/swagger');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContanier();
 const componentName = require('common/consts/componentNames');
-const { metricsRoute, beforeRouteMiddleware, afterRouteMiddleware } = require('./routes/metrics/metrics');
+const metrics = require('@hkube/metrics');
 
 class AppServer {
 
@@ -18,7 +18,7 @@ class AppServer {
 
       const prefix = options.rest.prefix;
       const routes = [];
-      routes.push({ route: '/metrics', router: metricsRoute() });
+      routes.push(metrics.getRouter());
       for (const v of options.rest.versions) {
         swagger.servers.push({ url: `/${prefix}${v}` });
         fs.readdirSync(__dirname + `/routes/${v}`).forEach(f => {
@@ -34,14 +34,7 @@ class AppServer {
       // swagger.host = options.swagger.host + ':' + options.swagger.port;
       swagger.basePath = options.swagger.path;
 
-      const beforeRoutesMiddlewares = [
-        beforeRouteMiddleware()
-      ];
-      const afterRoutesMiddlewares = [
-        afterRouteMiddleware()
-      ];
-
-      const opt = {
+      const opt = Object.assign({
         swagger: swagger,
         poweredBy: options.rest.poweredBy,
         name: options.serviceName,
@@ -49,9 +42,8 @@ class AppServer {
         prefix: prefix,
         port: options.rest.port,
         versions: options.rest.versions,
-        beforeRoutesMiddlewares: beforeRoutesMiddlewares,
-        afterRoutesMiddlewares: afterRoutesMiddlewares
-      };
+      },metrics.getMiddleware());
+
       rest.start(opt).then((data) => {
         resolve({
           message: data.message,
