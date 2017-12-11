@@ -1020,6 +1020,7 @@ describe('Test', function () {
                                     "input": ['@flowInput.notExist']
                                 }
                             ],
+                            "flowInput": {},
                             "webhooks": {
                                 "progress": "string",
                                 "result": "string"
@@ -2071,6 +2072,7 @@ describe('Test', function () {
                                     "input": ['@flowInput.notExist']
                                 }
                             ],
+                            "flowInput": {},
                             "webhooks": {
                                 "progress": "string",
                                 "result": "string"
