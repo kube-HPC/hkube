@@ -13,6 +13,8 @@ const Node = require('lib/nodes/node');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
+const { metricsNames } = require('../consts/metricsNames');
+const metrics = require('@hkube/metrics');
 
 class TaskRunner {
 
@@ -49,6 +51,13 @@ class TaskRunner {
             const task = await this._updateState(data.taskId, { status: data.status, error: data.error });
             this._taskComplete(task);
         });
+
+        metrics.addTimeMeasure({
+            name: metricsNames.pipelines,
+            labels: ['pipeline_name', 'status'],
+            buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
+
+        })
     }
 
     async _startPipeline(job) {
@@ -56,6 +65,12 @@ class TaskRunner {
         log.info(`pipeline started ${job.id}`, { component: components.TASK_RUNNER });
         this._job = job;
         this._pipeline = await stateManager.getExecution({ jobId: job.id });
+        metrics.get(metricsNames.pipelines).start({
+            id: job.id,
+            labelValues: {
+                pipeline_name: this._pipeline.name
+            }
+        });
         stateManager.setCurrentData(job.id, this._pipeline);
 
         await stateManager.watchTasks();
@@ -94,25 +109,37 @@ class TaskRunner {
         if (tasks) {
             await Promise.all(tasks.map(t => producer.stopJob({ type: t.algorithm, jobID: this._job.id })));
         }
+        let status;
         if (error) {
+            status = States.FAILED;
             log.error(`pipeline failed ${error.message}`, { component: components.TASK_RUNNER });
-            progress.error({ status: States.FAILED, error: error.message });
+            progress.error({ status, error: error.message });
             stateManager.setJobResults({ error: error.message });
             this._job.done(error.message);
+
         }
         else {
             if (reason) {
+                status = States.STOPPED;
                 log.info(`pipeline stopped ${this._job.id}. ${reason}`, { component: components.TASK_RUNNER });
-                progress.info({ status: States.STOPPED });
+                progress.info({ status });
             }
             else {
+                status = States.COMPLETED;
                 log.info(`pipeline completed ${this._job.id}`, { component: components.TASK_RUNNER });
-                progress.info({ status: States.COMPLETED });
+                progress.info({ status });
             }
             const result = this._nodes.allNodesResults();
             stateManager.setJobResults(result);
             this._job.done();
         }
+
+        metrics.get(metricsNames.pipelines).end({
+            id: this._job.id,
+            labelValues: {
+                status
+            }
+        });
         this._job = null;
         this._pipeline = null;
         this._nodes = null;

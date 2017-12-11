@@ -21,3 +21,10 @@ config.jobsSettings = {
     stalledInterval: 10000,
     maxStalledCount: 3
 }
+
+config.metrics = {
+    collectDefault: true,
+    server: {
+        port: process.env.METRICS_PORT || 9876
+    }
+}

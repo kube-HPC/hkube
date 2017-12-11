@@ -1,11 +1,11 @@
 module.exports = {
     "env": {
-        "browser": true,
         "es6": true,
         "node": true
     },
     "parserOptions": {
-        "sourceType": "module"
+        "sourceType": "module",
+        "ecmaVersion": 2017
     },
     "rules": {
         "no-use-before-define": "warn",
