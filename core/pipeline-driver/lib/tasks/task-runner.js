@@ -38,15 +38,15 @@ class TaskRunner {
                 this._stopPipeline(error);
             }
         });
-        stateManager.on(Events.JOB_STOP, (data) => {
+        stateManager.on(Events.JOBS.STOP, (data) => {
             this._stopPipeline(null, data.reason);
         });
-        stateManager.on(Events.TASKS.COMPLETED, async (data) => {
-            const task = await this._updateState(data.taskId, { status: States.SUCCEED, result: data.result });
+        stateManager.on(Events.TASKS.SUCCEED, async (data) => {
+            const task = await this._updateState(data.taskId, { status: data.status, result: data.result });
             this._taskComplete(task);
         });
         stateManager.on(Events.TASKS.FAILED, async (data) => {
-            const task = await this._updateState(data.taskId, { status: States.FAILED, error: data.error });
+            const task = await this._updateState(data.taskId, { status: data.status, error: data.error });
             this._taskComplete(task);
         });
     }
@@ -54,17 +54,17 @@ class TaskRunner {
     async _startPipeline(job) {
         this._isRunning = true;
         log.info(`pipeline started ${job.id}`, { component: components.TASK_RUNNER });
-        stateManager.setCurrentJobID(job.id);
         this._job = job;
+        this._pipeline = await stateManager.getExecution({ jobId: job.id });
+        stateManager.setCurrentData(job.id, this._pipeline);
 
         await stateManager.watchTasks();
         const watchState = await stateManager.watchJobState();
         if (watchState && watchState.obj && watchState.obj.state === States.STOP) {
             this._stopPipeline(null, watchState.obj.reason);
         }
-        this._pipeline = await stateManager.getExecution({ jobId: job.id });
-        this._nodes = new NodesMap(this._pipeline);
 
+        this._nodes = new NodesMap(this._pipeline);
         progress.calcMethod(this._nodes.calc.bind(this._nodes));
 
         // first we will try to get the state for this job

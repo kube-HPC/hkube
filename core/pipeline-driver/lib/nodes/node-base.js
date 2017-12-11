@@ -7,8 +7,8 @@ class NodeBase {
         this.algorithm = options.algorithm;
         this.input = options.input;
         this.state = options.state || States.CREATING;
-        this.error = null;
-        this.result = null;
+        this.error = options.error;
+        this.result = options.result;
     }
 }
 

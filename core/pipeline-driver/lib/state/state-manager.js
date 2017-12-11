@@ -15,8 +15,9 @@ class StateManager extends EventEmitter {
         this._watch();
     }
 
-    setCurrentJobID(jobId) {
+    setCurrentData(jobId, pipeline) {
         this._jobId = jobId;
+        this._pipeline = pipeline;
     }
 
     _watch() {
@@ -44,6 +45,7 @@ class StateManager extends EventEmitter {
         const payload = {
             timestamp: new Date(),
             execution_id: this._jobId,
+            pipeline: this._pipeline.name,
             data: options
         }
         return await this._etcd.jobResults.setResults({ jobId: this._jobId, data: payload });
@@ -53,6 +55,7 @@ class StateManager extends EventEmitter {
         const payload = {
             timestamp: new Date(),
             execution_id: this._jobId,
+            pipeline: this._pipeline.name,
             data: options
         }
         return await this._etcd.jobResults.setStatus({ jobId: this._jobId, data: payload });

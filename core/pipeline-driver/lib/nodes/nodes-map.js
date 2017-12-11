@@ -12,10 +12,6 @@ class NodesMap {
         this._graph = new Graph();
         const links = [];
 
-        if (!options || !options.nodes) {
-            throw new Error(`pipeline must have nodes`);
-        }
-
         options.nodes.forEach(node => {
             const batchIndex = inputParser.batchInputIndex(node.input);
             const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
@@ -119,8 +115,7 @@ class NodesMap {
 
     isAllNodesDone() {
         let states = [];
-        const nodesNames = this._graph.nodes();
-        const nodes = nodesNames.map(n => this._graph.node(n));
+        const nodes = this.getAllNodes();
         nodes.forEach(n => {
             if (n.batch.length > 0) {
                 states = states.concat(n.batch.map(b => b.state));
@@ -133,37 +128,15 @@ class NodesMap {
     }
 
     getAllNodes() {
-        const nodesList = [];
-        const nodesNames = this._graph.nodes();
-        const nodes = nodesNames.map(n => this._graph.node(n));
-        nodes.forEach(n => {
-            if (n.batch.length > 0) {
-                n.batch.forEach(b => nodesList.push(b));
-            }
-            else {
-                nodesList.push(n);
-            }
-        })
-        return nodesList;
-    }
-
-    nodeResults(nodeName) {
-        let results = [];
-        const node = this._graph.node(nodeName);
-        if (node.batch.length > 0) {
-            results = node.batch.map(n => n.result);
-        }
-        else {
-            results.push(node.result);
-        }
-        return results;
+        const nodes = this._graph.nodes();
+        return nodes.map(n => this._graph.node(n));
     }
 
     parentsResults(node) {
         const parents = this.parents(node);
         const results = Object.create(null);
         parents.forEach(p => {
-            results[p] = this.nodeResults(p);
+            results[p] = this.getNodeResults(p);
         })
         return results;
     }
@@ -179,8 +152,7 @@ class NodesMap {
 
     allNodesResults() {
         const results = [];
-        const nodesNames = this._graph.nodes();
-        const nodes = nodesNames.map(n => this._graph.node(n));
+        const nodes = this.getAllNodes();
         nodes.forEach(n => {
             if (n.batch.length > 0) {
                 n.batch.forEach(b => results.push({
@@ -202,7 +174,16 @@ class NodesMap {
     }
 
     calc() {
-        const nodes = this.getAllNodes();
+        const nodes = [];
+        const nodesList = this.getAllNodes();
+        nodesList.forEach(n => {
+            if (n.batch.length > 0) {
+                n.batch.forEach(b => nodes.push(b));
+            }
+            else {
+                nodes.push(n);
+            }
+        })
         const groupedStates = groupBy(nodes, 'state');
         const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
         const failed = groupedStates.failed ? groupedStates.failed.length : 0;
@@ -213,28 +194,12 @@ class NodesMap {
         return { progress, details };
     }
 
-    isAcyclic() {
-        return alg.isAcyclic(this._graph);
-    }
-
-    isDirected() {
-        return this._graph.isDirected();
-    }
-
-    findCycles() {
-        return alg.findCycles(this._graph);
-    }
-
     parents(node) {
         return this._graph.predecessors(node);
     }
 
     childs(node) {
         return this._graph.successors(node);
-    }
-
-    nodes(node) {
-        return this._graph.nodes();
     }
 }
 

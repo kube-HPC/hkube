@@ -20,7 +20,6 @@ install:
 cache:
   directories:
   - node_modules
-  - "$HOME/google-cloud-sdk/"
 script:
 - NODE_ENV=test npm run-script test-travis
 after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"

@@ -8,6 +8,8 @@ const configIt = require('@hkube/config');
 const clone = require('clone');
 const { expect } = require('chai');
 const sinon = require('sinon');
+const Batch = require('lib/nodes/batch');
+const Node = require('lib/nodes/node');
 const producer = require('lib/producer/jobs-producer');
 const consumer = require('lib/consumer/jobs-consumer');
 const stateManager = require('lib/state/state-manager');
@@ -26,7 +28,7 @@ describe('Test', function () {
         await producer.init(config);
         await consumer.init(config);
         stateManager.init(config);
-        stateManager.setCurrentJobID(jobId);
+        stateManager.setCurrentData(jobId, pipelines[0]);
         await stateManager.watchTasks();
     })
     describe('Producer', function () {
@@ -136,45 +138,159 @@ describe('Test', function () {
         });
     });
     describe('NodesMap', function () {
-        it('should find entry nodes', function (done) {
+        it('findEntryNodes: should find entry nodes', function (done) {
             const firstNode = pipelines[0].nodes[0];
             const nodesMap = new NodesMap(pipelines[0]);
             const entryNodes = nodesMap.findEntryNodes();
             expect(entryNodes[0]).to.equal(firstNode.nodeName);
             done();
         });
-        it('should get node by name', function (done) {
+        it('getNode: should get node by name', function (done) {
             const firstNode = pipelines[0].nodes[0];
             const nodesMap = new NodesMap(pipelines[0]);
             const node = nodesMap.getNode(firstNode.nodeName);
             expect(node.name).to.equal(firstNode.nodeName);
             done();
         });
-        it('should not get node by name', function (done) {
+        it('getNode: should not get node by name', function (done) {
             const nodesMap = new NodesMap(pipelines[0]);
             const node = nodesMap.getNode('not_exists');
             expect(node).to.be.undefined;
             done();
         });
-        it('should throw error when no nodes', function () {
-            expect(() => new NodesMap()).to.throw(`pipeline must have nodes`);
-        });
-        it('should not able to get node results', function () {
+        it('getNodeResults: should not able to get node results', function () {
             const nodesMap = new NodesMap(pipelines[0]);
             expect(() => nodesMap.getNodeResults('not_exists')).to.throw(`unable to find node not_exists`);
         });
-        it('should not able to update node state', function () {
-            const nodesMap = new NodesMap(pipelines[0]);
-            expect(() => nodesMap.updateNodeState('not_exists')).to.throw(`unable to find node not_exists`);
-        });
-        it('should not able to get node states', function () {
+        it('getNodeStates: should not able to get node states', function () {
             const nodesMap = new NodesMap(pipelines[0]);
             expect(() => nodesMap.getNodeStates('not_exists')).to.throw(`unable to find node not_exists`);
         });
-        it('should get all nodes', function () {
+        it('updateNodeState: should not able to update node state', function () {
             const nodesMap = new NodesMap(pipelines[0]);
-            const nodes = nodesMap.getAllNodes();
-            expect(nodes).to.have.lengthOf(4);
+            expect(() => nodesMap.updateNodeState('not_exists')).to.throw(`unable to find node not_exists`);
+        });
+        it('updateNodeState: should not able to update batch state', function () {
+            const nodesMap = new NodesMap(pipelines[0]);
+            expect(() => nodesMap.updateNodeState(pipelines[0].nodes[0].nodeName, 'not_exists')).to.throw(`unable to find batch not_exists`);
+        });
+        it('getNodeResults: should get batch results', function () {
+            const pipeline = clone(pipelines[0]);
+            const nodesMap = new NodesMap(pipeline);
+            const node = pipeline.nodes[0];
+            const result = { my: 'OK' };
+            nodesMap.addBatch(new Batch({
+                name: node.nodeName,
+                batchID: `${node.nodeName}#1`,
+                algorithm: node.algorithmName,
+                result: result
+            }));
+            const results = nodesMap.getNodeResults(node.nodeName);
+            expect(results[0]).to.deep.equal(result);
+        });
+        it('getNodeResults: should get node results', function () {
+            const pipeline = clone(pipelines[0]);
+            const nodesMap = new NodesMap(pipeline);
+            const node = pipeline.nodes[0];
+            const result = { my: 'OK' };
+            nodesMap.setNode(node.nodeName, new Node({
+                name: node.nodeName,
+                algorithm: node.algorithmName,
+                result: result
+            }));
+            const results = nodesMap.getNodeResults(node.nodeName);
+            expect(results[0]).to.deep.equal(result);
+        });
+        it('updateNodeState: should update node state', function () {
+            const pipeline = clone(pipelines[0]);
+            const nodesMap = new NodesMap(pipeline);
+            const options = {
+                state: 'complete',
+                result: { my: 'OK' }
+            }
+            const node = pipeline.nodes[0];
+            nodesMap.updateNodeState(node.nodeName, null, options);
+            const states = nodesMap.getNodeStates(node.nodeName);
+            expect(states[0]).to.equal(options.state);
+        });
+        it('updateNodeState: should update batch state', function () {
+            const pipeline = clone(pipelines[0]);
+            const node = pipeline.nodes[0];
+            const nodesMap = new NodesMap(pipeline);
+            const options = {
+                state: 'complete',
+                result: { my: 'OK' }
+            }
+            const batch = new Batch({
+                name: node.nodeName,
+                batchID: `${node.nodeName}#1`
+            })
+            nodesMap.addBatch(batch);
+            nodesMap.updateNodeState(node.nodeName, batch.batchID, options);
+            const states = nodesMap.getNodeStates(node.nodeName);
+            expect(states[0]).to.equal(options.state);
+        });
+        it('isAllNodesDone: should return false', function () {
+            const pipeline = clone(pipelines[0]);
+            const node = pipeline.nodes[0];
+            const nodesMap = new NodesMap(pipeline);
+            nodesMap.addBatch(new Batch({
+                name: node.nodeName,
+                batchID: `${node.nodeName}#1`,
+                state: 'complete',
+            }));
+            const result = nodesMap.isAllNodesDone();
+            expect(result).to.equal(false);
+        });
+        it('getAllNodes: should return all nodes', function () {
+            const pipeline = clone(pipelines[0]);
+            const node = pipeline.nodes[0];
+            const nodesMap = new NodesMap(pipeline);
+            nodesMap.addBatch(new Batch({
+                name: node.nodeName,
+                batchID: `${node.nodeName}#1`,
+                state: 'complete',
+            }));
+            const result = nodesMap.getAllNodes();
+            const resultNodes = result.map(r => r.name);
+            const pipelineNodes = pipeline.nodes.map(r => r.nodeName);
+            expect(resultNodes).to.have.lengthOf(4);
+            expect(resultNodes).to.deep.equal(pipelineNodes);
+        });
+        it('parentsResults: should return all nodes', function () {
+            const pipeline = clone(pipelines[0]);
+            const green = pipeline.nodes[0];
+            const yellow = pipeline.nodes[1];
+            const nodesMap = new NodesMap(pipeline);
+            nodesMap.setNode(green.nodeName, new Node({
+                name: green.nodeName,
+                algorithm: green.algorithmName,
+                result: { my: 'OK' }
+            }));
+            const result = nodesMap.parentsResults(yellow.nodeName);
+            expect(result).to.have.property(green.nodeName);
+        });
+        it('isAllParentsFinished: should return false', function () {
+            const pipeline = clone(pipelines[0]);
+            const yellow = pipeline.nodes[1];
+            const nodesMap = new NodesMap(pipeline);
+            const result = nodesMap.isAllParentsFinished(yellow.nodeName);
+            expect(result).to.equal(false);
+        });
+        it('allNodesResults: should return array', function () {
+            const pipeline = clone(pipelines[0]);
+            const nodesMap = new NodesMap(pipeline);
+            const result = nodesMap.allNodesResults();
+            expect(result).to.have.lengthOf(4);
+        });
+        it('calc: should return array', function () {
+            const pipeline = clone(pipelines[0]);
+            const nodesMap = new NodesMap(pipeline);
+            const result = nodesMap.calc();
+            expect(result).to.have.property('progress');
+            expect(result).to.have.property('details');
+            expect(result.progress).to.equal('0.00');
+            expect(result.details).to.equal('0.00% completed, 4 creating');
         });
     });
     describe('Parsers', function () {

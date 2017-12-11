@@ -10,7 +10,7 @@ module.exports = {
     TASKS: {
         WAITING: 'task-waiting',
         ACTIVE: 'task-active',
-        COMPLETED: 'task-completed',
+        SUCCEED: 'task-succeed',
         FAILED: 'task-failed'
     }
 };
