@@ -286,7 +286,7 @@ describe('Test', function () {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data should NOT have additional properties");
                 });
-                it('should throw validation error of duplicate nodes', async function () {
+                it('should throw validation error of duplicate node', async function () {
                     const options = {
                         method: 'POST',
                         uri: restUrl + '/exec/raw',
@@ -313,7 +313,7 @@ describe('Test', function () {
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('found duplicate nodes dup');
+                    expect(response.body.error.message).to.equal('found duplicate node dup');
                 });
                 it('should succeed and return execution id', async function () {
                     const options = {
@@ -896,20 +896,7 @@ describe('Test', function () {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.message).to.equal('pipeline flow1 already exists');
                 });
-                it('should succeed to store pipeline', async function () {
-                    const pipeline = clone(pipelines[0]);
-                    pipeline.name = uuidv4();
-                    const options = {
-                        uri: restUrl + '/store/pipelines',
-                        method: 'POST',
-                        body: pipeline
-                    }
-                    const response = await _request(options);
-                    expect(response.response.statusCode).to.equal(201);
-                    expect(response.body).to.have.property('message');
-                    expect(response.body.message).to.equal('OK');
-                });
-                it('should throw validation error of duplicate nodes', async function () {
+                it('should throw validation error of duplicate node', async function () {
                     const options = {
                         method: 'POST',
                         uri: restUrl + '/exec/raw',
@@ -936,7 +923,126 @@ describe('Test', function () {
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('found duplicate nodes dup');
+                    expect(response.body.error.message).to.equal('found duplicate node dup');
+                });
+                it('should throw validation error of invalid reserved name flowInput', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "reservedName",
+                            "nodes": [
+                                {
+                                    "nodeName": "flowInput",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
+                });
+                it('should throw validation error of node depend on not exists node', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "reservedName",
+                            "nodes": [
+                                {
+                                    "nodeName": "A",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                },
+                                {
+                                    "nodeName": "B",
+                                    "algorithmName": "green-alg",
+                                    "input": ['@C']
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
+                });
+                it('should throw validation error of cyclic nodes', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "cyclicPipeline",
+                            "nodes": [
+                                {
+                                    "nodeName": "A",
+                                    "algorithmName": "green-alg",
+                                    "input": ['@B']
+                                },
+                                {
+                                    "nodeName": "B",
+                                    "algorithmName": "green-alg",
+                                    "input": ['@A']
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('pipeline cyclicPipeline has cyclic nodes');
+                });
+                it('should throw validation error of flowInput not exist', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "flowInputPipeline",
+                            "nodes": [
+                                {
+                                    "nodeName": "A",
+                                    "algorithmName": "green-alg",
+                                    "input": ['@flowInput.notExist']
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(500);
+                    expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
+                });
+                it('should succeed to store pipeline', async function () {
+                    const pipeline = clone(pipelines[0]);
+                    pipeline.name = uuidv4();
+                    const options = {
+                        uri: restUrl + '/store/pipelines',
+                        method: 'POST',
+                        body: pipeline
+                    }
+                    const response = await _request(options);
+                    expect(response.response.statusCode).to.equal(201);
+                    expect(response.body).to.have.property('message');
+                    expect(response.body.message).to.equal('OK');
                 });
             });
             describe('/store/pipelines PUT', function () {
@@ -1231,7 +1337,7 @@ describe('Test', function () {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data should NOT have additional properties");
                 });
-                it('should throw validation error of duplicate nodes', async function () {
+                it('should throw validation error of duplicate node', async function () {
                     const options = {
                         method: 'POST',
                         uri: restUrl + '/exec/raw',
@@ -1258,7 +1364,7 @@ describe('Test', function () {
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('found duplicate nodes dup');
+                    expect(response.body.error.message).to.equal('found duplicate node dup');
                 });
                 it('should succeed and return execution id', async function () {
                     const options = {
@@ -1841,20 +1947,7 @@ describe('Test', function () {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.message).to.equal('pipeline flow1 already exists');
                 });
-                it('should succeed to store pipeline', async function () {
-                    const pipeline = clone(pipelines[0]);
-                    pipeline.name = uuidv4();
-                    const options = {
-                        uri: restUrl + '/store/pipelines',
-                        method: 'POST',
-                        body: pipeline
-                    }
-                    const response = await _request(options);
-                    expect(response.response.statusCode).to.equal(201);
-                    expect(response.body).to.have.property('message');
-                    expect(response.body.message).to.equal('OK');
-                });
-                it('should throw validation error of duplicate nodes', async function () {
+                it('should throw validation error of duplicate node', async function () {
                     const options = {
                         method: 'POST',
                         uri: restUrl + '/exec/raw',
@@ -1881,7 +1974,126 @@ describe('Test', function () {
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('found duplicate nodes dup');
+                    expect(response.body.error.message).to.equal('found duplicate node dup');
+                });
+                it('should throw validation error of invalid reserved name flowInput', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "reservedName",
+                            "nodes": [
+                                {
+                                    "nodeName": "flowInput",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
+                });
+                it('should throw validation error of node depend on not exists node', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "reservedName",
+                            "nodes": [
+                                {
+                                    "nodeName": "A",
+                                    "algorithmName": "green-alg",
+                                    "input": []
+                                },
+                                {
+                                    "nodeName": "B",
+                                    "algorithmName": "green-alg",
+                                    "input": ['@C']
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
+                });
+                it('should throw validation error of cyclic nodes', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "cyclicPipeline",
+                            "nodes": [
+                                {
+                                    "nodeName": "A",
+                                    "algorithmName": "green-alg",
+                                    "input": ['@B']
+                                },
+                                {
+                                    "nodeName": "B",
+                                    "algorithmName": "green-alg",
+                                    "input": ['@A']
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('pipeline cyclicPipeline has cyclic nodes');
+                });
+                it('should throw validation error of flowInput not exist', async function () {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            "name": "flowInputPipeline",
+                            "nodes": [
+                                {
+                                    "nodeName": "A",
+                                    "algorithmName": "green-alg",
+                                    "input": ['@flowInput.notExist']
+                                }
+                            ],
+                            "webhooks": {
+                                "progress": "string",
+                                "result": "string"
+                            }
+                        }
+                    }
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(500);
+                    expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
+                });
+                it('should succeed to store pipeline', async function () {
+                    const pipeline = clone(pipelines[0]);
+                    pipeline.name = uuidv4();
+                    const options = {
+                        uri: restUrl + '/store/pipelines',
+                        method: 'POST',
+                        body: pipeline
+                    }
+                    const response = await _request(options);
+                    expect(response.response.statusCode).to.equal(201);
+                    expect(response.body).to.have.property('message');
+                    expect(response.body.message).to.equal('OK');
                 });
             });
             describe('/store/pipelines PUT', function () {

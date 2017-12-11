@@ -1,5 +1,7 @@
 
 const validator = require('djsv');
+const inputParser = require('lib/parsers/input-parser');
+const { Graph, alg } = require('graphlib');
 const schemas = require('api/rest-api/swagger.json').components.schemas;
 const { InvalidDataError, } = require('lib/errors/errors');
 
@@ -52,25 +54,47 @@ class Validator {
             throw new InvalidDataError(res.error);
         }
         if (object.nodes) {
-            this._validateNodes(object.nodes);
+            this._validateNodes(object);
         }
     }
 
     _validateNodes(options) {
-        const duplicates = [];
-        const nodes = options.map(n => n.nodeName);
-        nodes.forEach((node, index) => {
-            if (node === 'flowInput') {
-                throw new InvalidDataError(`node ${node} has invalid reserved name flowInput`);
+        const graph = new Graph();
+        const links = [];
+
+        options.nodes.forEach(node => {
+            if (graph.node(node.nodeName)) {
+                throw new InvalidDataError(`found duplicate node ${node.nodeName}`);
             }
-            if (nodes.indexOf(node, index + 1) > -1) {
-                if (duplicates.indexOf(node) === -1) {
-                    duplicates.push(node);
-                }
+            if (node.nodeName === 'flowInput') {
+                throw new InvalidDataError(`pipeline ${options.name} has invalid reserved name flowInput`);
             }
+
+            node.input.forEach((inp, ind) => {
+                inputParser.checkFlowInput(options, inp);
+                const nodesNames = inputParser.extractNodesFromInput(inp);
+                nodesNames.forEach(n => {
+                    const nd = options.nodes.find(f => f.nodeName === n);
+                    if (nd) {
+                        links.push({ source: nd.nodeName, target: node.nodeName })
+                    }
+                    else {
+                        throw new InvalidDataError(`node ${node.nodeName} is depend on ${n} which is not exists`);
+                    }
+                })
+            })
+            graph.setNode(node.nodeName, node);
         });
-        if (duplicates.length > 0) {
-            throw new InvalidDataError(`found duplicate nodes ${duplicates.join(',')}`);
+
+        links.forEach(link => {
+            graph.setEdge(link.source, link.target);
+        });
+
+        if (!alg.isAcyclic(graph)) {
+            throw new InvalidDataError(`pipeline ${options.name} has cyclic nodes`);
+        }
+        if (!graph.isDirected()) {
+            throw new InvalidDataError(`pipeline ${options.name} has not directed nodes`);
         }
     }
 }

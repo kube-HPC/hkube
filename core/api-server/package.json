@@ -13,6 +13,8 @@
         "@hkube/rest-server": "^1.0.4",
         "djsv": "^3.0.3",
         "express": "^4.16.2",
+        "graphlib": "^2.1.1",
+        "object-path": "^0.11.4",
         "requestretry": "^1.12.2"
     },
     "devDependencies": {

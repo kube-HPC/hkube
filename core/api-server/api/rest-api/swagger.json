@@ -597,8 +597,7 @@
                     },
                     "flowInput": {
                         "type": "object",
-                        "description": "input object",
-                        "properties": {}
+                        "description": "input object"
                     },
                     "webhooks": {
                         "$ref": "#/components/schemas/webhooks"
@@ -655,8 +654,7 @@
                     },
                     "flowInput": {
                         "type": "object",
-                        "description": "input object",
-                        "properties": {}
+                        "description": "input object"
                     },
                     "webhooks": {
                         "$ref": "#/components/schemas/webhooks"
@@ -687,8 +685,7 @@
                     },
                     "flowInput": {
                         "type": "object",
-                        "description": "input object",
-                        "properties": {}
+                        "description": "input object"
                     },
                     "webhooks": {
                         "$ref": "#/components/schemas/webhooks"
