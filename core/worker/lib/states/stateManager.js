@@ -1,7 +1,5 @@
 const EventEmitter = require('events');
-const etcdDiscovery = require('./discovery');
-const WORKERS_PATH = `/services/workers`;
-const stateMachine = require('javascript-state-machine');
+const StateMachine = require('javascript-state-machine');
 const { workerStates } = require('../../common/consts/states');
 const { stateEvents } = require('../../common/consts/events');
 const Logger = require('@hkube/logger');
@@ -21,16 +19,16 @@ class StateManager extends EventEmitter {
         this._job = null;
         this._results = null;
     }
-    async init(options) {
+    async init() {
         log = Logger.GetLogFromContainer();
         this._initStateMachine();
     }
 
     _initStateMachine() {
-        if (this._stateMachine){
-             this.removeAllListeners();
+        if (this._stateMachine) {
+            this.removeAllListeners();
         }
-        this._stateMachine = new stateMachine({
+        this._stateMachine = new StateMachine({
             init: workerStates.bootstrap,
             transitions: [
                 { name: 'reset', from: '*', to: workerStates.bootstrap},
@@ -39,25 +37,27 @@ class StateManager extends EventEmitter {
                 { name: 'prepare', from: workerStates.ready, to: workerStates.init },
                 { name: 'start', from: workerStates.init, to: workerStates.working },
                 { name: 'finish', from: workerStates.working, to: workerStates.shutdown },
-                { name: 'done', from: [workerStates.shutdown,workerStates.working, workerStates.stop], to: workerStates.ready },
+                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop], to: workerStates.ready },
                 { name: 'error', from: workerStates.working, to: workerStates.error },
             ],
-            methods:{
-                onPendingTransition :(transition, from, to)=>{
+            methods: {
+                onPendingTransition: (transition, from, to) => { // eslint-disable-line
 
                 }
             }
         });
         this._stateMachine.observe('onAfterTransition', (state) => {
             log.info(`entered state: ${state.from} -> ${state.to}`);
-            const data = Object.assign({},
-                {job:this._job},
-                {state:this._stateMachine.state},
-                this.results?{results:this.results}:null);
+            const data = Object.assign(
+                {},
+                {job: this._job},
+                {state: this._stateMachine.state},
+                this.results ? {results: this.results} : null
+            );
 
-            this.emit(stateEvents.stateEntered,data);
-            this.emit(stateEvents.stateEntered+this._stateMachine.state,data);
-        })
+            this.emit(stateEvents.stateEntered, data);
+            this.emit(stateEvents.stateEntered + this._stateMachine.state, data);
+        });
     }
 
     get state() {
@@ -71,18 +71,16 @@ class StateManager extends EventEmitter {
      *
      * @memberof StateManager
      */
-    bootstrap(){
+    bootstrap() {
         this._stateMachine.bootstrap();
     }
     /**
      * transitions from ready to init
      * Performs init of the data via adapters.
      * 
-     * @param {object} options 
-     * @param {object} options.job the job object to work on
      * @memberof StateManager
      */
-    prepare(options) {
+    prepare() {
         this._stateMachine.prepare();
     }
 
@@ -90,28 +88,26 @@ class StateManager extends EventEmitter {
      * transitions from init to ready
      * starts the algorithm
      * 
-     * @param {object} options 
      * @memberof StateManager
      */
-    start(options) {
-        this._results=null;
+    start() {
+        this._results = null;
         this._stateMachine.start();
     }
 
     /**
      * transitions to stop state.
      */
-    stop(){
+    stop() {
         this._stateMachine.stop();
     }
     /**
      * transitions from working to shutdown
      * after the job is done, copy the results, and cleanup
      * 
-     * @param {object} options 
      * @memberof StateManager
      */
-    finish(options) {
+    finish() {
         this._stateMachine.finish();
     }
 
@@ -130,37 +126,20 @@ class StateManager extends EventEmitter {
      * transitions from working to error
      * reports the error, cleanup the job and prepare for a new job
      * 
-     * @param {object} options 
      * @memberof StateManager
      */
-    error(options) {
+    error() {
         this._stateMachine.error();
     }
     setJob(job) {
         this._job = job;
     }
-    get job(){
+    get job() {
         return this._job;
     }
-    get results()  {
+    get results() {
         return this._results;
     }
-    // /**
-    //  * sets the new worker state
-    //  *
-    //  * @param {any} options
-    //  * @param {string} options.transition the required state transition
-    //  * @memberof StateManager
-    //  */
-    // async setWorkerState(options) {
-    //     const { transition } = options;
-    //     const transitionFunc = this._stateMachine[transition].bind(this._stateMachine);
-    //     if (!transitionFunc) {
-    //         throw new Error(`Invalid transition ${transition}`);
-    //     }
-    //     transitionFunc();
-    //     await etcdDiscovery.setState({ data: { job: this._job, state: this.state } })
-    // }
 }
 
 module.exports = new StateManager();

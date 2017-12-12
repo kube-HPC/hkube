@@ -1,13 +1,9 @@
-const configIt = require('@hkube/config');
-const Logger = require('@hkube/logger');
-const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
-const bootstrap = require('../bootstrap')
+const bootstrap = require('../bootstrap');
 const Consumer = require('../lib/consumer/JobConsumer');
-const discovery = require('../lib/states/discovery');
 const { Producer } = require('@hkube/producer-consumer');
-const stateManager = require('../lib/states/stateManager.js')
-const expect = require('chai').expect
-const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication')
+const stateManager = require('../lib/states/stateManager.js');
+const {expect} = require('chai');
+const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
 const messages = require('../lib/algorunnerCommunication/messages');
 
 const jobID = 'test-jobID-3232dd-124fdg4-sdffs234-cs3424';
@@ -17,7 +13,7 @@ const jobConsumerConfig = {
         job: {
             type: 'test-job',
             data: {
-                jobID: jobID
+                jobID
             }
         },
         setting: {
@@ -29,13 +25,13 @@ const jobConsumerConfig = {
         host: process.env.REDIS_SERVICE_HOST || 'localhost',
         port: process.env.REDIS_SERVICE_PORT || 6379
     }
-}
+};
 
 const testProducer = {
     job: {
         type: 'test-job',
         data: {
-            jobID: jobID,
+            jobID,
             inputs: {
                 standard: [
                     'input-1',
@@ -44,7 +40,7 @@ const testProducer = {
             }
         }
     }
-}
+};
 const producerSettings = {
     setting: {
         queueName: 'queue-workers',
@@ -54,15 +50,7 @@ const producerSettings = {
             port: process.env.REDIS_SERVICE_PORT || 6379
         }
     }
-}
-const workerCommunicationConfig = {
-    workerCommunication:
-    {
-        adapterName: 'loopback',
-        config: {}
-    }
-}
-let log;
+};
 let consumer;
 let producer;
 describe('consumer', () => {
@@ -80,49 +68,38 @@ describe('consumer', () => {
         //     console.error('uncaughtException: ' + error.message);
         // });
 
-    })
+    });
 
     beforeEach((done) => {
-        
         bootstrap.init().then(() => {
             consumer = Consumer;
-
         }).then(() => {
-
             return consumer.init(jobConsumerConfig);
             // }).then(()=>{
             //    return workerCommunication.init(workerCommunicationConfig);
         }).then(() => {
             stateManager.on('stateEnteredready', () => {
-                done()
-            })
+                done();
+            });
             workerCommunication.adapter.start();
         });
-
     });
     it('should get job', (done) => {
-
         producer = new Producer(producerSettings);
-        consumer.once('job', (job => {
+        consumer.once('job', (() => {
             expect(stateManager.state).to.eql('init');
             done();
-        }))
-        producer.createJob(testProducer)
-    }).timeout(5000)
+        }));
+        producer.createJob(testProducer);
+    }).timeout(5000);
 
     it('should send init to worker', (done) => {
         workerCommunication.once(messages.incomming.initialized, (message) => {
             expect(message.data.jobID).to.not.be.undefined;
             done();
-        })
+        });
         producer = new Producer(producerSettings);
 
-        producer.createJob(testProducer)
-
-    }).timeout(5000)
-
-
-
-
-
-})
+        producer.createJob(testProducer);
+    }).timeout(5000);
+});

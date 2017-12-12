@@ -3,7 +3,6 @@ const Logger = require('@hkube/logger');
 const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const socketio = require('socket.io');
-const forward_emitter = require('forward-emitter');
 const messages = require('./messages');
 const http = require('http');
 let log;
@@ -13,11 +12,10 @@ class SocketWorkerCommunication extends EventEmitter {
         this._options = null;
         this._socketServer = null;
         this._socket = null;
-
     }
     init(options) {
         log = Logger.GetLogFromContainer();
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => { // eslint-disable-line consistent-return
             try {
                 options = options || {};
                 const validator = djsv(schema);
@@ -28,19 +26,20 @@ class SocketWorkerCommunication extends EventEmitter {
                 else {
                     return reject(new Error(validatedOptions.errors[0]));
                 }
-                const server = this._options.httpServer||http.createServer();
+                const server = this._options.httpServer || http.createServer();
                 this._socketServer = socketio.listen(server, { pingTimeout: this._options.pingTimeout});
                 this._socketServer.on('connection', (socket) => {
-                    log.info('Connected!!!')
+                    log.info('Connected!!!');
                     this._registerSocketMessages(socket);
                     this.emit('connection');
-                })
-                if (!this._options.httpServer){
-                    server.listen(this._options.connection.port,()=>{
+                });
+                if (!this._options.httpServer) {
+                    server.listen(this._options.connection.port, () => {
                         return resolve();
-                    })
+                    });
                 }
-            } catch (error) {
+            }
+            catch (error) {
                 return reject(error);
             }
         });
@@ -48,20 +47,20 @@ class SocketWorkerCommunication extends EventEmitter {
 
     _registerSocketMessages(socket) {
         this._socket = socket;
-        Object.values(messages.incomming).forEach((topic)=>{
-            socket.on(topic,message=>{
-                this.emit(topic,message.data); 
-            })
-        })
+        Object.values(messages.incomming).forEach((topic) => {
+            socket.on(topic, (message) => {
+                this.emit(topic, message.data); 
+            });
+        });
         // socket.on('commandMessage',(message)=>{
         //     this.emit('commandMessage',message);
         // });
-        socket.on('disconnect',()=>{
+        socket.on('disconnect', () => {
             log.info('socket disconnected');
-            this._socket=null;
-        })
+            this._socket = null;
+        });
     }
- /**
+    /**
      * 
      * 
      * @param {any} message the message to send to the algoRunner.
@@ -69,31 +68,13 @@ class SocketWorkerCommunication extends EventEmitter {
      * @param {object} message.data the data for the command
      * @memberof SocketWorkerCommunication
      */
-    send(message){
-        if (!this._socket){
+    send(message) {
+        if (!this._socket) {
             const error = 'trying to send without a connected socket';
             log.error(error);
-            throw new Error(error)
+            throw new Error(error);
         }
-        this._socket.emit(message.command,message);
-    }
-
-    async sendForReply(message){
-        new Promise(function(resolve, reject) {
-            if (!this._socket){
-                const error = 'trying to send without a connected socket';
-                log.error(error);
-                return reject(new Error(error))
-            }
-            this._socket.send(message,(err,res)=>{
-                if (err){
-                    log.error(err);
-                    return reject(new Error(err));
-                }
-                resolve(res);
-            });
-        });
-        
+        this._socket.emit(message.command, message);
     }
 }
 

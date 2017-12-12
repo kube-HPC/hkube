@@ -5,8 +5,8 @@ const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').workerCommunicationSchema;
 const socketAdapter = require('./socketWorkerCommunication');
 const loopbackAdapter = require('./loopbackWorkerCommunication');
-const adapters = require('./consts').adapters;
-const forward_emitter = require('forward-emitter');
+const {adapters} = require('./consts');
+const forwardEmitter = require('forward-emitter');
 
 class WorkerCommunication extends EventEmitter {
     constructor() {
@@ -18,11 +18,10 @@ class WorkerCommunication extends EventEmitter {
         this.adapter = null;
     }
     async init(options) {
-        if (this.adapter){
+        if (this.adapter) {
             this.adapter.removeAllListeners();
-            this.adapter=null;
+            this.adapter = null;
             this.removeAllListeners();
-            
         }
         log = Logger.GetLogFromContainer();
         options = options || {};
@@ -34,13 +33,13 @@ class WorkerCommunication extends EventEmitter {
         else {
             throw new Error(validatedOptions.errorDescription);
         }
-        const adapterClass = this._adapters[this._options.adapterName];
-        if (!adapterClass) {
+        const AdapterClass = this._adapters[this._options.adapterName];
+        if (!AdapterClass) {
             throw new Error(`Invalid worker communication adapter ${this._options.adapterName}`);
         }
         log.info(`Creating communication object of type: ${this._options.adapterName}`);
-        this.adapter = new adapterClass();
-        forward_emitter(this.adapter, this);
+        this.adapter = new AdapterClass();
+        forwardEmitter(this.adapter, this);
         await this.adapter.init(this._options.config);
         // this.adapter.on('commandMessage',(message)=>{
         //     this.emit(message.command,message.data);
@@ -55,10 +54,9 @@ class WorkerCommunication extends EventEmitter {
      * @param {object} message.data the data for the command
      * @memberof WorkerCommunication
      */
-    async send(message){
-        return await this.adapter.send(message);
+    async send(message) {
+        return this.adapter.send(message);
     }
-
 }
 
 module.exports = new WorkerCommunication();

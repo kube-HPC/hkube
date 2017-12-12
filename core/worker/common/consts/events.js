@@ -1,8 +1,8 @@
-module.exports={
-    stateEvents:{
-        stateEntered:'stateEntered'
+module.exports = {
+    stateEvents: {
+        stateEntered: 'stateEntered'
     },
-    jobEvents:{
-        job:'job'
+    jobEvents: {
+        job: 'job'
     }
-}
+};

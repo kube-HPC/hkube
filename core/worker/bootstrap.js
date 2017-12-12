@@ -4,11 +4,9 @@ require('module').Module._initPaths();
 
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
+const {VerbosityPlugin} = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
-const componentName = require('common/consts/componentNames');
-const discovery = require('lib/states/discovery.js');
-const jobConsumer = require('lib/consumer/JobConsumer');
+const componentName = require('./common/consts/componentNames');
 let log;
 const worker = require('./lib/worker');
 
@@ -17,12 +15,10 @@ const modules = [
     'lib/consumer/JobConsumer.js',
     'lib/states/discovery.js',
     'lib/states/stateManager.js',
-    'lib/inputAdapters/inputAdapters.js',
-    
 ];
 
 class Bootstrap {
-    async init() {
+    async init() { // eslint-disable-line
         try {
             const { main, logger } = await configIt.load();
             this._handleErrors();
@@ -39,54 +35,10 @@ class Bootstrap {
             });
             await monitor.check(main.redis);
 
-            await Promise.all(modules.map(m => require(m).init(main)));
+            await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
             
             await worker.init(main);
 
-           // tmp
-            // const comm = require('./lib/algorunnerCommunication/workerCommunication');
-            // comm.once('connection',()=>{
-            //     const producerSettings = {
-            //         setting: {
-            //             queueName: 'queue-workers',
-            //             prefix: 'jobs-workers',
-            //             redis: {
-            //                 host: process.env.REDIS_SERVICE_HOST || 'localhost',
-            //                 port: process.env.REDIS_SERVICE_PORT || 6379
-            //             }
-            //         }
-            //     }
-            //     const testProducer = {
-            //         job: {
-            //             type: 'green-alg',
-            //             data: {
-            //                 jobID:'xxx',
-            //                 inputs: {
-            //                     standard: [
-            //                         'input-1',
-            //                         'input-2'
-            //                     ],
-            //                 }
-            //             }
-            //         }
-            //     }
-            //     const { Producer } = require('@hkube/producer-consumer');
-            //     const producer = new Producer(producerSettings);
-            //     producer.on('job-failed',(jobData)=>{
-            //         log.error(`job failed: ${JSON.stringify(jobData)}`)
-            //     })
-            //     producer.on('job-active',(jobData)=>{
-            //         log.info(`job active: ${JSON.stringify(jobData)}`)
-            //     })
-            //     producer.on('job-waiting',(jobData)=>{
-            //         log.info(`job waiting: ${JSON.stringify(jobData)}`)
-            //     })
-            //     producer.on('job-completed',(jobData)=>{
-            //         log.info(`job completed: ${JSON.stringify(jobData)}`)
-            //     })
-            //     producer.createJob(testProducer)
-           
-            // })
             return main;
         }
         catch (error) {
@@ -100,8 +52,8 @@ class Bootstrap {
             log.error(error);
         }
         else {
-            console.error(error.message);
-            console.error(error);
+            console.error(error.message); // eslint-disable-line
+            console.error(error); // eslint-disable-line
         }
         process.exit(1);
     }
@@ -124,7 +76,7 @@ class Bootstrap {
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
-            log.error(JSON.stringify(error))
+            log.error(JSON.stringify(error));
             process.exit(1);
         });
     }

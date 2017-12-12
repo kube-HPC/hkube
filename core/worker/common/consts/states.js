@@ -1,11 +1,11 @@
 module.exports = {
     workerStates: {
-        bootstrap:'bootstrap',
+        bootstrap: 'bootstrap',
         ready: 'ready',
         init: 'init',
         working: 'working',
-        shutdown:'shutdown',
+        shutdown: 'shutdown',
         error: 'error',
         stop: 'stop'
     }
-}
+};

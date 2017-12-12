@@ -1,6 +1,6 @@
 module.exports = {
-    adapters:{
-        socket:'socket',
-        loopback:'loopback'
+    adapters: {
+        socket: 'socket',
+        loopback: 'loopback'
     }
 };

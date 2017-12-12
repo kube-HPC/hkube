@@ -1,13 +1,13 @@
 
-const config = module.exports = {};
+const config = {};
 
 config.serviceName = 'workers';
-const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
+const useCluster = !!process.env.REDIS_CLUSTER_SERVICE_HOST;
 
 config.redis = {
     host: useCluster ? process.env.REDIS_CLUSTER_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useCluster ? process.env.REDIS_CLUSTER_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
-    useCluster: useCluster
+    useCluster
 };
 
 config.workerCommunication = {
@@ -17,7 +17,7 @@ config.workerCommunication = {
             port: process.env.WORKER_SOCKET_PORT || 3000
         }
     }
-}
+};
 
 config.etcdDiscovery = {
     init: {
@@ -30,7 +30,7 @@ config.etcdDiscovery = {
     register: {
         // use defaults for now
     }
-}
+};
 
 config.jobConsumer = {
     job: {
@@ -40,11 +40,13 @@ config.jobConsumer = {
         queueName: 'queue-workers',
         prefix: 'jobs-workers'
     }
-}
+};
 
 config.timeouts = {
     stop: 10000 // timeout to stop the algorithm in ms
-}
+};
 config.inputAdapters = {
     storagePath: process.env.SHARED_STORAGE_PATH || './sharedStorage'
-}
+};
+
+module.exports = config;

@@ -1,5 +1,7 @@
-const config = module.exports = {};
+const config = {};
 config.workerCommunication = {
     adapterName: 'loopback',
     config: {}
-}
+};
+
+module.exports = config;

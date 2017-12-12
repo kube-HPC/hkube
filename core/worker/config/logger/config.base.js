@@ -1,4 +1,4 @@
-const config = module.exports = {};
+const config = {};
 
 config.transport = {
     console: true,
@@ -9,3 +9,5 @@ config.transport = {
 config.extraDetails = false;
 config.isDefault = true;
 config.verbosityLevel = 2;
+
+module.exports = config;

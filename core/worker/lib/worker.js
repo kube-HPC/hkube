@@ -4,7 +4,6 @@ const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorunnerCommunication/workerCommunication');
 const discovery = require('./states/discovery');
 const Logger = require('@hkube/logger');
-const chalk = require('chalk');
 let log;
 const { stateEvents } = require('../common/consts/events');
 const { workerStates } = require('../common/consts/states');
@@ -24,10 +23,10 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on('stop', res => {
-            console.log(chalk.red(JSON.stringify(res)));
+        discovery.on('stop', (res) => {
+            log.info(`got stop for ${res}`);
             stateManager.stop();
-        })
+        });
     }
 
     _registerToCommunicationEvents() {
@@ -39,7 +38,7 @@ class Worker {
             stateManager.reset();
         });
 
-        algoRunnerCommunication.on(messages.incomming.initialized, (data) => {
+        algoRunnerCommunication.on(messages.incomming.initialized, () => {
             stateManager.start();
         });
         algoRunnerCommunication.on(messages.incomming.done, (data) => {
@@ -52,11 +51,8 @@ class Worker {
             stateManager.done(data);
         });
         algoRunnerCommunication.on(messages.incomming.progress, (data) => {
-            console.log(`progress: ${data.progress}`)
+            log.debug(`progress: ${data.progress}`);
         });
-        // algoRunnerCommunication.on('message', (message) => {
-        //     log.info(`got: ${JSON.stringify(message)}`)
-        // })
     }
 
 
@@ -69,40 +65,39 @@ class Worker {
                 }
             }, results ? { results } : null));
             switch (state) {
-                case workerStates.ready:
-                    jobConsumer.finishJob({ results });
-                    break;
-                case workerStates.init:
-                    algoRunnerCommunication.send({
-                        command: messages.outgoing.initialize,
-                        data: job
-                    });
-                    break;
-                case workerStates.working:
-                    algoRunnerCommunication.send({
-                        command: messages.outgoing.start,
-                        data: job
-                    });
-                    break;
-                case workerStates.shutdown:
-                    break;
-                case workerStates.error:
-                    break;
-                case workerStates.stop:
-                    this._stopTimeout = setTimeout(() => {
-                        log.error('Timeout exceeded trying to stop algorithm. Exiting')
-                        process.exit();
-                    }, this._stopTimeoutMs)
-                    algoRunnerCommunication.send({
-                        command: messages.outgoing.stop,
-                        data: job
-                    });
-                    break;
-                default:
+            case workerStates.ready:
+                jobConsumer.finishJob({ results });
+                break;
+            case workerStates.init:
+                algoRunnerCommunication.send({
+                    command: messages.outgoing.initialize,
+                    data: job
+                });
+                break;
+            case workerStates.working:
+                algoRunnerCommunication.send({
+                    command: messages.outgoing.start,
+                    data: job
+                });
+                break;
+            case workerStates.shutdown:
+                break;
+            case workerStates.error:
+                break;
+            case workerStates.stop:
+                this._stopTimeout = setTimeout(() => {
+                    log.error('Timeout exceeded trying to stop algorithm. Exiting');
+                    process.exit();
+                }, this._stopTimeoutMs);
+                algoRunnerCommunication.send({
+                    command: messages.outgoing.stop,
+                    data: job
+                });
+                break;
+            default:
             }
-        })
+        });
     }
-
 }
 
 module.exports = new Worker();

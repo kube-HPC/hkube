@@ -1,52 +1,53 @@
-const adapters = require('./consts').adapters;
+const {adapters} = require('./consts');
 const loopbackWorkerCommunicationSchema = {
-    type:'object',
-    properties:{
-        prop1:{
-            type:'string'
+    type: 'object',
+    properties: {
+        prop1: {
+            type: 'string'
         }
     }
-}
+};
 const socketWorkerCommunicationSchema = {
-    type:'object',
-    properties:{
-        connection:{
-            type:'object',
-            properties:{
-                host:{
-                    type:'string',
-                    default:'localhost'
+    type: 'object',
+    properties: {
+        connection: {
+            type: 'object',
+            properties: {
+                host: {
+                    type: 'string',
+                    default: 'localhost'
                 },
-                port:{
+                port: {
                     type: ['integer', 'string'],
-                    default:3000
+                    default: 3000
                 },
-                protocol:{
-                    type:'string',
-                    default:'ws'
+                protocol: {
+                    type: 'string',
+                    default: 'ws'
                 }        
             }
         },
-        pingTimeout:{
-            type:'integer',
-            default:30000
+        pingTimeout: {
+            type: 'integer',
+            default: 30000
         }
     }
-}
+};
 const workerCommunicationSchema = {
-    type:'object',
-    properties:{
-        adapterName:{
-            type:'string',
-            default:adapters.socket
+    type: 'object',
+    properties: {
+        adapterName: {
+            type: 'string',
+            default: adapters.socket
         },
-        config:{
-            type:'object',
-            required:'true'
+        config: {
+            type: 'object',
+            required: 'true'
         }
     }
-}
-module.exports={
+};
+module.exports = {
     socketWorkerCommunicationSchema,
-    workerCommunicationSchema
-}
+    workerCommunicationSchema,
+    loopbackWorkerCommunicationSchema
+};
