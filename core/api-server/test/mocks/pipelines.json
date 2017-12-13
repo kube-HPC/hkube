@@ -182,5 +182,49 @@
             "progress": "http://localhost:3002/webhook/progress",
             "result": "http://localhost:3002/webhook/result"
         }
+    },
+    {
+        "name": "NodeNotExists",
+        "nodes": [
+            {
+                "nodeName": "A",
+                "algorithmName": "green-alg",
+                "input": []
+            },
+            {
+                "nodeName": "B",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@C"
+                ]
+            }
+        ],
+        "webhooks": {
+            "progress": "string",
+            "result": "string"
+        }
+    },
+    {
+        "name": "cyclicNodes",
+        "nodes": [
+            {
+                "nodeName": "A",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@B"
+                ]
+            },
+            {
+                "nodeName": "B",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@A"
+                ]
+            }
+        ],
+        "webhooks": {
+            "progress": "string",
+            "result": "string"
+        }
     }
 ]

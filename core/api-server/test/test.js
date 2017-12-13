@@ -950,28 +950,11 @@ describe('Test', function () {
                     expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
                 });
                 it('should throw validation error of node depend on not exists node', async function () {
+                    const pipeline = pipelines.find(p => p.name === "NodeNotExists");
                     const options = {
                         method: 'POST',
                         uri: restUrl + '/exec/raw',
-                        body: {
-                            "name": "reservedName",
-                            "nodes": [
-                                {
-                                    "nodeName": "A",
-                                    "algorithmName": "green-alg",
-                                    "input": []
-                                },
-                                {
-                                    "nodeName": "B",
-                                    "algorithmName": "green-alg",
-                                    "input": ['@C']
-                                }
-                            ],
-                            "webhooks": {
-                                "progress": "string",
-                                "result": "string"
-                            }
-                        }
+                        body: pipeline
                     }
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
@@ -979,33 +962,16 @@ describe('Test', function () {
                     expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
                 });
                 it('should throw validation error of cyclic nodes', async function () {
+                    const pipeline = pipelines.find(p => p.name === "cyclicNodes");
                     const options = {
                         method: 'POST',
                         uri: restUrl + '/exec/raw',
-                        body: {
-                            "name": "cyclicPipeline",
-                            "nodes": [
-                                {
-                                    "nodeName": "A",
-                                    "algorithmName": "green-alg",
-                                    "input": ['@B']
-                                },
-                                {
-                                    "nodeName": "B",
-                                    "algorithmName": "green-alg",
-                                    "input": ['@A']
-                                }
-                            ],
-                            "webhooks": {
-                                "progress": "string",
-                                "result": "string"
-                            }
-                        }
+                        body: pipeline
                     }
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('pipeline cyclicPipeline has cyclic nodes');
+                    expect(response.body.error.message).to.equal('pipeline cyclicNodes has cyclic nodes');
                 });
                 it('should throw validation error of flowInput not exist', async function () {
                     const options = {
@@ -2002,28 +1968,11 @@ describe('Test', function () {
                     expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
                 });
                 it('should throw validation error of node depend on not exists node', async function () {
+                    const pipeline = pipelines.find(p => p.name === "NodeNotExists");
                     const options = {
                         method: 'POST',
                         uri: restUrl + '/exec/raw',
-                        body: {
-                            "name": "reservedName",
-                            "nodes": [
-                                {
-                                    "nodeName": "A",
-                                    "algorithmName": "green-alg",
-                                    "input": []
-                                },
-                                {
-                                    "nodeName": "B",
-                                    "algorithmName": "green-alg",
-                                    "input": ['@C']
-                                }
-                            ],
-                            "webhooks": {
-                                "progress": "string",
-                                "result": "string"
-                            }
-                        }
+                        body: pipeline
                     }
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
@@ -2031,33 +1980,16 @@ describe('Test', function () {
                     expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
                 });
                 it('should throw validation error of cyclic nodes', async function () {
+                    const pipeline = pipelines.find(p => p.name === "cyclicNodes");
                     const options = {
                         method: 'POST',
                         uri: restUrl + '/exec/raw',
-                        body: {
-                            "name": "cyclicPipeline",
-                            "nodes": [
-                                {
-                                    "nodeName": "A",
-                                    "algorithmName": "green-alg",
-                                    "input": ['@B']
-                                },
-                                {
-                                    "nodeName": "B",
-                                    "algorithmName": "green-alg",
-                                    "input": ['@A']
-                                }
-                            ],
-                            "webhooks": {
-                                "progress": "string",
-                                "result": "string"
-                            }
-                        }
+                        body: pipeline
                     }
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('pipeline cyclicPipeline has cyclic nodes');
+                    expect(response.body.error.message).to.equal('pipeline cyclicNodes has cyclic nodes');
                 });
                 it('should throw validation error of flowInput not exist', async function () {
                     const options = {
