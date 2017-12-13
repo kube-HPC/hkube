@@ -1,5 +1,5 @@
 module.exports = {
     metricsNames: {
-        pipelines:'pipelines'
+        pipelines_net:'pipelines_net'
     }
 }

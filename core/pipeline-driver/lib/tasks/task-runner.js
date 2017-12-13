@@ -52,7 +52,7 @@ class TaskRunner {
             this._taskComplete(task);
         });
         metrics.addTimeMeasure({
-            name: metricsNames.pipelines,
+            name: metricsNames.pipelines_net,
             labels: ['pipeline_name', 'status'],
             buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
         })
@@ -64,8 +64,8 @@ class TaskRunner {
         this._jobId = job.id;
         log.info(`pipeline started ${this._jobId}`, { component: components.TASK_RUNNER });
         this._pipeline = await stateManager.getExecution({ jobId: this._jobId });
-        metrics.get(metricsNames.pipelines).start({
-            id: this._jobId,
+        metrics.get(metricsNames.pipelines_net).start({
+            id: job.id,
             labelValues: {
                 pipeline_name: this._pipeline.name
             }
@@ -127,15 +127,13 @@ class TaskRunner {
             }
             this._job.done();
         }
-
         await stateManager.unWatchJobState({ jobId: this._jobId });
         await stateManager.unWatchTasks({ jobId: this._jobId });
         const tasks = await stateManager.getDriverTasks({ jobId: this._jobId });
         if (tasks) {
             await Promise.all(tasks.map(t => producer.stopJob({ type: t.algorithm, jobID: this._jobId })));
         }
-
-        metrics.get(metricsNames.pipelines).end({
+        metrics.get(metricsNames.pipelines_net).end({
             id: this._jobId,
             labelValues: {
                 status
