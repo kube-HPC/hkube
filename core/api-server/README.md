@@ -16,7 +16,40 @@ Directed Acyclic Graph is a graph consisting of nodes connected with edges that 
 
 ![Diagram](/docs/images/DAG.png)
 
+The reasons for chosing this structure is:
+- represent a orderings processing nodes
+- data flowing between nodes
+- parallel and batch processing
+
 ### Example
+
+Lets see a simple pipeline with three nodes, node green process data -> pass it to yellow -> pass to red  
+The DAG of this pipeline will look like:  
+![Diagram](/docs/images/simple-pipeline.png)  
+the input of one node is the output of the other
+
+and the json representation:
+
+```js
+"nodes": [{
+    "nodeName": "green",
+    "algorithmName": "green-alg",
+    "input": [false, "OK"]
+},
+{
+    "nodeName": "yellow",
+    "algorithmName": "yellow-alg",
+    "input": ["@green"]
+},
+{
+    "nodeName": "red",
+    "algorithmName": "red-alg",
+    "input": ["@yellow"]
+}],
+"flowInput": {
+    "files": ['links-1', 'links-2', 'links-3']
+}
+```
 
 Here we can see the most simple pipeline. We have three nodes: green, yellow and red.  
 The green node will run first because it does not depend on any node.  
@@ -28,29 +61,9 @@ So the input of the yellow node will be: [<Whatever green node returns>, true, 2
 The last node to run will be the red node because it depend on the completion of green and yellow nodes.  
 The input of the red node will be: [Whatever green node returns, Whatever yellow node returns].  
 
-```js
-"nodes": [{
-    "nodeName": "green",
-    "algorithmName": "green-alg",
-    "input": ["@flowInput.files", false, "OK"]
-},
-{
-    "nodeName": "yellow",
-    "algorithmName": "yellow-alg",
-    "input": ["@green", true, 256]
-},
-{
-    "nodeName": "red",
-    "algorithmName": "red-alg",
-    "input": ["@green", "@yellow"]
-}],
-"flowInput": {
-    "files": ['links-1', 'links-2', 'links-3']
-}
-```
 
-The DAG of this pipeline will look like:  
-![Diagram](/docs/images/simple-pipeline.png)
+
+
 
 
 ### Example
