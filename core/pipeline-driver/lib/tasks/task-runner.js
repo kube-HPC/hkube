@@ -26,12 +26,6 @@ class TaskRunner {
 
     init(options) {
         this._config = options;
-        producer.on(Events.TASKS.WAITING, (taskId) => {
-            this._updateState(taskId, { status: States.PENDING });
-        })
-        producer.on(Events.TASKS.ACTIVE, (taskId) => {
-            this._updateState(taskId, { status: States.ACTIVE });
-        })
         consumer.on(Events.JOBS.START, async (job) => {
             try {
                 await this._startPipeline(job);
@@ -43,6 +37,12 @@ class TaskRunner {
         stateManager.on(Events.JOBS.STOP, (data) => {
             this._stopPipeline(null, data.reason);
         });
+        producer.on(Events.TASKS.WAITING, (taskId) => {
+            this._updateState(taskId, { status: States.PENDING });
+        })
+        producer.on(Events.TASKS.ACTIVE, (taskId) => {
+            this._updateState(taskId, { status: States.ACTIVE });
+        })
         stateManager.on(Events.TASKS.SUCCEED, async (data) => {
             const task = await this._updateState(data.taskId, { status: data.status, result: data.result });
             this._taskComplete(task);
@@ -51,30 +51,28 @@ class TaskRunner {
             const task = await this._updateState(data.taskId, { status: data.status, error: data.error });
             this._taskComplete(task);
         });
-
         metrics.addTimeMeasure({
             name: metricsNames.pipelines,
             labels: ['pipeline_name', 'status'],
             buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
-
         })
     }
 
     async _startPipeline(job) {
         this._isRunning = true;
-        log.info(`pipeline started ${job.id}`, { component: components.TASK_RUNNER });
         this._job = job;
-        this._pipeline = await stateManager.getExecution({ jobId: job.id });
+        this._jobId = job.id;
+        log.info(`pipeline started ${this._jobId}`, { component: components.TASK_RUNNER });
+        this._pipeline = await stateManager.getExecution({ jobId: this._jobId });
         metrics.get(metricsNames.pipelines).start({
-            id: job.id,
+            id: this._jobId,
             labelValues: {
                 pipeline_name: this._pipeline.name
             }
         });
-        stateManager.setCurrentData(job.id, this._pipeline);
 
-        await stateManager.watchTasks();
-        const watchState = await stateManager.watchJobState();
+        await stateManager.watchTasks({ jobId: this._jobId });
+        const watchState = await stateManager.watchJobState({ jobId: this._jobId });
         if (watchState && watchState.obj && watchState.obj.state === States.STOP) {
             this._stopPipeline(null, watchState.obj.reason);
         }
@@ -83,15 +81,15 @@ class TaskRunner {
         progress.calcMethod(this._nodes.calc.bind(this._nodes));
 
         // first we will try to get the state for this job
-        const state = await stateManager.getState();
+        const state = await stateManager.getState({ jobId: this._jobId });
         if (state) {
-            log.info(`starting recover process ${job.id}`, { component: components.TASK_RUNNER });
-            stateManager.setState({ data: States.RECOVERING });
+            log.info(`starting recover process ${this._jobId}`, { component: components.TASK_RUNNER });
+            stateManager.setDriverState({ jobId: this._jobId, data: States.RECOVERING });
             this._recover(state);
         }
         else {
-            stateManager.setState({ data: States.ACTIVE });
-            progress.info({ status: States.ACTIVE });
+            stateManager.setDriverState({ jobId: this._jobId, data: States.ACTIVE });
+            progress.info({ jobId: this._jobId, status: States.ACTIVE });
 
             const entryNodes = this._nodes.findEntryNodes();
             if (entryNodes.length === 0) {
@@ -102,40 +100,43 @@ class TaskRunner {
     }
 
     async _stopPipeline(error, reason) {
-        this._isRunning = false;
-        await stateManager.unWatchJobState();
-        await stateManager.unWatchTasks();
-        const tasks = await stateManager.getDriverTasks();
-        if (tasks) {
-            await Promise.all(tasks.map(t => producer.stopJob({ type: t.algorithm, jobID: this._job.id })));
+        if (!this._isRunning) {
+            return;
         }
+        this._isRunning = false;
         let status;
         if (error) {
             status = States.FAILED;
             log.error(`pipeline failed ${error.message}`, { component: components.TASK_RUNNER });
-            progress.error({ status, error: error.message });
-            stateManager.setJobResults({ error: error.message });
+            progress.error({ jobId: this._jobId, status, error: error.message });
+            stateManager.setJobResults({ jobId: this._jobId, data: { error: error.message } });
             this._job.done(error.message);
-
         }
         else {
             if (reason) {
                 status = States.STOPPED;
-                log.info(`pipeline stopped ${this._job.id}. ${reason}`, { component: components.TASK_RUNNER });
-                progress.info({ status });
+                log.info(`pipeline stopped ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER });
+                progress.info({ jobId: this._jobId, status });
             }
             else {
                 status = States.COMPLETED;
-                log.info(`pipeline completed ${this._job.id}`, { component: components.TASK_RUNNER });
-                progress.info({ status });
+                log.info(`pipeline completed ${this._jobId}`, { component: components.TASK_RUNNER });
+                progress.info({ jobId: this._jobId, status });
+                const result = this._nodes.nodesResults();
+                stateManager.setJobResults({ jobId: this._jobId, data: { result } });
             }
-            const result = this._nodes.allNodesResults();
-            stateManager.setJobResults(result);
             this._job.done();
         }
 
+        await stateManager.unWatchJobState({ jobId: this._jobId });
+        await stateManager.unWatchTasks({ jobId: this._jobId });
+        const tasks = await stateManager.getDriverTasks({ jobId: this._jobId });
+        if (tasks) {
+            await Promise.all(tasks.map(t => producer.stopJob({ type: t.algorithm, jobID: this._jobId })));
+        }
+
         metrics.get(metricsNames.pipelines).end({
-            id: this._job.id,
+            id: this._jobId,
             labelValues: {
                 status
             }
@@ -155,7 +156,7 @@ class TaskRunner {
         else {
             log.info(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER });
         }
-        const task = await stateManager.getTaskState({ taskId: taskId });
+        const task = await stateManager.getTaskState({ jobId: this._jobId, taskId: taskId });
         task.status = options.status;
         task.result = options.result;
         task.error = options.error;
@@ -277,10 +278,10 @@ class TaskRunner {
             }
         }
         if (task.batchID) {
-            progress.debug({ status: States.ACTIVE });
+            progress.debug({ jobId: this._jobId, status: States.ACTIVE });
         }
         else {
-            progress.info({ status: States.ACTIVE });
+            progress.info({ jobId: this._jobId, status: States.ACTIVE });
         }
         if (this._nodes.isAllNodesDone()) {
             this._stopPipeline();
@@ -332,8 +333,8 @@ class TaskRunner {
 
     async _setTaskState(task) {
         this._nodes.updateNodeState(task.nodeName, task.batchID, { state: task.status, error: task.error, result: task.result });
-        await stateManager.setTaskState({ taskId: task.taskId, data: task });
-        progress.debug({ status: States.ACTIVE });
+        await stateManager.setTaskState({ jobId: this._jobId, taskId: task.taskId, data: task });
+        progress.debug({ jobId: this._jobId, status: States.ACTIVE });
     }
 
     async _createJob(node, taskId) {
@@ -343,7 +344,7 @@ class TaskRunner {
             data: {
                 input: node.input,
                 node: node.batchID || node.name,
-                jobID: this._job.id
+                jobID: this._jobId
             }
         }
         await producer.createJob(options);

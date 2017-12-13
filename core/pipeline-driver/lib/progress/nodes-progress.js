@@ -39,7 +39,7 @@ class ProgressManager {
         this._progress(levels.critical, data);
     }
 
-    _progress(level, { status, error }) {
+    _progress(level, { jobId, status, error }) {
         let progress = 0;
         let details = '';
         if (this._calc) {
@@ -47,7 +47,7 @@ class ProgressManager {
             progress = data.progress;
             details = data.details;
         }
-        stateManager.setJobStatus({ level, status, error, progress, details });
+        stateManager.setJobStatus({ jobId, data: { level, status, error, progress, details } });
     }
 }
 

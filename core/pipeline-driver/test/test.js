@@ -8,8 +8,11 @@ const configIt = require('@hkube/config');
 const clone = require('clone');
 const { expect } = require('chai');
 const sinon = require('sinon');
+const Events = require('lib/consts/Events');
 const Batch = require('lib/nodes/batch');
 const Node = require('lib/nodes/node');
+const Task = require('lib/tasks/Task');
+const bootstrap = require('../bootstrap');
 const producer = require('lib/producer/jobs-producer');
 const consumer = require('lib/consumer/jobs-consumer');
 const stateManager = require('lib/state/state-manager');
@@ -18,18 +21,10 @@ const progress = require('lib/progress/nodes-progress');
 const NodesMap = require('lib/nodes/nodes-map');
 const WorkerStub = require('test/mocks/worker');
 const pipelines = require('test/mocks/pipelines');
-let config, jobId = null;
 
 describe('Test', function () {
     before(async () => {
-        jobId = `jobid-${uuidv4()}`;
-        const { main } = await configIt.load();
-        config = main;
-        await producer.init(config);
-        await consumer.init(config);
-        stateManager.init(config);
-        stateManager.setCurrentData(jobId, pipelines[0]);
-        await stateManager.watchTasks();
+        await bootstrap.init();
     })
     describe('Producer', function () {
         describe('Validation', function () {
@@ -57,46 +52,9 @@ describe('Test', function () {
                     done();
                 });
             });
-            it('should create job fire event task-failed', function (done) {
-                const options = {
-                    type: 'test-job-task-failed',
-                    jobId: jobId,
-                    taskId: `taskId-${uuidv4()}`
-                }
-                stateManager.on('task-failed', (data) => {
-                    expect(data).to.have.property('jobId');
-                    expect(data).to.have.property('taskId');
-                    expect(data).to.have.property('error');
-                    expect(data).to.have.property('status');
-                    done();
-                });
-                const worker = new WorkerStub(options);
-                producer.createJob(options);
-                setTimeout(() => {
-                    worker.done(null, new Error('fake error'));
-                }, 1000)
-            });
-            it('should create job fire event task-completed', function (done) {
-                const options = {
-                    type: 'test-job-task-completed',
-                    jobId: jobId,
-                    taskId: `taskId-${uuidv4()}`
-                }
-                stateManager.on('task-completed', (data) => {
-                    expect(data).to.have.property('jobId');
-                    expect(data).to.have.property('taskId');
-                    expect(data).to.have.property('result');
-                    expect(data).to.have.property('status');
-                    done();
-                });
-                const worker = new WorkerStub(options);
-                producer.createJob(options);
-                setTimeout(() => {
-                    worker.done({ state: 'OK' });
-                }, 1000)
-            });
             it('should create job fire event task-waiting', function (done) {
                 let count = 0;
+                const jobId = `jobid-${uuidv4()}`;
                 const taskId = `taskId-${uuidv4()}`;
                 const options = { type: 'test-job-task-waiting', jobId, taskId }
                 producer.on('task-waiting', (task) => {
@@ -117,9 +75,10 @@ describe('Test', function () {
             });
         });
         describe('ConsumeJob', function () {
-            it('should consume a job with properties', function (done) {
+            it('should consume a job with properties', async function (done) {
+                const jobId = `jobid-${uuidv4()}`;
                 const data = { test: 'OK' };
-                consumer.on('job-start', async (job) => {
+                consumer.on(Events.JOBS.START, async (job) => {
                     expect(job.data).to.deep.equal(data);
                     done();
                 });
@@ -128,10 +87,12 @@ describe('Test', function () {
                 }
                 const options = {
                     job: {
+                        id: jobId,
                         type: 'pipeline-driver-job',
                         data: data
                     }
                 }
+                await stateManager.setExecution({ jobId, data: pipelines[1] });
                 const p = new Producer({ setting: setting });
                 p.createJob(options);
             });
@@ -277,13 +238,13 @@ describe('Test', function () {
             const result = nodesMap.isAllParentsFinished(yellow.nodeName);
             expect(result).to.equal(false);
         });
-        it('allNodesResults: should return array', function () {
+        it('nodesResults: should return array', function () {
             const pipeline = clone(pipelines[0]);
             const nodesMap = new NodesMap(pipeline);
-            const result = nodesMap.allNodesResults();
-            expect(result).to.have.lengthOf(4);
+            const result = nodesMap.nodesResults();
+            expect(result).to.have.lengthOf(2);
         });
-        it('calc: should return array', function () {
+        it('calc: should calc progress', function () {
             const pipeline = clone(pipelines[0]);
             const nodesMap = new NodesMap(pipeline);
             const result = nodesMap.calc();
@@ -360,67 +321,216 @@ describe('Test', function () {
             expect(result).to.equal(false);
         });
     });
-    describe('progress', function () {
+    describe('Progress', function () {
         it('should call progress with level silly', function () {
+            const jobId = `jobid-${uuidv4()}`;
             const prog = clone(progress);
             const data = { status: 'active' };
             const spy = sinon.spy(prog, "_progress");
-            prog.silly({ status: 'active' })
+            prog.silly({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('silly');
-            expect(call.args[1]).to.deep.equal(data);
-
+            expect(call.args[1].jobId).to.equal(jobId);
+            expect(call.args[1].status).to.equal(data.status);
         });
         it('should call progress with level debug', function () {
+            const jobId = `jobid-${uuidv4()}`;
             const prog = clone(progress);
             const data = { status: 'active' };
             const spy = sinon.spy(prog, "_progress");
-            prog.debug({ status: 'active' })
+            prog.debug({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('debug');
-            expect(call.args[1]).to.deep.equal(data);
+            expect(call.args[1].jobId).to.equal(jobId);
+            expect(call.args[1].status).to.equal(data.status);
         });
         it('should call progress with level info', function () {
+            const jobId = `jobid-${uuidv4()}`;
             const prog = clone(progress);
             const data = { status: 'active' };
             const spy = sinon.spy(prog, "_progress");
-            prog.info({ status: 'active' })
+            prog.info({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('info');
-            expect(call.args[1]).to.deep.equal(data);
+            expect(call.args[1].jobId).to.equal(jobId);
+            expect(call.args[1].status).to.equal(data.status);
         });
         it('should call progress with level warning', function () {
+            const jobId = `jobid-${uuidv4()}`;
             const prog = clone(progress);
             const data = { status: 'active' };
             const spy = sinon.spy(prog, "_progress");
-            prog.warning({ status: 'active' })
+            prog.warning({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('warning');
-            expect(call.args[1]).to.deep.equal(data);
+            expect(call.args[1].jobId).to.equal(jobId);
+            expect(call.args[1].status).to.equal(data.status);
         });
         it('should call progress with level error', function () {
+            const jobId = `jobid-${uuidv4()}`;
             const prog = clone(progress);
             const data = { status: 'active' };
             const spy = sinon.spy(prog, "_progress");
-            prog.error({ status: 'active' })
+            prog.error({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('error');
-            expect(call.args[1]).to.deep.equal(data);
+            expect(call.args[1].jobId).to.equal(jobId);
+            expect(call.args[1].status).to.equal(data.status);
         });
         it('should call progress with level critical', function () {
+            const jobId = `jobid-${uuidv4()}`;
             const prog = clone(progress);
             const data = { status: 'active' };
             const spy = sinon.spy(prog, "_progress");
-            prog.critical({ status: 'active' })
+            prog.critical({ jobId, status: data.status })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('critical');
-            expect(call.args[1]).to.deep.equal(data);
+            expect(call.args[1].jobId).to.equal(jobId);
+            expect(call.args[1].status).to.equal(data.status);
+        });
+    });
+    describe('StateManager', function () {
+        it('set/get/TaskState', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const task = new Task({
+                taskId: 'taskId-test',
+                nodeName: 'nodeName-test',
+                algorithm: 'algorithm-test',
+                status: 'completed'
+            })
+            await stateManager.setTaskState({ jobId, taskId: task.taskId, data: task });
+            const response = await stateManager.getTaskState({ jobId, taskId: task.taskId });
+            expect(response.taskId).to.equal(task.taskId);
+        });
+        it('set/get/DriverState', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const data = { status: 'completed' };
+            await stateManager.setDriverState({ jobId, data });
+            const response = await stateManager.getDriverState({ jobId });
+            expect(response.state).to.deep.equal(data);
+        });
+        it('setJobResults', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const data = { result: [1, 2, 3] };
+            const response = await stateManager.setJobResults({ jobId, data });
+            expect(JSON.parse(response.node.value).data).to.deep.equal(data);
+        });
+        it('setJobStatus', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const data = { status: 'completed' };
+            const response = await stateManager.setJobStatus({ jobId, data });
+            expect(JSON.parse(response.node.value).data).to.deep.equal(data);
+        });
+        it('getState', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const task = new Task({
+                taskId: 'taskId-test',
+                nodeName: 'nodeName-test',
+                algorithm: 'algorithm-test',
+                status: 'completed'
+            })
+            const data = { status: 'completed' };
+            await stateManager.setDriverState({ jobId, data });
+            await stateManager.setTaskState({ jobId, taskId: task.taskId, data: task });
+            const response = await stateManager.getState({ jobId });
+            expect(response).to.have.property('driverTasks');
+            expect(response).to.have.property('jobTasks');
+            expect(response).to.have.property('startTime');
+            expect(response).to.have.property('state');
+        });
+        it('getExecution', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const data = { status: 'completed' };
+            await stateManager.setExecution({ jobId, data });
+            const response = await stateManager.getExecution({ jobId });
+            expect(response).to.deep.equal(data);
+        });
+        it('watchTasks succeed', async (done) => {
+            const jobId = `jobid-${uuidv4()}`;
+            const taskId = `taskId-${uuidv4()}`;
+            const data = { result: [1, 2, 3], status: 'succeed' }
+            await stateManager.watchTasks({ jobId, taskId });
+            stateManager.on(Events.TASKS.SUCCEED, (response) => {
+                if (response.jobId === jobId) {
+                    expect(response).to.have.property('jobId');
+                    expect(response).to.have.property('taskId');
+                    expect(response).to.have.property('result');
+                    expect(response).to.have.property('status');
+                    done();
+                }
+            });
+            await stateManager._etcd.tasks.setState({ jobId, taskId, result: data.result, status: data.status });
+        });
+        it('watchTasks failed', async function (done) {
+            const jobId = `jobid-${uuidv4()}`;
+            const taskId = `taskId-${uuidv4()}`;
+            const data = { error: 'some error', status: 'failed' }
+            const response = await stateManager.watchTasks({ jobId, taskId });
+            stateManager.on(Events.TASKS.FAILED, (response) => {
+                if (response.jobId === jobId) {
+                    expect(response).to.have.property('jobId');
+                    expect(response).to.have.property('taskId');
+                    expect(response).to.have.property('error');
+                    expect(response).to.have.property('status');
+                    done();
+                }
+            });
+            stateManager._etcd.tasks.setState({ jobId, taskId, error: data.error, status: data.status });
+        });
+        it('unWatchTasks', async function (done) {
+            const jobId = `jobid-${uuidv4()}`;
+            const taskId = `taskId-${uuidv4()}`;
+            const data = { error: 'some different error', status: 'failed' }
+            await stateManager.watchTasks({ jobId });
+            stateManager.on(Events.TASKS.FAILED, (response) => {
+                throw new Error('failed');
+            });
+            const res = await stateManager.unWatchTasks({ jobId });
+            await stateManager._etcd.tasks.setState({ jobId, taskId, error: data.error, status: data.status });
+            setTimeout(() => {
+                done();
+            }, 1000)
+        });
+        it('watchJobState', async function (done) {
+            const jobId = `jobid-${uuidv4()}`;
+            await stateManager.watchJobState({ jobId });
+            stateManager.on(Events.JOBS.STOP, (response) => {
+                expect(response.jobId).to.equal(jobId);
+                expect(response.state).to.equal('stop');
+                done();
+            });
+            await stateManager._etcd.jobs.stop({ jobId });
+        });
+        it('unWatchJobState', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            await stateManager.watchJobState({ jobId });
+            stateManager.on(Events.JOBS.STOP, (response) => {
+                throw new Error('failed');
+            });
+            const response = await stateManager.unWatchJobState({ jobId });
+            await stateManager._etcd.jobs.stop({ jobId });
+            setTimeout(() => {
+                done();
+            }, 1000)
+        });
+        it('getDriverTasks', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const task = new Task({
+                taskId: 'taskId-test',
+                nodeName: 'nodeName-test',
+                algorithm: 'algorithm-test',
+                status: 'completed'
+            })
+            await stateManager.setTaskState({ jobId, taskId: task.taskId, data: task });
+            const response = await stateManager.getDriverTasks({ jobId });
+            expect(response[0].nodeName).to.equal(task.nodeName);
+            expect(response[0].algorithm).to.equal(task.algorithm);
         });
     });
 });

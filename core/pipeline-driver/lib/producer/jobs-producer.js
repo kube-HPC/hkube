@@ -3,7 +3,6 @@ const validate = require('djsv');
 const uuidv4 = require('uuid/v4');
 const { Producer } = require('@hkube/producer-consumer');
 const schema = require('lib/producer/schema');
-const stateManager = require('lib/state/state-manager');
 const Events = require('lib/consts/Events');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();

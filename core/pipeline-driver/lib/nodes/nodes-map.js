@@ -150,24 +150,27 @@ class NodesMap {
         return states.every(s => s === States.SUCCEED || s === States.FAILED);
     }
 
-    allNodesResults() {
+    nodesResults() {
         const results = [];
         const nodes = this.getAllNodes();
         nodes.forEach(n => {
-            if (n.batch.length > 0) {
-                n.batch.forEach(b => results.push({
-                    name: b.name,
-                    batchID: b.batchID,
-                    algorithm: b.algorithm,
-                    result: b.result
-                }));
-            }
-            else {
-                results.push({
-                    name: n.name,
-                    algorithm: n.algorithm,
-                    result: n.result
-                })
+            const childs = this.childs(n.name);
+            if (childs.length === 0) {
+                if (n.batch.length > 0) {
+                    n.batch.forEach(b => results.push({
+                        name: b.name,
+                        batchID: b.batchID,
+                        algorithm: b.algorithm,
+                        result: b.result
+                    }));
+                }
+                else {
+                    results.push({
+                        name: n.name,
+                        algorithm: n.algorithm,
+                        result: n.result
+                    })
+                }
             }
         })
         return results;
