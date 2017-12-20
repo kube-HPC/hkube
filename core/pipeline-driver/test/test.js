@@ -26,7 +26,7 @@ describe('Test', function () {
     before(async () => {
         await bootstrap.init();
     })
-    describe('Producer', function () {
+    xdescribe('Producer', function () {
         describe('Validation', function () {
             it('should not throw validation error', function () {
                 producer.init(null);
@@ -262,6 +262,22 @@ describe('Test', function () {
             const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: firstNode.input });
             const result = inputParser.parse(options, firstNode.input, {});
             expect(result.input).to.deep.equal(links);
+        });
+        it('should parse input as raw batch', function () {
+            const pipeline = pipelines.find(p => p.name === 'rawBatch');
+            const array = [1, 2, 3, 4, 5].map(i => new Array(1).fill(i, 0, 1));
+            const firstNode = pipeline.nodes[0];
+            const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: firstNode.input });
+            const result = inputParser.parse(options, firstNode.input, {});
+            expect(result.input).to.deep.equal(array);
+        });
+        it('should parse node result to batch', function () {
+            const pipeline = pipelines.find(p => p.name === 'resultBatch');
+            const yellow = pipeline.nodes[1];
+            const greenResults = { green: [1, 2, 3, 4, 5] };
+            const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: yellow.input });
+            const result = inputParser.parse(options, yellow.input, greenResults);
+            expect(result).to.equal(false);
         });
         it('should extract nodes from input', function () {
             const pipeline = pipelines[1];

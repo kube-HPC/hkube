@@ -152,5 +152,63 @@
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
         }
+    },
+    {
+        "name": "rawBatch",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "#[1,2,3,4,5]"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ]
+            }
+        ],
+        "flowInput": {}
+    },
+    {
+        "name": "resultBatch",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    false,
+                    "OK",
+                    256
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    true,
+                    "#@green"
+                ]
+            },
+            {
+                "nodeName": "red",
+                "algorithmName": "red-alg",
+                "input": [
+                    "@yellow",
+                    512
+                ]
+            }
+        ],
+        "flowInput": {}
     }
 ]
