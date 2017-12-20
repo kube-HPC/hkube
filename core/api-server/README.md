@@ -2,8 +2,6 @@
 [![Coverage Status](https://coveralls.io/repos/github/kube-HPC/api-server/badge.svg?branch=master)](https://coveralls.io/github/kube-HPC/api-server?branch=master)
 
 
-![Diagram](/docs/images/api-server.png)
-
 ## Documentation
 
 The full doc can be found [here](https://kube-hpc.github.io/api-server/docs.html)  
@@ -16,19 +14,14 @@ Directed Acyclic Graph is a graph consisting of nodes connected with edges that 
 
 ![Diagram](/docs/images/DAG.png)
 
-The reasons for chosing this structure is:
-- represent a orderings processing nodes
-- data flowing between nodes
+The reasons for choosing this structure are:
+- represent an orderings processing of nodes
+- data flowing between the nodes
 - parallel and batch processing
 
 ### Example
 
-Lets see a simple pipeline with three nodes, node green process data -> pass it to yellow -> pass to red  
-The DAG of this pipeline will look like:  
-![Diagram](/docs/images/simple-pipeline.png)  
-the input of one node is the output of the other
-
-and the json representation:
+Here we can see the most basic pipeline
 
 ```js
 "nodes": [{
@@ -39,70 +32,102 @@ and the json representation:
 {
     "nodeName": "yellow",
     "algorithmName": "yellow-alg",
-    "input": ["@green"]
+    "input": [true, "@green"]
 },
 {
     "nodeName": "red",
     "algorithmName": "red-alg",
-    "input": ["@yellow"]
-}],
-"flowInput": {
-    "files": ['links-1', 'links-2', 'links-3']
-}
+    "input": ["@yellow", 512]
+}]
 ```
 
-Here we can see the most simple pipeline. We have three nodes: green, yellow and red.  
-The green node will run first because it does not depend on any node.  
-You can see the @ sign in the input of the green node. this sign indicates a refference to another node or flowInput.  
-So the input of the green node will be: [['links-1', 'links-2', 'links-3'], false, "OK"].  
-The next node to run will be the yellow node because it depend on the completion of the green node.  
-See the "@green" in the input of the yellow node.  
-So the input of the yellow node will be: [<Whatever green node returns>, true, 256].  
-The last node to run will be the red node because it depend on the completion of green and yellow nodes.  
-The input of the red node will be: [Whatever green node returns, Whatever yellow node returns].  
+The DAG of this pipeline will look like:  
+![Diagram](/docs/images/simple-pipeline.png)  
 
+The blue circle is the pipeline driver which responsible for  
+executing nodes with the right order and the right input.  
+each result from any node is always return to the pipeline driver which  
+decide what to next. Here we have three nodes: green, yellow and red.   
+The green node -> pass it to yellow -> pass it to red.  
+The input of one node is the output of another.  
 
+The green node will run first because it does not depend on any other node.  
+Green node input will be: [false, "OK", 256].  
+Yellow node depends on green node, see the "@green" in the input of the yellow node.  
+So the input of the yellow node will be: [true, green node output].  
+The last node to run will be the red node because it depend on the completion of  
+the yellow node. The input of the red node will be: [yellow node output, 512].  
 
+The final results of this pipeline will be the output of the red node.  
+That because the red node is the last node in the pipeline.
 
+### Batch Example
 
-
-### Example
-
+You can also execute nodes in parallel and reduce the results into a single node.   
 This example is exactly like the first one, except one detail.  
-You can notice for the input of the green node, it has the batch sign #.  
+The batch sign: # in the input of the green node.  
 
 ```js
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
-    "input": ["#@flowInput.files"]
+    "input": [false, "#[1,2,3]"]
 },
 {
     "nodeName": "yellow",
     "algorithmName": "yellow-alg",
-    "input": ["@green"]
+    "input": [true, "@green"]
 },
 {
     "nodeName": "red",
     "algorithmName": "red-alg",
-    "input": ["@yellow", "@green"]
-}],
-"flowInput": {
-    "files": ['links-1', 'links-2', 'links-3']
-}
+    "input": ["@yellow", 512]
+}]
 ```
 
 The DAG of this pipeline will look like:  
-![Diagram](/docs/images/batch-pipeline.png)
+![Diagram](/docs/images/simple-batch.png)
 
-The green node will run as a batch becuase of the # sign in the input ("#@flowInput.files")  
-The pipeline driver will create three different tasks from type green-alg, each with differrent input  
+The green node will run as a batch because of the # sign in the input.  
+This pipeline will create three different tasks from type green-alg,  
+each with a different input:  
 
 ```js
-worker 1: ["links-1"]
-worker 2: ["links-2"]
-worker 3: ["links-3"]
+task 1: [false, "1"]
+task 2: [false, "2"]
+task 3: [false, "3"]
 ```
+
+The yellow node will wait until all tasks of the green node will finish.  
+The input of the yellow node will be: [true, green node output].  
+The input of the red node will be: [yellow node output, 512].
+
+### Another Batch Example
+
+You can also create a batch processing on node results.  
+Lets say that green node returns an array: ['A', 'B', 'C'].
+
+
+```js
+"nodes": [{
+    "nodeName": "green",
+    "algorithmName": "green-alg",
+    "input": [false, "OK"]
+},
+{
+    "nodeName": "yellow",
+    "algorithmName": "yellow-alg",
+    "input": [false, "#@green"]
+},
+{
+    "nodeName": "red",
+    "algorithmName": "red-alg",
+    "input": ["@yellow", 512]
+}]
+```
+
+The DAG of this pipeline will look like:  
+![Diagram](/docs/images/batch-result.png)
 
 
 ## License

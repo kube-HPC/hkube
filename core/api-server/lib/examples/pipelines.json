@@ -1,6 +1,6 @@
 [
     {
-        "name": "myFlow",
+        "name": "simple",
         "nodes": [
             {
                 "nodeName": "green",
@@ -29,17 +29,13 @@
                 "link": "links-1"
             }
         },
-        "webhooks": {
-            "progress": "http://webhook-stub-ui:3002/webhook/progress",
-            "result": "http://webhook-stub-ui:3002/webhook/result"
-        },
         "options": {
-            "batchTolerance": 30,
+            "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
         }
     },
     {
-        "name": "myFlow2",
+        "name": "batch",
         "nodes": [
             {
                 "nodeName": "green",
@@ -59,7 +55,6 @@
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
-                    "@green",
                     "@yellow"
                 ]
             }
@@ -81,17 +76,13 @@
                 ]
             }
         },
-        "webhooks": {
-            "progress": "http://localhost:3002/webhook/progress",
-            "result": "http://localhost:3002/webhook/result"
-        },
         "options": {
-            "batchTolerance": 30,
+            "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
         }
     },
     {
-        "name": "myFlow3",
+        "name": "big-batch",
         "nodes": [
             {
                 "nodeName": "green",
@@ -131,12 +122,8 @@
                 ]
             }
         },
-        "webhooks": {
-            "progress": "http://webhook-stub-ui:3002/webhook/progress",
-            "result": "http://webhook-stub-ui:3002/webhook/result"
-        },
         "options": {
-            "batchTolerance": 30,
+            "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
         }
     }

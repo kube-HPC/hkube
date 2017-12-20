@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
-const storedPipelinesMap = require('../service/storedPipelinesMap.json')
 
 class StateManager extends EventEmitter {
 
@@ -9,10 +8,6 @@ class StateManager extends EventEmitter {
         this._etcd.init({ etcd, serviceName });
         this._etcd.discovery.register({ serviceName });
         this._watchJobResults();
-
-
-        // JUST FOR THIS VERSION:
-        Promise.all(storedPipelinesMap.map(p => this.setPipeline(p)));
     }
 
     async setExecution(options) {

@@ -649,7 +649,7 @@
                 "properties": {
                     "name": {
                         "type": "string",
-                        "example": "myFlow",
+                        "example": "batch",
                         "minLength": 1
                     },
                     "flowInput": {

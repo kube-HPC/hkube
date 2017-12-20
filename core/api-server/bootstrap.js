@@ -14,6 +14,7 @@ const modules = [
     'lib/state/state-manager',
     'lib/producer/jobs-producer',
     'lib/webhook/webhooks-handler',
+    'lib/examples/pipelines-updater'
 ];
 
 class Bootstrap {
@@ -40,7 +41,7 @@ class Bootstrap {
             log.info(dataRest.message, { component: componentNames.REST_API });
 
             await Promise.all(modules.map(m => require(m).init(main)));
-            
+
             return main;
         }
         catch (error) {
