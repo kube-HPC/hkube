@@ -5,6 +5,7 @@ const CONSTS = {
     BATCH: '#',
     REF: '@',
     BATCHREF: '#@',
+    BATCHRAW: '#[',
     WAITANY: '*',
     FLOWINPUT: 'flowInput'
 }
@@ -105,6 +106,10 @@ class InputParser {
 
     isBatch(input) {
         return typeof input === 'string' && input.startsWith(CONSTS.BATCH);
+    }
+
+    isBatchRaw(input) {
+        return typeof input === 'string' && input.startsWith(CONSTS.BATCHRAW);
     }
 
     isNode(input) {
@@ -305,6 +310,10 @@ class InputParser {
         options = options || {};
         nodesInput = nodesInput || {};
         let result = path;
+        if (this.isBatchRaw(path)) {
+            const array = path.substr(1);
+            result = this._tryParseJSON(array);
+        }
         if (this.isReference(path)) {
             const obj = this.extractObjectFromInput(path);
             const construct = this.constructObject(obj);
@@ -341,6 +350,16 @@ class InputParser {
             }
         }
         return result;
+    }
+
+    _tryParseJSON(json) {
+        let parsed = json;
+        try {
+            parsed = JSON.parse(json);
+        }
+        catch (e) {
+        }
+        return parsed
     }
 }
 

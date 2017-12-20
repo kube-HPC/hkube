@@ -1,3 +1,4 @@
+const deepEqual = require('deep-equal');
 const stateManager = require('lib/state/state-manager');
 
 const levels = {
@@ -11,8 +12,20 @@ const levels = {
 
 class ProgressManager {
 
+    constructor() {
+        this._lastState = null;
+    }
+
     calcMethod(method) {
         this._calc = method;
+    }
+
+    _default() {
+        return {
+            progress: 0,
+            details: '',
+            activeNodes: []
+        };
     }
 
     silly(data) {
@@ -39,15 +52,14 @@ class ProgressManager {
         this._progress(levels.critical, data);
     }
 
-    _progress(level, { jobId, status, error }) {
-        let progress = 0;
-        let details = '';
-        if (this._calc) {
-            const data = this._calc();
-            progress = data.progress;
-            details = data.details;
+    _progress(level, { jobId, pipeline, status, error }) {
+        const calc = this._calc || this._default;
+        const { progress, details, activeNodes } = calc();
+        const data = { level, status, error, progress, details, activeNodes };
+        if (!deepEqual(data, this._lastState)) {
+            this._lastState = data;
+            stateManager.setJobStatus({ jobId, pipeline, data });
         }
-        stateManager.setJobStatus({ jobId, data: { level, status, error, progress, details } });
     }
 }
 

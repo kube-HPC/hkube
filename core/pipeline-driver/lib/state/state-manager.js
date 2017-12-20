@@ -12,10 +12,10 @@ class StateManager extends EventEmitter {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
         this._etcd.discovery.register({ serviceName });
-        this._watch();
+        this._subscribe();
     }
 
-    _watch() {
+    _subscribe() {
         this._etcd.tasks.on('change', (res) => {
             this.emit(`task-${res.status}`, res);
         });

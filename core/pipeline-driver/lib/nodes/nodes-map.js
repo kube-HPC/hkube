@@ -57,6 +57,9 @@ class NodesMap {
         if (node.batch.length > 0) {
             results = node.batch.map(n => n.result);
         }
+        else if (Array.isArray(node.result)) {
+            results = node.result;
+        }
         else {
             results.push(node.result);
         }
@@ -90,6 +93,20 @@ class NodesMap {
             batch.state = options.state;
             batch.result = options.result;
             batch.error = options.error;
+
+            const states = node.batch.map(n => n.state);
+            const allCompleted = states.every(this._isCompleted);
+            const sameState = states.every((val, i, arr) => val === arr[0]);
+            const isActive = states.find(n => n.state === States.ACTIVE);
+            if (allCompleted) {
+                node.state = States.COMPLETED;
+            }
+            if (sameState) {
+                node.state = options.state;
+            }
+            if (isActive) {
+                node.state = States.ACTIVE;
+            }
         }
         else {
             node.state = options.state;
@@ -124,7 +141,15 @@ class NodesMap {
                 states.push(n.state);
             }
         })
-        return states.every(s => s === States.SUCCEED || s === States.FAILED);
+        return states.every(this._isCompleted);
+    }
+
+    _isCompleted(state) {
+        return state === States.SUCCEED || state === States.FAILED;
+    }
+
+    _isIdle(state) {
+        return state === States.CREATING || state === States.PENDING;
     }
 
     getAllNodes() {
@@ -147,7 +172,7 @@ class NodesMap {
         parents.forEach(p => {
             states = states.concat(this.getNodeStates(p));
         })
-        return states.every(s => s === States.SUCCEED || s === States.FAILED);
+        return states.every(this._isCompleted);
     }
 
     nodesResults() {
@@ -194,7 +219,36 @@ class NodesMap {
         const progress = (completed / nodes.length * 100).toFixed(2);
         const states = Object.entries(groupedStates).map(([key, value]) => `${value.length} ${key}`);
         const details = `${progress}% completed, ${states.join(', ')}`;
-        return { progress, details };
+        const activeNodes = [];
+        nodesList.forEach(n => {
+            const node = {
+                name: n.name,
+                algorithm: n.algorithm
+            }
+            if (n.batch.length === 0 && n.state === States.ACTIVE) {
+                activeNodes.push(node);
+            }
+            else if (n.batch.length > 0) {
+                const batchStates = n.batch.map(n => n.state);
+                const isIdle = batchStates.every(this._isIdle);
+                const allCompleted = batchStates.every(this._isCompleted);
+                if (!allCompleted && !isIdle) {
+                    const active = n.batch.filter(n => this._isCurrentRunning(n.state));
+                    if (active.length > 0) {
+                        node.batch = {
+                            active: active.length,
+                            total: n.batch.length
+                        }
+                        activeNodes.push(node);
+                    }
+                }
+            }
+        })
+        return { progress, details, activeNodes };
+    }
+
+    _isCurrentRunning(state) {
+        return this._isCompleted(state) || state === States.ACTIVE;
     }
 
     parents(node) {
