@@ -26,7 +26,7 @@ describe('Test', function () {
     before(async () => {
         await bootstrap.init();
     })
-    xdescribe('Producer', function () {
+    describe('Producer', function () {
         describe('Validation', function () {
             it('should not throw validation error', function () {
                 producer.init(null);
@@ -277,7 +277,8 @@ describe('Test', function () {
             const greenResults = { green: [1, 2, 3, 4, 5] };
             const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: yellow.input });
             const result = inputParser.parse(options, yellow.input, greenResults);
-            expect(result).to.equal(false);
+            expect(result.batch).to.equal(true);
+            expect(result.input).to.have.lengthOf(5);
         });
         it('should extract nodes from input', function () {
             const pipeline = pipelines[1];

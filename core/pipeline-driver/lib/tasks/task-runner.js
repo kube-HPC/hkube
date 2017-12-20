@@ -13,6 +13,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('common/consts/componentNames');
 const { metricsNames } = require('../consts/metricsNames');
 const metrics = require('@hkube/metrics');
+//let total = 0;
 
 class TaskRunner {
 
@@ -43,10 +44,12 @@ class TaskRunner {
         })
         stateManager.on(Events.TASKS.SUCCEED, async (data) => {
             const task = await this._updateState(data.taskId, { status: data.status, result: data.result });
+            //console.log('SUCCEED ' + (++total))
             this._taskComplete(task);
         });
         stateManager.on(Events.TASKS.FAILED, async (data) => {
             const task = await this._updateState(data.taskId, { status: data.status, error: data.error });
+            //console.log('FAILED ' + (++total))
             this._taskComplete(task);
         });
         metrics.addTimeMeasure({
@@ -57,6 +60,7 @@ class TaskRunner {
     }
 
     async _startPipeline(job) {
+        //total = 0;
         this._isRunning = true;
         this._job = job;
         this._jobId = job.id;

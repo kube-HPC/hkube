@@ -34,7 +34,7 @@ class JobProducer extends EventEmitter {
     async createJob(options) {
         const opt = {
             job: {
-                id: options.data.taskID,
+                id: options.data && options.data.taskID,
                 type: options.type,
                 data: options.data
             }
