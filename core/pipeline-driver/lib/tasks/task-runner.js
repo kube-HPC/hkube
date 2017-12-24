@@ -13,7 +13,6 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('common/consts/componentNames');
 const { metricsNames } = require('../consts/metricsNames');
 const metrics = require('@hkube/metrics');
-//let total = 0;
 
 class TaskRunner {
 
@@ -44,12 +43,10 @@ class TaskRunner {
         })
         stateManager.on(Events.TASKS.SUCCEED, (data) => {
             this._setTaskState(data.taskId, { status: data.status, result: data.result });
-            //console.log('SUCCEED ' + (++total))
             this._taskComplete(data.taskId);
         });
         stateManager.on(Events.TASKS.FAILED, (data) => {
             this._setTaskState(data.taskId, { status: data.status, error: data.error });
-            //console.log('FAILED ' + (++total))
             this._taskComplete(data.taskId);
         });
         metrics.addTimeMeasure({
@@ -60,7 +57,6 @@ class TaskRunner {
     }
 
     async _startPipeline(job) {
-        //total = 0;
         this._job = job;
         this._jobId = job.id;
         log.info(`pipeline started ${this._jobId}`, { component: components.TASK_RUNNER });
@@ -119,7 +115,7 @@ class TaskRunner {
             status = States.FAILED;
             log.error(`pipeline failed ${error.message}`, { component: components.TASK_RUNNER });
             progress.error({ jobId: this._jobId, pipeline: this._pipeline.name, status, error: error.message });
-            stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipeline.name, data: { error: error.message } });
+            stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipeline.name, data: { error: error.message, status } });
             this._job.done(error.message);
         }
         else {
@@ -127,14 +123,14 @@ class TaskRunner {
                 status = States.STOPPED;
                 log.info(`pipeline stopped ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER });
                 progress.info({ jobId: this._jobId, pipeline: this._pipeline.name, status });
-                stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipeline.name, data: { error: reason } });
+                stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipeline.name, data: { reason, status } });
             }
             else {
                 status = States.COMPLETED;
                 log.info(`pipeline completed ${this._jobId}`, { component: components.TASK_RUNNER });
                 progress.info({ jobId: this._jobId, pipeline: this._pipeline.name, status });
                 const result = this._nodes.nodesResults();
-                stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipeline.name, data: { result } });
+                stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipeline.name, data: { result, status } });
             }
             this._job.done();
         }
