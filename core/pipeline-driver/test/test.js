@@ -9,7 +9,7 @@ const clone = require('clone');
 const { expect } = require('chai');
 const sinon = require('sinon');
 const Events = require('lib/consts/Events');
-const Batch = require('lib/nodes/batch');
+const Batch = require('lib/nodes/node-batch');
 const Node = require('lib/nodes/node');
 const Task = require('lib/tasks/Task');
 const bootstrap = require('../bootstrap');
@@ -52,20 +52,6 @@ describe('Test', function () {
                     done();
                 });
             });
-            it('should create job fire event task-waiting', function (done) {
-                let count = 0;
-                const jobId = `jobid-${uuidv4()}`;
-                const taskId = `taskId-${uuidv4()}`;
-                const options = { type: 'test-job-task-waiting', jobId, taskId }
-                producer.on('task-waiting', (task) => {
-                    if (count === 0) {
-                        count++;
-                        done();
-                    }
-                })
-                const worker = new WorkerStub(options);
-                producer.createJob(options);
-            });
         });
     });
     describe('Consumer', function () {
@@ -79,8 +65,10 @@ describe('Test', function () {
                 const jobId = `jobid-${uuidv4()}`;
                 const data = { test: 'OK' };
                 consumer.on(Events.JOBS.START, async (job) => {
-                    expect(job.data).to.deep.equal(data);
-                    done();
+                    if (job.id === jobId) {
+                        expect(job.data).to.deep.equal(data);
+                        done();
+                    }
                 });
                 const setting = {
                     prefix: 'jobs-pipeline'
@@ -110,7 +98,7 @@ describe('Test', function () {
             const firstNode = pipelines[0].nodes[0];
             const nodesMap = new NodesMap(pipelines[0]);
             const node = nodesMap.getNode(firstNode.nodeName);
-            expect(node.name).to.equal(firstNode.nodeName);
+            expect(node.nodeName).to.equal(firstNode.nodeName);
             done();
         });
         it('getNode: should not get node by name', function (done) {
@@ -127,13 +115,9 @@ describe('Test', function () {
             const nodesMap = new NodesMap(pipelines[0]);
             expect(() => nodesMap.getNodeStates('not_exists')).to.throw(`unable to find node not_exists`);
         });
-        it('updateNodeState: should not able to update node state', function () {
+        it('updateNodeState: should not able to update node status', function () {
             const nodesMap = new NodesMap(pipelines[0]);
-            expect(() => nodesMap.updateNodeState('not_exists')).to.throw(`unable to find node not_exists`);
-        });
-        it('updateNodeState: should not able to update batch state', function () {
-            const nodesMap = new NodesMap(pipelines[0]);
-            expect(() => nodesMap.updateNodeState(pipelines[0].nodes[0].nodeName, 'not_exists')).to.throw(`unable to find batch not_exists`);
+            expect(() => nodesMap.updateTaskState('not_exists')).to.throw(`unable to find task not_exists`);
         });
         it('getNodeResults: should get batch results', function () {
             const pipeline = clone(pipelines[0]);
@@ -141,9 +125,9 @@ describe('Test', function () {
             const node = pipeline.nodes[0];
             const result = { my: 'OK' };
             nodesMap.addBatch(new Batch({
-                name: node.nodeName,
+                nodeName: node.nodeName,
                 batchID: `${node.nodeName}#1`,
-                algorithm: node.algorithmName,
+                algorithmName: node.algorithmName,
                 result: result
             }));
             const results = nodesMap.getNodeResults(node.nodeName);
@@ -155,50 +139,54 @@ describe('Test', function () {
             const node = pipeline.nodes[0];
             const result = { my: 'OK' };
             nodesMap.setNode(node.nodeName, new Node({
-                name: node.nodeName,
-                algorithm: node.algorithmName,
+                nodeName: node.nodeName,
+                algorithmName: node.algorithmName,
                 result: result
             }));
             const results = nodesMap.getNodeResults(node.nodeName);
             expect(results[0]).to.deep.equal(result);
         });
-        it('updateNodeState: should update node state', function () {
+        it('updateNodeState: should update node status', function () {
             const pipeline = clone(pipelines[0]);
+            const nodeName = pipeline.nodes[0].nodeName;
             const nodesMap = new NodesMap(pipeline);
+
+            const node = nodesMap.getNode(nodeName);
+            node.taskId = 'should update node status';
             const options = {
-                state: 'complete',
+                status: 'complete',
                 result: { my: 'OK' }
             }
-            const node = pipeline.nodes[0];
-            nodesMap.updateNodeState(node.nodeName, null, options);
+            nodesMap.updateTaskState(node.taskId, options);
             const states = nodesMap.getNodeStates(node.nodeName);
-            expect(states[0]).to.equal(options.state);
+            expect(states[0]).to.equal(options.status);
         });
-        it('updateNodeState: should update batch state', function () {
+        it('updateNodeState: should update batch status', function () {
             const pipeline = clone(pipelines[0]);
             const node = pipeline.nodes[0];
             const nodesMap = new NodesMap(pipeline);
             const options = {
-                state: 'complete',
+                status: 'complete',
                 result: { my: 'OK' }
             }
             const batch = new Batch({
-                name: node.nodeName,
+                taskId: 'should update batch status',
+                nodeName: node.nodeName,
                 batchID: `${node.nodeName}#1`
             })
             nodesMap.addBatch(batch);
-            nodesMap.updateNodeState(node.nodeName, batch.batchID, options);
+            nodesMap.updateTaskState(batch.taskId, options);
             const states = nodesMap.getNodeStates(node.nodeName);
-            expect(states[0]).to.equal(options.state);
+            expect(states[0]).to.equal(options.status);
         });
         it('isAllNodesDone: should return false', function () {
             const pipeline = clone(pipelines[0]);
             const node = pipeline.nodes[0];
             const nodesMap = new NodesMap(pipeline);
             nodesMap.addBatch(new Batch({
-                name: node.nodeName,
+                nodeName: node.nodeName,
                 batchID: `${node.nodeName}#1`,
-                state: 'complete',
+                status: 'complete',
             }));
             const result = nodesMap.isAllNodesDone();
             expect(result).to.equal(false);
@@ -208,12 +196,12 @@ describe('Test', function () {
             const node = pipeline.nodes[0];
             const nodesMap = new NodesMap(pipeline);
             nodesMap.addBatch(new Batch({
-                name: node.nodeName,
+                nodeName: node.nodeName,
                 batchID: `${node.nodeName}#1`,
-                state: 'complete',
+                status: 'complete',
             }));
             const result = nodesMap.getAllNodes();
-            const resultNodes = result.map(r => r.name);
+            const resultNodes = result.map(r => r.nodeName);
             const pipelineNodes = pipeline.nodes.map(r => r.nodeName);
             expect(resultNodes).to.have.lengthOf(4);
             expect(resultNodes).to.deep.equal(pipelineNodes);
@@ -224,8 +212,8 @@ describe('Test', function () {
             const yellow = pipeline.nodes[1];
             const nodesMap = new NodesMap(pipeline);
             nodesMap.setNode(green.nodeName, new Node({
-                name: green.nodeName,
-                algorithm: green.algorithmName,
+                nodeName: green.nodeName,
+                algorithmName: green.algorithmName,
                 result: { my: 'OK' }
             }));
             const result = nodesMap.parentsResults(yellow.nodeName);
@@ -415,10 +403,10 @@ describe('Test', function () {
     describe('StateManager', function () {
         it('set/get/TaskState', async function () {
             const jobId = `jobid-${uuidv4()}`;
-            const task = new Task({
+            const task = new Node({
                 taskId: 'taskId-test',
                 nodeName: 'nodeName-test',
-                algorithm: 'algorithm-test',
+                algorithmName: 'algorithm-test',
                 status: 'completed'
             })
             await stateManager.setTaskState({ jobId, taskId: task.taskId, data: task });
@@ -446,10 +434,10 @@ describe('Test', function () {
         });
         it('getState', async function () {
             const jobId = `jobid-${uuidv4()}`;
-            const task = new Task({
+            const task = new Node({
                 taskId: 'taskId-test',
                 nodeName: 'nodeName-test',
-                algorithm: 'algorithm-test',
+                algorithmName: 'algorithm-test',
                 status: 'completed'
             })
             const data = { status: 'completed' };
@@ -467,38 +455,6 @@ describe('Test', function () {
             await stateManager.setExecution({ jobId, data });
             const response = await stateManager.getExecution({ jobId });
             expect(response).to.deep.equal(data);
-        });
-        it('watchTasks succeed', async (done) => {
-            const jobId = `jobid-${uuidv4()}`;
-            const taskId = `taskId-${uuidv4()}`;
-            const data = { result: [1, 2, 3], status: 'succeed' }
-            await stateManager.watchTasks({ jobId, taskId });
-            stateManager.on(Events.TASKS.SUCCEED, (response) => {
-                if (response.jobId === jobId) {
-                    expect(response).to.have.property('jobId');
-                    expect(response).to.have.property('taskId');
-                    expect(response).to.have.property('result');
-                    expect(response).to.have.property('status');
-                    done();
-                }
-            });
-            await stateManager._etcd.tasks.setState({ jobId, taskId, result: data.result, status: data.status });
-        });
-        it('watchTasks failed', async function (done) {
-            const jobId = `jobid-${uuidv4()}`;
-            const taskId = `taskId-${uuidv4()}`;
-            const data = { error: 'some error', status: 'failed' }
-            const response = await stateManager.watchTasks({ jobId, taskId });
-            stateManager.on(Events.TASKS.FAILED, (response) => {
-                if (response.jobId === jobId) {
-                    expect(response).to.have.property('jobId');
-                    expect(response).to.have.property('taskId');
-                    expect(response).to.have.property('error');
-                    expect(response).to.have.property('status');
-                    done();
-                }
-            });
-            stateManager._etcd.tasks.setState({ jobId, taskId, error: data.error, status: data.status });
         });
         it('unWatchTasks', async function (done) {
             const jobId = `jobid-${uuidv4()}`;
@@ -538,16 +494,16 @@ describe('Test', function () {
         });
         it('getDriverTasks', async function () {
             const jobId = `jobid-${uuidv4()}`;
-            const task = new Task({
+            const task = new Node({
                 taskId: 'taskId-test',
                 nodeName: 'nodeName-test',
-                algorithm: 'algorithm-test',
+                algorithmName: 'algorithm-test',
                 status: 'completed'
             })
             await stateManager.setTaskState({ jobId, taskId: task.taskId, data: task });
             const response = await stateManager.getDriverTasks({ jobId });
             expect(response[0].nodeName).to.equal(task.nodeName);
-            expect(response[0].algorithm).to.equal(task.algorithm);
+            expect(response[0].algorithmName).to.equal(task.algorithmName);
         });
     });
 });

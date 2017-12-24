@@ -1,12 +1,14 @@
+const Task = require('lib/tasks/Task');
 const States = require('lib/state/States');
 
-class NodeBase {
+class NodeBase extends Task {
 
     constructor(options) {
-        this.name = options.name;
-        this.algorithm = options.algorithm;
+        super(options);
+        this.nodeName = options.nodeName;
+        this.algorithmName = options.algorithmName;
         this.input = options.input;
-        this.state = options.state || States.CREATING;
+        this.status = options.status || States.CREATING;
         this.error = options.error;
         this.result = options.result;
     }
