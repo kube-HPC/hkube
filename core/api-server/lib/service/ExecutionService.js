@@ -74,6 +74,9 @@ class ExecutionService {
   async getJobResult(options) {
     validator.validateExecutionID(options);
     const jobStatus = await stateManager.getJobStatus({ jobId: options.execution_id });
+    if (!jobStatus) {
+      throw new ResourceNotFoundError('status', options.execution_id);
+    }
     if (stateManager.isActiveState(jobStatus.data.status)) {
       throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
     }
