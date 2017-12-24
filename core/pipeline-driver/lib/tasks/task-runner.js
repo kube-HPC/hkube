@@ -132,7 +132,7 @@ class TaskRunner {
                 const result = this._nodes.nodesResults();
                 stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipeline.name, data: { result, status } });
             }
-            this._job.done();
+
         }
         await stateManager.unWatchJobState({ jobId: this._jobId });
         await stateManager.unWatchTasks({ jobId: this._jobId });
@@ -146,9 +146,11 @@ class TaskRunner {
                 status
             }
         });
-        this._job = null;
+
         this._pipeline = null;
         this._nodes = null;
+        this._job.done();
+        this._job = null;
     }
 
     async _recoverPipeline(state) {
