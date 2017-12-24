@@ -630,7 +630,8 @@
                         "enum": [
                             "green-alg",
                             "yellow-alg",
-                            "black-alg"
+                            "black-alg",
+                            "red-alg"
                         ]
                     },
                     "input": {

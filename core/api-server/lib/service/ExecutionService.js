@@ -73,6 +73,10 @@ class ExecutionService {
    **/
   async getJobResult(options) {
     validator.validateExecutionID(options);
+    const jobStatus = await stateManager.getJobStatus({ jobId: options.execution_id });
+    if (stateManager.isActiveState(jobStatus.data.status)) {
+      throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
+    }
     const result = await stateManager.getJobResult({ jobId: options.execution_id });
     if (!result) {
       throw new ResourceNotFoundError('results', options.execution_id);
@@ -90,10 +94,14 @@ class ExecutionService {
    **/
   async stopJob(options) {
     validator.validateStopPipeline(options);
-    const job = await stateManager.getJobStatus({ jobId: options.execution_id });
-    if (!job) {
+    const jobStatus = await stateManager.getJobStatus({ jobId: options.execution_id });
+    if (!jobStatus) {
       throw new ResourceNotFoundError('execution_id', options.execution_id);
     }
+    if (!stateManager.isActiveState(jobStatus.data.status)) {
+      throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
+    }
+
     producer.stopJob({ jobId: options.execution_id });
     await stateManager.stopJob({ jobId: options.execution_id, reason: options.reason });
   }

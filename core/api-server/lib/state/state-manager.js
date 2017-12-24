@@ -1,5 +1,7 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
+const States = require('lib/state/States');
+const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
 
 class StateManager extends EventEmitter {
 
@@ -8,6 +10,10 @@ class StateManager extends EventEmitter {
         this._etcd.init({ etcd, serviceName });
         this._etcd.discovery.register({ serviceName });
         this._watchJobResults();
+    }
+
+    isActiveState(state) {
+        return ActiveState.includes(state);
     }
 
     async setExecution(options) {
