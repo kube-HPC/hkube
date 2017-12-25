@@ -4,6 +4,8 @@ const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const { stateEvents } = require('../../common/consts/events');
 const etcd = require('../states/discovery');
+const {tracer} = require('@hkube/metrics');
+
 let log;
 
 class JobConsumer extends EventEmitter {
@@ -19,6 +21,7 @@ class JobConsumer extends EventEmitter {
         log = Logger.GetLogFromContainer();
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
+        this._options.jobConsumer.setting.tracer = tracer;
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;

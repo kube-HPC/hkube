@@ -49,4 +49,13 @@ config.inputAdapters = {
     storagePath: process.env.SHARED_STORAGE_PATH || './sharedStorage'
 };
 
+config.tracer = {
+    tracerConfig: {
+        serviceName: config.serviceName,
+        reporter: {
+            agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
+            agentPort: process.env.JAEGER_AGENT_SERVICE_PORT || 6832
+        }
+    }
+};
 module.exports = config;
