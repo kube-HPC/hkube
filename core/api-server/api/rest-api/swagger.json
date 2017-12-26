@@ -631,7 +631,8 @@
                             "green-alg",
                             "yellow-alg",
                             "black-alg",
-                            "red-alg"
+                            "red-alg",
+                            "eval-alg"
                         ]
                     },
                     "input": {
