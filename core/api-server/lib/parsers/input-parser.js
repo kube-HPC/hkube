@@ -5,6 +5,7 @@ const CONSTS = {
     BATCH: '#',
     REF: '@',
     BATCHREF: '#@',
+    WAITANYREF: '*@',
     WAITANY: '*',
     FLOWINPUT: 'flowInput'
 }
@@ -128,6 +129,10 @@ class InputParser {
         return typeof input === 'string' && input.startsWith(CONSTS.BATCHREF);
     }
 
+    _isWaitAnyRef(input) {
+        return typeof input === 'string' && input.startsWith(CONSTS.WAITANYREF);
+    }
+
     isFlowInput(input) {
         if (this._isObjRef(input)) {
             const nodeName = input.substr(1);
@@ -137,7 +142,7 @@ class InputParser {
     }
 
     isReference(input) {
-        return this._isObjRef(input) || this._isBatchRef(input);
+        return this._isObjRef(input) || this._isBatchRef(input) || this._isWaitAnyRef(input);
     }
 
     waitAnyInputIndex(input) {
