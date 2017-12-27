@@ -14,6 +14,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('common/consts/componentNames');
 const { metricsNames } = require('../consts/metricsNames');
 const metrics = require('@hkube/metrics');
+const {tracer} = require('@hkube/metrics');
 
 class TaskRunner {
 
@@ -74,7 +75,10 @@ class TaskRunner {
                 pipeline_name: this._pipeline.name
             }
         });
-
+        tracer.startSpan({
+            name:'startPipeline',
+            id:this._jobId
+        })
         await stateManager.watchTasks({ jobId: this._jobId });
         const watchState = await stateManager.watchJobState({ jobId: this._jobId });
         if (watchState && watchState.obj && watchState.obj.state === States.STOP) {
@@ -154,7 +158,11 @@ class TaskRunner {
                 status
             }
         });
-
+        const topSpan = tracer.topSpan(this._jobId);
+        if (topSpan){
+            topSpan.addTag({status});
+            topSpan.finish();
+        }
         this._pipeline = null;
         this._nodes = null;
         this._job.done();

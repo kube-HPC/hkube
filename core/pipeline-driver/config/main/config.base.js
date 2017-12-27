@@ -28,3 +28,13 @@ config.metrics = {
         port: process.env.METRICS_PORT
     }
 }
+
+config.tracer = {
+    tracerConfig: {
+        serviceName: config.serviceName,
+        reporter: {
+            agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
+            agentPort: process.env.JAEGER_AGENT_SERVICE_PORT || 6832
+        }
+    }
+}

@@ -7,6 +7,7 @@ const Events = require('lib/consts/Events');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
+const { tracer } = require('@hkube/metrics');
 
 class JobProducer extends EventEmitter {
 
@@ -23,6 +24,7 @@ class JobProducer extends EventEmitter {
         if (!res.valid) {
             throw new Error(res.error);
         }
+        setting.tracer = tracer;
         this._producer = new Producer({ setting: setting });
         this._producer.on(Events.JOBS.WAITING, (data) => {
             this.emit(Events.TASKS.WAITING, data.jobID);
@@ -36,7 +38,16 @@ class JobProducer extends EventEmitter {
             job: {
                 id: options.data && options.data.taskID,
                 type: options.type,
-                data: options.data
+                data: options.data,
+
+            }
+        }
+        if (options.data && options.data.jobID) {
+            const topSpan = tracer.topSpan(options.data.jobID);
+            if (topSpan) {
+                opt.tracing = {
+                    parent: topSpan.context()
+                }
             }
         }
         return await this._producer.createJob(opt);
