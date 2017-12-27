@@ -144,7 +144,7 @@ describe('Test', function () {
                 result: result
             }));
             const results = nodesMap.getNodeResults(node.nodeName);
-            expect(results[0]).to.deep.equal(result);
+            expect(results).to.deep.equal(result);
         });
         it('updateNodeState: should update node status', function () {
             const pipeline = clone(pipelines[0]);
@@ -474,9 +474,11 @@ describe('Test', function () {
             const jobId = `jobid-${uuidv4()}`;
             await stateManager.watchJobState({ jobId });
             stateManager.on(Events.JOBS.STOP, (response) => {
-                expect(response.jobId).to.equal(jobId);
-                expect(response.state).to.equal('stop');
-                done();
+                if (response.jobId === jobId) {
+                    expect(response.jobId).to.equal(jobId);
+                    expect(response.state).to.equal('stop');
+                    done();
+                }
             });
             await stateManager._etcd.jobs.stop({ jobId });
         });
