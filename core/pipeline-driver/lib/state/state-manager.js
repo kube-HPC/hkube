@@ -11,7 +11,7 @@ class StateManager extends EventEmitter {
     init({ serviceName, etcd }) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
-        this._etcd.discovery.register({ serviceName });
+        //this._etcd.discovery.register({ serviceName });
         this._subscribe();
     }
 

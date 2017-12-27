@@ -16,17 +16,17 @@ class NodesMap extends EventEmitter {
         const links = [];
 
         options.nodes.forEach(node => {
-            const batchIndex = inputParser.batchInputIndex(node.input);
-            const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
-            if (batchIndex > -1 && waitAnyIndex > -1) {
-                throw new Error(`node ${node.nodeName} input cannot be batch and waitAny`);
-            }
+            // const batchIndex = inputParser.batchInputIndex(node.input);
+            // const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
+            // if (batchIndex > -1 && waitAnyIndex > -1) {
+            //     throw new Error(`node ${node.nodeName} input cannot be batch and waitAny`);
+            // }
             node.input.forEach((inp, ind) => {
                 const nodes = inputParser.extractNodesFromInput(inp);
                 nodes.forEach(n => {
-                    const gNode = this._graph.node(n);
-                    if (gNode) {
-                        links.push({ source: gNode.nodeName, target: node.nodeName })
+                    const nd = options.nodes.find(f => f.nodeName === n);
+                    if (nd) {
+                        links.push({ source: nd.nodeName, target: node.nodeName })
                     }
                 })
                 inputParser.checkFlowInput(options, inp);
@@ -36,6 +36,13 @@ class NodesMap extends EventEmitter {
         links.forEach(link => {
             this._graph.setEdge(link.source, link.target);
         });
+    }
+
+    findBatchIndex(task) {
+        const node = this._graph.node(task.nodeName);
+        const batch = node.batch.find(n => n.taskId === task.taskId);
+        const index = batch ? batch.batchIndex : -1;
+        return index;
     }
 
     findEntryNodes() {
@@ -49,7 +56,7 @@ class NodesMap extends EventEmitter {
     }
 
     getNodeResults(nodeName) {
-        let results = [];
+        let results = null;
         const node = this._graph.node(nodeName);
         if (!node) {
             throw new Error(`unable to find node ${nodeName}`)
@@ -57,11 +64,8 @@ class NodesMap extends EventEmitter {
         if (node.batch.length > 0) {
             results = node.batch.map(n => n.result);
         }
-        else if (Array.isArray(node.result)) {
-            results = node.result;
-        }
         else {
-            results.push(node.result);
+            results = node.result;
         }
         return results;
     }
@@ -130,14 +134,6 @@ class NodesMap extends EventEmitter {
         return states.every(this._isCompleted);
     }
 
-    _isCompleted(status) {
-        return status === States.SUCCEED || status === States.FAILED;
-    }
-
-    _isIdle(status) {
-        return status === States.CREATING || status === States.PENDING;
-    }
-
     getAllNodes() {
         const nodes = this._graph.nodes();
         return nodes.map(n => this._graph.node(n));
@@ -149,6 +145,16 @@ class NodesMap extends EventEmitter {
         parents.forEach(p => {
             results[p] = this.getNodeResults(p);
         })
+        return results;
+    }
+
+    resultsForBatchIndex(nodeName, batchIndex) {
+        let results = null;
+        const node = this._graph.node(nodeName);
+        const batch = node.batch.find(n => n.batchIndex === batchIndex);
+        if (batch && batch.status === States.SUCCEED) {
+            results = batch.result;
+        }
         return results;
     }
 
@@ -243,16 +249,24 @@ class NodesMap extends EventEmitter {
         return nodes.find(n => n.taskId === taskId);
     }
 
-    _isCurrentRunning(status) {
-        return this._isCompleted(status) || status === States.ACTIVE;
-    }
-
     parents(node) {
         return this._graph.predecessors(node);
     }
 
     childs(node) {
         return this._graph.successors(node);
+    }
+
+    _isCompleted(status) {
+        return status === States.SUCCEED || status === States.FAILED;
+    }
+
+    _isIdle(status) {
+        return status === States.CREATING || status === States.PENDING;
+    }
+
+    _isCurrentRunning(status) {
+        return this._isCompleted(status) || status === States.ACTIVE;
     }
 }
 

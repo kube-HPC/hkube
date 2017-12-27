@@ -14,6 +14,7 @@ class ProgressManager {
 
     constructor() {
         this._lastState = null;
+        this._calc = this._default;
     }
 
     calcMethod(method) {
@@ -53,12 +54,12 @@ class ProgressManager {
     }
 
     _progress(level, { jobId, pipeline, status, error }) {
-        const calc = this._calc || this._default;
-        const { progress, details, activeNodes } = calc();
+        const { progress, details, activeNodes } = this._calc();
         const data = { level, status, error, progress, details, activeNodes };
         if (!deepEqual(data, this._lastState)) {
             this._lastState = data;
             stateManager.setJobStatus({ jobId, pipeline, data });
+            //console.log('=========_progress: ' + status + ' ===============');
         }
     }
 }

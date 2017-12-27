@@ -14,9 +14,10 @@ const CONSTS = {
 class InputParser {
 
     parse(options, input, nodesInput) {
-        const batch = this.parseBatchInput(options, input, nodesInput);
+        const newInput = clone(input);
+        const batch = this.parseBatchInput(options, newInput, nodesInput);
         const isBatch = batch.length > 0;
-        const inputObj = isBatch ? batch : input;
+        const inputObj = isBatch ? batch : newInput;
 
         inputObj.forEach((ni, ind) => {
             inputObj[ind] = this.parseFlowInput(options, ni);
@@ -342,15 +343,20 @@ class InputParser {
                 }
                 else {
                     const array = [];
-                    ni.forEach(inp => {
-                        if (Array.isArray(inp)) {
-                            array.push(inp);
-                        }
-                        else {
-                            array.push(objectPath.get(inp, construct.path));
-                        }
-                    });
-                    result = array;
+                    if (Array.isArray(ni)) {
+                        ni.forEach(inp => {
+                            if (Array.isArray(inp)) {
+                                array.push(inp);
+                            }
+                            else {
+                                array.push(objectPath.get(inp, construct.path));
+                            }
+                        });
+                        result = array;
+                    }
+                    else {
+                        result = ni;
+                    }
                 }
             }
         }

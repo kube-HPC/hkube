@@ -8,6 +8,7 @@ const States = require('lib/state/States');
 const Events = require('lib/consts/Events');
 const inputParser = require('lib/parsers/input-parser');
 const Batch = require('lib/nodes/node-batch');
+const WaitBatch = require('lib/nodes/node-wait-batch');
 const Node = require('lib/nodes/node');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('common/consts/componentNames');
@@ -18,8 +19,10 @@ class TaskRunner {
 
     constructor() {
         this._job = null;
+        this._jobId = null;
         this._pipeline = null;
         this._nodes = null;
+        this._active = false;
     }
 
     init(options) {
@@ -57,6 +60,7 @@ class TaskRunner {
     }
 
     async _startPipeline(job) {
+        this._active = true;
         this._job = job;
         this._jobId = job.id;
         log.info(`pipeline started ${this._jobId}`, { component: components.TASK_RUNNER });
@@ -110,6 +114,10 @@ class TaskRunner {
     }
 
     async _stopPipeline(error, reason) {
+        if (!this._active) {
+            return;
+        }
+        this._active = false;
         let status;
         if (error) {
             status = States.FAILED;
@@ -151,6 +159,7 @@ class TaskRunner {
         this._nodes = null;
         this._job.done();
         this._job = null;
+        this._jobId = null;
     }
 
     async _recoverPipeline(state) {
@@ -161,11 +170,13 @@ class TaskRunner {
                 driverTask.result = jobTask.result;
                 driverTask.status = jobTask.status;
                 driverTask.error = jobTask.error;
-                this._setTaskState(driverTask.taskId, driverTask);
                 log.info(`found ${driverTask.status} task ${driverTask.taskId} after recover`, { component: components.TASK_RUNNER });
                 tasksToRun.push(driverTask);
             }
-            if (driverTask.batchID) {
+            if (driverTask.waitBatch) {
+                this._nodes.addBatch(new WaitBatch(driverTask));
+            }
+            else if (driverTask.batchID) {
                 this._nodes.addBatch(new Batch(driverTask));
             }
             else {
@@ -174,18 +185,39 @@ class TaskRunner {
         })
 
         for (let task of tasksToRun) {
-            this._taskComplete(task);
+            this._setTaskState(task.taskId, task);
+            this._taskComplete(task.taskId);
         }
     }
 
-    _runNextNode(nodeName) {
-        const childs = this._nodes.childs(nodeName);
+    /// TODO: Handle state when there is an error in batch task
+    /// TODO: Handle state when wait nodes are not equal amount
+
+    _runNextNode(task) {
+        const childs = this._nodes.childs(task.nodeName);
+        const batchIndex = this._nodes.findBatchIndex(task);
+
         childs.forEach(child => {
-            const node = this._nodes.getNode(child);
-            const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
-            if (waitAnyIndex > -1) {
-                this._runWaitAny(child, data.result);
+            // if this task is batch node, try to find if it should wait other nodes
+            if (batchIndex !== -1) {
+                const waitNodes = this._nodes.parents(child);
+
+                // if it should wait other nodes
+                if (waitNodes.length > 0) {
+                    const results = Object.create(null);
+                    waitNodes.forEach(n => {
+                        const res = this._nodes.resultsForBatchIndex(n, batchIndex);
+                        if (res) {
+                            results[n] = res;
+                        }
+                    })
+                    // if all wait nodes has results
+                    if (waitNodes.length === Object.keys(results).length) {
+                        this._runNode(child, results, true);
+                    }
+                }
             }
+            // if this task is not batch node, try to find if all its parent nodes has been finished
             else {
                 const allFinished = this._nodes.isAllParentsFinished(child);
                 if (allFinished) {
@@ -196,27 +228,43 @@ class TaskRunner {
         });
     }
 
-    _runNode(nodeName, nodesInput) {
+    _runNode(nodeName, nodesInput, waitBatch) {
         const node = this._nodes.getNode(nodeName);
         const options = Object.assign({}, { flowInput: this._pipeline.flowInput }, { input: node.input });
         const result = inputParser.parse(options, node.input, nodesInput);
-        this._runNodeInner(node, result);
-    }
 
-    _runNodeInner(node, data) {
-        if (data.batch) {
-            this._runBatch(node, data.input);
+        if (waitBatch) {
+            this._runNodeWaitNode(node, result.input);
+        }
+        else if (result.batch) {
+            this._runNodeBatch(node, result.input);
         }
         else {
-            const taskId = this._createTaskID(node);
-            node.taskId = taskId;
-            this._nodes.setNode(node.nodeName, { input: data.input });
-            this._setTaskState(taskId, node);
-            this._createJob(node);
+            this._runNodeSimple(node, result.input);
         }
     }
 
-    _runBatch(node, batchArray) {
+    _runNodeWaitNode(node, result) {
+        const taskId = this._createTaskID(node);
+        const waitNode = new WaitBatch({
+            taskId: taskId,
+            nodeName: node.nodeName,
+            algorithmName: node.algorithmName,
+            input: result
+        });
+        this._nodes.addBatch(waitNode);
+        this._setTaskState(taskId, waitNode);
+        this._createJob(waitNode);
+    }
+
+    _runNodeSimple(node, input) {
+        const taskId = this._createTaskID(node);
+        this._nodes.setNode(node.nodeName, { input, taskId });
+        this._setTaskState(taskId, node);
+        this._createJob(node);
+    }
+
+    _runNodeBatch(node, batchArray) {
         if (!Array.isArray(batchArray)) {
             throw new Error(`node ${node.nodeName} batch input must be an array`);
         }
@@ -226,6 +274,7 @@ class TaskRunner {
                 taskId: taskId,
                 nodeName: node.nodeName,
                 batchID: `${node.nodeName}#${(ind + 1)}`,
+                batchIndex: (ind + 1),
                 algorithmName: node.algorithmName,
                 input: inp
             });
@@ -235,67 +284,48 @@ class TaskRunner {
         })
     }
 
-    _runWaitAny(nodeName, nodeInput) {
-        const node = this._nodes.getNode(nodeName);
-        const waitAnyIndex = inputParser.waitAnyInputIndex(node.input);
-        const input = node.input.slice();
-        input.forEach((inp, ind) => {
-            if (inputParser.isWaitAnyBatch(inp)) {
-                const nodeInput = node.input[waitAnyIndex].substr(2);
-                this._runBatch(nodeName, nodeInput, waitAnyIndex);
-            }
-            else if (inputParser.isWaitAnyNode(inp)) {
-                const ndName = node.input[waitAnyIndex].substr(2);
-                const result = inputParser.extractObject(ndName);
-                input[waitAnyIndex] = inputParser.parseValue(nodeInput, result.path);
-            }
-            else if (inputParser.isNode(inp)) {
-                const ndName = node.input[ind].substr(1);
-                const result = inputParser.extractObject(ndName);
-                input[ind] = inputParser.parseValue(nodeInput, result.path);
-            }
-        });
-        this._nodes.setNode(node.nodeName, { input: input });
-        this._createJob(node);
-    }
-
     _taskComplete(taskId) {
-        if (!this._nodes) {
+        if (!this._active) {
             return;
         }
         const task = this._nodes.getNodeByTaskID(taskId);
         if (!task) {
             return;
         }
+        const error = this._checkBatchTolerance(task);
+        if (error) {
+            this._stopPipeline(error);
+        }
+        else if (this._nodes.isAllNodesDone()) {
+            this._stopPipeline();
+        }
+        else {
+            this._runNextNode(task);
+        }
+    }
+
+    _checkBatchTolerance(task) {
+        let error;
         if (task.error) {
-            if (task.batchID) {
+            if (task.batchID || task.waitBatch) {
                 const batchTolerance = this._pipeline.options.batchTolerance;
                 const states = this._nodes.getNodeStates(task.nodeName);
                 const failed = states.filter(s => s === States.FAILED);
                 const percent = failed.length / states.length * 100;
 
                 if (percent >= batchTolerance) {
-                    const error = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${task.error}`);
-                    this._stopPipeline(error);
-                    return;
+                    error = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${task.error}`);
                 }
             }
             else {
-                const error = new Error(`${task.error}`);
-                this._stopPipeline(error);
-                return;
+                error = new Error(`${task.error}`);
             }
         }
-        if (this._nodes.isAllNodesDone()) {
-            this._stopPipeline();
-        }
-        else {
-            this._runNextNode(task.nodeName);
-        }
+        return error;
     }
 
     _setTaskState(taskId, task) {
-        if (!this._nodes) {
+        if (!this._active) {
             return;
         }
         this._nodes.updateTaskState(taskId, task);
