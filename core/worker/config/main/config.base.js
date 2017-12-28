@@ -54,7 +54,7 @@ config.tracer = {
         serviceName: config.serviceName,
         reporter: {
             agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
-            agentPort: process.env.change jaeger service name || 6832
+            agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
         }
     }
 };
