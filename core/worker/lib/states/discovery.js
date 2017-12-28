@@ -17,11 +17,11 @@ class EtcdDiscovery extends EventEmitter {
         this._etcd.jobs.on('change', (res) => {
             log.info(JSON.stringify(res));
             switch (res.state) {
-            case 'stop':
-                this.emit('stop', res);
-                break;
-            default:
-                this.emit('change', res);
+                case 'stop':
+                    this.emit('stop', res);
+                    break;
+                default:
+                    this.emit('change', res);
             }
         });
     }
@@ -43,7 +43,12 @@ class EtcdDiscovery extends EventEmitter {
         await this._etcd.jobs.watch(options);
     }
     async unwatch(options) {
-        await this._etcd.jobs.unwatch(options);
+        try {
+            await this._etcd.jobs.unwatch(options);
+        } 
+        catch (error) {
+            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${JSON.stringify(error)}`);
+        }
     }
 }
 
