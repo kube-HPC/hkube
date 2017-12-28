@@ -10,9 +10,10 @@ const delay = require('await-delay');
 const colors = require('colors');
 const kubernetesApi = require('./kubernetes-api');
 const jsYaml = require('js-yaml');
-const { getLatestVersions, changeYamlImageVersion } = require('./githubHelper');
+const { getLatestVersions, changeYamlImageVersion } = require('../common/githubHelper');
 const { FOLDERS, GIT_PREFIX } = require('./../consts.js');
 const { URL_PATH, YAML_PATH, REGISTRY, GITLAB, MINIKUBE, } = require('./consts-minikube');
+const {getOptionOrDefault} = require('../common/versionUtils')
 const Api = require('kubernetes-client');
 let coreYamlPath = YAML_PATH.core;
 let thirdPartyYamlPath = YAML_PATH.thirdParty;
@@ -192,24 +193,7 @@ const registryLogin = async () => {
 
 }
 
-const getOptionOrDefault = (opts, optionName, defaultValue) => {
-    opts = opts || [];
-    let optionPair;
-    if (Array.isArray(optionName)) {
-        optionPair = opts.find(o => optionName.findIndex(opt=>opt===o[0])>=0);
-    }
-    else {
-        optionPair = opts.find(o => o[0] === optionName);
-    }
-    if (!optionPair) {
-        return defaultValue;
-    }
-    let option = optionPair[1];
-    if (option === true) {
-        return defaultValue;
-    }
-    return option;
-}
+
 const runCore = async (opts) => {
     opts = opts || [];
     const versionPrefix = getOptionOrDefault(opts, [MINIKUBE.apply, MINIKUBE.applyShort]);
@@ -220,8 +204,8 @@ const runCore = async (opts) => {
         }
         // const projectName = path.basename(file,path.extname(file));
         // const version = versions.versions.find(v=>v.project === projectName);
-        const tmpFile = changeYamlImageVersion(file, versions,coreYamlPath)
-        syncSpawn(`kubectl`, `apply -f ${tmpFile}`)
+        const {tmpFileName} = changeYamlImageVersion(file, versions,coreYamlPath)
+        syncSpawn(`kubectl`, `apply -f ${tmpFileName}`)
     })
 }
 

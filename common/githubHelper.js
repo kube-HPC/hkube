@@ -67,17 +67,21 @@ const getLatestVersions = async (prefix) => {
 }
 
 const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
+    versions = versions||{versions:[]}
     const fullPath = `${coreYamlPath}/${yamlFile}`;
     try {
         const fileContents = fs.readFileSync(fullPath, 'utf8');
         const yml = jsYaml.loadAll(fileContents);
+        const images = [];
         yml.forEach(y => {
             const containers = objectPath.get(y, 'spec.template.spec.containers');
             if (!containers) {
                 return;
             }
             containers.forEach(c => {
-                c.image = c.image.substr(0, c.image.lastIndexOf(':'));
+                if (c.image.lastIndexOf(':')>0){
+                    c.image = c.image.substr(0, c.image.lastIndexOf(':'));
+                }
                 const lastSlashIndex = c.image.lastIndexOf('/');
                 let imageName;
                 if (lastSlashIndex !== -1) {
@@ -89,6 +93,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
                 const version = versions.versions.find(v => v.project === imageName);
                 const tag = version ? version.tag : 'latest';
                 c.image = `${c.image}:${tag}`
+                images.push(c.image);
                 console.log(`service ${imageName}. found version ${tag}`)
             })
         });
@@ -96,7 +101,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
         withVersions = withVersions.join('\r\n---\r\n')
         const tmpFileName = tempfile('.yml');
         fs.writeFileSync(tmpFileName, withVersions, 'utf8');
-        return tmpFileName;
+        return {tmpFileName,images};
     }
     catch (e) {
         return fullPath;

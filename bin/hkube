@@ -4,6 +4,7 @@ const clone = require('../clone');
 const pull = require('../pull');
 const npm = require('../npm');
 const minikube = require('../minikube/minikube');
+const deployment = require('../deployment/deployment')
 const package = require('../package.json')
 const meow = require('meow');
 const colors = require('colors');
@@ -11,7 +12,7 @@ const usage = `
         Usage
     ------------
     main:
-        $ --version,-v return current hkube version
+        $ --version, return current hkube version
         $ --help,-h return usage information
     
     git:
@@ -26,7 +27,12 @@ const usage = `
             --dev,-d  Include only hkube folder
             --common,-c Include only hkube-common folder
             --all,-a Includes  hkube and hkube-common folder
-    
+    pack:
+        $ pack <options>
+        Options:
+            --core, -c saves all core yamls and docker images in ~/.hkube
+            --thirdParty, -t saves all third party docker images in ~/.hkube/thirdParty
+            
     minikube:
 
         $ minikube, m <options>
@@ -43,7 +49,7 @@ const usage = `
             
         `
 
-if (argv.version || argv.v) {
+if (argv.version) {
     console.log(`version: ${package.version}`.green)
 }
 else if (argv.help || argv.h) {
@@ -78,6 +84,9 @@ else {
         case `minikube`:
         case 'm':
             minikube(Object.entries(argv).slice(1));
+            break;
+        case `pack`:
+            deployment(Object.entries(argv).slice(1));
             break;
         default:
             console.log(usage.cyan);
