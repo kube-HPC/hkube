@@ -45,3 +45,13 @@ config.webhooks = {
 config.metrics = {
         collectDefault: true,
 }
+
+config.tracer = {
+    tracerConfig: {
+        serviceName: config.serviceName,
+        reporter: {
+            agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
+            agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
+        }
+    }
+}
