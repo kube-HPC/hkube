@@ -63,10 +63,10 @@ class Worker {
                     jobData: (job || {}).data,
                     state
                 }
-            }, results ? { results } : null));
+            }, results));
             switch (state) {
             case workerStates.ready:
-                jobConsumer.finishJob({ results });
+                jobConsumer.finishJob(results);
                 break;
             case workerStates.init:
                 algoRunnerCommunication.send({
