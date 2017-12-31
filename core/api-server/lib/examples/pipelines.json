@@ -244,11 +244,7 @@
                 "algorithmName": "eval-alg",
                 "input": [
                     {
-                        "function": [
-                            "(input,require) => {",
-                            "const result = input[0] + input[1]",
-                            "return result }"
-                        ],
+                        "function": "@flowInput.functions.sum",
                         "inputs": [
                             "@flowInput.num.inp1",
                             "@flowInput.num.inp2"
@@ -261,14 +257,10 @@
                 "algorithmName": "eval-alg",
                 "input": [
                     {
-                        "function": [
-                            "(input,require) => {",
-                            "const result = input[0] * input[1]",
-                            "return result }"
-                        ],
+                        "function": "@flowInput.functions.mul",
                         "inputs": [
                             "@eval1.results",
-                            "@flowInput.num.inp1"
+                            "@flowInput.num.inp2"
                         ]
                     }
                 ]
@@ -278,11 +270,7 @@
                 "algorithmName": "eval-alg",
                 "input": [
                     {
-                        "function": [
-                            "(input,require) => {",
-                            "const result = input[0] / input[1]",
-                            "return result }"
-                        ],
+                        "function": "@flowInput.functions.div",
                         "inputs": [
                             "@eval2.results",
                             "@flowInput.num.inp3"
@@ -293,9 +281,21 @@
         ],
         "flowInput": {
             "functions": {
-                "inp1": 7,
-                "inp2": 5,
-                "inp3": 6
+                "sum": [
+                    "(input,require) => {",
+                    "const result = input[0] + input[1]",
+                    "return result }"
+                ],
+                "mul": [
+                    "(input,require) => {",
+                    "const result = input[0] * input[1]",
+                    "return result }"
+                ],
+                "div": [
+                    "(input,require) => {",
+                    "const result = input[0] / input[1]",
+                    "return result }"
+                ]
             },
             "num": {
                 "inp1": 7,

@@ -1,4 +1,5 @@
 const uuidv4 = require('uuid/v4');
+const deepExtend = require('deep-extend');
 const producer = require('lib/producer/jobs-producer');
 const stateManager = require('lib/state/state-manager');
 const validator = require('lib/validation/api-validator');
@@ -35,7 +36,7 @@ class ExecutionService {
     if (!pipe) {
       throw new ResourceNotFoundError('pipeline', options.name);
     }
-    const pipeline = Object.assign({}, pipe, options);
+    const pipeline = deepExtend(pipe, options);
     return await this._run(pipeline);
   }
 
