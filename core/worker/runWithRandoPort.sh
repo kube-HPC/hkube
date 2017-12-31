@@ -36,11 +36,11 @@ echo using port $port
 
 #run_parallel "sleep 1" "sleep 2"
 export alg=$1
-
+export ALGO_COMMAND=${2:-"node ../algorunner/app"}
 echo worker for algorithm ${alg}
 
 export JOB_TYPE=${alg}
 export WORKER_SOCKET_PORT=${port}
 export DLL_PATH="../libStub/build/liblibStub.so"
-run_parallel "node app worker" "node ../algorunner/app algo"
+run_parallel "node app worker" "${ALGO_COMMAND}"
 #run_parallel "node app worker" "python3 ../algoPackage/wrapper/wrapper.py"
