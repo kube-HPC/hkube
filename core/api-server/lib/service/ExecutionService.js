@@ -104,8 +104,6 @@ class ExecutionService {
     if (!stateManager.isActiveState(jobStatus.data.status)) {
       throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
     }
-
-    producer.stopJob({ jobId: options.execution_id });
     await stateManager.stopJob({ jobId: options.execution_id, reason: options.reason });
   }
 

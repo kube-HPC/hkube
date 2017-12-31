@@ -128,7 +128,7 @@
         }
     },
     {
-        "name": "wait-big-batch",
+        "name": "big-wait-batch",
         "nodes": [
             {
                 "nodeName": "red",
@@ -137,20 +137,12 @@
                     {
                         "a": "*@green",
                         "b": "*@yellow",
-                        "c": "*@black",
-                        "d": "*@green",
-                        "e": "*@yellow",
-                        "f": "*@black"
+                        "c": "*@black"
                     },
                     {
-                        "g": "*@green",
-                        "y": "*@yellow",
-                        "b": "*@black"
-                    },
-                    {
-                        "g": "*@green",
-                        "y": "*@yellow",
-                        "b": "*@black"
+                        "d": "@green",
+                        "e": "@yellow",
+                        "f": "@black"
                     }
                 ]
             },
@@ -245,44 +237,79 @@
         }
     },
     {
-        "name": "eval",
+        "name": "simple-eval",
         "nodes": [
             {
-                "nodeName": "eval-sum",
-                "algorithmName": "green-alg",
+                "nodeName": "eval1",
+                "algorithmName": "eval-alg",
                 "input": [
-                    "return data[0] + data[1];",
-                    2,
-                    4
+                    {
+                        "function": [
+                            "(input,require) => {",
+                            "const result = input[0] + input[1]",
+                            "return result }"
+                        ],
+                        "inputs": [
+                            "@flowInput.num.inp1",
+                            "@flowInput.num.inp2"
+                        ]
+                    }
                 ]
             },
             {
-                "nodeName": "eval-mul",
-                "algorithmName": "green-alg",
+                "nodeName": "eval2",
+                "algorithmName": "eval-alg",
                 "input": [
-                    "return data[0] + data[1];",
-                    "@eval-sum",
-                    3
+                    {
+                        "function": [
+                            "(input,require) => {",
+                            "const result = input[0] * input[1]",
+                            "return result }"
+                        ],
+                        "inputs": [
+                            "@eval1.results",
+                            "@flowInput.num.inp1"
+                        ]
+                    }
                 ]
             },
             {
-                "nodeName": "eval-sub",
-                "algorithmName": "green-alg",
+                "nodeName": "eval3",
+                "algorithmName": "eval-alg",
                 "input": [
-                    "return data[0] + data[1];",
-                    "@eval-mul",
-                    5
+                    {
+                        "function": [
+                            "(input,require) => {",
+                            "const result = input[0] / input[1]",
+                            "return result }"
+                        ],
+                        "inputs": [
+                            "@eval2.results",
+                            "@flowInput.num.inp3"
+                        ]
+                    }
                 ]
             }
         ],
         "flowInput": {
-            "files": {
-                "link": "links-1"
+            "functions": {
+                "inp1": 7,
+                "inp2": 5,
+                "inp3": 6
+            },
+            "num": {
+                "inp1": 7,
+                "inp2": 5,
+                "inp3": 6
             }
         },
+        "webhooks": {
+            "progress": "string",
+            "result": "string"
+        },
         "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
+            "batchTolerance": 80,
+            "progressVerbosityLevel": "info"
         }
     }
 ]
