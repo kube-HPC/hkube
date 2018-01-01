@@ -3,6 +3,7 @@ const StateMachine = require('javascript-state-machine');
 const { workerStates } = require('../../common/consts/states');
 const { stateEvents } = require('../../common/consts/events');
 const Logger = require('@hkube/logger');
+const { tracer } = require('@hkube/metrics');
 let log;
 
 /**
@@ -31,9 +32,9 @@ class StateManager extends EventEmitter {
         this._stateMachine = new StateMachine({
             init: workerStates.bootstrap,
             transitions: [
-                { name: 'reset', from: '*', to: workerStates.bootstrap},
-                { name: 'stop', from: '*', to: workerStates.stop},
-                { name: 'bootstrap', from: workerStates.bootstrap, to: workerStates.ready},
+                { name: 'reset', from: '*', to: workerStates.bootstrap },
+                { name: 'stop', from: '*', to: workerStates.stop },
+                { name: 'bootstrap', from: workerStates.bootstrap, to: workerStates.ready },
                 { name: 'prepare', from: workerStates.ready, to: workerStates.init },
                 { name: 'start', from: workerStates.init, to: workerStates.working },
                 { name: 'finish', from: workerStates.working, to: workerStates.shutdown },
@@ -46,13 +47,32 @@ class StateManager extends EventEmitter {
                 }
             }
         });
+        this._stateMachine.observe('onBeforeTransition', () => {
+            if (this._job && this._job.data) {
+                const topSpan = tracer.topSpan(this._job.data.taskID);
+                if (topSpan) {
+                    topSpan.finish();
+                }
+            }
+        });
         this._stateMachine.observe('onAfterTransition', (state) => {
+            if (this._job && this._job.data) {
+                tracer.startSpan({
+                    name: state.to,
+                    id: this._job.data.taskID,
+                    parent: this._job.data.spanId,
+                    tags: {
+                        jobID: this._job.data.jobID,
+                        taskID: this._job.data.taskID,
+                    }
+                });
+            }
             log.info(`entered state: ${state.from} -> ${state.to}`);
             const data = Object.assign(
                 {},
-                {job: this._job},
-                {state: this._stateMachine.state},
-                this.results ? {results: this.results} : null
+                { job: this._job },
+                { state: this._stateMachine.state },
+                this.results ? { results: this.results } : null
             );
 
             this.emit(stateEvents.stateEntered, data);
