@@ -3,6 +3,7 @@ const validate = require('djsv');
 const { Consumer } = require('@hkube/producer-consumer');
 const schema = require('./schema');
 const Events = require('lib/consts/Events');
+const { tracer } = require('@hkube/metrics');
 
 class JobConsumer extends EventEmitter {
 
@@ -19,7 +20,8 @@ class JobConsumer extends EventEmitter {
         const options = {
             setting: {
                 redis: option.redis,
-                settings: option.jobsSettings
+                settings: option.jobsSettings,
+                tracer
             }
         };
         const res = validate(schema, options);

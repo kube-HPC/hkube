@@ -46,7 +46,10 @@ class JobProducer extends EventEmitter {
             const topSpan = tracer.topSpan(options.data.jobID);
             if (topSpan) {
                 opt.tracing = {
-                    parent: topSpan.context()
+                    parent: topSpan.context(),
+                    tags: {
+                        taskID: opt.job.taskID
+                    }
                 }
             }
         }
