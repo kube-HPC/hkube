@@ -22,6 +22,7 @@ class Queue {
         this.isScoreDuringUpdate = false;
         this.tempInsertQueue = [];
         this.tempRemoveQueue = [];
+        this.isIntervalRunning = true;
         this._queueInterval();
     }
     // todo:add merge on async 
@@ -55,7 +56,9 @@ class Queue {
     get get() {
         return this.queue;
     }
-
+    set intervalRunningStatus(status) {
+        this.isIntervalRunning = false;
+    }
     _insert(jobArr) {
         this.queue = _.orderBy([...this.queue, ...jobArr], j => j.calculated.score, 'desc');
         console.log('inserted queue', this.queue);
@@ -80,10 +83,12 @@ class Queue {
             console.log('update score started');
             this.isScoreDuringUpdate = true;
             await this.updateScore();
+            console.log('update score finished');
             this._mergeTemp();
             this.isScoreDuringUpdate = false;
-            this._queueInterval();
-            console.log('update score finished');
+            if (this.isIntervalRunning) {
+                this._queueInterval();
+            }
         }, this.updateInterval);
     }
 }

@@ -12,6 +12,12 @@
   "author": "maty zisserman",
   "license": "MIT",
   "dependencies": {
+    "@hkube/config": "^1.0.0",
+    "@hkube/etcd": "^3.2.21",
+    "@hkube/logger": "^1.0.7",
+    "@hkube/metrics": "^1.0.16",
+    "@hkube/producer-consumer": "^1.0.26",
+    "@hkube/redis-utils": "^1.0.1",
     "aigle": "^1.10.1",
     "await-delay": "^1.0.0",
     "lodash": "^4.17.4"

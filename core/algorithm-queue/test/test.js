@@ -31,6 +31,7 @@ describe('queue-tests', () => {
             await queue.add([stubTemplate()]);
             expect(queue.get[0].calculated.score).to.eql(90);
             expect(queue.get[2].calculated.score).to.eql(60);
+            queue.intervalRunningStatus = false;
         });
     });
 });
