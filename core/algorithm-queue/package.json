@@ -1,0 +1,30 @@
+{
+  "name": "algorithem-queue",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "maty zisserman",
+  "license": "MIT",
+  "dependencies": {
+    "aigle": "^1.10.1",
+    "await-delay": "^1.0.0",
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "eslint": "^4.13.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-chai-friendly": "^0.4.1",
+    "eslint-plugin-import": "^2.8.0",
+    "istanbul": "^1.1.0-alpha.1",
+    "mocha": "^3.5.3",
+    "sinon": "^3.3.0",
+    "chai": "^4.1.2",
+    "uuid": "^3.1.0"
+  }
+}
