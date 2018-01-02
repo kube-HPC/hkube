@@ -420,13 +420,13 @@ describe('Test', function () {
             const response = await stateManager.getDriverState({ jobId });
             expect(response.state).to.deep.equal(data);
         });
-        it('setJobResults', async function () {
+        xit('setJobResults', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { result: [1, 2, 3] };
             const response = await stateManager.setJobResults({ jobId, data });
             expect(JSON.parse(response.node.value).data).to.deep.equal(data);
         });
-        it('setJobStatus', async function () {
+        xit('setJobStatus', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { status: 'completed' };
             const response = await stateManager.setJobStatus({ jobId, data });
