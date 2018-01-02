@@ -1,7 +1,9 @@
-FROM node:8
-MAINTAINER yehiyam@gmail.com
-RUN apt update && apt install nano
-RUN mkdir /sound-factory
-COPY . /sound-factory/api-server
-WORKDIR /sound-factory/api-server
+FROM node:8-alpine
+LABEL maintainer="yehiyam@gmail.com"
+RUN apk --update add nano && \
+    rm -rf /var/cache/apk/*
+RUN mkdir /hkube
+COPY . /hkube/pipeline-driver
+RUN cd /hkube/pipeline-driver && npm rebuild
+WORKDIR /hkube/pipeline-driver
 CMD ["node", "app.js"]
