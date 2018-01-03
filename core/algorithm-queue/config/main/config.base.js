@@ -1,5 +1,6 @@
-var package = require(process.cwd() + '/package.json');
-var config = module.exports = {};
+const package = require(process.cwd() + '/package.json');
+const  config = module.exports = {};
+const heuristicsNames = require('../../lib/consts/heuristics-name')
 
 config.serviceName = package.name;
 const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
@@ -19,7 +20,11 @@ config.etcd = {
 config.queue={
    updateInterval : 1000 
 }
-
+config.heuristicsWeights = {
+    [heuristicsNames.PRIORITY]:0.5,
+    [heuristicsNames.ENTERANCE_TIME]:0.1,
+    [heuristicsNames.BATCH]:-0.1
+}
 config.metrics = {
     collectDefault: true,
     server: {

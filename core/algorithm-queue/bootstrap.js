@@ -3,15 +3,17 @@ require('module').Module._initPaths();
 
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
 const monitor = require('@hkube/redis-utils').Monitor;
-const componentName = require('common/consts/componentNames');
+const componentName = require('./lib/consts/component-name');
 const metrics = require('@hkube/metrics');
 const {tracer} = require('@hkube/metrics');
+const heuristics = require('./lib/heuristic');
+const huristicRunner = require('./lib/heuristic-runner');
+const queueRunner = require('./lib/queue-runner');
 let log;
 
 const modules = [
-    'lib/queueRunner'
+    'lib/queue-runner'
    
 ];
 
@@ -38,6 +40,7 @@ class Bootstrap {
                 await tracer.init(main.tracer);
             }
             await Promise.all(modules.map(m => require(m).init(main)));
+           
 
             return main;
         }

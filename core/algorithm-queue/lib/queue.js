@@ -14,9 +14,9 @@ const tempJob = {
 };
 
 class Queue {
-    constructor({ scoreHuristic = null, updateInterval = 1000 } = {}) {
+    constructor({ scoreHeuristic = null, updateInterval = 1000 } = {}) {
         aigle.mixin(_);
-        this.scoreHuristic = scoreHuristic;
+        this.scoreHeuristic = scoreHeuristic;
         this.updateInterval = updateInterval;
         this.queue = [];
         this.isScoreDuringUpdate = false;
@@ -26,12 +26,12 @@ class Queue {
         this._queueInterval();
     }
     // todo:add merge on async 
-    updateHuristic(huristic) {
-        this.scoreHuristic = huristic;
+    updateHeuristic(heuristic) {
+        this.scoreHeuristic = heuristic;
     }
     async add(jobs) {
         console.log('add called');
-        const calclulatedJobs = await aigle.map(jobs, job => this.scoreHuristic(job));
+        const calclulatedJobs = await aigle.map(jobs, job => this.scoreHeuristic(job));
         if (this.isScoreDuringUpdate) {
             console.log('isScoreDuringUpdate is true updated temp');
             this.tempInsertQueue = this.tempInsertQueue.concat(calclulatedJobs);
@@ -47,7 +47,7 @@ class Queue {
         this._remove(jobsId);
     }
     async updateScore() {
-        this.queue = await aigle.map(this.queue, job => this.scoreHuristic(job));
+        this.queue = await aigle.map(this.queue, job => this.scoreHeuristic(job));
     }
     // todo: add persistency to redis 
     async persistence() {
