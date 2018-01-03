@@ -2,6 +2,9 @@ const {expect} = require('chai');
 const {genereateArr, stubTemplate} = require('./stub/stub');
 const delay = require('await-delay');
 const querier = require('../lib/querier');
+
+
+const components = require('../lib/consts/component-name');
 const heuristic = score => job => (Promise.resolve({...job, ...{calculated: {score, enternceTime: Date.now()}}}));
 const randomHeuristic = score => job => (Promise.resolve({
     ...job, 
@@ -11,29 +14,49 @@ const Queue = require('../lib/queue');
 let queue = null;
 const QUEUE_INTERVAL = 500;
 
-describe('queue-tests', () => {
-    describe('add', () => {
-        beforeEach(() => {
-            queue = new Queue({updateInterval: QUEUE_INTERVAL});
-        });
-        it('should added to queue', async () => {
-            queue.updateHeuristic(heuristic(80));
-            await queue.add([stubTemplate()]);
-            await delay(QUEUE_INTERVAL + 500);
-            const q = queue.get;
-            expect(q[0].calculated.score).to.eql(80);
-        });
-        it('should added to queue orderd', async () => {
-            queue.updateHeuristic(heuristic(80));
-            await queue.add([stubTemplate()]);
-            queue.updateHeuristic(heuristic(60));
-            await queue.add([stubTemplate()]);
-            queue.updateHeuristic(heuristic(90));
-            await queue.add([stubTemplate()]);
-            console.log('queue status', querier(queue.get).getScoreJobIdArray());
-            expect(queue.get[0].calculated.score).to.eql(90);
-            expect(queue.get[2].calculated.score).to.eql(60);
-            queue.intervalRunningStatus = false;
+/* eslint-env no-console ignore */ 
+const logMock = {
+    info: (data, object) => console.log(data, object),
+    debug: (data, object) => console.log(data, object),
+    warn: (data, object) => console.log(data, object),
+    
+};
+
+describe('algorithm queue', () => {
+before(() => {
+    mockery.registerMock('log', logMock);
+}
+);  
+});    
+    describe('queue-tests', () => {
+        describe('add', () => {
+            beforeEach(() => {
+                queue = new Queue({updateInterval: QUEUE_INTERVAL});
+            });
+            it('should added to queue', async () => {
+                queue.updateHeuristic(heuristic(80));
+                await queue.add([stubTemplate()]);
+                await delay(QUEUE_INTERVAL + 500);
+                const q = queue.get;
+                expect(q[0].calculated.score).to.eql(80);
+            });
+            it('should added to queue orderd', async () => {
+                queue.updateHeuristic(heuristic(80));
+                await queue.add([stubTemplate()]);
+                queue.updateHeuristic(heuristic(60));
+                await queue.add([stubTemplate()]);
+                queue.updateHeuristic(heuristic(90));
+                await queue.add([stubTemplate()]);
+                console.log('queue status', querier(queue.get).getScoreJobIdArray());
+                expect(queue.get[0].calculated.score).to.eql(90);
+                expect(queue.get[2].calculated.score).to.eql(60);
+                queue.intervalRunningStatus = false;
+            });
         });
     });
+    
+    describe('queue-runner', () => {
+        
+    });
+    
 });

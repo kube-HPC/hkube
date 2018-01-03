@@ -1,20 +1,25 @@
+const log = require('@hkube/logger').GetLogFromContainer();
+const components = require('./consts/component-name');
 const _ = require('lodash');
 const aigle = require('aigle');
+const events = require('events');
+const queueEvents = require('./consts/queue-events');
+// const./consts/queue-events = {
+//     jobId: 'uuid',
+//     pipelineName: 'id',
+//     proirity: '1-5',
+//     algorithmName: 'alg name',
+//     batchPlace: '0-n',
+//     calculated: {
+//         score: '1-100',
+//         enternceTime: 'date',
+//     }
+// };
 
-const tempJob = {
-    jobId: 'uuid',
-    pipelineName: 'id',
-    proirity: '1-5',
-    algorithmName: 'alg name',
-    batchPlace: '0-n',
-    calculated: {
-        score: '1-100',
-        enternceTime: 'date',
-    }
-};
-
-class Queue {
+class Queue extends events {
     constructor({ scoreHeuristic = null, updateInterval = 1000 } = {}) {
+        super();
+        log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE});
         aigle.mixin(_);
         this.scoreHeuristic = scoreHeuristic;
         this.updateInterval = updateInterval;
@@ -33,11 +38,14 @@ class Queue {
         console.log('add called');
         const calclulatedJobs = await aigle.map(jobs, job => this.scoreHeuristic(job));
         if (this.isScoreDuringUpdate) {
-            console.log('isScoreDuringUpdate is true updated temp');
             this.tempInsertQueue = this.tempInsertQueue.concat(calclulatedJobs);
             return;
         }
         this._insert(calclulatedJobs);
+    }
+    pop() {
+        const job = this.queue.shift();
+        this.remove(job.jobsId);
     }
     remove(jobsId) {
         if (this.isScoreDuringUpdate) {
@@ -61,11 +69,14 @@ class Queue {
     }
     _insert(jobArr) {
         this.queue = _.orderBy([...this.queue, ...jobArr], j => j.calculated.score, 'desc');
+        this.emit(queueEvents.INSERT);
+        log.info(`new jobs inserted to queue jobs:${jobArr}`, { component: components.QUEUE});
         console.log('inserted queue', this.queue);
     }
 
     _remove(jobArr) {
         jobArr.forEach(jobId => _.remove(this.queue, job => job.jobId === jobId));
+        this.emit(queueEvents.REMOVE, jobArr);
     }
     // should be merged after each interval cycle
     _mergeTemp() {

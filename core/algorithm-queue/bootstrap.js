@@ -40,7 +40,7 @@ class Bootstrap {
                 await tracer.init(main.tracer);
             }
             await Promise.all(modules.map(m => require(m).init(main)));
-           
+            
 
             return main;
         }

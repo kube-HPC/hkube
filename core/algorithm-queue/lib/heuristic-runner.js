@@ -24,7 +24,7 @@ class heuristicRunner {
             this.heuristicMap.push({heuristic: heuristic.algorithm(this.heuristicsWeights[heuristic.name]), weight: this.heuristicsWeights[heuristic.name]});
         }
         else {
-            log.info('couldent find weight for hurustic ', { component: components.Heuristic_RUNNER});
+            log.info('couldnt find weight for heuristic ', { component: components.Heuristic_RUNNER});
         }
     }
     async run(job) {
