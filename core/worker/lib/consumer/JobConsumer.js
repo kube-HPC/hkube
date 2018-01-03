@@ -4,7 +4,7 @@ const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const { stateEvents } = require('../../common/consts/events');
 const etcd = require('../states/discovery');
-const {tracer} = require('@hkube/metrics');
+const { tracer } = require('@hkube/metrics');
 
 let log;
 
@@ -25,6 +25,7 @@ class JobConsumer extends EventEmitter {
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;
+            this._job = null;
         }
 
         this._consumer = new Consumer(this._options.jobConsumer);
@@ -58,12 +59,12 @@ class JobConsumer extends EventEmitter {
     }
     async finishJob(result) {
         if (!this._job) {
-            return; 
+            return;
         }
         // TODO: handle error
         await etcd.unwatch({ jobId: this._job.data.jobID });
         await etcd.update({
-            jobId: this._job.data.jobID, taskId: this._job.id, status: 'succeed', result 
+            jobId: this._job.data.jobID, taskId: this._job.id, status: 'succeed', result
         });
         this._job.done(null, result);
         this._job = null;

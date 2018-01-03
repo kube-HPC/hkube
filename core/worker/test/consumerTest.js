@@ -54,22 +54,6 @@ const producerSettings = {
 let consumer;
 let producer;
 describe('consumer', () => {
-    before(async () => {
-        // const {main, logger} = await configIt.load();
-        // log = new Logger(main.serviceName, logger);
-        // log.plugins.use(new VerbosityPlugin(main.redis));
-        // await discovery.init(main)
-
-
-        // process.on('unhandledRejection', (error) => {
-        //     console.error('unhandledRejection: ' + error.message);
-        // });
-        // process.on('uncaughtException', (error) => {
-        //     console.error('uncaughtException: ' + error.message);
-        // });
-
-    });
-
     beforeEach((done) => {
         bootstrap.init().then(() => {
             consumer = Consumer;
@@ -96,11 +80,9 @@ describe('consumer', () => {
     it('should send init to worker', (done) => {
         workerCommunication.once(messages.incomming.initialized, (message) => {
             expect(message.data.jobID).to.not.be.undefined;
-            console.log('XXXXXXXXXXXXXXXXXXX');
             done();
         });
         producer = new Producer(producerSettings);
-
         producer.createJob(testProducer);
     }).timeout(5000);
 });
