@@ -21,7 +21,7 @@ const modules = [
 class Bootstrap {
     async init() { // eslint-disable-line
         try {
-            const { main, logger } = await configIt.load();
+            const { main, logger } = configIt.load();
             this._handleErrors();
 
             log = new Logger(main.serviceName, logger);
