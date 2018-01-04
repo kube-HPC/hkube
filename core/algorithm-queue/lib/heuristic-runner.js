@@ -3,10 +3,10 @@ const components = require('./consts/component-name');
 const log = Logger.GetLogFromContainer();
 const _ = require('lodash');
 const aigle = require('aigle');
-const heuristicType = {
-    name: 'name',
-    algorithm: weight => async job => job.score
-};
+// const heuristicType = {
+//     name: 'name',
+//     algorithm: weight => async job => job.score
+// };
 // runs heuristic on a single job
 class heuristicRunner {
     constructor() {
@@ -17,19 +17,24 @@ class heuristicRunner {
     init(heuristicsWeights) {
         // this.config = config;
         this.heuristicsWeights = heuristicsWeights;
-        log.info('', { component: components.WEBHOOK_HANDLER });
+        log.info('heuristic wights was set', { component: components.HEURISTIC_RUNNER });
     }
+    // add heuristic 
     addHeuristicToQueue(heuristic) {
         if (this.heuristicsWeights[heuristic.name]) {
-            this.heuristicMap.push({heuristic: heuristic.algorithm(this.heuristicsWeights[heuristic.name]), weight: this.heuristicsWeights[heuristic.name]});
+            this.heuristicMap.push({ name: heuristic.name, heuristic: heuristic.algorithm(this.heuristicsWeights[heuristic.name]), weight: this.heuristicsWeights[heuristic.name]});
         }
         else {
-            log.info('couldnt find weight for heuristic ', { component: components.Heuristic_RUNNER});
+            log.info('couldnt find weight for heuristic ', { component: components.HEURISTIC_RUNNER});
         }
     }
     async run(job) {
-        const score = await this.heuristicMap.reduce((result, algorithm) => result + algorithm(job), 0);
-        return {...job, calculated: { score}};
+        const score = await this.heuristicMap.reduce((result, algorithm) => {
+            const score = algorithm.heuristic(job);
+            job.calculated.latestScores[algorithm.name] = score;
+            return result + score;
+        }, 0);
+        return {...job, calculated: {...job.calculated, score}};
     }
 }
 

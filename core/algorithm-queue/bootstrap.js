@@ -1,32 +1,27 @@
 process.env.NODE_PATH = __dirname;
 require('module').Module._initPaths();
 
-const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
+const configIt = require('@hkube/config');
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
+const {VerbosityPlugin} = Logger;
+log.plugins.use(new VerbosityPlugin(main.redis));
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentName = require('./lib/consts/component-name');
 const metrics = require('@hkube/metrics');
 const {tracer} = require('@hkube/metrics');
-const heuristics = require('./lib/heuristic');
-const huristicRunner = require('./lib/heuristic-runner');
-const queueRunner = require('./lib/queue-runner');
-let log;
-
 const modules = [
-    'lib/queue-runner'
+    './lib/queue-runner'
    
 ];
+
 
 class Bootstrap {
     async init() {
         try {
-            const { main, logger } = await configIt.load();
             this._handleErrors();
-
-            log = new Logger(main.serviceName, logger);
-            log.plugins.use(new VerbosityPlugin(main.redis));
             log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
-
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component: componentName.MAIN });
             });
@@ -34,14 +29,12 @@ class Bootstrap {
                 log.error(data.error.message, { component: componentName.MAIN });
             });
             monitor.check(main.redis);
-
             await metrics.init(main.metrics);
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            await Promise.all(modules.map(m => require(m).init(main)));
+            await Promise.all(modules.map(m => require(m).init(main)));// eslint-disable-line global-require, import/no-dynamic-require
             
-
             return main;
         }
         catch (error) {
@@ -56,8 +49,8 @@ class Bootstrap {
             log.error(error);
         }
         else {
-            console.error(error.message);
-            console.error(error);
+            console.error(error.message);// eslint-disable-line 
+            console.error(error);// eslint-disable-line
         }
         process.exit(1);
     }
@@ -74,7 +67,7 @@ class Bootstrap {
             log.info('SIGTERM', { component: componentName.MAIN });
             process.exit(1);
         });
-        process.on('unhandledRejection', (error, promise) => {
+        process.on('unhandledRejection', (error) => {
             log.error('unhandledRejection: ' + error, { component: componentName.MAIN }, error);
         });
         process.on('uncaughtException', (error) => {

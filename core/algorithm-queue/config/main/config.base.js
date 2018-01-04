@@ -22,7 +22,7 @@ config.queue={
 }
 config.heuristicsWeights = {
     [heuristicsNames.PRIORITY]:0.5,
-    [heuristicsNames.ENTERANCE_TIME]:0.1,
+    [heuristicsNames.ENTRANCE_TIME]:0.1,
     [heuristicsNames.BATCH]:-0.1
 }
 config.metrics = {
