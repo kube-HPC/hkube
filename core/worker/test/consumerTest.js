@@ -5,6 +5,7 @@ const stateManager = require('../lib/states/stateManager.js');
 const {expect} = require('chai');
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
 const messages = require('../lib/algorunnerCommunication/messages');
+const metrics = require('@hkube/metrics');
 
 const jobID = 'test-jobID-3232dd-124fdg4-sdffs234-cs3424';
 
@@ -59,8 +60,6 @@ describe('consumer', () => {
             consumer = Consumer;
         }).then(() => {
             return consumer.init(jobConsumerConfig);
-            // }).then(()=>{
-            //    return workerCommunication.init(workerCommunicationConfig);
         }).then(() => {
             stateManager.on('stateEnteredready', () => {
                 done();

@@ -11,8 +11,8 @@
             "outputCapture": "std",
             "program": "${workspaceRoot}/app.js",
             "env":{
-                "JOB_TYPE":"green-alg",
-                "WORKER_SOCKET_PORT":"9876"
+                "JOB_TYPE":"eval-alg",
+                "WORKER_SOCKET_PORT":"19876"
             }
         },
         {

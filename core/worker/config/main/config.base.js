@@ -49,6 +49,12 @@ config.inputAdapters = {
     storagePath: process.env.SHARED_STORAGE_PATH || './sharedStorage'
 };
 
+config.metrics = {
+    collectDefault: true,
+    server: {
+        port: process.env.METRICS_PORT
+    }
+};
 config.tracer = {
     tracerConfig: {
         serviceName: config.serviceName,

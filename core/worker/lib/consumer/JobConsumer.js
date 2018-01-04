@@ -5,7 +5,8 @@ const stateManager = require('../states/stateManager');
 const { stateEvents } = require('../../common/consts/events');
 const etcd = require('../states/discovery');
 const { tracer } = require('@hkube/metrics');
-
+const metrics = require('@hkube/metrics');
+const { metricsNames } = require('../../common/consts/metricsNames');
 let log;
 
 class JobConsumer extends EventEmitter {
@@ -27,10 +28,16 @@ class JobConsumer extends EventEmitter {
             this._consumer = null;
             this._job = null;
         }
-
+        this._registerMetrics();
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.on('job', async (job) => {
             log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`);
+            metrics.get(metricsNames.algorithm_started).inc({
+                labelValues: {
+                    pipeline_name: job.data.pipeline_name,
+                    algorithm_name: this._options.jobConsumer.job.type
+                }
+            });
             this._job = job;
             etcd.watch({ jobId: this._job.data.jobID });
             stateManager.setJob(job);
@@ -43,7 +50,29 @@ class JobConsumer extends EventEmitter {
             this._consumer.register(this._options.jobConsumer);
         });
     }
-
+    _registerMetrics() {
+        metrics.removeMeasure(metricsNames.algorithm_net);
+        metrics.addTimeMeasure({
+            name: metricsNames.algorithm_net,
+            labels: ['pipeline_name', 'algorithm_name', 'status'],
+            buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
+        });
+        metrics.removeMeasure(metricsNames.algorithm_completed);
+        metrics.addCounterMeasure({
+            name: metricsNames.algorithm_completed,
+            labels: ['pipeline_name', 'algorithm_name'],
+        });
+        metrics.removeMeasure(metricsNames.algorithm_started);
+        metrics.addCounterMeasure({
+            name: metricsNames.algorithm_started,
+            labels: ['pipeline_name', 'algorithm_name'],
+        });
+        metrics.removeMeasure(metricsNames.algorithm_failed);
+        metrics.addCounterMeasure({
+            name: metricsNames.algorithm_failed,
+            labels: ['pipeline_name', 'algorithm_name'],
+        });
+    }
     _register() {
         this._consumer.register(this._options.jobConsumer);
         // stateManager.once(stateEvents.stateEntered,({state})=>{
@@ -61,12 +90,19 @@ class JobConsumer extends EventEmitter {
         if (!this._job) {
             return;
         }
+        metrics.get(metricsNames.algorithm_completed).inc({
+            labelValues: {
+                pipeline_name: this._job.data.pipeline_name,
+                algorithm_name: this._options.jobConsumer.job.type
+            }
+        });
         // TODO: handle error
         await etcd.unwatch({ jobId: this._job.data.jobID });
         await etcd.update({
             jobId: this._job.data.jobID, taskId: this._job.id, status: 'succeed', result
         });
-        this._job.done(null, result);
+        const error = result && result.error;
+        this._job.done(error, result);
         this._job = null;
     }
 }

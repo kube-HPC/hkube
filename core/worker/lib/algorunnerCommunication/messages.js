@@ -1,15 +1,16 @@
 module.exports = {
     incomming: {
-        pong: 'pong',
+        pong: 'pongMessage',
         initialized: 'initialized',
         started: 'started',
         stopped: 'stopped',
         progress: 'progress',
+        error: 'errorMessage',
         done: 'done'
 
     },
     outgoing: {
-        ping: 'ping',
+        ping: 'pingMessage',
         initialize: 'initialize',
         start: 'start',
         cleanup: 'cleanup',

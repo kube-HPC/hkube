@@ -8,6 +8,7 @@ const {VerbosityPlugin} = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentName = require('./common/consts/componentNames');
 const {tracer} = require('@hkube/metrics');
+const metrics = require('@hkube/metrics');
 let log;
 const worker = require('./lib/worker');
 
@@ -35,6 +36,7 @@ class Bootstrap {
                 log.error(data.error.message, { component: componentName.MAIN });
             });
             await monitor.check(main.redis);
+            await metrics.init(main.metrics);
             await tracer.init(main.tracer);
 
             await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line

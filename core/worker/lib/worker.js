@@ -53,6 +53,10 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.progress, (data) => {
             log.debug(`progress: ${data.progress}`);
         });
+        algoRunnerCommunication.on(messages.incomming.error, (data) => {
+            log.debug(`got error from algo. Error: ${data.error}`);
+            stateManager.done(data);
+        });
     }
 
 
