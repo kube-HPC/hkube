@@ -8,7 +8,7 @@
     "test": "test"
   },
   "dependencies": {
-    "@hkube/config": "^1.0.0",
+    "@hkube/config": "^2.0.0",
     "@hkube/etcd": "^3.2.21",
     "@hkube/logger": "^1.0.7",
     "@hkube/metrics": "^1.0.16",
