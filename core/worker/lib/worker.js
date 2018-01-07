@@ -31,7 +31,9 @@ class Worker {
 
     _registerToCommunicationEvents() {
         algoRunnerCommunication.on('connection', () => {
+            log.info('starting bootstrap state');
             stateManager.bootstrap();
+            log.info('finished bootstrap state');
         });
         algoRunnerCommunication.on('disconnect', () => {
             log.warning('algorithm runner has disconnected');

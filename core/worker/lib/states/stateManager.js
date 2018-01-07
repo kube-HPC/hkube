@@ -47,7 +47,8 @@ class StateManager extends EventEmitter {
                 }
             }
         });
-        this._stateMachine.observe('onBeforeTransition', () => {
+        this._stateMachine.observe('onBeforeTransition', (state) => {
+            log.debug(`before entered state: ${state.from} -> ${state.to}`);
             if (this._job && this._job.data) {
                 const topSpan = tracer.topSpan(this._job.data.taskID);
                 if (topSpan) {
@@ -56,6 +57,7 @@ class StateManager extends EventEmitter {
             }
         });
         this._stateMachine.observe('onAfterTransition', (state) => {
+            log.debug(`after entered state: ${state.from} -> ${state.to}`);
             if (this._job && this._job.data) {
                 tracer.startSpan({
                     name: state.to,
@@ -67,7 +69,6 @@ class StateManager extends EventEmitter {
                     }
                 });
             }
-            log.info(`entered state: ${state.from} -> ${state.to}`);
             const data = Object.assign(
                 {},
                 { job: this._job },

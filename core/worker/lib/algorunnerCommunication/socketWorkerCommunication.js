@@ -48,10 +48,10 @@ class SocketWorkerCommunication extends EventEmitter {
     _registerSocketMessages(socket) {
         this._socket = socket;
         Object.values(messages.incomming).forEach((topic) => {
-            console.log(`registering for topic ${topic}`);
+            log.info(`registering for topic ${topic}`);
             
             socket.on(topic, (message) => {
-                console.log(`got message on topic ${topic}, data: ${JSON.stringify(message)}`);
+                log.info(`got message on topic ${topic}, data: ${JSON.stringify(message)}`);
                 this.emit(topic, message.data); 
             });
         });
@@ -62,6 +62,7 @@ class SocketWorkerCommunication extends EventEmitter {
             log.info('socket disconnected');
             this._socket = null;
         });
+        log.info('finish _registerSocketMessages');        
     }
     /**
      * 

@@ -30,6 +30,7 @@ class JobConsumer extends EventEmitter {
         }
         this._registerMetrics();
         this._consumer = new Consumer(this._options.jobConsumer);
+        log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`);
         this._consumer.on('job', async (job) => {
             log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`);
             metrics.get(metricsNames.algorithm_started).inc({
@@ -46,6 +47,7 @@ class JobConsumer extends EventEmitter {
         });
 
         // this._unRegister();
+        log.info('waiting for ready state');
         stateManager.once(stateEvents.stateEntered, () => {
             this._consumer.register(this._options.jobConsumer);
         });

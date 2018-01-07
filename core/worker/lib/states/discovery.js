@@ -44,7 +44,9 @@ class EtcdDiscovery extends EventEmitter {
     }
     async unwatch(options) {
         try {
+            log.info('start unwatch');
             await this._etcd.jobs.unwatch(options);
+            log.info('end unwatch');
         } 
         catch (error) {
             log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${JSON.stringify(error)}`);

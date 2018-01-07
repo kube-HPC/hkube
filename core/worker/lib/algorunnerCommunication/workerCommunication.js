@@ -5,8 +5,10 @@ const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').workerCommunicationSchema;
 const socketAdapter = require('./socketWorkerCommunication');
 const loopbackAdapter = require('./loopbackWorkerCommunication');
-const {adapters} = require('./consts');
-const forwardEmitter = require('forward-emitter');
+const { adapters } = require('./consts');
+// const forwardEmitter = require('forward-emitter');
+const messages = require('./messages');
+
 
 class WorkerCommunication extends EventEmitter {
     constructor() {
@@ -39,11 +41,15 @@ class WorkerCommunication extends EventEmitter {
         }
         log.info(`Creating communication object of type: ${this._options.adapterName}`);
         this.adapter = new AdapterClass();
-        forwardEmitter(this.adapter, this);
+        // forwardEmitter(this.adapter, this);
+        Object.entries({ ...messages.incomming, connection: 'connection' }).forEach(([name, topic]) => {
+            log.info(`workerCommunication registering for topic (${name})=>${topic}`);
+            this.adapter.on(topic, (message) => {
+                log.info(`workerCommunication got message on topic (${name})=>${topic}, data: ${JSON.stringify(message)}`);
+                this.emit(topic, message);
+            });
+        });
         await this.adapter.init(this._options.config);
-        // this.adapter.on('commandMessage',(message)=>{
-        //     this.emit(message.command,message.data);
-        // })
     }
 
     /**

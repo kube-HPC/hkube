@@ -24,10 +24,10 @@ describe('worker communication', () => {
     it('should pass events', async () => {
         const spy = sinon.spy();
         const {adapter} = workerCommunication;
-        workerCommunication.on(messages.incomming.ping, spy);
-        adapter.emit(messages.incomming.ping, '1', '2');
+        workerCommunication.on(messages.incomming.pong, spy);
+        adapter.emit(messages.incomming.pong, ['1', '2']);
         expect(spy.callCount).to.eq(1);
-        expect(spy.getCall(0).args).to.eql(['1', '2']);
+        expect(spy.getCall(0).args[0]).to.eql(['1', '2']);
     });
 
     it('should pass message.command events', async () => {
