@@ -43,21 +43,23 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.initialized, () => {
             stateManager.start();
         });
-        algoRunnerCommunication.on(messages.incomming.done, (data) => {
-            stateManager.done(data);
+        algoRunnerCommunication.on(messages.incomming.done, (message) => {
+            stateManager.done(message);
         });
-        algoRunnerCommunication.on(messages.incomming.stopped, (data) => {
+        algoRunnerCommunication.on(messages.incomming.stopped, (message) => {
             if (this._stopTimeout) {
                 clearTimeout(this._stopTimeout);
             }
-            stateManager.done(data);
+            stateManager.done(message);
         });
-        algoRunnerCommunication.on(messages.incomming.progress, (data) => {
-            log.debug(`progress: ${data.progress}`);
+        algoRunnerCommunication.on(messages.incomming.progress, (message) => {
+            if (message.data) {
+                log.debug(`progress: ${message.data.progress}`);
+            }
         });
-        algoRunnerCommunication.on(messages.incomming.error, (data) => {
-            log.debug(`got error from algo. Error: ${data.error}`);
-            stateManager.done(data);
+        algoRunnerCommunication.on(messages.incomming.error, (message) => {
+            log.debug(`got error from algo. Error: ${message.error}`);
+            stateManager.done(message);
         });
     }
 
@@ -71,36 +73,36 @@ class Worker {
                 }
             }, results));
             switch (state) {
-            case workerStates.ready:
-                jobConsumer.finishJob(results);
-                break;
-            case workerStates.init:
-                algoRunnerCommunication.send({
-                    command: messages.outgoing.initialize,
-                    data: job
-                });
-                break;
-            case workerStates.working:
-                algoRunnerCommunication.send({
-                    command: messages.outgoing.start,
-                    data: job
-                });
-                break;
-            case workerStates.shutdown:
-                break;
-            case workerStates.error:
-                break;
-            case workerStates.stop:
-                this._stopTimeout = setTimeout(() => {
-                    log.error('Timeout exceeded trying to stop algorithm. Exiting');
-                    process.exit();
-                }, this._stopTimeoutMs);
-                algoRunnerCommunication.send({
-                    command: messages.outgoing.stop,
-                    data: job
-                });
-                break;
-            default:
+                case workerStates.ready:
+                    jobConsumer.finishJob(results);
+                    break;
+                case workerStates.init:
+                    algoRunnerCommunication.send({
+                        command: messages.outgoing.initialize,
+                        data: job
+                    });
+                    break;
+                case workerStates.working:
+                    algoRunnerCommunication.send({
+                        command: messages.outgoing.start,
+                        data: job
+                    });
+                    break;
+                case workerStates.shutdown:
+                    break;
+                case workerStates.error:
+                    break;
+                case workerStates.stop:
+                    this._stopTimeout = setTimeout(() => {
+                        log.error('Timeout exceeded trying to stop algorithm. Exiting');
+                        process.exit();
+                    }, this._stopTimeoutMs);
+                    algoRunnerCommunication.send({
+                        command: messages.outgoing.stop,
+                        data: job
+                    });
+                    break;
+                default:
             }
         });
     }

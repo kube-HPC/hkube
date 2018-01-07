@@ -52,7 +52,7 @@ class SocketWorkerCommunication extends EventEmitter {
             
             socket.on(topic, (message) => {
                 log.info(`got message on topic ${topic}, data: ${JSON.stringify(message)}`);
-                this.emit(topic, message.data); 
+                this.emit(topic, message); 
             });
         });
         // socket.on('commandMessage',(message)=>{

@@ -98,12 +98,16 @@ class JobConsumer extends EventEmitter {
                 algorithm_name: this._options.jobConsumer.job.type
             }
         });
-        // TODO: handle error
         await etcd.unwatch({ jobId: this._job.data.jobID });
+        let error = result && result.error;
+        if (error && error.message) {
+            error = error.message;
+        }
+        const status = error ? 'failed' : 'succeed';
+        log.info(`status: ${status}, error: ${error}`);
         await etcd.update({
-            jobId: this._job.data.jobID, taskId: this._job.id, status: 'succeed', result
+            jobId: this._job.data.jobID, taskId: this._job.id, status, result, error
         });
-        const error = result && result.error;
         this._job.done(error, result);
         this._job = null;
     }
