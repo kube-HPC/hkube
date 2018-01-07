@@ -1,19 +1,27 @@
+const decache = require('decache');
 const {expect} = require('chai');
 const {generateArr, stubTemplate} = require('./stub/stub');
 const delay = require('await-delay');
 const querier = require('../lib/querier');
 const mockery = require('mockery');
 const components = require('../lib/consts/component-name');
-const bootstrap = require('../bootstrap');
 const queueEvents = require('../lib/consts/queue-events');
-const queueRunner = require('../lib/queue-runner');
+const {callDone, done, semaphore} = require('await-done');
+let bootstrap = null;
+let Queue = null;
+
 const heuristic = score => job => (Promise.resolve({...job, ...{calculated: {score, entranceTime: Date.now(), latestScore: {}}}}));
+const heuristicBoilerPlate = (score, _heuristic) => ({
+    run(job) {
+        return _heuristic(score)(job); 
+    }
+});
 const randomHeuristic = score => job => (Promise.resolve({
     ...job, 
     ...{calculated: {score: Math.floor((Math.random() * 100)), entranceTime: Date.now()}}
 }));
-const Queue = require('../lib/queue');
-const {callDone, done, semaphore} = require('await-done');
+
+const clearCache = arr => arr.forEach(r => decache(r));
 
 let queue = null;
 const QUEUE_INTERVAL = 500;
@@ -28,6 +36,8 @@ const logMock = {
 
 describe('algorithm queue', () => {
     before(async () => {
+        bootstrap = require('../bootstrap'); //eslint-disable-line
+        Queue = require('../lib/queue'); //eslint-disable-line
         mockery.registerMock('log', logMock);
         await bootstrap.init();
     });  
@@ -35,21 +45,22 @@ describe('algorithm queue', () => {
     describe('queue-tests', () => {
         describe('add', () => {
             beforeEach(() => {
+                Queue = require('../lib/queue'); //eslint-disable-line
                 queue = new Queue({updateInterval: QUEUE_INTERVAL});
             });
             it('should added to queue', async () => {
-                queue.updateHeuristic(heuristic(80));
+                queue.updateHeuristic(heuristicBoilerPlate(80, heuristic));
                 await queue.add([stubTemplate()]);
                 await delay(QUEUE_INTERVAL + 500);
                 const q = queue.get;
                 expect(q[0].calculated.score).to.eql(80);
             });
             it('should added to queue ordered', async () => {
-                queue.updateHeuristic(heuristic(80));
+                queue.updateHeuristic({run: heuristic(80)});
                 await queue.add([stubTemplate()]);
-                queue.updateHeuristic(heuristic(60));
+                queue.updateHeuristic({run: heuristic(60)});
                 await queue.add([stubTemplate()]);
-                queue.updateHeuristic(heuristic(90));
+                queue.updateHeuristic({run: heuristic(90)});
                 await queue.add([stubTemplate()]);
                 //  console.log('queue status', querier(queue.get).getScoreJobIdArray());
                 expect(queue.get[0].calculated.score).to.eql(90);
@@ -60,11 +71,12 @@ describe('algorithm queue', () => {
         describe('remove', () => {
             let _semaphore = null;
             beforeEach(() => {
+                Queue = require('../lib/queue'); //eslint-disable-line
                 queue = new Queue({updateInterval: QUEUE_INTERVAL});
                 _semaphore = new semaphore();
             });
             it('should removed from queue', async () => {
-                queue.updateHeuristic(heuristic(80));
+                queue.updateHeuristic({run: heuristic(80)});
                 const stubJob = stubTemplate();
                 await queue.add([stubJob]);
                 queue.on(queueEvents.REMOVE, () => {
@@ -77,7 +89,7 @@ describe('algorithm queue', () => {
                 expect(q).to.have.length(0);
             });
             it('should not removed from queue when there is no matched id', async () => {
-                queue.updateHeuristic(heuristic(80));
+                queue.updateHeuristic({run: heuristic(80)});
                 const stubJob = stubTemplate();
                 await queue.add([stubJob]);
                 queue.on(queueEvents.REMOVE, () => {
@@ -96,11 +108,12 @@ describe('algorithm queue', () => {
         describe('pop', () => {
             let _semaphore = null;
             beforeEach(() => {
+                Queue = require('../lib/queue'); //eslint-disable-line
                 queue = new Queue({updateInterval: QUEUE_INTERVAL});
                 _semaphore = new semaphore();
             });
             it('should pop from queue', async () => {
-                queue.updateHeuristic(heuristic(80));
+                queue.updateHeuristic({run: heuristic(80)});
                 const stubJob = stubTemplate();
                 await queue.add([stubJob]);
                 queue.on(queueEvents.POP, () => {
@@ -120,12 +133,13 @@ describe('algorithm queue', () => {
         describe('queue-events', () => {
             let _semaphore = null;
             beforeEach(() => {
+                Queue = require('../lib/queue'); //eslint-disable-line
                 queue = new Queue({updateInterval: QUEUE_INTERVAL});
                 _semaphore = new semaphore();
             });
             it('check events insert', async () => {
                 queue.on(queueEvents.INSERT, () => _semaphore.callDone());
-                queue.updateHeuristic(heuristic(80));
+                queue.updateHeuristic({run: heuristic(80)});
                 queue.intervalRunningStatus = false;
                 await queue.add([stubTemplate()]);
                 await _semaphore.done();
@@ -133,7 +147,7 @@ describe('algorithm queue', () => {
             });
             it('check events remove', async () => {
                 queue.on(queueEvents.REMOVE, () => _semaphore.callDone());
-                queue.updateHeuristic(heuristic(80));
+                queue.updateHeuristic({run: heuristic(80)});
                 queue.intervalRunningStatus = false;
                 const stubJob = stubTemplate();
                 await queue.add([stubJob]);
@@ -148,6 +162,14 @@ describe('algorithm queue', () => {
     });
     
     describe('queue-runner', () => {
+        let queueRunner = null;
+        before(async () => {
+            clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+            bootstrap = require('../bootstrap');
+            queueRunner = require('../lib/queue-runner');
+             //eslint-disable-line
+            await bootstrap.init();
+        });
         it('check-that-heuristics-sets-to-latestScore', async () => {
             //  queue.updateHeuristic(heuristic(80));
             const stubJob = stubTemplate();
@@ -156,5 +178,12 @@ describe('algorithm queue', () => {
             const q = queueRunner.queue.get;
             console.log(q);
         });
+        after(() => {
+            decache('../lib/queue');
+            decache('../bootstrap');
+        });
+    });
+    after(() => {
+        clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
     });
 });

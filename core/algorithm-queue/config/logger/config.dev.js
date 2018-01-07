@@ -1,4 +1,4 @@
-var config = module.exports = {};
+const config = module.exports = {};
 
 config.transport = {
     console: true,
@@ -11,4 +11,4 @@ config.logstash = {
     logstashURL: '127.0.0.1'
 };
 
-config.verbosityLevel = 2;
+config.verbosityLevel = 0;

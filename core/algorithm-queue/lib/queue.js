@@ -17,11 +17,14 @@ const queueEvents = require('./consts/queue-events');
 // };
 
 class Queue extends events {
-    constructor({ scoreHeuristic = null, updateInterval = 1000 } = {}) {
+    constructor({ scoreHeuristic = {run: null}, updateInterval = 1000 } = {}) {
         super();
         log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE});
         aigle.mixin(_);
-        this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
+        //  this._huristicRunner = scoreHeuristic;
+        // handle empty heuristic on constructor
+        this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
+        //    this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
         this.updateInterval = updateInterval;
         this.queue = [];
         this.isScoreDuringUpdate = false;
@@ -31,17 +34,23 @@ class Queue extends events {
         this._queueInterval();
     }
     // todo:add merge on async 
-    updateHeuristic(heuristic) {
-        this.scoreHeuristic = heuristic.bind(heuristic);
+    updateHeuristic(scoreHeuristic) {
+        this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
+        //   this.scoreHeuristic = heuristic.run.bind(heuristic);
     }
     async add(jobs) {
-        const calculatedJobs = await aigle.map(jobs, job => this.scoreHeuristic(job));
-        if (this.isScoreDuringUpdate) {
-            log.debug('add -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE});
-            this.tempInsertQueue = this.tempInsertQueue.concat(calculatedJobs);
-            return;
+        if (this.scoreHeuristic) {
+            const calculatedJobs = await aigle.map(jobs, job => this.scoreHeuristic(job));
+            if (this.isScoreDuringUpdate) {
+                log.debug('add -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE});
+                this.tempInsertQueue = this.tempInsertQueue.concat(calculatedJobs);
+                return;
+            }
+            this._insert(calculatedJobs);
         }
-        this._insert(calculatedJobs);
+        else {
+            log.warn('score heuristic is not defined', { component: components.QUEUE});
+        }
     }
     pop() {
         const job = this.queue.shift();
@@ -75,7 +84,7 @@ class Queue extends events {
             log.debug('there is no new inserted jobs', { component: components.QUEUE});
             return; 
         }
-        this.queue = _.orderBy([...this.queue, ...jobArr], j => j.calculated, 'desc');
+        this.queue = _.orderBy([...this.queue, ...jobArr], j => j.calculated.score, 'desc');
         this.emit(queueEvents.INSERT);
         log.info(`new jobs inserted to queue jobs:${jobArr}`, { component: components.QUEUE});
     }
