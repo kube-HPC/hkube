@@ -45,12 +45,26 @@ class Queue extends events {
                 log.info('persistent added sucessfully', { component: components.QUEUE});
             }
             catch (e) {
-                log.warn('could not add data from persistency ', { component: components.QUEUE});                
+                log.warning('could not add data from persistency ', { component: components.QUEUE});                
             }
         }
-          else {
-              log.warn(`persistency storage was not set `, { component: components.QUEUE});
-          }  
+        else {
+            log.warning('persistency storage was not set ', { component: components.QUEUE});
+        }
+    }
+    async persistenceStore() {
+        log.debug('try to store data to  storage', { component: components.QUEUE});
+        if (this.persistence) {
+            try {
+                await this.persistence.store(this.queue);
+                log.debug('store data to storage succeed', { component: components.QUEUE});
+            }
+            catch (e) {
+                log.warning('fail to store data', { component: components.QUEUE});
+            } 
+        }
+        else {
+            log.warning('persistent storage not set', {component: components.QUEUE});
         }
     }
     // todo:add merge on async 
@@ -69,7 +83,7 @@ class Queue extends events {
             this._insert(calculatedJobs);
         }
         else {
-            log.warn('score heuristic is not defined', { component: components.QUEUE});
+            log.warning('score heuristic is not defined', { component: components.QUEUE});
         }
     }
     pop() {
@@ -137,8 +151,8 @@ class Queue extends events {
             await this.updateScore();
             log.debug('queue update score cycle starts', { component: components.QUEUE});
             this._mergeTemp();
-            this.persistence
-                .this.isScoreDuringUpdate = false;
+            await this.persistenceStore();
+            this.isScoreDuringUpdate = false;
             if (this.isIntervalRunning) {
                 this._queueInterval();
             }
