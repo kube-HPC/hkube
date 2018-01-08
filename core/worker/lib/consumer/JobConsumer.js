@@ -39,6 +39,14 @@ class JobConsumer extends EventEmitter {
                     algorithm_name: this._options.jobConsumer.job.type
                 }
             });
+            metrics.get(metricsNames.algorithm_net).start({
+                id: job.data.taskID,
+                labelValues: {
+                    pipeline_name: job.data.pipeline_name,
+                    algorithm_name: this._options.jobConsumer.job.type
+                }
+            });
+            
             this._job = job;
             etcd.watch({ jobId: this._job.data.jobID });
             stateManager.setJob(job);
@@ -92,18 +100,25 @@ class JobConsumer extends EventEmitter {
         if (!this._job) {
             return;
         }
-        metrics.get(metricsNames.algorithm_completed).inc({
-            labelValues: {
-                pipeline_name: this._job.data.pipeline_name,
-                algorithm_name: this._options.jobConsumer.job.type
-            }
-        });
+        
         await etcd.unwatch({ jobId: this._job.data.jobID });
         let error = result && result.error;
         if (error && error.message) {
             error = error.message;
         }
         const status = error ? 'failed' : 'succeed';
+        metrics.get(metricsNames.algorithm_completed).inc({
+            labelValues: {
+                pipeline_name: this._job.data.pipeline_name,
+                algorithm_name: this._options.jobConsumer.job.type
+            }
+        });
+        metrics.get(metricsNames.algorithm_net).start({
+            id: this._job.data.taskID,
+            labelValues: {
+                status
+            }
+        });
         log.info(`status: ${status}, error: ${error}`);
         await etcd.update({
             jobId: this._job.data.jobID, taskId: this._job.id, status, result, error

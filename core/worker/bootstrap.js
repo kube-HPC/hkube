@@ -38,7 +38,7 @@ class Bootstrap {
             await monitor.check(main.redis);
             await metrics.init(main.metrics);
             await tracer.init(main.tracer);
-
+            worker.preInit();
             await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
             
             await worker.init(main);

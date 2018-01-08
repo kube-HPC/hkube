@@ -5,8 +5,7 @@ const stateManager = require('../lib/states/stateManager.js');
 const {expect} = require('chai');
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
 const messages = require('../lib/algorunnerCommunication/messages');
-const metrics = require('@hkube/metrics');
-
+const worker = require('../lib/worker');
 const jobID = 'test-jobID-3232dd-124fdg4-sdffs234-cs3424';
 
 const jobConsumerConfig = {
@@ -64,6 +63,7 @@ describe('consumer', () => {
             stateManager.on('stateEnteredready', () => {
                 done();
             });
+            worker._registerToConnectionEvents();
             workerCommunication.adapter.start();
         });
     });
@@ -78,7 +78,7 @@ describe('consumer', () => {
 
     it('should send init to worker', (done) => {
         workerCommunication.once(messages.incomming.initialized, (message) => {
-            expect(message.data.jobID).to.not.be.undefined;
+            expect(message.id).to.not.be.undefined;
             done();
         });
         producer = new Producer(producerSettings);

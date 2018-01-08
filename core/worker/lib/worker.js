@@ -14,8 +14,11 @@ class Worker {
         this._stopTimeout = null;
     }
 
-    async init(options) {
+    preInit() {
         log = Logger.GetLogFromContainer();
+        this._registerToConnectionEvents();
+    }
+    async init(options) {
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
@@ -29,7 +32,7 @@ class Worker {
         });
     }
 
-    _registerToCommunicationEvents() {
+    _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', () => {
             log.info('starting bootstrap state');
             stateManager.bootstrap();
@@ -39,7 +42,8 @@ class Worker {
             log.warning('algorithm runner has disconnected');
             stateManager.reset();
         });
-
+    }
+    _registerToCommunicationEvents() {
         algoRunnerCommunication.on(messages.incomming.initialized, () => {
             stateManager.start();
         });
