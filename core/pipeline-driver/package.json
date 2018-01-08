@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.21",
+    "@hkube/etcd": "^3.2.24",
     "@hkube/logger": "^1.0.7",
     "@hkube/metrics": "^1.0.19",
     "@hkube/producer-consumer": "^1.0.26",
@@ -22,13 +22,14 @@
     "deep-extend": "^0.5.0",
     "djsv": "^3.0.3",
     "get-port": "^3.2.0",
-    "graphlib": "^2.1.1",
+    "graphlib": "^2.1.2",
     "ioredis": "^3.2.2",
     "lodash.groupby": "^4.6.0",
     "object-path": "^0.11.4"
   },
   "devDependencies": {
     "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^2.5.3",

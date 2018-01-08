@@ -210,5 +210,129 @@
             }
         ],
         "flowInput": {}
+    },
+    {
+        "name": "simple-wait-batch",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    {
+                        "a": "*@green"
+                    },
+                    {
+                        "b": "*@yellow"
+                    },
+                    {
+                        "c": "@green"
+                    },
+                    {
+                        "d": "@yellow"
+                    }
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "links": [
+                    "links-1"
+                ]
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        }
+    },
+    {
+        "name": "multi-input",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@green",
+                    "@yellow",
+                    "#@green",
+                    "#@yellow",
+                    "*@green",
+                    "*@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "links": [
+                    "links-1"
+                ]
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        }
+    },
+    {
+        "name": "batch",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "links": [
+                    "links-1",
+                    "links-2",
+                    "links-3",
+                    "links-4",
+                    "links-5"
+                ]
+            }
+        },
+        "options": {
+            "batchTolerance": 60,
+            "progressVerbosityLevel": "debug"
+        }
     }
 ]

@@ -2,27 +2,25 @@ const objectPath = require('object-path');
 const clone = require('clone');
 
 const CONSTS = {
-    BATCH: '#',
     REF: '@',
-    BATCHREF: '#@',
-    WAITANYREF: '*@',
-    BATCHRAW: '#[',
-    WAITANY: '*',
-    FLOWINPUT: 'flowInput'
+    BATCH: '#',
+    WAIT_BATCH: '*@',
+    RAW_BATCH: '#[',
+    FLOW_INPUT: 'flowInput'
 }
 
 class InputParser {
 
-    parse(options, input, nodesInput) {
+    parse(options, input, parentOutput, index) {
         const newInput = clone(input);
-        const batch = this.parseBatchInput(options, newInput, nodesInput);
+        const batch = this.parseBatchInput(options, newInput, parentOutput);
         const isBatch = batch.length > 0;
         const inputObj = isBatch ? batch : newInput;
 
         inputObj.forEach((ni, ind) => {
             inputObj[ind] = this.parseFlowInput(options, ni);
-            if (nodesInput) {
-                let res = this.parseNodeInput(nodesInput, ni);
+            if (parentOutput) {
+                let res = this.parseParentNodeOutput(parentOutput, ni, index);
                 if (res) {
                     inputObj[ind] = res;
                 }
@@ -34,7 +32,7 @@ class InputParser {
         }
     }
 
-    parseValue(object, input, options) {
+    parseValue(object, input, options, index) {
         if (typeof input == null) {
             return null;
         }
@@ -42,121 +40,97 @@ class InputParser {
             return object;
         }
         else if (typeof input === 'string') {
-            input = this._tryGetPath(object, input, options);
+            input = this._extractValueFromInput(object, input, options, null, index);
         }
         else if (this._isObject(input)) {
-            this._recursivelyObject(object, input, options);
+            this._recursivelyObject(object, input, options, index);
         }
         else if (Array.isArray(input)) {
-            this._recursivelyArray(object, input, options);
+            this._recursivelyArray(object, input, options, index);
         }
         return input;
-    }
-
-    checkFlowInput(object, input) {
-        return this.parseValue(object, input, { checkFlow: true });
     }
 
     parseFlowInput(object, input) {
         return this.parseValue(object, input, { parseFlow: true });
     }
 
-    parseNodeInput(object, input) {
-        return this.parseValue(object, input, { parseNode: true });
+    parseParentNodeOutput(parentOutput, input, index) {
+        return this.parseValue(parentOutput, input, { parseParentNode: true }, index);
     }
 
     extractNodesFromInput(input) {
-        let nodes = [];
-        const result = this.isNode(input);
+        const results = [];
+        const result = this._isNode(input);
         if (result.isNode) {
-            nodes.push(result.node);
+            results.push(result);
         }
         else if (this._isObject(input)) {
-            this._recursivelyFindNodeInObject(input, nodes);
+            this._recursivelyFindNodeInObject(input, results);
         }
         else if (Array.isArray(input)) {
-            this._recursivelyFindNodeInArray(input, nodes);
+            this._recursivelyFindNodeInArray(input, results);
         }
-        return Array.from(new Set(nodes));
+        return results.filter(r => r.isNode);
     }
 
     extractObjectFromInput(input) {
-        let nodeName;
+        let object;
         if (this._isObjRef(input)) {
-            nodeName = input.substr(1);
+            object = input.substr(1);
         }
-        if (this._isBatchRef(input)) {
-            nodeName = input.substr(2);
+        if (this._isBatch(input)) {
+            object = input.substr(2);
         }
-        else if (this.isWaitAny(input)) {
-            nodeName = input.substr(2);
+        else if (this._isWaitBatch(input)) {
+            object = input.substr(2);
         }
-        return nodeName;
+        return object;
     }
 
-    isWaitAny(input) {
-        return typeof input === 'string' && input.startsWith(CONSTS.WAITANY);
-    }
-
-    isWaitAnyBatch(input) {
-        return (typeof input === 'string') && input.startsWith('*#');
-    }
-
-    isWaitAnyNode(input) {
-        return typeof input === 'string' && input.startsWith('*@');
-    }
-
-    isBatch(input) {
-        return typeof input === 'string' && input.startsWith(CONSTS.BATCH);
-    }
-
-    isBatchRaw(input) {
-        return typeof input === 'string' && input.startsWith(CONSTS.BATCHRAW);
-    }
-
-    isNode(input) {
+    _isNode(input) {
         const result = {
             isNode: false
         };
-        if (this.isReference(input)) {
+        if (this._isReference(input)) {
             const path = this.extractObjectFromInput(input);
             const obj = this.constructObject(path);
-            result.node = obj.object;
-            result.isNode = result.node !== CONSTS.FLOWINPUT;
+            const isFlowInput = obj.object === CONSTS.FLOW_INPUT;
+            result.nodeName = obj.object;
+            result.isNode = !isFlowInput;
+            result.isWaitBatch = this._isBatch(input);
+            result.isWaitAnyBatch = this._isWaitBatch(input);
+            result.isWaitNode = !isFlowInput && !result.isWaitBatch && !result.isWaitAnyBatch;
         }
         return result;
+    }
+
+    _isBatch(input) {
+        return typeof input === 'string' && input.startsWith(CONSTS.BATCH);
+    }
+
+    _isBatchRaw(input) {
+        return typeof input === 'string' && input.startsWith(CONSTS.RAW_BATCH);
     }
 
     _isObjRef(input) {
         return typeof input === 'string' && input.startsWith(CONSTS.REF);
     }
 
-    _isBatchRef(input) {
-        return typeof input === 'string' && input.startsWith(CONSTS.BATCHREF);
-    }
-
-    _isWaitAnyRef(input) {
-        return typeof input === 'string' && input.startsWith(CONSTS.WAITANYREF);
+    _isWaitBatch(input) {
+        return typeof input === 'string' && input.startsWith(CONSTS.WAIT_BATCH);
     }
 
     isFlowInput(input) {
         if (this._isObjRef(input)) {
             const nodeName = input.substr(1);
             const result = this.constructObject(nodeName);
-            return result.object === CONSTS.FLOWINPUT;
+            return result.object === CONSTS.FLOW_INPUT;
         }
     }
 
-    isReference(input) {
-        return this._isObjRef(input) || this._isBatchRef(input) || this._isWaitAnyRef(input);
-    }
-
-    waitAnyInputIndex(input) {
-        return input.findIndex(i => this.isWaitAny(i));
-    }
-
-    batchInputIndex(input) {
-        return input.findIndex(i => i === i)
+    _isReference(input) {
+        return this._isObjRef(input) || this._isBatch(input) || this._isWaitBatch(input);
     }
 
     parseBatchInput(object, input, nodesInput) {
@@ -183,8 +157,8 @@ class InputParser {
 
     _findBatch(object, input, nodesInput, path) {
         let result = null;
-        if (this.isBatch(input)) {
-            result = this._tryGetPath(object, input, null, nodesInput);
+        if (this._isBatch(input)) {
+            result = this._extractValueFromInput(object, input, null, nodesInput);
         }
         else if (this._isObject(input)) {
             result = this._recursivelyObjectFindBatchKey(object, input, nodesInput, path);
@@ -193,14 +167,6 @@ class InputParser {
             result = this._recursivelyArrayFindBatchKey(object, input, nodesInput, path);
         }
         return result;
-    }
-
-    waitAnyBatchInputIndex(input) {
-        return input.findIndex(i => this.isWaitAnyBatch(i));
-    }
-
-    nodeInputIndex(input) {
-        return input.findIndex(i => this.isNode(i).isNode)
     }
 
     constructObject(input) {
@@ -218,8 +184,8 @@ class InputParser {
         let result = null;
         input.forEach((inp, ind) => {
             path.push(ind);
-            if (this.isBatch(inp)) {
-                result = this._tryGetPath(object, inp, null, nodesInput);
+            if (this._isBatch(inp)) {
+                result = this._extractValueFromInput(object, inp, null, nodesInput);
             }
             else if (Array.isArray(inp)) {
                 result = this._recursivelyArrayFindBatchKey(object, inp, nodesInput, path);
@@ -238,8 +204,8 @@ class InputParser {
         let result = null;
         Object.entries(input).forEach(([key, val]) => {
             path.push(key);
-            if (this.isBatch(val)) {
-                result = this._tryGetPath(object, val, null, nodesInput);
+            if (this._isBatch(val)) {
+                result = this._extractValueFromInput(object, val, null, nodesInput);
             }
             else if (Array.isArray(val)) {
                 result = this._recursivelyArrayFindBatchKey(object, val, nodesInput, path);
@@ -254,39 +220,39 @@ class InputParser {
         return result;
     }
 
-    _recursivelyArray(object, input, options) {
+    _recursivelyArray(object, input, options, index) {
         input.forEach((a, i) => {
             if (Array.isArray(a)) {
-                this._recursivelyArray(object, a, options);
+                this._recursivelyArray(object, a, options, index);
             }
             else if (this._isObject(a)) {
-                this._recursivelyObject(object, a, options);
+                this._recursivelyObject(object, a, options, index);
             }
             else {
-                input[i] = this._tryGetPath(object, a, options);
+                input[i] = this._extractValueFromInput(object, a, options, null, index);
             }
         })
     }
 
-    _recursivelyObject(object, input, options) {
+    _recursivelyObject(object, input, options, index) {
         Object.entries(input).forEach(([key, val]) => {
             if (Array.isArray(val)) {
-                this._recursivelyArray(object, val, options);
+                this._recursivelyArray(object, val, options, index);
             }
             else if (this._isObject(val)) {
-                this._recursivelyObject(object, val, options);
+                this._recursivelyObject(object, val, options, index);
             }
             else if (typeof input[key] !== 'object') {
-                input[key] = this._tryGetPath(object, val, options);
+                input[key] = this._extractValueFromInput(object, val, options, null, index);
             }
         })
     }
 
     _recursivelyFindNodeInArray(input, nodes) {
         input.forEach((a, i) => {
-            const result = this.isNode(a);
+            const result = this._isNode(a);
             if (result.isNode) {
-                nodes.push(result.node);
+                nodes.push(result);
             }
             if (Array.isArray(a)) {
                 this._recursivelyFindNodeInArray(a, nodes);
@@ -299,9 +265,9 @@ class InputParser {
 
     _recursivelyFindNodeInObject(input, nodes) {
         Object.entries(input).forEach(([key, val]) => {
-            const result = this.isNode(val);
+            const result = this._isNode(val);
             if (result.isNode) {
-                nodes.push(result.node);
+                nodes.push(result);
             }
             else if (Array.isArray(val)) {
                 this._recursivelyFindNodeInArray(val, nodes);
@@ -312,34 +278,36 @@ class InputParser {
         })
     }
 
-    _tryGetPath(object, path, options, nodesInput) {
+    _extractValueFromInput(object, input, options, nodesInput, index) {
         options = options || {};
         nodesInput = nodesInput || {};
-        let result = path;
-        if (this.isBatchRaw(path)) {
-            const array = path.substr(1);
+        let result = input;
+        if (this._isBatchRaw(input)) {
+            const array = input.substr(1);
             result = this._tryParseJSON(array);
         }
-        if (this.isReference(path)) {
-            const obj = this.extractObjectFromInput(path);
+        if (this._isReference(input)) {
+            let ni = null;
+            const obj = this.extractObjectFromInput(input);
             const construct = this.constructObject(obj);
-            let ni = object[construct.object] || nodesInput[construct.object];
 
-            if (construct.object === CONSTS.FLOWINPUT && options.parseNode) {
+            if (options.parseParentNode) {
+                const isWaitBatch = this._isWaitBatch(input);
+                const type = isWaitBatch ? 'waitAnyBatch' : 'waitNode';
+                index = isWaitBatch ? index : null;
+                const parent = object.find(o => o.type === type && o.index == index && o.node === construct.object);
+                result = parent.result;
+                return result;
+            }
+            else {
+                ni = object[construct.object] || nodesInput[construct.object];
+            }
+            if (construct.object === CONSTS.FLOW_INPUT && options.parseParentNode) {
                 return null;
             }
-
             if (ni) {
-                if (construct.object === CONSTS.FLOWINPUT) {
-                    ni = objectPath.get(object, obj);
-                    if (options.checkFlow) {
-                        if (ni == null) {
-                            throw new Error(`unable to find ${obj}`);
-                        }
-                    }
-                    else {
-                        result = ni;
-                    }
+                if (construct.object === CONSTS.FLOW_INPUT) {
+                    result = objectPath.get(object, obj);
                 }
                 else {
                     const array = [];
@@ -355,7 +323,7 @@ class InputParser {
                         result = array;
                     }
                     else {
-                        result = ni;
+                        result = objectPath.get(object, obj)
                     }
                 }
             }

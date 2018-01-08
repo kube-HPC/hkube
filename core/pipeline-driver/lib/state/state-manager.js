@@ -51,7 +51,6 @@ class StateManager extends EventEmitter {
     async setJobResults(options) {
         const payload = {
             timestamp: new Date(),
-            execution_id: options.jobId,
             pipeline: options.pipeline,
             data: options.data
         }
@@ -61,7 +60,6 @@ class StateManager extends EventEmitter {
     async setJobStatus(options) {
         const payload = {
             timestamp: new Date(),
-            execution_id: options.jobId,
             pipeline: options.pipeline,
             data: options.data
         }
