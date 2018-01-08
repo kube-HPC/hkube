@@ -4,6 +4,7 @@ const _ = require('lodash');
 const aigle = require('aigle');
 const events = require('events');
 const queueEvents = require('./consts/queue-events');
+
 // const./consts/queue-events = {
 //     jobId: 'uuid',
 //     pipelineName: 'id',
@@ -17,7 +18,7 @@ const queueEvents = require('./consts/queue-events');
 // };
 
 class Queue extends events {
-    constructor({ scoreHeuristic = {run: null}, updateInterval = 1000 } = {}) {
+    constructor({ scoreHeuristic = {run: null}, updateInterval = 1000, persistence = null } = {}) {
         super();
         log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE});
         aigle.mixin(_);
@@ -31,7 +32,25 @@ class Queue extends events {
         this.tempInsertQueue = [];
         this.tempRemoveQueue = [];
         this.isIntervalRunning = true;
+        this.persistence = persistence;
+        this.persistencyLoad();
         this._queueInterval();
+    }
+    async persistencyLoad() {
+        log.info('try to recover data from persistent storage', { component: components.QUEUE});
+        if (this.persistence) {
+            const queueItems = await this.persistence.get();
+            try {
+                await this.add(queueItems);
+                log.info('persistent added sucessfully', { component: components.QUEUE});
+            }
+            catch (e) {
+                log.warn('could not add data from persistency ', { component: components.QUEUE});                
+            }
+          else {
+              log.warn(`persistency storage was not set `, { component: components.QUEUE});
+          }  
+        }
     }
     // todo:add merge on async 
     updateHeuristic(scoreHeuristic) {
@@ -117,7 +136,8 @@ class Queue extends events {
             await this.updateScore();
             log.debug('queue update score cycle starts', { component: components.QUEUE});
             this._mergeTemp();
-            this.isScoreDuringUpdate = false;
+            this.persistence
+                .this.isScoreDuringUpdate = false;
             if (this.isIntervalRunning) {
                 this._queueInterval();
             }
