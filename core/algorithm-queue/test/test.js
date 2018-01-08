@@ -176,6 +176,10 @@ describe('algorithm queue', () => {
             await queueRunner.queue.add([stubJob]);
             await delay(500);
             const q = queueRunner.queue.get;
+            expect(q[0].calculated.latestScores).to.have.property('BATCH');
+            expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
+            expect(q[0].calculated.latestScores).to.have.property('ENTRANCE_TIME');
+            expect(q[0].calculated.score).to.be.above(0);
             console.log(q);
         });
         after(() => {
