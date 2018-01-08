@@ -47,6 +47,7 @@ class Queue extends events {
             catch (e) {
                 log.warn('could not add data from persistency ', { component: components.QUEUE});                
             }
+        }
           else {
               log.warn(`persistency storage was not set `, { component: components.QUEUE});
           }  
