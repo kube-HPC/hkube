@@ -34,7 +34,7 @@ config.etcdDiscovery = {
 
 config.jobConsumer = {
     job: {
-        type: process.env.JOB_TYPE || 'green-alg'
+        type: process.env.ALGORITHM_TYPE || 'green-alg'
     },
     setting: {
         queueName: 'queue-workers',

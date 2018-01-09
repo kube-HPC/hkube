@@ -41,7 +41,7 @@ export alg=$1
 export ALGO_COMMAND=${2:-"node ../algorunner/app"}
 echo worker for algorithm ${alg}
 
-export JOB_TYPE=${alg}
+export ALGORITHM_TYPE=${alg}
 export WORKER_SOCKET_PORT=${port}
 export DLL_PATH="../libStub/build/liblibStub.so"
 run_parallel "node app worker" "${ALGO_COMMAND}"
