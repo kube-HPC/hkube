@@ -41,7 +41,7 @@
                 "nodeName": "green",
                 "algorithmName": "green-alg",
                 "input": [
-                    "#@flowInput.files.links1"
+                    "#@flowInput.files.links"
                 ]
             },
             {
@@ -61,18 +61,17 @@
         ],
         "flowInput": {
             "files": {
-                "link": "links-1",
-                "links1": [
+                "links": [
                     "links-1",
                     "links-2",
                     "links-3",
                     "links-4",
-                    "links-5"
-                ],
-                "links2": [
-                    "links-4",
                     "links-5",
-                    "links-6"
+                    "links-6",
+                    "links-7",
+                    "links-8",
+                    "links-9",
+                    "links-10"
                 ]
             }
         },
@@ -131,18 +130,26 @@
         "name": "big-wait-batch",
         "nodes": [
             {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    {
+                        "a": "*@green"
+                    },
+                    {
+                        "c": "@green"
+                    }
+                ]
+            },
+            {
                 "nodeName": "red",
                 "algorithmName": "red-alg",
                 "input": [
                     {
-                        "a": "*@green",
-                        "b": "*@yellow",
-                        "c": "*@black"
+                        "b": "*@yellow"
                     },
                     {
-                        "d": "@green",
-                        "e": "@yellow",
-                        "f": "@black"
+                        "d": "@yellow"
                     }
                 ]
             },
@@ -159,13 +166,6 @@
                 "input": [
                     "#@flowInput.files.links"
                 ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
             }
         ],
         "flowInput": {
@@ -175,12 +175,7 @@
                     "links-2",
                     "links-3",
                     "links-4",
-                    "links-5",
-                    "links-6",
-                    "links-7",
-                    "links-8",
-                    "links-9",
-                    "links-10"
+                    "links-5"
                 ]
             }
         },
@@ -197,7 +192,9 @@
                 "algorithmName": "black-alg",
                 "input": [
                     "*@green",
-                    "*@yellow"
+                    "*@yellow",
+                    "@green",
+                    "@yellow"
                 ]
             },
             {
@@ -218,16 +215,7 @@
         "flowInput": {
             "files": {
                 "links": [
-                    "links-1",
-                    "links-2",
-                    "links-3",
-                    "links-4",
-                    "links-5",
-                    "links-6",
-                    "links-7",
-                    "links-8",
-                    "links-9",
-                    "links-10"
+                    "links-1"
                 ]
             }
         },
@@ -246,8 +234,8 @@
                     {
                         "function": "@flowInput.functions.sum",
                         "inputs": [
-                            "@flowInput.num.inp1",
-                            "@flowInput.num.inp2"
+                            "@flowInput.args",
+                            "@flowInput.args"
                         ]
                     }
                 ]
@@ -260,7 +248,7 @@
                         "function": "@flowInput.functions.mul",
                         "inputs": [
                             "@eval1.results",
-                            "@flowInput.num.inp2"
+                            "@flowInput.args"
                         ]
                     }
                 ]
@@ -273,7 +261,7 @@
                         "function": "@flowInput.functions.div",
                         "inputs": [
                             "@eval2.results",
-                            "@flowInput.num.inp3"
+                            "@flowInput.args"
                         ]
                     }
                 ]
@@ -297,19 +285,21 @@
                     "return result }"
                 ]
             },
-            "num": {
-                "inp1": 7,
-                "inp2": 5,
-                "inp3": 6
-            }
+            "args": [
+                2,
+                4,
+                5,
+                6,
+                9
+            ]
         },
         "webhooks": {
             "progress": "string",
             "result": "string"
         },
         "options": {
-            "batchTolerance": 80,
-            "progressVerbosityLevel": "info"
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
         }
     }
 ]

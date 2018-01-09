@@ -17,14 +17,14 @@
                     "Execution"
                 ],
                 "summary": "run pipeline",
-                "description": "Start pipeline execution with raw input, returns execution_id that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
+                "description": "Start pipeline execution with raw input, returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
                 "responses": {
                     "200": {
                         "description": "pipeline execution data",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/executionID"
+                                    "$ref": "#/components/schemas/jobId"
                                 }
                             }
                         }
@@ -69,14 +69,14 @@
                     "Execution"
                 ],
                 "summary": "run algorithm flow",
-                "description": "Start pipeline execution when the name of the pipeline is known (/store/pipelines), all parameters in this action will be merged with the stored pipeline and then returns execution_id that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
+                "description": "Start pipeline execution when the name of the pipeline is known (/store/pipelines), all parameters in this action will be merged with the stored pipeline and then returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
                 "responses": {
                     "200": {
                         "description": "pipeline execution data",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/executionID"
+                                    "$ref": "#/components/schemas/jobId"
                                 }
                             }
                         }
@@ -154,7 +154,7 @@
                         }
                     },
                     "404": {
-                        "description": "execution_id Not Found",
+                        "description": "jobId Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -186,7 +186,7 @@
                 }
             }
         },
-        "/exec/status/{execution_id}": {
+        "/exec/status/{jobId}": {
             "get": {
                 "tags": [
                     "Execution"
@@ -195,7 +195,7 @@
                 "description": "returns a status for the current pipeline.",
                 "parameters": [
                     {
-                        "name": "execution_id",
+                        "name": "jobId",
                         "in": "path",
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
@@ -224,7 +224,7 @@
                         }
                     },
                     "404": {
-                        "description": "execution_id Not Found",
+                        "description": "jobId Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -246,7 +246,7 @@
                 }
             }
         },
-        "/exec/results/{execution_id}": {
+        "/exec/results/{jobId}": {
             "get": {
                 "tags": [
                     "Execution"
@@ -255,7 +255,7 @@
                 "description": "returns result for the execution of a specific pipeline run. if called before result is determined - returns error.",
                 "parameters": [
                     {
-                        "name": "execution_id",
+                        "name": "jobId",
                         "in": "path",
                         "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
                         "required": true,
@@ -286,7 +286,7 @@
                         }
                     },
                     "404": {
-                        "description": "execution_id Not Found",
+                        "description": "jobId Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -753,7 +753,7 @@
             "stopRequest": {
                 "type": "object",
                 "properties": {
-                    "execution_id": {
+                    "jobId": {
                         "type": "string",
                         "description": "Unique identifier representing pipeline execution"
                     },
@@ -764,10 +764,10 @@
                     }
                 },
                 "required": [
-                    "execution_id"
+                    "jobId"
                 ],
                 "example": {
-                    "execution_id": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
+                    "jobId": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
                     "reason": "cancel now"
                 }
             },
@@ -818,16 +818,16 @@
                     "name"
                 ]
             },
-            "executionID": {
+            "jobId": {
                 "type": "object",
                 "properties": {
-                    "execution_id": {
+                    "jobId": {
                         "type": "string",
                         "description": "Unique identifier representing pipeline execution"
                     }
                 },
                 "required": [
-                    "execution_id"
+                    "jobId"
                 ]
             },
             "pipelineResult": {
@@ -836,22 +836,11 @@
                     "timestamp": {
                         "type": "string"
                     },
-                    "execution_id": {
+                    "jobId": {
                         "type": "string"
                     },
                     "data": {
-                        "type": "object",
-                        "properties": {
-                            "timestamp": {
-                                "type": "string"
-                            },
-                            "execution_id": {
-                                "type": "string"
-                            },
-                            "data": {
-                                "type": "string"
-                            }
-                        }
+                        "type": "object"
                     }
                 }
             }

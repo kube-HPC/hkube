@@ -45,7 +45,7 @@ class Validator {
     }
 
     validateExecutionID(pipeline) {
-        this._validate(schemas.executionID, pipeline);
+        this._validate(schemas.jobId, pipeline);
     }
 
     _validate(schema, object) {

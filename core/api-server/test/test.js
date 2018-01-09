@@ -335,7 +335,7 @@ describe('Test', function () {
                         }
                     }
                     const response = await _request(options);
-                    expect(response.body).to.have.property('execution_id');
+                    expect(response.body).to.have.property('jobId');
                 });
             });
             describe('/exec/stored', function () {
@@ -466,7 +466,7 @@ describe('Test', function () {
                         }
                     }
                     const response = await _request(options);
-                    expect(response.body).to.have.property('execution_id');
+                    expect(response.body).to.have.property('jobId');
                 });
             });
             describe('/exec/stop', function () {
@@ -481,23 +481,23 @@ describe('Test', function () {
                     expect(response.body.error.code).to.equal(405);
                     expect(response.body.error.message).to.equal("Method Not Allowed");
                 });
-                it('should throw validation error of required property execution_id', async function () {
+                it('should throw validation error of required property jobId', async function () {
                     const options = {
                         uri: restUrl + '/exec/stop',
                         body: {}
                     }
                     const response = await _request(options);
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'execution_id'");
+                    expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                 });
                 it('should throw validation error of data.name should be string', async function () {
                     const options = {
                         uri: restUrl + '/exec/stop',
-                        body: { "execution_id": 'no_such_id' }
+                        body: { "jobId": 'no_such_id' }
                     }
                     const response = await _request(options);
                     expect(response.body.error.code).to.equal(404);
-                    expect(response.body.error.message).to.equal('execution_id no_such_id Not Found');
+                    expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
                 });
                 it('should succeed to stop', async function () {
                     const optionsStored = {
@@ -507,7 +507,7 @@ describe('Test', function () {
                     const stored = await _request(optionsStored);
                     const optionsStop = {
                         uri: restUrl + '/exec/stop',
-                        body: { "execution_id": stored.body.execution_id }
+                        body: { "jobId": stored.body.jobId }
                     }
                     const response = await _request(optionsStop);
                     expect(response.body).to.have.property('message');
@@ -542,7 +542,7 @@ describe('Test', function () {
                     }
                     const response = await _request(options);
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'execution_id'");
+                    expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                 });
                 it('should succeed to get status', async function () {
                     const optionsRun = {
@@ -555,13 +555,13 @@ describe('Test', function () {
                     const responseRun = await _request(optionsRun);
 
                     const options = {
-                        uri: restUrl + `/exec/status/${responseRun.body.execution_id}`,
+                        uri: restUrl + `/exec/status/${responseRun.body.jobId}`,
                         method: 'GET'
                     }
                     const response = await _request(options);
                     expect(response.response.statusCode).to.equal(200);
                     expect(response.body).to.have.property('data');
-                    expect(response.body).to.have.property('execution_id');
+                    expect(response.body).to.have.property('jobId');
                     expect(response.body).to.have.property('timestamp');
                 });
             });
@@ -593,7 +593,7 @@ describe('Test', function () {
                     }
                     const response = await _request(options);
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'execution_id'");
+                    expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                 });
             });
         });
@@ -642,7 +642,7 @@ describe('Test', function () {
                 });
             });
             describe('/store/pipelines GET', function () {
-                it('should throw validation error of required property execution_id', async function () {
+                it('should throw validation error of required property jobId', async function () {
                     const options = {
                         uri: restUrl + '/store/pipelines',
                         method: 'GET'
@@ -1013,7 +1013,7 @@ describe('Test', function () {
                 });
             });
             describe('/store/pipelines PUT', function () {
-                it('should throw validation error of required property execution_id', async function () {
+                it('should throw validation error of required property jobId', async function () {
                     const options = {
                         uri: restUrl + '/store/pipelines',
                         method: 'PUT',
@@ -1030,15 +1030,15 @@ describe('Test', function () {
             });
             describe('Progress', function () {
                 it('should succeed to post a webhook', async function () {
-                    let execution_id = null;
+                    let jobId = null;
                     webhookStub.on('progress', async (request) => {
-                        if (request.body.execution_id === execution_id) {
+                        if (request.body.jobId === jobId) {
                             expect(request.body).to.have.property('data');
-                            expect(request.body).to.have.property('execution_id');
+                            expect(request.body).to.have.property('jobId');
                             expect(request.body).to.have.property('timestamp');
 
                             const status = {
-                                uri: restUrl + `/exec/status/${execution_id}`,
+                                uri: restUrl + `/exec/status/${jobId}`,
                                 method: 'GET'
                             }
                             const responseStatus = await _request(status);
@@ -1050,7 +1050,7 @@ describe('Test', function () {
                         body: { "name": "webhookFlow" }
                     }
                     const response = await _request(stored);
-                    execution_id = response.body.execution_id;
+                    jobId = response.body.jobId;
                 });
             });
         });
@@ -1353,7 +1353,7 @@ describe('Test', function () {
                         }
                     }
                     const response = await _request(options);
-                    expect(response.body).to.have.property('execution_id');
+                    expect(response.body).to.have.property('jobId');
                 });
             });
             describe('/exec/stored', function () {
@@ -1484,7 +1484,7 @@ describe('Test', function () {
                         }
                     }
                     const response = await _request(options);
-                    expect(response.body).to.have.property('execution_id');
+                    expect(response.body).to.have.property('jobId');
                 });
             });
             describe('/exec/stop', function () {
@@ -1499,23 +1499,23 @@ describe('Test', function () {
                     expect(response.body.error.code).to.equal(405);
                     expect(response.body.error.message).to.equal("Method Not Allowed");
                 });
-                it('should throw validation error of required property execution_id', async function () {
+                it('should throw validation error of required property jobId', async function () {
                     const options = {
                         uri: restUrl + '/exec/stop',
                         body: {}
                     }
                     const response = await _request(options);
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'execution_id'");
+                    expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                 });
                 it('should throw validation error of data.name should be string', async function () {
                     const options = {
                         uri: restUrl + '/exec/stop',
-                        body: { "execution_id": 'no_such_id' }
+                        body: { "jobId": 'no_such_id' }
                     }
                     const response = await _request(options);
                     expect(response.body.error.code).to.equal(404);
-                    expect(response.body.error.message).to.equal('execution_id no_such_id Not Found');
+                    expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
                 });
                 it('should succeed to stop', async function () {
                     const optionsStored = {
@@ -1525,7 +1525,7 @@ describe('Test', function () {
                     const stored = await _request(optionsStored);
                     const optionsStop = {
                         uri: restUrl + '/exec/stop',
-                        body: { "execution_id": stored.body.execution_id }
+                        body: { "jobId": stored.body.jobId }
                     }
                     const response = await _request(optionsStop);
                     expect(response.body).to.have.property('message');
@@ -1560,7 +1560,7 @@ describe('Test', function () {
                     }
                     const response = await _request(options);
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'execution_id'");
+                    expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                 });
                 it('should succeed to get status', async function () {
                     const optionsRun = {
@@ -1573,13 +1573,13 @@ describe('Test', function () {
                     const responseRun = await _request(optionsRun);
 
                     const options = {
-                        uri: restUrl + `/exec/status/${responseRun.body.execution_id}`,
+                        uri: restUrl + `/exec/status/${responseRun.body.jobId}`,
                         method: 'GET'
                     }
                     const response = await _request(options);
                     expect(response.response.statusCode).to.equal(200);
                     expect(response.body).to.have.property('data');
-                    expect(response.body).to.have.property('execution_id');
+                    expect(response.body).to.have.property('jobId');
                     expect(response.body).to.have.property('timestamp');
                 });
             });
@@ -1611,7 +1611,7 @@ describe('Test', function () {
                     }
                     const response = await _request(options);
                     expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'execution_id'");
+                    expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                 });
             });
         });
@@ -1660,7 +1660,7 @@ describe('Test', function () {
                 });
             });
             describe('/store/pipelines GET', function () {
-                it('should throw validation error of required property execution_id', async function () {
+                it('should throw validation error of required property jobId', async function () {
                     const options = {
                         uri: restUrl + '/store/pipelines',
                         method: 'GET'
@@ -2031,7 +2031,7 @@ describe('Test', function () {
                 });
             });
             describe('/store/pipelines PUT', function () {
-                it('should throw validation error of required property execution_id', async function () {
+                it('should throw validation error of required property jobId', async function () {
                     const options = {
                         uri: restUrl + '/store/pipelines',
                         method: 'PUT',
@@ -2048,15 +2048,15 @@ describe('Test', function () {
             });
             describe('Progress', function () {
                 it('should succeed to post a webhook', async function () {
-                    let execution_id = null;
+                    let jobId = null;
                     webhookStub.on('progress', async (request) => {
-                        if (request.body.execution_id === execution_id) {
+                        if (request.body.jobId === jobId) {
                             expect(request.body).to.have.property('data');
-                            expect(request.body).to.have.property('execution_id');
+                            expect(request.body).to.have.property('jobId');
                             expect(request.body).to.have.property('timestamp');
 
                             const status = {
-                                uri: restUrl + `/exec/status/${execution_id}`,
+                                uri: restUrl + `/exec/status/${jobId}`,
                                 method: 'GET'
                             }
                             const responseStatus = await _request(status);
@@ -2068,7 +2068,7 @@ describe('Test', function () {
                         body: { "name": "webhookFlow" }
                     }
                     const response = await _request(stored);
-                    execution_id = response.body.execution_id;
+                    jobId = response.body.jobId;
                 });
             });
         });

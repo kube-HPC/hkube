@@ -6,6 +6,8 @@ const validator = require('lib/validation/api-validator');
 const States = require('lib/state/States');
 const { levels } = require('lib/progress/progressLevels');
 const { ResourceNotFoundError, InvalidDataError, } = require('lib/errors/errors');
+const log = require('@hkube/logger').GetLogFromContainer();
+const components = require('common/consts/componentNames');
 
 class ExecutionService {
 
@@ -31,6 +33,7 @@ class ExecutionService {
    * returns pipelineExecutionStatus
    **/
   async runStored(options) {
+    log.info(`runStored`, { component: components.JOBS_PRODUCER });
     validator.validateRunStoredPipeline(options);
     const pipe = await stateManager.getPipeline(options);
     if (!pipe) {
@@ -49,41 +52,45 @@ class ExecutionService {
   }
 
   /**
-   * wokflow execution status
-   * reurns a status for the current pipeline.
+   * workflow execution status
+   * returns a status for the current pipeline.
    *
-   * flow_execution_id UUID Unique identifier representing wokflow execution - is given in response to calling pipeline run method . (optional)
+   * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method . (optional)
    * returns List
    **/
   async getJobStatus(options) {
     validator.validateExecutionID(options);
-    const status = await stateManager.getJobStatus({ jobId: options.execution_id });
+    const status = await stateManager.getJobStatus({ jobId: options.jobId });
     if (!status) {
-      throw new ResourceNotFoundError('status', options.execution_id);
+      throw new ResourceNotFoundError('status', options.jobId);
     }
     return status;
   }
 
   /**
    * get run result
-   * returns result (json) for the execution of a spesific pipeline run. 
-   * if called before result is determined - returns error. 
-   *
-   * execution_id String execution_id to getresults for
+   * returns result (json) for the execution of a specific pipeline run. 
+   * if called before result is determined - returns error.
+   * jobId String jobId to getresults for
    * returns pipelineExecutionResult
-   **/
+   * 
+   * @param {any} options 
+   * @returns 
+   * 
+   * @memberOf ExecutionService
+   */
   async getJobResult(options) {
     validator.validateExecutionID(options);
-    const jobStatus = await stateManager.getJobStatus({ jobId: options.execution_id });
+    const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
     if (!jobStatus) {
-      throw new ResourceNotFoundError('status', options.execution_id);
+      throw new ResourceNotFoundError('status', options.jobId);
     }
     if (stateManager.isActiveState(jobStatus.data.status)) {
       throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
     }
-    const result = await stateManager.getJobResult({ jobId: options.execution_id });
+    const result = await stateManager.getJobResult({ jobId: options.jobId });
     if (!result) {
-      throw new ResourceNotFoundError('results', options.execution_id);
+      throw new ResourceNotFoundError('results', options.jobId);
     }
     return result;
   }
@@ -92,20 +99,21 @@ class ExecutionService {
    * stop pipeline execution
    * call to stop the flow execution 
    *
-   * flow_execution_id UUID Unique identifier representing wokflow execution - is given in response to calling pipeline run method .
+   * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method .
    * reason String reason for stopping. (optional)
    * returns String
    **/
   async stopJob(options) {
     validator.validateStopPipeline(options);
-    const jobStatus = await stateManager.getJobStatus({ jobId: options.execution_id });
+    const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
     if (!jobStatus) {
-      throw new ResourceNotFoundError('execution_id', options.execution_id);
+      throw new ResourceNotFoundError('jobId', options.jobId);
     }
     if (!stateManager.isActiveState(jobStatus.data.status)) {
       throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
     }
-    await stateManager.stopJob({ jobId: options.execution_id, reason: options.reason });
+    await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, data: { status: States.STOPPING, level: levels.info } });
+    await stateManager.stopJob({ jobId: options.jobId, reason: options.reason });
   }
 
   _createJobID(options) {

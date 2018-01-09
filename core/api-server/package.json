@@ -5,15 +5,15 @@
     "main": "index.js",
     "dependencies": {
         "@hkube/config": "^1.0.0",
-        "@hkube/etcd": "^2.1.51",
+        "@hkube/etcd": "^3.2.28",
         "@hkube/logger": "^1.0.7",
-        "@hkube/metrics": "^1.0.15",
-        "@hkube/producer-consumer": "^1.0.24",
+        "@hkube/metrics": "^1.0.19",
+        "@hkube/producer-consumer": "^1.0.26",
         "@hkube/redis-utils": "^1.0.1",
         "@hkube/rest-server": "^1.0.4",
         "djsv": "^3.0.3",
         "express": "^4.16.2",
-        "graphlib": "^2.1.2",
+        "graphlib": "^2.1.5",
         "object-path": "^0.11.4",
         "requestretry": "^1.12.2"
     },
@@ -24,7 +24,7 @@
         "istanbul": "^1.1.0-alpha.1",
         "mocha": "^3.5.3",
         "request": "^2.83.0",
-        "sinon": "^4.1.2"
+        "sinon": "^4.1.4"
     },
     "scripts": {
         "test": "mocha test --colors --recursive",
