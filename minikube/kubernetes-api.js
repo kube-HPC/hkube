@@ -60,7 +60,8 @@ class kubernetesApi {
     async createPodsSync(yamlPath) {
         // let files = fs.readdirSync(yamlPath)
         recursiveDir(yamlPath, [this._ignoreFileFunc], async (err, files) => {
-            console.log(files);
+            const files_sorted=files.sort();
+            console.log(files_sorted);
             for (var file of files) {
 
                 //console.log(`run kubectl create -f ${file}`);

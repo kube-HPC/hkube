@@ -25,7 +25,7 @@ const _spawn = async (command, args) => {
 const syncSpawn = async (command, args) => {
     let counter = 0;
     try {
-        console.log(`trying to spwan ${commmand} ${args} `.blue)
+        console.log(`trying to spwan ${command} ${args} `.blue)
         await _spawn(command, args);
 
     } catch (error) {
