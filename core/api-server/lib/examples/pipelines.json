@@ -231,67 +231,49 @@
                 "nodeName": "eval1",
                 "algorithmName": "eval-alg",
                 "input": [
-                    {
-                        "function": "@flowInput.functions.sum",
-                        "inputs": [
-                            "@flowInput.args",
-                            "@flowInput.args"
-                        ]
-                    }
+                    [
+                        "(input,require) => {",
+                        "const result = input[0] + input[1]",
+                        "return result }"
+                    ],
+                    "@flowInput.num.inp1",
+                    "@flowInput.num.inp2"
                 ]
             },
             {
                 "nodeName": "eval2",
                 "algorithmName": "eval-alg",
                 "input": [
-                    {
-                        "function": "@flowInput.functions.mul",
-                        "inputs": [
-                            "@eval1.results",
-                            "@flowInput.args"
-                        ]
-                    }
+                    [
+                        "(input,require) => {",
+                        "const result = input[0] * input[1]",
+                        "return result }"
+                    ],
+                    "@eval1",
+                    "@flowInput.num.inp3"
                 ]
             },
             {
                 "nodeName": "eval3",
                 "algorithmName": "eval-alg",
                 "input": [
-                    {
-                        "function": "@flowInput.functions.div",
-                        "inputs": [
-                            "@eval2.results",
-                            "@flowInput.args"
-                        ]
-                    }
+                    [
+                        "(input,require) => {",
+                        "const result = input[0] / input[1]",
+                        "return result }"
+                    ],
+                    "@eval2",
+                    "@flowInput.num.inp4"
                 ]
             }
         ],
         "flowInput": {
-            "functions": {
-                "sum": [
-                    "(input,require) => {",
-                    "const result = input[0] + input[1]",
-                    "return result }"
-                ],
-                "mul": [
-                    "(input,require) => {",
-                    "const result = input[0] * input[1]",
-                    "return result }"
-                ],
-                "div": [
-                    "(input,require) => {",
-                    "const result = input[0] / input[1]",
-                    "return result }"
-                ]
-            },
-            "args": [
-                2,
-                4,
-                5,
-                6,
-                9
-            ]
+            "num": {
+                "inp1": 7,
+                "inp2": 5,
+                "inp3": 6,
+                "inp4": 2
+            }
         },
         "webhooks": {
             "progress": "string",

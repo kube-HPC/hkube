@@ -1,10 +1,10 @@
 {
     "name": "api-server",
-    "version": "1.0.56",
+    "version": "1.0.64",
     "description": "algorithm flows extraordinaire",
     "main": "index.js",
     "dependencies": {
-        "@hkube/config": "^1.0.0",
+        "@hkube/config": "^2.0.0",
         "@hkube/etcd": "^3.2.28",
         "@hkube/logger": "^1.0.7",
         "@hkube/metrics": "^1.0.19",

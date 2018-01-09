@@ -1,7 +1,9 @@
-FROM node:8
+FROM node:8-alpine
 MAINTAINER yehiyam@gmail.com
-RUN apt update && apt install nano
-RUN mkdir /sound-factory
-COPY . /sound-factory/api-server
-WORKDIR /sound-factory/api-server
+RUN apk --update add nano && \
+    rm -rf /var/cache/apk/*
+RUN mkdir /hkube
+COPY . /hkube/api-server
+RUN cd /hkube/api-server && npm rebuild
+WORKDIR /hkube/api-server
 CMD ["node", "app.js"]

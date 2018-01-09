@@ -4,6 +4,7 @@ const schema = require('lib/producer/schema');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('common/consts/componentNames');
+const { tracer } = require('@hkube/metrics');
 
 class JobProducer {
 
@@ -13,7 +14,7 @@ class JobProducer {
         if (!res.valid) {
             throw new Error(res.error);
         }
-
+        setting.tracer = tracer;
         this._producer = new Producer({ setting: setting });
         this._producer.on('job-waiting', (data) => {
             log.info(`job waiting ${data.jobID}`, { component: components.JOBS_PRODUCER });
@@ -31,6 +32,12 @@ class JobProducer {
             job: {
                 id: options.jobId,
                 type: 'pipeline-driver-job'
+            }
+        }
+        if (options.parentSpan) {
+            opt.tracing = {
+                parent: options.parentSpan,
+                parentRelationship: tracer.parentRelationships.follows
             }
         }
         return await this._producer.createJob(opt);

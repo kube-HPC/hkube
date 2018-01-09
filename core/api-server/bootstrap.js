@@ -8,6 +8,7 @@ const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentNames = require('common/consts/componentNames.js');
 const metrics = require('@hkube/metrics');
+const {tracer} = require('@hkube/metrics');
 let log;
 
 const modules = [
@@ -20,7 +21,7 @@ const modules = [
 class Bootstrap {
     async init() {
         try {
-            const { main, logger } = await configIt.load();
+            const { main, logger } = configIt.load();
             this._handleErrors();
 
             log = new Logger(main.serviceName, logger);
@@ -36,6 +37,9 @@ class Bootstrap {
             monitor.check(main.redis);
 
             await metrics.init(main.metrics);
+            if (main.tracer){
+                await tracer.init(main.tracer);
+            }
             const appServer = require('api/rest-api/app-server');
             const dataRest = await appServer.init(main);
             log.info(dataRest.message, { component: componentNames.REST_API });

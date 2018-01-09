@@ -6,8 +6,7 @@ const validator = require('lib/validation/api-validator');
 const States = require('lib/state/States');
 const { levels } = require('lib/progress/progressLevels');
 const { ResourceNotFoundError, InvalidDataError, } = require('lib/errors/errors');
-const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('common/consts/componentNames');
+const { tracer } = require('@hkube/metrics');
 
 class ExecutionService {
 
@@ -45,9 +44,17 @@ class ExecutionService {
 
   async _run(pipeline) {
     const jobId = this._createJobID({ name: pipeline.name });
+    const span = tracer.startSpan({
+      name: 'run pipeline',
+      tags: {
+        execution_id: jobId,
+        name: pipeline.name
+      }
+    })
     await stateManager.setExecution({ jobId: jobId, data: pipeline });
     await stateManager.setJobStatus({ jobId: jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info } });
-    await producer.createJob({ jobId: jobId });
+    await producer.createJob({ jobId: jobId, parentSpan: span.context() });
+    span.finish();
     return jobId;
   }
 
