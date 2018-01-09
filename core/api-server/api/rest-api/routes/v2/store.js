@@ -1,15 +1,15 @@
 const express = require('express');
-const Store = require('lib/service/StoreService');
+const Store = require('../../../../lib/service/StoreService');
 
-var routes = function (options) {
+const routes = (options) => {
     const router = express.Router();
-    router.get('/', function (req, res, next) {
+    router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
     router.get('/pipelines', (req, res, next) => {
-        const sort = req.query.sort;
-        Store.getPipelines().then((response) => {
+        const { sort } = req.query;
+        Store.getPipelines({ sort }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
@@ -17,7 +17,7 @@ var routes = function (options) {
         });
     });
     router.get('/pipelines/:name', (req, res, next) => {
-        const name = req.params.name;
+        const { name } = req.params;
         Store.getPipeline({ name }).then((response) => {
             res.json(response);
             next();
@@ -42,7 +42,7 @@ var routes = function (options) {
         });
     });
     router.delete('/pipelines/:name', (req, res, next) => {
-        const name = req.params.name;
+        const { name } = req.params;
         Store.deletePipeline({ name }).then(() => {
             res.json({ message: 'OK' });
             next();

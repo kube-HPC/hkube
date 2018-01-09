@@ -1,8 +1,8 @@
 const express = require('express');
-const Execution = require('lib/service/ExecutionService');
-const methods = require('api/rest-api/middlewares/methods');
+const Execution = require('../../../../lib/service/ExecutionService');
+const methods = require('../../middlewares/methods');
 
-const routes = function (options) {
+const routes = (options) => {
     const router = express.Router();
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
@@ -25,25 +25,25 @@ const routes = function (options) {
         });
     });
     router.all('/status/:jobId?', methods(['GET']), (req, res, next) => {
-        const jobId = req.params.jobId
+        const { jobId } = req.params;
         Execution.getJobStatus({ jobId }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
             return next(error);
         });
-    })
+    });
     router.all('/results/:jobId?', methods(['GET']), (req, res, next) => {
-        const jobId = req.params.jobId;
+        const { jobId } = req.params;
         Execution.getJobResult({ jobId }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
             return next(error);
         });
-    })
+    });
     router.all('/stop', methods(['POST']), (req, res, next) => {
-        Execution.stopJob(req.body).then((response) => {
+        Execution.stopJob(req.body).then(() => {
             res.json({ message: 'OK' });
             next();
         }).catch((error) => {

@@ -5,10 +5,6 @@ const http = require('http');
 const app = express();
 
 class WebhookStub extends EventEmitter {
-    constructor() {
-        super();
-    }
-
     start() {
         return new Promise((resolve, reject) => {
             const httpCodes = Object.keys(http.STATUS_CODES);
@@ -19,15 +15,15 @@ class WebhookStub extends EventEmitter {
                 const httpCode = 200;
                 res.status(httpCode).json({ message: httpCodes[httpCode] });
                 this.emit('result', req);
-            })
+            });
 
             app.post('/webhook/progress', (req, res) => {
                 const httpCode = 200;
                 res.status(httpCode).json({ message: httpCodes[httpCode] });
                 this.emit('progress', req);
-            })
+            });
 
-            app.listen(3002, function () {
+            app.listen(3002, () => {
                 console.log('webhook stub listening on port 3002');
                 return resolve();
             });

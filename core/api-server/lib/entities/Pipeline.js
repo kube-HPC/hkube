@@ -1,5 +1,5 @@
 
-const Node = require('lib/entities/Node')
+const Node = require('./Node');
 
 class Pipeline {
     constructor(options) {

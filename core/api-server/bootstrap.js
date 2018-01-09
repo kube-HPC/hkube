@@ -1,25 +1,22 @@
-
-process.env.NODE_PATH = __dirname;
-require('module').Module._initPaths();
-
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
+const { VerbosityPlugin } = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
-const componentNames = require('common/consts/componentNames.js');
+const componentNames = require('./common/consts/componentNames.js');
 const metrics = require('@hkube/metrics');
-const {tracer} = require('@hkube/metrics');
+const { tracer } = require('@hkube/metrics');
 let log;
 
 const modules = [
-    'lib/state/state-manager',
-    'lib/producer/jobs-producer',
-    'lib/webhook/webhooks-handler',
-    'lib/examples/pipelines-updater'
+    './lib/state/state-manager',
+    './lib/producer/jobs-producer',
+    './lib/webhook/webhooks-handler',
+    './lib/examples/pipelines-updater'
 ];
 
 class Bootstrap {
     async init() {
+        let config = null;
         try {
             const { main, logger } = configIt.load();
             this._handleErrors();
@@ -37,21 +34,22 @@ class Bootstrap {
             monitor.check(main.redis);
 
             await metrics.init(main.metrics);
-            if (main.tracer){
+            if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            const appServer = require('api/rest-api/app-server');
+            const appServer = require('./api/rest-api/app-server');
             const dataRest = await appServer.init(main);
             log.info(dataRest.message, { component: componentNames.REST_API });
 
             await Promise.all(modules.map(m => require(m).init(main)));
 
-            return main;
+            config = main;
         }
         catch (error) {
             log.error(error);
             this._onInitFailed(new Error(`unable to start application. ${error.message}`));
         }
+        return config;
     }
 
     _onInitFailed(error) {

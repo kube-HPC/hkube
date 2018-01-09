@@ -1,14 +1,14 @@
 
 const validator = require('djsv');
-const inputParser = require('lib/parsers/input-parser');
+const inputParser = require('../parsers/input-parser');
 const { Graph, alg } = require('graphlib');
-const schemas = require('api/rest-api/swagger.json').components.schemas;
-const { InvalidDataError, } = require('lib/errors/errors');
+const { components } = require('../../api/rest-api/swagger.json');
+const { InvalidDataError, } = require('../errors/errors');
+const { schemas } = components;
 
 class Validator {
-
     constructor() {
-        //validator.addFormat('url', '(http|ftp|https)://[\w-]+(\.[\w-]+)*([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?')
+        // validator.addFormat('url', '(http|ftp|https)://[\w-]+(\.[\w-]+)*([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?')
         Object.values(schemas).forEach((s) => {
             if (s.id) {
                 validator.addSchema(s);
@@ -62,7 +62,7 @@ class Validator {
         const graph = new Graph();
         const links = [];
 
-        options.nodes.forEach(node => {
+        options.nodes.forEach((node) => {
             if (graph.node(node.nodeName)) {
                 throw new InvalidDataError(`found duplicate node ${node.nodeName}`);
             }
@@ -70,23 +70,23 @@ class Validator {
                 throw new InvalidDataError(`pipeline ${options.name} has invalid reserved name flowInput`);
             }
 
-            node.input.forEach((inp, ind) => {
+            node.input.forEach((inp) => {
                 inputParser.checkFlowInput(options, inp);
                 const nodesNames = inputParser.extractNodesFromInput(inp);
-                nodesNames.forEach(n => {
+                nodesNames.forEach((n) => {
                     const nd = options.nodes.find(f => f.nodeName === n);
                     if (nd) {
-                        links.push({ source: nd.nodeName, target: node.nodeName })
+                        links.push({ source: nd.nodeName, target: node.nodeName });
                     }
                     else {
                         throw new InvalidDataError(`node ${node.nodeName} is depend on ${n} which is not exists`);
                     }
-                })
-            })
+                });
+            });
             graph.setNode(node.nodeName, node);
         });
 
-        links.forEach(link => {
+        links.forEach((link) => {
             graph.setEdge(link.source, link.target);
         });
 

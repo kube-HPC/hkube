@@ -10,7 +10,6 @@ const etcdOptions = {
 const serviceName = 'worker-stub';
 
 class WorkerStub {
-
     constructor(options) {
         const setting = {
             job: {
@@ -34,11 +33,15 @@ class WorkerStub {
 
     async done(result, error) {
         if (!error) {
-            await this._etcd.tasks.setState({ jobId: this._jobId, taskId: this._job.id, result: result, status: 'completed' });
+            await this._etcd.tasks.setState({
+                jobId: this._jobId, taskId: this._job.id, result, status: 'completed' 
+            });
             this._job.done();
         }
         else {
-            await this._etcd.tasks.setState({ jobId: this._jobId, taskId: this._job.id, error: error.message, status: 'failed' });
+            await this._etcd.tasks.setState({
+                jobId: this._jobId, taskId: this._job.id, error: error.message, status: 'failed' 
+            });
             this._job.done(error);
         }
     }

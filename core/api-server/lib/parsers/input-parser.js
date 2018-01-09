@@ -1,5 +1,4 @@
 const objectPath = require('object-path');
-const clone = require('clone');
 
 const CONSTS = {
     BATCH: '#',
@@ -8,12 +7,11 @@ const CONSTS = {
     WAITANYREF: '*@',
     WAITANY: '*',
     FLOWINPUT: 'flowInput'
-}
+};
 
 class InputParser {
-
     parseValue(object, input, options) {
-        if (typeof input == null) {
+        if (input == null) {
             return null;
         }
         else if (!this._isObject(object) && !Array.isArray(object)) {
@@ -36,7 +34,7 @@ class InputParser {
     }
 
     extractNodesFromInput(input) {
-        let nodes = [];
+        const nodes = [];
         const result = this.isNode(input);
         if (result.isNode) {
             nodes.push(result.node);
@@ -139,7 +137,7 @@ class InputParser {
             else {
                 input[i] = this._tryGetPath(object, a, options);
             }
-        })
+        });
     }
 
     _recursivelyObject(object, input, options) {
@@ -153,11 +151,11 @@ class InputParser {
             else if (typeof input[key] !== 'object') {
                 input[key] = this._tryGetPath(object, val, options);
             }
-        })
+        });
     }
 
     _recursivelyFindNodeInArray(input, nodes) {
-        input.forEach((a, i) => {
+        input.forEach((a) => {
             const result = this.isNode(a);
             if (result.isNode) {
                 nodes.push(result.node);
@@ -168,11 +166,11 @@ class InputParser {
             else if (this._isObject(a)) {
                 this._recursivelyFindNodeInObject(a, nodes);
             }
-        })
+        });
     }
 
     _recursivelyFindNodeInObject(input, nodes) {
-        Object.entries(input).forEach(([key, val]) => {
+        Object.entries(input).forEach(([, val]) => {
             const result = this.isNode(val);
             if (result.isNode) {
                 nodes.push(result.node);
@@ -183,7 +181,7 @@ class InputParser {
             else if (this._isObject(val)) {
                 this._recursivelyFindNodeInObject(val, nodes);
             }
-        })
+        });
     }
 
     _tryGetPath(object, path, options, nodesInput) {
@@ -213,7 +211,7 @@ class InputParser {
                 }
                 else {
                     const array = [];
-                    ni.forEach(inp => {
+                    ni.forEach((inp) => {
                         if (Array.isArray(inp)) {
                             array.push(inp);
                         }

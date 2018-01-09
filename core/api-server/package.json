@@ -11,22 +11,30 @@
         "@hkube/producer-consumer": "^1.0.26",
         "@hkube/redis-utils": "^1.0.1",
         "@hkube/rest-server": "^1.0.4",
+        "deep-extend": "^0.5.0",
         "djsv": "^3.0.3",
         "express": "^4.16.2",
         "graphlib": "^2.1.5",
         "object-path": "^0.11.4",
-        "requestretry": "^1.12.2"
+        "requestretry": "^1.12.2",
+        "uuid": "^3.1.0"
     },
     "devDependencies": {
+        "body-parser": "^1.18.2",
         "chai": "^4.1.2",
         "clone": "^2.1.1",
         "coveralls": "^3.0.0",
+        "eslint": "^4.15.0",
+        "eslint-config-airbnb-base": "^12.1.0",
+        "eslint-plugin-chai-friendly": "^0.4.1",
+        "eslint-plugin-import": "^2.8.0",
         "istanbul": "^1.1.0-alpha.1",
         "mocha": "^3.5.3",
         "request": "^2.83.0",
         "sinon": "^4.1.4"
     },
     "scripts": {
+        "lint": "./node_modules/eslint/bin/eslint.js .",
         "test": "mocha test --colors --recursive",
         "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test",
         "start": "node app",

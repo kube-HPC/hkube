@@ -1,5 +1,5 @@
 class MethodNotAllowed extends Error {
-    constructor(message) {
+    constructor() {
         super('Method Not Allowed');
         this.status = 405;
     }

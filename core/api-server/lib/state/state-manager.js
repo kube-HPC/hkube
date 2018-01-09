@@ -1,10 +1,9 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
-const States = require('lib/state/States');
+const States = require('./States');
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
 
 class StateManager extends EventEmitter {
-
     init({ serviceName, etcd }) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
@@ -17,27 +16,27 @@ class StateManager extends EventEmitter {
     }
 
     async setExecution(options) {
-        return await this._etcd.execution.setExecution(options);
+        return this._etcd.execution.setExecution(options);
     }
 
     async getExecution(options) {
-        return await this._etcd.execution.getExecution(options);
+        return this._etcd.execution.getExecution(options);
     }
 
     async setPipeline(options) {
-        return await this._etcd.pipelines.setPipeline({ name: options.name, data: options });
+        return this._etcd.pipelines.setPipeline({ name: options.name, data: options });
     }
 
     async getPipeline(options) {
-        return await this._etcd.pipelines.getPipeline({ name: options.name });
+        return this._etcd.pipelines.getPipeline({ name: options.name });
     }
 
     async getPipelines() {
-        return await this._etcd.pipelines.getPipelines();
+        return this._etcd.pipelines.getPipelines();
     }
 
     async deletePipeline(options) {
-        return await this._etcd.pipelines.deletePipeline(options);
+        return this._etcd.pipelines.deletePipeline(options);
     }
 
     async _watchJobResults() {
@@ -51,11 +50,11 @@ class StateManager extends EventEmitter {
     }
 
     async getJobResult(options) {
-        return await this._etcd.jobResults.getResult(options);
+        return this._etcd.jobResults.getResult(options);
     }
 
     async getJobStatus(options) {
-        return await this._etcd.jobResults.getStatus(options);
+        return this._etcd.jobResults.getStatus(options);
     }
 
     async setJobStatus(options) {
@@ -63,12 +62,12 @@ class StateManager extends EventEmitter {
             timestamp: new Date(),
             pipeline: options.pipeline,
             data: options.data
-        }
-        return await this._etcd.jobResults.setStatus({ jobId: options.jobId, data: payload });
+        };
+        return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: payload });
     }
 
     async stopJob(options) {
-        return await this._etcd.jobs.stop(options);
+        return this._etcd.jobs.stop(options);
     }
 }
 

@@ -1,8 +1,8 @@
 
-const InvalidDataError = require('lib/errors/InvalidDataError');
-const ResourceNotFoundError = require('lib/errors/ResourceNotFoundError');
-const ResourceExistsError = require('lib/errors/ResourceExistsError');
-const MethodNotAllowed = require('lib/errors/MethodNotAllowed');
+const InvalidDataError = require('./InvalidDataError');
+const ResourceNotFoundError = require('./ResourceNotFoundError');
+const ResourceExistsError = require('./ResourceExistsError');
+const MethodNotAllowed = require('./MethodNotAllowed');
 
 module.exports = {
     InvalidDataError,

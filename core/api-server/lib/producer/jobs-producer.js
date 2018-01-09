@@ -1,13 +1,12 @@
 const validate = require('djsv');
 const { Producer } = require('@hkube/producer-consumer');
-const schema = require('lib/producer/schema');
+const schema = require('../../lib/producer/schema');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
-const components = require('common/consts/componentNames');
+const components = require('../../common/consts/componentNames');
 const { tracer } = require('@hkube/metrics');
 
 class JobProducer {
-
     init(options) {
         const setting = Object.assign({}, { redis: options.redis });
         const res = validate(schema.properties.setting, setting);
@@ -15,7 +14,7 @@ class JobProducer {
             throw new Error(res.error);
         }
         setting.tracer = tracer;
-        this._producer = new Producer({ setting: setting });
+        this._producer = new Producer({ setting });
         this._producer.on('job-waiting', (data) => {
             log.info(`job waiting ${data.jobID}`, { component: components.JOBS_PRODUCER });
         }).on('job-active', (data) => {
@@ -33,18 +32,18 @@ class JobProducer {
                 id: options.jobId,
                 type: 'pipeline-driver-job'
             }
-        }
+        };
         if (options.parentSpan) {
             opt.tracing = {
                 parent: options.parentSpan,
                 parentRelationship: tracer.parentRelationships.follows
-            }
+            };
         }
-        return await this._producer.createJob(opt);
+        return this._producer.createJob(opt);
     }
 
     async stopJob(options) {
-        return await this._producer.stopJob({ type: 'pipeline-driver-job', jobID: options.jobId });
+        return this._producer.stopJob({ type: 'pipeline-driver-job', jobID: options.jobId });
     }
 }
 

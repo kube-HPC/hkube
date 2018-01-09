@@ -1,8 +1,8 @@
 const request = require('requestretry');
-const stateManager = require('lib/state/state-manager');
+const stateManager = require('../state/state-manager');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
-const components = require('common/consts/componentNames');
+const components = require('../../common/consts/componentNames');
 
 const levels = {
     silly: 0,
@@ -14,13 +14,12 @@ const levels = {
 };
 
 class WebhooksHandler {
-
     init(options) {
         this._options = options;
         stateManager.on('job-result', async (response) => {
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
             this._request(pipeline.webhooks.result, this._options.webhooks.result, response, 'result');
-        })
+        });
 
         stateManager.on('job-status', async (response) => {
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
@@ -32,7 +31,7 @@ class WebhooksHandler {
             if (clientLevel <= pipelineLevel) {
                 this._request(pipeline.webhooks.progress, this._options.webhooks.progress, response, 'status');
             }
-        })
+        });
     }
 
     _request(url, settings, body, type) {
@@ -40,7 +39,7 @@ class WebhooksHandler {
         request({
             method: 'POST',
             uri: url,
-            body: body,
+            body,
             json: true,
             maxAttempts: settings.maxAttempts,
             retryDelay: settings.retryDelay,

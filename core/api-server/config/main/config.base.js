@@ -1,8 +1,7 @@
+const packageJson = require(process.cwd() + '/package.json');
+const config = {};
 
-var package = require(process.cwd() + '/package.json');
-var config = module.exports = {};
-
-config.serviceName = package.name;
+config.serviceName = packageJson.name;
 const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
 
 config.rest = {
@@ -40,11 +39,11 @@ config.webhooks = {
         maxAttempts: 3,
         retryDelay: 5000
     }
-}
+};
 
 config.metrics = {
-        collectDefault: true,
-}
+    collectDefault: true,
+};
 
 config.tracer = {
     tracerConfig: {
@@ -54,4 +53,6 @@ config.tracer = {
             agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
         }
     }
-}
+};
+
+module.exports = config;
