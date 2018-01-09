@@ -71,7 +71,7 @@ class NodesMap extends EventEmitter {
                 };
                 this._virtualGraph.addNode(node);
             }
-            const edges = Object.entries(n.edge).filter(([k, v]) => v).map(e => { return { type: e[0] }; });
+            const edges = Object.entries(n.edge).filter(([k, v]) => v).map(e => ({ type: e[0] }));
             node.links.push({ source: n.source, target: n.target, edges: edges });
         });
     }

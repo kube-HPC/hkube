@@ -701,7 +701,7 @@ describe('Test', function () {
                     }
                 }
             }
-            const array = pipeline.flowInput.files.links.map(f => { return new Array({ a: { c: f } }) });
+            const array = pipeline.flowInput.files.links.map(f => new Array({ a: { c: f } }));
             const firstNode = pipeline.nodes[0];
             const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: firstNode.input });
             const result = inputParser.parse(options, firstNode.input, {});
@@ -734,7 +734,7 @@ describe('Test', function () {
                     }
                 }
             }
-            const array = pipeline.flowInput.files.links.map(f => { return new Array({ a: [{ b: f }] }) });
+            const array = pipeline.flowInput.files.links.map(f => new Array({ a: [{ b: f }] }));
             const firstNode = pipeline.nodes[0];
             const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: firstNode.input });
             const result = inputParser.parse(options, firstNode.input, {});
