@@ -9,7 +9,7 @@ const { schemas } = components;
 class Validator {
     constructor() {
         this._urlRegex = /^(f|ht)tps?:\/\//i;
-        validator.addFormat('url', this._validateWebhook);
+        validator.addFormat('url', this._validateWebhook.bind(this));
         Object.values(schemas).forEach((s) => {
             if (s.id) {
                 validator.addSchema(s);
