@@ -708,17 +708,16 @@
                 "properties": {
                     "progress": {
                         "type": "string",
+                        "format": "url",
                         "description": "url to activate upon progress"
                     },
                     "result": {
                         "type": "string",
+                        "format": "url",
                         "description": "url to activate upon result"
                     }
                 },
-                "required": [
-                    "progress",
-                    "result"
-                ]
+                "additionalProperties": false
             },
             "options": {
                 "id": "#/components/schemas/options",

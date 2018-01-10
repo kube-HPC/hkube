@@ -10,8 +10,7 @@ const webhookStub = require('./mocks/webhook-stub');
 let config;
 let baseUrl;
 
-// / TODO: WRITE DOCS ON WEBHOOKS
-
+/// TODO: WRITE DOCS ON WEBHOOKS
 function _request(options) {
     return new Promise((resolve, reject) => {
         requestClient({
@@ -177,12 +176,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: null
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -202,10 +196,6 @@ describe('Test', () => {
                                     input: []
                                 }
                             ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            },
                             additionalProps: {
                                 bla: 60,
                                 blabla: 'info'
@@ -234,11 +224,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -258,11 +244,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -330,11 +312,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -674,12 +652,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: null
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -699,10 +672,6 @@ describe('Test', () => {
                                     input: []
                                 }
                             ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            },
                             additionalProps: {
                                 bla: 60,
                                 blabla: 'info'
@@ -744,11 +713,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -768,11 +733,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -817,11 +778,7 @@ describe('Test', () => {
                                     input: ['@flowInput.notExist']
                                 }
                             ],
-                            flowInput: {},
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            flowInput: {}
                         }
                     };
                     const response = await _request(options);
@@ -882,6 +839,73 @@ describe('Test', () => {
                     };
                     const response = await _request(stored);
                     jobId = response.body.jobId; // eslint-disable-line
+                });
+                it('should throw webhooks validation error of should match format "url', async () => {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            name: 'string',
+                            nodes: [
+                                {
+                                    nodeName: 'string',
+                                    algorithmName: 'green-alg',
+                                    input: []
+                                }
+                            ],
+                            webhooks: {
+                                progress: 'not_a_url'
+                            }
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('data.webhooks.progress should match format "url"');
+                });
+                it('should throw webhooks validation error of NOT have additional properties', async () => {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            name: 'string',
+                            nodes: [
+                                {
+                                    nodeName: 'string',
+                                    algorithmName: 'green-alg',
+                                    input: []
+                                }
+                            ],
+                            webhooks: {
+                                progress2: 'http://localhost'
+                            }
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
+                });
+                it('should throw webhooks validation error', async () => {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            name: 'string',
+                            nodes: [
+                                {
+                                    nodeName: 'string',
+                                    algorithmName: 'green-alg',
+                                    input: []
+                                }
+                            ],
+                            webhooks: {
+                                progress: 'http://localhost'
+                            }
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('jobId');
                 });
             });
         });
@@ -1028,12 +1052,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: null
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -1053,10 +1072,6 @@ describe('Test', () => {
                                     input: []
                                 }
                             ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            },
                             additionalProps: {
                                 bla: 60,
                                 blabla: 'info'
@@ -1085,11 +1100,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -1109,11 +1120,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -1181,11 +1188,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -1525,12 +1528,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: null
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -1550,10 +1548,6 @@ describe('Test', () => {
                                     input: []
                                 }
                             ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            },
                             additionalProps: {
                                 bla: 60,
                                 blabla: 'info'
@@ -1595,11 +1589,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -1619,11 +1609,7 @@ describe('Test', () => {
                                     algorithmName: 'green-alg',
                                     input: []
                                 }
-                            ],
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            ]
                         }
                     };
                     const response = await _request(options);
@@ -1668,11 +1654,7 @@ describe('Test', () => {
                                     input: ['@flowInput.notExist']
                                 }
                             ],
-                            flowInput: {},
-                            webhooks: {
-                                progress: 'string',
-                                result: 'string'
-                            }
+                            flowInput: {}
                         }
                     };
                     const response = await _request(options);
@@ -1733,6 +1715,73 @@ describe('Test', () => {
                     };
                     const response = await _request(stored);
                     jobId = response.body.jobId; // eslint-disable-line
+                });
+                it('should throw webhooks validation error of should match format "url', async () => {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            name: 'string',
+                            nodes: [
+                                {
+                                    nodeName: 'string',
+                                    algorithmName: 'green-alg',
+                                    input: []
+                                }
+                            ],
+                            webhooks: {
+                                progress: 'not_a_url'
+                            }
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('data.webhooks.progress should match format "url"');
+                });
+                it('should throw webhooks validation error of NOT have additional properties', async () => {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            name: 'string',
+                            nodes: [
+                                {
+                                    nodeName: 'string',
+                                    algorithmName: 'green-alg',
+                                    input: []
+                                }
+                            ],
+                            webhooks: {
+                                progress2: 'http://localhost'
+                            }
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
+                });
+                it('should throw webhooks validation error', async () => {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            name: 'string',
+                            nodes: [
+                                {
+                                    nodeName: 'string',
+                                    algorithmName: 'green-alg',
+                                    input: []
+                                }
+                            ],
+                            webhooks: {
+                                progress: 'http://localhost'
+                            }
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('jobId');
                 });
             });
         });

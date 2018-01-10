@@ -4,7 +4,8 @@
 
 const Components = {
     MAIN: 'Main',
-    WEBHOOK_HANDLER: 'Webhook-handler'
+    WEBHOOK_HANDLER: 'Webhook-Handler',
+    JOBS_PRODUCER: 'Jobs-Producer'
 };
 
 module.exports = Components;

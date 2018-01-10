@@ -198,11 +198,7 @@
                     "@C"
                 ]
             }
-        ],
-        "webhooks": {
-            "progress": "string",
-            "result": "string"
-        }
+        ]
     },
     {
         "name": "cyclicNodes",
@@ -221,10 +217,6 @@
                     "@A"
                 ]
             }
-        ],
-        "webhooks": {
-            "progress": "string",
-            "result": "string"
-        }
+        ]
     }
 ]

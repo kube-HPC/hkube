@@ -8,7 +8,8 @@ const { schemas } = components;
 
 class Validator {
     constructor() {
-        // validator.addFormat('url', '(http|ftp|https)://[\w-]+(\.[\w-]+)*([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?')
+        this._urlRegex = /^(f|ht)tps?:\/\//i;
+        validator.addFormat('url', this._validateWebhook);
         Object.values(schemas).forEach((s) => {
             if (s.id) {
                 validator.addSchema(s);
@@ -96,6 +97,10 @@ class Validator {
         if (!graph.isDirected()) {
             throw new InvalidDataError(`pipeline ${options.name} has not directed nodes`);
         }
+    }
+
+    _validateWebhook(url) {
+        return this._urlRegex.test(url);
     }
 }
 
