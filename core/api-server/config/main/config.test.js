@@ -1,1 +1,1 @@
-const config = module.exports = {};
+

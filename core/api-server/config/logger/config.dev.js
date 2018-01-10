@@ -1,4 +1,4 @@
-const config = module.exports = {};
+const config = {};
 
 config.transport = {
     console: true,
@@ -12,3 +12,5 @@ config.logstash = {
 };
 
 config.verbosityLevel = 2;
+module.exports = config;
+

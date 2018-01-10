@@ -18,18 +18,22 @@ class WebhooksHandler {
         this._options = options;
         stateManager.on('job-result', async (response) => {
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
-            this._request(pipeline.webhooks.result, this._options.webhooks.result, response, 'result');
+            if (pipeline.webhooks) {
+                this._request(pipeline.webhooks.result, this._options.webhooks.result, response, 'result');
+            }
         });
 
         stateManager.on('job-status', async (response) => {
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
-            const clientLevel = levels[pipeline.options.progressVerbosityLevel];
-            const pipelineLevel = levels[response.data.level];
+            if (pipeline.webhooks) {
+                const clientLevel = levels[pipeline.options.progressVerbosityLevel];
+                const pipelineLevel = levels[response.data.level];
 
-            log.debug(`progress event with ${response.data.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER });
+                log.debug(`progress event with ${response.data.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER });
 
-            if (clientLevel <= pipelineLevel) {
-                this._request(pipeline.webhooks.progress, this._options.webhooks.progress, response, 'status');
+                if (clientLevel <= pipelineLevel) {
+                    this._request(pipeline.webhooks.progress, this._options.webhooks.progress, response, 'status');
+                }
             }
         });
     }

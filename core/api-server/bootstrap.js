@@ -37,11 +37,11 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            const appServer = require('./api/rest-api/app-server');
+            const appServer = require('./api/rest-api/app-server'); // eslint-disable-line
             const dataRest = await appServer.init(main);
             log.info(dataRest.message, { component: componentNames.REST_API });
 
-            await Promise.all(modules.map(m => require(m).init(main)));
+            await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
 
             config = main;
         }
@@ -58,8 +58,8 @@ class Bootstrap {
             log.error(error);
         }
         else {
-            console.error(error.message);
-            console.error(error);
+            console.error(error.message); // eslint-disable-line
+            console.error(error); // eslint-disable-line
         }
         process.exit(1);
     }

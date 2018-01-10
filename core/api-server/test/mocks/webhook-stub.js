@@ -6,7 +6,7 @@ const app = express();
 
 class WebhookStub extends EventEmitter {
     start() {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const httpCodes = Object.keys(http.STATUS_CODES);
 
             app.use(bodyParser.json());
@@ -24,7 +24,7 @@ class WebhookStub extends EventEmitter {
             });
 
             app.listen(3002, () => {
-                console.log('webhook stub listening on port 3002');
+                console.log('webhook stub listening on port 3002'); // eslint-disable-line
                 return resolve();
             });
         });

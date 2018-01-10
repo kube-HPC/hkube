@@ -48,7 +48,7 @@ class ExecutionService {
         const span = tracer.startSpan({
             name: 'run pipeline',
             tags: {
-                execution_id: jobId,
+                jobId,
                 name: pipeline.name
             }
         });

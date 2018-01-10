@@ -1,8 +1,9 @@
-const packageJson = require(process.cwd() + '/package.json');
+const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line
 const config = {};
 
 config.serviceName = packageJson.name;
-const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
+const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false; // eslint-disable-line
+const secured = process.env.API_SERVER_SSL ? true : false; // eslint-disable-line
 
 config.rest = {
     port: process.env.API_SERVER_REST_PORT || 3000,
@@ -12,7 +13,7 @@ config.rest = {
 };
 
 config.swagger = {
-    protocol: false ? 'https' : 'http',
+    protocol: secured ? 'https' : 'http',
     host: process.env.BASE_URL_HOST || 'localhost',
     port: process.env.BASE_URL_PORT || config.rest.port,
     path: (process.env.BASE_URL_PATH || '') + `/${config.rest.prefix}${config.rest.versions[0]}`

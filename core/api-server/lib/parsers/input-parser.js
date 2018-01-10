@@ -104,11 +104,13 @@ class InputParser {
     }
 
     isFlowInput(input) {
+        let result = false;
         if (this._isObjRef(input)) {
             const nodeName = input.substr(1);
-            const result = this.constructObject(nodeName);
-            return result.object === CONSTS.FLOWINPUT;
+            const res = this.constructObject(nodeName);
+            result = res.object === CONSTS.FLOWINPUT;
         }
+        return result;
     }
 
     isReference(input) {

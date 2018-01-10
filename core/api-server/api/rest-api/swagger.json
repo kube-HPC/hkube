@@ -610,8 +610,7 @@
                 "additionalProperties": false,
                 "required": [
                     "name",
-                    "nodes",
-                    "webhooks"
+                    "nodes"
                 ]
             },
             "pipelineNode": {

@@ -1,7 +1,7 @@
 
 const { expect } = require('chai');
 const uuidv4 = require('uuid/v4');
-const request = require('request');
+const requestClient = require('request');
 const clone = require('clone');
 const bootstrap = require('../bootstrap');
 const stateManager = require('../lib/state/state-manager');
@@ -14,7 +14,7 @@ let baseUrl;
 
 function _request(options) {
     return new Promise((resolve, reject) => {
-        request({
+        requestClient({
             method: options.method || 'POST',
             uri: options.uri,
             json: true,
@@ -1045,7 +1045,7 @@ describe('Test', () => {
                         body: { name: 'webhookFlow' }
                     };
                     const response = await _request(stored);
-                    jobId = response.body.jobId;
+                    jobId = response.body.jobId; // eslint-disable-line
                 });
             });
         });
@@ -2060,7 +2060,7 @@ describe('Test', () => {
                         body: { name: 'webhookFlow' }
                     };
                     const response = await _request(stored);
-                    jobId = response.body.jobId;
+                    jobId = response.body.jobId; // eslint-disable-line
                 });
             });
         });
