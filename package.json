@@ -17,6 +17,7 @@
     "await-delay": "^1.0.0",
     "await-done": "^1.0.8",
     "colors": "^1.1.2",
+    "expand-tilde": "^2.0.2",
     "fs-extra": "^4.0.2",
     "github": "^12.0.5",
     "github-repositories": "^3.0.0",

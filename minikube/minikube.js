@@ -45,7 +45,7 @@ const _minikube = async (opt) => {
             return runPreRequisite();
 
         default:
-            return startMinikube();
+            console.error('option is required')
     }
 
 }

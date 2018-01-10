@@ -10,8 +10,7 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
-                "minikube",
-                "--init"
+                "--kubeConfig=~/.kube/config"
             ]
         },
         {
@@ -30,6 +29,7 @@
             "name": "minkube",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
+                "--kubeConfig=~/.kube/admin.conf",                              
                 "m",
                 "-t"
             ]

@@ -8,12 +8,15 @@ const deployment = require('../deployment/deployment')
 const package = require('../package.json')
 const meow = require('meow');
 const colors = require('colors');
+const kubernetesApi = require('../minikube/kubernetes-api');
+const expandTilde = require('expand-tilde');
 const usage = `
         Usage
     ------------
     main:
         $ --version, return current hkube version
         $ --help,-h return usage information
+        $ --kubeConfig path to the kubectl config for the cluster
     
     git:
         $ clone ,c <options> default --all
@@ -49,6 +52,12 @@ const usage = `
             
         `
 
+if (argv.kubeConfig){
+    const kubeConfig = expandTilde(argv.kubeConfig);
+    console.log(`using kubectl config file ${kubeConfig}`.green)
+    kubernetesApi.kubeConfigFile=kubeConfig
+    delete argv.kubeConfig
+}
 if (argv.version) {
     console.log(`version: ${package.version}`.green)
 }

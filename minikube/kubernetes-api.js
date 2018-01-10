@@ -12,11 +12,12 @@ const recursiveDir = require('recursive-readdir');
 
 class kubernetesApi {
     constructor() {
-
+        this.kubeConfigFile=null;
     }
 
     async listenToK8sStatus(podName, status) {
-        this.config = Api.config.fromKubeconfig();
+        const kubeconfig =  Api.config.loadKubeconfig(this.kubeConfigFile);
+        this.config = Api.config.fromKubeconfig(kubeconfig);
         this.config.promises = true;
         this.core = new Api.Core(this.config);
         let sema = new semaphore();
