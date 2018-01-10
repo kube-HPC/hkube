@@ -189,72 +189,6 @@ describe('Test', () => {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
                 });
-                it('should throw validation error of required property webhooks', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'webhooks'");
-                });
-                it('should throw validation error of required property webhooks.result', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                progress: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'result'");
-                });
-                it('should throw validation error of required property webhooks.progress', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                result: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'progress'");
-                });
                 it('should throw validation error of data should NOT have additional properties', async () => {
                     const options = {
                         method: 'POST',
@@ -383,38 +317,6 @@ describe('Test', () => {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
-                });
-                it('should throw validation error of required property webhooks.result', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/stored',
-                        body: {
-                            name: 'string',
-                            webhooks: {
-                                progress: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'result'");
-                });
-                it('should throw validation error of required property webhooks.progress', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/stored',
-                        body: {
-                            name: 'string',
-                            webhooks: {
-                                result: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'progress'");
                 });
                 it('should throw validation error of data should NOT have additional properties', async () => {
                     const options = {
@@ -784,72 +686,6 @@ describe('Test', () => {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
                 });
-                it('should throw validation error of required property webhooks', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'webhooks'");
-                });
-                it('should throw validation error of required property webhooks.result', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                progress: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'result'");
-                });
-                it('should throw validation error of required property webhooks.progress', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                result: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'progress'");
-                });
                 it('should throw validation error of data should NOT have additional properties', async () => {
                     const options = {
                         method: 'POST',
@@ -1204,72 +1040,6 @@ describe('Test', () => {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
                 });
-                it('should throw validation error of required property webhooks', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'webhooks'");
-                });
-                it('should throw validation error of required property webhooks.result', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                progress: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'result'");
-                });
-                it('should throw validation error of required property webhooks.progress', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                result: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'progress'");
-                });
                 it('should throw validation error of data should NOT have additional properties', async () => {
                     const options = {
                         method: 'POST',
@@ -1398,38 +1168,6 @@ describe('Test', () => {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
-                });
-                it('should throw validation error of required property webhooks.result', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/stored',
-                        body: {
-                            name: 'string',
-                            webhooks: {
-                                progress: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'result'");
-                });
-                it('should throw validation error of required property webhooks.progress', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/stored',
-                        body: {
-                            name: 'string',
-                            webhooks: {
-                                result: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'progress'");
                 });
                 it('should throw validation error of data should NOT have additional properties', async () => {
                     const options = {
@@ -1798,72 +1536,6 @@ describe('Test', () => {
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
-                });
-                it('should throw validation error of required property webhooks', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'webhooks'");
-                });
-                it('should throw validation error of required property webhooks.result', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                progress: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'result'");
-                });
-                it('should throw validation error of required property webhooks.progress', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                result: 'string'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.webhooks should have required property 'progress'");
                 });
                 it('should throw validation error of data should NOT have additional properties', async () => {
                     const options = {
