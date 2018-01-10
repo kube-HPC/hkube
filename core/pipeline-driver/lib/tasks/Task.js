@@ -1,9 +1,13 @@
-
-const States = require('lib/state/States');
+const uuidv4 = require('uuid/v4');
+const States = require('../state/States');
 
 class Task {
     constructor(options) {
-        this.taskId = options.taskId;
+        this.taskId = options.taskId || this._createTaskID(options);
+    }
+
+    _createTaskID(options) {
+        return [options.nodeName, options.algorithmName, uuidv4()].join(':');
     }
 }
 

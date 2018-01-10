@@ -1,4 +1,4 @@
-const GraphBase = require('lib/graph/graph-base');
+const GraphBase = require('./graph-base');
 
 class VirtualGraph extends GraphBase {
 

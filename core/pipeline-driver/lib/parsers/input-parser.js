@@ -4,8 +4,9 @@ const clone = require('clone');
 const CONSTS = {
     REF: '@',
     BATCH: '#',
+    BATCH_REF: '#@',
     WAIT_BATCH: '*@',
-    RAW_BATCH: '#[',
+    BATCH_RAW: '#[',
     FLOW_INPUT: 'flowInput'
 }
 
@@ -109,8 +110,12 @@ class InputParser {
         return typeof input === 'string' && input.startsWith(CONSTS.BATCH);
     }
 
+    _isBatchRef(input) {
+        return typeof input === 'string' && input.startsWith(CONSTS.BATCH_REF);
+    }
+
     _isBatchRaw(input) {
-        return typeof input === 'string' && input.startsWith(CONSTS.RAW_BATCH);
+        return typeof input === 'string' && input.startsWith(CONSTS.BATCH_RAW);
     }
 
     _isObjRef(input) {
@@ -130,7 +135,7 @@ class InputParser {
     }
 
     _isReference(input) {
-        return this._isObjRef(input) || this._isBatch(input) || this._isWaitBatch(input);
+        return this._isObjRef(input) || this._isBatchRef(input) || this._isWaitBatch(input);
     }
 
     parseBatchInput(object, input, nodesInput) {

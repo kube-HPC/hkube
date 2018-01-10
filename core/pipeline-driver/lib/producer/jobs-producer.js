@@ -2,11 +2,10 @@ const EventEmitter = require('events');
 const validate = require('djsv');
 const uuidv4 = require('uuid/v4');
 const { Producer } = require('@hkube/producer-consumer');
-const schema = require('lib/producer/schema');
-const Events = require('lib/consts/Events');
-const Logger = require('@hkube/logger');
-const log = Logger.GetLogFromContainer();
-const components = require('common/consts/componentNames');
+const schema = require('./schema');
+const Events = require('../consts/Events');
+const log = require('@hkube/logger').GetLogFromContainer();
+const components = require('../../common/consts/componentNames');
 const { tracer } = require('@hkube/metrics');
 
 class JobProducer extends EventEmitter {

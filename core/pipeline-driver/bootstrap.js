@@ -1,21 +1,18 @@
 
-process.env.NODE_PATH = __dirname;
-require('module').Module._initPaths();
-
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
 const monitor = require('@hkube/redis-utils').Monitor;
-const componentName = require('common/consts/componentNames');
+const componentName = require('./common/consts/componentNames');
 const metrics = require('@hkube/metrics');
-const {tracer} = require('@hkube/metrics');
+const { tracer } = require('@hkube/metrics');
 let log;
 
 const modules = [
-    'lib/state/state-manager',
-    'lib/producer/jobs-producer',
-    'lib/consumer/jobs-consumer',
-    'lib/tasks/task-runner'
+    './lib/state/state-manager',
+    './lib/producer/jobs-producer',
+    './lib/consumer/jobs-consumer',
+    './lib/tasks/task-runner'
 ];
 
 class Bootstrap {
@@ -37,7 +34,7 @@ class Bootstrap {
             monitor.check(main.redis);
 
             await metrics.init(main.metrics);
-            if (main.tracer){
+            if (main.tracer) {
                 await tracer.init(main.tracer);
             }
             await Promise.all(modules.map(m => require(m).init(main)));
@@ -56,8 +53,8 @@ class Bootstrap {
             log.error(error);
         }
         else {
-            console.error(error.message);
-            console.error(error);
+            console.error(error.message); // eslint-disable-line
+            console.error(error); // eslint-disable-line
         }
         process.exit(1);
     }

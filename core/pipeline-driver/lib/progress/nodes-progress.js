@@ -1,5 +1,5 @@
 const deepEqual = require('deep-equal');
-const stateManager = require('lib/state/state-manager');
+const stateManager = require('../state/state-manager');
 
 const levels = {
     silly: 'silly',

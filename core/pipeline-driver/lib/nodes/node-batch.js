@@ -1,4 +1,4 @@
-const NodeBase = require('lib/nodes/node-base');
+const NodeBase = require('./node-base');
 
 class Batch extends NodeBase {
 

@@ -1,5 +1,5 @@
-const Task = require('lib/tasks/Task');
-const States = require('lib/state/States');
+const Task = require('../tasks/Task');
+const States = require('../state/States');
 
 class NodeBase extends Task {
 

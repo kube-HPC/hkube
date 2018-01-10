@@ -5,13 +5,13 @@ const alg = require('graphlib').alg;
 const clone = require('clone');
 const deepExtend = require('deep-extend');
 const groupBy = require('lodash.groupby');
-const Node = require('lib/nodes/node');
-const ActualGraph = require('lib/graph/graph-actual');
-const VirtualGraph = require('lib/graph/graph-virtual');
-const createEdge = require('lib/nodes/edge');
-const NodeResult = require('lib/nodes/node-result');
-const States = require('lib/state/States');
-const inputParser = require('lib/parsers/input-parser');
+const Node = require('./node');
+const ActualGraph = require('../graph/graph-actual');
+const VirtualGraph = require('../graph/graph-virtual');
+const createEdge = require('./edge');
+const NodeResult = require('./node-result');
+const States = require('../state/States');
+const inputParser = require('../parsers/input-parser');
 
 /**
  * This class responsible for handling the 
@@ -50,12 +50,12 @@ class NodesMap extends EventEmitter {
                 })
             })
 
-            const graphNode = new Node({
+            const node = new Node({
                 nodeName: n.nodeName,
                 algorithmName: n.algorithmName,
                 input: n.input
             });
-            this._graph.setNode(n.nodeName, graphNode);
+            this._graph.setNode(node.nodeName, node);
         });
 
         this._buildVirtualGraph(nodes);
@@ -217,8 +217,8 @@ class NodesMap extends EventEmitter {
         }
     }
 
-    setNode(name, node) {
-        const n = this._graph.node(name);
+    setNode(node) {
+        const n = this._graph.node(node.nodeName);
         if (n) {
             deepExtend(n, node);
         }
@@ -230,6 +230,7 @@ class NodesMap extends EventEmitter {
             throw new Error(`unable to find task ${taskId}`)
         }
         deepExtend(task, { status, result, error });
+        return task;
     }
 
     getNodeStates(nodeName) {

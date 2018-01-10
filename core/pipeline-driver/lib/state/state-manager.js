@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
-const States = require('lib/state/States');
+const States = require('./States');
 
 class StateManager extends EventEmitter {
 

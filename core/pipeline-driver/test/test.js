@@ -1,7 +1,3 @@
-
-process.env.NODE_PATH = process.cwd();
-require('module').Module._initPaths();
-
 const uuidv4 = require('uuid/v4');
 const { Producer } = require('@hkube/producer-consumer');
 const configIt = require('@hkube/config');
@@ -11,26 +7,26 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 const sinon = require('sinon');
-const Events = require('lib/consts/Events');
-const Batch = require('lib/nodes/node-batch');
-const WaitBatch = require('lib/nodes/node-wait-batch');
-const Node = require('lib/nodes/node');
-const Task = require('lib/tasks/Task');
+const Events = require('../lib/consts/Events');
+const Batch = require('../lib/nodes/node-batch');
+const WaitBatch = require('../lib/nodes/node-wait-batch');
+const Node = require('../lib/nodes/node');
+const Task = require('../lib/tasks/Task');
 const bootstrap = require('../bootstrap');
-const pipelines = require('test/mocks/pipelines');
-const producer = require('lib/producer/jobs-producer');
-const consumer = require('lib/consumer/jobs-consumer');
-const stateManager = require('lib/state/state-manager');
-const inputParser = require('lib/parsers/input-parser');
-const progress = require('lib/progress/nodes-progress');
-const NodesMap = require('lib/nodes/nodes-map');
-const WorkerStub = require('test/mocks/worker');
+const pipelines = require('./mocks/pipelines');
+const producer = require('../lib/producer/jobs-producer');
+const consumer = require('../lib/consumer/jobs-consumer');
+const stateManager = require('../lib/state/state-manager');
+const inputParser = require('../lib/parsers/input-parser');
+const progress = require('../lib/progress/nodes-progress');
+const NodesMap = require('../lib/nodes/nodes-map');
+const WorkerStub = require('./mocks/worker');
 let taskRunner = null;
 
 describe('Test', function () {
     before(async () => {
         await bootstrap.init();
-        taskRunner = require('lib/tasks/task-runner');
+        taskRunner = require('../lib/tasks/task-runner');
     })
     describe('Producer', function () {
         describe('Validation', function () {
@@ -540,7 +536,7 @@ describe('Test', function () {
                 const nodesMap = new NodesMap(pipeline);
                 const node = pipeline.nodes[0];
                 const result = { my: 'OK' };
-                nodesMap.setNode(node.nodeName, new Node({
+                nodesMap.setNode(new Node({
                     nodeName: node.nodeName,
                     algorithmName: node.algorithmName,
                     result: result
@@ -612,7 +608,7 @@ describe('Test', function () {
                 const green = pipeline.nodes[0];
                 const yellow = pipeline.nodes[1];
                 const nodesMap = new NodesMap(pipeline);
-                nodesMap.setNode(green.nodeName, new Node({
+                nodesMap.setNode(new Node({
                     nodeName: green.nodeName,
                     algorithmName: green.algorithmName,
                     result: { my: 'OK' }

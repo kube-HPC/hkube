@@ -1,18 +1,16 @@
-const uuidv4 = require('uuid/v4');
-const clone = require('clone');
-const producer = require('lib/producer/jobs-producer');
-const consumer = require('lib/consumer/jobs-consumer');
-const stateManager = require('lib/state/state-manager');
-const progress = require('lib/progress/nodes-progress');
-const NodesMap = require('lib/nodes/nodes-map');
-const States = require('lib/state/States');
-const Events = require('lib/consts/Events');
-const inputParser = require('lib/parsers/input-parser');
-const Batch = require('lib/nodes/node-batch');
-const WaitBatch = require('lib/nodes/node-wait-batch');
-const Node = require('lib/nodes/node');
+const producer = require('../producer/jobs-producer');
+const consumer = require('../consumer/jobs-consumer');
+const stateManager = require('../state/state-manager');
+const progress = require('../progress/nodes-progress');
+const NodesMap = require('../nodes/nodes-map');
+const States = require('../state/States');
+const Events = require('../consts/Events');
+const inputParser = require('../parsers/input-parser');
+const Batch = require('../nodes/node-batch');
+const WaitBatch = require('../nodes/node-wait-batch');
+const Node = require('../nodes/node');
 const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('common/consts/componentNames');
+const components = require('../../common/consts/componentNames');
 const { metricsNames } = require('../consts/metricsNames');
 const metrics = require('@hkube/metrics');
 const { tracer } = require('@hkube/metrics');
@@ -176,7 +174,7 @@ class TaskRunner {
                 this._nodes.addBatch(new Batch(driverTask));
             }
             else {
-                this._nodes.setNode(driverTask.nodeName, new Node(driverTask));
+                this._nodes.setNode(new Node(driverTask));
             }
         })
         return tasksToRun;
@@ -232,22 +230,19 @@ class TaskRunner {
     }
 
     _runWaitAnyBatch(node, result) {
-        const taskId = this._createTaskID(node);
         const waitNode = new WaitBatch({
-            taskId: taskId,
             nodeName: node.nodeName,
             algorithmName: node.algorithmName,
             input: result
         });
         this._nodes.addBatch(waitNode);
-        this._setTaskState(taskId, waitNode);
+        this._setTaskState(waitNode.taskId, waitNode);
         this._createJob(waitNode);
     }
 
     _runNodeSimple(node, input) {
-        const taskId = this._createTaskID(node);
-        this._nodes.setNode(node.nodeName, { input, taskId });
-        this._setTaskState(taskId, node);
+        this._nodes.setNode(new Node({ ...node, input }));
+        this._setTaskState(node.taskId, node);
         this._createJob(node);
     }
 
@@ -255,10 +250,8 @@ class TaskRunner {
         if (!Array.isArray(batchArray)) {
             throw new Error(`node ${node.nodeName} batch input must be an array`);
         }
-        batchArray.forEach(async (inp, ind) => {
-            const taskId = this._createTaskID(node);
+        batchArray.forEach((inp, ind) => {
             const batch = new Batch({
-                taskId: taskId,
                 nodeName: node.nodeName,
                 batchID: `${node.nodeName}#${(ind + 1)}`,
                 batchIndex: (ind + 1),
@@ -266,7 +259,7 @@ class TaskRunner {
                 input: inp
             });
             this._nodes.addBatch(batch);
-            this._setTaskState(taskId, batch);
+            this._setTaskState(batch.taskId, batch);
             this._createJob(batch);
         })
     }
@@ -311,17 +304,17 @@ class TaskRunner {
         return error;
     }
 
-    async _setTaskState(taskId, task) {
+    async _setTaskState(taskId, options) {
         if (!this._active) {
             return;
         }
-        if (task.error) {
-            log.error(`task ${task.status} ${taskId}. error: ${task.error}`, { component: components.TASK_RUNNER });
+        if (options.error) {
+            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, { component: components.TASK_RUNNER });
         }
         else {
-            log.info(`task ${task.status} ${taskId}`, { component: components.TASK_RUNNER });
+            log.debug(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER });
         }
-        this._nodes.updateTaskState(taskId, task);
+        const task = this._nodes.updateTaskState(taskId, options);
         await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
         await stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
     }
@@ -337,10 +330,6 @@ class TaskRunner {
             }
         }
         await producer.createJob(options);
-    }
-
-    _createTaskID(node) {
-        return [node.nodeName, node.algorithmName, uuidv4()].join(':');
     }
 }
 

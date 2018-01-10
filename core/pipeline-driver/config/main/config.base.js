@@ -1,7 +1,7 @@
-var package = require(process.cwd() + '/package.json');
+var packageJson = require(process.cwd() + '/package.json');
 var config = module.exports = {};
 
-config.serviceName = package.name;
+config.serviceName = packageJson.name;
 const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
 
 config.redis = {
