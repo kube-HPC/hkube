@@ -47,7 +47,10 @@ class JobConsumer extends EventEmitter {
             });
 
             this._job = job;
-            etcd.watch({ jobId: this._job.data.jobID });
+            await etcd.watch({ jobId: this._job.data.jobID });
+            await etcd.update({
+                jobId: this._job.data.jobID, taskId: this._job.id, status: 'active'
+            });
             stateManager.setJob(job);
             stateManager.prepare(job);
             this.emit('job', job);
