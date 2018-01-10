@@ -17,6 +17,8 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
+config.algorithmType =  process.env.ALGORITHM_TYPE||'algorithm-test'
+
 config.queue={
    updateInterval : 1000 
 }

@@ -10,10 +10,11 @@ class Persistence {
         this.etcd = new Etcd();
     }  
     init({options}) {
-        const {etcd, queueName, serviceName} = options;
-        this.queueName = queueName;
+        const {etcd, algorithmType, serviceName} = options;
+        this.queueName = algorithmType;
         //    this.queue = queue;
         this.etcd.init({ etcd, serviceName });
+        return this;
     }
 
     async store(queue) {

@@ -22,7 +22,7 @@ class Queue extends events {
         super();
         log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE});
         aigle.mixin(_);
-        //  this._huristicRunner = scoreHeuristic;
+        //  this._heuristicRunner = scoreHeuristic;
         // handle empty heuristic on constructor
         this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
         //    this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
@@ -36,11 +36,16 @@ class Queue extends events {
         this.persistencyLoad();
         this._queueInterval();
     }
+    flush() {
+        this.queue = [];
+        this.tempInsertQueue = [];
+        this.tempRemoveQueue = [];
+    }
     async persistencyLoad() {
         log.info('try to recover data from persistent storage', { component: components.QUEUE});
         if (this.persistence) {
-            const queueItems = await this.persistence.get();
             try {
+                const queueItems = await this.persistence.get();
                 await this.add(queueItems);
                 log.info('persistent added sucessfully', { component: components.QUEUE});
             }
@@ -103,10 +108,7 @@ class Queue extends events {
     async updateScore() {
         this.queue = await aigle.map(this.queue, job => this.scoreHeuristic(job));
     }
-    // todo: add persistency to redis 
-    async persistence() {
-        return null;  
-    }
+  
     get get() {
         return this.queue;
     }

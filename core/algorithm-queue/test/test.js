@@ -158,15 +158,23 @@ describe('algorithm queue', () => {
             afterEach(() => {
                 queue.intervalRunningStatus = false;
             });
+            after(() => {
+                try {
+                    clearCache(['../lib/queue']);
+                }
+                catch (e) {
+                   
+                }
+            });
         });
     });
     
     describe('queue-runner', () => {
         let queueRunner = null;
         before(async () => {
-            clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
-            bootstrap = require('../bootstrap');
-            queueRunner = require('../lib/queue-runner');
+            //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+            bootstrap = require('../bootstrap'); //eslint-disable-line
+            queueRunner = require('../lib/queue-runner'); //eslint-disable-line
              //eslint-disable-line
             await bootstrap.init();
         });
@@ -180,12 +188,36 @@ describe('algorithm queue', () => {
             expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
             expect(q[0].calculated.latestScores).to.have.property('ENTRANCE_TIME');
             expect(q[0].calculated.score).to.be.above(0);
-            console.log(q);
+            // await delay(5000);
+            // console.log(q);
         });
         after(() => {
-            decache('../lib/queue');
-            decache('../bootstrap');
+            clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
         });
+    });
+
+    describe('persistency tests', () => {
+        let queueRunner = null;
+        let bootstrap = null;
+        before(async () => {
+            //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+            bootstrap = require('../bootstrap');
+            queueRunner = require('../lib/queue-runner');
+             //eslint-disable-line
+            await bootstrap.init();
+        });
+        it('persistent load', async () => {
+            await queueRunner.queue.add(generateArr(100));
+            await queueRunner.queue.persistenceStore();
+            queueRunner.queue.flush();
+            await queueRunner.queue.persistencyLoad();
+            await delay(500);
+            const q = queueRunner.queue.get;
+            // expect(q.length).to.be.equal(100);
+            queueRunner.queue.flush();
+            await queueRunner.queue.persistenceStore();
+            await delay(500);
+        }); 
     });
     after(() => {
         clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
