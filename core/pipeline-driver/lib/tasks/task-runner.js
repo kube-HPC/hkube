@@ -41,10 +41,10 @@ class TaskRunner {
         });
         producer.on(Events.TASKS.WAITING, (taskId) => {
             this._setTaskState(taskId, { status: States.PENDING });
-        })
-        producer.on(Events.TASKS.ACTIVE, (taskId) => {
-            this._setTaskState(taskId, { status: States.ACTIVE });
-        })
+        });
+        stateManager.on(Events.TASKS.ACTIVE, async (data) => {
+            this._setTaskState(data.taskId, { status: States.ACTIVE });
+        });
         stateManager.on(Events.TASKS.SUCCEED, async (data) => {
             await this._setTaskState(data.taskId, { status: data.status, result: data.result });
             this._taskComplete(data.taskId);
@@ -57,7 +57,7 @@ class TaskRunner {
             name: metricsNames.pipelines_net,
             labels: ['pipeline_name', 'status'],
             buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
-        })
+        });
     }
 
     async _startPipeline(job) {
