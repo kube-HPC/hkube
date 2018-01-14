@@ -122,9 +122,11 @@ class JobConsumer extends EventEmitter {
                 status
             }
         });
-        log.info(`status: ${status}, error: ${error}`);
+        log.debug(`result: ${JSON.stringify(result)}`);
+        log.debug(`status: ${status}, error: ${error}`);
+        const resultData = result && result.data;
         await etcd.update({
-            jobId: this._job.data.jobID, taskId: this._job.id, status, result, error
+            jobId: this._job.data.jobID, taskId: this._job.id, status, result: resultData, error
         });
         this._job.done(error, result);
         this._job = null;
