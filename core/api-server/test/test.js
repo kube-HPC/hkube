@@ -10,7 +10,8 @@ const webhookStub = require('./mocks/webhook-stub');
 let config;
 let baseUrl;
 
-/// TODO: WRITE DOCS ON WEBHOOKS
+// TODO: WRITE DOCS ON WEBHOOKS
+
 function _request(options) {
     return new Promise((resolve, reject) => {
         requestClient({

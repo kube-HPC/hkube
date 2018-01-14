@@ -5,6 +5,7 @@ const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
 const { tracer } = require('@hkube/metrics');
+const JOB_TYPE = 'pipeline-driver-job';
 
 class JobProducer {
     init(options) {
@@ -23,6 +24,8 @@ class JobProducer {
             log.info(`job completed ${data.jobID}`, { component: components.JOBS_PRODUCER });
         }).on('job-failed', (data) => {
             log.error(`job failed ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER });
+        }).on('job-stalled', (data) => {
+            log.error(`job stalled ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER });
         });
     }
 
@@ -30,7 +33,7 @@ class JobProducer {
         const opt = {
             job: {
                 id: options.jobId,
-                type: 'pipeline-driver-job'
+                type: JOB_TYPE
             }
         };
         if (options.parentSpan) {
@@ -40,10 +43,6 @@ class JobProducer {
             };
         }
         return this._producer.createJob(opt);
-    }
-
-    async stopJob(options) {
-        return this._producer.stopJob({ type: 'pipeline-driver-job', jobID: options.jobId });
     }
 }
 

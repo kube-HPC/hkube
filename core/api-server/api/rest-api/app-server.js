@@ -7,6 +7,8 @@ const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContanier();
 const componentName = require('../../common/consts/componentNames');
 const metrics = require('@hkube/metrics');
+const beforeRequest = require('./middlewares/before-request');
+const afterRequest = require('./middlewares/after-request');
 
 class AppServer {
     init(options) {
@@ -30,6 +32,8 @@ class AppServer {
                 });
             });
 
+            const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
+
             swagger.basePath = options.swagger.path;
             const opt = {
                 swagger,
@@ -39,9 +43,9 @@ class AppServer {
                 prefix,
                 port: options.rest.port,
                 versions: options.rest.versions,
-                ...metrics.getMiddleware()
+                beforeRoutesMiddlewares: [...beforeRoutesMiddlewares, beforeRequest],
+                afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest]
             };
-
             rest.start(opt).then((data) => {
                 resolve({
                     message: data.message,

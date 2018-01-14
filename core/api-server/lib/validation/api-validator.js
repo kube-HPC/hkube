@@ -5,11 +5,11 @@ const { Graph, alg } = require('graphlib');
 const { components } = require('../../api/rest-api/swagger.json');
 const { InvalidDataError, } = require('../errors/errors');
 const { schemas } = components;
+const URL_REGEX = /^(f|ht)tps?:\/\//i;
 
 class Validator {
     constructor() {
-        this._urlRegex = /^(f|ht)tps?:\/\//i;
-        validator.addFormat('url', this._validateWebhook.bind(this));
+        validator.addFormat('url', this._validateWebhook);
         Object.values(schemas).forEach((s) => {
             if (s.id) {
                 validator.addSchema(s);
@@ -100,7 +100,7 @@ class Validator {
     }
 
     _validateWebhook(url) {
-        return this._urlRegex.test(url);
+        return URL_REGEX.test(url);
     }
 }
 

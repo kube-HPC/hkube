@@ -4,36 +4,43 @@ const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const States = require('../state/States');
-const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('../../common/consts/componentNames');
 const { levels } = require('../progress/progressLevels');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors/errors');
 const { tracer } = require('@hkube/metrics');
 
 class ExecutionService {
     /**
-   * run algorithm flow
-   * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
-   * ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.
-   *
-   * pipelineRunData RunRequest an object representing all information needed for pipeline execution
-   * returns pipelineExecutionStatus
-   * */
+     * run algorithm flow
+     * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
+     * ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.
+   
+     * pipelineRunData RunRequest an object representing all information needed for pipeline execution
+     * returns pipelineExecutionStatus
+     * 
+     * @param {any} options 
+     * @returns 
+     * 
+     * @memberOf ExecutionService
+     */
     async runRaw(options) {
         validator.validateRunRawPipeline(options);
         return this._run(options);
     }
 
     /**
-   * run algorithm flow
-   * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
-   * ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.
-   *
-   * pipeline RunStoredRequest an object representing all information needed for stored pipeline execution
-   * returns pipelineExecutionStatus
-   * */
+     * run algorithm flow
+     * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
+     * ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.
+     *
+     * pipeline RunStoredRequest an object representing all information needed for stored pipeline execution
+     * returns pipelineExecutionStatus
+     * 
+     * @param {any} options 
+     * @returns 
+     * 
+     * @memberOf ExecutionService
+     */
     async runStored(options) {
-        log.info('runStored', { component: components.JOBS_PRODUCER });
         validator.validateRunStoredPipeline(options);
         const pipe = await stateManager.getPipeline(options);
         if (!pipe) {
@@ -43,6 +50,14 @@ class ExecutionService {
         return this._run(pipeline);
     }
 
+    /**
+     * 
+     * 
+     * @param {any} pipeline 
+     * @returns 
+     * 
+     * @memberOf ExecutionService
+     */
     async _run(pipeline) {
         const jobId = this._createJobID({ name: pipeline.name });
         const span = tracer.startSpan({
@@ -60,12 +75,17 @@ class ExecutionService {
     }
 
     /**
-   * workflow execution status
-   * returns a status for the current pipeline.
-   *
-   * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method . (optional)
-   * returns List
-   * */
+     * workflow execution status
+     * returns a status for the current pipeline.
+     *
+     * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method . (optional)
+     * returns List
+     * 
+     * @param {any} options 
+     * @returns 
+     * 
+     * @memberOf ExecutionService
+     */
     async getJobStatus(options) {
         validator.validateExecutionID(options);
         const status = await stateManager.getJobStatus({ jobId: options.jobId });
@@ -76,17 +96,17 @@ class ExecutionService {
     }
 
     /**
-   * get run result
-   * returns result (json) for the execution of a specific pipeline run. 
-   * if called before result is determined - returns error.
-   * jobId String jobId to getresults for
-   * returns pipelineExecutionResult
-   * 
-   * @param {any} options 
-   * @returns 
-   * 
-   * @memberOf ExecutionService
-   */
+     * get run result
+     * returns result (json) for the execution of a specific pipeline run. 
+     * if called before result is determined - returns error.
+     * jobId String jobId to getresults for
+     * returns pipelineExecutionResult
+     * 
+     * @param {any} options 
+     * @returns 
+     * 
+     * @memberOf ExecutionService
+    */
     async getJobResult(options) {
         validator.validateExecutionID(options);
         const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
@@ -104,13 +124,16 @@ class ExecutionService {
     }
 
     /**
-   * stop pipeline execution
-   * call to stop the flow execution 
-   *
-   * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method .
-   * reason String reason for stopping. (optional)
-   * returns String
-   * */
+     * stop pipeline execution
+     * call to stop the flow execution 
+     *
+     * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method .
+     * reason String reason for stopping. (optional)
+     * returns String
+     * @param {any} options 
+     * 
+     * @memberOf ExecutionService
+    */
     async stopJob(options) {
         validator.validateStopPipeline(options);
         const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
