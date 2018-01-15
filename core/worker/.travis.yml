@@ -24,7 +24,6 @@ install:
 cache:
   directories:
   - node_modules
-  - "$HOME/google-cloud-sdk/"
 script:
 - NODE_ENV=test npm run-script test-travis
 # Send coverage data to Coveralls
@@ -40,15 +39,19 @@ after_success:
     npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
     git push origin version-branch:master --follow-tags
     docker login --username yehiyam --password ${DOCKER_HUB_PASS}
+    PRIVATE_REGISTRY=docker.io/hkube npm run build
+    curl -X POST -H 'accept:application/json'  -H "authorization:token ${TRAVIS_API_TOKEN}" -H 'content-type:application/json' -H 'travis-api-version:3' -d "{\"request\":{\"branch\":\"master\",\"message\":\"triggered by ${TRAVIS_REPO_SLUG}\"}}" "https://api.travis-ci.org/repo/kube-HPC%2Frelease-manager/requests"
   else
     echo "version skiped!"
+    docker login --username yehiyam --password ${DOCKER_HUB_PASS}
+    PRIVATE_REGISTRY=docker.io/hkube npm run build
   fi
-- snyk monitor
-deploy:
-  skip_cleanup: true
-  provider: script
-  script: PRIVATE_REGISTRY=docker.io/hkube npm run build
-  on:
-    branch: master
-after_deploy:
-  - curl -X POST -H 'accept:application/json'  -H "authorization:token ${TRAVIS_API_TOKEN}" -H 'content-type:application/json' -H 'travis-api-version:3' -d "{\"request\":{\"branch\":\"master\",\"message\":\"triggered by ${TRAVIS_REPO_SLUG}\"}}" "https://api.travis-ci.org/repo/kube-HPC%2Frelease-manager/requests"
+- snyk monitor 
+# deploy:
+#   skip_cleanup: true
+#   provider: script
+#   script: PRIVATE_REGISTRY=docker.io/hkube npm run build
+#   # on:
+#   #   branch: master
+# after_deploy:
+  # - curl -X POST -H 'accept:application/json'  -H "authorization:token ${TRAVIS_API_TOKEN}" -H 'content-type:application/json' -H 'travis-api-version:3' -d "{\"request\":{\"branch\":\"master\",\"message\":\"triggered by ${TRAVIS_REPO_SLUG}\"}}" "https://api.travis-ci.org/repo/kube-HPC%2Frelease-manager/requests"

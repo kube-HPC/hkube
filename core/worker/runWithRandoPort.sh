@@ -39,10 +39,17 @@ echo METRICS_PORT $METRICS_PORT
 #run_parallel "sleep 1" "sleep 2"
 export alg=$1
 export ALGO_COMMAND=${2:-"node ../algorunner/app"}
+export ALGORITHM_LOG_FILE_NAME=algorunner_${port}.log
 echo worker for algorithm ${alg}
 
 export ALGORITHM_TYPE=${alg}
 export WORKER_SOCKET_PORT=${port}
+export BASE_LOGS_PATH=/tmp/logProxy/
 export DLL_PATH="../libStub/build/liblibStub.so"
-run_parallel "node app worker" "${ALGO_COMMAND}"
+# run_parallel "node app worker" "${ALGO_COMMAND}"
+node app worker& PID_LIST+=" $!";
+${ALGO_COMMAND} > ${BASE_LOGS_PATH}${ALGORITHM_LOG_FILE_NAME} 2>&1 & PID_LIST+=" $!"
+echo ${PID_LIST}
+trap "kill $PID_LIST" SIGINT
+wait $PID_LIST
 #run_parallel "node app worker" "python3 ../algoPackage/wrapper/wrapper.py"

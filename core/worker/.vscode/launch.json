@@ -12,7 +12,9 @@
             "program": "${workspaceRoot}/app.js",
             "env":{
                 "JOB_TYPE":"eval-alg",
-                "WORKER_SOCKET_PORT":"19876"
+                "WORKER_SOCKET_PORT":"19876",
+                "POD_ID":"MY_POD_ID",
+                "BASE_LOGS_PATH":"${workspaceRoot}"
             }
         },
         {

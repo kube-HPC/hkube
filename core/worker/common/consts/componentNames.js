@@ -3,7 +3,11 @@
  */
 
 const Components = {
-    MAIN: 'Main'
+    MAIN: 'Main',
+    COMMUNICATIONS: 'Communications',
+    CONSUMER: 'Consumer',
+    STATE_MANAGER: 'StateManager',
+    ALGORUNNER: 'Algorunner'
 };
 
 module.exports = Components;

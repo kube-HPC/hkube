@@ -17,6 +17,7 @@ const modules = [
     'lib/consumer/JobConsumer.js',
     'lib/states/discovery.js',
     'lib/states/stateManager.js',
+    'lib/algorunnerLogging/loggingProxy.js'
 ];
 
 class Bootstrap {

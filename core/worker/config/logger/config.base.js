@@ -3,6 +3,7 @@ const config = {};
 config.transport = {
     console: true,
     logstash: false,
+    fluentd: false,
     file: false
 };
 
