@@ -1,3 +1,4 @@
+const { consts } = require('@hkube/parsers');
 
 class GraphBase {
 
@@ -23,15 +24,20 @@ class GraphBase {
 
     findByTargetAndIndex(target, index) {
         let node = null;
-        if (index) {
-            const nd = this._nodes.find(n => n.links.find(l => l.target === target));
-            if (nd) {
-                const link = nd.links.find(l => l.edges.find(e => e.index === index));
-                if (link) {
-                    node = nd;
-                }
-            }
+        if (!index) {
+            return node;
         }
+        this._nodes.forEach(n => {
+            n.links.forEach(l => {
+                if (l.target === target) {
+                    l.edges.forEach(e => {
+                        if (e.index === index) {
+                            node = n;
+                        }
+                    })
+                }
+            })
+        })
         return node;
     }
 
@@ -41,7 +47,7 @@ class GraphBase {
             v.links.forEach(l => {
                 if (l.source === source) {
                     l.edges.forEach(e => {
-                        if (e.type === 'waitNode') {
+                        if (e.type === consts.relations.WAIT_NODE) {
                             e.node = source;
                             e.completed = true;
                             e.result = result;

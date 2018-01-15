@@ -11,7 +11,7 @@ const VirtualGraph = require('../graph/graph-virtual');
 const createEdge = require('./edge');
 const NodeResult = require('./node-result');
 const States = require('../state/States');
-const inputParser = require('../parsers/input-parser');
+const { parser, consts } = require('@hkube/parsers');
 
 /**
  * This class responsible for handling the 
@@ -34,7 +34,7 @@ class NodesMap extends EventEmitter {
         const nodes = [];
         options.nodes.forEach(n => {
             n.input.forEach(i => {
-                const results = inputParser.extractNodesFromInput(i);
+                const results = parser.extractNodesFromInput(i);
                 results.forEach(r => {
                     let node = nodes.find(f => f.source === r.nodeName && f.target === n.nodeName);
                     if (!node) {
@@ -45,7 +45,7 @@ class NodesMap extends EventEmitter {
                     else {
                         node.edge.waitNode = r.isWaitNode || node.edge.waitNode;
                         node.edge.waitBatch = r.isWaitBatch || node.edge.waitBatch;
-                        node.edge.waitAnyBatch = r.isWaitAnyBatch || node.edge.waitAnyBatch;
+                        node.edge.waitAny = r.isWaitAny || node.edge.waitAny;
                     }
                 })
             })
@@ -77,7 +77,9 @@ class NodesMap extends EventEmitter {
     }
 
     _checkReadyNodes() {
+        const nodesToRun = [];
         const nodes = this._actualGraph.list;
+
         nodes.forEach(n => {
             let run = true;
             let nodeName = null;
@@ -87,60 +89,63 @@ class NodesMap extends EventEmitter {
             n.links.forEach(l => {
                 nodeName = l.target;
                 l.edges.forEach(e => {
-                    if (!e.completed) {
-                        run = false
-                    }
                     if (e.index) {
                         index = e.index;
                     }
-                    parentOutput.push({ type: e.type, node: e.node, result: e.result, index: e.index });
+                    if (e.completed) {
+                        parentOutput.push({ type: e.type, node: l.source, result: e.result, index: e.index });
+                    }
+                    else {
+                        run = false;
+                    }
                 })
             })
             if (run) {
-                //n.run = true;
-                this._actualGraph.removeNode(n.id);
-                this.emit('node-ready', { nodeName, parentOutput, index });
+                nodesToRun.push({ id: n.id, nodeName, parentOutput, index });
             }
         })
+
+        nodesToRun.forEach(n => {
+            this._actualGraph.removeNode(n.id);
+            this.emit('node-ready', n);
+        });
     }
 
-    _updateVirtual(task, target) {
+    _updateChildNode(task, target) {
         let node = task.nodeName;
         let index = task.batchIndex;
         let bNode = this._actualGraph.findByEdge(node, target);
         let aNode = this._actualGraph.findByTargetAndIndex(target, index);
 
         if (!aNode || !bNode) {
-            const vNode = this._virtualGraph.findByEdge(node, target);
-            const n = clone(vNode);
-            n.id = uuidv4();
-            this._actualGraph.addNode(n);
-            aNode = n;
+            const vNode = clone(this._virtualGraph.findByEdge(node, target));
+            vNode.id = uuidv4();
+            this._actualGraph.addNode(vNode);
+            aNode = vNode;
         }
 
         let link = aNode.links.find(l => l.source === node && l.target === target);
 
         link.edges.forEach(e => {
-            if (e.type === 'waitAnyBatch' && index) {
-                e.node = node;
+            if (e.type === consts.relations.WAIT_ANY && index) {
                 e.completed = true;
                 e.result = task.result;
                 e.index = index;
             }
-            if (e.type === 'waitNode') {
+            else if (e.type === consts.relations.WAIT_BATCH) {
+                e.completed = true;
+                e.result = task.result;
+                e.index = index;
+            }
+            else if (e.type === consts.relations.WAIT_NODE) {
                 let completed = this.isNodeCompleted(node);
                 if (completed) {
-                    e.node = node;
                     e.completed = true;
                     e.result = this.getNodeResults(node);
                     this._actualGraph.updateBySource(node, e.result);
                 }
             }
         })
-    }
-
-    _getActualNodes() {
-        return this._actualGraph.list;
     }
 
     _getNodesAsFlat() {
@@ -179,10 +184,12 @@ class NodesMap extends EventEmitter {
 
     updateCompletedTask(task) {
         const childs = this._childs(task.nodeName);
-        childs.forEach(child => {
-            this._updateVirtual(task, child);
-        });
-        this._checkReadyNodes();
+        if (childs.length > 0) {
+            childs.forEach(child => {
+                this._updateChildNode(task, child);
+            });
+            this._checkReadyNodes();
+        }
     }
 
     findEntryNodes() {

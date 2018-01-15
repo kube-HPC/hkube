@@ -5,7 +5,9 @@ const progress = require('../progress/nodes-progress');
 const NodesMap = require('../nodes/nodes-map');
 const States = require('../state/States');
 const Events = require('../consts/Events');
-const inputParser = require('../parsers/input-parser');
+const RateLimiter = require('limiter').RateLimiter;
+const limiter = new RateLimiter(100, 250);
+const { parser } = require('@hkube/parsers');
 const Batch = require('../nodes/node-batch');
 const WaitBatch = require('../nodes/node-wait-batch');
 const Node = require('../nodes/node');
@@ -14,6 +16,8 @@ const components = require('../../common/consts/componentNames');
 const { metricsNames } = require('../consts/metricsNames');
 const metrics = require('@hkube/metrics');
 const { tracer } = require('@hkube/metrics');
+
+let tasksCompleted = 0;
 
 class TaskRunner {
 
@@ -42,7 +46,7 @@ class TaskRunner {
         producer.on(Events.TASKS.WAITING, (taskId) => {
             this._setTaskState(taskId, { status: States.PENDING });
         });
-        stateManager.on(Events.TASKS.ACTIVE, async (data) => {
+        stateManager.on(Events.TASKS.ACTIVE, (data) => {
             this._setTaskState(data.taskId, { status: States.ACTIVE });
         });
         stateManager.on(Events.TASKS.SUCCEED, async (data) => {
@@ -81,6 +85,7 @@ class TaskRunner {
         this._pipelineName = this._pipeline.name;
         this._nodes = new NodesMap(this._pipeline);
         this._nodes.on('node-ready', (node) => {
+            log.debug(`new node ready to run: ${node.nodeName}`, { component: components.TASK_RUNNER });
             this._runNode(node.nodeName, node.parentOutput, node.index);
         })
 
@@ -215,8 +220,14 @@ class TaskRunner {
 
     _runNode(nodeName, parentOutput, index) {
         const node = this._nodes.getNode(nodeName);
-        const options = Object.assign({}, { flowInput: this._pipeline.flowInput }, { input: node.input });
-        const result = inputParser.parse(options, node.input, parentOutput, index);
+
+        const options = Object.assign({},
+            { flowInput: this._pipeline.flowInput },
+            { nodeInput: node.input },
+            { parentOutput: parentOutput },
+            { index: index });
+
+        const result = parser.parse(options);
 
         if (index) {
             this._runWaitAnyBatch(node, result.input);
@@ -314,9 +325,30 @@ class TaskRunner {
         else {
             log.debug(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER });
         }
+        // await this._updateState(taskId, options);
         const task = this._nodes.updateTaskState(taskId, options);
         await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
         await stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
+    }
+
+    async _updateState(taskId, options) {
+        return new Promise((resolve, reject) => {
+            limiter.removeTokens(1, async (err, remainingRequests) => {
+                if (err) {
+                    log.error(err);
+                }
+                if (remainingRequests < 1) {
+                    log.error(remainingRequests);
+                }
+                else {
+                    const task = this._nodes.updateTaskState(taskId, options);
+                    await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
+                    await stateManager.setTaskState({ jobId: this._jobId, taskId: task.taskId, data: task });
+                    log.info(`tasks completed #${++tasksCompleted}, remaining #${remainingRequests}`, { component: components.TASK_RUNNER });
+                    return resolve();
+                }
+            });
+        });
     }
 
     async _createJob(node) {

@@ -17,7 +17,6 @@ const pipelines = require('./mocks/pipelines');
 const producer = require('../lib/producer/jobs-producer');
 const consumer = require('../lib/consumer/jobs-consumer');
 const stateManager = require('../lib/state/state-manager');
-const inputParser = require('../lib/parsers/input-parser');
 const progress = require('../lib/progress/nodes-progress');
 const NodesMap = require('../lib/nodes/nodes-map');
 const WorkerStub = require('./mocks/worker');
@@ -246,7 +245,7 @@ describe('Test', function () {
 
                 const node = nodesMap._actualGraph.findByTargetAndIndex('black', 1);
                 const link = node.links[0];
-                const edge = link.edges.find(e => e.type === 'waitAnyBatch');
+                const edge = link.edges.find(e => e.type === 'waitAny');
 
                 expect(edge.node).to.equal(pNode.nodeName);
                 expect(edge.completed).to.equal(true);
@@ -350,8 +349,8 @@ describe('Test', function () {
                 expect(link1.source).to.equal('yellow');
                 expect(link0.target).to.equal('black');
 
-                expect(edges1).to.deep.equal(['waitNode', 'waitAnyBatch']);
-                expect(edges2).to.deep.equal(['waitNode', 'waitAnyBatch']);
+                expect(edges1).to.deep.equal(['waitNode', 'waitAny']);
+                expect(edges2).to.deep.equal(['waitNode', 'waitAny']);
             });
         });
         describe('VirtualGraph', function () {
@@ -407,8 +406,8 @@ describe('Test', function () {
                 expect(link1.source).to.equal('yellow');
                 expect(link0.target).to.equal('black');
 
-                expect(edges1).to.deep.equal(['waitNode', 'waitAnyBatch']);
-                expect(edges2).to.deep.equal(['waitNode', 'waitAnyBatch']);
+                expect(edges1).to.deep.equal(['waitNode', 'waitAny']);
+                expect(edges2).to.deep.equal(['waitNode', 'waitAny']);
             });
             it('should find Virtual node By Target', function () {
                 const pipeline = {
@@ -638,200 +637,6 @@ describe('Test', function () {
                 expect(result.progress).to.equal('0.00');
                 expect(result.details).to.equal('0.00% completed, 4 creating');
             });
-        });
-    });
-    describe('Parsers', function () {
-        it('should parse batch input as string', function () {
-            const pipeline = {
-                "nodes": [
-                    {
-                        "nodeName": "green",
-                        "algorithmName": "green-alg",
-                        "input": [
-                            "#@flowInput.files.links"
-                        ]
-                    },
-                ],
-                "flowInput": {
-                    "files": {
-                        "links": [
-                            "links-1",
-                            "links-2",
-                            "links-3",
-                            "links-4",
-                            "links-5"
-                        ]
-                    }
-                }
-            }
-            const links = pipeline.flowInput.files.links.map(f => new Array(f));
-            const firstNode = pipeline.nodes[0];
-            const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: firstNode.input });
-            const result = inputParser.parse(options, firstNode.input, {});
-            expect(result.input).to.deep.equal(links);
-        });
-        it('should parse batch input as object', function () {
-            const pipeline = {
-                "nodes": [
-                    {
-                        "nodeName": "green",
-                        "algorithmName": "green-alg",
-                        "input": [
-                            {
-                                a: {
-                                    c: "#@flowInput.files.links"
-                                }
-                            }
-                        ]
-                    },
-                ],
-                "flowInput": {
-                    "files": {
-                        "links": [
-                            "links-1",
-                            "links-2",
-                            "links-3",
-                            "links-4",
-                            "links-5"
-                        ]
-                    }
-                }
-            }
-            const array = pipeline.flowInput.files.links.map(f => new Array({ a: { c: f } }));
-            const firstNode = pipeline.nodes[0];
-            const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: firstNode.input });
-            const result = inputParser.parse(options, firstNode.input, {});
-            expect(result.input).to.deep.equal(array);
-        });
-        it('should parse batch input as array', function () {
-            const pipeline = {
-                "nodes": [
-                    {
-                        "nodeName": "green",
-                        "algorithmName": "green-alg",
-                        "input": [
-                            {
-                                a: [{
-                                    b: "#@flowInput.files.links"
-                                }]
-                            }
-                        ]
-                    },
-                ],
-                "flowInput": {
-                    "files": {
-                        "links": [
-                            "links-1",
-                            "links-2",
-                            "links-3",
-                            "links-4",
-                            "links-5"
-                        ]
-                    }
-                }
-            }
-            const array = pipeline.flowInput.files.links.map(f => new Array({ a: [{ b: f }] }));
-            const firstNode = pipeline.nodes[0];
-            const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: firstNode.input });
-            const result = inputParser.parse(options, firstNode.input, {});
-            expect(result.input).to.deep.equal(array);
-        });
-        it('should parse batch input as raw', function () {
-            const pipeline = {
-                "nodes": [
-                    {
-                        "nodeName": "green",
-                        "algorithmName": "green-alg",
-                        "input": [
-                            "#[1,2,3,4,5]"
-                        ]
-                    },
-                ],
-                "flowInput": {
-                    "files": {
-                        "links": [
-                            "links-1",
-                            "links-2",
-                            "links-3",
-                            "links-4",
-                            "links-5"
-                        ]
-                    }
-                }
-            }
-            const array = [1, 2, 3, 4, 5].map(i => new Array(1).fill(i, 0, 1));
-            const firstNode = pipeline.nodes[0];
-            const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: firstNode.input });
-            const result = inputParser.parse(options, firstNode.input, {});
-            expect(result.input).to.deep.equal(array);
-        });
-        it('should parse node result to batch', function () {
-            const pipeline = pipelines.find(p => p.name === 'resultBatch');
-            const yellow = pipeline.nodes[1];
-            const greenResults = { green: [1, 2, 3, 4, 5] };
-            const options = Object.assign({}, { flowInput: pipeline.flowInput }, { input: yellow.input });
-            const result = inputParser.parse(options, yellow.input, greenResults);
-            expect(result.batch).to.equal(true);
-            expect(result.input).to.have.lengthOf(5);
-        });
-        it('should extract nodes from input', function () {
-            const pipeline = pipelines[1];
-            const lastNode = pipeline.nodes[2];
-            const nodeNames = pipeline.nodes.map(n => n.nodeName).slice(0, 2);
-            const nodes = inputParser.extractNodesFromInput(lastNode.input);
-            const names = nodes.map(n => n.nodeName);
-            expect(names).to.deep.equal(nodeNames);
-        });
-        it('should return true when is batch', function () {
-            const pipeline = pipelines[1];
-            const firstNode = pipeline.nodes[0];
-            const result = inputParser._isBatch(firstNode.input[0]);
-            expect(result).to.equal(true);
-        });
-        it('should return false when is not batch', function () {
-            const pipeline = pipelines[1];
-            const node = pipeline.nodes[1];
-            const result = inputParser._isBatch(node.input[0]);
-            expect(result).to.equal(false);
-        });
-        it('should return true when is node', function () {
-            const pipeline = pipelines[1];
-            const node = pipeline.nodes[1];
-            const result = inputParser._isNode(node.input[0]);
-            const nodeName = node.input[0].substr(1);
-            expect(result.isNode).to.equal(true);
-            expect(result.nodeName).to.equal(nodeName);
-        });
-        it('should return false when is not node', function () {
-            const pipeline = pipelines[1];
-            const node = pipeline.nodes[0];
-            const result = inputParser._isNode(node.input[0]);
-            expect(result.isNode).to.equal(false);
-        });
-        it('should return true when is flowInput', function () {
-            const pipeline = pipelines[0];
-            const node = pipeline.nodes[0];
-            const result = inputParser.isFlowInput(node.input[0]);
-            expect(result).to.equal(true);
-        });
-        it('should return false when is not flowInput', function () {
-            const pipeline = pipelines[0];
-            const node = pipeline.nodes[1];
-            const result = inputParser.isFlowInput(node.input[0]);
-            expect(result).to.equal(false);
-        });
-        it('should return true when is reference', function () {
-            const pipeline = pipelines[0];
-            const node = pipeline.nodes[1];
-            const result = inputParser._isReference(node.input[0]);
-            expect(result).to.equal(true);
-        });
-        it('should return false when is not reference', function () {
-            const pipeline = pipelines[0];
-            const node = pipeline.nodes[3];
-            const result = inputParser._isReference(node.input[0]);
-            expect(result).to.equal(false);
-
         });
     });
     describe('Progress', function () {

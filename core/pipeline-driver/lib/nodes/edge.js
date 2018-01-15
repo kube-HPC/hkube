@@ -1,6 +1,6 @@
 const create = (options) => ({
     waitNode: options.isWaitNode,
     waitBatch: options.isWaitBatch,
-    waitAnyBatch: options.isWaitAnyBatch
+    waitAny: options.isWaitAny
 })
 module.exports = create;
