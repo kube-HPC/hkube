@@ -48,7 +48,6 @@ class GraphBase {
                 if (l.source === source) {
                     l.edges.forEach(e => {
                         if (e.type === consts.relations.WAIT_NODE) {
-                            e.node = source;
                             e.completed = true;
                             e.result = result;
                             count++;

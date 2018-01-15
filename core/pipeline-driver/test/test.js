@@ -247,7 +247,6 @@ describe('Test', function () {
                 const link = node.links[0];
                 const edge = link.edges.find(e => e.type === 'waitAny');
 
-                expect(edge.node).to.equal(pNode.nodeName);
                 expect(edge.completed).to.equal(true);
                 expect(edge.index).to.equal(1);
             });
