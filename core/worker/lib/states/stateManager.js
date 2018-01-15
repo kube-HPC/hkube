@@ -4,6 +4,7 @@ const { workerStates } = require('../../common/consts/states');
 const { stateEvents } = require('../../common/consts/events');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
+const component = require('../../common/consts/componentNames').STATE_MANAGER;
 let log;
 
 /**
@@ -48,7 +49,7 @@ class StateManager extends EventEmitter {
             }
         });
         this._stateMachine.observe('onBeforeTransition', (state) => {
-            log.debug(`before entered state: ${state.from} -> ${state.to}`);
+            log.debug(`before entered state: ${state.from} -> ${state.to}`, {component});
             if (this._job && this._job.data) {
                 const topSpan = tracer.topSpan(this._job.data.taskID);
                 if (topSpan) {
@@ -57,7 +58,7 @@ class StateManager extends EventEmitter {
             }
         });
         this._stateMachine.observe('onAfterTransition', (state) => {
-            log.debug(`after entered state: ${state.from} -> ${state.to}`);
+            log.debug(`after entered state: ${state.from} -> ${state.to}`, {component});
             if (this._job && this._job.data) {
                 tracer.startSpan({
                     name: state.to,

@@ -8,6 +8,7 @@ const loopbackAdapter = require('./loopbackWorkerCommunication');
 const { adapters } = require('./consts');
 // const forwardEmitter = require('forward-emitter');
 const messages = require('./messages');
+const components = require('../../common/consts/componentNames');
 
 
 class WorkerCommunication extends EventEmitter {
@@ -39,13 +40,13 @@ class WorkerCommunication extends EventEmitter {
         if (!AdapterClass) {
             throw new Error(`Invalid worker communication adapter ${this._options.adapterName}`);
         }
-        log.info(`Creating communication object of type: ${this._options.adapterName}`);
+        log.info(`Creating communication object of type: ${this._options.adapterName}`, { component: components.COMMUNICATIONS });
         this.adapter = new AdapterClass();
         // forwardEmitter(this.adapter, this);
         Object.entries({ ...messages.incomming, connection: 'connection' }).forEach(([name, topic]) => {
-            log.info(`workerCommunication registering for topic (${name})=>${topic}`);
+            log.debug(`workerCommunication registering for topic (${name})=>${topic}`, { component: components.COMMUNICATIONS });
             this.adapter.on(topic, (message) => {
-                log.info(`workerCommunication got message on topic (${name})=>${topic}, data: ${JSON.stringify(message)}`);
+                log.debug(`workerCommunication got message on topic (${name})=>${topic}, data: ${JSON.stringify(message)}`, { component: components.COMMUNICATIONS });
                 this.emit(topic, message);
             });
         });

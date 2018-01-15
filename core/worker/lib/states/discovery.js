@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
+const component = require('../../common/consts/componentNames').ETCD;
 let log;
 
 class EtcdDiscovery extends EventEmitter {
@@ -15,7 +16,7 @@ class EtcdDiscovery extends EventEmitter {
         await this._etcd.init(options.etcdDiscovery.init);
         await this._etcd.discovery.register({ serviceName: options.etcdDiscovery.init.serviceName });
         this._etcd.jobs.on('change', (res) => {
-            log.info(JSON.stringify(res));
+            log.info(JSON.stringify(res), {component});
             switch (res.state) {
                 case 'stop':
                     this.emit('stop', res);
@@ -44,12 +45,12 @@ class EtcdDiscovery extends EventEmitter {
     }
     async unwatch(options) {
         try {
-            log.info('start unwatch');
+            log.debug('start unwatch', {component});
             await this._etcd.jobs.unwatch(options);
-            log.info('end unwatch');
+            log.debug('end unwatch', {component});
         } 
         catch (error) {
-            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${JSON.stringify(error)}`);
+            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${JSON.stringify(error)}`, {component}, error);
         }
     }
 }

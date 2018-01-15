@@ -7,6 +7,7 @@ const etcd = require('../states/discovery');
 const { tracer } = require('@hkube/metrics');
 const metrics = require('@hkube/metrics');
 const { metricsNames } = require('../../common/consts/metricsNames');
+const components = require('../../common/consts/componentNames');
 let log;
 
 class JobConsumer extends EventEmitter {
@@ -31,7 +32,7 @@ class JobConsumer extends EventEmitter {
         this._registerMetrics();
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.on('job', async (job) => {
-            log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`);
+            log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`, { component: components.CONSUMER });
             metrics.get(metricsNames.algorithm_started).inc({
                 labelValues: {
                     pipeline_name: job.data.pipeline_name,
@@ -57,9 +58,9 @@ class JobConsumer extends EventEmitter {
         });
 
         // this._unRegister();
-        log.info('waiting for ready state');
+        log.info('waiting for ready state', { component: components.CONSUMER });
         stateManager.once(stateEvents.stateEntered, () => {
-            log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`);
+            log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component: components.CONSUMER });
             this._consumer.register(this._options.jobConsumer);
         });
     }
@@ -122,8 +123,8 @@ class JobConsumer extends EventEmitter {
                 status
             }
         });
-        log.debug(`result: ${JSON.stringify(result)}`);
-        log.debug(`status: ${status}, error: ${error}`);
+        log.debug(`result: ${JSON.stringify(result)}`, { component: components.CONSUMER });
+        log.debug(`status: ${status}, error: ${error}`, { component: components.CONSUMER });
         const resultData = result && result.data;
         await etcd.update({
             jobId: this._job.data.jobID, taskId: this._job.id, status, result: resultData, error

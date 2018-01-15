@@ -8,6 +8,8 @@ let log;
 const { stateEvents } = require('../common/consts/events');
 const { workerStates } = require('../common/consts/states');
 const messages = require('./algorunnerCommunication/messages');
+const component = require('../common/consts/componentNames').WORKER;
+
 const DEFAULT_STOP_TIMEOUT = 5000;
 class Worker {
     constructor() {
@@ -27,19 +29,19 @@ class Worker {
 
     _registerToEtcdEvents() {
         discovery.on('stop', (res) => {
-            log.info(`got stop for ${res}`);
+            log.info(`got stop for ${res}`, {component});
             stateManager.stop();
         });
     }
 
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', () => {
-            log.info('starting bootstrap state');
+            log.info('starting bootstrap state', {component});
             stateManager.bootstrap();
-            log.info('finished bootstrap state');
+            log.info('finished bootstrap state', {component});
         });
         algoRunnerCommunication.on('disconnect', () => {
-            log.warning('algorithm runner has disconnected');
+            log.warning('algorithm runner has disconnected', {component});
             stateManager.reset();
         });
     }
@@ -58,11 +60,11 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.progress, (message) => {
             if (message.data) {
-                log.debug(`progress: ${message.data.progress}`);
+                log.debug(`progress: ${message.data.progress}`, {component});
             }
         });
         algoRunnerCommunication.on(messages.incomming.error, (message) => {
-            log.debug(`got error from algo. Error: ${message.error}`);
+            log.error(`got error from algorithm. Error: ${message.error}`, {component});
             stateManager.done(message);
         });
     }
@@ -98,7 +100,7 @@ class Worker {
                     break;
                 case workerStates.stop:
                     this._stopTimeout = setTimeout(() => {
-                        log.error('Timeout exceeded trying to stop algorithm. Exiting');
+                        log.error('Timeout exceeded trying to stop algorithm. Exiting', {component});
                         process.exit();
                     }, this._stopTimeoutMs);
                     algoRunnerCommunication.send({

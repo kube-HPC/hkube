@@ -7,7 +7,9 @@ const Components = {
     COMMUNICATIONS: 'Communications',
     CONSUMER: 'Consumer',
     STATE_MANAGER: 'StateManager',
-    ALGORUNNER: 'Algorunner'
+    ALGORUNNER: 'Algorunner',
+    ETCD: 'Etcd',
+    WORKER: 'Worker'
 };
 
 module.exports = Components;
