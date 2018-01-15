@@ -1,6 +1,6 @@
 
 const validator = require('djsv');
-const inputParser = require('../parsers/input-parser');
+const { parser } = require('@hkube/parsers');
 const { Graph, alg } = require('graphlib');
 const { components } = require('../../api/rest-api/swagger.json');
 const { InvalidDataError, } = require('../errors/errors');
@@ -72,15 +72,19 @@ class Validator {
             }
 
             node.input.forEach((inp) => {
-                inputParser.checkFlowInput(options, inp);
-                const nodesNames = inputParser.extractNodesFromInput(inp);
+                try {
+                    parser.checkFlowInput({ flowInput: options.flowInput, nodeInput: inp });
+                } catch (e) {
+                    throw new InvalidDataError(e.message);
+                }
+                const nodesNames = parser.extractNodesFromInput(inp);
                 nodesNames.forEach((n) => {
-                    const nd = options.nodes.find(f => f.nodeName === n);
+                    const nd = options.nodes.find(f => f.nodeName === n.nodeName);
                     if (nd) {
                         links.push({ source: nd.nodeName, target: node.nodeName });
                     }
                     else {
-                        throw new InvalidDataError(`node ${node.nodeName} is depend on ${n} which is not exists`);
+                        throw new InvalidDataError(`node ${node.nodeName} is depend on ${n.nodeName} which is not exists`);
                     }
                 });
             });
@@ -95,7 +99,7 @@ class Validator {
             throw new InvalidDataError(`pipeline ${options.name} has cyclic nodes`);
         }
         if (!graph.isDirected()) {
-            throw new InvalidDataError(`pipeline ${options.name} has not directed nodes`);
+            throw new InvalidDataError(`pipeline ${options.name} is not directed graph`);
         }
     }
 

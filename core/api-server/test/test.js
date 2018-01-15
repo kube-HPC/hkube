@@ -784,7 +784,7 @@ describe('Test', () => {
                     };
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(500);
+                    expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
                 });
                 it('should succeed to store pipeline', async () => {
@@ -1660,7 +1660,7 @@ describe('Test', () => {
                     };
                     const response = await _request(options);
                     expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(500);
+                    expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
                 });
                 it('should succeed to store pipeline', async () => {
