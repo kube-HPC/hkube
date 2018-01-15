@@ -24,22 +24,22 @@ class LoopbackWorkerCommunication extends EventEmitter {
     }
     send(message) {
         switch (message.command) {
-        case messages.outgoing.initialize:
-            this._simulateSend({ command: messages.incomming.initialized, data: message.data });
-            break;
-        case messages.outgoing.start:
-            this._simulateSend({ command: messages.incomming.started, data: message.data });
-            break;
-        case messages.outgoing.cleanup:
-            this._simulateSend({ command: messages.incomming.done, data: message.data });
-            break;
-        case messages.outgoing.stop:
-            this._simulateSend({ command: messages.incomming.stopped, data: message.data });
-            break;
-        case messages.outgoing.ping:
-            this._simulateSend({ command: messages.incomming.pong, data: message.data });
-            break;
-        default:
+            case messages.outgoing.initialize:
+                this._simulateSend({ command: messages.incomming.initialized, data: message.data });
+                break;
+            case messages.outgoing.start:
+                this._simulateSend({ command: messages.incomming.started, data: message.data });
+                break;
+            case messages.outgoing.cleanup:
+                this._simulateSend({ command: messages.incomming.done, data: message.data });
+                break;
+            case messages.outgoing.stop:
+                this._simulateSend({ command: messages.incomming.stopped, data: message.data });
+                break;
+            case messages.outgoing.ping:
+                this._simulateSend({ command: messages.incomming.pong, data: message.data });
+                break;
+            default:
         }
     }
 
