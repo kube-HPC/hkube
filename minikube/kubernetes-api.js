@@ -12,11 +12,11 @@ const recursiveDir = require('recursive-readdir');
 
 class kubernetesApi {
     constructor() {
-        this.kubeConfigFile=null;
+        this.kubeConfigFile = null;
     }
 
     async listenToK8sStatus(podName, status) {
-        const kubeconfig =  Api.config.loadKubeconfig(this.kubeConfigFile);
+        const kubeconfig = Api.config.loadKubeconfig(this.kubeConfigFile);
         this.config = Api.config.fromKubeconfig(kubeconfig);
         this.config.promises = true;
         this.core = new Api.Core(this.config);
@@ -61,14 +61,17 @@ class kubernetesApi {
     async createPodsSync(yamlPath) {
         // let files = fs.readdirSync(yamlPath)
         recursiveDir(yamlPath, [this._ignoreFileFunc], async (err, files) => {
-            const files_sorted=files.sort();
+            const files_sorted = files.sort();
             console.log(files_sorted);
             for (var file of files) {
 
                 //console.log(`run kubectl create -f ${file}`);
                 let deploymentName = this._getDeploymentName(yamlPath, file);
                 await syncSpawn(`kubectl`, `apply -f ${file} `)
-                await this.listenToK8sStatus(deploymentName, `Running`)
+                if (deploymentName) {
+                    await this.listenToK8sStatus(deploymentName, `Running`)
+                }
+
             }
             callDone()
         });
@@ -81,12 +84,14 @@ class kubernetesApi {
         try {
             let yamlPathWithFile = file;
             let yml = jsYaml.loadAll(fs.readFileSync(file, 'utf8'));
-            let deploy = yml.find(y => y.kind == 'Deployment');
+            let deploy = yml.find(y => y.kind == 'Deployment' || y.kind == 'EtcdCluster');
             if (deploy) {
                 return deploy.metadata.name;
             }
-            console.log(`cant find deployment for ${file} return the first kind ${yml[0].kind} `);
-            return yml[0].metadata.name;
+
+            console.log(`cant find deployment for ${file}. not waiting`);
+            // return yml[0].metadata.name;
+            return null;
         } catch (e) {
             console.log(e);
         }
