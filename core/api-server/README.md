@@ -43,8 +43,7 @@ The reasons for choosing this structure are:
 
 ![Diagram](/docs/images/DAG.png)
 
-In order to create this pipeline flow, we need to specify  
-a node list which look like this:  
+In order to create this pipeline flow, we need to specify a node list which look like this:
 
 ```js
 "nodes": [{
@@ -84,7 +83,7 @@ a node list which look like this:
 }]
 ```
 
-*The order of the nodes in this list is not relevant*
+*The order the nodes are written does not relevant*
 
 Each node has three properties.  
 - **nodeName**: the node unique identifier in the current pipeline. 
@@ -100,8 +99,7 @@ Node D will run after Node B and G (["@B", "@G"])
 Node E will run after Node B, C, D (["@B", "@C", "@D"])
 Node F will run after Node E (["@E"])
 
-You can see that the order and the direction of the  
-pipeline is determined by the node **input**.
+You can see that the order and the direction of the pipeline is determined by the node **input**.
 
 ### Entry Nodes
 
@@ -135,13 +133,12 @@ The order is only important for the algorithm signature.
 
 ## Execution Flow
 
-Beside these data types, there are special signs that designed  
-to define the pipeline execution flow.
+Beside these data types, there are special signs that designed to define the pipeline execution flow.
 
-- (@)  - [Reference](#Reference)
-- (#)  - [Batch](#Batch)
-- (#@) - [Batch Reference](#Batch Reference)
-- (*@) - [Wait Any](#Wait Any)
+- (@)  - [Reference](#reference)
+- (#)  - [Batch](#batch)
+- (#@) - [Batch Reference](#batch-reference)
+- (*@) - [Wait Any](#wait-any)
 
 ### Flow Input
 
@@ -188,7 +185,7 @@ Or batch
 }
 ```
 
-Now the example algorithm will run with this input:
+And the algorithm will run three times with this input:
 
 ```js
 example-alg 1: [42, true, ["links-1"], null, {foo: "bar"}]
@@ -223,13 +220,12 @@ The DAG of this pipeline will look like:
 ![Diagram](/docs/images/simple-pipeline.png)
 
 
-The blue circle is the **pipeline driver** which responsible for  
-executing nodes with the right order and the right input.  
-Each result from any node is always return to the pipeline driver which decide what to do next.  
+The blue circle is the **pipeline driver** which responsible for executing nodes with the right order and the right input.  Each result from any node is always return to the pipeline driver which decide what to do next.  
 
-The green node will run first because it does not depend on any other node.  
+**Green node** will run first because it does not depend on any other node.  
 Green node input will be: [false, "OK"].  
-Yellow node depends on green node, see the "@green" in the input of the yellow node.  
+
+**Yellow node** depends on green node, see the "@green" in the input of the yellow node.  
 So the input of the yellow node will be: [true, **green node output**].  
 The last node to run will be the red node because it depend on the completion of  
 the yellow node. The input of the red node will be: [**yellow node output**, 512].  
@@ -279,9 +275,8 @@ The input of the red node will be: [yellow node output, 512].
 
 ## Batch Tolerance
 
-The Batch Tolerance is a threshold setting that allow to  
-control in which **percent** the entire pipeline should be failed.  
-In this example the pipeline will failed if 3/5 from green node batch items has failed. 
+The Batch Tolerance is a threshold setting that allow to control in which **percent** from the batch processing the entire pipeline should be fail.  
+In this example we define batch tolerance of 60%, which means that we allow max of 60% from the batch items to be fail. 
 
 ```js
 "nodes": [{
@@ -298,6 +293,19 @@ In this example the pipeline will failed if 3/5 from green node batch items has 
     "batchTolerance": 60
 }
 ```
+
+Assuming that **Node green** will run and these are the batch items results. 
+
+```js
+green-alg 1: [false, "1"] -> success
+green-alg 2: [false, "2"] -> failed
+green-alg 3: [false, "3"] -> failed
+green-alg 4: [false, "4"] -> failed
+green-alg 5: [false, "5"] -> success
+```
+
+Now the entire pipeline will fail because 3/5 from green node batch items has failed.  
+**Node yellow** will not run in this case.
 
 ### Batch Reference
 
@@ -387,23 +395,22 @@ The DAG of this pipeline will look like:
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
-    "input": [10, "#[1,2,3]"]
+    "input": ["#[1,2,3]", 2]
 },
 {
     "nodeName": "yellow",
     "algorithmName": "yellow-alg",
-    "input": [true, "*@green"]
+    "input": ["#@green", 3]
 },
 {
     "nodeName": "red",
     "algorithmName": "red-alg",
-    "input": ["@yellow", 512]
+    "input": ["#@yellow", 4]
 }]
 ```
 
 The DAG of this pipeline will look like:  
-![Diagram](/docs/images/wait-any.png) 
-
+![Diagram](/docs/images/batch-result2.png) 
 
 
 ### Another Wait Any
@@ -494,9 +501,8 @@ And this is the progress webhook payload
 
 ### Verbosity Level
 
-The Verbosity Level is a setting that allow to control what type of  
-progress events the client will notified about.  
-The severity levels are ascending from least important to most important.
+The Verbosity Level is a setting that allow to control what type of progress events the client will notified about.  
+The severity levels are ascending from least important to most important:
 * silly
 * debug
 * info
@@ -504,8 +510,7 @@ The severity levels are ascending from least important to most important.
 * error
 * critical
 
-If the client specified **debug** level, every progress from debug  
-level and above will be sent to the client.
+If the client specified **debug** level, every progress from debug level and above will be sent to the client.
 
 ```js
 "name": "batch",
@@ -552,10 +557,8 @@ And this is the progress webhook payload
 
 ### Result
 
-The purpose of the result webhook is to update the client  
-when the pipeline is completed.
-
-This is the result webhook payload
+The purpose of the result webhook is to update the client when the pipeline is completed.  
+This is the result webhook payload.
 
 ```js
 {

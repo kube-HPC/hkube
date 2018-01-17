@@ -199,7 +199,9 @@
                         "in": "path",
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
-                        "type": "string"
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
