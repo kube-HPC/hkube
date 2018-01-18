@@ -7,10 +7,12 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "pack",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
-                "--kubeConfig=~/.kube/config"
+                "pack",
+                "-s",
+                "--semver=1.0.133"
             ]
         },
         {

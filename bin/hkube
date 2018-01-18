@@ -10,6 +10,8 @@ const meow = require('meow');
 const colors = require('colors');
 const kubernetesApi = require('../minikube/kubernetes-api');
 const expandTilde = require('expand-tilde');
+const { FOLDERS } = require('./../consts.js');
+
 const usage = `
         Usage
     ------------
@@ -17,6 +19,7 @@ const usage = `
         $ --version, return current hkube version
         $ --help,-h return usage information
         $ --kubeConfig path to the kubectl config for the cluster
+        $ --hkubeFolder path to internal downloaded folder. defaults to ~/.hkube
     
     git:
         $ clone ,c <options> default --all
@@ -35,6 +38,7 @@ const usage = `
         Options:
             --core, -c saves all core yamls and docker images in ~/.hkube
             --thirdParty, -t saves all third party docker images in ~/.hkube/thirdParty
+            --source, -s clones the sources of the repos, and checkout the correct version
             
     minikube:
 
@@ -57,6 +61,11 @@ if (argv.kubeConfig){
     console.log(`using kubectl config file ${kubeConfig}`.green)
     kubernetesApi.kubeConfigFile=kubeConfig
     delete argv.kubeConfig
+}
+
+if (argv.hkubeFolder){
+    FOLDERS.hkube = argv.hkubeFolder;
+    delete argv.hkubeFolder;
 }
 if (argv.version) {
     console.log(`version: ${package.version}`.green)

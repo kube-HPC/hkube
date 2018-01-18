@@ -1,10 +1,11 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
-const { getLatestVersions, changeYamlImageVersion } = require('../common/githubHelper');
+const { getLatestVersions, changeYamlImageVersion ,cloneRepo} = require('../common/githubHelper');
 const { YAML_PATH } = require('../minikube/consts-minikube');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
+const recursiveDir = require('recursive-readdir');
 
 let coreYamlPath = YAML_PATH.core;
 let thirdPartyPath = YAML_PATH.thirdParty;
@@ -12,31 +13,66 @@ const options = {
     core: 'core',
     coreShort: 'c',
     thirdParty: 'thirdParty',
-    thirdPartyShort: 't'
+    thirdPartyShort: 't',
+    source: 'source',
+    sourceShort: 's',
+    version: 'semver'
 }
 
-const _deployment = async (opt) => {
-    switch (opt[0][0]) {
-        case options.core:
-        case options.coreShort:
-            return _getVersionsCore(opt);
-        case options.thirdParty:
-        case options.thirdPartyShort:
-            return _getVersionsThirdParty(opt);
-        default:
-            console.error('Unknown deployment options');
+const deployment = async (args) => {
+    for (const arg of args) {
+        const key = arg[0];
+        const value = arg[1];
+        if (!value) {
+            continue;
+        }
+        switch (key) {
+            case options.core:
+            case options.coreShort:
+                await _getVersionsCore(args);
+                break;
+            case options.thirdParty:
+            case options.thirdPartyShort:
+                await _getVersionsThirdParty(args);
+                break;
+            case options.source:
+            case options.sourceShort:
+                await _getVersionsCoreSource(args);
+                break;
+        }
+    }
+}
+
+const _getVersionsCoreSource = async (opts) => {
+    const versionPrefix = getOptionOrDefault(opts, [options.version]);
+    const versions = await getLatestVersions(versionPrefix);
+    if (!versions){
+        console.error(`Unable to find version ${versionPrefix}`)
+        return;
+    }
+    console.log(`System version: ${versions.systemVersion}`);
+    const baseFolderForSources = `${FOLDERS.hkube}/${versions.systemVersion}/sources`;
+    await fs.mkdirp(baseFolderForSources);
+    for (repo of versions.versions){
+        console.log(`cloning ${repo.project}@${repo.tag}`);
+        await cloneRepo(repo.project,repo.tag,`${baseFolderForSources}/${repo.project}`);
     }
 
-}
 
+}
 const _getVersionsCore = async (opts) => {
-    pts = opts || [];
-    const versionPrefix = getOptionOrDefault(opts, [options.versions, options.versionsShort]);
+    const versionPrefix = getOptionOrDefault(opts, [options.version]);
     const versions = await getLatestVersions(versionPrefix);
+    if (!versions){
+        console.error(`Unable to find version ${versionPrefix}`)
+        return;
+    }
     console.log(`System version: ${versions.systemVersion}`);
     versions.versions.forEach(v => {
         console.log(`${v.project}:${v.tag}`)
     })
+    await fs.mkdirp(`${FOLDERS.hkube}/${versions.systemVersion}/images`);
+    await fs.mkdirp(`${FOLDERS.hkube}/${versions.systemVersion}/yaml`);
     const alreadyWritten = [];
     const yamls = fs.readdirSync(coreYamlPath);
     for (const file of yamls) {
@@ -52,24 +88,33 @@ const _getVersionsCore = async (opts) => {
             }
             alreadyWritten.push(fileName);
             await syncSpawn(`docker`, `pull ${i}`)
-            await fs.mkdirp(`${FOLDERS.hkube}/core`);
-            await syncSpawn(`docker`, `save -o ${FOLDERS.hkube}/core/${fileName}.tar ${i}`)
+            await syncSpawn(`docker`, `save -o ${FOLDERS.hkube}/${versions.systemVersion}/images/${fileName}.tar ${i}`)
 
         }
-        fs.copyFileSync(tmpFileName, `${FOLDERS.hkube}/${path.basename(file)}`)
+        fs.copyFileSync(tmpFileName, `${FOLDERS.hkube}/${versions.systemVersion}/yaml/${path.basename(file)}`)
     }
 
 }
+
+const _ignoreFileFunc = (file, stats) => {
+    // return stats.isDirectory() && path.extname(file) != "yml";
+    return path.basename(file).startsWith('#') || (!stats.isDirectory() && path.extname(file) != ".yml");
+}
+
 const _getVersionsThirdParty = async (opts) => {
     pts = opts || [];
     const alreadyWritten = [];
-    const yamls = fs.readdirSync(thirdPartyPath);
+    const yamls = await recursiveDir(thirdPartyPath, [_ignoreFileFunc]);
+
+
+    // const yamls = fs.readdirSync(thirdPartyPath);
+
     for (const file of yamls) {
         try {
             if (path.basename(file).startsWith('#')) {
                 continue;
             }
-            if (fs.lstatSync(`${thirdPartyPath}/${file}`).isDirectory()){
+            if (fs.lstatSync(file).isDirectory()) {
                 continue;
             }
 
@@ -95,4 +140,4 @@ const _getVersionsThirdParty = async (opts) => {
     }
 
 }
-module.exports = _deployment
+module.exports = deployment
