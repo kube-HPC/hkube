@@ -11,8 +11,7 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "pack",
-                "-s",
-                "--semver=1.0.133"
+                "-s"
             ]
         },
         {

@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
-const { getLatestVersions, changeYamlImageVersion ,cloneRepo} = require('../common/githubHelper');
+const { getLatestVersions, changeYamlImageVersion, cloneRepo } = require('../common/githubHelper');
 const { YAML_PATH } = require('../minikube/consts-minikube');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
@@ -9,6 +9,7 @@ const recursiveDir = require('recursive-readdir');
 
 let coreYamlPath = YAML_PATH.core;
 let thirdPartyPath = YAML_PATH.thirdParty;
+const DEPLOYMENT_REPO = 'deployment';
 const options = {
     core: 'core',
     coreShort: 'c',
@@ -20,6 +21,16 @@ const options = {
 }
 
 const deployment = async (args) => {
+    const versionPrefix = getOptionOrDefault(args, [options.version]);
+    const versions = await getLatestVersions(versionPrefix);
+    if (!versions) {
+        console.error(`Unable to find version ${versionPrefix}`)
+        return;
+    }
+    // clone deployment first to get all yamls
+    if (!await _cloneDeployment(versions,args)){
+        return;
+    }
     for (const arg of args) {
         const key = arg[0];
         const value = arg[1];
@@ -29,44 +40,51 @@ const deployment = async (args) => {
         switch (key) {
             case options.core:
             case options.coreShort:
-                await _getVersionsCore(args);
+                await _getVersionsCore(versions, args);
                 break;
             case options.thirdParty:
             case options.thirdPartyShort:
-                await _getVersionsThirdParty(args);
+                await _getVersionsThirdParty(versions, args);
                 break;
             case options.source:
             case options.sourceShort:
-                await _getVersionsCoreSource(args);
+                await _getVersionsCoreSource(versions, args);
                 break;
         }
     }
 }
 
-const _getVersionsCoreSource = async (opts) => {
-    const versionPrefix = getOptionOrDefault(opts, [options.version]);
-    const versions = await getLatestVersions(versionPrefix);
-    if (!versions){
-        console.error(`Unable to find version ${versionPrefix}`)
-        return;
-    }
+const _setYamlPaths = (base)=>{
+    coreYamlPath = path.join(base,'kubernetes','yaml','core');
+    thirdPartyPath = path.join(base,'kubernetes','yaml','thirdParty');
+}
+const _cloneDeployment = async (versions,opts)=>{
     console.log(`System version: ${versions.systemVersion}`);
     const baseFolderForSources = `${FOLDERS.hkube}/${versions.systemVersion}/sources`;
     await fs.mkdirp(baseFolderForSources);
-    for (repo of versions.versions){
+    const deploymentRepo = versions.versions.find(v=>v.project === DEPLOYMENT_REPO);
+    if (!deploymentRepo){
+        console.error(`unable to find deployment repo for version ${versions.systemVersion}`);
+        return false;
+    }
+    const repoFolder = `${baseFolderForSources}/${deploymentRepo.project}`;
+    await cloneRepo(deploymentRepo.project, deploymentRepo.tag, repoFolder);
+    _setYamlPaths(repoFolder);
+    return true;
+}
+
+const _getVersionsCoreSource = async (versions, opts) => {
+    console.log(`System version: ${versions.systemVersion}`);
+    const baseFolderForSources = `${FOLDERS.hkube}/${versions.systemVersion}/sources`;
+    await fs.mkdirp(baseFolderForSources);
+    for (repo of versions.versions) {
         console.log(`cloning ${repo.project}@${repo.tag}`);
-        await cloneRepo(repo.project,repo.tag,`${baseFolderForSources}/${repo.project}`);
+        await cloneRepo(repo.project, repo.tag, `${baseFolderForSources}/${repo.project}`);
     }
 
 
 }
-const _getVersionsCore = async (opts) => {
-    const versionPrefix = getOptionOrDefault(opts, [options.version]);
-    const versions = await getLatestVersions(versionPrefix);
-    if (!versions){
-        console.error(`Unable to find version ${versionPrefix}`)
-        return;
-    }
+const _getVersionsCore = async (versions, opts) => {
     console.log(`System version: ${versions.systemVersion}`);
     versions.versions.forEach(v => {
         console.log(`${v.project}:${v.tag}`)
@@ -101,7 +119,7 @@ const _ignoreFileFunc = (file, stats) => {
     return path.basename(file).startsWith('#') || (!stats.isDirectory() && path.extname(file) != ".yml");
 }
 
-const _getVersionsThirdParty = async (opts) => {
+const _getVersionsThirdParty = async (versions, opts) => {
     pts = opts || [];
     const alreadyWritten = [];
     const yamls = await recursiveDir(thirdPartyPath, [_ignoreFileFunc]);
