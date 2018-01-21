@@ -29,19 +29,19 @@ class Worker {
 
     _registerToEtcdEvents() {
         discovery.on('stop', (res) => {
-            log.info(`got stop for ${res}`, {component});
+            log.info(`got stop for ${res}`, { component });
             stateManager.stop();
         });
     }
 
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', () => {
-            log.info('starting bootstrap state', {component});
+            log.info('starting bootstrap state', { component });
             stateManager.bootstrap();
-            log.info('finished bootstrap state', {component});
+            log.info('finished bootstrap state', { component });
         });
         algoRunnerCommunication.on('disconnect', () => {
-            log.warning('algorithm runner has disconnected', {component});
+            log.warning('algorithm runner has disconnected', { component });
             stateManager.reset();
         });
     }
@@ -60,11 +60,11 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.progress, (message) => {
             if (message.data) {
-                log.debug(`progress: ${message.data.progress}`, {component});
+                log.debug(`progress: ${message.data.progress}`, { component });
             }
         });
         algoRunnerCommunication.on(messages.incomming.error, (message) => {
-            log.error(`got error from algorithm. Error: ${message.error}`, {component});
+            log.error(`got error from algorithm. Error: ${message.error}`, { component });
             stateManager.done(message);
         });
     }
@@ -72,9 +72,10 @@ class Worker {
 
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, ({ job, state, results }) => {
+            const {data} = (job || {});
             discovery.setState(Object.assign({}, {
                 data: {
-                    jobData: (job || {}).data,
+                    jobData: data,
                     state
                 }
             }, results));
@@ -85,13 +86,13 @@ class Worker {
                 case workerStates.init:
                     algoRunnerCommunication.send({
                         command: messages.outgoing.initialize,
-                        data: job
+                        data
                     });
                     break;
                 case workerStates.working:
                     algoRunnerCommunication.send({
                         command: messages.outgoing.start,
-                        data: job
+                        data
                     });
                     break;
                 case workerStates.shutdown:
@@ -100,12 +101,12 @@ class Worker {
                     break;
                 case workerStates.stop:
                     this._stopTimeout = setTimeout(() => {
-                        log.error('Timeout exceeded trying to stop algorithm. Exiting', {component});
+                        log.error('Timeout exceeded trying to stop algorithm. Exiting', { component });
                         process.exit();
                     }, this._stopTimeoutMs);
                     algoRunnerCommunication.send({
                         command: messages.outgoing.stop,
-                        data: job
+                        data
                     });
                     break;
                 default:
