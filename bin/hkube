@@ -108,7 +108,8 @@ else {
             pack(Object.entries(argv).slice(1));
             break;
         case 'deploy':
-            deploy(Object.entries(argv).slice(1));
+            delete argv._;
+            deploy(argv);
             break;
         default:
             console.log(usage.cyan);

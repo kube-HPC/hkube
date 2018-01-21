@@ -152,11 +152,10 @@ const _ignoreFileFunc = (file, stats) => {
 
 const _getVersionsThirdParty = async (versions, opts) => {
     pts = opts || [];
+    const thirdPartyFolder = `${FOLDERS.hkube}/${versions.systemVersion}/thirdParty`;
+    await fs.mkdirp(thirdPartyFolder);
+    
     const yamls = await recursiveDir(thirdPartyPath, [_ignoreFileFunc]);
-
-
-    // const yamls = fs.readdirSync(thirdPartyPath);
-
     for (const file of yamls) {
         try {
             if (path.basename(file).startsWith('#')) {
@@ -165,7 +164,6 @@ const _getVersionsThirdParty = async (versions, opts) => {
             if (fs.lstatSync(file).isDirectory()) {
                 continue;
             }
-
             const { tmpFileName, images } = changeYamlImageVersion(file, null, thirdPartyPath)
             for (const i of images) {
                 const fileName = i.replace(/[\/:]/gi, '_')
@@ -175,8 +173,7 @@ const _getVersionsThirdParty = async (versions, opts) => {
                 }
                 alreadyWritten.push(fileName);
                 await syncSpawn(`docker`, `pull ${i}`)
-                await fs.mkdirp(`${FOLDERS.hkube}/thirdParty`);
-                await syncSpawn(`docker`, `save -o ${FOLDERS.hkube}/thirdParty/${fileName}.tar ${i}`)
+                await syncSpawn(`docker`, `save -o ${path.join(thirdPartyFolder,fileName)}.tar ${i}`)
 
             }
 

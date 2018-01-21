@@ -16,25 +16,38 @@ const options = {
     source: 's',
     version: 'semver',
     build: 'build',
-    folder: 'folder'
-   
+    folder: 'folder',
+    registry: 'registry'
+
 }
 
 const deploy = async (args) => {
-    const versionPrefix = getOptionOrDefault(args, [options.version]);
-    const versions = await getLatestVersions(versionPrefix);
+    let versions;
+    if (args.folder) {
+        // set yamls from folder
+        const versionsFile = fs.readFileSync(path.join(args.folder, 'version.json'), { encoding: 'utf8' });
+        versions = JSON.parse(versionsFile);
+    }
+    else {
+        const versionPrefix = getOptionOrDefault(args, [options.version]);
+        versions = await getLatestVersions(versionPrefix);
+    }
     if (!versions) {
         console.error(`Unable to find version ${versionPrefix}`)
         return;
     }
     // clone deployment first to get all yamls
-    if (!await _cloneDeployment(versions,args)){
-        return;
+    if (!args.folder) {
+        if (!await _cloneDeployment(versions, args)) {
+            return;
+        }
     }
-    
-    for (const arg of args) {
-        const key = arg[0];
-        const value = arg[1];
+    // build dockers if needed
+    if (args.build) {
+        await _buildFromSource(versions, args);
+    }
+    for (const key in args) {
+        const value = args[key];
         if (!value) {
             continue;
         }
@@ -52,16 +65,28 @@ const deploy = async (args) => {
     }
 }
 
-const _setYamlPaths = (base)=>{
-    coreYamlPath = path.join(base,'kubernetes','yaml','core');
-    thirdPartyPath = path.join(base,'kubernetes','yaml','thirdParty');
+const _buildFromSource = async (versions, args) => {
+    console.log(`System version: ${versions.systemVersion}`);
+    const registry = args.registry || 'docker.io/hkube';
+
+    const baseFolderForSources = `${FOLDERS.hkube}/${versions.systemVersion}/sources`;
+    for (repo of versions.versions) {
+        console.log(`building ${repo.project}@${repo.tag}`);
+        const repoFolder = `${baseFolderForSources}/${repo.project}`;
+        await syncSpawn('npm', 'run build', { cwd: repoFolder, env: { ...process.env, PRIVATE_REGISTRY: registry } });
+    }
+
 }
-const _cloneDeployment = async (versions,opts)=>{
+const _setYamlPaths = (base) => {
+    coreYamlPath = path.join(base, 'kubernetes', 'yaml', 'core');
+    thirdPartyPath = path.join(base, 'kubernetes', 'yaml', 'thirdParty');
+}
+const _cloneDeployment = async (versions, opts) => {
     console.log(`System version: ${versions.systemVersion}`);
     const baseFolderForSources = `${FOLDERS.hkube}/${versions.systemVersion}/sources`;
     await fs.mkdirp(baseFolderForSources);
-    const deploymentRepo = versions.versions.find(v=>v.project === DEPLOYMENT_REPO);
-    if (!deploymentRepo){
+    const deploymentRepo = versions.versions.find(v => v.project === DEPLOYMENT_REPO);
+    if (!deploymentRepo) {
         console.error(`unable to find deployment repo for version ${versions.systemVersion}`);
         return false;
     }
