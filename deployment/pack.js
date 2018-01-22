@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
 const { getLatestVersions, changeYamlImageVersion, cloneRepo } = require('../common/githubHelper');
-const { YAML_PATH } = require('../minikube/consts-minikube');
+const { YAML_PATH } = require('./consts');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
 const recursiveDir = require('recursive-readdir');
@@ -19,6 +19,7 @@ const options = {
     thirdPartyShort: 't',
     source: 'source',
     sourceShort: 's',
+    yamls: 'y',
     version: 'semver',
 }
 let alreadyWritten = [];

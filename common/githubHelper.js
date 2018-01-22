@@ -1,4 +1,3 @@
-
 const GitHubApi = require('@octokit/rest')
 const semver = require('semver')
 const fs = require('fs-extra');
@@ -98,13 +97,22 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
         const fileContents = fs.readFileSync(fullPath, 'utf8');
         const yml = jsYaml.loadAll(fileContents);
         const images = [];
+        let waitObjectName;
         yml.forEach(y => {
+            if (!waitObjectName && (y.kind === 'Deployment' || y.kind ==='EtcdCluster')){
+                waitObjectName = y.metadata.name;
+            }
             const containers = objectPath.get(y, 'spec.template.spec.containers');
             if (!containers) {
                 return;
             }
             containers.forEach(c => {
                 if (c.image.lastIndexOf(':') > 0) {
+                    const versionFromYaml = c.image.substr(c.image.lastIndexOf(':')+1);
+                    if (versionFromYaml){
+                        images.push(c.image);
+                        return;
+                    }
                     c.image = c.image.substr(0, c.image.lastIndexOf(':'));
                 }
                 const lastSlashIndex = c.image.lastIndexOf('/');
@@ -126,7 +134,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
         withVersions = withVersions.join('\r\n---\r\n')
         const tmpFileName = tempfile('.yml');
         fs.writeFileSync(tmpFileName, withVersions, 'utf8');
-        return { tmpFileName, images };
+        return { tmpFileName, images, waitObjectName};
     }
     catch (e) {
         return fullPath;

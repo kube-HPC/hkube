@@ -1,5 +1,8 @@
 const getOptionOrDefault = (opts, optionName, defaultValue) => {
     opts = opts || [];
+    if (!Array.isArray(opts)){
+        opts = Object.entries(opts);
+    }
     let optionPair;
     if (Array.isArray(optionName)) {
         optionPair = opts.find(o => optionName.findIndex(opt=>opt===o[0])>=0);

@@ -21,9 +21,7 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "deploy",
-                "--build",
-                "--folder=/home/yehil/.hkube/1.0.171",
-                "--registry=127.0.0.1:5000"
+                "-t"
             ]
         },
         {
@@ -42,7 +40,7 @@
             "name": "minkube",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
-                "--kubeConfig=~/.kube/admin.conf",                              
+                "--kubeConfig=~/.kube/admin.conf",
                 "m",
                 "-t"
             ]

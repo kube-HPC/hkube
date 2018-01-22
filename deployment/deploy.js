@@ -2,10 +2,11 @@ const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
 const { getLatestVersions, changeYamlImageVersion, cloneRepo } = require('../common/githubHelper');
-const { YAML_PATH } = require('../minikube/consts-minikube');
+const { YAML_PATH } = require('./consts');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
 const recursiveDir = require('recursive-readdir');
+const kubernetesApi = require('../minikube/kubernetes-api');
 
 let coreYamlPath = YAML_PATH.core;
 let thirdPartyPath = YAML_PATH.thirdParty;
@@ -24,7 +25,7 @@ const options = {
 const deploy = async (args) => {
     let versions;
     if (args.folder) {
-        // set yamls from folder
+        // set yamls from folder        
         const versionsFile = fs.readFileSync(path.join(args.folder, 'version.json'), { encoding: 'utf8' });
         versions = JSON.parse(versionsFile);
     }
@@ -42,6 +43,18 @@ const deploy = async (args) => {
             return;
         }
     }
+    else {
+        console.log(`System version: ${versions.systemVersion}`);
+        const baseFolderForSources = `${FOLDERS.hkube}/${versions.systemVersion}/sources`;
+        const deploymentRepo = versions.versions.find(v => v.project === DEPLOYMENT_REPO);
+        if (!deploymentRepo) {
+            console.error(`unable to find deployment repo for version ${versions.systemVersion}`);
+            return false;
+        }
+        const deploymentFolder = `${baseFolderForSources}/${deploymentRepo.project}`;
+        _setYamlPaths(deploymentFolder);
+        
+    }
     // build dockers if needed
     if (args.build) {
         await _buildFromSource(versions, args);
@@ -53,13 +66,10 @@ const deploy = async (args) => {
         }
         switch (key) {
             case options.core:
-                await _getVersionsCore(versions, args);
+                await _applyVersionsCore(versions, args);
                 break;
             case options.thirdParty:
-                await _getVersionsThirdParty(versions, args);
-                break;
-            case options.source:
-                await _getVersionsCoreSource(versions, args);
+                await _applyVersionsThirdParty(versions, args);
                 break;
         }
     }
@@ -78,8 +88,10 @@ const _buildFromSource = async (versions, args) => {
 
 }
 const _setYamlPaths = (base) => {
-    coreYamlPath = path.join(base, 'kubernetes', 'yaml', 'core');
-    thirdPartyPath = path.join(base, 'kubernetes', 'yaml', 'thirdParty');
+    coreYamlPath = path.join(base, 'kubernetes', 'yaml.cluster', 'core');
+    thirdPartyPath = path.join(base, 'kubernetes', 'yaml.cluster', 'thirdParty');
+    console.log(`Using core yaml path ${coreYamlPath}`)
+    console.log(`Using thirdParty yaml path ${thirdPartyPath}`)
 }
 const _cloneDeployment = async (versions, opts) => {
     console.log(`System version: ${versions.systemVersion}`);
@@ -96,24 +108,11 @@ const _cloneDeployment = async (versions, opts) => {
     return true;
 }
 
-const _getVersionsCoreSource = async (versions, opts) => {
-    console.log(`System version: ${versions.systemVersion}`);
-    const baseFolderForSources = `${FOLDERS.hkube}/${versions.systemVersion}/sources`;
-    await fs.mkdirp(baseFolderForSources);
-    for (repo of versions.versions) {
-        console.log(`cloning ${repo.project}@${repo.tag}`);
-        await cloneRepo(repo.project, repo.tag, `${baseFolderForSources}/${repo.project}`);
-    }
-
-
-}
-const _getVersionsCore = async (versions, opts) => {
+const _applyVersionsCore = async (versions, opts) => {
     console.log(`System version: ${versions.systemVersion}`);
     versions.versions.forEach(v => {
         console.log(`${v.project}:${v.tag}`)
     })
-    await fs.mkdirp(`${FOLDERS.hkube}/${versions.systemVersion}/images`);
-    await fs.mkdirp(`${FOLDERS.hkube}/${versions.systemVersion}/yaml`);
     const alreadyWritten = [];
     const yamls = fs.readdirSync(coreYamlPath);
     for (const file of yamls) {
@@ -121,18 +120,7 @@ const _getVersionsCore = async (versions, opts) => {
             continue;
         }
         const { tmpFileName, images } = changeYamlImageVersion(file, versions, coreYamlPath)
-        for (const i of images) {
-            const fileName = i.replace(/[\/:]/gi, '_')
-            if (alreadyWritten.includes(fileName)) {
-                console.log(`${fileName} already written. skipping.`)
-                continue;
-            }
-            alreadyWritten.push(fileName);
-            await syncSpawn(`docker`, `pull ${i}`)
-            await syncSpawn(`docker`, `save -o ${FOLDERS.hkube}/${versions.systemVersion}/images/${fileName}.tar ${i}`)
-
-        }
-        fs.copyFileSync(tmpFileName, `${FOLDERS.hkube}/${versions.systemVersion}/yaml/${path.basename(file)}`)
+        await syncSpawn('kubectl',`apply -f ${tmpFileName}`);
     }
 
 }
@@ -142,14 +130,11 @@ const _ignoreFileFunc = (file, stats) => {
     return path.basename(file).startsWith('#') || (!stats.isDirectory() && path.extname(file) != ".yml");
 }
 
-const _getVersionsThirdParty = async (versions, opts) => {
+const _applyVersionsThirdParty = async (versions, opts) => {
     pts = opts || [];
     const alreadyWritten = [];
-    const yamls = await recursiveDir(thirdPartyPath, [_ignoreFileFunc]);
-
-
-    // const yamls = fs.readdirSync(thirdPartyPath);
-
+    const yamlsNotSorted = await recursiveDir(thirdPartyPath, [_ignoreFileFunc]);
+    const yamls = yamlsNotSorted.sort();
     for (const file of yamls) {
         try {
             if (path.basename(file).startsWith('#')) {
@@ -159,25 +144,16 @@ const _getVersionsThirdParty = async (versions, opts) => {
                 continue;
             }
 
-            const { tmpFileName, images } = changeYamlImageVersion(file, null, thirdPartyPath)
-            for (const i of images) {
-                const fileName = i.replace(/[\/:]/gi, '_')
-                if (alreadyWritten.includes(fileName)) {
-                    console.log(`${fileName} already written. skipping.`)
-                    continue;
-                }
-                alreadyWritten.push(fileName);
-                await syncSpawn(`docker`, `pull ${i}`)
-                await fs.mkdirp(`${FOLDERS.hkube}/thirdParty`);
-                await syncSpawn(`docker`, `save -o ${FOLDERS.hkube}/thirdParty/${fileName}.tar ${i}`)
-
+            const { tmpFileName, images , waitObjectName} = changeYamlImageVersion(file, null, thirdPartyPath)
+            await syncSpawn('kubectl',`apply -f ${tmpFileName}`);
+            if (waitObjectName){
+                await kubernetesApi.listenToK8sStatus(waitObjectName, `Running`)
             }
 
         }
         catch (e) {
             console.error(e);
         }
-        // fs.copyFileSync(tmpFileName, `${FOLDERS.hkube}/${path.basename(file)}`)
     }
 
 }
