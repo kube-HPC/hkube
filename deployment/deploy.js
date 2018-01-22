@@ -119,7 +119,7 @@ const _applyVersionsCore = async (versions, opts) => {
         if (path.basename(file).startsWith('#')) {
             continue;
         }
-        const { tmpFileName, images } = changeYamlImageVersion(file, versions, coreYamlPath)
+        const { tmpFileName, images } = changeYamlImageVersion(file, versions, coreYamlPath, opts.registry)
         await syncSpawn('kubectl',`apply -f ${tmpFileName}`);
     }
 

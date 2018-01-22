@@ -90,7 +90,7 @@ const getLatestVersions = async (prefix) => {
     }
 }
 
-const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
+const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
     versions = versions || { versions: [] }
     const fullPath = path.isAbsolute(yamlFile) ? yamlFile : `${coreYamlPath}/${yamlFile}`;
     try {
@@ -99,7 +99,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
         const images = [];
         let waitObjectName;
         yml.forEach(y => {
-            if (!waitObjectName && (y.kind === 'Deployment' || y.kind ==='EtcdCluster')){
+            if (!waitObjectName && (y.kind === 'Deployment' || y.kind === 'EtcdCluster')) {
                 waitObjectName = y.metadata.name;
             }
             const containers = objectPath.get(y, 'spec.template.spec.containers');
@@ -107,25 +107,17 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
                 return;
             }
             containers.forEach(c => {
-                if (c.image.lastIndexOf(':') > 0) {
-                    const versionFromYaml = c.image.substr(c.image.lastIndexOf(':')+1);
-                    if (versionFromYaml){
-                        images.push(c.image);
-                        return;
-                    }
-                    c.image = c.image.substr(0, c.image.lastIndexOf(':'));
+                const imageParsed = _parseImageName(c.image);
+                const imageName = imageParsed.repository;
+                if (imageParsed.tag && imageParsed.tag !== 'latest') {
+                    images.push(c.image);
+                    console.log(`service ${imageName}. found version ${imageParsed.tag}`)
+                    return;
                 }
-                const lastSlashIndex = c.image.lastIndexOf('/');
-                let imageName;
-                if (lastSlashIndex !== -1) {
-                    imageName = c.image.substr(lastSlashIndex + 1)
-                }
-                else {
-                    imageName = c.image;
-                }
+
                 const version = versions.versions.find(v => v.project === imageName);
                 const tag = version ? version.tag : 'latest';
-                c.image = `${c.image}:${tag}`
+                c.image = _createImageName({...imageParsed,tag,registry})
                 images.push(c.image);
                 console.log(`service ${imageName}. found version ${tag}`)
             })
@@ -134,13 +126,54 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath) => {
         withVersions = withVersions.join('\r\n---\r\n')
         const tmpFileName = tempfile('.yml');
         fs.writeFileSync(tmpFileName, withVersions, 'utf8');
-        return { tmpFileName, images, waitObjectName};
+        return { tmpFileName, images, waitObjectName };
     }
     catch (e) {
         return fullPath;
     }
 }
 
+const _createImageName = ({ registry, namespace, repository, tag }) => {
+    let array=[registry,namespace,repository];
+    array = array.filter(a=>a);
+    let image=array.join('/');
+    if (tag){
+        image = `${image}:${tag}`;
+    }
+    // let image = `${registry||''}/${namespace||''}/${repository||''}:${tag||''}`;
+    // image = image.replace('//','/');
+    return image;
+}
+const _parseImageName = (image) => {
+    var match = image.match(/^(?:([^\/]+)\/)?(?:([^\/]+)\/)?([^@:\/]+)(?:[@:](.+))?$/)
+    if (!match) return null
+
+    var registry = match[1]
+    var namespace = match[2]
+    var repository = match[3]
+    var tag = match[4]
+
+    if (!namespace && registry && !/[:.]/.test(registry)) {
+        namespace = registry
+        registry = null
+    }
+
+    var result = {
+        registry: registry || null,
+        namespace: namespace || null,
+        repository: repository,
+        tag: tag || null
+    }
+
+    registry = registry ? registry + '/' : ''
+    namespace = namespace && namespace !== 'library' ? namespace + '/' : ''
+    tag = tag && tag !== 'latest' ? ':' + tag : ''
+
+    result.name = registry + namespace + repository + tag
+    result.fullname = registry + (namespace || 'library/') + repository + (tag || ':latest')
+
+    return result
+}
 
 module.exports = {
     getLatestVersions,
