@@ -78,7 +78,7 @@ describe('consumer', () => {
 
     it('should send init to worker', (done) => {
         workerCommunication.once(messages.incomming.initialized, (message) => {
-            expect(message.id).to.not.be.undefined;
+            expect(message.jobID).to.not.be.undefined;
             done();
         });
         producer = new Producer(producerSettings);
