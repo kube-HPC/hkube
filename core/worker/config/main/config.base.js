@@ -2,12 +2,12 @@
 const config = {};
 
 config.serviceName = 'workers';
-const useCluster = !!process.env.REDIS_CLUSTER_SERVICE_HOST;
+const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.redis = {
-    host: useCluster ? process.env.REDIS_CLUSTER_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
-    port: useCluster ? process.env.REDIS_CLUSTER_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
-    useCluster
+    host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
+    port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
+    sentinel: useSentinel,
 };
 
 config.workerCommunication = {
