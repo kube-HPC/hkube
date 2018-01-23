@@ -4,7 +4,7 @@ const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const States = require('../state/States');
-const { levels } = require('../progress/progressLevels');
+const levels = require('../progress/progressLevels');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors/errors');
 const { tracer } = require('@hkube/metrics');
 
@@ -68,7 +68,7 @@ class ExecutionService {
             }
         });
         await stateManager.setExecution({ jobId, data: pipeline });
-        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info } });
+        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
         return jobId;
@@ -87,12 +87,21 @@ class ExecutionService {
      * @memberOf ExecutionService
      */
     async getJobStatus(options) {
-        validator.validateExecutionID(options);
+        validator.validateJobID(options);
         const status = await stateManager.getJobStatus({ jobId: options.jobId });
         if (!status) {
             throw new ResourceNotFoundError('status', options.jobId);
         }
         return status;
+    }
+
+    async getPipeline(options) {
+        validator.validateJobID(options);
+        const pipeline = await stateManager.getExecution({ jobId: options.jobId });
+        if (!pipeline) {
+            throw new ResourceNotFoundError('pipeline', options.jobId);
+        }
+        return pipeline;
     }
 
     /**
@@ -108,7 +117,7 @@ class ExecutionService {
      * @memberOf ExecutionService
     */
     async getJobResult(options) {
-        validator.validateExecutionID(options);
+        validator.validateJobID(options);
         const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('status', options.jobId);
@@ -143,7 +152,7 @@ class ExecutionService {
         if (!stateManager.isActiveState(jobStatus.data.status)) {
             throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
         }
-        await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, data: { status: States.STOPPING, level: levels.info } });
+        await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, data: { status: States.STOPPING, level: levels.info.name } });
         await stateManager.stopJob({ jobId: options.jobId, reason: options.reason });
     }
 

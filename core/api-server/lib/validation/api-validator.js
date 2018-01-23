@@ -18,11 +18,11 @@ class Validator {
     }
 
     validateRunRawPipeline(pipeline) {
-        this._validate(schemas.pipeline, pipeline);
+        this._validate(schemas.pipeline, pipeline, { checkFlowInput: true });
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(schemas.runStoredPipeline, pipeline);
+        this._validate(schemas.runStoredPipeline, pipeline, { checkFlowInput: false });
     }
 
     validateStopPipeline(pipeline) {
@@ -45,41 +45,46 @@ class Validator {
         this._validate(schemas.pipelineName, pipeline);
     }
 
-    validateExecutionID(pipeline) {
+    validateJobID(pipeline) {
         this._validate(schemas.jobId, pipeline);
     }
 
-    _validate(schema, object) {
+    _validate(schema, object, options) {
         const res = validator(schema, object);
         if (!res.valid) {
             throw new InvalidDataError(res.error);
         }
         if (object.nodes) {
-            this._validateNodes(object);
+            this._validateNodes(object, options);
         }
     }
 
-    _validateNodes(options) {
+    _validateNodes(pipeline, options) {
+        options = options || {};
         const graph = new Graph();
         const links = [];
 
-        options.nodes.forEach((node) => {
+        pipeline.nodes.forEach((node) => {
             if (graph.node(node.nodeName)) {
                 throw new InvalidDataError(`found duplicate node ${node.nodeName}`);
             }
             if (node.nodeName === 'flowInput') {
-                throw new InvalidDataError(`pipeline ${options.name} has invalid reserved name flowInput`);
+                throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name flowInput`);
             }
 
             node.input.forEach((inp) => {
-                try {
-                    parser.checkFlowInput({ flowInput: options.flowInput, nodeInput: inp });
-                } catch (e) {
-                    throw new InvalidDataError(e.message);
+                if (options.checkFlowInput) {
+                    try {
+                        parser.checkFlowInput({ flowInput: pipeline.flowInput, nodeInput: inp });
+                    }
+                    catch (e) {
+                        throw new InvalidDataError(e.message);
+                    }
                 }
+
                 const nodesNames = parser.extractNodesFromInput(inp);
                 nodesNames.forEach((n) => {
-                    const nd = options.nodes.find(f => f.nodeName === n.nodeName);
+                    const nd = pipeline.nodes.find(f => f.nodeName === n.nodeName);
                     if (nd) {
                         links.push({ source: nd.nodeName, target: node.nodeName });
                     }
@@ -96,10 +101,10 @@ class Validator {
         });
 
         if (!alg.isAcyclic(graph)) {
-            throw new InvalidDataError(`pipeline ${options.name} has cyclic nodes`);
+            throw new InvalidDataError(`pipeline ${pipeline.name} has cyclic nodes`);
         }
         if (!graph.isDirected()) {
-            throw new InvalidDataError(`pipeline ${options.name} is not directed graph`);
+            throw new InvalidDataError(`pipeline ${pipeline.name} is not directed graph`);
         }
     }
 

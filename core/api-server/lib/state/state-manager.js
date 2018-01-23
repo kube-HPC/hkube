@@ -53,6 +53,26 @@ class StateManager extends EventEmitter {
         return this._etcd.jobResults.getResult(options);
     }
 
+    async getCompletedJobs() {
+        return this._etcd.jobResults.getResults(s => (s.status && s.status.data.status === States.COMPLETED) || (s.result && s.result.data.status === States.COMPLETED));
+    }
+
+    async setJobResultsLog(options) {
+        return this._etcd.jobResults.setResultsLog(options);
+    }
+
+    async setJobStatusLog(options) {
+        return this._etcd.jobResults.setStatusLog(options);
+    }
+
+    async getJobResultsLog(options) {
+        return this._etcd.jobResults.getResultsLog(options);
+    }
+
+    async getJobStatusLog(options) {
+        return this._etcd.jobResults.getStatusLog(options);
+    }
+
     async getJobStatus(options) {
         return this._etcd.jobResults.getStatus(options);
     }

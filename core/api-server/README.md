@@ -23,6 +23,8 @@ The Swagger-UI can found at http://localhost:3000/swagger-ui/
   * [Batch](#Batch)
   * [Batch Reference](#batch-reference)
   * [Wait Any](#wait-any)
+  * [Another Batch Example](#another-batch-example)
+  * [Another Wait Any Example](#another-wait-any-example)
 * [Webhooks](#webhooks)
   * [Progress](#progress)
     * [Verbosity Level](#verbosity-level)
@@ -46,6 +48,7 @@ The reasons for choosing this structure are:
 In order to create this pipeline flow, we need to specify a node list which look like this:
 
 ```js
+"name": "DAG",
 "nodes": [{
     "nodeName": "A",
     "algorithmName": "a-alg",
@@ -93,11 +96,11 @@ Each node has three properties.
 Node A and Node G will run first in parallel, because their input does not refer  
 to any other node. The **@** indicates a reference to other node.  
 
-Node B will run after Node A (["@A"])
-Node C will run after Node B (["@B"])
-Node D will run after Node B and G (["@B", "@G"])
-Node E will run after Node B, C, D (["@B", "@C", "@D"])
-Node F will run after Node E (["@E"])
+Node B will run after Node A (["@A"]).  
+Node C will run after Node B (["@B"]).  
+Node D will run after Node B and G (["@B", "@G"]).  
+Node E will run after Node B, C, D (["@B", "@C", "@D"]).  
+Node F will run after Node E (["@E"]).
 
 You can see that the order and the direction of the pipeline is determined by the node **input**.
 
@@ -109,8 +112,8 @@ Their input does not refer to any other node (have no parents).
 ### Final Nodes
 
 These are the nodes that will run last, in the example above Node F.   
-No other node is depend on these nodes (have no children).
-Tge results of the pipeline is determined by these nodes.
+No other node is depend on these nodes (have no children).  
+The results of the entire pipeline are actually the results of these nodes.
 
 ## Input
 
@@ -118,6 +121,7 @@ The node input can accept as many arguments as you want from any type:
 Number, Boolean, String, Null and JSON Object.
 
 ```js
+"name": "example-input",
 "nodes": [{
     "nodeName": "example",
     "algorithmName": "example-alg",
@@ -129,7 +133,7 @@ Number, Boolean, String, Null and JSON Object.
 
 Take a look at the input of **Node E**: ["@B", "@C", "@D"].  
 The order of the arguments is not important here, it also can be ["@D", "@C", "@B"].  
-The order is only important for the algorithm signature.
+The order is only important for the algorithm function signature.
 
 ## Execution Flow
 
@@ -146,8 +150,9 @@ You can define reusable data for nodes input, this input is an object that calle
 Using the @ sign we can easily refer to this object.
 
 ```js
+"name": "example-flowInput",
 "nodes": [{
-    "nodeName": "example",
+    "nodeName": "example-node",
     "algorithmName": "example-alg",
     "input": [42, true, "@flowInput.files.links", null, {foo: "bar"}]
 }],
@@ -170,6 +175,7 @@ example-alg: [42, true, ["links-1","links-2","links-3"], null, {foo: "bar"}]
 Or batch
 
 ```js
+"name": "example-flowInput-batch",
 "nodes": [{
     "nodeName": "example",
     "algorithmName": "example-alg",
@@ -199,6 +205,7 @@ As we can see in the A -> B -> C pipeline example, by using @ in the input
 we can take node output and make it the input of another node.
 
 ```js
+"name": "reference",
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
@@ -235,10 +242,11 @@ That because the red node is the last node in the pipeline.
 
 ### Batch
 
-By using # in the input we can execute nodes in parallel and reduce the results into a single node.   
+By using # in the input we can execute nodes in parallel and reduce the results into single node.   
 This example is exactly like the first one, except the # sign in the input of the green node.
 
 ```js
+"name": "batch",
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
@@ -279,6 +287,7 @@ The Batch Tolerance is a threshold setting that allow to control in which **perc
 In this example we define batch tolerance of 60%, which means that we allow max of 60% from the batch items to be fail. 
 
 ```js
+"name": "example-batchTolerance",
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
@@ -313,6 +322,7 @@ By using #@ in the input we can create a batch processing on node results.
 Lets say that green node returns an array: ['A', 'B', 'C'].
 
 ```js
+"name": "batch-reference",
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
@@ -347,6 +357,7 @@ The DAG of this pipeline will look like:
 By using *@ in the input we can create a wait any on batch.
 
 ```js
+"name": "wait-any",
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
@@ -389,9 +400,10 @@ The DAG of this pipeline will look like:
 ![Diagram](/docs/images/wait-any.png)  
 
 
-### More Batch Example
+### Another Batch Example
 
 ```js
+"name": "batch",
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",
@@ -413,13 +425,14 @@ The DAG of this pipeline will look like:
 ![Diagram](/docs/images/batch-result2.png) 
 
 
-### Another Wait Any
+### Another Wait Any Example
 
 What if we want to run multiple batches, and for each batch item result  
 We want to run node that will accept results with same order they have been created.
 
 
 ```js
+"name": "wait-any",
 "nodes": [{
     "nodeName": "green",
     "algorithmName": "green-alg",

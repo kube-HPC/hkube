@@ -1,4 +1,3 @@
-
 const bootstrap = require('./bootstrap');
 
 bootstrap.init().catch((error) => {

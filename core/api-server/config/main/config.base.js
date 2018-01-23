@@ -32,11 +32,7 @@ config.etcd = {
 };
 
 config.webhooks = {
-    progress: {
-        maxAttempts: 3,
-        retryDelay: 5000
-    },
-    result: {
+    retryStrategy: {
         maxAttempts: 3,
         retryDelay: 5000
     }
