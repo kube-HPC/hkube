@@ -33,7 +33,7 @@ class AppServer {
             });
 
             const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
-
+            const routeLogBlacklist = ['/metrics'];
             swagger.basePath = options.swagger.path;
             const opt = {
                 swagger,
@@ -43,8 +43,8 @@ class AppServer {
                 prefix,
                 port: options.rest.port,
                 versions: options.rest.versions,
-                beforeRoutesMiddlewares: [...beforeRoutesMiddlewares, beforeRequest],
-                afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest]
+                beforeRoutesMiddlewares: [...beforeRoutesMiddlewares, beforeRequest(routeLogBlacklist)],
+                afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest(routeLogBlacklist)]
             };
             rest.start(opt).then((data) => {
                 resolve({

@@ -67,7 +67,7 @@ class ExecutionService {
                 name: pipeline.name
             }
         });
-        await stateManager.setExecution({ jobId, data: pipeline });
+        await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();

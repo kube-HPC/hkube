@@ -4,10 +4,17 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
 const levels = require('../progress/progressLevels');
 const States = require('./States');
+const metrics = require('@hkube/metrics');
+const { metricsNames } = require('../../common/consts/metricsNames');
 
 class WebhooksHandler {
     init(options) {
         this._options = options;
+        metrics.addTimeMeasure({
+            name: metricsNames.pipelines_gross,
+            labels: ['pipeline_name', 'status'],
+            buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
+        });
         this._recovery();
         this._watch();
     }
@@ -49,6 +56,14 @@ class WebhooksHandler {
 
     async _requestResults(jobId, payload) {
         const pipeline = await stateManager.getExecution({ jobId });
+        const time = Date.now() - pipeline.startTime;
+        metrics.get(metricsNames.pipelines_gross).retroactive({
+            time,
+            labelValues: {
+                pipeline_name: pipeline.name,
+                status: payload.data.status
+            }
+        });
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const result = await this._request(pipeline.webhooks.result, payload, 'result', payload.data.status);
             stateManager.setJobResultsLog({ jobId, data: result });
