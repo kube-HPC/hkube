@@ -2,7 +2,7 @@ const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { VerbosityPlugin } = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
-const componentNames = require('./common/consts/componentNames.js');
+const componentNames = require('./common/consts/componentNames');
 const metrics = require('@hkube/metrics');
 const { tracer } = require('@hkube/metrics');
 let log;
@@ -22,7 +22,7 @@ class Bootstrap {
             this._handleErrors();
 
             log = new Logger(main.serviceName, logger);
-            log.plugins.use(new VerbosityPlugin(main.redis));
+            // log.plugins.use(new VerbosityPlugin(main.redis)); disabled for now, require 3 redis clients
             log.info('running application in ' + configIt.env() + ' environment', { component: componentNames.MAIN });
 
             monitor.on('ready', (data) => {

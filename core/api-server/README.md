@@ -118,14 +118,14 @@ The results of the entire pipeline are actually the results of these nodes.
 ## Input
 
 The node input can accept as many arguments as you want from any type:  
-Number, Boolean, String, Null and JSON Object.
+Number, Boolean, String, Array, Null and JSON Object.
 
 ```js
 "name": "example-input",
 "nodes": [{
     "nodeName": "example",
     "algorithmName": "example-alg",
-    "input": [42, 42.56, -512.23, false, true, "OK", null, {foo: "bar"}]
+    "input": [42, 42.56, -512.23, false, true, "OK", [2,3,4], null, {foo: "bar"}]
 }]
 ```
 
@@ -472,7 +472,7 @@ You can also fetch the same data from the API:
 * progress - /api/v1/exec/status
 * result   - /api/v1/exec/results
 
-Webhooks headers are:
+Webhooks headers are:  
 Method: POST  
 Content-type: application/json
 
@@ -533,15 +533,15 @@ If the client specified **debug** level, every progress from debug level and abo
     "input": ["#[1,2,3,4,5,6,7,8,9,10]"]
 }],
 "webhooks": {
-    "progress": "http://<URL>",
-    "result": "http://<URL>"
+    "progress": "<URL>",
+    "result": "<URL>"
 },
 "options": {
     "progressVerbosityLevel": "debug"
 }
 ```
 
-And this is the progress webhook payload
+And this is the progress webhook payload:
 
 ```js
 {
@@ -571,20 +571,48 @@ And this is the progress webhook payload
 ### Result
 
 The purpose of the result webhook is to update the client when the pipeline is completed.  
-This is the result webhook payload.
+By running the following batch pipeline, the system will send the result to the specified address.
+
+```js
+"name": "batch-pipeline",
+"nodes": [{
+    "nodeName": "green",
+    "algorithmName": "green-alg",
+    "input": ["#[1,2,3]"]
+}],
+"webhooks": {
+    "progress": "<URL>",
+    "result": "<URL>"
+}
+```
+
+This is the result webhook payload, notice that there is a result for each batch node.
 
 ```js
 {
-    "jobId": "simple:e51c8dd7-7a7b-4d65-ad36-d1a919a9dee1",
+    "jobId": "batch-pipeline:e51c8dd7-7a7b-4d65-ad36-d1a919a9dee1",
     "timestamp": "2018-01-16T15:15:00.369Z",
-    "pipeline": "simple",
+    "pipeline": "batch-pipeline",
     "data": {
         "result": [
             {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "result": "links-1"
-            }
+                "nodeName": "green",
+                "batchID": "green#1",
+                "algorithmName": "green-alg",
+                "result": 10
+            },
+            {
+                "nodeName": "green",
+                "batchID": "green#2",
+                "algorithmName": "green-alg",
+                "result": 20
+            },
+            {
+                "nodeName": "green",
+                "batchID": "green#3",
+                "algorithmName": "green-alg",
+                "result": 30
+            },
         ],
         "status": "completed"
     }

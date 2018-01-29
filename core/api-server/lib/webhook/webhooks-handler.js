@@ -13,18 +13,18 @@ class WebhooksHandler {
     }
 
     _watch() {
-        stateManager.on('job-result', async (response) => {
+        stateManager.on('job-result', (response) => {
             this._requestResults(response.jobId, response);
         });
 
-        stateManager.on('job-status', async (response) => {
+        stateManager.on('job-status', (response) => {
             this._requestStatus(response.jobId, response);
         });
     }
 
     async _recovery() {
         const jobResults = await stateManager.getCompletedJobs();
-        jobResults.forEach(async (job) => {
+        jobResults.forEach((job) => {
             if ((!job.resultLog) || (job.resultLog && job.resultLog.pipelineStatus !== job.result.data.status)) {
                 this._requestResults(job.jobId, job.result);
             }
@@ -58,6 +58,10 @@ class WebhooksHandler {
     _request(url, body, type, pipelineStatus) {
         return new Promise((resolve, reject) => {
             log.debug(`trying to call ${type} webhook ${url}`, { component: components.WEBHOOK_HANDLER });
+            const data = {
+                url,
+                pipelineStatus
+            };
             request({
                 method: 'POST',
                 uri: url,
@@ -67,21 +71,13 @@ class WebhooksHandler {
                 retryDelay: this._options.webhooks.retryStrategy.retryDelay,
                 retryStrategy: request.RetryStrategies.HTTPOrNetworkError
             }).then((response) => {
-                const data = {
-                    url,
-                    pipelineStatus,
-                    responseStatus: response.statusCode >= 400 ? States.FAILED : States.SUCCEEDED,
-                    httpResponse: { statusCode: response.statusCode, statusMessage: response.statusMessage }
-                };
+                data.responseStatus = response.statusCode >= 400 ? States.FAILED : States.SUCCEEDED;
+                data.httpResponse = { statusCode: response.statusCode, statusMessage: response.statusMessage };
                 log.debug(`webhook ${type} completed with status ${response.statusCode} ${response.statusMessage}, attempts: ${response.attempts}`, { component: components.WEBHOOK_HANDLER });
                 return resolve(data);
             }).catch((error) => {
-                const data = {
-                    url,
-                    pipelineStatus,
-                    responseStatus: States.FAILED,
-                    httpResponse: { statusCode: error.code, statusMessage: error.message }
-                };
+                data.responseStatus = States.FAILED;
+                data.httpResponse = { statusCode: error.code, statusMessage: error.message };
                 log.error(`webhook ${type} failed ${error.message}`, { component: components.WEBHOOK_HANDLER });
                 return resolve(data);
             });
