@@ -3,7 +3,6 @@ const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, } = require('../errors/errors');
 
 class WebhooksService {
-
     async getJobResultsLog(options) {
         validator.validateJobID(options);
         const status = await stateManager.getJobResultsLog({ jobId: options.jobId });

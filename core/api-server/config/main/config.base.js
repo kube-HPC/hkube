@@ -15,7 +15,7 @@ config.swagger = {
     protocol: secured ? 'https' : 'http',
     host: process.env.BASE_URL_HOST || 'localhost',
     port: process.env.BASE_URL_PORT || config.rest.port,
-    path: (process.env.BASE_URL_PATH || '') + `/${config.rest.prefix}${config.rest.versions[0]}`
+    path: (process.env.BASE_URL_PATH || '')
 };
 
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;

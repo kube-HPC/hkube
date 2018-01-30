@@ -17,15 +17,15 @@ class JobProducer {
         setting.tracer = tracer;
         this._producer = new Producer({ setting });
         this._producer.on('job-waiting', (data) => {
-            log.info(`job waiting ${data.jobID}`, { component: components.JOBS_PRODUCER });
+            log.info(`job waiting ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
         }).on('job-active', (data) => {
-            log.info(`job active ${data.jobID}`, { component: components.JOBS_PRODUCER });
+            log.info(`job active ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
         }).on('job-completed', (data) => {
-            log.info(`job completed ${data.jobID}`, { component: components.JOBS_PRODUCER });
+            log.info(`job completed ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
         }).on('job-failed', (data) => {
-            log.error(`job failed ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER });
+            log.error(`job failed ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
         }).on('job-stalled', (data) => {
-            log.error(`job stalled ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER });
+            log.error(`job stalled ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
         });
     }
 

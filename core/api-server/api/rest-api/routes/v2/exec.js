@@ -9,16 +9,18 @@ const routes = (options) => {
         next();
     });
     router.all('/raw', methods(['POST']), (req, res, next) => {
-        Execution.runRaw(req.body).then((response) => {
-            res.json({ jobId: response });
+        Execution.runRaw(req.body).then((jobId) => {
+            res.json({ jobId });
+            res.jobId = jobId;
             next();
         }).catch((error) => {
             return next(error);
         });
     });
     router.all('/stored', methods(['POST']), (req, res, next) => {
-        Execution.runStored(req.body).then((response) => {
-            res.json({ jobId: response });
+        Execution.runStored(req.body).then((jobId) => {
+            res.json({ jobId });
+            res.jobId = jobId;
             next();
         }).catch((error) => {
             return next(error);
@@ -28,6 +30,7 @@ const routes = (options) => {
         const { jobId } = req.params;
         Execution.getJobStatus({ jobId }).then((response) => {
             res.json(response);
+            res.jobId = jobId;
             next();
         }).catch((error) => {
             return next(error);
@@ -37,14 +40,17 @@ const routes = (options) => {
         const { jobId } = req.params;
         Execution.getJobResult({ jobId }).then((response) => {
             res.json(response);
+            res.jobId = jobId;
             next();
         }).catch((error) => {
             return next(error);
         });
     });
     router.all('/stop', methods(['POST']), (req, res, next) => {
-        Execution.stopJob(req.body).then(() => {
+        const { jobId, reason } = req.body;
+        Execution.stopJob({ jobId, reason }).then(() => {
             res.json({ message: 'OK' });
+            res.jobId = jobId;
             next();
         }).catch((error) => {
             return next(error);

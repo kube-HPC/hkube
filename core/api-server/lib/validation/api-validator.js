@@ -2,9 +2,8 @@
 const validator = require('djsv');
 const { parser } = require('@hkube/parsers');
 const { Graph, alg } = require('graphlib');
-const { components } = require('../../api/rest-api/swagger.json');
+const { schemas } = require('../../api/rest-api/swagger.json').components;
 const { InvalidDataError, } = require('../errors/errors');
-const { schemas } = components;
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
 
 class Validator {
@@ -15,6 +14,16 @@ class Validator {
                 validator.addSchema(s);
             }
         });
+    }
+
+    addDefaults(pipeline) {
+        pipeline.options = pipeline.options || {};
+        if (!pipeline.options.batchTolerance) {
+            pipeline.options.batchTolerance = 80;
+        }
+        if (!pipeline.options.progressVerbosityLevel) {
+            pipeline.options.progressVerbosityLevel = 'info';
+        }
     }
 
     validateRunRawPipeline(pipeline) {

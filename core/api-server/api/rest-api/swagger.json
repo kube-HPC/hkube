@@ -791,8 +791,7 @@
                         "$ref": "#/components/schemas/webhooks"
                     },
                     "options": {
-                        "$ref": "#/components/schemas/options",
-                        "default": {}
+                        "$ref": "#/components/schemas/options"
                     }
                 },
                 "additionalProperties": false,
@@ -828,6 +827,7 @@
                         "default": []
                     }
                 },
+                "additionalProperties": false,
                 "required": [
                     "nodeName",
                     "algorithmName"
@@ -849,8 +849,7 @@
                         "$ref": "#/components/schemas/webhooks"
                     },
                     "options": {
-                        "$ref": "#/components/schemas/options",
-                        "default": {}
+                        "$ref": "#/components/schemas/options"
                     }
                 },
                 "additionalProperties": false,
@@ -867,7 +866,6 @@
                     },
                     "nodes": {
                         "type": "array",
-                        "description": "Unique identifier representing a specific function. e.g. \"Average\"",
                         "items": {
                             "$ref": "#/components/schemas/pipelineNode"
                         }
@@ -880,8 +878,7 @@
                         "$ref": "#/components/schemas/webhooks"
                     },
                     "options": {
-                        "$ref": "#/components/schemas/options",
-                        "default": {}
+                        "$ref": "#/components/schemas/options"
                     }
                 },
                 "additionalProperties": false,
@@ -913,13 +910,11 @@
                 "properties": {
                     "batchTolerance": {
                         "type": "integer",
-                        "default": 80,
                         "minimum": 0,
                         "maximum": 100
                     },
                     "progressVerbosityLevel": {
                         "type": "string",
-                        "default": "info",
                         "enum": [
                             "silly",
                             "debug",

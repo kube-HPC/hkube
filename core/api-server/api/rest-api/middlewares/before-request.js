@@ -1,11 +1,13 @@
 const log = require('@hkube/logger').GetLogFromContanier();
-const componentName = require('../../../common/consts/componentNames');
+const components = require('../../../common/consts/componentNames');
 
 const logger = (filter = []) => (req, res, next) => {
-    if (filter.includes(req.url)) {
+    if (filter.some(f => req.url.startsWith(f))) {
         return next();
     }
-    log.info(`request arrived for ${req.method} ${req.url}`, { component: componentName.REST_API });
+    const pipelineName = req.body.name || req.params.name;
+    const jobId = req.body.jobId || req.params.jobId;
+    log.info(`request arrived for ${req.method} ${req.url}`, { component: components.REST_API, jobId, pipelineName });
     return next();
 };
 

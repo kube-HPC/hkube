@@ -1,7 +1,7 @@
+const deepExtend = require('deep-extend');
 const validator = require('../validation/api-validator');
-const Pipeline = require('../entities/Pipeline');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ResourceExistsError, InvalidDataError, } = require('../errors/errors');
+const { ResourceNotFoundError, ResourceExistsError, } = require('../errors/errors');
 
 class StoreService {
     /**
@@ -17,10 +17,8 @@ class StoreService {
         if (!pipe) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        if (Object.keys(options).length === 1) {
-            throw new InvalidDataError('nothing to update with this request');
-        }
-        const pipeline = Object.assign({}, pipe, options);
+        const pipeline = deepExtend(pipe, options);
+        validator.addDefaults(pipeline);
         return stateManager.setPipeline(pipeline);
     }
 
@@ -73,8 +71,8 @@ class StoreService {
         if (pipe) {
             throw new ResourceExistsError('pipeline', options.name);
         }
-        const pipeline = new Pipeline(options);
-        return stateManager.setPipeline(pipeline);
+        validator.addDefaults(options);
+        return stateManager.setPipeline(options);
     }
 }
 

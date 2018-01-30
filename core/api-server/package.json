@@ -9,9 +9,9 @@
         "@hkube/logger": "^1.0.7",
         "@hkube/metrics": "^1.0.21",
         "@hkube/parsers": "^1.0.5",
-        "@hkube/producer-consumer": "^1.0.28",
+        "@hkube/producer-consumer": "^1.0.29",
         "@hkube/redis-utils": "^1.0.1",
-        "@hkube/rest-server": "^1.0.4",
+        "@hkube/rest-server": "^1.0.5",
         "deep-extend": "^0.5.0",
         "djsv": "^3.0.3",
         "express": "^4.16.2",
@@ -31,12 +31,12 @@
         "istanbul": "^1.1.0-alpha.1",
         "mocha": "^3.5.3",
         "request": "^2.83.0",
-        "sinon": "^4.2.0"
+        "sinon": "^4.2.2"
     },
     "scripts": {
         "lint": "./node_modules/eslint/bin/eslint.js .",
-        "test": "./node_modules/mocha/bin/_mocha test --colors --recursive",
-        "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test",
+        "test": "./node_modules/mocha/bin/_mocha tests --colors --recursive",
+        "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests",
         "start": "node app",
         "build": "./dockerfile/build.sh api-server"
     },

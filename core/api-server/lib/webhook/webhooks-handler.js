@@ -46,9 +46,9 @@ class WebhooksHandler {
         if (pipeline.webhooks && pipeline.webhooks.progress) {
             const clientLevel = levels[pipeline.options.progressVerbosityLevel].level;
             const pipelineLevel = levels[payload.data.level].level;
-            log.debug(`progress event with ${payload.data.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER });
+            log.debug(`progress event with ${payload.data.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER, jobId });
             if (clientLevel <= pipelineLevel) {
-                const result = await this._request(pipeline.webhooks.progress, payload, 'progress', payload.data.status);
+                const result = await this._request(pipeline.webhooks.progress, payload, 'progress', payload.data.status, jobId);
                 stateManager.setJobStatusLog({ jobId, data: result });
             }
         }
@@ -65,12 +65,12 @@ class WebhooksHandler {
             }
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
-            const result = await this._request(pipeline.webhooks.result, payload, 'result', payload.data.status);
+            const result = await this._request(pipeline.webhooks.result, payload, 'result', payload.data.status, jobId);
             stateManager.setJobResultsLog({ jobId, data: result });
         }
     }
 
-    _request(url, body, type, pipelineStatus) {
+    _request(url, body, type, pipelineStatus, jobId) {
         return new Promise((resolve, reject) => {
             log.debug(`trying to call ${type} webhook ${url}`, { component: components.WEBHOOK_HANDLER });
             const data = {
@@ -88,12 +88,12 @@ class WebhooksHandler {
             }).then((response) => {
                 data.responseStatus = response.statusCode >= 400 ? States.FAILED : States.SUCCEEDED;
                 data.httpResponse = { statusCode: response.statusCode, statusMessage: response.statusMessage };
-                log.debug(`webhook ${type} completed with status ${response.statusCode} ${response.statusMessage}, attempts: ${response.attempts}`, { component: components.WEBHOOK_HANDLER });
+                log.debug(`webhook ${type} completed with status ${response.statusCode} ${response.statusMessage}, attempts: ${response.attempts}`, { component: components.WEBHOOK_HANDLER, jobId });
                 return resolve(data);
             }).catch((error) => {
                 data.responseStatus = States.FAILED;
                 data.httpResponse = { statusCode: error.code, statusMessage: error.message };
-                log.error(`webhook ${type} failed ${error.message}`, { component: components.WEBHOOK_HANDLER });
+                log.error(`webhook ${type} failed ${error.message}`, { component: components.WEBHOOK_HANDLER, jobId });
                 return resolve(data);
             });
         });
