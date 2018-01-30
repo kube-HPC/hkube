@@ -24,12 +24,12 @@ class AppServer {
             routes.push(metrics.getRouter());
             options.rest.versions.forEach((v) => {
                 swagger.servers.push({ url: path.join('/', options.swagger.path, prefix, v) });
-                const dir = fs.readdirSync(path.join(__dirname, `/routes/${v}`));
+                const dir = fs.readdirSync(path.join(__dirname, 'routes', v));
                 dir.forEach((f) => {
                     const file = path.basename(f, '.js');
                     routes.push({
                         route: path.join('/', prefix, v, file),
-                        router: require(`./routes${v}/${file}`)({ version: v, file })  // eslint-disable-line
+                        router: require('./' + path.join('routes', v, file))({ version: v, file })  // eslint-disable-line
                     });
                 });
             });

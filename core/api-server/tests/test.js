@@ -1701,6 +1701,19 @@ describe('Test', () => {
                     expect(response.body).to.have.property('message');
                     expect(response.body.message).to.equal('OK');
                 });
+                it('should throw validation error of less than 2 properties', async () => {
+                    const options = {
+                        uri: restUrl + '/store/pipelines',
+                        method: 'PUT',
+                        body: {
+                            name: 'updatePipeline'
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('data should NOT have less than 2 properties');
+                });
             });
         });
         describe('Webhooks', () => {
