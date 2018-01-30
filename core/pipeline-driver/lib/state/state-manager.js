@@ -25,27 +25,27 @@ class StateManager extends EventEmitter {
     }
 
     async getTaskState(options) {
-        return await this._etcd.services.pipelineDriver.getTaskState({ jobId: options.jobId, taskId: options.taskId });
+        return this._etcd.services.pipelineDriver.getTaskState({ jobId: options.jobId, taskId: options.taskId });
     }
 
     async setTaskState(options) {
-        return await this._etcd.services.pipelineDriver.setTaskState({ jobId: options.jobId, taskId: options.taskId, data: options.data });
+        return this._etcd.services.pipelineDriver.setTaskState({ jobId: options.jobId, taskId: options.taskId, data: options.data });
     }
 
     async getDriverState(options) {
-        return await this._etcd.services.pipelineDriver.getState(options);
+        return this._etcd.services.pipelineDriver.getState(options);
     }
 
     async setDriverState(options) {
-        await this._etcd.services.pipelineDriver.setState({ jobId: options.jobId, data: { state: options.data, startTime: new Date() } });
+        return this._etcd.services.pipelineDriver.setState({ jobId: options.jobId, data: { state: options.data, startTime: new Date() } });
     }
 
     async getDriverTasks(options) {
-        return await this._etcd.services.pipelineDriver.getDriverTasks(options);
+        return this._etcd.services.pipelineDriver.getDriverTasks(options);
     }
 
     async deleteDriverState(options) {
-        return await this._etcd.services.pipelineDriver.deleteState(options);
+        return this._etcd.services.pipelineDriver.deleteState(options);
     }
 
     async setJobResults(options) {
@@ -54,7 +54,7 @@ class StateManager extends EventEmitter {
             pipeline: options.pipeline,
             data: options.data
         }
-        return await this._etcd.jobResults.setResults({ jobId: options.jobId, data: payload });
+        return this._etcd.jobResults.setResults({ jobId: options.jobId, data: payload });
     }
 
     async setJobStatus(options) {
@@ -63,7 +63,7 @@ class StateManager extends EventEmitter {
             pipeline: options.pipeline,
             data: options.data
         }
-        return await this._etcd.jobResults.setStatus({ jobId: options.jobId, data: payload });
+        return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: payload });
     }
 
     async getState(options) {
@@ -80,27 +80,27 @@ class StateManager extends EventEmitter {
     }
 
     async getExecution(options) {
-        return await this._etcd.execution.getExecution(options);
+        return this._etcd.execution.getExecution(options);
     }
 
     async setExecution(options) {
-        return await this._etcd.execution.setExecution(options);
+        return this._etcd.execution.setExecution(options);
     }
 
     async watchTasks(options) {
-        return await this._etcd.tasks.watch(options);
+        return this._etcd.tasks.watch(options);
     }
 
     async unWatchTasks(options) {
-        return await this._etcd.tasks.unwatch(options);
+        return this._etcd.tasks.unwatch(options);
     }
 
     async watchJobState(options) {
-        return await this._etcd.jobs.watch(options);
+        return this._etcd.jobs.watch(options);
     }
 
     async unWatchJobState(options) {
-        return await this._etcd.jobs.unwatch(options);
+        return this._etcd.jobs.unwatch(options);
     }
 }
 

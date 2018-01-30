@@ -1,11 +1,12 @@
 const EventEmitter = require('events');
-const uuidv4 = require('uuid/v4');
 const Graph = require('graphlib').Graph;
 const alg = require('graphlib').alg;
-const clone = require('clone');
 const deepExtend = require('deep-extend');
-const groupBy = require('lodash.groupby');
+const GroupBy = require('../helpers/group-by');
+const throttle = require('lodash.throttle');
 const Node = require('./node');
+const VirtualNode = require('../graph/virtual-node');
+const VirtualLink = require('../graph/virtual-link');
 const ActualGraph = require('../graph/graph-actual');
 const VirtualGraph = require('../graph/graph-virtual');
 const createEdge = require('./edge');
@@ -28,6 +29,7 @@ class NodesMap extends EventEmitter {
         this._actualGraph = new ActualGraph();
         this._graph = new Graph({ directed: true });
         this._buildGraph(options);
+        this._throttledCheckReadyNodes = throttle(this.checkReadyNodes.bind(this), 1000, { trailing: true, leading: true });
     }
 
     _buildGraph(options) {
@@ -65,18 +67,14 @@ class NodesMap extends EventEmitter {
         nodes.forEach(n => {
             let node = this._virtualGraph.findByTarget(n.target);
             if (!node) {
-                node = {
-                    id: uuidv4(),
-                    links: []
-                };
+                node = new VirtualNode();
                 this._virtualGraph.addNode(node);
             }
-            const edges = Object.entries(n.edge).filter(([k, v]) => v).map(e => ({ type: e[0] }));
-            node.links.push({ source: n.source, target: n.target, edges: edges });
+            node.links.push(new VirtualLink(n));
         });
     }
 
-    _checkReadyNodes() {
+    checkReadyNodes() {
         const nodesToRun = [];
         const nodes = this._actualGraph.list;
 
@@ -112,19 +110,18 @@ class NodesMap extends EventEmitter {
     }
 
     _updateChildNode(task, target) {
-        let node = task.nodeName;
+        let source = task.nodeName;
         let index = task.batchIndex;
-        let bNode = this._actualGraph.findByEdge(node, target);
+        let bNode = this._actualGraph.findByEdge(source, target);
         let aNode = this._actualGraph.findByTargetAndIndex(target, index);
 
         if (!aNode || !bNode) {
-            const vNode = clone(this._virtualGraph.findByEdge(node, target));
-            vNode.id = uuidv4();
+            const vNode = this._virtualGraph.getCopy(source, target);
             this._actualGraph.addNode(vNode);
             aNode = vNode;
         }
 
-        let link = aNode.links.find(l => l.source === node && l.target === target);
+        let link = aNode.links.find(l => l.source === source && l.target === target);
 
         link.edges.forEach(e => {
             if (e.type === consts.relations.WAIT_ANY && index) {
@@ -138,11 +135,11 @@ class NodesMap extends EventEmitter {
                 e.index = index;
             }
             else if (e.type === consts.relations.WAIT_NODE) {
-                let completed = this.isNodeCompleted(node);
+                let completed = this.isNodeCompleted(source);
                 if (completed) {
                     e.completed = true;
-                    e.result = this.getNodeResults(node);
-                    this._actualGraph.updateBySource(node, e.result);
+                    e.result = this.getNodeResults(source);
+                    this._actualGraph.updateBySource(source, e.result);
                 }
             }
         })
@@ -182,13 +179,15 @@ class NodesMap extends EventEmitter {
         return this._graph.successors(node);
     }
 
-    updateCompletedTask(task) {
+    updateCompletedTask(task, checkReadyNodes = true) {
         const childs = this._childs(task.nodeName);
         if (childs.length > 0) {
             childs.forEach(child => {
                 this._updateChildNode(task, child);
             });
-            this._checkReadyNodes();
+            if (checkReadyNodes) {
+                this._throttledCheckReadyNodes();
+            }
         }
     }
 
@@ -337,12 +336,13 @@ class NodesMap extends EventEmitter {
                 nodes.push(n);
             }
         })
-        const groupedStates = groupBy(nodes, 'status');
+        const groupBy = new GroupBy().create(nodes, 'status');
+        const groupedStates = groupBy.group();
         const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
         const failed = groupedStates.failed ? groupedStates.failed.length : 0;
         const completed = succeed + failed;
         const progress = (completed / nodes.length * 100).toFixed(2);
-        const statesText = Object.entries(groupedStates).map(([key, value]) => `${value.length} ${key}`);
+        const statesText = groupBy.text();
         const states = nodes
             .map(n => n.status)
             .reduce((prev, cur) => {
@@ -354,7 +354,7 @@ class NodesMap extends EventEmitter {
                 }
                 return prev;
             }, {});
-        const details = `${progress}% completed, ${statesText.join(', ')}`;
+        const details = `${progress}% completed, ${statesText}`;
         const activeNodes = [];
         nodesList.forEach(n => {
             const node = {

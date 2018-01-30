@@ -22,7 +22,7 @@ class Bootstrap {
             this._handleErrors();
 
             log = new Logger(main.serviceName, logger);
-            log.plugins.use(new VerbosityPlugin(main.redis));
+            // log.plugins.use(new VerbosityPlugin(main.redis)); // disabled for now, require 3 redis clients
             log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
 
             monitor.on('ready', (data) => {

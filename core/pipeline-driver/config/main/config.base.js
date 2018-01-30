@@ -16,6 +16,12 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
+config.jobsSettings = {
+    lockDuration: 10000,
+    stalledInterval: 10000,
+    maxStalledCount: 3
+}
+
 config.metrics = {
     collectDefault: true,
     server: {

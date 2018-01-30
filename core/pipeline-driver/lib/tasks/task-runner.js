@@ -1,3 +1,4 @@
+const GroupBy = require('../helpers/group-by');
 const producer = require('../producer/jobs-producer');
 const consumer = require('../consumer/jobs-consumer');
 const stateManager = require('../state/state-manager');
@@ -5,8 +6,6 @@ const progress = require('../progress/nodes-progress');
 const NodesMap = require('../nodes/nodes-map');
 const States = require('../state/States');
 const Events = require('../consts/Events');
-const RateLimiter = require('limiter').RateLimiter;
-const limiter = new RateLimiter(100, 250);
 const { parser } = require('@hkube/parsers');
 const Batch = require('../nodes/node-batch');
 const WaitBatch = require('../nodes/node-wait-batch');
@@ -16,8 +15,6 @@ const components = require('../../common/consts/componentNames');
 const { metricsNames } = require('../consts/metricsNames');
 const metrics = require('@hkube/metrics');
 const { tracer } = require('@hkube/metrics');
-
-let tasksCompleted = 0;
 
 class TaskRunner {
 
@@ -98,11 +95,16 @@ class TaskRunner {
             log.info(`starting recover process ${this._jobId}`, { component: components.TASK_RUNNER });
             stateManager.setDriverState({ jobId: this._jobId, data: States.RECOVERING });
             const tasks = this._checkRecovery(state);
-            await this._recoverPipeline(tasks);
+            if (tasks.length > 0) {
+                await this._recoverPipeline(tasks);
+            }
+            else {
+                this._stopPipeline();
+            }
         }
         else {
             stateManager.setDriverState({ jobId: this._jobId, data: States.ACTIVE });
-            progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
+            await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
 
             const entryNodes = this._nodes.findEntryNodes();
             if (entryNodes.length === 0) {
@@ -112,53 +114,58 @@ class TaskRunner {
         }
     }
 
-    async _stopPipeline(error, reason) {
+    async _stopPipeline(err, reason) {
         if (!this._active) {
             return;
         }
         this._active = false;
         let status;
-        if (error) {
+        let error;
+        if (err) {
+            error = err.message;
             status = States.FAILED;
-            log.error(`pipeline failed ${error.message}`, { component: components.TASK_RUNNER });
-            progress.error({ jobId: this._jobId, pipeline: this._pipelineName, status, error: error.message });
-            stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { error: error.message, status } });
-            this._job.done(error.message);
+            log.error(`pipeline failed ${error}`, { component: components.TASK_RUNNER });
+            await progress.error({ jobId: this._jobId, pipeline: this._pipelineName, status, error });
+            await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { error, status } });
         }
         else {
             if (reason) {
                 status = States.STOPPED;
                 log.info(`pipeline stopped ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER });
-                progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
-                stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { reason, status } });
+                await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
+                await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { reason, status } });
             }
             else {
                 status = States.COMPLETED;
                 log.info(`pipeline completed ${this._jobId}`, { component: components.TASK_RUNNER });
-                progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
+                await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
                 const result = this._nodes.nodesResults();
-                stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { result, status } });
+                await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { result, status } });
             }
         }
         await stateManager.unWatchJobState({ jobId: this._jobId });
         await stateManager.unWatchTasks({ jobId: this._jobId });
-        const tasks = await stateManager.getDriverTasks({ jobId: this._jobId });
-        if (tasks) {
-            await Promise.all(tasks.map(t => producer.stopJob({ type: t.algorithmName, jobID: this._jobId })));
-        }
         this._endMetrics(status);
         this._pipeline = null;
         this._nodes = null;
-        this._job.done();
+        this._job.done(error);
         this._job = null;
         this._jobId = null;
     }
 
     async _recoverPipeline(tasks) {
+        const groupBy = new GroupBy().create(tasks, 'status');
+        log.info(`found ${groupBy.text()} tasks during recover`, { component: components.TASK_RUNNER });
+
         for (let task of tasks) {
-            log.info(`found ${task.status} task ${task.taskId} during recover`, { component: components.TASK_RUNNER });
-            await this._setTaskState(task.taskId, task);
-            this._taskComplete(task.taskId);
+            await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
+            await stateManager.setTaskState({ jobId: this._jobId, taskId: task.taskId, data: task });
+        }
+
+        this._nodes.checkReadyNodes();
+
+        if (this._nodes.isAllNodesCompleted()) {
+            this._stopPipeline();
         }
     }
 
@@ -180,6 +187,11 @@ class TaskRunner {
             }
             else {
                 this._nodes.setNode(new Node(driverTask));
+            }
+        })
+        state.driverTasks.forEach(driverTask => {
+            if (driverTask.status === States.SUCCEED) {
+                this._nodes.updateCompletedTask(driverTask, false);
             }
         })
         return tasksToRun;
@@ -325,30 +337,9 @@ class TaskRunner {
         else {
             log.debug(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER });
         }
-        // await this._updateState(taskId, options);
         const task = this._nodes.updateTaskState(taskId, options);
         await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
         await stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
-    }
-
-    async _updateState(taskId, options) {
-        return new Promise((resolve, reject) => {
-            limiter.removeTokens(1, async (err, remainingRequests) => {
-                if (err) {
-                    log.error(err);
-                }
-                if (remainingRequests < 1) {
-                    log.error(remainingRequests);
-                }
-                else {
-                    const task = this._nodes.updateTaskState(taskId, options);
-                    await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
-                    await stateManager.setTaskState({ jobId: this._jobId, taskId: task.taskId, data: task });
-                    log.info(`tasks completed #${++tasksCompleted}, remaining #${remainingRequests}`, { component: components.TASK_RUNNER });
-                    return resolve();
-                }
-            });
-        });
     }
 
     async _createJob(node) {
@@ -356,7 +347,9 @@ class TaskRunner {
             type: node.algorithmName,
             data: {
                 input: node.input,
-                node: node.batchID || node.nodeName,
+                node: node.nodeName,
+                batchID: node.batchID,
+                pipelineName: this._pipelineName,
                 jobID: this._jobId,
                 taskID: node.taskId
             }

@@ -5,7 +5,7 @@
   "main": "app.js",
   "directories": {
     "lib": "lib",
-    "test": "test"
+    "tests": "tests"
   },
   "dependencies": {
     "@hkube/config": "^2.0.0",
@@ -16,17 +16,13 @@
     "@hkube/producer-consumer": "^1.0.28",
     "@hkube/redis-utils": "^1.0.1",
     "@hkube/rest-server": "^1.0.4",
-    "bull": "^3.3.6",
     "clone": "^2.1.1",
-    "debug": "^3.1.0",
     "deep-equal": "^1.0.1",
     "deep-extend": "^0.5.0",
     "djsv": "^3.0.3",
     "graphlib": "^2.1.2",
-    "ioredis": "^3.2.2",
-    "limiter": "^1.1.2",
     "lodash.groupby": "^4.6.0",
-    "object-path": "^0.11.4"
+    "lodash.throttle": "^4.1.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
@@ -42,8 +38,8 @@
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
-    "test": "./node_modules/mocha/bin/_mocha test --colors --recursive",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test",
+    "test": "./node_modules/mocha/bin/_mocha tests --colors --recursive",
+    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests",
     "start": "node app",
     "build": "./dockerfile/build.sh pipeline-driver"
   },

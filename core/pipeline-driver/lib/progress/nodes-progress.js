@@ -1,4 +1,5 @@
 const deepEqual = require('deep-equal');
+const throttle = require('lodash.throttle');
 const stateManager = require('../state/state-manager');
 
 const levels = {
@@ -15,6 +16,7 @@ class ProgressManager {
     constructor() {
         this._lastState = null;
         this._calc = this._default;
+        this._throttledProgress = throttle(this._progress.bind(this), 1000, { trailing: false, leading: true });
     }
 
     calcMethod(method) {
@@ -29,15 +31,15 @@ class ProgressManager {
         };
     }
 
-    async  silly(data) {
-        await this._progress(levels.silly, data);
+    async silly(data) {
+        await this._throttledProgress(levels.silly, data);
     }
 
     async debug(data) {
-        await this._progress(levels.debug, data);
+        await this._throttledProgress(levels.debug, data);
     }
 
-    async  info(data) {
+    async info(data) {
         await this._progress(levels.info, data);
     }
 
