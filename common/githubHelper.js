@@ -102,8 +102,25 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
             if (!waitObjectName && (y.kind === 'Deployment' || y.kind === 'EtcdCluster')) {
                 waitObjectName = y.metadata.name;
             }
-            const containers = objectPath.get(y, 'spec.template.spec.containers');
-            if (!containers) {
+            const containers = [];
+            if (y.kind === 'EtcdCluster') {
+                // special handling of etcd operator object
+                const version = objectPath.get(y, 'spec.version');
+                const repository = objectPath.get(y, 'spec.repository', 'quay.io/coreos/etcd');
+                if (version && repository) {
+                    const container = {
+                        image: `${repository}:v${version}`
+                    }
+                    containers.push(container);
+                }
+            }
+            else {
+                const containersFromYaml = objectPath.get(y, 'spec.template.spec.containers');
+                if (containersFromYaml) {
+                    containers.push(...containersFromYaml);
+                }
+            }
+            if (containers.length === 0) {
                 return;
             }
             containers.forEach(c => {
@@ -117,7 +134,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
 
                 const version = versions.versions.find(v => v.project === imageName);
                 const tag = version ? version.tag : 'latest';
-                c.image = _createImageName({...imageParsed,tag,registry})
+                c.image = _createImageName({ ...imageParsed, tag, registry })
                 images.push(c.image);
                 console.log(`service ${imageName}. found version ${tag}`)
             })
@@ -130,15 +147,15 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
     }
     catch (e) {
         console.error(`error parsing yaml ${file}. error is: ${e}`);
-        return {tmpFileName:fullPath};
+        return { tmpFileName: fullPath };
     }
 }
 
 const _createImageName = ({ registry, namespace, repository, tag }) => {
-    let array=[registry,namespace,repository];
-    array = array.filter(a=>a);
-    let image=array.join('/');
-    if (tag){
+    let array = [registry, namespace, repository];
+    array = array.filter(a => a);
+    let image = array.join('/');
+    if (tag) {
         image = `${image}:${tag}`;
     }
     // let image = `${registry||''}/${namespace||''}/${repository||''}:${tag||''}`;

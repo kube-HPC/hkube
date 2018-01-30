@@ -63,8 +63,10 @@ const pack = async (args) => {
 }
 
 const _setYamlPaths = (base) => {
-    coreYamlPath = path.join(base, 'kubernetes', 'yaml', 'core');
-    thirdPartyPath = path.join(base, 'kubernetes', 'yaml', 'thirdParty');
+    coreYamlPath = path.join(base, 'kubernetes', 'yaml.cluster', 'core');
+    thirdPartyPath = path.join(base, 'kubernetes', 'yaml.cluster', 'thirdParty');
+    console.log(`Using core yaml path ${coreYamlPath}`)
+    console.log(`Using thirdParty yaml path ${thirdPartyPath}`)
 }
 const _cloneDeployment = async (versions, opts) => {
     console.log(`System version: ${versions.systemVersion}`);

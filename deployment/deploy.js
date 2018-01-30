@@ -144,7 +144,7 @@ const _applyVersionsThirdParty = async (versions, opts) => {
                 continue;
             }
 
-            const { tmpFileName, images , waitObjectName} = changeYamlImageVersion(file, null, thirdPartyPath)
+            const { tmpFileName, images , waitObjectName} = changeYamlImageVersion(file, null, thirdPartyPath,opts.registry)
             await syncSpawn('kubectl',`apply -f ${tmpFileName}`);
             if (waitObjectName){
                 await kubernetesApi.listenToK8sStatus(waitObjectName, `Running`)
