@@ -98,8 +98,8 @@ class Worker {
                     break;
                 case workerStates.stop:
                     this._stopTimeout = setTimeout(() => {
-                        log.error('Timeout exceeded trying to stop algorithm. Exiting', { component });
-                        process.exit();
+                        log.error('Timeout exceeded trying to stop algorithm.', { component });
+                        stateManager.done('Timeout exceeded trying to stop algorithm');
                     }, this._stopTimeoutMs);
                     algoRunnerCommunication.send({
                         command: messages.outgoing.stop,

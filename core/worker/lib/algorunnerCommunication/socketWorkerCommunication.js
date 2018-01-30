@@ -62,6 +62,7 @@ class SocketWorkerCommunication extends EventEmitter {
         socket.on('disconnect', () => {
             log.debug('socket disconnected', { component: components.COMMUNICATIONS });
             this._socket = null;
+            this.emit('disconnect');
         });
         log.debug('finish _registerSocketMessages', { component: components.COMMUNICATIONS });
     }

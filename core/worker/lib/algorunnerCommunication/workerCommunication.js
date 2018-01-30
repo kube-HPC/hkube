@@ -43,7 +43,7 @@ class WorkerCommunication extends EventEmitter {
         log.info(`Creating communication object of type: ${this._options.adapterName}`, { component: components.COMMUNICATIONS });
         this.adapter = new AdapterClass();
         // forwardEmitter(this.adapter, this);
-        Object.entries({ ...messages.incomming, connection: 'connection' }).forEach(([name, topic]) => {
+        Object.entries({ ...messages.incomming, connection: 'connection', disconnect: 'disconnect' }).forEach(([name, topic]) => {
             log.debug(`workerCommunication registering for topic (${name})=>${topic}`, { component: components.COMMUNICATIONS });
             this.adapter.on(topic, (message) => {
                 log.debug(`workerCommunication got message on topic (${name})=>${topic}, data: ${JSON.stringify(message)}`, { component: components.COMMUNICATIONS });

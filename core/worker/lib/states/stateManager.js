@@ -49,7 +49,7 @@ class StateManager extends EventEmitter {
             }
         });
         this._stateMachine.observe('onBeforeTransition', (state) => {
-            log.debug(`before entered state: ${state.from} -> ${state.to}`, {component});
+            log.debug(`before entered state: ${state.from} -> ${state.to}`, { component });
             if (this._job && this._job.data) {
                 const topSpan = tracer.topSpan(this._job.data.taskID);
                 if (topSpan) {
@@ -58,7 +58,7 @@ class StateManager extends EventEmitter {
             }
         });
         this._stateMachine.observe('onAfterTransition', (state) => {
-            log.debug(`after entered state: ${state.from} -> ${state.to}`, {component});
+            log.debug(`after entered state: ${state.from} -> ${state.to}`, { component });
             if (this._job && this._job.data) {
                 tracer.startSpan({
                     name: state.to,
@@ -86,7 +86,14 @@ class StateManager extends EventEmitter {
         return this._stateMachine.state;
     }
 
-
+    /**
+         * transitions from any state to bootstrap
+         *
+         * @memberof StateManager
+         */
+    reset() {
+        this._stateMachine.reset();
+    }
     /**
      * transitions from bootstrap to ready
      * Should happen after all local init (including connecting to socket)
@@ -121,7 +128,12 @@ class StateManager extends EventEmitter {
      * transitions to stop state.
      */
     stop() {
-        this._stateMachine.stop();
+        try {
+            this._stateMachine.stop();
+        }
+        catch (error) {
+            log.error(error, { component });
+        }
     }
     /**
      * transitions from working to shutdown
@@ -130,7 +142,12 @@ class StateManager extends EventEmitter {
      * @memberof StateManager
      */
     finish() {
-        this._stateMachine.finish();
+        try {
+            this._stateMachine.finish();
+        }
+        catch (error) {
+            log.error(error, { component });
+        }
     }
 
     /**
@@ -141,8 +158,13 @@ class StateManager extends EventEmitter {
      * @memberof StateManager
      */
     done(results) {
-        this._results = results;
-        this._stateMachine.done();
+        try {
+            this._results = results;
+            this._stateMachine.done();
+        }
+        catch (error) {
+            log.error(error, { component });
+        }
     }
     /**
      * transitions from working to error
