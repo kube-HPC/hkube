@@ -1,13 +1,14 @@
 const config = {};
-
 config.transport = {
-    console: true,
+    console: false,
     logstash: false,
+    fluentd: false,
     file: false
 };
-
+config.logstash = {
+    logstashURL: '127.0.0.1',
+    logstashPort: 28777
+};
 config.extraDetails = false;
 config.isDefault = true;
-config.verbosityLevel = 2;
-
 module.exports = config;
