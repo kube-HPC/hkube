@@ -5,4 +5,5 @@ config.transport = {
     fluentd: true,
     file: false
 };
+config.verbosityLevel = 0;
 module.exports = config;
