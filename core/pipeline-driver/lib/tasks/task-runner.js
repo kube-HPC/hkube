@@ -65,15 +65,15 @@ class TaskRunner {
         this._active = true;
         this._job = job;
         this._jobId = job.id;
-        log.info(`pipeline started ${this._jobId}`, { component: components.TASK_RUNNER });
+        log.info(`pipeline started ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId });
 
+        await stateManager.watchTasks({ jobId: this._jobId });
         const watchState = await stateManager.watchJobState({ jobId: this._jobId });
         if (watchState && watchState.state === States.STOP) {
             this._stopPipeline(null, watchState.reason);
             return;
         }
 
-        await stateManager.watchTasks({ jobId: this._jobId });
         this._pipeline = await stateManager.getExecution({ jobId: this._jobId });
 
         if (!this._pipeline) {
@@ -124,20 +124,20 @@ class TaskRunner {
         if (err) {
             error = err.message;
             status = States.FAILED;
-            log.error(`pipeline failed ${error}`, { component: components.TASK_RUNNER });
+            log.error(`pipeline failed ${error}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
             await progress.error({ jobId: this._jobId, pipeline: this._pipelineName, status, error });
             await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { error, status } });
         }
         else {
             if (reason) {
                 status = States.STOPPED;
-                log.info(`pipeline stopped ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER });
+                log.info(`pipeline stopped ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
                 await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { reason, status } });
             }
             else {
                 status = States.COMPLETED;
-                log.info(`pipeline completed ${this._jobId}`, { component: components.TASK_RUNNER });
+                log.info(`pipeline completed ${this._jobId}`, { component: components.TASK_RUNNE, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
                 const result = this._nodes.nodesResults();
                 await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { result, status } });
@@ -155,7 +155,7 @@ class TaskRunner {
 
     async _recoverPipeline(tasks) {
         const groupBy = new GroupBy().create(tasks, 'status');
-        log.info(`found ${groupBy.text()} tasks during recover`, { component: components.TASK_RUNNER });
+        log.info(`found ${groupBy.text()} tasks during recover`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
 
         for (let task of tasks) {
             await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
@@ -331,13 +331,14 @@ class TaskRunner {
         if (!this._active) {
             return;
         }
+        const task = this._nodes.updateTaskState(taskId, options);
         if (options.error) {
-            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, { component: components.TASK_RUNNER });
+            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName, taskId, algorithmName: task.algorithmName });
         }
         else {
-            log.debug(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER });
+            log.debug(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName, taskId, algorithmName: task.algorithmName });
         }
-        const task = this._nodes.updateTaskState(taskId, options);
+
         await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
         await stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
     }
