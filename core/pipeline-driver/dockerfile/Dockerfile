@@ -1,9 +1,7 @@
-FROM node:8-alpine
+FROM hkube/base-node:v1.0.0
 LABEL maintainer="yehiyam@gmail.com"
-RUN apk --update add nano && \
-    rm -rf /var/cache/apk/*
 RUN mkdir /hkube
 COPY . /hkube/pipeline-driver
-RUN cd /hkube/pipeline-driver && npm rebuild
+RUN cd /hkube/pipeline-driver 
 WORKDIR /hkube/pipeline-driver
 CMD ["node", "app.js"]

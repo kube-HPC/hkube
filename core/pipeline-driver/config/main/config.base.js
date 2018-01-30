@@ -2,12 +2,12 @@ var packageJson = require(process.cwd() + '/package.json');
 var config = module.exports = {};
 
 config.serviceName = packageJson.name;
-const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
+const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.redis = {
-    host: useCluster ? process.env.REDIS_CLUSTER_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
-    port: useCluster ? process.env.REDIS_CLUSTER_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
-    cluster: useCluster
+    host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
+    port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
+    sentinel: useSentinel,
 };
 
 config.etcd = {
