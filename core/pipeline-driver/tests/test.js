@@ -643,7 +643,7 @@ describe('Test', function () {
             const jobId = `jobid-${uuidv4()}`;
             const prog = clone(progress);
             const data = { status: 'active' };
-            const spy = sinon.spy(prog, "_progress");
+            const spy = sinon.spy(prog, "_throttledProgress");
             prog.silly({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
@@ -655,7 +655,7 @@ describe('Test', function () {
             const jobId = `jobid-${uuidv4()}`;
             const prog = clone(progress);
             const data = { status: 'active' };
-            const spy = sinon.spy(prog, "_progress");
+            const spy = sinon.spy(prog, "_throttledProgress");
             prog.debug({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
