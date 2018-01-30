@@ -16,6 +16,9 @@ class JobConsumer extends EventEmitter {
         this._consumer = null;
         this._options = null;
         this._job = null;
+        this._jobID = null;
+        this._taskID = null;
+        this._pipelineName = null;
         this._active = false;
     }
 
@@ -35,23 +38,33 @@ class JobConsumer extends EventEmitter {
             log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`, { component: components.CONSUMER });
             metrics.get(metricsNames.algorithm_started).inc({
                 labelValues: {
-                    pipeline_name: job.data.pipeline_name,
-                    algorithm_name: this._options.jobConsumer.job.type
+                    pipelineName: job.data.pipelineName,
+                    algorithmName: this._options.jobConsumer.job.type
                 }
             });
             metrics.get(metricsNames.algorithm_net).start({
                 id: job.data.taskID,
                 labelValues: {
-                    pipeline_name: job.data.pipeline_name,
-                    algorithm_name: this._options.jobConsumer.job.type
+                    pipelineName: job.data.pipelineName,
+                    algorithmName: this._options.jobConsumer.job.type
                 }
             });
 
             this._job = job;
-            await etcd.watch({ jobId: this._job.data.jobID });
+            this._jobID = job.data.jobID;
+            this._taskID = job.data.taskID;
+            this._pipelineName = job.data.pipelineName;
+            this._jobData = { node: job.data.node, batchID: job.data.batchID };
+            const watchState = await etcd.watch({ jobId: this._jobID });
+
+            if (watchState && watchState.state === 'stop') {
+                this.finishJob();
+                return;
+            }
             await etcd.update({
-                jobId: this._job.data.jobID, taskId: this._job.id, status: 'active'
+                jobId: this._jobID, taskId: this._taskID, status: 'active'
             });
+
             stateManager.setJob(job);
             stateManager.prepare(job);
             this.emit('job', job);
@@ -64,29 +77,46 @@ class JobConsumer extends EventEmitter {
             this._consumer.register(this._options.jobConsumer);
         });
     }
+
+    async updateDiscovery(data) {
+        const { workerStatus, jobStatus, error } = this._getStatus(data);
+        await etcd.updateDiscovery({
+            jobID: this._jobID,
+            taskID: this._taskID,
+            pipelineName: this._pipelineName,
+            jobData: this._jobData,
+            algorithmName: this._options.jobConsumer.job.type,
+            podName: this._options.k8s.pod_name,
+            workerStatus,
+            jobStatus,
+            error
+        });
+    }
+
     _registerMetrics() {
         metrics.removeMeasure(metricsNames.algorithm_net);
         metrics.addTimeMeasure({
             name: metricsNames.algorithm_net,
-            labels: ['pipeline_name', 'algorithm_name', 'status'],
+            labels: ['pipelineName', 'algorithmName', 'status'],
             buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
         });
         metrics.removeMeasure(metricsNames.algorithm_completed);
         metrics.addCounterMeasure({
             name: metricsNames.algorithm_completed,
-            labels: ['pipeline_name', 'algorithm_name'],
+            labels: ['pipelineName', 'algorithmName'],
         });
         metrics.removeMeasure(metricsNames.algorithm_started);
         metrics.addCounterMeasure({
             name: metricsNames.algorithm_started,
-            labels: ['pipeline_name', 'algorithm_name'],
+            labels: ['pipelineName', 'algorithmName'],
         });
         metrics.removeMeasure(metricsNames.algorithm_failed);
         metrics.addCounterMeasure({
             name: metricsNames.algorithm_failed,
-            labels: ['pipeline_name', 'algorithm_name'],
+            labels: ['pipelineName', 'algorithmName'],
         });
     }
+
     _register() {
         this._consumer.register(this._options.jobConsumer);
         // stateManager.once(stateEvents.stateEntered,({state})=>{
@@ -100,37 +130,55 @@ class JobConsumer extends EventEmitter {
             this._register();
         });
     }
-    async finishJob(result) {
+
+    _getStatus(data) {
+        const { state, results } = data;
+        let workerStatus = state;
+        let jobStatus = state === 'working' ? 'active' : state;
+        let error = null;
+
+        if (results) {
+            error = results.error && results.error.message;
+            jobStatus = error ? 'failed' : 'succeed';
+        }
+
+        return { workerStatus, jobStatus, error, results };
+    }
+
+    async finishJob(data) {
         if (!this._job) {
             return;
         }
 
-        await etcd.unwatch({ jobId: this._job.data.jobID });
-        let error = result && result.error;
-        if (error && error.message) {
-            error = error.message;
-        }
-        const status = error ? 'failed' : 'succeed';
+        await etcd.unwatch({ jobId: this._jobID });
+
+        const { jobStatus, results, error } = this._getStatus(data);
+
         metrics.get(metricsNames.algorithm_completed).inc({
             labelValues: {
-                pipeline_name: this._job.data.pipeline_name,
-                algorithm_name: this._options.jobConsumer.job.type
+                pipelineName: this._pipelineName,
+                algorithmName: this._options.jobConsumer.job.type
             }
         });
-        metrics.get(metricsNames.algorithm_net).start({
-            id: this._job.data.taskID,
+        metrics.get(metricsNames.algorithm_net).end({
+            id: this._taskID,
             labelValues: {
-                status
+                status: jobStatus
             }
         });
-        log.debug(`result: ${JSON.stringify(result)}`, { component: components.CONSUMER });
-        log.debug(`status: ${status}, error: ${error}`, { component: components.CONSUMER });
-        const resultData = result && result.data;
+        log.debug(`result: ${JSON.stringify(results)}`, { component: components.CONSUMER });
+        log.debug(`status: ${jobStatus}, error: ${error}`, { component: components.CONSUMER });
+        const resultData = results && results.data;
         await etcd.update({
-            jobId: this._job.data.jobID, taskId: this._job.id, status, result: resultData, error
+            jobId: this._jobID, taskId: this._taskID, status: jobStatus, result: resultData, error
         });
-        this._job.done(error, result);
+
+        this._job.done(error);
         this._job = null;
+        this._jobID = null;
+        this._taskID = null;
+        this._pipelineName = null;
+        this._jobData = null;
     }
 }
 

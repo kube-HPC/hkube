@@ -20,6 +20,7 @@ class Worker {
         log = Logger.GetLogFromContainer();
         this._registerToConnectionEvents();
     }
+
     async init(options) {
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
@@ -45,6 +46,7 @@ class Worker {
             stateManager.reset();
         });
     }
+
     _registerToCommunicationEvents() {
         algoRunnerCommunication.on(messages.incomming.initialized, () => {
             stateManager.start();
@@ -69,19 +71,14 @@ class Worker {
         });
     }
 
-
     _registerToStateEvents() {
-        stateManager.on(stateEvents.stateEntered, ({ job, state, results }) => {
-            const {data} = (job || {});
-            discovery.setState(Object.assign({}, {
-                data: {
-                    jobData: data,
-                    state
-                }
-            }, results));
+        stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
+            const { data } = (job || {});
+            const result = { state, results };
+
             switch (state) {
                 case workerStates.ready:
-                    jobConsumer.finishJob(results);
+                    await jobConsumer.finishJob(result);
                     break;
                 case workerStates.init:
                     algoRunnerCommunication.send({
@@ -111,6 +108,7 @@ class Worker {
                     break;
                 default:
             }
+            jobConsumer.updateDiscovery(result);
         });
     }
 }

@@ -16,7 +16,7 @@ class EtcdDiscovery extends EventEmitter {
         await this._etcd.init(options.etcdDiscovery.init);
         await this._etcd.discovery.register({ serviceName: options.etcdDiscovery.init.serviceName });
         this._etcd.jobs.on('change', (res) => {
-            log.info(JSON.stringify(res), {component});
+            log.info(JSON.stringify(res), { component });
             switch (res.state) {
                 case 'stop':
                     this.emit('stop', res);
@@ -35,22 +35,26 @@ class EtcdDiscovery extends EventEmitter {
         });
     }
 
+    async updateDiscovery(options) {
+        await this._etcd.discovery.updateRegisteredData(options);
+    }
 
     async update(options) {
         await this._etcd.tasks.setState(options);
     }
 
     async watch(options) {
-        await this._etcd.jobs.watch(options);
+        return this._etcd.jobs.watch(options);
     }
+
     async unwatch(options) {
         try {
-            log.debug('start unwatch', {component});
+            log.debug('start unwatch', { component });
             await this._etcd.jobs.unwatch(options);
-            log.debug('end unwatch', {component});
-        } 
+            log.debug('end unwatch', { component });
+        }
         catch (error) {
-            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${JSON.stringify(error)}`, {component}, error);
+            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${JSON.stringify(error)}`, { component }, error);
         }
     }
 }
