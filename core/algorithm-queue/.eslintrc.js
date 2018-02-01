@@ -31,6 +31,9 @@ module.exports = {
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2,
-        "linebreak-style": 0
+        "linebreak-style": 0,
+        "arrow-parens":0,
+        
+
     }
 };

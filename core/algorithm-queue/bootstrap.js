@@ -8,8 +8,9 @@ const log = new Logger(main.serviceName, logger);
 const {VerbosityPlugin} = Logger;
 log.plugins.use(new VerbosityPlugin(main.redis));
 const monitor = require('@hkube/redis-utils').Monitor;
-const componentName = require('./lib/consts/component-name');
+const {componentName, metricsName} = require('./lib/consts/index');
 const metrics = require('@hkube/metrics');
+
 const {tracer} = require('@hkube/metrics');
 const modules = [
     './lib/queue-runner'
@@ -74,6 +75,22 @@ class Bootstrap {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
             log.error(error);
             process.exit(1);
+        });
+    }
+
+    _registerMetrics() {
+        metrics.addTimeMeasure({
+            name: metricsName.TIME_IN_QUEUE,
+            labels: ['pipeline_name', 'algorithm_name', 'status'],
+            buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
+        });
+        metrics.addGaugeMeasure({
+            name: metricsName.QUEUE_AMOUNT,
+            labels: ['pipeline_name', 'algorithm_name'],
+        });
+        metrics.addCounterMeasure({
+            name: metricsName.QUEUE_COUNTER,
+            labels: ['pipeline_name', 'algorithm_name'],
         });
     }
 }

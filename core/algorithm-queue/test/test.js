@@ -40,6 +40,9 @@ describe('algorithm queue', () => {
         Queue = require('../lib/queue'); //eslint-disable-line
         mockery.registerMock('log', logMock);
         await bootstrap.init();
+        console.log('------------------------------------');
+        console.log('algorithm queue');
+        console.log('------------------------------------');
     });  
     
     describe('queue-tests', () => {
@@ -192,34 +195,46 @@ describe('algorithm queue', () => {
             // console.log(q);
         });
         after(() => {
-            clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+            //  clearCache(['../bootstrap', '../lib/queue-runner']);
         });
     });
 
-    describe('persistency tests', () => {
-        let queueRunner = null;
-        let bootstrap = null;
-        before(async () => {
-            //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
-            bootstrap = require('../bootstrap');
-            queueRunner = require('../lib/queue-runner');
-             //eslint-disable-line
-            await bootstrap.init();
-        });
-        it('persistent load', async () => {
-            await queueRunner.queue.add(generateArr(100));
-            await queueRunner.queue.persistenceStore();
-            queueRunner.queue.flush();
-            await queueRunner.queue.persistencyLoad();
-            await delay(500);
-            const q = queueRunner.queue.get;
-            // expect(q.length).to.be.equal(100);
-            queueRunner.queue.flush();
-            await queueRunner.queue.persistenceStore();
-            await delay(500);
-        }); 
-    });
     after(() => {
-        clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+    //    clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+        console.log('--------cleared---------');
     });
+});
+
+describe('persistency tests', () => {
+    let queueRunner = null;
+    let bootstrap = null;
+    before(async () => {
+        console.log('------------------------------------');
+        console.log('persistency tests');
+        console.log('------------------------------------');
+        //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+       bootstrap = require('../bootstrap'); //eslint-disable-line
+        console.log('queue runner b');
+        try {
+        queueRunner = require('../lib/queue-runner'); //eslint-disable-line
+        }
+        catch (e) {
+            console.error('queue runner a');
+        }   
+        console.log('queue runner a');
+         //eslint-disable-line
+        await bootstrap.init();
+    });
+    it('persistent load', async () => {
+        await queueRunner.queue.add(generateArr(100));
+        await queueRunner.queue.persistenceStore();
+        queueRunner.queue.flush();
+        await queueRunner.queue.persistencyLoad();
+        await delay(500);
+        const q = queueRunner.queue.get;
+        // expect(q.length).to.be.equal(100);
+        queueRunner.queue.flush();
+        await queueRunner.queue.persistenceStore();
+        await delay(500);
+    }); 
 });
