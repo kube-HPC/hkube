@@ -7,7 +7,8 @@ const etcd = require('../states/discovery');
 const { tracer } = require('@hkube/metrics');
 const metrics = require('@hkube/metrics');
 const { metricsNames } = require('../../common/consts/metricsNames');
-const components = require('../../common/consts/componentNames');
+const component = require('../../common/consts/componentNames').CONSUMER;
+const {MetadataPlugin} = Logger;
 let log;
 
 class JobConsumer extends EventEmitter {
@@ -16,14 +17,19 @@ class JobConsumer extends EventEmitter {
         this._consumer = null;
         this._options = null;
         this._job = null;
-        this._jobID = null;
-        this._taskID = null;
-        this._pipelineName = null;
+        this._jobID = undefined;
+        this._taskID = undefined;
+        this._pipelineName = undefined;
         this._active = false;
     }
 
     async init(options) {
         log = Logger.GetLogFromContainer();
+        log.metadataEnrichers.use(new MetadataPlugin({
+            enrichCallback: metadata => ({
+                ...metadata, ...this.currentTaskInfo()
+            })
+        }));
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
@@ -35,7 +41,7 @@ class JobConsumer extends EventEmitter {
         this._registerMetrics();
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.on('job', async (job) => {
-            log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`, { component: components.CONSUMER });
+            log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`, { component });
             metrics.get(metricsNames.algorithm_started).inc({
                 labelValues: {
                     pipelineName: job.data.pipelineName,
@@ -71,9 +77,9 @@ class JobConsumer extends EventEmitter {
         });
 
         // this._unRegister();
-        log.info('waiting for ready state', { component: components.CONSUMER });
+        log.info('waiting for ready state', { component });
         stateManager.once(stateEvents.stateEntered, () => {
-            log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component: components.CONSUMER });
+            log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
             this._consumer.register(this._options.jobConsumer);
         });
     }
@@ -133,7 +139,7 @@ class JobConsumer extends EventEmitter {
 
     _getStatus(data) {
         const { state, results } = data;
-        let workerStatus = state;
+        const workerStatus = state;
         let jobStatus = state === 'working' ? 'active' : state;
         let error = null;
 
@@ -142,7 +148,12 @@ class JobConsumer extends EventEmitter {
             jobStatus = error ? 'failed' : 'succeed';
         }
 
-        return { workerStatus, jobStatus, error, results };
+        return {
+            workerStatus, 
+            jobStatus, 
+            error, 
+            results 
+        };
     }
 
     async finishJob(data) {
@@ -166,8 +177,8 @@ class JobConsumer extends EventEmitter {
                 status: jobStatus
             }
         });
-        log.debug(`result: ${JSON.stringify(results)}`, { component: components.CONSUMER });
-        log.debug(`status: ${jobStatus}, error: ${error}`, { component: components.CONSUMER });
+        log.debug(`result: ${JSON.stringify(results)}`, { component });
+        log.debug(`status: ${jobStatus}, error: ${error}`, { component });
         const resultData = results && results.data;
         await etcd.update({
             jobId: this._jobID, taskId: this._taskID, status: jobStatus, result: resultData, error
@@ -175,10 +186,19 @@ class JobConsumer extends EventEmitter {
 
         this._job.done(error);
         this._job = null;
-        this._jobID = null;
-        this._taskID = null;
-        this._pipelineName = null;
-        this._jobData = null;
+        this._jobID = undefined;
+        this._taskID = undefined;
+        this._pipelineName = undefined;
+        this._jobData = undefined;
+    }
+
+    currentTaskInfo() {
+        return {
+            jobId: this._jobID,
+            taskId: this._taskID,
+            pipelineName: this._pipelineName,
+            algorithmName: this._options.jobConsumer.job.type
+        };
     }
 }
 

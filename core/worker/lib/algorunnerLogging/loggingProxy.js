@@ -1,10 +1,8 @@
 const Logger = require('@hkube/logger');
-const components = require('../../common/consts/componentNames.js');
+const component = require('../../common/consts/componentNames.js').ALGORUNNER;
 const path = require('path');
 const fs = require('fs');
 const { Tail } = require('tail');
-const stateManager = require('../states/stateManager');
-const objectPath = require('object-path');
 const DELAY = 2;
 let log;
 
@@ -13,16 +11,16 @@ class LoggingProxy {
         log = Logger.GetLogFromContainer();
         const loggingOptions = (options && options.algorunnerLogging);
         if (!loggingOptions) {
-            log.warning('Algorunner loggin proxy not started.', { component: components.ALGORUNNER });
+            log.warning('Algorunner loggin proxy not started.', { component });
             return;
         }
         const { algorunnerLogFileName, baseLogsPath } = options.algorunnerLogging;
         if (!algorunnerLogFileName || !baseLogsPath) {
-            log.warning('Algorunner loggin proxy not started.', { component: components.ALGORUNNER });
+            log.warning('Algorunner loggin proxy not started.', { component });
             return;
         }
         this._algorunnerLogFilePath = path.join(baseLogsPath, algorunnerLogFileName);
-        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component: components.ALGORUNNER });
+        log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
 
         this._startWatch();
     }
@@ -34,7 +32,7 @@ class LoggingProxy {
         if (!fs.existsSync(this._algorunnerLogFilePath)) {
             log.warning(
                 `log file ${this._algorunnerLogFilePath} does not exist. Trying again in ${DELAY} seconds.`,
-                { component: components.ALGORUNNER }
+                { component }
             );
             setTimeout(this._startWatch.bind(this), DELAY * 1000);
             return;
@@ -42,24 +40,22 @@ class LoggingProxy {
         try {
             this._tail = new Tail(this._algorunnerLogFilePath);
             this._tail.on('line', (line) => {
-                const jobID = objectPath.get(stateManager.job, 'data.jobID');
-                const taskID = objectPath.get(stateManager.job, 'data.taskID');
                 try {
                     const logParsed = JSON.parse(line);
 
                     const logMessage = logParsed.log;
-                    log.info(logMessage, { component: components.ALGORUNNER, jobID, taskID });
+                    log.info(logMessage, { component });
                 }
                 catch (error) {
-                    log.info(line, { component: components.ALGORUNNER, jobID, taskID });
+                    log.info(line, { component });
                 }
             });
             this._tail.on('error', (error) => {
-                log.error(error, { component: components.ALGORUNNER });
+                log.error(error, { component });
             });
         }
         catch (error) {
-            log.warning(`Algorunner loggin proxy error: ${error}. Trying again in ${DELAY} seconds.`, { component: components.ALGORUNNER });
+            log.warning(`Algorunner loggin proxy error: ${error}. Trying again in ${DELAY} seconds.`, { component });
             setTimeout(this._startWatch.bind(this), DELAY * 1000);
         }
     }

@@ -1,5 +1,3 @@
-// const path = require('path');
-const uuid = require('uuid/v4');
 const config = {};
 
 config.serviceName = 'workers';
@@ -70,7 +68,7 @@ config.tracer = {
 
 config.k8s = {
     pod_name: process.env.POD_NAME
-}
+};
 
 // config.algorunnerLogging = {
 //     algorunnerLogFileName: process.env.ALGORITHM_LOG_FILE_NAME || 'algorunner_0.log',
