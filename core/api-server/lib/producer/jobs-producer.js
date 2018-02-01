@@ -5,6 +5,7 @@ const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
 const { tracer } = require('@hkube/metrics');
+const States = require('../state/States');
 const JOB_TYPE = 'pipeline-driver-job';
 
 class JobProducer {
@@ -17,15 +18,15 @@ class JobProducer {
         setting.tracer = tracer;
         this._producer = new Producer({ setting });
         this._producer.on('job-waiting', (data) => {
-            log.info(`job waiting ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
+            log.info(`job waiting ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.WAITING });
         }).on('job-active', (data) => {
-            log.info(`job active ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
+            log.info(`job active ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.ACTIVE });
         }).on('job-completed', (data) => {
-            log.info(`job completed ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
+            log.info(`job completed ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.COMPLETED });
         }).on('job-failed', (data) => {
-            log.error(`job failed ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
+            log.error(`job failed ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.FAILED });
         }).on('job-stalled', (data) => {
-            log.error(`job stalled ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID });
+            log.error(`job stalled ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.STALLED });
         });
     }
 

@@ -16,7 +16,7 @@ class AppServer {
             rest.on('error', (data) => {
                 const pipelineName = data.req.body.name || data.req.params.name;
                 const jobId = data.req.body.jobId || data.req.params.jobId;
-                log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component: componentName.REST_API, jobId, pipelineName });
+                log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component: componentName.REST_API, route: data.req.url, jobId, pipelineName });
             });
 
             const { prefix } = options.rest;

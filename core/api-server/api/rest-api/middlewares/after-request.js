@@ -6,7 +6,7 @@ const logger = (filter = []) => (req, res, next) => {
         return next();
     }
     const { jobId } = res;
-    log.info(`response sent for ${req.method} ${req.url} ${res.statusCode}`, { component: componentName.REST_API, jobId });
+    log.info(`response sent for ${req.method} ${req.url} ${res.statusCode}`, { component: componentName.REST_API, route: req.url, jobId });
     return next();
 };
 
