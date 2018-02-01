@@ -7,16 +7,14 @@ const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContanier();
 const componentName = require('../../common/consts/componentNames');
 const metrics = require('@hkube/metrics');
-const beforeRequest = require('./middlewares/before-request');
 const afterRequest = require('./middlewares/after-request');
 
 class AppServer {
     init(options) {
         return new Promise((resolve, reject) => {
             rest.on('error', (data) => {
-                const pipelineName = data.req.body.name || data.req.params.name;
-                const jobId = data.req.body.jobId || data.req.params.jobId;
-                log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component: componentName.REST_API, route: data.req.url, jobId, pipelineName });
+                const { route, jobId, pipelineName } = data.res._internalMetadata || {};
+                log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component: componentName.REST_API, route, jobId, pipelineName });
             });
 
             const { prefix } = options.rest;
@@ -45,7 +43,7 @@ class AppServer {
                 prefix,
                 port: options.rest.port,
                 versions: options.rest.versions,
-                beforeRoutesMiddlewares: [...beforeRoutesMiddlewares, beforeRequest(routeLogBlacklist)],
+                beforeRoutesMiddlewares,
                 afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest(routeLogBlacklist)]
             };
             rest.start(opt).then((data) => {

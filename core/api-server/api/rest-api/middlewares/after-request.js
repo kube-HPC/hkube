@@ -5,8 +5,8 @@ const logger = (filter = []) => (req, res, next) => {
     if (filter.some(f => req.url.startsWith(f))) {
         return next();
     }
-    const { jobId } = res;
-    log.info(`response sent for ${req.method} ${req.url} ${res.statusCode}`, { component: componentName.REST_API, route: req.url, jobId });
+    const { route, jobId, pipelineName } = res._internalMetadata || {};
+    log.info(`response sent for ${req.method} ${req.originalUrl} ${res.statusCode}`, { component: componentName.REST_API, route, jobId, pipelineName });
     return next();
 };
 
