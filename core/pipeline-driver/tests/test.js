@@ -133,7 +133,7 @@ describe('Test', function () {
             })
             const task2 = new Batch({
                 taskId: taskIds[1],
-                batchID: uuidv4(),
+                batchIndex: 1,
                 nodeName: node.nodeName,
                 algorithmName: node.algorithmName
             })
@@ -235,7 +235,6 @@ describe('Test', function () {
                 const batch = new Batch({
                     taskId: uuidv4(),
                     nodeName: pNode.nodeName,
-                    batchID: 'testNode-9888',
                     batchIndex: 1,
                     algorithmName: pNode.algorithmName
                 });
@@ -287,7 +286,6 @@ describe('Test', function () {
                     const batch = new Batch({
                         taskId: uuidv4(),
                         nodeName: pNode.nodeName,
-                        batchID: 'testNode-1',
                         batchIndex: (i + 1)
                     });
                     nodesMap.updateCompletedTask(batch);
@@ -329,7 +327,6 @@ describe('Test', function () {
                 const batch = new Batch({
                     taskId: uuidv4(),
                     nodeName: pNode.nodeName,
-                    batchID: 'testNode-9888',
                     batchIndex: 1,
                     algorithmName: pNode.algorithmName
                 });
@@ -522,7 +519,7 @@ describe('Test', function () {
                 const result = { my: 'OK' };
                 nodesMap.addBatch(new Batch({
                     nodeName: node.nodeName,
-                    batchID: `${node.nodeName}#1`,
+                    batchIndex: 1,
                     algorithmName: node.algorithmName,
                     result: result
                 }));
@@ -567,7 +564,7 @@ describe('Test', function () {
                 const batch = new Batch({
                     taskId: 'should update batch status',
                     nodeName: node.nodeName,
-                    batchID: `${node.nodeName}#1`
+                    batchIndex: 1
                 })
                 nodesMap.addBatch(batch);
                 nodesMap.updateTaskState(batch.taskId, options);
@@ -580,7 +577,7 @@ describe('Test', function () {
                 const nodesMap = new NodesMap(pipeline);
                 nodesMap.addBatch(new Batch({
                     nodeName: node.nodeName,
-                    batchID: `${node.nodeName}#1`,
+                    batchIndex: 1,
                     status: 'complete',
                 }));
                 const result = nodesMap.isAllNodesCompleted();
@@ -592,7 +589,7 @@ describe('Test', function () {
                 const nodesMap = new NodesMap(pipeline);
                 nodesMap.addBatch(new Batch({
                     nodeName: node.nodeName,
-                    batchID: `${node.nodeName}#1`,
+                    batchIndex: 1,
                     status: 'complete',
                 }));
                 const result = nodesMap.getAllNodes();
@@ -736,7 +733,7 @@ describe('Test', function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { result: [1, 2, 3] };
             await stateManager.setJobResults({ jobId, data });
-            const response = await stateManager._etcd.jobResults.getResult({ jobId });
+            const response = await stateManager._etcd.jobResults.getResults({ jobId });
             expect(response.data).to.deep.equal(data);
         });
         it('setJobStatus', async function () {

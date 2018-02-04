@@ -137,7 +137,7 @@ class TaskRunner {
             }
             else {
                 status = States.COMPLETED;
-                log.info(`pipeline completed ${this._jobId}`, { component: components.TASK_RUNNE, jobId: this._jobId, pipelineName: this._pipelineName });
+                log.info(`pipeline completed ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
                 const result = this._nodes.nodesResults();
                 await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { result, status } });
@@ -182,7 +182,7 @@ class TaskRunner {
             if (driverTask.waitBatch) {
                 this._nodes.addBatch(new WaitBatch(driverTask));
             }
-            else if (driverTask.batchID) {
+            else if (driverTask.batchIndex) {
                 this._nodes.addBatch(new Batch(driverTask));
             }
             else {
@@ -252,11 +252,11 @@ class TaskRunner {
         }
     }
 
-    _runWaitAnyBatch(node, result) {
+    _runWaitAnyBatch(node, input) {
         const waitNode = new WaitBatch({
             nodeName: node.nodeName,
             algorithmName: node.algorithmName,
-            input: result
+            input: input
         });
         this._nodes.addBatch(waitNode);
         this._setTaskState(waitNode.taskId, waitNode);
@@ -269,14 +269,10 @@ class TaskRunner {
         this._createJob(node);
     }
 
-    _runNodeBatch(node, batchArray) {
-        if (!Array.isArray(batchArray)) {
-            throw new Error(`node ${node.nodeName} batch input must be an array`);
-        }
-        batchArray.forEach((inp, ind) => {
+    _runNodeBatch(node, input) {
+        input.forEach((inp, ind) => {
             const batch = new Batch({
                 nodeName: node.nodeName,
-                batchID: `${node.nodeName}#${(ind + 1)}`,
                 batchIndex: (ind + 1),
                 algorithmName: node.algorithmName,
                 input: inp
@@ -310,7 +306,7 @@ class TaskRunner {
     _checkBatchTolerance(task) {
         let error;
         if (task.error) {
-            if (task.batchID || task.waitBatch) {
+            if (task.batchIndex || task.waitBatch) {
                 const batchTolerance = this._pipeline.options.batchTolerance;
                 const states = this._nodes.getNodeStates(task.nodeName);
                 const failed = states.filter(s => s === States.FAILED);
@@ -349,7 +345,7 @@ class TaskRunner {
             data: {
                 input: node.input,
                 node: node.nodeName,
-                batchID: node.batchID,
+                batchIndex: node.batchIndex,
                 pipelineName: this._pipelineName,
                 jobID: this._jobId,
                 taskID: node.taskId
