@@ -50,27 +50,27 @@ class StateManager extends EventEmitter {
     }
 
     async getJobResult(options) {
-        return this._etcd.jobResults.getResult(options);
+        return this._etcd.jobResults.getResults(options);
     }
 
     async getCompletedJobs() {
-        return this._etcd.jobResults.getResults(s => (s.status && s.status.data.status === States.COMPLETED) || (s.result && s.result.data.status === States.COMPLETED));
+        return this._etcd.jobResults.getResultsByFilter(s => (s.status && s.status.data.status === States.COMPLETED) || (s.result && s.result.data.status === States.COMPLETED));
     }
 
-    async setJobResultsLog(options) {
-        return this._etcd.jobResults.setResultsLog(options);
+    async setWebhooksResults(options) {
+        return this._etcd.jobResults.setWebhooksResults(options);
     }
 
-    async setJobStatusLog(options) {
-        return this._etcd.jobResults.setStatusLog(options);
+    async setWebhooksStatus(options) {
+        return this._etcd.jobResults.setWebhooksStatus(options);
     }
 
-    async getJobResultsLog(options) {
-        return this._etcd.jobResults.getResultsLog(options);
+    async getWebhooksResults(options) {
+        return this._etcd.jobResults.getWebhooksResults(options);
     }
 
-    async getJobStatusLog(options) {
-        return this._etcd.jobResults.getStatusLog(options);
+    async getWebhooksStatus(options) {
+        return this._etcd.jobResults.getWebhooksStatus(options);
     }
 
     async getJobStatus(options) {

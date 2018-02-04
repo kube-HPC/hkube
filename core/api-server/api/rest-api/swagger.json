@@ -792,6 +792,9 @@
                     },
                     "options": {
                         "$ref": "#/components/schemas/options"
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/priority"
                     }
                 },
                 "additionalProperties": false,
@@ -850,6 +853,9 @@
                     },
                     "options": {
                         "$ref": "#/components/schemas/options"
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/priority"
                     }
                 },
                 "additionalProperties": false,
@@ -879,6 +885,9 @@
                     },
                     "options": {
                         "$ref": "#/components/schemas/options"
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/priority"
                     }
                 },
                 "additionalProperties": false,
@@ -903,6 +912,12 @@
                     }
                 },
                 "additionalProperties": false
+            },
+            "priority": {
+                "id": "#/components/schemas/priority",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
             },
             "options": {
                 "id": "#/components/schemas/options",

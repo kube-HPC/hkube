@@ -24,6 +24,9 @@ class Validator {
         if (!pipeline.options.progressVerbosityLevel) {
             pipeline.options.progressVerbosityLevel = 'info';
         }
+        if (!pipeline.priority) {
+            pipeline.priority = 3;
+        }
     }
 
     validateRunRawPipeline(pipeline) {

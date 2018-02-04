@@ -40,6 +40,7 @@
             "progress": "http://webhook-stub-ui:30002/webhook/progress",
             "result": "http://webhook-stub-ui:30002/webhook/result"
         },
+        "priority": 5,
         "options": {
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"

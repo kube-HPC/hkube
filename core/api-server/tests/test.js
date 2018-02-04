@@ -233,6 +233,27 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal('found duplicate node dup');
                 });
+                it('should throw validation error priority range', async () => {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            name: 'string',
+                            nodes: [
+                                {
+                                    nodeName: 'dup',
+                                    algorithmName: 'green-alg',
+                                    input: []
+                                }
+                            ],
+                            priority: 8
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('data.priority should be <= 5');
+                });
                 it('should succeed and return execution id', async () => {
                     const options = {
                         method: 'POST',
@@ -1121,6 +1142,27 @@ describe('Test', () => {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal('found duplicate node dup');
+                });
+                it('should throw validation error priority range', async () => {
+                    const options = {
+                        method: 'POST',
+                        uri: restUrl + '/exec/raw',
+                        body: {
+                            name: 'string',
+                            nodes: [
+                                {
+                                    nodeName: 'dup',
+                                    algorithmName: 'green-alg',
+                                    input: []
+                                }
+                            ],
+                            priority: 8
+                        }
+                    };
+                    const response = await _request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(400);
+                    expect(response.body.error.message).to.equal('data.priority should be <= 5');
                 });
                 it('should succeed and return execution id', async () => {
                     const options = {

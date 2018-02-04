@@ -22,7 +22,7 @@ const routes = (options) => {
 
     router.all('/webhooks/results/:jobId?', methods(['GET']), (req, res, next) => {
         const { jobId } = req.params;
-        WebhooksService.getJobResultsLog({ jobId }).then((response) => {
+        WebhooksService.getWebhooksResults({ jobId }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
@@ -32,7 +32,7 @@ const routes = (options) => {
 
     router.all('/webhooks/status/:jobId?', methods(['GET']), (req, res, next) => {
         const { jobId } = req.params;
-        WebhooksService.getJobStatusLog({ jobId }).then((response) => {
+        WebhooksService.getWebhooksStatus({ jobId }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
