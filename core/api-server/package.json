@@ -36,7 +36,7 @@
     "scripts": {
         "lint": "./node_modules/eslint/bin/eslint.js .",
         "test": "./node_modules/mocha/bin/_mocha tests --colors --recursive",
-        "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests",
+        "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests && npm run lint",
         "start": "node app",
         "build": "./dockerfile/build.sh api-server"
     },
