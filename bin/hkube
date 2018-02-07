@@ -6,6 +6,7 @@ const npm = require('../npm');
 const minikube = require('../minikube/minikube');
 const pack = require('../deployment/pack')
 const deploy = require('../deployment/deploy')
+const deleteHkube = require('../deployment/delete')
 const package = require('../package.json')
 const meow = require('meow');
 const colors = require('colors');
@@ -110,6 +111,10 @@ else {
         case 'deploy':
             delete argv._;
             deploy(argv);
+            break;
+        case 'delete':
+            delete argv._;
+            deleteHkube(argv);
             break;
         default:
             console.log(usage.cyan);

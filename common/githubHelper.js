@@ -146,7 +146,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
         return { tmpFileName, images, waitObjectName };
     }
     catch (e) {
-        console.error(`error parsing yaml ${file}. error is: ${e}`);
+        console.error(`error parsing yaml ${fullPath}. error is: ${e}`);
         return { tmpFileName: fullPath };
     }
 }

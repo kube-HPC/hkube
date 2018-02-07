@@ -15,6 +15,7 @@ class kubernetesApi {
         this.kubeConfigFile = null;
     }
 
+ 
     async listenToK8sStatus(podName, status) {
         const kubeconfig = Api.config.loadKubeconfig(this.kubeConfigFile);
         this.config = Api.config.fromKubeconfig(kubeconfig);
