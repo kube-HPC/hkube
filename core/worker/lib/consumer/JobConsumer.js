@@ -20,7 +20,6 @@ class JobConsumer extends EventEmitter {
         this._jobID = undefined;
         this._taskID = undefined;
         this._pipelineName = undefined;
-        this._active = false;
     }
 
     async init(options) {
@@ -72,7 +71,7 @@ class JobConsumer extends EventEmitter {
             });
 
             stateManager.setJob(job);
-            stateManager.prepare(job);
+            stateManager.prepare();
             this.emit('job', job);
         });
 
@@ -156,7 +155,7 @@ class JobConsumer extends EventEmitter {
         };
     }
 
-    async finishJob(data) {
+    async finishJob(data = {}) {
         if (!this._job) {
             return;
         }
