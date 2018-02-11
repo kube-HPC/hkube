@@ -147,6 +147,7 @@ class TaskRunner {
         await stateManager.unWatchTasks({ jobId: this._jobId });
         this._endMetrics(status);
         this._pipeline = null;
+        this._pipelineName = null;
         this._nodes = null;
         this._job.done(error);
         this._job = null;
@@ -198,7 +199,7 @@ class TaskRunner {
     }
 
     _startMetrics() {
-        if (!this._jobId && !this._pipelineName) {
+        if (!this._jobId || !this._pipelineName) {
             return;
         }
         metrics.get(metricsNames.pipelines_net).start({
@@ -214,7 +215,7 @@ class TaskRunner {
     }
 
     _endMetrics(status) {
-        if (!this._jobId && !this._pipelineName) {
+        if (!this._jobId || !this._pipelineName) {
             return;
         }
         metrics.get(metricsNames.pipelines_net).end({
