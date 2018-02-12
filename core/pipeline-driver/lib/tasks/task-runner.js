@@ -62,6 +62,10 @@ class TaskRunner {
     }
 
     async _startPipeline(job) {
+        if (this._active) {
+            log.critical(`start pipeline while already started ${job.id}`, { component: components.TASK_RUNNER, jobId: job.id });
+            return;
+        }
         this._active = true;
         this._job = job;
         this._jobId = job.id;
@@ -116,6 +120,7 @@ class TaskRunner {
 
     async _stopPipeline(err, reason) {
         if (!this._active) {
+            log.critical(`stop pipeline while already stopped ${job.id}`, { component: components.TASK_RUNNER, jobId: job.id });
             return;
         }
         this._active = false;
@@ -124,20 +129,20 @@ class TaskRunner {
         if (err) {
             error = err.message;
             status = States.FAILED;
-            log.error(`pipeline failed ${error}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
+            log.error(`pipeline ${status} ${error}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
             await progress.error({ jobId: this._jobId, pipeline: this._pipelineName, status, error });
             await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { error, status } });
         }
         else {
             if (reason) {
                 status = States.STOPPED;
-                log.info(`pipeline stopped ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
+                log.info(`pipeline ${status} ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
                 await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { reason, status } });
             }
             else {
                 status = States.COMPLETED;
-                log.info(`pipeline completed ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
+                log.info(`pipeline ${status} ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
                 const result = this._nodes.nodesResults();
                 await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { result, status } });
