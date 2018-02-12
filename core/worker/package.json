@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.31",
+    "@hkube/etcd": "^3.2.32",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.21",
     "@hkube/producer-consumer": "^1.0.29",
