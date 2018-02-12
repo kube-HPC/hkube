@@ -9,6 +9,6 @@ config.transport = {
 
 config.extraDetails = false;
 config.isDefault = true;
-config.verbosityLevel = 1;
+config.verbosityLevel = 2;
 
 module.exports = config;
