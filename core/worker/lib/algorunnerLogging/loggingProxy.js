@@ -44,10 +44,16 @@ class LoggingProxy {
                     const logParsed = JSON.parse(line);
 
                     const logMessage = logParsed.log;
-                    log.info(logMessage, { component });
+                    const { stream } = logParsed;
+                    if (stream === 'stderr') {
+                        log.error(logMessage, { component });
+                    }
+                    else {
+                        log.debug(logMessage, { component });
+                    }
                 }
                 catch (error) {
-                    log.info(line, { component });
+                    log.error(line, { component });
                 }
             });
             this._tail.on('error', (error) => {
