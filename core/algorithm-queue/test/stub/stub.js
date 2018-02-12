@@ -9,7 +9,11 @@ const stubTemplate = ({
 } = {}) => (
     {
         jobId: `${uuid}`,
+        taskId: `task-${uuid}`,
         pipelineName: `${pipelineUuid}`,
+        taskData: {
+            input: 'data'
+        },
         priority: `${priority}`,
         algorithmName: `${algorithmName}`,
         batchPlace: `${batchPlace}`,
@@ -23,10 +27,43 @@ const stubTemplate = ({
     }
 );
 
+const stubTask = (batchIndex) => ({
+    taskId: `taskId-${uuidv4()}`,
+    batchIndex,
+    input: `input-${uuidv4()}`
+
+});
+
+const generateConsumedArray = (number = 100) => ({ 
+    jobId: `jobID-${uuidv4()}`,
+    pipelineName: `pipelineName-${uuidv4()}`,
+    nodeName: `nodeName-${uuidv4()}`,
+    priority: Math.floor((Math.random() * 5)),
+    algorithmName: `algorithmName-${uuidv4()}`, 
+    tasks: Array(number).fill().map((o, index) => stubTask(index + 1))
+});
+
 const generateArr = (number = 100, staticOptions) => Array(number).fill().map(() => stubTemplate(staticOptions));
 
 module.exports = {
     stubTemplate,
-    generateArr
+    generateArr,
+    generateConsumedArray
     
 }; 
+
+
+// const consumedObject = {
+//     jobID: 'jobID',
+//     pipelineName: 'pipelineName',
+//     nodeName: 'nodeName',
+//     priority: 'priority',
+//     algorithmName: 'algorithmName'
+//     tasks: [
+//         {
+//             taskId: 'taskId',
+//             input: 'input',
+//             batchIndex: 'batchIndex' // number in the batch 
+//         }
+//     ],
+// };

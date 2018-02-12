@@ -1,12 +1,14 @@
+/* eslint-disable */
 const decache = require('decache');
 const {expect} = require('chai');
-const {generateArr, stubTemplate} = require('./stub/stub');
+const {generateArr, stubTemplate,generateConsumedArray} = require('./stub/stub');
 const delay = require('await-delay');
 const querier = require('../lib/querier');
 const mockery = require('mockery');
 const components = require('../lib/consts/component-name');
 const queueEvents = require('../lib/consts/queue-events');
 const {callDone, done, semaphore} = require('await-done');
+const {mockConsumer} = require('./mock/index');
 let bootstrap = null;
 let Queue = null;
 
@@ -21,7 +23,14 @@ const randomHeuristic = score => job => (Promise.resolve({
     ...{calculated: {score: Math.floor((Math.random() * 100)), entranceTime: Date.now()}}
 }));
 
-const clearCache = arr => arr.forEach(r => decache(r));
+const clearCache = arr => arr.forEach(r => { 
+    try {
+     //   decache(r);
+    }
+    catch (error) {
+        console.error(`decache ${r} error:${error}`);//eslint-disable-line
+    }
+});
 
 let queue = null;
 const QUEUE_INTERVAL = 500;
@@ -213,17 +222,17 @@ describe('persistency tests', () => {
         console.log('persistency tests');
         console.log('------------------------------------');
         //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
-       bootstrap = require('../bootstrap'); //eslint-disable-line
         console.log('queue runner b');
         try {
-        queueRunner = require('../lib/queue-runner'); //eslint-disable-line
+            bootstrap = require('../bootstrap'); //eslint-disable-line
+            queueRunner = require('../lib/queue-runner'); //eslint-disable-line
+            await bootstrap.init();
         }
-        catch (e) {
+        catch (e) {generateArr
             console.error('queue runner a');
         }   
         console.log('queue runner a');
          //eslint-disable-line
-        await bootstrap.init();
     });
     it('persistent load', async () => {
         await queueRunner.queue.add(generateArr(100));
@@ -232,9 +241,45 @@ describe('persistency tests', () => {
         await queueRunner.queue.persistencyLoad();
         await delay(500);
         const q = queueRunner.queue.get;
-        // expect(q.length).to.be.equal(100);
+         expect(q.length).to.be.equal(100);
         queueRunner.queue.flush();
         await queueRunner.queue.persistenceStore();
         await delay(500);
     }); 
+    after(() => {
+        clearCache(['../bootstrap', '../lib/queue-runner']);
+    });
+});
+
+
+describe('job-consume', () => {
+    let _mockConsumer = null;
+    before(async () => {
+        try {
+            mockery.enable({
+                warnOnReplace: false,
+                warnOnUnregistered: false,
+                useCleanCache:true
+            });
+            bootstrap = require('../bootstrap'); //eslint-disable-line
+            queueRunner = require('../lib/queue-runner'); //eslint-disable-line
+             //eslint-disable-line
+             _mockConsumer =  mockConsumer.register();
+             await bootstrap.init();
+        }
+        catch (error) {
+            console.error('could not locate binding file'); //eslint-disable-line
+        }
+        //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+    });
+    it('should consume jobs and send to queue', async () => {
+        console.log('bla');
+       _mockConsumer.Consumer()._emit(generateConsumedArray(100))
+        await delay(100)
+        let q = queueRunner.queue.get;
+        expect(q.length).to.be.equal(100);
+    });
+    after(() => {
+        clearCache(['../bootstrap', '../lib/queue-runner']);
+    });
 });

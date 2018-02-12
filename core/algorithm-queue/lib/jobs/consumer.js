@@ -14,7 +14,7 @@ const consumedObject = {
         {
             taskId: 'taskId',
             input: 'input',
-            batchId: 'batchId' // number in the batch 
+            batchIndex: 'batchIndex' // number in the batch 
         }
     ],
     pipelineName: 'pipelineName',
@@ -32,7 +32,18 @@ const consumedObject = {
 //     calculated: {
 //         score: '1-100',
 //         entranceTime: 'date',
+//     }// const./consts/queue-events = {
+//     jobId: 'uuid',
+//     pipelineName: 'id',
+//     priority: '1-5',
+//     algorithmName: 'alg name',
+//     batchPlace: '0-n',
+//     calculated: {
+//         score: '1-100',
+//         entranceTime: 'date',
 //     }
+// };
+
 // };
 
 
@@ -48,19 +59,21 @@ class JobConsumer extends EventEmitter {
     
     async init(options) {
         log = Logger.GetLogFromContainer();
+        this._options = options;
         
-        
-        this._registerMetrics();
+        // this._registerMetrics();
         this._consumer = new Consumer({
             redis: options.redis,
             tracer,
             prefix: jobPrefix.JOB_PREFIX
         });
-        this._consumer.register(this.options.algorithmType);
-        log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`);
+        this._consumer.register({
+            job: {type: this._options.algorithmType}
+        });
+        log.info(`registering for job ${JSON.stringify(options)}`);
         this._consumer.on('job', job => {
-            log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`);
-            this.queueTasksBuilder(job);
+            log.info(`Job arrived with inputs amount: ${JSON.stringify(job.data.tasks.length)}`);
+            this.queueTasksBuilder(job.data);
         });
         // metrics.get(metricsNames.algorithm_started).inc({
         //     labelValues: {
@@ -86,14 +99,15 @@ class JobConsumer extends EventEmitter {
             jobId,
             pipelineName,
             priority,  
-            batchPlace: task.batchId,
-            taskId: task.taskID,
+            batchPlace: task.batchIndex,
+            taskId: task.taskId,
             taskData: {
                 input: task.input
             },
             calculated: {
+                latestScores: {},
                 //  score: '1-100',
-                //  entranceTime: 'date',
+                entranceTime: Date.now(),
             }
         };
     }
@@ -108,34 +122,35 @@ class JobConsumer extends EventEmitter {
    
    
     async finishJob(result) {
-        if (!this._job) {
-            return;
-        }
+
+    //     if (!this._job) {
+    //         return;
+    //     }
             
-        await etcd.unwatch({ jobId: this._job.data.jobID });
-        let error = result && result.error;
-        if (error && error.message) {
-            error = error.message;
-        }
-        const status = error ? 'failed' : 'succeed';
-        metrics.get(metricsNames.algorithm_completed).inc({
-            labelValues: {
-                pipeline_name: this._job.data.pipeline_name,
-                algorithm_name: this._options.jobConsumer.job.type
-            }
-        });
-        metrics.get(metricsNames.algorithm_net).start({
-            id: this._job.data.taskID,
-            labelValues: {
-                status
-            }
-        });
-        log.info(`status: ${status}, error: ${error}`);
-        await etcd.update({
-            jobId: this._job.data.jobID, taskId: this._job.id, status, result, error
-        });
-        this._job.done(error, result);
-        this._job = null;
+    //     await etcd.unwatch({ jobId: this._job.data.jobID });
+    //     let error = result && result.error;
+    //     if (error && error.message) {
+    //         error = error.message;
+    //     }
+    //     const status = error ? 'failed' : 'succeed';
+    //     metrics.get(metricsNames.algorithm_completed).inc({
+    //         labelValues: {
+    //             pipeline_name: this._job.data.pipeline_name,
+    //             algorithm_name: this._options.jobConsumer.job.type
+    //         }
+    //     });
+    //     metrics.get(metricsNames.algorithm_net).start({
+    //         id: this._job.data.taskID,
+    //         labelValues: {
+    //             status
+    //         }
+    //     });
+    //     log.info(`status: ${status}, error: ${error}`);
+    //     await etcd.update({
+    //         jobId: this._job.data.jobID, taskId: this._job.id, status, result, error
+    //     });
+    //     this._job.done(error, result);
+    //     this._job = null;
     }
 }
     

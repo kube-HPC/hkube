@@ -10,10 +10,12 @@ log.plugins.use(new VerbosityPlugin(main.redis));
 const monitor = require('@hkube/redis-utils').Monitor;
 const {componentName, metricsName} = require('./lib/consts/index');
 const metrics = require('@hkube/metrics');
-
+// const consumer = require('./lib/jobs/consumer');
 const {tracer} = require('@hkube/metrics');
 const modules = [
+    './lib/jobs/consumer',
     './lib/queue-runner'
+    
    
 ];
 
@@ -34,6 +36,7 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
+            //       consumer.init(main);
             await Promise.all(modules.map(m => require(m).init(main)));// eslint-disable-line global-require, import/no-dynamic-require
             
             return main;
