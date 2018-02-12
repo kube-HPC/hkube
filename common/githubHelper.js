@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const GitHubApi = require('@octokit/rest')
 const semver = require('semver')
 const fs = require('fs-extra');
@@ -97,6 +98,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
         const fileContents = fs.readFileSync(fullPath, 'utf8');
         const yml = jsYaml.loadAll(fileContents);
         const images = [];
+        const imagesDetails = [];
         let waitObjectName;
         yml.forEach(y => {
             if (!waitObjectName && (y.kind === 'Deployment' || y.kind === 'EtcdCluster')) {
@@ -124,18 +126,21 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
                 return;
             }
             containers.forEach(c => {
-                const imageParsed = _parseImageName(c.image);
+                const imageParsed = parseImageName(c.image);
                 const imageName = imageParsed.repository;
                 if (imageParsed.tag && imageParsed.tag !== 'latest') {
-                    images.push(c.image);
+                    const x = _.merge(imageParsed, { registry, fullImageName: c.image })
+                    images.push(x);
                     console.log(`service ${imageName}. found version ${imageParsed.tag}`)
                     return;
                 }
 
                 const version = versions.versions.find(v => v.project === imageName);
                 const tag = version ? version.tag : 'latest';
-                c.image = _createImageName({ ...imageParsed, tag, registry })
-                images.push(c.image);
+                imagesDetails.push();
+                c.image = createImageName({ ...imageParsed, tag, registry })
+                const x = _.merge(imageParsed, { registry, fullImageName: c.image })
+                images.push(x);
                 console.log(`service ${imageName}. found version ${tag}`)
             })
         });
@@ -151,7 +156,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
     }
 }
 
-const _createImageName = ({ registry, namespace, repository, tag }) => {
+const createImageName = ({ registry, namespace, repository, tag }) => {
     let array = [registry, namespace, repository];
     array = array.filter(a => a);
     let image = array.join('/');
@@ -162,7 +167,7 @@ const _createImageName = ({ registry, namespace, repository, tag }) => {
     // image = image.replace('//','/');
     return image;
 }
-const _parseImageName = (image) => {
+const parseImageName = (image) => {
     var match = image.match(/^(?:([^\/]+)\/)?(?:([^\/]+)\/)?([^@:\/]+)(?:[@:](.+))?$/)
     if (!match) return null
 
@@ -196,5 +201,7 @@ const _parseImageName = (image) => {
 module.exports = {
     getLatestVersions,
     changeYamlImageVersion,
-    cloneRepo
+    cloneRepo,
+    parseImageName,
+    createImageName
 }

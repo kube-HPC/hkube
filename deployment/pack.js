@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
-const { getLatestVersions, changeYamlImageVersion, cloneRepo } = require('../common/githubHelper');
+const { getLatestVersions, changeYamlImageVersion, cloneRepo, parseImageName } = require('../common/githubHelper');
 const { YAML_PATH } = require('./consts');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
@@ -87,13 +87,20 @@ const _getVersionsCoreSource = async (versions, opts) => {
     console.log(`System version: ${versions.systemVersion}`);
     const baseFolderForSources = `${FOLDERS.hkube}/${versions.systemVersion}/sources`;
     await fs.mkdirp(baseFolderForSources);
+    const baseImagesList = [];
     for (repo of versions.versions) {
         console.log(`cloning ${repo.project}@${repo.tag}`);
         const repoFolder = `${baseFolderForSources}/${repo.project}`;
         await cloneRepo(repo.project, repo.tag, repoFolder);
-        await _pullBaseImage(versions, repo.project, repoFolder);
+        const imageDetail = await _pullBaseImage(versions, repo.project, repoFolder);
+        if (imageDetail) {
+            baseImagesList.push(imageDetail);
+        }
         await syncSpawn('npm', 'i', { cwd: repoFolder });
     }
+    const baseImagesFolder = `${FOLDERS.hkube}/${versions.systemVersion}/baseImages`;
+    fs.writeFileSync(path.join(baseImagesFolder, 'images.json'), JSON.stringify(baseImagesList, null, 2));
+
 }
 
 const _pullBaseImage = async (versions, project, repoFolder) => {
@@ -108,6 +115,7 @@ const _pullBaseImage = async (versions, project, repoFolder) => {
     const dockerfileString = fs.readFileSync(dockerFilePath, { encoding: 'utf8' });
     const dockerfile = dockerParse(dockerfileString);
     const image = dockerfile.from;
+    const imageParsed = parseImageName(image);
     const fileName = image.replace(/[\/:]/gi, '_')
     if (alreadyWritten.includes(fileName)) {
         console.log(`${fileName} already written. skipping.`)
@@ -116,7 +124,11 @@ const _pullBaseImage = async (versions, project, repoFolder) => {
     alreadyWritten.push(fileName);
     await syncSpawn(`docker`, `pull ${image}`)
     await syncSpawn(`docker`, `save -o ${path.join(baseImagesFolder, fileName)}.tar ${image}`)
-
+    const baseImage = {
+        file: `${fileName}.tar`,
+        ...imageParsed
+    }
+    return baseImage;
 }
 const _getVersionsCore = async (versions, opts) => {
     console.log(`System version: ${versions.systemVersion}`);
@@ -125,6 +137,7 @@ const _getVersionsCore = async (versions, opts) => {
     })
     await fs.mkdirp(`${FOLDERS.hkube}/${versions.systemVersion}/images`);
     await fs.mkdirp(`${FOLDERS.hkube}/${versions.systemVersion}/yaml`);
+    const imageList = [];
 
     const yamls = fs.readdirSync(coreYamlPath);
     for (const file of yamls) {
@@ -133,18 +146,22 @@ const _getVersionsCore = async (versions, opts) => {
         }
         const { tmpFileName, images } = changeYamlImageVersion(file, versions, coreYamlPath)
         for (const i of images) {
-            const fileName = i.replace(/[\/:]/gi, '_')
+            const fileName = i.fullImageName.replace(/[\/:]/gi, '_')
             if (alreadyWritten.includes(fileName)) {
                 console.log(`${fileName} already written. skipping.`)
                 continue;
             }
             alreadyWritten.push(fileName);
-            await syncSpawn(`docker`, `pull ${i}`)
-            await syncSpawn(`docker`, `save -o ${FOLDERS.hkube}/${versions.systemVersion}/images/${fileName}.tar ${i}`)
-
+            await syncSpawn(`docker`, `pull ${i.fullImageName}`)
+            await syncSpawn(`docker`, `save -o ${FOLDERS.hkube}/${versions.systemVersion}/images/${fileName}.tar ${i.fullImageName}`)
+            imageList.push({
+                file: `${fileName}.tar`,
+                ...i
+            })
         }
         fs.copyFileSync(tmpFileName, `${FOLDERS.hkube}/${versions.systemVersion}/yaml/${path.basename(file)}`)
     }
+    fs.writeFileSync(path.join(FOLDERS.hkube, versions.systemVersion, 'images', 'images.json'), JSON.stringify(imageList, null, 2));
 
 }
 
@@ -157,7 +174,7 @@ const _getVersionsThirdParty = async (versions, opts) => {
     pts = opts || [];
     const thirdPartyFolder = `${FOLDERS.hkube}/${versions.systemVersion}/thirdParty`;
     await fs.mkdirp(thirdPartyFolder);
-    
+    const imageList = [];
     const yamls = await recursiveDir(thirdPartyPath, [_ignoreFileFunc]);
     for (const file of yamls) {
         try {
@@ -169,15 +186,18 @@ const _getVersionsThirdParty = async (versions, opts) => {
             }
             const { tmpFileName, images } = changeYamlImageVersion(file, null, thirdPartyPath)
             for (const i of images) {
-                const fileName = i.replace(/[\/:]/gi, '_')
+                const fileName = i.fullImageName.replace(/[\/:]/gi, '_')
                 if (alreadyWritten.includes(fileName)) {
                     console.log(`${fileName} already written. skipping.`)
                     continue;
                 }
                 alreadyWritten.push(fileName);
-                await syncSpawn(`docker`, `pull ${i}`)
-                await syncSpawn(`docker`, `save -o ${path.join(thirdPartyFolder,fileName)}.tar ${i}`)
-
+                await syncSpawn(`docker`, `pull ${i.fullImageName}`)
+                await syncSpawn(`docker`, `save -o ${path.join(thirdPartyFolder, fileName)}.tar ${i.fullImageName}`)
+                imageList.push({
+                    file: `${fileName}.tar`,
+                    ...i
+                })
             }
 
         }
@@ -186,6 +206,7 @@ const _getVersionsThirdParty = async (versions, opts) => {
         }
         // fs.copyFileSync(tmpFileName, `${FOLDERS.hkube}/${path.basename(file)}`)
     }
+    fs.writeFileSync(path.join(thirdPartyFolder, 'images.json'), JSON.stringify(imageList, null, 2));
 
 }
 module.exports = pack

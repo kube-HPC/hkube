@@ -6,6 +6,7 @@ const npm = require('../npm');
 const minikube = require('../minikube/minikube');
 const pack = require('../deployment/pack')
 const deploy = require('../deployment/deploy')
+const loadHkube = require('../deployment/load');
 const deleteHkube = require('../deployment/delete')
 const package = require('../package.json')
 const meow = require('meow');
@@ -41,8 +42,14 @@ const usage = `
             --core, -c saves all core yamls and docker images in ~/.hkube
             --thirdParty, -t saves all third party docker images in ~/.hkube/thirdParty
             --source, -s clones the sources of the repos, and checkout the correct version
-            
-    minikube:
+    
+    load: loads docker images from files and pushes to registry
+        $ load <options>
+        Options:
+            --core, -c loads core images from hkubeFolder/semver/images
+            --thirdParty, -t loads thirdparty images from hkubeFolder/semver/thirdParty
+
+minikube:
 
         $ minikube, m <options>
         
@@ -115,6 +122,10 @@ else {
         case 'delete':
             delete argv._;
             deleteHkube(argv);
+            break;
+        case 'load':
+            delete argv._;
+            loadHkube(argv);
             break;
         default:
             console.log(usage.cyan);

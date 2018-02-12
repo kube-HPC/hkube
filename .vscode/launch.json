@@ -11,6 +11,17 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "pack",
+                "-s"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "load",
+            "program": "${workspaceFolder}/bin/hkube",
+            "args": [
+                "load",
+                "--folder=/home/yehil/.hkube/1.0.217",
                 "-t"
             ]
         },

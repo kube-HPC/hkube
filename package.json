@@ -25,6 +25,7 @@
     "js-yaml": "^3.10.0",
     "json-stream": "^1.0.0",
     "kubernetes-client": "^3.16.1",
+    "lodash": "^4.17.5",
     "meow": "^3.7.0",
     "minimist": "^1.2.0",
     "mkdir-recursive": "^0.3.0",

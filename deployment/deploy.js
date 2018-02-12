@@ -59,6 +59,7 @@ const deploy = async (args) => {
     if (args.build) {
         await _buildFromSource(versions, args);
     }
+    
     for (const key in args) {
         const value = args[key];
         if (!value) {
