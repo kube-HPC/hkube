@@ -931,10 +931,10 @@
                     "progressVerbosityLevel": {
                         "type": "string",
                         "enum": [
-                            "silly",
+                            "trace",
                             "debug",
                             "info",
-                            "warning",
+                            "warn",
                             "error",
                             "critical"
                         ]

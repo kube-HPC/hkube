@@ -516,10 +516,10 @@ And this is the progress webhook payload
 
 The Verbosity Level is a setting that allow to control what type of progress events the client will notified about.  
 The severity levels are ascending from least important to most important:
-* silly
+* trace
 * debug
 * info
-* warning
+* warn
 * error
 * critical
 
