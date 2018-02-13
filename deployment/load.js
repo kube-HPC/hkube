@@ -1,5 +1,3 @@
-import { version } from 'punycode';
-
 const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
