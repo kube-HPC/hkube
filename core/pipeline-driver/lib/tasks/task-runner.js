@@ -34,11 +34,11 @@ class TaskRunner {
                 await this._startPipeline(job);
             }
             catch (error) {
-                this._stopPipeline(error);
+                this._tryStopPipeline(error);
             }
         });
         stateManager.on(Events.JOBS.STOP, (data) => {
-            this._stopPipeline(null, data.reason);
+            this._tryStopPipeline(null, data.reason);
         });
         producer.on(Events.TASKS.WAITING, (taskId) => {
             this._setTaskState(taskId, { status: States.PENDING });
@@ -74,7 +74,7 @@ class TaskRunner {
         await stateManager.watchTasks({ jobId: this._jobId });
         const watchState = await stateManager.watchJobState({ jobId: this._jobId });
         if (watchState && watchState.state === States.STOP) {
-            this._stopPipeline(null, watchState.reason);
+            this._tryStopPipeline(null, watchState.reason);
             return;
         }
 
@@ -103,7 +103,7 @@ class TaskRunner {
                 await this._recoverPipeline(tasks);
             }
             else {
-                this._stopPipeline();
+                this._tryStopPipeline();
             }
         }
         else {
@@ -115,6 +115,16 @@ class TaskRunner {
                 throw new Error('unable to find entry nodes');
             }
             entryNodes.forEach(n => this._runNode(n));
+        }
+    }
+
+    async _tryStopPipeline(error, reason) {
+        try {
+            this._stopPipeline(error, reason);
+        }
+        catch (err) {
+            log.critical(`unable to stop pipeline ${err.message}`, { component: components.TASK_RUNNER, jobId: this._jobId });
+            this._cleanJob(error);
         }
     }
 
@@ -151,12 +161,7 @@ class TaskRunner {
         await stateManager.unWatchJobState({ jobId: this._jobId });
         await stateManager.unWatchTasks({ jobId: this._jobId });
         this._endMetrics(status);
-        this._pipeline = null;
-        this._pipelineName = null;
-        this._nodes = null;
-        this._job.done(error);
-        this._job = null;
-        this._jobId = null;
+        this._cleanJob(error);
     }
 
     async _recoverPipeline(tasks) {
@@ -171,19 +176,28 @@ class TaskRunner {
         this._nodes.checkReadyNodes();
 
         if (this._nodes.isAllNodesCompleted()) {
-            this._stopPipeline();
+            this._tryStopPipeline();
         }
     }
 
+    _cleanJob(error) {
+        this._pipeline = null;
+        this._pipelineName = null;
+        this._nodes = null;
+        this._job.done(error);
+        this._job = null;
+        this._jobId = null;
+    }
+
     _checkRecovery(state) {
-        const tasksToRun = [];
+        const tasksToUpdate = [];
         state.driverTasks.forEach(driverTask => {
             const jobTask = state.jobTasks.get(driverTask.taskId);
             if (jobTask && jobTask.status !== driverTask.status) {
                 driverTask.result = jobTask.result;
                 driverTask.status = jobTask.status;
                 driverTask.error = jobTask.error;
-                tasksToRun.push(driverTask);
+                tasksToUpdate.push(driverTask);
             }
             if (driverTask.waitBatch) {
                 this._nodes.addBatch(new WaitBatch(driverTask));
@@ -195,12 +209,12 @@ class TaskRunner {
                 this._nodes.setNode(new Node(driverTask));
             }
         })
-        state.driverTasks.forEach(driverTask => {
-            if (driverTask.status === States.SUCCEED) {
-                this._nodes.updateCompletedTask(driverTask, false);
+        tasksToUpdate.forEach(task => {
+            if (task.status === States.SUCCEED) {
+                this._nodes.updateCompletedTask(task, false);
             }
         })
-        return tasksToRun;
+        return tasksToUpdate;
     }
 
     _startMetrics() {
@@ -299,10 +313,10 @@ class TaskRunner {
         }
         const error = this._checkBatchTolerance(task);
         if (error) {
-            this._stopPipeline(error);
+            this._tryStopPipeline(error);
         }
         else if (this._nodes.isAllNodesCompleted()) {
-            this._stopPipeline();
+            this._tryStopPipeline();
         }
         else {
             this._nodes.updateCompletedTask(task);

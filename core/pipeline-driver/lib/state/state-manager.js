@@ -12,6 +12,7 @@ class StateManager extends EventEmitter {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
         //this._etcd.discovery.register({ serviceName });
+        this.watchJobState({ jobId: 'hookWatch' });
         this._subscribe();
     }
 

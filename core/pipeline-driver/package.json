@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.32",
+    "@hkube/etcd": "^3.2.33",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.21",
-    "@hkube/parsers": "^1.0.5",
+    "@hkube/parsers": "^1.0.6",
     "@hkube/producer-consumer": "^1.0.29",
     "@hkube/redis-utils": "^1.0.1",
     "@hkube/rest-server": "^1.0.5",
@@ -34,7 +34,7 @@
     "eslint-plugin-import": "^2.8.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^2.5.3",
-    "sinon": "^4.2.2"
+    "sinon": "^4.3.0"
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
