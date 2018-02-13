@@ -15,6 +15,7 @@ class EtcdDiscovery extends EventEmitter {
         this._etcd = new Etcd();
         await this._etcd.init(options.etcdDiscovery.init);
         await this._etcd.discovery.register({ serviceName: options.etcdDiscovery.init.serviceName });
+        this.watch({ jobId: 'hookWatch' });
         this._etcd.jobs.on('change', (res) => {
             log.info(JSON.stringify(res), { component });
             switch (res.state) {
