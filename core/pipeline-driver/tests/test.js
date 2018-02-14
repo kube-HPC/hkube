@@ -56,11 +56,6 @@ describe('Test', function () {
         });
     });
     describe('Consumer', function () {
-        describe('Validation', function () {
-            it('should not throw error', function () {
-                consumer.init();
-            });
-        });
         describe('ConsumeJob', function () {
             it('should consume a job with properties', async function (done) {
                 const jobId = `jobid-${uuidv4()}`;

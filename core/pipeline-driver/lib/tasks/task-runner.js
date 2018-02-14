@@ -46,12 +46,12 @@ class TaskRunner {
         stateManager.on(Events.TASKS.ACTIVE, (data) => {
             this._setTaskState(data.taskId, { status: States.ACTIVE });
         });
-        stateManager.on(Events.TASKS.SUCCEED, async (data) => {
-            await this._setTaskState(data.taskId, { status: data.status, result: data.result });
+        stateManager.on(Events.TASKS.SUCCEED, (data) => {
+            this._setTaskState(data.taskId, { status: data.status, result: data.result });
             this._taskComplete(data.taskId);
         });
-        stateManager.on(Events.TASKS.FAILED, async (data) => {
-            await this._setTaskState(data.taskId, { status: data.status, error: data.error });
+        stateManager.on(Events.TASKS.FAILED, (data) => {
+            this._setTaskState(data.taskId, { status: data.status, error: data.error });
             this._taskComplete(data.taskId);
         });
         metrics.addTimeMeasure({
@@ -343,7 +343,7 @@ class TaskRunner {
         return error;
     }
 
-    async _setTaskState(taskId, options) {
+    _setTaskState(taskId, options) {
         if (!this._active) {
             return;
         }
@@ -355,8 +355,8 @@ class TaskRunner {
             log.debug(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName, taskId, algorithmName: task.algorithmName });
         }
 
-        await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
-        await stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
+        progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
+        stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
     }
 
     async _createJob(node) {

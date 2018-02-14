@@ -5,7 +5,8 @@ module.exports = {
         START: 'job-start',
         STOP: 'job-stop',
         WAITING: 'job-waiting',
-        ACTIVE: 'job-active'
+        ACTIVE: 'job-active',
+        STALLED: 'job-stalled'
     },
     TASKS: {
         WAITING: 'task-waiting',

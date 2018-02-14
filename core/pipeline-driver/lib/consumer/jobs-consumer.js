@@ -20,7 +20,7 @@ class JobConsumer extends EventEmitter {
         const options = {
             setting: {
                 redis: option.redis,
-                settings: option.jobsSettings,
+                settings: option.jobs.consumer,
                 tracer
             }
         };

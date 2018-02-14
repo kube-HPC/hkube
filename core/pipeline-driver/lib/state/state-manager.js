@@ -1,13 +1,7 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
-const States = require('./States');
 
 class StateManager extends EventEmitter {
-
-    constructor() {
-        super();
-    }
-
     init({ serviceName, etcd }) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
