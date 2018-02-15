@@ -93,7 +93,7 @@ class WebhooksHandler {
             }).catch((error) => {
                 data.responseStatus = States.FAILED;
                 data.httpResponse = { statusCode: error.code, statusMessage: error.message };
-                log.error(`webhook ${type} failed ${error.message}`, { component: components.WEBHOOK_HANDLER, jobId });
+                log.warning(`webhook ${type} failed ${error.message}`, { component: components.WEBHOOK_HANDLER, jobId });
                 return resolve(data);
             });
         });

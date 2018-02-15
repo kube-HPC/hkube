@@ -18,14 +18,14 @@ class Validator {
 
     addDefaults(pipeline) {
         pipeline.options = pipeline.options || {};
-        if (!pipeline.options.batchTolerance) {
+        if (!Number.isInteger(pipeline.options.batchTolerance)) {
             pipeline.options.batchTolerance = 80;
+        }
+        if (!Number.isInteger(pipeline.priority)) {
+            pipeline.priority = 3;
         }
         if (!pipeline.options.progressVerbosityLevel) {
             pipeline.options.progressVerbosityLevel = 'info';
-        }
-        if (!pipeline.priority) {
-            pipeline.priority = 3;
         }
     }
 

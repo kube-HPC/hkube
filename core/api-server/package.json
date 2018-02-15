@@ -5,13 +5,13 @@
     "main": "index.js",
     "dependencies": {
         "@hkube/config": "^2.0.0",
-        "@hkube/etcd": "^3.2.32",
+        "@hkube/etcd": "^3.2.33",
         "@hkube/logger": "^1.0.12",
         "@hkube/metrics": "^1.0.21",
-        "@hkube/parsers": "^1.0.5",
-        "@hkube/producer-consumer": "^1.0.29",
+        "@hkube/parsers": "^1.0.6",
+        "@hkube/producer-consumer": "^1.0.31",
         "@hkube/redis-utils": "^1.0.1",
-        "@hkube/rest-server": "^1.0.5",
+        "@hkube/rest-server": "^1.0.6",
         "deep-extend": "^0.5.0",
         "djsv": "^3.0.3",
         "express": "^4.16.2",
@@ -31,7 +31,7 @@
         "istanbul": "^1.1.0-alpha.1",
         "mocha": "^3.5.3",
         "request": "^2.83.0",
-        "sinon": "^4.2.2"
+        "sinon": "^4.3.0"
     },
     "scripts": {
         "lint": "./node_modules/eslint/bin/eslint.js .",
