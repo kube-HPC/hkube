@@ -36,8 +36,10 @@ config.jobConsumer = {
         type: process.env.ALGORITHM_TYPE
     },
     setting: {
-        queueName: 'queue-workers',
-        prefix: 'jobs-workers'
+        prefix: 'jobs-workers',
+        settings: {
+            maxStalledCount: 3
+        }
     }
 };
 
