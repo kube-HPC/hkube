@@ -53,7 +53,7 @@ class LoggingProxy {
                     }
                 }
                 catch (error) {
-                    log.error(line, { component });
+                    log.info(line, { component });
                 }
             });
             this._tail.on('error', (error) => {
