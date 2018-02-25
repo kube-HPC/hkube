@@ -32,27 +32,27 @@ class ProgressManager {
     }
 
     async silly(data) {
-        await this._throttledProgress(levels.silly, data);
+        return this._throttledProgress(levels.silly, data);
     }
 
     async debug(data) {
-        await this._throttledProgress(levels.debug, data);
+        return this._throttledProgress(levels.debug, data);
     }
 
     async info(data) {
-        await this._progress(levels.info, data);
+        return this._progress(levels.info, data);
     }
 
     async warning(data) {
-        await this._progress(levels.warning, data);
+        return this._progress(levels.warning, data);
     }
 
     async error(data) {
-        await this._progress(levels.error, data);
+        return this._progress(levels.error, data);
     }
 
     async critical(data) {
-        await this._progress(levels.critical, data);
+        return this._progress(levels.critical, data);
     }
 
     async _progress(level, { jobId, pipeline, status, error }) {
@@ -60,7 +60,7 @@ class ProgressManager {
         const data = { level, status, error, progress, details, activeNodes };
         if (!deepEqual(data, this._lastState)) {
             this._lastState = data;
-            await stateManager.setJobStatus({ jobId, pipeline, data });
+            return stateManager.setJobStatus({ jobId, pipeline, data });
         }
     }
 }

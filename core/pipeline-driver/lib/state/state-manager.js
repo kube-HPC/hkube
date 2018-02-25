@@ -1,3 +1,4 @@
+const moment = require('moment');
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 
@@ -44,8 +45,12 @@ class StateManager extends EventEmitter {
     }
 
     async setJobResults(options) {
+        const now = moment(Date.now());
+        const startTime = moment(options.startTime);
+        const timeTook = now.diff(startTime, 'seconds', true);
         const payload = {
             timestamp: new Date(),
+            timeTook,
             pipeline: options.pipeline,
             data: options.data
         }

@@ -16,7 +16,6 @@ class JobProducer extends EventEmitter {
         super();
         this._job = null;
         this._producer = null;
-        this._stalledJobs = new Map();
     }
 
     async init(options) {
@@ -27,23 +26,16 @@ class JobProducer extends EventEmitter {
             throw new Error(res.error);
         }
         setting.tracer = tracer;
-        this._producer = new Producer({ setting: setting });
+        this._producer = new Producer({ setting });
         this._producer.on(Events.JOBS.WAITING, (data) => {
             this.emit(Events.TASKS.WAITING, data.jobID);
         }).on(Events.JOBS.ACTIVE, (data) => {
             this.emit(Events.TASKS.ACTIVE, data.jobID);
         }).on(Events.JOBS.STALLED, (data) => {
-            let stalled = this._stalledJobs.get(data.jobID) || 0;
-            stalled++;
-            if (stalled === 1) {
-                stateManager.emit(Events.TASKS.FAILED, { taskId: data.jobID, status: States.FAILED, error: 'CrashLoopBackOff' });
-            }
-            this._stalledJobs.set(data.jobID, stalled);
+            this.emit(Events.TASKS.STALLED, data.jobID);
+        }).on(Events.JOBS.FAILED, (data) => {
+            this.emit(Events.TASKS.FAILED, data);
         });
-    }
-
-    async getWorkers(options) {
-        return this._producer.getWorkers(options);
     }
 
     async createJob(options) {

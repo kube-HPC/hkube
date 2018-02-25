@@ -7,6 +7,7 @@ class NodeBase extends Task {
         super(options);
         this.nodeName = options.nodeName;
         this.algorithmName = options.algorithmName;
+        this.extraData = options.extraData;
         this.input = options.input;
         this.status = options.status || States.CREATING;
         this.error = options.error;

@@ -43,6 +43,13 @@ class TaskRunner {
         producer.on(Events.TASKS.WAITING, (taskId) => {
             this._setTaskState(taskId, { status: States.PENDING });
         });
+        producer.on(Events.TASKS.STALLED, (taskId) => {
+            this._setTaskState(taskId, { status: States.STALLED });
+        });
+        producer.on(Events.TASKS.FAILED, (data) => {
+            this._setTaskState(data.taskId, { status: States.FAILED, error: data.error });
+            this._taskComplete(data.taskId);
+        });
         stateManager.on(Events.TASKS.ACTIVE, (data) => {
             this._setTaskState(data.taskId, { status: States.ACTIVE });
         });
@@ -107,7 +114,7 @@ class TaskRunner {
             }
         }
         else {
-            stateManager.setDriverState({ jobId: this._jobId, data: States.ACTIVE });
+            await stateManager.setDriverState({ jobId: this._jobId, data: States.ACTIVE });
             await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
 
             const entryNodes = this._nodes.findEntryNodes();
@@ -155,7 +162,7 @@ class TaskRunner {
                 log.info(`pipeline ${status} ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
                 const result = this._nodes.nodesResults();
-                await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { result, status } });
+                await stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipeline.startTime, pipeline: this._pipelineName, data: { result, status } });
             }
         }
         await stateManager.unWatchJobState({ jobId: this._jobId });
@@ -193,7 +200,10 @@ class TaskRunner {
         const tasksToUpdate = [];
         state.driverTasks.forEach(driverTask => {
             const jobTask = state.jobTasks.get(driverTask.taskId);
-            if (jobTask && jobTask.status !== driverTask.status) {
+            if (!jobTask) {
+                tasksToUpdate.push(driverTask);
+            }
+            else if (jobTask && jobTask.status !== driverTask.status) {
                 driverTask.result = jobTask.result;
                 driverTask.status = jobTask.status;
                 driverTask.error = jobTask.error;
@@ -252,17 +262,15 @@ class TaskRunner {
 
     _runNode(nodeName, parentOutput, index) {
         const node = this._nodes.getNode(nodeName);
-
-        const options = Object.assign({},
-            { flowInput: this._pipeline.flowInput },
-            { nodeInput: node.input },
-            { parentOutput: parentOutput },
-            { index: index });
-
+        const options = {
+            flowInput: this._pipeline.flowInput,
+            nodeInput: node.input,
+            parentOutput,
+            index
+        };
         const result = parser.parse(options);
-
         if (index) {
-            this._runWaitAnyBatch(node, result.input);
+            this._runWaitAnyBatch(node, result.input, index);
         }
         else if (result.batch) {
             this._runNodeBatch(node, result.input);
@@ -272,13 +280,9 @@ class TaskRunner {
         }
     }
 
-    _runWaitAnyBatch(node, input) {
-        const waitNode = new WaitBatch({
-            nodeName: node.nodeName,
-            algorithmName: node.algorithmName,
-            input: input
-        });
-        this._nodes.addBatch(waitNode);
+    _runWaitAnyBatch(node, input, index) {
+        const waitNode = this._nodes.getWaitAny(node.nodeName, index);
+        waitNode.input = input;
         this._setTaskState(waitNode.taskId, waitNode);
         this._createJob(waitNode);
     }
@@ -295,6 +299,7 @@ class TaskRunner {
                 nodeName: node.nodeName,
                 batchIndex: (ind + 1),
                 algorithmName: node.algorithmName,
+                extraData: node.extraData,
                 input: inp
             });
             this._nodes.addBatch(batch);
@@ -363,12 +368,13 @@ class TaskRunner {
         const options = {
             type: node.algorithmName,
             data: {
+                jobID: this._jobId,
+                taskID: node.taskId,
                 input: node.input,
                 node: node.nodeName,
                 batchIndex: node.batchIndex,
                 pipelineName: this._pipelineName,
-                jobID: this._jobId,
-                taskID: node.taskId
+                extraData: node.extraData
             }
         }
         await producer.createJob(options);

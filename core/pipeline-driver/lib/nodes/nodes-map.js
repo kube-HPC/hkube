@@ -5,6 +5,7 @@ const deepExtend = require('deep-extend');
 const GroupBy = require('../helpers/group-by');
 const throttle = require('lodash.throttle');
 const Node = require('./node');
+const WaitBatch = require('../nodes/node-wait-batch');
 const VirtualNode = require('../graph/virtual-node');
 const VirtualLink = require('../graph/virtual-link');
 const ActualGraph = require('../graph/graph-actual');
@@ -55,7 +56,8 @@ class NodesMap extends EventEmitter {
             const node = new Node({
                 nodeName: n.nodeName,
                 algorithmName: n.algorithmName,
-                input: n.input
+                input: n.input,
+                extraData: n.extraData
             });
             this._graph.setNode(node.nodeName, node);
         });
@@ -115,10 +117,13 @@ class NodesMap extends EventEmitter {
         let bNode = this._actualGraph.findByEdge(source, target);
         let aNode = this._actualGraph.findByTargetAndIndex(target, index);
 
-        if (!aNode || !bNode) {
+        if (!aNode && !bNode) {
             const vNode = this._virtualGraph.getCopy(source, target);
             this._actualGraph.addNode(vNode);
             aNode = vNode;
+        }
+        else if (!aNode && bNode) {
+            aNode = bNode;
         }
 
         let link = aNode.links.find(l => l.source === source && l.target === target);
@@ -186,7 +191,7 @@ class NodesMap extends EventEmitter {
                 this._updateChildNode(task, child);
             });
             if (checkReadyNodes) {
-                this._throttledCheckReadyNodes();
+                this.checkReadyNodes();
             }
         }
     }
@@ -216,11 +221,36 @@ class NodesMap extends EventEmitter {
         return results;
     }
 
+    getWaitAny(nodeName, index) {
+        let waitAny = null;
+        const node = this._graph.node(nodeName);
+        if (node) {
+            waitAny = node.batch.find(b => b.batchIndex === index);
+        }
+        return waitAny;
+    }
+
     addBatch(batch) {
         const node = this._graph.node(batch.nodeName);
         if (node) {
             node.batch.push(batch);
         }
+        const childs = this._childs(batch.nodeName);
+        childs.forEach(child => {
+            let edge = this._virtualGraph.findEdge(batch.nodeName, child, consts.relations.WAIT_ANY);
+            if (edge) {
+                const node = this._graph.node(child);
+                if (node) {
+                    const waitAny = new WaitBatch({
+                        nodeName: node.nodeName,
+                        batchIndex: batch.batchIndex,
+                        algorithmName: node.algorithmName,
+                        extraData: node.extraData
+                    });
+                    node.batch.push(waitAny);
+                }
+            }
+        });
     }
 
     setNode(node) {

@@ -18,6 +18,12 @@ class GraphBase {
         return this._nodes.find(n => n.links.find(l => l.target === target));
     }
 
+    findEdge(source, target, type) {
+        const node = this.findByEdge(source, target);
+        const link = node.links[0];
+        return link.edges.find(e => e.type === type);
+    }
+
     findByEdge(source, target) {
         return this._nodes.find(n => n.links.find(l => l.source === source && l.target === target));
     }
