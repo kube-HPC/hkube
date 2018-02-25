@@ -16,6 +16,7 @@
         "djsv": "^3.0.3",
         "express": "^4.16.2",
         "graphlib": "^2.1.5",
+        "moment": "^2.20.1",
         "requestretry": "^1.13.0",
         "uuid": "^3.2.1"
     },

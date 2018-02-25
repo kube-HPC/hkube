@@ -26,9 +26,9 @@ class JobProducer {
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.COMPLETED });
         }).on(Events.FAILED, (data) => {
-            log.error(`${Events.FAILED} ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.FAILED });
+            log.error(`${Events.FAILED} ${data.jobID}, ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.FAILED });
         }).on(Events.STALLED, (data) => {
-            log.error(`${Events.STALLED} ${data.jobID}, error: ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.STALLED });
+            log.error(`${Events.STALLED} ${data.jobID}, ${data.error}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.STALLED });
         }).on(Events.CRASHED, async (data) => {
             log.error(`${Events.CRASHED} ${data.jobID}`, { component: components.JOBS_PRODUCER, jobId: data.jobID, status: States.FAILED });
             const pipeline = await stateManager.getExecution({ jobId: data.jobID });
