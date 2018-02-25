@@ -117,13 +117,10 @@ class NodesMap extends EventEmitter {
         let bNode = this._actualGraph.findByEdge(source, target);
         let aNode = this._actualGraph.findByTargetAndIndex(target, index);
 
-        if (!aNode && !bNode) {
+        if ((!aNode && index) || (!aNode && !bNode)) {
             const vNode = this._virtualGraph.getCopy(source, target);
             this._actualGraph.addNode(vNode);
             aNode = vNode;
-        }
-        else if (!aNode && bNode) {
-            aNode = bNode;
         }
 
         let link = aNode.links.find(l => l.source === source && l.target === target);
@@ -237,10 +234,11 @@ class NodesMap extends EventEmitter {
         }
         const childs = this._childs(batch.nodeName);
         childs.forEach(child => {
-            let edge = this._virtualGraph.findEdge(batch.nodeName, child, consts.relations.WAIT_ANY);
+            const edge = this._virtualGraph.findEdge(batch.nodeName, child, consts.relations.WAIT_ANY);
             if (edge) {
                 const node = this._graph.node(child);
-                if (node) {
+                const batchIndex = node.batch.find(b => b.batchIndex === batch.batchIndex);
+                if (!batchIndex) {
                     const waitAny = new WaitBatch({
                         nodeName: node.nodeName,
                         batchIndex: batch.batchIndex,
