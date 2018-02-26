@@ -112,9 +112,9 @@ class NodesMap extends EventEmitter {
     }
 
     _updateChildNode(task, target) {
-        let source = task.nodeName;
-        let index = task.batchIndex;
-        let bNode = this._actualGraph.findByEdge(source, target);
+        const source = task.nodeName;
+        const index = task.batchIndex;
+        const bNode = this._actualGraph.findByEdge(source, target);
         let aNode = this._actualGraph.findByTargetAndIndex(target, index);
 
         if ((!aNode && index) || (!aNode && !bNode)) {
@@ -122,9 +122,10 @@ class NodesMap extends EventEmitter {
             this._actualGraph.addNode(vNode);
             aNode = vNode;
         }
-
-        let link = aNode.links.find(l => l.source === source && l.target === target);
-
+        else if (!aNode && bNode) {
+            aNode = bNode;
+        }
+        const link = aNode.links.find(l => l.source === source && l.target === target);
         link.edges.forEach(e => {
             if (e.type === consts.relations.WAIT_ANY && index) {
                 e.completed = true;
@@ -137,7 +138,7 @@ class NodesMap extends EventEmitter {
                 e.index = index;
             }
             else if (e.type === consts.relations.WAIT_NODE) {
-                let completed = this.isNodeCompleted(source);
+                const completed = this.isNodeCompleted(source);
                 if (completed) {
                     e.completed = true;
                     e.result = this.getNodeResults(source);
@@ -222,7 +223,7 @@ class NodesMap extends EventEmitter {
         let waitAny = null;
         const node = this._graph.node(nodeName);
         if (node) {
-            waitAny = node.batch.find(b => b.batchIndex === index);
+            waitAny = node.batch.find(b => b.waitIndex === index);
         }
         return waitAny;
     }
@@ -237,11 +238,11 @@ class NodesMap extends EventEmitter {
             const edge = this._virtualGraph.findEdge(batch.nodeName, child, consts.relations.WAIT_ANY);
             if (edge) {
                 const node = this._graph.node(child);
-                const batchIndex = node.batch.find(b => b.batchIndex === batch.batchIndex);
-                if (!batchIndex) {
+                const waitIndex = node.batch.find(b => b.waitIndex === batch.batchIndex);
+                if (!waitIndex) {
                     const waitAny = new WaitBatch({
                         nodeName: node.nodeName,
-                        batchIndex: batch.batchIndex,
+                        waitIndex: batch.batchIndex,
                         algorithmName: node.algorithmName,
                         extraData: node.extraData
                     });
@@ -314,16 +315,6 @@ class NodesMap extends EventEmitter {
         parents.forEach(p => {
             results[p] = this.getNodeResults(p);
         })
-        return results;
-    }
-
-    resultsForBatchIndex(nodeName, batchIndex) {
-        let results = null;
-        const node = this._graph.node(nodeName);
-        const batch = node.batch.find(n => n.batchIndex === batchIndex);
-        if (batch && batch.status === States.SUCCEED) {
-            results = batch.result;
-        }
         return results;
     }
 

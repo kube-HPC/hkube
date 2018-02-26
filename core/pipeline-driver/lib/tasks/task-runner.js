@@ -209,9 +209,6 @@ class TaskRunner {
                 driverTask.error = jobTask.error;
                 tasksToUpdate.push(driverTask);
             }
-            if (driverTask.waitBatch) {
-                this._nodes.addBatch(new WaitBatch(driverTask));
-            }
             else if (driverTask.batchIndex) {
                 this._nodes.addBatch(new Batch(driverTask));
             }
@@ -331,7 +328,7 @@ class TaskRunner {
     _checkBatchTolerance(task) {
         let error;
         if (task.error) {
-            if (task.batchIndex || task.waitBatch) {
+            if (task.batchIndex || task.waitIndex) {
                 const batchTolerance = this._pipeline.options.batchTolerance;
                 const states = this._nodes.getNodeStates(task.nodeName);
                 const failed = states.filter(s => s === States.FAILED);
