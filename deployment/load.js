@@ -30,6 +30,7 @@ const load = async (args) => {
         // set yamls from folder        
         const versionsFile = fs.readFileSync(path.join(args.folder, 'version.json'), { encoding: 'utf8' });
         versions = JSON.parse(versionsFile);
+        FOLDERS.hkube = path.resolve(args.folder,'..');
     }
     else {
         throw new Exception("folder is required for load");

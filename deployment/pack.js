@@ -7,7 +7,7 @@ const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
 const recursiveDir = require('recursive-readdir');
 const colors = require('colors');
-var dockerParse = require('dockerfile-parse')
+const dockerParse = require('dockerfile-parse')
 
 let coreYamlPath = YAML_PATH.core;
 let thirdPartyPath = YAML_PATH.thirdParty;
@@ -39,6 +39,9 @@ const pack = async (args) => {
     if (!await _cloneDeployment(versions, args)) {
         return;
     }
+    if (!await _getHkube(versions, args)){
+        return;
+    }
     for (const arg of args) {
         const key = arg[0];
         const value = arg[1];
@@ -67,6 +70,22 @@ const _setYamlPaths = (base) => {
     thirdPartyPath = path.join(base, 'kubernetes', 'yaml.cluster', 'thirdParty');
     console.log(`Using core yaml path ${coreYamlPath}`)
     console.log(`Using thirdParty yaml path ${thirdPartyPath}`)
+}
+const _getHkube = async (versions, opts)=>{
+    
+    const hkubeFolder = `${FOLDERS.hkube}/${versions.systemVersion}/tools/hkube`;
+    console.log(`installing hkube cli in ${hkubeFolder}`);
+    try{
+        await fs.mkdirp(hkubeFolder);
+        await syncSpawn('npm',`i --prefix ${hkubeFolder} --no-package-lock @hkube/hkube`);
+        console.log(`creating sym-link in ${FOLDERS.hkube}/${versions.systemVersion}/hkube`);
+        await syncSpawn('ln',`-s ${hkubeFolder}/node_modules/.bin/hkube ${FOLDERS.hkube}/${versions.systemVersion}/hkube`);
+        return true;
+    }
+    catch(e){
+        console.error(`Error installing hkube cli: ${e.message}`);
+        return false;
+    }
 }
 const _cloneDeployment = async (versions, opts) => {
     console.log(`System version: ${versions.systemVersion}`);

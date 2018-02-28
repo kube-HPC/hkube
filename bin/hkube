@@ -76,6 +76,7 @@ if (argv.hkubeFolder) {
     FOLDERS.hkube = argv.hkubeFolder;
     delete argv.hkubeFolder;
 }
+
 if (argv.version) {
     console.log(`version: ${package.version}`.green)
 }
