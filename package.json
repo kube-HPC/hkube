@@ -36,6 +36,7 @@
     "request-promise": "^4.2.2",
     "semver": "^5.4.1",
     "simple-git": "^1.80.1",
+    "tableify": "^1.1.0",
     "tempfile": "^2.0.0"
   },
   "bin": {

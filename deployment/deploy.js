@@ -7,6 +7,8 @@ const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
 const recursiveDir = require('recursive-readdir');
 const kubernetesApi = require('../minikube/kubernetes-api');
+const tableify = require('tableify');
+const tempfile = require('tempfile')
 
 let coreYamlPath = YAML_PATH.core;
 let thirdPartyPath = YAML_PATH.thirdParty;
@@ -28,7 +30,7 @@ const deploy = async (args) => {
         // set yamls from folder        
         const versionsFile = fs.readFileSync(path.join(args.folder, 'version.json'), { encoding: 'utf8' });
         versions = JSON.parse(versionsFile);
-        FOLDERS.hkube = path.resolve(args.folder,'..');
+        FOLDERS.hkube = path.resolve(args.folder, '..');
     }
     else {
         const versionPrefix = getOptionOrDefault(args, [options.version]);
@@ -38,6 +40,7 @@ const deploy = async (args) => {
         console.error(`Unable to find version ${versionPrefix}`)
         return;
     }
+    await _createVersionsConfigMap(versions, args);
     // clone deployment first to get all yamls
     if (!args.folder) {
         if (!await _cloneDeployment(versions, args)) {
@@ -54,13 +57,13 @@ const deploy = async (args) => {
         }
         const deploymentFolder = `${baseFolderForSources}/${deploymentRepo.project}`;
         _setYamlPaths(deploymentFolder);
-        
+
     }
     // build dockers if needed
     if (args.build) {
         await _buildFromSource(versions, args);
     }
-    
+
     for (const key in args) {
         const value = args[key];
         if (!value) {
@@ -77,6 +80,16 @@ const deploy = async (args) => {
     }
 }
 
+const _createVersionsConfigMap = async (versions, args) => {
+    const html = tableify(versions);
+    const tmpFileName = tempfile('.html');
+    console.log(`creating versions html file in ${tmpFileName}`);
+    fs.writeFileSync(tmpFileName,html);
+    const jsonTmpFileName = tempfile('.json');
+    fs.writeJsonSync(jsonTmpFileName,versions);
+    await syncSpawn('kubectl',`delete configmap hkube-versions`);
+    await syncSpawn('kubectl',`create configmap hkube-versions  --from-file=versions.html=${tmpFileName} --from-file=versions.json=${jsonTmpFileName}`);
+}
 const _buildFromSource = async (versions, args) => {
     console.log(`System version: ${versions.systemVersion}`);
     const registry = args.registry || 'docker.io/hkube';
@@ -122,7 +135,7 @@ const _applyVersionsCore = async (versions, opts) => {
             continue;
         }
         const { tmpFileName, images } = changeYamlImageVersion(file, versions, coreYamlPath, opts.registry)
-        await syncSpawn('kubectl',`apply -f ${tmpFileName}`);
+        await syncSpawn('kubectl', `apply -f ${tmpFileName}`);
     }
 
 }
@@ -146,9 +159,9 @@ const _applyVersionsThirdParty = async (versions, opts) => {
                 continue;
             }
 
-            const { tmpFileName, images , waitObjectName} = changeYamlImageVersion(file, null, thirdPartyPath,opts.registry)
-            await syncSpawn('kubectl',`apply -f ${tmpFileName}`);
-            if (waitObjectName){
+            const { tmpFileName, images, waitObjectName } = changeYamlImageVersion(file, null, thirdPartyPath, opts.registry)
+            await syncSpawn('kubectl', `apply -f ${tmpFileName}`);
+            if (waitObjectName) {
                 await kubernetesApi.listenToK8sStatus(waitObjectName, `Running`)
             }
 

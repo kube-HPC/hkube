@@ -17,11 +17,12 @@
         {
             "type": "node",
             "request": "launch",
+            "autoAttachChildProcesses": true,
             "name": "load",
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "load",
-                "--folder=/home/yehil/.hkube/1.0.217",
+                "--folder=/home/yehil/.hkube/1.0.245",
                 "-t"
             ]
         },
@@ -32,6 +33,7 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "deploy",
+                "--folder=/home/yehil/.hkube/1.0.245",
                 "-t"
             ]
         },
