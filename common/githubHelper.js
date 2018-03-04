@@ -98,7 +98,6 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
         const fileContents = fs.readFileSync(fullPath, 'utf8');
         const yml = jsYaml.loadAll(fileContents);
         const images = [];
-        const imagesDetails = [];
         let waitObjectName;
         yml.forEach(y => {
             if (!waitObjectName && (y.kind === 'Deployment' || y.kind === 'EtcdCluster')) {
@@ -137,9 +136,10 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
 
                 const version = versions.versions.find(v => v.project === imageName);
                 const tag = version ? version.tag : 'latest';
-                imagesDetails.push();
-                c.image = createImageName({ ...imageParsed, tag, registry })
-                const x = _.merge(imageParsed, { registry, fullImageName: c.image })
+                c.image = createImageName({ ...imageParsed, tag, registry });
+                let x = _.merge(imageParsed, { registry, tag, fullImageName: c.image });
+                const fullname = imageFullName({ ...x });
+                x = _.merge(x, { fullname })
                 images.push(x);
                 console.log(`service ${imageName}. found version ${tag}`)
             })
@@ -198,10 +198,17 @@ const parseImageName = (image) => {
     return result
 }
 
+const imageFullName = ({ registry, namespace, repository, tag }) => {
+    registry = registry ? registry + '/' : '';
+    namespace = namespace && namespace !== 'library' ? namespace + '/' : '';
+    const fullname = registry + (namespace || 'library/') + repository + (tag || ':latest');
+    return fullname;
+}
 module.exports = {
     getLatestVersions,
     changeYamlImageVersion,
     cloneRepo,
     parseImageName,
-    createImageName
+    createImageName,
+    imageFullName
 }

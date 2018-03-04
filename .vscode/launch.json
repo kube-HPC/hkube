@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "pack",
-                "-s"
+                "-c"
             ]
         },
         {
