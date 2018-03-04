@@ -13,10 +13,9 @@ if [ "${TRAVIS_PULL_REQUEST:-"false"}" != "false" ]; then
 fi
 TAG_VER="${IMAGE_NAME}:${VERSION}"
 
-BASE_PRIVATE_REGISTRY=""
-if [ -v PRIVATE_REGISTRY ]
+if [ -v BASE_PRIVATE_REGISTRY ]
 then
-  BASE_PRIVATE_REGISTRY="${PRIVATE_REGISTRY}/"
+  BASE_PRIVATE_REGISTRY="${BASE_PRIVATE_REGISTRY}/"
 fi
 docker build -t ${TAG_VER} --build-arg BASE_PRIVATE_REGISTRY="${BASE_PRIVATE_REGISTRY}" -f ./dockerfile/Dockerfile .
 if [ "${TRAVIS_PULL_REQUEST:-"false"}" == "false" ] || [ -z "${TRAVIS_PULL_REQUEST}" ]; then
