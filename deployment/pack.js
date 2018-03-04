@@ -133,7 +133,8 @@ const _pullBaseImage = async (versions, project, repoFolder) => {
     }
     const dockerfileString = fs.readFileSync(dockerFilePath, { encoding: 'utf8' });
     const dockerfile = dockerParse(dockerfileString);
-    const image = dockerfile.from;
+    const image = dockerfile.from.replace('${BASE_PRIVATE_REGISTRY}','');
+
     const imageParsed = parseImageName(image);
     const fileName = image.replace(/[\/:]/gi, '_')
     if (alreadyWritten.includes(fileName)) {
