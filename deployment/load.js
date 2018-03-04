@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
-const { getLatestVersions, changeYamlImageVersion, cloneRepo , createImageName} = require('../common/githubHelper');
+const { getLatestVersions, changeYamlImageVersion, cloneRepo, createImageName } = require('../common/githubHelper');
 const { YAML_PATH } = require('./consts');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
@@ -20,7 +20,8 @@ const options = {
     thirdParty: 't',
     folder: 'folder',
     registry: 'registry',
-    build: 'build'
+    build: 'build',
+    base: 'base'
 
 }
 
@@ -30,7 +31,7 @@ const load = async (args) => {
         // set yamls from folder        
         const versionsFile = fs.readFileSync(path.join(args.folder, 'version.json'), { encoding: 'utf8' });
         versions = JSON.parse(versionsFile);
-        FOLDERS.hkube = path.resolve(args.folder,'..');
+        FOLDERS.hkube = path.resolve(args.folder, '..');
     }
     else {
         throw new Exception("folder is required for load");
@@ -80,7 +81,13 @@ const _buildFromSource = async (versions, args) => {
     for (repo of versions.versions) {
         console.log(`building ${repo.project}@${repo.tag}`);
         const repoFolder = `${baseFolderForSources}/${repo.project}`;
-        await syncSpawn('npm', 'run build', { cwd: repoFolder, env: { ...process.env, PRIVATE_REGISTRY: registry } });
+        await syncSpawn('npm', 'run build', {
+            cwd: repoFolder, env: {
+                ...process.env,
+                PRIVATE_REGISTRY: registry,
+                BASE_PRIVATE_REGISTRY: registry
+            }
+        });
     }
 
 }
@@ -100,21 +107,21 @@ const _setDockerImagesPaths = (base) => {
 const _load = async (versions, opts, basePath) => {
     const registry = opts.registry || 'docker.io/hkube';
     const alreadyWritten = [];
-    const imagesJson = fs.readFileSync(path.join(basePath,'images.json'));
+    const imagesJson = fs.readFileSync(path.join(basePath, 'images.json'));
     const images = JSON.parse(imagesJson);
     const tars = fs.readdirSync(basePath);
     for (const file of tars) {
         if (path.basename(file).startsWith('#')) {
             continue;
         }
-        if (path.extname(file)!=='.tar'){
+        if (path.extname(file) !== '.tar') {
             continue;
         }
-        const imageDetails = images.find((i)=>i.file === path.basename(file));
-        await syncSpawn('docker', `load -i ${path.join(basePath,file)}`);
-        if (imageDetails){
+        const imageDetails = images.find((i) => i.file === path.basename(file));
+        await syncSpawn('docker', `load -i ${path.join(basePath, file)}`);
+        if (imageDetails) {
             const origImageName = createImageName(imageDetails);
-            const imageNameWithRepo = createImageName({...imageDetails,registry});
+            const imageNameWithRepo = createImageName({ ...imageDetails, registry });
             await syncSpawn('docker', `tag ${origImageName} ${imageNameWithRepo}`);
             await syncSpawn('docker', `push ${imageNameWithRepo}`);
             // console.log(`docker tag ${origImageName} ${imageNameWithRepo}`)
@@ -125,15 +132,15 @@ const _load = async (versions, opts, basePath) => {
 }
 
 const _loadBase = async (versions, opts) => {
-    return _load(version,opts,baseImagesPath);
+    return _load(versions, opts, baseImagesPath);
 }
 
 const _loadCore = async (versions, opts) => {
-    return _load(version,opts,coreImagesPath);
+    return _load(versions, opts, coreImagesPath);
 }
 
 const _loadThirdParty = async (versions, opts) => {
-    return _load(version,opts,thirdPartyImagesPath);
+    return _load(versions, opts, thirdPartyImagesPath);
 }
 
 

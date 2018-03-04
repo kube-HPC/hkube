@@ -109,8 +109,43 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
                 const version = objectPath.get(y, 'spec.version');
                 const repository = objectPath.get(y, 'spec.repository', 'quay.io/coreos/etcd');
                 if (version && repository) {
+                    const image = `${repository}:${version}`;
+                    const imageParsed = parseImageName(image);
+                    const x = _.merge(imageParsed, { registry })
                     const container = {
-                        image: `${repository}:v${version}`
+                        image: `${repository}:v${version}`,
+                        paths: [
+                            {
+                                path:'spec.version',
+                                value: version
+                            },
+                            {
+                                path:'spec.repository',
+                                value: createImageName(x,true)
+                            }
+                        ]
+                    }
+                    containers.push(container);
+                }
+
+                const busyboxVersion = objectPath.get(y, 'spec.busyboxVersion', '1.28.0-glibc');
+                const busyboxRepository = objectPath.get(y, 'spec.busyboxRepository', 'busybox');
+                if (busyboxVersion && busyboxRepository) {
+                    const image = `${busyboxRepository}:${busyboxVersion}`;
+                    const imageParsed = parseImageName(image);
+                    const x = _.merge(imageParsed, { registry })
+                    const container = {
+                        image,
+                        paths: [
+                            {
+                                path:'spec.busyboxVersion',
+                                value: busyboxVersion
+                            },
+                            {
+                                path:'spec.busyboxRepository',
+                                value: createImageName(x,true)
+                            }
+                        ]
                     }
                     containers.push(container);
                 }
@@ -129,6 +164,14 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
                 const imageName = imageParsed.repository;
                 if (imageParsed.tag && imageParsed.tag !== 'latest') {
                     const x = _.merge(imageParsed, { registry, fullImageName: c.image })
+                    if (y.kind === 'EtcdCluster') {
+                        c.paths.forEach(p=>{
+                            objectPath.set(y,p.path,p.value);
+                        })
+                    }
+                    else {
+                        c.image = createImageName({ ...imageParsed, registry })
+                    }
                     images.push(x);
                     console.log(`service ${imageName}. found version ${imageParsed.tag}`)
                     return;
@@ -156,11 +199,11 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
     }
 }
 
-const createImageName = ({ registry, namespace, repository, tag }) => {
+const createImageName = ({ registry, namespace, repository, tag },ignoreTag) => {
     let array = [registry, namespace, repository];
     array = array.filter(a => a);
     let image = array.join('/');
-    if (tag) {
+    if (tag && !ignoreTag) {
         image = `${image}:${tag}`;
     }
     // let image = `${registry||''}/${namespace||''}/${repository||''}:${tag||''}`;
