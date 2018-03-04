@@ -340,8 +340,8 @@ describe('Test', function () {
                 expect(link1.source).to.equal('yellow');
                 expect(link0.target).to.equal('black');
 
-                expect(edges1).to.deep.equal(['waitNode', 'waitAny']);
-                expect(edges2).to.deep.equal(['waitNode', 'waitAny']);
+                expect(edges1).to.deep.equal(['waitAny', 'waitNode']);
+                expect(edges2).to.deep.equal(['waitAny', 'waitNode']);
             });
         });
         describe('VirtualGraph', function () {
@@ -397,8 +397,8 @@ describe('Test', function () {
                 expect(link1.source).to.equal('yellow');
                 expect(link0.target).to.equal('black');
 
-                expect(edges1).to.deep.equal(['waitNode', 'waitAny']);
-                expect(edges2).to.deep.equal(['waitNode', 'waitAny']);
+                expect(edges1).to.deep.equal(['waitAny', 'waitNode']);
+                expect(edges2).to.deep.equal(['waitAny', 'waitNode']);
             });
             it('should find Virtual node By Target', function () {
                 const pipeline = {

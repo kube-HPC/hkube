@@ -33,8 +33,8 @@ class JobProducer extends EventEmitter {
             this.emit(Events.TASKS.ACTIVE, data.jobID);
         }).on(Events.JOBS.STALLED, (data) => {
             this.emit(Events.TASKS.STALLED, data.jobID);
-        }).on(Events.JOBS.FAILED, (data) => {
-            this.emit(Events.TASKS.FAILED, data);
+        }).on(Events.JOBS.CRASHED, (data) => {
+            this.emit(Events.TASKS.CRASHED, { taskId: data.jobID, error: data.error });
         });
     }
 

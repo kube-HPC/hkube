@@ -10,7 +10,6 @@ const VirtualNode = require('../graph/virtual-node');
 const VirtualLink = require('../graph/virtual-link');
 const ActualGraph = require('../graph/graph-actual');
 const VirtualGraph = require('../graph/graph-virtual');
-const createEdge = require('./edge');
 const NodeResult = require('./node-result');
 const States = require('../state/States');
 const { parser, consts } = require('@hkube/parsers');
@@ -41,14 +40,12 @@ class NodesMap extends EventEmitter {
                 results.forEach(r => {
                     let node = nodes.find(f => f.source === r.nodeName && f.target === n.nodeName);
                     if (!node) {
-                        node = { source: r.nodeName, target: n.nodeName, edge: createEdge(r) }
+                        node = { source: r.nodeName, target: n.nodeName, edges: [{ type: r.type }] }
                         nodes.push(node);
                         this._graph.setEdge(node.source, node.target);
                     }
                     else {
-                        node.edge.waitNode = r.isWaitNode || node.edge.waitNode;
-                        node.edge.waitBatch = r.isWaitBatch || node.edge.waitBatch;
-                        node.edge.waitAny = r.isWaitAny || node.edge.waitAny;
+                        node.edges.push({ type: r.type });
                     }
                 })
             })

@@ -46,7 +46,11 @@ class TaskRunner {
         producer.on(Events.TASKS.STALLED, (taskId) => {
             this._setTaskState(taskId, { status: States.STALLED });
         });
-        producer.on(Events.TASKS.FAILED, (data) => {
+        producer.on(Events.TASKS.CRASHED, (data) => {
+            this._setTaskState(data.taskId, { status: States.FAILED, error: data.error });
+            this._taskComplete(data.taskId);
+        });
+        stateManager.on(Events.TASKS.FAILED, (data) => {
             this._setTaskState(data.taskId, { status: States.FAILED, error: data.error });
             this._taskComplete(data.taskId);
         });
@@ -267,37 +271,39 @@ class TaskRunner {
         };
         const result = parser.parse(options);
         if (index) {
-            this._runWaitAnyBatch(node, result.input, index);
+            this._runWaitAnyBatch(node, result.input, index, result.storage);
         }
         else if (result.batch) {
-            this._runNodeBatch(node, result.input);
+            this._runNodeBatch(node, result.input, result.storage);
         }
         else {
-            this._runNodeSimple(node, result.input);
+            this._runNodeSimple(node, result.input, result.storage);
         }
     }
 
-    _runWaitAnyBatch(node, input, index) {
+    _runWaitAnyBatch(node, input, index, storage) {
         const waitNode = this._nodes.getWaitAny(node.nodeName, index);
         waitNode.input = input;
+        waitNode.storage = storage;
         this._setTaskState(waitNode.taskId, waitNode);
         this._createJob(waitNode);
     }
 
-    _runNodeSimple(node, input) {
-        this._nodes.setNode(new Node({ ...node, input }));
+    _runNodeSimple(node, input, storage) {
+        this._nodes.setNode(new Node({ ...node, input, storage }));
         this._setTaskState(node.taskId, node);
         this._createJob(node);
     }
 
-    _runNodeBatch(node, input) {
+    _runNodeBatch(node, input, storage) {
         input.forEach((inp, ind) => {
             const batch = new Batch({
                 nodeName: node.nodeName,
                 batchIndex: (ind + 1),
                 algorithmName: node.algorithmName,
                 extraData: node.extraData,
-                input: inp
+                input: inp,
+                storage
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch.taskId, batch);
@@ -368,6 +374,7 @@ class TaskRunner {
                 jobID: this._jobId,
                 taskID: node.taskId,
                 input: node.input,
+                storage: node.storage,
                 node: node.nodeName,
                 batchIndex: node.batchIndex,
                 pipelineName: this._pipelineName,

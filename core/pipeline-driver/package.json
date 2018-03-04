@@ -9,13 +9,13 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.33",
+    "@hkube/etcd": "^3.2.35",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.21",
-    "@hkube/parsers": "^1.0.6",
-    "@hkube/producer-consumer": "^1.0.29",
+    "@hkube/parsers": "^1.0.7",
+    "@hkube/producer-consumer": "^1.0.31",
     "@hkube/redis-utils": "^1.0.1",
-    "@hkube/rest-server": "^1.0.5",
+    "@hkube/rest-server": "^1.0.6",
     "clone": "^2.1.1",
     "deep-equal": "^1.0.1",
     "deep-extend": "^0.5.0",
@@ -23,19 +23,19 @@
     "graphlib": "^2.1.2",
     "lodash.groupby": "^4.6.0",
     "lodash.throttle": "^4.1.1",
-    "moment": "^2.20.1"
+    "moment": "^2.21.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.0",
-    "eslint": "^4.17.0",
+    "eslint": "^4.18.2",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-import": "^2.9.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^2.5.3",
-    "sinon": "^4.3.0"
+    "sinon": "^4.4.2"
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
