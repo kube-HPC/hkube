@@ -1,5 +1,5 @@
 const express = require('express');
-const Store = require('../../../../lib/service/StoreService');
+const Store = require('../../../../lib/service/store-service');
 
 const routes = (options) => {
     const router = express.Router();

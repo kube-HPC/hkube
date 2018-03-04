@@ -3,12 +3,17 @@ const deepExtend = require('deep-extend');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
+const datastoreFactory = require('../datastore/datastore-factory');
 const States = require('../state/States');
 const levels = require('../progress/progressLevels');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors/errors');
 const { tracer } = require('@hkube/metrics');
 
 class ExecutionService {
+    async init(options) {
+        this._datastoreAdapter = await datastoreFactory.getAdapter(options.datastoreAdapter);
+    }
+
     /**
      * run algorithm flow
      * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
@@ -70,6 +75,7 @@ class ExecutionService {
         validator.addDefaults(pipeline);
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
+        await this._datastoreAdapter.jobPath({ jobId });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
         return jobId;
@@ -130,7 +136,17 @@ class ExecutionService {
         if (!result) {
             throw new ResourceNotFoundError('results', options.jobId);
         }
+        result.data.result = await this._getResultsFromStorage(result);
         return result;
+    }
+
+    async _getResultsFromStorage(options) {
+        return Promise.all(options.data.result.map(a => this._getStorageItem(a)));
+    }
+
+    async _getStorageItem(options) {
+        const result = await this._datastoreAdapter.get(options.result);
+        return { ...options, result };
     }
 
     /**

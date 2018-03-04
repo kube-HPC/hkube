@@ -1,5 +1,5 @@
 const express = require('express');
-const Store = require('../../../../lib/service/StoreService');
+const Store = require('../../../../lib/service/store-service');
 const logger = require('../../middlewares/logger');
 
 const routes = (options) => {

@@ -1,6 +1,6 @@
 const express = require('express');
-const Execution = require('../../../../lib/service/ExecutionService');
-const WebhooksService = require('../../../../lib/service/WebhooksService');
+const Execution = require('../../../../lib/service/execution-service');
+const WebhooksService = require('../../../../lib/service/webhooks-service');
 const methods = require('../../middlewares/methods');
 
 const routes = (options) => {

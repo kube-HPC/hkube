@@ -8,6 +8,7 @@ let log;
 
 const modules = [
     './lib/state/state-manager',
+    './lib/service/execution-service',
     './lib/producer/jobs-producer',
     './lib/webhook/webhooks-handler',
     './lib/examples/pipelines-updater'

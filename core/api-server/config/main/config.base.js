@@ -52,4 +52,13 @@ config.tracer = {
     }
 };
 
+config.datastoreAdapter = {
+    connection: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+        endpoint: process.env.AWS_ENDPOINT || 'http://127.0.0.1:9000'
+    },
+    moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
+};
+
 module.exports = config;

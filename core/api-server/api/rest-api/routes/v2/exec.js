@@ -1,5 +1,5 @@
 const express = require('express');
-const Execution = require('../../../../lib/service/ExecutionService');
+const Execution = require('../../../../lib/service/execution-service');
 const methods = require('../../middlewares/methods');
 
 const routes = (options) => {
