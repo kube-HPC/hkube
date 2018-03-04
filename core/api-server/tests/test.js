@@ -145,26 +145,7 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                 });
-                it('should throw validation error of nodes.algorithmName one of the allowed values', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'string',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data.nodes[0].algorithmName should be equal to one of the allowed values');
-                });
+                
                 it('should throw validation error of nodes.input should be array', async () => {
                     const options = {
                         method: 'POST',
@@ -642,26 +623,7 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                 });
-                it('should throw validation error of nodes.algorithmName one of the allowed values', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'string',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data.nodes[0].algorithmName should be equal to one of the allowed values');
-                });
+                
                 it('should throw validation error of nodes.input should be array', async () => {
                     const options = {
                         method: 'POST',
@@ -1055,26 +1017,7 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                 });
-                it('should throw validation error of nodes.algorithmName one of the allowed values', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'string',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data.nodes[0].algorithmName should be equal to one of the allowed values');
-                });
+                
                 it('should throw validation error of nodes.input should be array', async () => {
                     const options = {
                         method: 'POST',
@@ -1552,26 +1495,7 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                 });
-                it('should throw validation error of nodes.algorithmName one of the allowed values', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'string',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data.nodes[0].algorithmName should be equal to one of the allowed values');
-                });
+                
                 it('should throw validation error of nodes.input should be array', async () => {
                     const options = {
                         method: 'POST',

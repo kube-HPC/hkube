@@ -815,14 +815,7 @@
                     "algorithmName": {
                         "type": "string",
                         "description": "Unique identifier representing a specific function. e.g. \"Average\"",
-                        "minLength": 1,
-                        "enum": [
-                            "green-alg",
-                            "yellow-alg",
-                            "black-alg",
-                            "red-alg",
-                            "eval-alg"
-                        ]
+                        "minLength": 1
                     },
                     "input": {
                         "type": "array",
