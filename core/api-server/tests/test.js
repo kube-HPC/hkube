@@ -38,7 +38,7 @@ describe('Test', () => {
     describe('Rest-API v1', () => {
         let restUrl = null;
         before(() => {
-            restUrl = baseUrl + config.rest.versions[0];
+            restUrl = baseUrl + '/v1';
         });
         describe('Execution', () => {
             describe('/exec/raw', () => {
@@ -145,7 +145,7 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                 });
-                
+
                 it('should throw validation error of nodes.input should be array', async () => {
                     const options = {
                         method: 'POST',
@@ -623,7 +623,7 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                 });
-                
+
                 it('should throw validation error of nodes.input should be array', async () => {
                     const options = {
                         method: 'POST',
@@ -910,7 +910,7 @@ describe('Test', () => {
     describe('Rest-API v2', () => {
         let restUrl = null;
         before(() => {
-            restUrl = baseUrl + config.rest.versions[1];
+            restUrl = baseUrl + '/v2';
         });
         describe('Execution', () => {
             describe('/exec/raw', () => {
@@ -1017,7 +1017,7 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                 });
-                
+
                 it('should throw validation error of nodes.input should be array', async () => {
                     const options = {
                         method: 'POST',
@@ -1495,7 +1495,7 @@ describe('Test', () => {
                     expect(response.body.error.code).to.equal(400);
                     expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                 });
-                
+
                 it('should throw validation error of nodes.input should be array', async () => {
                     const options = {
                         method: 'POST',
