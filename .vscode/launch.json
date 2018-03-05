@@ -33,7 +33,7 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "deploy",
-                "--folder=/home/yehil/.hkube/1.0.245",
+                "--semver=v1.0.245",
                 "-t"
             ]
         },

@@ -170,7 +170,8 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
                         })
                     }
                     else {
-                        c.image = createImageName({ ...imageParsed, registry })
+                        const forImageName = _.merge(imageParsed, { registry });
+                        c.image = createImageName(forImageName)
                     }
                     images.push(x);
                     console.log(`service ${imageName}. found version ${imageParsed.tag}`)
@@ -179,7 +180,8 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
 
                 const version = versions.versions.find(v => v.project === imageName);
                 const tag = version ? version.tag : 'latest';
-                c.image = createImageName({ ...imageParsed, tag, registry });
+                const forImageName = _.merge(imageParsed, { registry, tag });
+                c.image = createImageName(forImageName);
                 let x = _.merge(imageParsed, { registry, tag, fullImageName: c.image });
                 const fullname = imageFullName({ ...x });
                 x = _.merge(x, { fullname })
