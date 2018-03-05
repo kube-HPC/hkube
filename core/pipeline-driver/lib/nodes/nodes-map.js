@@ -124,17 +124,12 @@ class NodesMap extends EventEmitter {
         }
         const link = aNode.links.find(l => l.source === source && l.target === target);
         link.edges.forEach(e => {
-            if (e.type === consts.relations.WAIT_ANY && index) {
+            if ((e.type === consts.relations.WAIT_ANY || e.type === consts.relations.WAIT_ANY_BATCH) && (index)) {
                 e.completed = true;
                 e.result = task.result;
                 e.index = index;
             }
-            else if (e.type === consts.relations.WAIT_BATCH) {
-                e.completed = true;
-                e.result = task.result;
-                e.index = index;
-            }
-            else if (e.type === consts.relations.WAIT_NODE) {
+            else if (e.type === consts.relations.WAIT_NODE || e.type === consts.relations.WAIT_BATCH) {
                 const completed = this.isNodeCompleted(source);
                 if (completed) {
                     e.completed = true;
@@ -352,7 +347,7 @@ class NodesMap extends EventEmitter {
                 nodes.push(n);
             }
         })
-        const groupBy = new GroupBy().create(nodes, 'status');
+        const groupBy = new GroupBy(nodes, 'status');
         const groupedStates = groupBy.group();
         const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
         const failed = groupedStates.failed ? groupedStates.failed.length : 0;

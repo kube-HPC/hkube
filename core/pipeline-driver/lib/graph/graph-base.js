@@ -53,7 +53,7 @@ class GraphBase {
             v.links.forEach(l => {
                 if (l.source === source) {
                     l.edges.forEach(e => {
-                        if (e.type === consts.relations.WAIT_NODE) {
+                        if (e.type === consts.relations.WAIT_NODE || e.type === consts.relations.WAIT_BATCH) {
                             e.completed = true;
                             e.result = result;
                             count++;

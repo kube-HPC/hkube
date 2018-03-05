@@ -176,7 +176,7 @@ class TaskRunner {
     }
 
     async _recoverPipeline(tasks) {
-        const groupBy = new GroupBy().create(tasks, 'status');
+        const groupBy = new GroupBy(tasks, 'status');
         log.info(`found ${groupBy.text()} tasks during recover`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
 
         for (let task of tasks) {
