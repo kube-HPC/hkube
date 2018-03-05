@@ -132,16 +132,18 @@ class ExecutionService {
         if (stateManager.isActiveState(jobStatus.data.status)) {
             throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
         }
-        const result = await stateManager.getJobResult({ jobId: options.jobId });
-        if (!result) {
+        const response = await stateManager.getJobResult({ jobId: options.jobId });
+        if (!response) {
             throw new ResourceNotFoundError('results', options.jobId);
         }
-        result.data.result = await this._getResultsFromStorage(result);
-        return result;
+        await this._setResultsFromStorage(response);
+        return response;
     }
 
-    async _getResultsFromStorage(options) {
-        return Promise.all(options.data.result.map(a => this._getStorageItem(a)));
+    async _setResultsFromStorage(response) {
+        if (response.data.result) {
+            response.data.result = await Promise.all(response.data.result.map(a => this._getStorageItem(a)));
+        }
     }
 
     async _getStorageItem(options) {

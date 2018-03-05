@@ -17,13 +17,13 @@ class AppServer {
                 log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component: componentName.REST_API, route, jobId, pipelineName });
             });
 
-            const { prefix } = options.rest;
-            const routes = [];
-            routes.push(metrics.getRouter());
-            options.rest.versions.forEach((v) => {
+            const { prefix, port, rateLimit, poweredBy } = options.rest;
+            const routes = [metrics.getRouter()];
+            const versions = fs.readdirSync(path.join(__dirname, 'routes'));
+            versions.forEach((v) => {
                 swagger.servers.push({ url: path.join('/', options.swagger.path, prefix, v) });
-                const dir = fs.readdirSync(path.join(__dirname, 'routes', v));
-                dir.forEach((f) => {
+                const routers = fs.readdirSync(path.join(__dirname, 'routes', v));
+                routers.forEach((f) => {
                     const file = path.basename(f, '.js');
                     routes.push({
                         route: path.join('/', prefix, v, file),
@@ -37,12 +37,13 @@ class AppServer {
 
             const opt = {
                 swagger,
-                poweredBy: options.rest.poweredBy,
-                name: options.serviceName,
                 routes,
                 prefix,
-                port: options.rest.port,
-                versions: options.rest.versions,
+                versions,
+                port,
+                rateLimit,
+                poweredBy,
+                name: options.serviceName,
                 beforeRoutesMiddlewares,
                 afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest(routeLogBlacklist)]
             };
