@@ -56,9 +56,6 @@ class StateManager extends EventEmitter {
                     topSpan.finish();
                 }
             }
-        });
-        this._stateMachine.observe('onAfterTransition', (state) => {
-            log.debug(`after entered state: ${state.from} -> ${state.to}`, { component });
             if (this._job && this._job.data) {
                 tracer.startSpan({
                     name: state.to,
@@ -70,6 +67,10 @@ class StateManager extends EventEmitter {
                     }
                 });
             }
+        });
+        this._stateMachine.observe('onAfterTransition', (state) => {
+            log.debug(`after entered state: ${state.from} -> ${state.to}`, { component });
+            
             const data = Object.assign(
                 {},
                 { job: this._job },
