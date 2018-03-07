@@ -14,7 +14,6 @@ const levels = {
 class ProgressManager {
 
     constructor() {
-        this._lastState = null;
         this._calc = this._default;
         this._throttledProgress = throttle(this._progress.bind(this), 1000, { trailing: false, leading: true });
     }
@@ -58,10 +57,7 @@ class ProgressManager {
     async _progress(level, { jobId, pipeline, status, error }) {
         const { progress, details, activeNodes } = this._calc();
         const data = { level, status, error, progress, details, activeNodes };
-        if (!deepEqual(data, this._lastState)) {
-            this._lastState = data;
-            return stateManager.setJobStatus({ jobId, pipeline, data });
-        }
+        return stateManager.setJobStatus({ jobId, pipeline, data });
     }
 }
 
