@@ -1,7 +1,8 @@
 class DatastoreFactory {
     async getAdapter(config) {
-        const adapter = require(config.moduleName);
-        await adapter.init(config.connection);
+        const storage = config.storageAdapters[config.defaultStorage];
+        const adapter = require(storage.moduleName);  // eslint-disable-line
+        await adapter.init(storage.connection);
         return adapter;
     }
 }

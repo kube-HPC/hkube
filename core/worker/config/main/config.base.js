@@ -2,11 +2,18 @@ const config = {};
 
 config.serviceName = 'workers';
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
     sentinel: useSentinel,
+};
+
+config.etcd = {
+    protocol: 'http',
+    host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
+    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
 config.workerCommunication = {
@@ -20,10 +27,7 @@ config.workerCommunication = {
 
 config.etcdDiscovery = {
     init: {
-        etcd: {
-            host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
-            port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
-        },
+        etcd: config.etcd,
         serviceName: config.serviceName
     },
     register: {
@@ -68,13 +72,25 @@ config.k8s = {
     pod_name: process.env.POD_NAME
 };
 
-config.datastoreAdapter = {
-    connection: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-        endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
+config.s3 = {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+    endpoint: process.env.AWS_ENDPOINT || 'http://127.0.0.1:9000'
+};
+
+config.storageAdapters = {
+    s3: {
+        connection: config.s3,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
     },
-    moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
+    etcd: {
+        connection: config.etcd,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/etcd-adapter'
+    },
+    redis: {
+        connection: config.redis,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/redis-storage-adapter'
+    }
 };
 
 module.exports = config;

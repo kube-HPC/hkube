@@ -21,7 +21,7 @@ class JobConsumer extends EventEmitter {
         this._consumer = null;
         this._options = null;
         this._job = null;
-        this._datastoreAdapter = null;
+        this._storageAdapter = null;
         this._jobID = undefined;
         this._taskID = undefined;
         this._pipelineName = undefined;
@@ -37,7 +37,7 @@ class JobConsumer extends EventEmitter {
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
-        this._datastoreAdapter = await DatastoreFactory.getAdapter(options.datastoreAdapter);
+        this._storageAdapter = await DatastoreFactory.getAdapter(options);
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;
@@ -166,7 +166,7 @@ class JobConsumer extends EventEmitter {
         let error = null;
         try {
             if (this._job != null) {
-                const input = await dataExtractor.extract(this._job.data.input, this._job.data.storage, this._datastoreAdapter.get);
+                const input = await dataExtractor.extract(this._job.data.input, this._job.data.storage, this._storageAdapter);
                 this._job.data.input = input;
             }
         }
@@ -227,7 +227,7 @@ class JobConsumer extends EventEmitter {
         let storageLink = null;
         let storageError = null;
         try {
-            storageLink = await this._datastoreAdapter.put({
+            storageLink = await this._storageAdapter.put({
                 jobId: this._job.data.jobID, taskId: this._job.data.taskID, data
             });
         }
