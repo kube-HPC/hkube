@@ -169,7 +169,6 @@ class JobConsumer extends EventEmitter {
                 span = tracer.startSpan({
                     name: 'storage-get',
                     id: this._taskID,
-                    parent: this._job.data.spanId,
                     tags: {
                         jobID: this._jobID,
                         taskID: this._taskID,
@@ -238,12 +237,27 @@ class JobConsumer extends EventEmitter {
     async _putResult(data) {
         let storageLink = null;
         let storageError = null;
+        let span;
         try {
+            span = tracer.startSpan({
+                name: 'storage-put',
+                id: this._taskID,
+                tags: {
+                    jobID: this._jobID,
+                    taskID: this._taskID,
+                }
+            });
             storageLink = await this._storageAdapter.put({
                 jobId: this._job.data.jobID, taskId: this._job.data.taskID, data
             });
+            if (span) {
+                span.finish();
+            }
         }
         catch (err) {
+            if (span) {
+                span.finish(err);
+            }
             log.error(`failed to store data job:${this._jobID} task:${this._taskID}`, { component }, err);
             storageError = err.message;
         }
