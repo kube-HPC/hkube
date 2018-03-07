@@ -33,7 +33,7 @@ class heuristicRunner {
         const score = await this.heuristicMap.reduce((result, algorithm) => {
             const heuristicScore = algorithm.heuristic(job);
             job.calculated.latestScores[algorithm.name] = heuristicScore;
-            log.info(`during score calculation for ${algorithm.name} in ${job.jobId} 
+            log.debug(`during score calculation for ${algorithm.name} in ${job.jobID} 
                     score:${heuristicScore} calculated:${result + heuristicScore}`, { component: components.HEURISTIC_RUNNER});
             return result + heuristicScore;
         }, 0);

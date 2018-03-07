@@ -12,5 +12,5 @@ config.logstash = {
 
 config.extraDetails = false;
 config.isDefault = true;
-config.verbosityLevel = 0;
+config.verbosityLevel = 2;
 

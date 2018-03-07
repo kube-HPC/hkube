@@ -14,9 +14,8 @@ const metrics = require('@hkube/metrics');
 const {tracer} = require('@hkube/metrics');
 const modules = [
     './lib/jobs/consumer',
+    './lib/jobs/producer',
     './lib/queue-runner'
-    
-   
 ];
 
 

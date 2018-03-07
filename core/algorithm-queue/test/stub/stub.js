@@ -8,12 +8,13 @@ const stubTemplate = ({
     , entranceTime = Date.now()
 } = {}) => (
     {
-        jobId: `${uuid}`,
+        jobID: `${uuid}`,
         taskId: `task-${uuid}`,
         pipelineName: `${pipelineUuid}`,
         taskData: {
             input: 'data'
         },
+        nodeName: `nodeName-${uuidv4()}`,
         priority: `${priority}`,
         algorithmName: `${algorithmName}`,
         batchPlace: `${batchPlace}`,
@@ -35,7 +36,7 @@ const stubTask = (batchIndex) => ({
 });
 
 const generateConsumedArray = (number = 100) => ({ 
-    jobId: `jobID-${uuidv4()}`,
+    jobID: `jobID-${uuidv4()}`,
     pipelineName: `pipelineName-${uuidv4()}`,
     nodeName: `nodeName-${uuidv4()}`,
     priority: Math.floor((Math.random() * 5)),

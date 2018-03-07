@@ -8,41 +8,33 @@ const queueRunner = require('../queue-runner');
 // const../queue-runner { metricsNames } = require('../../common/consts/metricsNames');
 let log;
 
-const consumedObject = {
-    jobID: 'jobID',
-    tasks: [
-        {
-            taskId: 'taskId',
-            input: 'input',
-            batchIndex: 'batchIndex' // number in the batch 
-        }
-    ],
-    pipelineName: 'pipelineName',
-    nodeName: 'nodeName',
-    priority: 'priority',
-    algorithmName: 'algorithmName'
-};
+// const consumedObject = {
+//     jobID: 'jobID',
+//     tasks: [
+//         {
+//             taskId: 'taskId',
+//             input: 'input',
+//             batchIndex: 'batchIndex' // number in the batch 
+//         }
+//     ],
+//     pipelineName: 'pipelineName',
+//     nodeName: 'nodeName',
+//     priority: 'priority',
+//     algorithmName: 'algorithmName'
+//     options:{} 
+// };
 
 // const./consts/queue-events = {
-//     jobId: 'uuid',
+//     jobID: 'uuid',
 //     pipelineName: 'id',
 //     priority: '1-5',
 //     algorithmName: 'alg name',
+//     nodeName: 'nodeName',
 //     batchPlace: '0-n',
 //     calculated: {
 //         score: '1-100',
 //         entranceTime: 'date',
 //     }// const./consts/queue-events = {
-//     jobId: 'uuid',
-//     pipelineName: 'id',
-//     priority: '1-5',
-//     algorithmName: 'alg name',
-//     batchPlace: '0-n',
-//     calculated: {
-//         score: '1-100',
-//         entranceTime: 'date',
-//     }
-// };
 
 // };
 
@@ -63,9 +55,11 @@ class JobConsumer extends EventEmitter {
         
         // this._registerMetrics();
         this._consumer = new Consumer({
-            redis: options.redis,
-            tracer,
-            prefix: jobPrefix.JOB_PREFIX
+            setting: {
+                redis: options.redis,
+                tracer,
+                prefix: jobPrefix.JOB_PREFIX
+            }
         });
         this._consumer.register({
             job: {type: this._options.algorithmType}
@@ -73,7 +67,7 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(options)}`);
         this._consumer.on('job', job => {
             log.info(`Job arrived with inputs amount: ${JSON.stringify(job.data.tasks.length)}`);
-            this.queueTasksBuilder(job.data);
+            this.queueTasksBuilder(job);
         });
         // metrics.get(metricsNames.algorithm_started).inc({
         //     labelValues: {
@@ -94,13 +88,16 @@ class JobConsumer extends EventEmitter {
     }
                     
                     
-    pipelineToQueueAdapter({jobId, pipelineName, priority}, task) {
+    pipelineToQueueAdapter({jobID, pipelineName, priority, info, nodeName, algorithmName}, task) {
         return {
-            jobId,
+            jobID,
             pipelineName,
-            priority,  
-            batchPlace: task.batchIndex,
-            taskId: task.taskId,
+            algorithmName,
+            priority, 
+            info, 
+            nodeName,
+            batchPlace: task.batchIndex || 1,
+            taskId: task.taskID,
             taskData: {
                 input: task.input
             },
@@ -113,11 +110,12 @@ class JobConsumer extends EventEmitter {
     }
     
     queueTasksBuilder(job) {
-        const {jobId, pipelineName, priority} = job;
-        const tasks = job.tasks.map(task => {
-            return this.pipelineToQueueAdapter({jobId, pipelineName, priority}, task);
+        const {jobID, pipelineName, priority, nodeName, info, algorithmName} = job.data;
+        const tasks = job.data.tasks.map(task => {
+            return this.pipelineToQueueAdapter({jobID, pipelineName, priority, nodeName, info, algorithmName}, task);
         });    
         queueRunner.queue.add(tasks);
+        job.done();
     }
    
    
@@ -127,7 +125,7 @@ class JobConsumer extends EventEmitter {
     //         return;
     //     }
             
-    //     await etcd.unwatch({ jobId: this._job.data.jobID });
+    //     await etcd.unwatch({ jobID: this._job.data.jobID });
     //     let error = result && result.error;
     //     if (error && error.message) {
     //         error = error.message;
@@ -147,7 +145,7 @@ class JobConsumer extends EventEmitter {
     //     });
     //     log.info(`status: ${status}, error: ${error}`);
     //     await etcd.update({
-    //         jobId: this._job.data.jobID, taskId: this._job.id, status, result, error
+    //         jobID: this._job.data.jobID, taskId: this._job.id, status, result, error
     //     });
     //     this._job.done(error, result);
     //     this._job = null;
