@@ -8,6 +8,10 @@ const { tracer } = require('@hkube/metrics');
 const metrics = require('@hkube/metrics');
 const { metricsNames } = require('../../common/consts/metricsNames');
 const component = require('../../common/consts/componentNames').CONSUMER;
+const DatastoreFactory = require('../datastore/datastore-factory');
+const dataExtractor = require('./data-extractor');
+const constants = require('./consts');
+
 const { MetadataPlugin } = Logger;
 let log;
 
@@ -17,6 +21,7 @@ class JobConsumer extends EventEmitter {
         this._consumer = null;
         this._options = null;
         this._job = null;
+        this._datastoreAdapter = null;
         this._jobID = undefined;
         this._taskID = undefined;
         this._pipelineName = undefined;
@@ -32,6 +37,7 @@ class JobConsumer extends EventEmitter {
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
+        this._datastoreAdapter = await DatastoreFactory.getAdapter(options.datastoreAdapter);
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;
@@ -62,17 +68,17 @@ class JobConsumer extends EventEmitter {
             this._jobData = { node: job.data.node, batchID: job.data.batchID };
             const watchState = await etcd.watch({ jobId: this._jobID });
 
-            if (watchState && watchState.state === 'stop') {
+            if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
                 this.finishJob();
                 return;
             }
             await etcd.update({
-                jobId: this._jobID, taskId: this._taskID, status: 'active'
+                jobId: this._jobID, taskId: this._taskID, status: constants.JOB_STATUS.ACTIVE
             });
 
             stateManager.setJob(job);
             stateManager.prepare();
-            this.emit('job', job);
+            this.emit('job', job); // used for tests only!
         });
 
         // this._unRegister();
@@ -139,20 +145,37 @@ class JobConsumer extends EventEmitter {
     _getStatus(data) {
         const { state, results } = data;
         const workerStatus = state;
-        let jobStatus = state === 'working' ? 'active' : state;
+        let jobStatus = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
 
         if (results != null) {
             error = results.error && results.error.message;
-            jobStatus = error ? 'failed' : 'succeed';
+            jobStatus = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
         }
 
+        const resultData = results && results.data;
         return {
             workerStatus,
             jobStatus,
             error,
-            results
+            resultData
         };
+    }
+
+    async initJob() {
+        let error = null;
+        try {
+            if (this._job != null) {
+                const input = await dataExtractor.extract(this._job.data.input, this._job.data.storage, this._datastoreAdapter.get);
+                this._job.data.input = input;
+            }
+        }
+        catch (err) {
+            log.error('failed to extract data input', { component }, err);
+            error = err;
+            stateManager.done({ error });
+        }
+        return error;
     }
 
     async finishJob(data = {}) {
@@ -161,8 +184,22 @@ class JobConsumer extends EventEmitter {
         }
 
         await etcd.unwatch({ jobId: this._jobID });
+        let resultLink = null;
+        let { resultData, jobStatus, error } = this._getStatus(data);
 
-        const { jobStatus, results, error } = this._getStatus(data);
+        if (resultData && !error && jobStatus === constants.JOB_STATUS.SUCCEED) {
+            const { storageError, storageLink } = await this._putResult(resultData);
+            if (storageError) {
+                jobStatus = constants.JOB_STATUS.FAILED;
+                error = storageError;
+            }
+            resultLink = storageLink;
+        }
+
+        await etcd.update({
+            jobId: this._jobID, taskId: this._taskID, status: jobStatus, result: resultLink, error
+        });
+
         metrics.get(metricsNames.algorithm_completed).inc({
             labelValues: {
                 pipelineName: this._pipelineName,
@@ -175,12 +212,8 @@ class JobConsumer extends EventEmitter {
                 status: jobStatus
             }
         });
-        log.debug(`result: ${JSON.stringify(results)}`, { component });
+        log.debug(`result: ${JSON.stringify(resultLink)}`, { component });
         log.debug(`status: ${jobStatus}, error: ${error}`, { component });
-        const resultData = results && results.data;
-        await etcd.update({
-            jobId: this._jobID, taskId: this._taskID, status: jobStatus, result: resultData, error
-        });
 
         this._job.done(error);
         this._job = null;
@@ -188,6 +221,24 @@ class JobConsumer extends EventEmitter {
         this._taskID = undefined;
         this._pipelineName = undefined;
         this._jobData = undefined;
+    }
+
+    async _putResult(data) {
+        let storageLink = null;
+        let storageError = null;
+        try {
+            storageLink = await this._datastoreAdapter.put({
+                jobId: this._job.data.jobID, taskId: this._job.data.taskID, data
+            });
+        }
+        catch (err) {
+            log.error(`failed to store data job:${this._jobID} task:${this._taskID}`, { component }, err);
+            storageError = err.message;
+        }
+        return {
+            storageLink,
+            storageError
+        };
     }
 
     currentTaskInfo() {

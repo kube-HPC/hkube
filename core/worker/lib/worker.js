@@ -80,12 +80,16 @@ class Worker {
                 case workerStates.ready:
                     await jobConsumer.finishJob(result);
                     break;
-                case workerStates.init:
-                    algoRunnerCommunication.send({
-                        command: messages.outgoing.initialize,
-                        data
-                    });
+                case workerStates.init: {
+                    const err = await jobConsumer.initJob();
+                    if (!err) {
+                        algoRunnerCommunication.send({
+                            command: messages.outgoing.initialize,
+                            data
+                        });
+                    }
                     break;
+                }
                 case workerStates.working:
                     algoRunnerCommunication.send({
                         command: messages.outgoing.start,

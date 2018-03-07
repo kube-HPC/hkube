@@ -47,10 +47,6 @@ config.timeouts = {
     stop: 10000 // timeout to stop the algorithm in ms
 };
 
-config.inputAdapters = {
-    storagePath: process.env.SHARED_STORAGE_PATH || './sharedStorage'
-};
-
 config.metrics = {
     collectDefault: true,
     server: {
@@ -72,8 +68,13 @@ config.k8s = {
     pod_name: process.env.POD_NAME
 };
 
-// config.algorunnerLogging = {
-//     algorunnerLogFileName: process.env.ALGORITHM_LOG_FILE_NAME || 'algorunner_0.log',
-//     baseLogsPath: path.join((process.env.BASE_LOGS_PATH || '/var/log/pods'), (process.env.POD_ID || ''))
-// };
+config.datastoreAdapter = {
+    connection: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+        endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
+    },
+    moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
+};
+
 module.exports = config;

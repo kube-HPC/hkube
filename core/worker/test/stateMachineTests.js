@@ -1,6 +1,6 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const {VerbosityPlugin} = require('@hkube/logger');
+const { VerbosityPlugin } = require('@hkube/logger');
 
 const stateMachine = require('../lib/states/stateManager');
 const { stateEvents } = require('../common/consts/events');
@@ -11,7 +11,7 @@ const sinon = require('sinon');
 let log;
 describe('state machine', () => {
     before(async () => {
-        const {main, logger} = await configIt.load();
+        const { main, logger } = await configIt.load();
         log = new Logger(main.serviceName, logger);
         log.plugins.use(new VerbosityPlugin(main.redis));
         await stateMachine.init(main);

@@ -17,6 +17,7 @@ before_install:
   --data-dir=data.etcd --name "my-etcd" --cors='*' --initial-advertise-peer-urls http://0.0.0.0:2380
   --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:4001
   --listen-client-urls http://0.0.0.0:4001     --initial-cluster-state new
+- docker run -d -p 9000:9000 --name minio1 -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE" -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" minio/minio server /data
 install:
 - npm  install
 - npm install -g snyk

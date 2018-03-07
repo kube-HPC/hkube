@@ -13,10 +13,10 @@ module.exports = {
         "ecmaVersion": 2017
     },
     "rules": {
-        "no-param-reassign":"off",
+        "no-param-reassign": "off",
         "no-use-before-define": "warn",
         "import/newline-after-import": "off",
-        "indent": ["warn", 4, {"SwitchCase":1}],
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
         "prefer-template": "off",
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
@@ -28,7 +28,7 @@ module.exports = {
         "no-var": "error",
         "object-curly-spacing": "off",
         "arrow-body-style": "off",
-        "class-methods-use-this":"off",
+        "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2
     }

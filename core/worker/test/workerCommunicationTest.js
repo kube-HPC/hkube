@@ -2,7 +2,7 @@ const bootstrap = require('../bootstrap');
 const stateManager = require('../lib/states/stateManager');
 global.stateManager = stateManager;
 const messages = require('../lib/algorunnerCommunication/messages');
-const {expect} = require('chai');
+const { expect } = require('chai');
 const sinon = require('sinon');
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
 const config = {
@@ -23,7 +23,7 @@ describe('worker communication', () => {
     });
     it('should pass events', async () => {
         const spy = sinon.spy();
-        const {adapter} = workerCommunication;
+        const { adapter } = workerCommunication;
         workerCommunication.on(messages.incomming.pong, spy);
         adapter.emit(messages.incomming.pong, ['1', '2']);
         expect(spy.callCount).to.eq(1);
@@ -32,12 +32,11 @@ describe('worker communication', () => {
 
     it('should pass message.command events', async () => {
         const spy = sinon.spy();
-
         expect(stateManager.state).to.equal('bootstrap');
         stateManager.bootstrap();
         stateManager.prepare();
         expect(stateManager.state).to.equal('init');
-        const {adapter} = workerCommunication;
+        const { adapter } = workerCommunication;
         workerCommunication.on(messages.incomming.initialized, spy);
         adapter.send({ command: messages.outgoing.initialize, data: { xxx: 'yyy' } });
         expect(spy.callCount).to.eq(1);

@@ -39,8 +39,8 @@ class StateManager extends EventEmitter {
                 { name: 'prepare', from: workerStates.ready, to: workerStates.init },
                 { name: 'start', from: workerStates.init, to: workerStates.working },
                 { name: 'finish', from: workerStates.working, to: workerStates.shutdown },
-                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop], to: workerStates.ready },
-                { name: 'error', from: workerStates.working, to: workerStates.error },
+                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop, workerStates.init], to: workerStates.ready },
+                { name: 'error', from: [workerStates.working, workerStates.init], to: workerStates.error },
             ],
             methods: {
                 onPendingTransition: (transition, from, to) => { // eslint-disable-line

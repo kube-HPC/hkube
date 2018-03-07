@@ -11,8 +11,8 @@
             "outputCapture": "std",
             "program": "${workspaceRoot}/app.js",
             "env": {
-                "ALGORITHM_TYPE": "green-alg",
-                "WORKER_SOCKET_PORT": "19876",
+                "ALGORITHM_TYPE": "eval-alg",
+                "WORKER_SOCKET_PORT": "9876",
                 // "POD_ID": "MY_POD_ID",
                 "BASE_LOGS_PATH": "${workspaceRoot}",
                 // "REDIS_SENTINEL_SERVICE_HOST": "10.233.26.195",
