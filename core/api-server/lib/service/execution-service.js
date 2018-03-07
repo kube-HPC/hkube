@@ -69,9 +69,9 @@ class ExecutionService {
             }
         });
         validator.addDefaults(pipeline);
+        await storageFactory.adapter.jobPath({ jobId });
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
-        await storageFactory.adapter.jobPath({ jobId });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
         return jobId;
