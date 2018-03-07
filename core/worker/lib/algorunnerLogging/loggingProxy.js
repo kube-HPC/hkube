@@ -49,7 +49,7 @@ class LoggingProxy {
                         log.error(logMessage, { component });
                     }
                     else {
-                        log.debug(logMessage, { component });
+                        log.info(logMessage, { component });
                     }
                 }
                 catch (error) {

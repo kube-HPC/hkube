@@ -8,7 +8,7 @@ const { tracer } = require('@hkube/metrics');
 const metrics = require('@hkube/metrics');
 const { metricsNames } = require('../../common/consts/metricsNames');
 const component = require('../../common/consts/componentNames').CONSUMER;
-const {MetadataPlugin} = Logger;
+const { MetadataPlugin } = Logger;
 let log;
 
 class JobConsumer extends EventEmitter {
@@ -142,16 +142,16 @@ class JobConsumer extends EventEmitter {
         let jobStatus = state === 'working' ? 'active' : state;
         let error = null;
 
-        if (results) {
+        if (results != null) {
             error = results.error && results.error.message;
             jobStatus = error ? 'failed' : 'succeed';
         }
 
         return {
-            workerStatus, 
-            jobStatus, 
-            error, 
-            results 
+            workerStatus,
+            jobStatus,
+            error,
+            results
         };
     }
 
@@ -163,7 +163,6 @@ class JobConsumer extends EventEmitter {
         await etcd.unwatch({ jobId: this._jobID });
 
         const { jobStatus, results, error } = this._getStatus(data);
-
         metrics.get(metricsNames.algorithm_completed).inc({
             labelValues: {
                 pipelineName: this._pipelineName,
