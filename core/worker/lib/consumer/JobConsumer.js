@@ -78,7 +78,6 @@ class JobConsumer extends EventEmitter {
 
             stateManager.setJob(job);
             stateManager.prepare();
-            this.emit('job', job); // used for tests only!
         });
 
         // this._unRegister();
@@ -164,9 +163,19 @@ class JobConsumer extends EventEmitter {
 
     async initJob() {
         let error = null;
+        let span;
         try {
             if (this._job != null) {
-                const input = await dataExtractor.extract(this._job.data.input, this._job.data.storage, this._storageAdapter);
+                span = tracer.startSpan({
+                    name: 'storage-get',
+                    id: this._taskID,
+                    parent: this._job.data.spanId,
+                    tags: {
+                        jobID: this._jobID,
+                        taskID: this._taskID,
+                    }
+                });
+                const input = await dataExtractor.extract(this._job.data.input, this._job.data.storage, this._datastoreAdapter);
                 this._job.data.input = input;
             }
         }
@@ -174,6 +183,9 @@ class JobConsumer extends EventEmitter {
             log.error('failed to extract data input', { component }, err);
             error = err;
             stateManager.done({ error });
+        }
+        if (span) {
+            span.finish(error);
         }
         return error;
     }

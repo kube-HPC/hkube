@@ -7,7 +7,6 @@ const workerCommunication = require('../lib/algorunnerCommunication/workerCommun
 const messages = require('../lib/algorunnerCommunication/messages');
 const worker = require('../lib/worker');
 const s3adapter = require('@hkube/s3-adapter');
-const { stateEvents } = require('../common/consts/events');
 
 const uuid = require('uuid/v4');
 const jobID = 'jobId:' + uuid();
@@ -87,6 +86,7 @@ const producerSettings = {
         }
     }
 };
+
 let consumer;
 let producer;
 describe('consumer', () => {
@@ -99,56 +99,48 @@ describe('consumer', () => {
                     jobId: jobID,
                     taskId: taskID,
                     data: {
-                        data: {
-                            engine: {
-                                inputs: {
-                                    raw: [
-                                        'input-31',
-                                        'input-32'
-                                    ]
-                                }
-                            }
-                        }
+                        data: { engine: { inputs: { raw: ['input-31', 'input-32'] } } }
                     }
                 });
-            });
-        }).then(() => {
-            return consumer.init(jobConsumerConfig);
-        }).then(() => {
-            stateManager.on('stateEnteredready', () => {
                 done();
+            });
+        });
+    });
+    it('should send init to worker and validate data from s3', (done) => {
+        consumer.init(jobConsumerConfig).then(() => {
+            stateManager.once('stateEnteredready', () => {
+                workerCommunication.once(messages.incomming.initialized, (message) => {
+                    const inputWithData = [
+                        5,
+                        true,
+                        'input-1',
+                        [['input-31', 'input-32']],
+                        {
+                            data: {
+                                standard: [
+                                    'input-1',
+                                    'input-2',
+                                    ['input-31', 'input-32'],
+                                    'input-4',
+                                    ['input-31', 'input-32'],
+                                    ['input-31', 'input-32']
+                                ]
+                            }
+                        },
+                        {
+                            moreData: [['input-31', 'input-32']]
+                        }
+                    ];
+                    expect(message.input).to.deep.equal(inputWithData);
+                    expect(message.jobID).to.not.be.undefined;
+                    done();
+                });
+                producer = new Producer(producerSettings);
+                producer.createJob(testProducer);
             });
             worker._registerToConnectionEvents();
             workerCommunication.adapter.start();
         });
-    });
-
-    // it('should failed', (done) => {
-    //     stateManager.once('stateEnteredready', ({ job, state, results }) => {
-    //         expect(results.error).to.not.be.undefined;
-    //         done();
-    //     });
-
-    //     producer = new Producer(producerSettings);
-    //     producer.createJob(testProducerWithError);
-    // }).timeout(5000);
-
-    it('should send init to worker', (done) => {
-        workerCommunication.once(messages.incomming.initialized, (message) => {
-            expect(message.jobID).to.not.be.undefined;
-            done();
-        });
-        producer = new Producer(producerSettings);
-        producer.createJob(testProducer);
-    }).timeout(5000);
-
-    it('should send started to worker', (done) => {
-        workerCommunication.once(messages.incomming.started, (message) => {
-            expect(message.jobID).to.not.be.undefined;
-            done();
-        });
-        producer = new Producer(producerSettings);
-        producer.createJob(testProducer);
     }).timeout(5000);
 
 });
