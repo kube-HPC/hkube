@@ -12,6 +12,7 @@ const jobID = 'jobId:' + uuid();
 const taskID = 'taskId:' + uuid();
 
 const jobConsumerConfig2 = {
+    defaultStorage: 's3',
     jobConsumer: {
         job: {
             type: 'test-job2',
@@ -28,13 +29,15 @@ const jobConsumerConfig2 = {
         host: process.env.REDIS_SERVICE_HOST || 'localhost',
         port: process.env.REDIS_SERVICE_PORT || 6379
     },
-    datastoreAdapter: {
-        connection: {
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-            endpoint: process.env.AWS_ENDPOINT || 'http://127.0.0.1:9000'
-        },
-        moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
+    storageAdapters: {
+        s3: {
+            connection: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+                endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
+            },
+            moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
+        }
     },
     k8s: {
         pod_name: process.env.POD_NAME || 'tal'

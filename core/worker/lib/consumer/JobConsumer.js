@@ -175,12 +175,12 @@ class JobConsumer extends EventEmitter {
                         taskID: this._taskID,
                     }
                 });
-                const input = await dataExtractor.extract(this._job.data.input, this._job.data.storage, this._datastoreAdapter);
+                const input = await dataExtractor.extract(this._job.data.input, this._job.data.storage, this._storageAdapter);
                 this._job.data.input = input;
             }
         }
         catch (err) {
-            log.error('failed to extract data input', { component }, err);
+            log.error(`failed to extract data input ${err.message}`, { component }, err);
             error = err;
             stateManager.done({ error });
         }

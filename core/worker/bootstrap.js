@@ -4,10 +4,10 @@ require('module').Module._initPaths();
 
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const {VerbosityPlugin} = require('@hkube/logger');
+const { VerbosityPlugin } = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentName = require('./common/consts/componentNames');
-const {tracer} = require('@hkube/metrics');
+const { tracer } = require('@hkube/metrics');
 const metrics = require('@hkube/metrics');
 let log;
 const worker = require('./lib/worker');
@@ -41,7 +41,7 @@ class Bootstrap {
             await tracer.init(main.tracer);
             worker.preInit();
             await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
-            
+
             await worker.init(main);
 
             return main;
@@ -78,6 +78,7 @@ class Bootstrap {
         });
         process.on('unhandledRejection', (error) => {
             log.error('unhandledRejection: ' + error.message, { component: componentName.MAIN }, error);
+            log.error(error);
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
