@@ -4,6 +4,7 @@ config.serviceName = packageJson.name;
 
 const secured = !!process.env.API_SERVER_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
 config.rest = {
     port: process.env.API_SERVER_REST_PORT || 3000,
@@ -57,13 +58,25 @@ config.tracer = {
     }
 };
 
-config.datastoreAdapter = {
-    connection: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-        endpoint: process.env.AWS_ENDPOINT || 'http://127.0.0.1:9000'
+config.s3 = {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+    endpoint: process.env.AWS_ENDPOINT || 'http://127.0.0.1:9000'
+};
+
+config.storageAdapters = {
+    s3: {
+        connection: config.s3,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
     },
-    moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
+    etcd: {
+        connection: config.etcd,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/etcd-adapter'
+    },
+    redis: {
+        connection: config.redis,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/redis-storage-adapter'
+    }
 };
 
 module.exports = config;

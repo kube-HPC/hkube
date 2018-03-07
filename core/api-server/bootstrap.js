@@ -7,11 +7,11 @@ const { tracer } = require('@hkube/metrics');
 let log;
 
 const modules = [
+    './lib/datastore/storage-factory',
     './lib/state/state-manager',
-    './lib/service/execution-service',
     './lib/producer/jobs-producer',
-    './lib/webhook/webhooks-handler',
-    './lib/examples/pipelines-updater'
+    './lib/examples/pipelines-updater',
+    './lib/webhook/webhooks-handler'
 ];
 
 class Bootstrap {

@@ -1,5 +1,6 @@
 const request = require('requestretry');
 const stateManager = require('../state/state-manager');
+const storageFactory = require('../datastore/storage-factory');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
 const levels = require('../progress/progressLevels');
@@ -65,6 +66,7 @@ class WebhooksHandler {
             }
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
+            await storageFactory.setResultsFromStorage(payload);
             const result = await this._request(pipeline.webhooks.result, payload, 'result', payload.data.status, jobId);
             stateManager.setWebhooksResults({ jobId, data: result });
         }

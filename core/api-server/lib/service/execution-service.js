@@ -3,17 +3,13 @@ const deepExtend = require('deep-extend');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
-const datastoreFactory = require('../datastore/datastore-factory');
+const storageFactory = require('../datastore/storage-factory');
 const States = require('../state/States');
 const levels = require('../progress/progressLevels');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors/errors');
 const { tracer } = require('@hkube/metrics');
 
 class ExecutionService {
-    async init(options) {
-        this._datastoreAdapter = await datastoreFactory.getAdapter(options.datastoreAdapter);
-    }
-
     /**
      * run algorithm flow
      * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
@@ -75,7 +71,7 @@ class ExecutionService {
         validator.addDefaults(pipeline);
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
-        await this._datastoreAdapter.jobPath({ jobId });
+        await storageFactory.adapter.jobPath({ jobId });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
         return jobId;
@@ -136,19 +132,8 @@ class ExecutionService {
         if (!response) {
             throw new ResourceNotFoundError('results', options.jobId);
         }
-        await this._setResultsFromStorage(response);
+        await storageFactory.setResultsFromStorage(response);
         return response;
-    }
-
-    async _setResultsFromStorage(response) {
-        if (response.data.result) {
-            response.data.result = await Promise.all(response.data.result.map(a => this._getStorageItem(a)));
-        }
-    }
-
-    async _getStorageItem(options) {
-        const result = await this._datastoreAdapter.get(options.result);
-        return { ...options, result };
     }
 
     /**
