@@ -1,9 +1,10 @@
 const deep = require('deep-get-set');
 const flatten = require('flat');
+const clone = require('clone');
 
 class DataExtractor {
     async extract(input, storage, dataProvider) {
-        const result = input.slice();
+        const result = clone(input);
         const flatObj = flatten(input);
 
         const promiseDataExtractors = Object.entries(flatObj).map(async ([objectPath, value]) => {

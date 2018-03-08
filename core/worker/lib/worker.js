@@ -73,9 +73,7 @@ class Worker {
 
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
-            const { data } = (job || {});
             const result = { state, results };
-
             switch (state) {
                 case workerStates.results:
                     await jobConsumer.finishJob(result);
@@ -84,8 +82,8 @@ class Worker {
                 case workerStates.ready:
                     break;
                 case workerStates.init: {
-                    const err = await jobConsumer.initJob();
-                    if (!err) {
+                    const { error, data } = await jobConsumer.extractData(job.data);
+                    if (!error) {
                         algoRunnerCommunication.send({
                             command: messages.outgoing.initialize,
                             data
@@ -95,8 +93,7 @@ class Worker {
                 }
                 case workerStates.working:
                     algoRunnerCommunication.send({
-                        command: messages.outgoing.start,
-                        data
+                        command: messages.outgoing.start
                     });
                     break;
                 case workerStates.shutdown:
@@ -109,8 +106,7 @@ class Worker {
                         stateManager.done('Timeout exceeded trying to stop algorithm');
                     }, this._stopTimeoutMs);
                     algoRunnerCommunication.send({
-                        command: messages.outgoing.stop,
-                        data
+                        command: messages.outgoing.stop
                     });
                     break;
                 default:

@@ -161,33 +161,36 @@ class JobConsumer extends EventEmitter {
         };
     }
 
-    async initJob() {
-        let error = null;
-        let span;
-        try {
-            if (this._job != null) {
-                span = tracer.startSpan({
-                    name: 'storage-get',
-                    id: this._taskID,
-                    tags: {
-                        jobID: this._jobID,
-                        taskID: this._taskID,
-                    }
-                });
-                const input = await dataExtractor.extract(this._job.data.input, this._job.data.storage, this._storageAdapter);
-                this._job.data.input = input;
+    async extractData(jobInfo) {
+        const span = tracer.startSpan({
+            name: 'storage-get',
+            id: this._taskID,
+            tags: {
+                jobID: this._jobID,
+                taskID: this._taskID,
             }
-        }
-        catch (err) {
-            log.error(`failed to extract data input ${err.message}`, { component }, err);
-            error = err;
+        });
+        const { error, data } = await this._tryExtractDataFromStorage(jobInfo);
+        if (error) {
+            log.error(`failed to extract data input: ${error.message}`, { component }, error);
             stateManager.done({ error });
         }
         if (span) {
             span.finish(error);
         }
-        return error;
+        return { error, data };
     }
+
+    async _tryExtractDataFromStorage(jobInfo) {
+        try {
+            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, this._storageAdapter);
+            return { data: { ...jobInfo, input } };
+        }
+        catch (error) {
+            return { error };
+        }
+    }
+
 
     async finishJob(data = {}) {
         if (!this._job) {
