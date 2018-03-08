@@ -198,7 +198,7 @@ class JobConsumer extends EventEmitter {
         let resultLink = null;
         let { resultData, jobStatus, error } = this._getStatus(data);
 
-        if (resultData && !error && jobStatus === constants.JOB_STATUS.SUCCEED) {
+        if (resultData != null && !error && jobStatus === constants.JOB_STATUS.SUCCEED) {
             const { storageError, storageLink } = await this._putResult(resultData);
             if (storageError) {
                 jobStatus = constants.JOB_STATUS.FAILED;
