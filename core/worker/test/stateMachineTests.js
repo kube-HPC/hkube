@@ -47,21 +47,23 @@ describe('state machine', () => {
         stateMachine.start();
         expect(stateMachine.state).to.eql(workerStates.working);
     });
-    it('should transition from working to shutdown', () => {
+    it('should transition from working to results', () => {
         stateMachine.bootstrap();
         stateMachine.prepare();
         stateMachine.start();
-        stateMachine.finish();
-        expect(stateMachine.state).to.eql(workerStates.shutdown);
-    });
-    it('should transition from shutdown to ready', () => {
-        stateMachine.bootstrap();
-        stateMachine.prepare();
-        stateMachine.start();
-        stateMachine.finish();
         stateMachine.done();
+        expect(stateMachine.state).to.eql(workerStates.results);
+    });
+
+    it('should transition from results to ready', () => {
+        stateMachine.bootstrap();
+        stateMachine.prepare();
+        stateMachine.start();
+        stateMachine.done();
+        stateMachine.cleanup();
         expect(stateMachine.state).to.eql(workerStates.ready);
     });
+
     it('should raise event on state enter', () => {
         stateMachine.bootstrap();
         const spy = sinon.spy();
@@ -70,9 +72,9 @@ describe('state machine', () => {
         expect(spy.callCount).to.eql(1);
         stateMachine.start();
         expect(spy.callCount).to.eql(2);
-        stateMachine.finish();
-        expect(spy.callCount).to.eql(3);
         stateMachine.done();
+        expect(spy.callCount).to.eql(3);
+        stateMachine.cleanup();
         expect(spy.callCount).to.eql(4);
         expect(stateMachine.state).to.eql(workerStates.ready);
     });

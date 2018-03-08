@@ -6,6 +6,7 @@ module.exports = {
         working: 'working',
         shutdown: 'shutdown',
         error: 'error',
-        stop: 'stop'
+        stop: 'stop',
+        results: 'results'
     }
 };

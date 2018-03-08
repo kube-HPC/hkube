@@ -38,8 +38,8 @@ class StateManager extends EventEmitter {
                 { name: 'bootstrap', from: workerStates.bootstrap, to: workerStates.ready },
                 { name: 'prepare', from: workerStates.ready, to: workerStates.init },
                 { name: 'start', from: workerStates.init, to: workerStates.working },
-                { name: 'finish', from: workerStates.working, to: workerStates.shutdown },
-                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop, workerStates.init], to: workerStates.ready },
+                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop, workerStates.init], to: workerStates.results },
+                { name: 'cleanup', from: workerStates.results, to: workerStates.ready },
                 { name: 'error', from: [workerStates.working, workerStates.init], to: workerStates.error },
             ],
             methods: {
@@ -50,12 +50,9 @@ class StateManager extends EventEmitter {
         });
         this._stateMachine.observe('onBeforeTransition', (state) => {
             log.debug(`before entered state: ${state.from} -> ${state.to}`, { component });
-            if (this._job && this._job.data) {
-                const topSpan = tracer.topSpan(this._job.data.taskID);
-                if (topSpan) {
-                    topSpan.finish();
-                }
-            }
+        });
+
+        this._stateMachine.observe('onEnterState', (state) => {
             if (this._job && this._job.data) {
                 tracer.startSpan({
                     name: state.to,
@@ -68,9 +65,19 @@ class StateManager extends EventEmitter {
                 });
             }
         });
+
+        this._stateMachine.observe('onLeaveState', (transition) => {
+            if (this._job && this._job.data) {
+                const topSpan = tracer.topSpan(this._job.data.taskID);
+                if (topSpan && topSpan.name === transition.from) {
+                    topSpan.finish();
+                }
+            }
+        });
+
         this._stateMachine.observe('onAfterTransition', (state) => {
             log.debug(`after entered state: ${state.from} -> ${state.to}`, { component });
-            
+
             const data = Object.assign(
                 {},
                 { job: this._job },
@@ -136,24 +143,10 @@ class StateManager extends EventEmitter {
             log.error(error, { component });
         }
     }
+   
     /**
-     * transitions from working to shutdown
-     * after the job is done, copy the results, and cleanup
-     * 
-     * @memberof StateManager
-     */
-    finish() {
-        try {
-            this._stateMachine.finish();
-        }
-        catch (error) {
-            log.error(error, { component });
-        }
-    }
-
-    /**
-     * transitions from shutdown to ready
-     * finishes the processing, and ready for a new job
+     * transitions from working to results
+     * finishes the processing, and get the results
      * 
      * @param {object} results
      * @memberof StateManager
@@ -167,6 +160,22 @@ class StateManager extends EventEmitter {
             log.error(error, { component });
         }
     }
+
+    /**
+     * transitions from results to ready
+     * finishes the processing, and ready for a new job
+     * 
+     * @memberof StateManager
+     */
+    cleanup() {
+        try {
+            this._stateMachine.cleanup();
+        }
+        catch (error) {
+            log.error(error, { component });
+        }
+    }
+    
     /**
      * transitions from working to error
      * reports the error, cleanup the job and prepare for a new job

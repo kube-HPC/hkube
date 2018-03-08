@@ -57,7 +57,7 @@ const producerSettings2 = {
 
 let consumer;
 let producer;
-describe('consumer', () => {
+describe('consumer fail tests', () => {
     beforeEach((done) => {
         bootstrap.init().then(() => {
             consumer = Consumer;

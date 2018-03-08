@@ -77,8 +77,11 @@ class Worker {
             const result = { state, results };
 
             switch (state) {
-                case workerStates.ready:
+                case workerStates.results:
                     await jobConsumer.finishJob(result);
+                    stateManager.cleanup();
+                    break;
+                case workerStates.ready:
                     break;
                 case workerStates.init: {
                     const err = await jobConsumer.initJob();
