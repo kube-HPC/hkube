@@ -12,14 +12,17 @@ class DataExtractor {
                 const key = value.substring(2);
                 const link = storage[key];
                 let data = null;
-                if (Array.isArray(link.accessor)) {
-                    data = await Promise.all(link.accessor.map(a => a && dataProvider.get(a)));
+                if (Array.isArray(link.storageInfo)) {
+                    data = await Promise.all(link.storageInfo.map(a => a && dataProvider.get(a)));
                     if (link.path) {
                         data = data.map(d => deep(d, link.path));
                     }
                 }
                 else {
-                    data = await dataProvider.get(link.accessor);
+                    data = await dataProvider.get(link.storageInfo);
+                    if (Number.isInteger(link.index)) {
+                        data = data[link.index];
+                    }
                     if (link.path) {
                         data = deep(data, link.path);
                     }

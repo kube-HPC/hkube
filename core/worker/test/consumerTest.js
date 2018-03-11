@@ -73,7 +73,7 @@ const testProducer = {
                 }
             ],
             storage: {
-                'guid-3': { accessor: { Bucket: jobID, Key: taskID }, path: 'data.engine.inputs.raw' }
+                'guid-3': { storageInfo: { Bucket: jobID, Key: taskID }, path: 'data.engine.inputs.raw' }
             }
         }
     }

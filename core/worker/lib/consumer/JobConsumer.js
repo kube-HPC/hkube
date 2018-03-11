@@ -250,9 +250,13 @@ class JobConsumer extends EventEmitter {
                     taskID: this._taskID,
                 }
             });
-            storageLink = await this._storageAdapter.put({
+            const storageInfo = await this._storageAdapter.put({
                 jobId: this._job.data.jobID, taskId: this._job.data.taskID, data
             });
+            storageLink = {
+                array: Array.isArray(data) && data.length,
+                storageInfo
+            }
             if (span) {
                 span.finish();
             }
