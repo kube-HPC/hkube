@@ -6,7 +6,7 @@ const swagger = require('./swagger');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContanier();
 const componentName = require('../../common/consts/componentNames');
-const metrics = require('@hkube/metrics');
+const { metrics } = require('@hkube/metrics');
 const afterRequest = require('./middlewares/after-request');
 
 class AppServer {

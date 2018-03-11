@@ -5,7 +5,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
 const levels = require('../progress/progressLevels');
 const States = require('./States');
-const metrics = require('@hkube/metrics');
+const { metrics, utils } = require('@hkube/metrics');
 const { metricsNames } = require('../../common/consts/metricsNames');
 
 class WebhooksHandler {
@@ -14,7 +14,8 @@ class WebhooksHandler {
         metrics.addTimeMeasure({
             name: metricsNames.pipelines_gross,
             labels: ['pipeline_name', 'status'],
-            buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
+            buckets: utils.arithmatcSequence(30, 0, 2)
+                .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
         this._recovery();
         this._watch();
