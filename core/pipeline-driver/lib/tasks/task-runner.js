@@ -49,10 +49,6 @@ class TaskRunner {
             this._setTaskState(data.taskId, { status: States.FAILED, error: data.error });
             this._taskComplete(data.taskId);
         });
-        stateManager.on(Events.TASKS.FAILED, (data) => {
-            this._setTaskState(data.taskId, { status: States.FAILED, error: data.error });
-            this._taskComplete(data.taskId);
-        });
         stateManager.on(Events.TASKS.ACTIVE, (data) => {
             this._setTaskState(data.taskId, { status: States.ACTIVE });
         });
@@ -71,8 +67,6 @@ class TaskRunner {
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
     }
-
-
 
     async _startPipeline(job) {
         if (this._active) {
