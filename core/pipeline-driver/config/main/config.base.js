@@ -18,9 +18,7 @@ config.etcd = {
 
 config.jobs = {
     consumer: {
-        lockDuration: 10000,
-        stalledInterval: 10000,
-        maxStalledCount: 1
+        maxStalledCount: 3
     }
 }
 
