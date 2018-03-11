@@ -191,7 +191,6 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-
     async finishJob(data = {}) {
         if (!this._job) {
             return;
