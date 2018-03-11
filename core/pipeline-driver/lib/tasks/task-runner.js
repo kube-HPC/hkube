@@ -13,8 +13,7 @@ const Node = require('../nodes/node');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
 const { metricsNames } = require('../consts/metricsNames');
-const metrics = require('@hkube/metrics');
-const { tracer } = require('@hkube/metrics');
+const { tracer, metrics, utils } = require('@hkube/metrics');
 
 class TaskRunner {
 
@@ -68,9 +67,12 @@ class TaskRunner {
         metrics.addTimeMeasure({
             name: metricsNames.pipelines_net,
             labels: ['pipeline_name', 'status'],
-            buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
+            buckets: utils.arithmatcSequence(30, 0, 2)
+                .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
     }
+
+
 
     async _startPipeline(job) {
         if (this._active) {
@@ -240,7 +242,8 @@ class TaskRunner {
         });
         tracer.startSpan({
             name: 'startPipeline',
-            id: this._jobId
+            id: this._jobId,
+            parent: this._job.data && this._job.data.spanId
         })
     }
 

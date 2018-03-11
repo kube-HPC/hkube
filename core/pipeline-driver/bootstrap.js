@@ -4,8 +4,7 @@ const Logger = require('@hkube/logger');
 const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentName = require('./common/consts/componentNames');
-const metrics = require('@hkube/metrics');
-const { tracer } = require('@hkube/metrics');
+const { tracer, metrics } = require('@hkube/metrics');
 let log;
 
 const modules = [
