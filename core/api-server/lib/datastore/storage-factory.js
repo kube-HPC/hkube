@@ -12,7 +12,7 @@ class StorageFactory {
     }
 
     async _getStorageItem(options) {
-        const result = await this.adapter.get(options.result.storageData);
+        const result = await this.adapter.get(options.result.storageInfo);
         return { ...options, result };
     }
 }
