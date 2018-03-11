@@ -12,9 +12,9 @@ config.rest = {
     poweredBy: 'HKube Server',
     rateLimit: {
         route: '/api',
-        ms: 1000,
-        max: 2,
-        delay: 0
+        ms: process.env.API_SERVER_RATE_LIMIT_MS || 1000,
+        max: process.env.API_SERVER_RATE_LIMIT_MAX || 5,
+        delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0
     }
 };
 
