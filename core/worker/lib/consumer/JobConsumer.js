@@ -4,8 +4,7 @@ const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const { stateEvents } = require('../../common/consts/events');
 const etcd = require('../states/discovery');
-const { tracer } = require('@hkube/metrics');
-const metrics = require('@hkube/metrics');
+const { tracer, metrics, utils } = require('@hkube/metrics');
 const { metricsNames } = require('../../common/consts/metricsNames');
 const component = require('../../common/consts/componentNames').CONSUMER;
 const DatastoreFactory = require('../datastore/datastore-factory');
@@ -108,7 +107,8 @@ class JobConsumer extends EventEmitter {
         metrics.addTimeMeasure({
             name: metricsNames.algorithm_net,
             labels: ['pipelineName', 'algorithmName', 'status'],
-            buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
+            buckets: utils.arithmatcSequence(30, 0, 2)
+                .concat(utils.geometricSequence(10, 56, 2, 1).slice(2))
         });
         metrics.removeMeasure(metricsNames.algorithm_completed);
         metrics.addCounterMeasure({
