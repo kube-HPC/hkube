@@ -62,6 +62,7 @@ class ExecutionService {
     async _run(pipeline) {
         const jobId = this._createJobID({ name: pipeline.name });
         const span = tracer.startSpan({
+            id: jobId,
             name: 'run pipeline',
             tags: {
                 jobId,
@@ -69,7 +70,27 @@ class ExecutionService {
             }
         });
         validator.addDefaults(pipeline);
-        await storageFactory.adapter.jobPath({ jobId });
+        let spanStorage;
+        try {
+            spanStorage = tracer.startSpan({
+                name: 'storage-create',
+                id: jobId,
+                tags: {
+                    jobId,
+                    name: pipeline.name
+                }
+            });
+            await storageFactory.adapter.jobPath({ jobId });
+            if (spanStorage) {
+                spanStorage.finish();
+            }
+        }
+        catch (error) {
+            if (spanStorage) {
+                spanStorage.finish(error);
+            }
+            throw error;
+        }
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
         await producer.createJob({ jobId, parentSpan: span.context() });
