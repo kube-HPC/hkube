@@ -108,7 +108,7 @@ class JobConsumer extends EventEmitter {
             name: metricsNames.algorithm_net,
             labels: ['pipelineName', 'algorithmName', 'status'],
             buckets: utils.arithmatcSequence(30, 0, 2)
-                .concat(utils.geometricSequence(10, 56, 2, 1).slice(2))
+                .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
         metrics.removeMeasure(metricsNames.algorithm_completed);
         metrics.addCounterMeasure({
