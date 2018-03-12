@@ -148,14 +148,14 @@ class TaskRunner {
             status = States.FAILED;
             log.error(`pipeline ${status} ${error}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
             await progress.error({ jobId: this._jobId, pipeline: this._pipelineName, status, error });
-            await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { error, status } });
+            await stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipeline.startTime, pipeline: this._pipelineName, data: { error, status } });
         }
         else {
             if (reason) {
                 status = States.STOPPED;
                 log.info(`pipeline ${status} ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
-                await stateManager.setJobResults({ jobId: this._jobId, pipeline: this._pipelineName, data: { reason, status } });
+                await stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipeline.startTime, pipeline: this._pipelineName, data: { reason, status } });
             }
             else {
                 status = States.COMPLETED;

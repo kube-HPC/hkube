@@ -1,4 +1,4 @@
-const deepEqual = require('deep-equal');
+const async = require('async');
 const throttle = require('lodash.throttle');
 const stateManager = require('../state/state-manager');
 
@@ -16,6 +16,14 @@ class ProgressManager {
     constructor() {
         this._calc = this._default;
         this._throttledProgress = throttle(this._progress.bind(this), 1000, { trailing: false, leading: true });
+        this._queue = async.queue((task, callback) => {
+            const { jobId, pipeline, data } = task;
+            stateManager.setJobStatus({ jobId, pipeline, data }).then(response => {
+                return callback(null, response);
+            }).catch(error => {
+                return callback(error);
+            });
+        }, 1);
     }
 
     calcMethod(method) {
@@ -30,34 +38,41 @@ class ProgressManager {
         };
     }
 
-    async silly(data) {
+    silly(data) {
         return this._throttledProgress(levels.silly, data);
     }
 
-    async debug(data) {
+    debug(data) {
         return this._throttledProgress(levels.debug, data);
     }
 
-    async info(data) {
+    info(data) {
         return this._progress(levels.info, data);
     }
 
-    async warning(data) {
+    warning(data) {
         return this._progress(levels.warning, data);
     }
 
-    async error(data) {
+    error(data) {
         return this._progress(levels.error, data);
     }
 
-    async critical(data) {
+    critical(data) {
         return this._progress(levels.critical, data);
     }
 
-    async _progress(level, { jobId, pipeline, status, error }) {
-        const { progress, details, activeNodes } = this._calc();
-        const data = { level, status, error, progress, details, activeNodes };
-        return stateManager.setJobStatus({ jobId, pipeline, data });
+    _progress(level, { jobId, pipeline, status, error }) {
+        return new Promise((resolve, reject) => {
+            const { progress, details, activeNodes } = this._calc();
+            const data = { level, status, error, progress, details, activeNodes };
+            this._queue.push({ jobId, pipeline, data }, (err, res) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(res);
+            });
+        });
     }
 }
 
