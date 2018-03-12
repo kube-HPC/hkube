@@ -100,6 +100,9 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
         const images = [];
         let waitObjectName;
         yml.forEach(y => {
+            if (!y){
+                return;
+            }
             if (!waitObjectName && (y.kind === 'Deployment' || y.kind === 'EtcdCluster')) {
                 waitObjectName = y.metadata.name;
             }
@@ -189,7 +192,7 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
                 console.log(`service ${imageName}. found version ${tag}`)
             })
         });
-        let withVersions = yml.map(y => jsYaml.safeDump(y))
+        let withVersions = yml.filter(y=>y).map(y => jsYaml.safeDump(y))
         withVersions = withVersions.join('\r\n---\r\n')
         const tmpFileName = tempfile('.yml');
         fs.writeFileSync(tmpFileName, withVersions, 'utf8');
