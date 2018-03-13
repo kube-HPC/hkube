@@ -15,3 +15,9 @@ config.etcd = {
     host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
+
+config.metrics = [
+    {
+
+    }
+]
