@@ -1,7 +1,6 @@
 
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const VerbosityPlugin = require('@hkube/logger').VerbosityPlugin;
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentName = require('./common/consts/componentNames');
 let log;
