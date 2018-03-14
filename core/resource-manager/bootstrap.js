@@ -6,6 +6,8 @@ const componentName = require('./common/consts/componentNames');
 let log;
 
 const modules = [
+    './lib/resource-adapters/adapters-manager',
+    './lib/interval/runner'
 ];
 
 class Bootstrap {
