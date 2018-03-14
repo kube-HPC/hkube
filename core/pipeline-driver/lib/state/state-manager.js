@@ -95,6 +95,10 @@ class StateManager extends EventEmitter {
         return this._etcd.tasks.unwatch(options);
     }
 
+    async deleteWorkersState(options) {
+        return this._etcd.tasks.delete(options);
+    }
+
     async watchJobState(options) {
         return this._etcd.jobs.watch(options);
     }

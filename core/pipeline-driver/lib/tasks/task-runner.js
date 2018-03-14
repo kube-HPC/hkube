@@ -134,6 +134,7 @@ class TaskRunner {
         }
         finally {
             await stateManager.deleteDriverState({ jobId: this._jobId });
+            await stateManager.deleteWorkersState({ jobId: this._jobId });
             this._cleanJob(error);
         }
     }
