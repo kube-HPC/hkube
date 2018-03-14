@@ -147,9 +147,12 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
                     }
                     containers.push(container);
                 }
-            }
+            } 
             else {
-                const containersFromYaml = objectPath.get(y, 'spec.template.spec.containers');
+                let containersFromYaml = objectPath.get(y, 'spec.template.spec.containers');
+                if (!containersFromYaml){
+                    containersFromYaml = objectPath.get(y, 'spec.jobTemplate.spec.template.spec.containers');
+                }
                 if (containersFromYaml) {
                     containers.push(...containersFromYaml);
                 }
