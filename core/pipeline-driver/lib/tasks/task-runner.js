@@ -127,10 +127,13 @@ class TaskRunner {
 
     async _tryStopPipeline(error, reason) {
         try {
-            this._stopPipeline(error, reason);
+            await this._stopPipeline(error, reason);
         }
         catch (err) {
             log.critical(`unable to stop pipeline ${err.message}`, { component: components.TASK_RUNNER, jobId: this._jobId });
+        }
+        finally {
+            await stateManager.deleteDriverState({ jobId: this._jobId });
             this._cleanJob(error);
         }
     }
@@ -168,7 +171,6 @@ class TaskRunner {
         await stateManager.unWatchJobState({ jobId: this._jobId });
         await stateManager.unWatchTasks({ jobId: this._jobId });
         this._endMetrics(status);
-        this._cleanJob(error);
     }
 
     async _recoverPipeline(tasks) {
@@ -200,10 +202,7 @@ class TaskRunner {
         const tasksToUpdate = [];
         state.driverTasks.forEach(driverTask => {
             const jobTask = state.jobTasks.get(driverTask.taskId);
-            if (!jobTask) {
-                tasksToUpdate.push(driverTask);
-            }
-            else if (jobTask && jobTask.status !== driverTask.status) {
+            if (jobTask && jobTask.status !== driverTask.status) {
                 driverTask.result = jobTask.result;
                 driverTask.status = jobTask.status;
                 driverTask.error = jobTask.error;
@@ -267,8 +266,11 @@ class TaskRunner {
             index
         };
         const result = parser.parse(options);
-        if (index) {
+        if (index && result.batch) {
             this._runWaitAnyBatch(node, result.input, index, result.storage);
+        }
+        else if (index) {
+            this._runWaitAny(node, result.input, index, result.storage);
         }
         else if (result.batch) {
             this._runNodeBatch(node, result.input, result.storage);
@@ -278,18 +280,33 @@ class TaskRunner {
         }
     }
 
-    _runWaitAnyBatch(node, input, index, storage) {
+    _runWaitAny(node, input, index, storage) {
         const waitNode = this._nodes.getWaitAny(node.nodeName, index);
         waitNode.input = input;
-        waitNode.storage = storage;
         this._setTaskState(waitNode.taskId, waitNode);
-        this._createJob(waitNode);
+        this._createJob(waitNode, storage);
+    }
+
+    _runWaitAnyBatch(node, input, index, storage) {
+        const waitNode = this._nodes.getWaitAny(node.nodeName, index);
+        input.forEach((inp, ind) => {
+            const batch = new Batch({
+                nodeName: waitNode.nodeName,
+                batchIndex: (ind + 1),
+                algorithmName: waitNode.algorithmName,
+                extraData: waitNode.extraData,
+                input: inp
+            });
+            this._nodes.addBatch(batch);
+            this._setTaskState(batch.taskId, batch);
+            this._createJob(batch, storage);
+        })
     }
 
     _runNodeSimple(node, input, storage) {
-        this._nodes.setNode(new Node({ ...node, input, storage }));
+        this._nodes.setNode(new Node({ ...node, input }));
         this._setTaskState(node.taskId, node);
-        this._createJob(node);
+        this._createJob(node, storage);
     }
 
     _runNodeBatch(node, input, storage) {
@@ -299,12 +316,11 @@ class TaskRunner {
                 batchIndex: (ind + 1),
                 algorithmName: node.algorithmName,
                 extraData: node.extraData,
-                input: inp,
-                storage
+                input: inp
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch.taskId, batch);
-            this._createJob(batch);
+            this._createJob(batch, storage);
         })
     }
 
@@ -364,14 +380,14 @@ class TaskRunner {
         stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
     }
 
-    async _createJob(node) {
+    async _createJob(node, storage) {
         const options = {
             type: node.algorithmName,
             data: {
                 jobID: this._jobId,
                 taskID: node.taskId,
                 input: node.input,
-                storage: node.storage,
+                storage: storage,
                 node: node.nodeName,
                 batchIndex: node.batchIndex,
                 pipelineName: this._pipelineName,

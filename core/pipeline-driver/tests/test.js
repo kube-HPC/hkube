@@ -625,8 +625,8 @@ describe('Test', function () {
                 const result = nodesMap.calcProgress();
                 expect(result).to.have.property('progress');
                 expect(result).to.have.property('details');
-                expect(result.progress).to.equal('0.00');
-                expect(result.details).to.equal('0.00% completed, 4 creating');
+                expect(result.progress).to.equal(0);
+                expect(result.details).to.equal('0% completed, 4 creating');
             });
         });
     });

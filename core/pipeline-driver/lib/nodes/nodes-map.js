@@ -227,7 +227,7 @@ class NodesMap extends EventEmitter {
         }
         const childs = this._childs(batch.nodeName);
         childs.forEach(child => {
-            const edge = this._virtualGraph.findEdge(batch.nodeName, child, consts.relations.WAIT_ANY);
+            const edge = this._virtualGraph.findEdge(batch.nodeName, child, [consts.relations.WAIT_ANY, consts.relations.WAIT_ANY_BATCH]);
             if (edge) {
                 const node = this._graph.node(child);
                 const waitIndex = node.batch.find(b => b.waitIndex === batch.batchIndex);
@@ -352,7 +352,7 @@ class NodesMap extends EventEmitter {
         const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
         const failed = groupedStates.failed ? groupedStates.failed.length : 0;
         const completed = succeed + failed;
-        const progress = (completed / nodes.length * 100).toFixed(2);
+        const progress = parseFloat((completed / nodes.length * 100).toFixed(2));
         const statesText = groupBy.text();
         const states = nodes
             .map(n => n.status)
