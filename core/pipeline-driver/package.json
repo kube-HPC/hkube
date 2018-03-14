@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.36",
+    "@hkube/etcd": "^3.2.37",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.24",
     "@hkube/parsers": "^1.0.10",
