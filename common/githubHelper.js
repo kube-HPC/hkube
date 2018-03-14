@@ -131,22 +131,17 @@ const changeYamlImageVersion = (yamlFile, versions, coreYamlPath, registry) => {
                     containers.push(container);
                 }
 
-                const busyboxVersion = objectPath.get(y, 'spec.busyboxVersion', '1.28.0-glibc');
-                const busyboxRepository = objectPath.get(y, 'spec.busyboxRepository', 'busybox');
-                if (busyboxVersion && busyboxRepository) {
-                    const image = `${busyboxRepository}:${busyboxVersion}`;
+                const busyboxImage = objectPath.get(y, 'spec.pod.busyboxImage', 'busybox:1.28.0-glibc');
+                if (busyboxImage) {
+                    const image = busyboxImage;
                     const imageParsed = parseImageName(image);
                     const x = _.merge(imageParsed, { registry })
                     const container = {
                         image,
                         paths: [
                             {
-                                path:'spec.busyboxVersion',
-                                value: busyboxVersion
-                            },
-                            {
-                                path:'spec.busyboxRepository',
-                                value: createImageName(x,true)
+                                path:'spec.pod.busyboxImage',
+                                value: createImageName(x)
                             }
                         ]
                     }
