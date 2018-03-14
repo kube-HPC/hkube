@@ -117,39 +117,6 @@ class JobConsumer extends EventEmitter {
         queueRunner.queue.add(tasks);
         job.done();
     }
-   
-   
-    async finishJob(result) {
-
-    //     if (!this._job) {
-    //         return;
-    //     }
-            
-    //     await etcd.unwatch({ jobID: this._job.data.jobID });
-    //     let error = result && result.error;
-    //     if (error && error.message) {
-    //         error = error.message;
-    //     }
-    //     const status = error ? 'failed' : 'succeed';
-    //     metrics.get(metricsNames.algorithm_completed).inc({
-    //         labelValues: {
-    //             pipeline_name: this._job.data.pipeline_name,
-    //             algorithm_name: this._options.jobConsumer.job.type
-    //         }
-    //     });
-    //     metrics.get(metricsNames.algorithm_net).start({
-    //         id: this._job.data.taskID,
-    //         labelValues: {
-    //             status
-    //         }
-    //     });
-    //     log.info(`status: ${status}, error: ${error}`);
-    //     await etcd.update({
-    //         jobID: this._job.data.jobID, taskId: this._job.id, status, result, error
-    //     });
-    //     this._job.done(error, result);
-    //     this._job = null;
-    }
 }
     
 module.exports = new JobConsumer();

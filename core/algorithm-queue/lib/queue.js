@@ -126,6 +126,7 @@ class Queue extends events {
     }
     async updateScore() {
         this.queue = await aigle.map(this.queue, job => this.scoreHeuristic(job));
+        this.emit(queueEvents.UPDATE_SCORE, this.queue);
     }
   
     

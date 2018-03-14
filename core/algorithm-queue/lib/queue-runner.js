@@ -1,9 +1,10 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('./consts/component-name');
+const {componentName, queueEvents} = require('./consts/index');
 const Queue = require('./queue');
 const HeuristicRunner = require('./heuristic-runner');
 const heuristic = require('./heuristic/index');
 const Persistence = require('../lib/persistency/persistence');
+const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory');
 
 class QueueRunner {
     constructor() {
@@ -13,14 +14,15 @@ class QueueRunner {
     }
         
     async init(config) {
-        log.info('queue runner started', { component: components.QUEUE_RUNNER});
+        log.info('queue runner started', { component: componentName.QUEUE_RUNNER});
         this.config = config;
-        log.debug('start filling heuristics', { component: components.QUEUE_RUNNER});
+        log.debug('start filling heuristics', { component: componentName.QUEUE_RUNNER});
         this.heuristicRunner.init(this.config.heuristicsWeights);
         Object.values(heuristic).map(v => this.heuristicRunner.addHeuristicToQueue(v));
-        log.debug('calling to queue', { component: components.QUEUE_RUNNER});
+        log.debug('calling to queue', { component: componentName.QUEUE_RUNNER});
         const persistence = Persistence.init({options: this.config});
         this.queue = new Queue({ scoreHeuristic: this.heuristicRunner, updateInterval: this.config.queue.updateInterval, persistence});
+        this.queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
     }
 }
 
