@@ -6,7 +6,9 @@ const componentName = require('./common/consts/componentNames');
 let log;
 
 const modules = [
-    './lib/resource-adapters/adapters-manager',
+    './lib/state/state-manager',
+    './lib/adapters/adapters-manager',
+    './lib/metrics/metrics-runner',
     './lib/interval/runner'
 ];
 

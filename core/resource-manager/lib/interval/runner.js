@@ -1,14 +1,17 @@
-const adapterManager = require('../resource-adapters/adapters-manager');
+const adapterManager = require('../adapters/adapters-manager');
+const metricsRunner = require('../metrics/metrics-runner');
+const stateManager = require('../state/state-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../common/consts/componentNames').AlgorithmDb;
 
 class Runner {
 
     constructor() {
-
     }
 
     async init() {
+
+
         setInterval(async () => {
             if (this._working) {
                 return;
@@ -18,16 +21,21 @@ class Runner {
 
             log.info(`adapterManager started`, { component });
 
-            const adapterResults = await Promise.all(adapterManager.adapters.map(a => a.getData()));
-            const metricsResults = metrics.map(m => {
-                m.calc(adapterResults);
-            });
+            const adapterResults = await adapterManager.getData();
+            const data = {
+                queueMetrics: adapterResults.queueMetrics,
+                templatesStore: adapterResults.templatesStore,
+
+            }
+            // const metricsResults = metricsRunner.run(adapterResults);
+            // await stateManager.setTaskState();
+
             log.info(`adapterManager finished`, { component });
 
             this._working = false;
 
 
-        }, 5000);
+        }, 1000);
     }
 }
 

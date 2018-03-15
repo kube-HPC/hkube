@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.35",
+    "@hkube/etcd": "^3.2.38",
     "@hkube/logger": "^1.0.12"
   },
   "devDependencies": {
@@ -22,7 +22,7 @@
     "eslint-plugin-import": "^2.9.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^2.5.3",
-    "sinon": "^4.4.2"
+    "sinon": "^4.4.6"
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",

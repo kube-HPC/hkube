@@ -1,7 +1,7 @@
 
 const Metric = require('./Metric');
 
-class AlgorithmQueueMetric extends Metric {
+class KubernetesMetric extends Metric {
 
     constructor(options) {
         super(options);
@@ -12,4 +12,4 @@ class AlgorithmQueueMetric extends Metric {
     }
 }
 
-module.exports = AlgorithmQueueMetric;
+module.exports = KubernetesMetric;

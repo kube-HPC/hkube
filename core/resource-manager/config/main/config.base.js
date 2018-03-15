@@ -18,30 +18,34 @@ config.etcd = {
 
 config.metrics = [
     {
-
-    }
-]
-
-config.adapters = [
-    {
-        name: 'algorithm-db',
-        connection: {
-            host: '',
-            port: 9876
+        name: 'templates-store',
+        weight: 0.1,
+        adapter: {
+            connection: {
+                host: '',
+                port: 9876
+            }
         }
     },
     {
         name: 'algorithm-queue',
-        connection: {
-            host: '',
-            port: 9876
+        weight: 0.1,
+        adapter: {
+            connection: {
+                host: '',
+                port: 9876
+            }
         }
     },
     {
         name: 'kubernetes',
-        connection: {
-            host: '',
-            port: 9876
-        }
+        weight: 0.8,
+        cache: '5m',
+        adapter: {
+            connection: {
+                host: '',
+                port: 9876
+            }
+        },
     }
 ]
