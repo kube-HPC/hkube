@@ -30,7 +30,8 @@ config.heuristicsWeights = {
 config.metrics = {
     collectDefault: true,
     server: {
-        port: process.env.METRICS_PORT
+    
+        port: process.env.METRICS_PORT||9100
     }
 }
 

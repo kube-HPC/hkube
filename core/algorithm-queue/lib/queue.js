@@ -163,8 +163,8 @@ class Queue extends events {
             return; 
         }
         log.info(`${[...taskArr]} removed from queue  `, { component: components.QUEUE});
-        taskArr.forEach((taskId) => {
-            _.remove(this.queue, job => job.taskId === taskId);
+        taskArr.forEach((jobID) => {
+            _.remove(this.queue, job => job.jobID === jobID);
         });
         this.emit(queueEvents.REMOVE, taskArr);
     }

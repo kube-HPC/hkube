@@ -25,6 +25,8 @@ const consumer = () => {
     };
 };
 
+
+
 module.exports = {
     
     register: () => {

@@ -17,15 +17,15 @@ class Persistence {
         return this;
     }
 
-    async store(queue) {
+    async store(data) {
         log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT});
-        const status = await this.etcd.algorithmQueue.store({queueName: this.queueName, queue});
+        const status = await this.etcd.algorithms.algorithmQueue.setState({queueName: this.queueName, data});
         if (status) {
             log.info('queue stored successfully', { component: components.ETCD_PERSISTENT});
         }
     }
     get() {
-        return this.etcd.algorithmQueue.get({queueName: this.queueName});
+        return this.etcd.algorithms.algorithmQueue.getState({queueName: this.queueName});
     }
 }
 

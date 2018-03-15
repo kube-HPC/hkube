@@ -15,16 +15,18 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.1",
-    "@hkube/etcd": "^3.2.35",
+    "@hkube/etcd": "^3.2.40",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.24",
     "@hkube/producer-consumer": "^1.0.32",
     "@hkube/redis-utils": "^1.0.1",
+    "@hkube/rest-server": "^1.0.7",
     "aigle": "^1.11.0",
     "await-delay": "^1.0.0",
     "await-done": "^1.0.10",
     "lodash": "^4.17.5",
-    "mockery": "^2.1.0"
+    "mockery": "^2.1.0",
+    "mockery-partial": "^1.4.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",

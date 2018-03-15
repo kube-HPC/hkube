@@ -4,7 +4,7 @@ const {expect} = require('chai');
 const {generateArr, stubTemplate,generateConsumedArray} = require('./stub/stub');
 const delay = require('await-delay');
 const querier = require('../lib/querier');
-const mockery = require('mockery');
+const mockery = require('mockery-partial');
 const components = require('../lib/consts/component-name');
 const queueEvents = require('../lib/consts/queue-events');
 const {callDone, done, semaphore} = require('await-done');
@@ -272,7 +272,7 @@ describe('job-consume', () => {
         }
         //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
     });
-    it('should consume jobs and send to queue', async () => {
+    xit('should consume jobs and send to queue', async () => {
         console.log('bla');
        _mockConsumer.Consumer()._emit(generateConsumedArray(100))
         await delay(100)
