@@ -43,9 +43,12 @@ config.metrics = [
         cache: '5m',
         adapter: {
             connection: {
-                host: '',
-                port: 9876
+                host: process.env.KUBERNETES_SERVICE_HOST || 'https://10.32.10.6',
+                port: process.env.KUBERNETES_SERVICE_PORT || 6443,
+                user: process.env.KUBERNETES_SERVICE_USER || 'kube',
+                pass: process.env.KUBERNETES_SERVICE_PASS || 'ubadmin',
+                local: !process.env.KUBERNETES_SERVICE_HOST
             }
-        },
+        }
     }
 ]
