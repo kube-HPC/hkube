@@ -60,8 +60,9 @@ class JobProducer {
     // should handle cases where there is currently not any active job and new job added to queue 
     _checkWorkingStatusInterval() {
         setInterval(async () => {
+            const waitingCount = await this.bullQueue.getWaitingCount();
             const activeCount = await this.bullQueue.getActiveCount();
-            if (activeCount === 0 && queueRunner.queue.get.length > 0) {
+            if (waitingCount === 0 && activeCount === 0 && queueRunner.queue.get.length > 0) {
                 await this.createJob();  
             }
         }, 1000);
