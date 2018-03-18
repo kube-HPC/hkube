@@ -16,18 +16,10 @@ class Runner {
             if (this._working) {
                 return;
             }
-
             this._working = true;
-
             log.info(`adapterManager started`, { component });
-
             const adapterResults = await adapterManager.getData();
-            const data = {
-                queueMetrics: adapterResults.queueMetrics,
-                templatesStore: adapterResults.templatesStore,
-
-            }
-            // const metricsResults = metricsRunner.run(adapterResults);
+            const metricsResults = metricsRunner.run(adapterResults);
             // await stateManager.setTaskState();
 
             log.info(`adapterManager finished`, { component });

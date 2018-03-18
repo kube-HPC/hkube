@@ -9,7 +9,7 @@ class TemplatesStoreMetric extends Metric {
     }
 
     calc(data) {
-        return data => this.weight * ((data.cpu < MAX_CPU ? Math.abs(job.batchPlace - (MAX_CPU + 1)) : MAX_CPU) / MAX_CPU)
+        return this.weight * ((data.cpu < MAX_CPU ? Math.abs(job.batchPlace - (MAX_CPU + 1)) : MAX_CPU) / MAX_CPU)
     }
 }
 

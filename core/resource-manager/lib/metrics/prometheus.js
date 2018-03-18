@@ -8,7 +8,7 @@ class AlgorithmQueueMetric extends Metric {
     }
 
     calc(data) {
-        return data => this.weight * (Date.now() - 233) / 9
+        return this.weight * (Date.now() - 233) / 9
     }
 }
 

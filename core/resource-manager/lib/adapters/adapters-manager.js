@@ -12,12 +12,24 @@ class AdapterManager {
         });
     }
 
-    getData() {
-        return Promise.all(this._adapters.map(a => this._getData(a)));
+    async getData() {
+        const map = Object.create(null);
+        const response = await Promise.all(this._adapters.map(a => this._getData(a)));
+        response.forEach(r => {
+            let [k, v] = Object.entries(r)[0]
+            map[k] = v;
+        });
+        return map;
     }
 
     async _getData(adapter) {
-        const data = await adapter.getData();
+        let data;
+        try {
+            data = await adapter.getData();
+        }
+        catch (e) {
+
+        }
         return { [adapter.name]: data };
     }
 }

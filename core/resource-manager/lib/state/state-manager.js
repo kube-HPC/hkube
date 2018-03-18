@@ -9,25 +9,18 @@ class StateManager extends EventEmitter {
     }
 
     _subscribe() {
-        this._etcd.algorithms.queueMetrics.on('change', (res) => {
-            this.emit(`queue-metrics`, res);
-        });
-
+        this.watchStoreTemplates();
         this._etcd.algorithms.templatesStore.on('change', (res) => {
             this.emit(`templates-store`, res);
         });
     }
 
-    getQueueMetrics(options) {
-        return this._etcd.algorithms.queueMetrics.list();
+    getAlgorithmQueue(options) {
+        return this._etcd.algorithms.algorithmQueue.list();
     }
 
     setQueueMetrics(options) {
         return this._etcd.algorithms.queueMetrics.setState(options);
-    }
-
-    watchQueueMetrics(options) {
-        return this._etcd.algorithms.queueMetrics.watch(options);
     }
 
     setResourceRequirements(options) {
@@ -35,7 +28,7 @@ class StateManager extends EventEmitter {
     }
 
     getStoreTemplates(options) {
-        return this._etcd.algorithms.templatesStore.getState(options);
+        return this._etcd.algorithms.templatesStore.list(options);
     }
 
     setStoreTemplates(options) {

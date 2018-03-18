@@ -24,8 +24,8 @@ class MetricsRunner {
 
     run(data) {
         const score = this.metrics.reduce((result, metric) => {
-            const func = metric.calc(data);
-            return result + func(data);
+            const res = metric.calc(data);
+            return res;
         }, 0);
     }
 }

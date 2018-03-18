@@ -8,28 +8,28 @@ class AlgorithmQueueAdapter extends Adapter {
 
     constructor(options) {
         super(options);
-        this._stubData();
+        // this._stubData();
     }
 
     _stubData() {
         const algs = [{
             alg: 'green-alg',
-            data: { score: 9 }
+            data: [{ score: 9 }, { score: 4 }]
         },
         {
             alg: 'yellow-alg',
-            data: { score: 8 }
+            data: [{ score: 5 }, { score: 6 }]
         },
         {
             alg: 'black-alg',
-            data: { score: 7 }
+            data: [{ score: 1 }, { score: 8 }]
         }]
         Promise.all(algs.map(a => stateManager.setQueueMetrics(a)));
     }
 
     getData() {
         log.info(`adapter started`, { component });
-        return stateManager.getQueueMetrics();
+        return stateManager.getAlgorithmQueue();
     }
 }
 
