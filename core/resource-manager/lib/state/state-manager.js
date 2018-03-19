@@ -20,7 +20,7 @@ class StateManager extends EventEmitter {
     }
 
     setQueueMetrics(options) {
-        return this._etcd.algorithms.queueMetrics.setState(options);
+        return this._etcd.algorithms.algorithmQueue.setState(options);
     }
 
     setResourceRequirements(options) {

@@ -20,6 +20,19 @@ class Runner {
             log.info(`adapterManager started`, { component });
             const adapterResults = await adapterManager.getData();
             const metricsResults = metricsRunner.run(adapterResults);
+
+            const resources = [];
+
+            for (let res of metricsResults) {
+                if (res.cpu <= maxCpu) {
+                    maxCpu -= res.cpu;
+                    resources.push({ alg: res.alg, cpu: res.cpu, mem: res.mem });
+                }
+                if (maxCpu === 0) {
+                    break;
+                }
+            }
+
             // await stateManager.setTaskState();
 
             log.info(`adapterManager finished`, { component });
