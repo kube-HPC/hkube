@@ -23,7 +23,7 @@ class MetricsRunner {
     }
 
     run(data) {
-        const score = this.metrics.reduce((result, metric) => {
+        const score = Object.entries(data).map((r) => {
             const res = metric.calc(data);
             return res;
         }, 0);

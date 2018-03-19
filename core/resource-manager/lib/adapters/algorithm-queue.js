@@ -1,5 +1,6 @@
 
 const Adapter = require('./Adapter');
+const orderBy = require('lodash.orderby');
 const stateManager = require('../state/state-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../common/consts/componentNames').ALGORITHM_QUEUE;
@@ -16,9 +17,15 @@ class AlgorithmQueueAdapter extends Adapter {
         Promise.all(algorithmQueue.map(a => stateManager.setQueueMetrics(a)));
     }
 
-    getData() {
+    async getData() {
         log.info(`adapter started`, { component });
-        return stateManager.getAlgorithmQueue();
+        const algorithmQueue = await stateManager.getAlgorithmQueue();
+        let mergedQueue = [];
+        algorithmQueue.forEach(q => {
+            mergedQueue = mergedQueue.concat(q.data);
+        });
+        mergedQueue = orderBy(mergedQueue, q => q.calculated.score, 'desc');
+        return mergedQueue;
     }
 }
 
