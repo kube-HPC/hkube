@@ -10,7 +10,7 @@ class AdapterController {
     init(options) {
         options.metrics.forEach(a => {
             let Adapter = require(__dirname + '/' + a.name);
-            this._adapters.push(new Adapter(a));
+            this._adapters.push(new Adapter(a, options));
         });
     }
 
@@ -25,13 +25,7 @@ class AdapterController {
     }
 
     async _getData(adapter) {
-        let data;
-        try {
-            data = await adapter.getData();
-        }
-        catch (error) {
-            log.error(error.message, { component });
-        }
+        const data = await adapter.getData();
         return { [adapter.name]: data };
     }
 }

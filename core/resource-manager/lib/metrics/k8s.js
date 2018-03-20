@@ -7,18 +7,8 @@ class K8sMetric extends Metric {
         super(options);
     }
 
-    calc(data) {
-        const algorithmQueue = data.algorithmQueue.map(q => {
-            return {
-                ...q,
-                score: this.weight * q.score
-            }
-        });
-        const result = {
-            ...data,
-            algorithmQueue
-        }
-        return result;
+    calc(options) {
+        return this.calcBase(options);
     }
 }
 

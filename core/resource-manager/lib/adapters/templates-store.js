@@ -5,8 +5,8 @@ const stub = require('../../tests/mocks/templates-store.json');
 
 class TemplatesStore extends Adapter {
 
-    constructor(options) {
-        super(options);
+    constructor(settings, options) {
+        super(settings);
         this._stubData();
     }
 

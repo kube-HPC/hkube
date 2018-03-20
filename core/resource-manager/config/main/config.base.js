@@ -16,9 +16,16 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
+config.k8s = {
+    host: process.env.KUBERNETES_SERVICE_HOST || 'https://10.32.10.6',
+    port: process.env.KUBERNETES_SERVICE_PORT || 6443,
+    user: process.env.KUBERNETES_SERVICE_USER || 'kube',
+    pass: process.env.KUBERNETES_SERVICE_PASS || 'ubadmin',
+    local: !process.env.KUBERNETES_SERVICE_HOST
+}
+
 config.interval = 1000;
 
-config.metricBase = 10;
 config.metrics = [
     {
         name: 'templates-store',
@@ -30,16 +37,6 @@ config.metrics = [
     },
     {
         name: 'k8s',
-        weight: 0.2,
-        cache: '5m',
-        adapter: {
-            connection: {
-                host: process.env.KUBERNETES_SERVICE_HOST || 'https://10.32.10.6',
-                port: process.env.KUBERNETES_SERVICE_PORT || 6443,
-                user: process.env.KUBERNETES_SERVICE_USER || 'kube',
-                pass: process.env.KUBERNETES_SERVICE_PASS || 'ubadmin',
-                local: !process.env.KUBERNETES_SERVICE_HOST
-            }
-        }
+        weight: 0.2
     }
 ]

@@ -5,8 +5,8 @@ const stub = require('../../tests/mocks/algorithm-queue.json');
 
 class AlgorithmQueueAdapter extends Adapter {
 
-    constructor(options) {
-        super(options);
+    constructor(settings, options) {
+        super(settings);
         this._stubData();
     }
 

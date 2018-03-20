@@ -1,15 +1,15 @@
 
 const Metric = require('./Metric');
 
-class AlgorithmQueueMetric extends Metric {
+class PrometheusMetric extends Metric {
 
     constructor(options) {
         super(options);
     }
 
-    calc(data) {
-        return this.weight * (Date.now() - 233) / 9
+    calc(options) {
+        return this.calcBase(options);
     }
 }
 
-module.exports = AlgorithmQueueMetric;
+module.exports = PrometheusMetric;

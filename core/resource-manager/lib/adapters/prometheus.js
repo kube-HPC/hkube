@@ -5,8 +5,8 @@ const component = require('../../common/consts/componentNames').AlgorithmDb;
 
 class PrometheusAdapter extends Adapter {
 
-    constructor(options) {
-        super(options);
+    constructor(settings, options) {
+        super(settings);
     }
 
     getData() {

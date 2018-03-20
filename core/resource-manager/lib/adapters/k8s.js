@@ -5,15 +5,15 @@ const parse = require('parseunit');
 
 class K8sAdapter extends Adapter {
 
-    constructor(options) {
-        super(options);
-        if (options.adapter.connection.local) {
+    constructor(settings, options) {
+        super(settings);
+        if (options.k8s.local) {
             this._client = new Api.Core({
-                url: `${options.adapter.connection.host}:${options.adapter.connection.port}`,
+                url: `${options.k8s.host}:${options.k8s.port}`,
                 insecureSkipTlsVerify: true,
                 auth: {
-                    user: options.adapter.connection.user,
-                    pass: options.adapter.connection.pass
+                    user: options.k8s.user,
+                    pass: options.k8s.pass
                 }
             });
         }

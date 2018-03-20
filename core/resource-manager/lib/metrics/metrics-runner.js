@@ -2,8 +2,6 @@
 
 class MetricsRunner {
     constructor(options) {
-        this._idx = 0;
-        this._results = null;
         this._metrics = [];
     }
 
@@ -24,19 +22,30 @@ class MetricsRunner {
         }
     }
 
-    run(data) {
-        this._results = this._results || data;
-        const nextLayer = this._metrics[this._idx++];
-        if (!nextLayer) {
-            const tmpResults = this._results;
-            this._idx = 0;
-            this._results = null;
-            return tmpResults;
-        }
-        this._results = nextLayer.calc(this._results);
-        return this.run();
+    run(options) {
+        return this._metrics.map(m => ({ name: m.name, weight: m.weight, data: m.calc(options) }));
     }
 
+    calc(options) {
+        const map = {};
+        options.reduce((prev, cur) => {
+            cur.data.forEach(c => {
+                if (c.alg in prev) {
+                    prev[c.alg].pods += c.data.pods * cur.weight
+                }
+                else {
+                    prev[c.alg] = { pods: c.data.pods * cur.weight };
+                }
+            })
+            return prev;
+        }, map);
+
+        const results = [];
+        Object.entries(map).forEach(([k, v]) => {
+            results.push({ alg: k, data: v });
+        });
+        return results;
+    }
 }
 
 module.exports = new MetricsRunner();
