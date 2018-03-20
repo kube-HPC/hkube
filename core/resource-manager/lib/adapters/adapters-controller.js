@@ -1,5 +1,7 @@
+const log = require('@hkube/logger').GetLogFromContainer();
+const component = require('../../common/consts/componentNames').ADAPTER_CONTROLLER;
 
-class AdapterManager {
+class AdapterController {
 
     constructor() {
         this._adapters = [];
@@ -27,11 +29,11 @@ class AdapterManager {
         try {
             data = await adapter.getData();
         }
-        catch (e) {
-
+        catch (error) {
+            log.error(error.message, { component });
         }
         return { [adapter.name]: data };
     }
 }
 
-module.exports = new AdapterManager();
+module.exports = new AdapterController();

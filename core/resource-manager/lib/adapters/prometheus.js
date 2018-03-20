@@ -10,7 +10,6 @@ class PrometheusAdapter extends Adapter {
     }
 
     getData() {
-        log.info(`adapter started`, { component });
     }
 }
 

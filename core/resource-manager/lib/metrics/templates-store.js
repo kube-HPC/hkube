@@ -1,6 +1,6 @@
 
 const Metric = require('./Metric');
-const MAX_CPU = 1500;
+const MAX_CPU = 32000;
 
 class TemplatesStoreMetric extends Metric {
 
@@ -9,7 +9,22 @@ class TemplatesStoreMetric extends Metric {
     }
 
     calc(data) {
-        return this.weight * ((data.cpu < MAX_CPU ? Math.abs(job.batchPlace - (MAX_CPU + 1)) : MAX_CPU) / MAX_CPU)
+        let algorithmQueue = data.algorithmQueue.map(q => {
+            const { cpu, mem } = data.templatesStore[q.alg];
+            return {
+                ...q,
+                score: q.score * this.weight * this._normalize(cpu)
+            }
+        });
+        const result = {
+            ...data,
+            algorithmQueue
+        }
+        return result;
+    }
+
+    _normalize(cpu) {
+        return (cpu < MAX_CPU ? MAX_CPU - cpu : MAX_CPU) / MAX_CPU;
     }
 }
 

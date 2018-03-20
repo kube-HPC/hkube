@@ -1,31 +1,37 @@
-const adapterManager = require('../adapters/adapters-manager');
-const metricsRunner = require('../metrics/metrics-runner');
-const stateManager = require('../state/state-manager');
+const orderBy = require('lodash.orderby');
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../common/consts/componentNames').AlgorithmDb;
+const component = require('../../common/consts/componentNames').RESOURCE_DECIDER;
 
 class ResourceDecider {
-    run(results) {
-        let maxCpu;
-        let maxMem;
-        const resources = [];
-
+    run(data) {
         const map = Object.create(null);
-        for (let res of results.algorithmQueue) {
-            let { cpu, mem } = results.templatesStore[res.algorithmName];
-            if (!map[res.algorithmName]) {
-                map[res.algorithmName] = { pods: 0 };
+        try {
+            let maxCpu = 0;
+            let maxMem = 0;
+            for (const [key, value] of data.k8s) {
+                maxCpu += value.freeCpu;
+                maxMem += value.freeMemory;
             }
-            if (cpu <= maxCpu && mem <= maxMem) {
-                maxCpu -= cpu;
-                maxMem -= mem;
-                map[res.algorithmName].pods++;
-            }
-            if (maxCpu === 0) {
-                break;
+            const algorithmQueue = orderBy(data.algorithmQueue, q => q.score, 'desc');
+            for (let res of algorithmQueue) {
+                const { cpu, mem } = data.templatesStore[res.alg];
+                if (!map[res.alg]) {
+                    map[res.alg] = { pods: 0 };
+                }
+                if (cpu <= maxCpu && mem <= maxMem) {
+                    maxCpu -= cpu;
+                    maxMem -= mem;
+                    map[res.alg].pods++;
+                }
+                if (maxCpu === 0) {
+                    break;
+                }
             }
         }
-        return resources;
+        catch (error) {
+            log.error(error.message, { component });
+        }
+        return map;
     }
 }
 

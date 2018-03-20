@@ -24,7 +24,15 @@ class StateManager extends EventEmitter {
     }
 
     setResourceRequirements(options) {
-        return this._etcd.algorithms.resourceRequirements.setState(options);
+        const results = [];
+        Object.entries(options).forEach(([k, v]) => {
+            results.push({ alg: k, data: v });
+        });
+        return Promise.all(results.map(a => this._etcd.algorithms.resourceRequirements.setState(a)));
+    }
+
+    getResourceRequirements(options) {
+        return this._etcd.algorithms.resourceRequirements.list(options);
     }
 
     getStoreTemplates(options) {

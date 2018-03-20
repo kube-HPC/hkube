@@ -1,8 +1,7 @@
 
 const Adapter = require('./Adapter');
 const stateManager = require('../state/state-manager');
-const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../common/consts/componentNames').AlgorithmDb;
+const stub = require('../../tests/mocks/templates-store.json');
 
 class TemplatesStore extends Adapter {
 
@@ -12,23 +11,10 @@ class TemplatesStore extends Adapter {
     }
 
     _stubData() {
-        const algs = [{
-            alg: 'green-alg',
-            data: { cpu: 5, mem: 28372378 }
-        },
-        {
-            alg: 'yellow-alg',
-            data: { cpu: 3, mem: 28372378 }
-        },
-        {
-            alg: 'black-alg',
-            data: { cpu: 1, mem: 28372378 }
-        }]
-        Promise.all(algs.map(a => stateManager.setStoreTemplates(a)));
+        Promise.all(stub.map(a => stateManager.setStoreTemplates(a)));
     }
 
     async getData() {
-        log.info(`adapter started`, { component });
         const map = Object.create(null);
         const response = await stateManager.getStoreTemplates();
         response.forEach(r => {

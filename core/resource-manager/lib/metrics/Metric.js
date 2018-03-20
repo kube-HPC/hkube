@@ -1,3 +1,4 @@
+const resourceDecider = require('../resource-handlers/resource-decider');
 
 class Metric {
 

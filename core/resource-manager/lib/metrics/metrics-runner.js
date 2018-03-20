@@ -2,7 +2,9 @@
 
 class MetricsRunner {
     constructor(options) {
-        this.metrics = [];
+        this._idx = 0;
+        this._results = null;
+        this._metrics = [];
     }
 
     init(options) {
@@ -13,7 +15,7 @@ class MetricsRunner {
         options.metrics.forEach(m => {
             score += m.weight;
             let Metric = require(__dirname + '/' + m.name);
-            this.metrics.push(new Metric(m));
+            this._metrics.push(new Metric(m));
         });
 
         score = parseFloat(score.toFixed(2));
@@ -23,11 +25,18 @@ class MetricsRunner {
     }
 
     run(data) {
-        const score = Object.entries(data).map((r) => {
-            const res = metric.calc(data);
-            return res;
-        }, 0);
+        this._results = this._results || data;
+        const nextLayer = this._metrics[this._idx++];
+        if (!nextLayer) {
+            const tmpResults = this._results;
+            this._idx = 0;
+            this._results = null;
+            return tmpResults;
+        }
+        this._results = nextLayer.calc(this._results);
+        return this.run();
     }
+
 }
 
 module.exports = new MetricsRunner();

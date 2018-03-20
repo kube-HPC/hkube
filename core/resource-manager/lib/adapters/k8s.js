@@ -2,8 +2,6 @@
 const Api = require('kubernetes-client');
 const Adapter = require('./Adapter');
 const parse = require('parseunit');
-const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../common/consts/componentNames').K8s;
 
 class K8sAdapter extends Adapter {
 

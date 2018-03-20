@@ -16,18 +16,21 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
+config.interval = 1000;
+
+config.metricBase = 10;
 config.metrics = [
     {
         name: 'templates-store',
-        weight: 0.1
+        weight: 0.6
     },
     {
         name: 'algorithm-queue',
-        weight: 0.9
+        weight: 0.2
     },
     {
-        name: 'kubernetes',
-        weight: 0.0,
+        name: 'k8s',
+        weight: 0.2,
         cache: '5m',
         adapter: {
             connection: {

@@ -1,7 +1,7 @@
 const Components = {
     MAIN: 'Main',
-    ALGORITHM_QUEUE: 'Algorithm-Queue',
-    K8s: 'K8s-Queue'
+    ADAPTER_CONTROLLER: 'Adapter-Controller',
+    RESOURCE_DECIDER: 'Resource-Decider'
 };
 
 module.exports = Components;
