@@ -1,4 +1,5 @@
 
+const MAX_SCORE = 1;
 
 class MetricsRunner {
     constructor(options) {
@@ -17,34 +18,13 @@ class MetricsRunner {
         });
 
         score = parseFloat(score.toFixed(2));
-        if (score !== 1) {
-            throw new Error(`metrics total score must be equal to 1, current ${score}`);
+        if (score !== MAX_SCORE) {
+            throw new Error(`metrics total score must be equal to ${MAX_SCORE}, current ${score}`);
         }
     }
 
     run(options) {
         return this._metrics.map(m => ({ name: m.name, weight: m.weight, data: m.calc(options) }));
-    }
-
-    calc(options) {
-        const map = {};
-        options.reduce((prev, cur) => {
-            cur.data.forEach(c => {
-                if (c.alg in prev) {
-                    prev[c.alg].pods += c.data.pods * cur.weight
-                }
-                else {
-                    prev[c.alg] = { pods: c.data.pods * cur.weight };
-                }
-            })
-            return prev;
-        }, map);
-
-        const results = [];
-        Object.entries(map).forEach(([k, v]) => {
-            results.push({ alg: k, data: v });
-        });
-        return results;
     }
 }
 

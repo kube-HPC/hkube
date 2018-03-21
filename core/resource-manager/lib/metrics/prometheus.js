@@ -8,6 +8,7 @@ class PrometheusMetric extends Metric {
     }
 
     calc(options) {
+
         return this.calcBase(options);
     }
 }

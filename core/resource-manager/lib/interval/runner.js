@@ -1,5 +1,6 @@
 const adapterController = require('../adapters/adapters-controller');
 const metricsRunner = require('../metrics/metrics-runner');
+const metricsReducer = require('../metrics/metrics-reducer');
 const resourceDecider = require('../resource-handlers/resource-decider');
 const stateManager = require('../state/state-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -17,7 +18,7 @@ class Runner {
             try {
                 const adaptersResults = await adapterController.getData();
                 const metricsResults = metricsRunner.run(adaptersResults);
-                const resourceResults = metricsRunner.calc(metricsResults);
+                const resourceResults = metricsReducer.reduce(metricsResults);
                 await stateManager.setResourceRequirements(resourceResults);
             }
             catch (error) {

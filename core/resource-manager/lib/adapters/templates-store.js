@@ -1,17 +1,11 @@
 
 const Adapter = require('./Adapter');
 const stateManager = require('../state/state-manager');
-const stub = require('../../tests/mocks/templates-store.json');
 
 class TemplatesStore extends Adapter {
 
     constructor(settings, options) {
         super(settings);
-        this._stubData();
-    }
-
-    _stubData() {
-        Promise.all(stub.map(a => stateManager.setStoreTemplates(a)));
     }
 
     async getData() {

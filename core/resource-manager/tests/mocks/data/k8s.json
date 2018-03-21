@@ -1,0 +1,79 @@
+[
+    [
+        "node1",
+        {
+            "freeCpu": 3120,
+            "freeMemory": 15800778
+        }
+    ],
+    [
+        "node10",
+        {
+            "freeCpu": 7471,
+            "freeMemory": 32566336
+        }
+    ],
+    [
+        "node11",
+        {
+            "freeCpu": 7271,
+            "freeMemory": 32566036
+        }
+    ],
+    [
+        "node2",
+        {
+            "freeCpu": 3120,
+            "freeMemory": 15800778
+        }
+    ],
+    [
+        "node3",
+        {
+            "freeCpu": 3100,
+            "freeMemory": 15800768
+        }
+    ],
+    [
+        "node4",
+        {
+            "freeCpu": 7269,
+            "freeMemory": 32565924
+        }
+    ],
+    [
+        "node5",
+        {
+            "freeCpu": 7111,
+            "freeMemory": 32566026
+        }
+    ],
+    [
+        "node6",
+        {
+            "freeCpu": 7369,
+            "freeMemory": 32566132
+        }
+    ],
+    [
+        "node7",
+        {
+            "freeCpu": 7321,
+            "freeMemory": 32566272
+        }
+    ],
+    [
+        "node8",
+        {
+            "freeCpu": 7469,
+            "freeMemory": 32566324
+        }
+    ],
+    [
+        "node9",
+        {
+            "freeCpu": 7101,
+            "freeMemory": 32566006
+        }
+    ]
+]

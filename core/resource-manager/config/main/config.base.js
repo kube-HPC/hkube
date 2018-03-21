@@ -29,7 +29,7 @@ config.interval = 1000;
 config.metrics = [
     {
         name: 'templates-store',
-        weight: 0.6
+        weight: 0.3
     },
     {
         name: 'algorithm-queue',
@@ -38,5 +38,9 @@ config.metrics = [
     {
         name: 'k8s',
         weight: 0.2
+    },
+    {
+        name: 'prometheus',
+        weight: 0.3
     }
 ]

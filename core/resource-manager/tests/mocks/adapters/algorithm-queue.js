@@ -1,6 +1,6 @@
 const orderBy = require('lodash.orderby');
 const Adapter = require('./Adapter');
-const stateManager = require('../state/state-manager');
+const algorithmQueue = require('../data/algorithm-queue.json');
 
 class AlgorithmQueueAdapter extends Adapter {
 
@@ -9,7 +9,6 @@ class AlgorithmQueueAdapter extends Adapter {
     }
 
     async getData() {
-        const algorithmQueue = await stateManager.getAlgorithmQueue();
         let mergedQueue = [];
         algorithmQueue.forEach(q => {
             mergedQueue = mergedQueue.concat(q.data);
