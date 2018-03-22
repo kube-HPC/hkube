@@ -26,6 +26,11 @@ config.k8s = {
 
 config.interval = 1000;
 
+config.thresholds = {
+    cpu: 0.8,
+    mem: 0.8
+};
+
 config.metrics = [
     {
         name: 'templates-store',

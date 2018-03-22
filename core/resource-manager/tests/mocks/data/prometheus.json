@@ -1,14 +1,14 @@
 {
     "green-alg": {
-        "runTime": 500,
-        "cpu": 1000
+        "runTime": 1800
     },
     "yellow-alg": {
-        "runTime": 300,
-        "cpu": 600
+        "runTime": 900
     },
     "black-alg": {
-        "runTime": 100,
-        "cpu": 200
+        "runTime": 700
+    },
+    "blue-alg": {
+        "runTime": 100
     }
 }

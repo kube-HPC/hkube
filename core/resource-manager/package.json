@@ -12,6 +12,7 @@
     "@hkube/etcd": "^3.2.41",
     "@hkube/logger": "^1.0.12",
     "kubernetes-client": "^5.1.0",
+    "lodash.groupby": "^4.6.0",
     "lodash.orderby": "^4.6.0",
     "mockery": "^2.1.0",
     "parseunit": "^0.3.1"

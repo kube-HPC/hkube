@@ -3,19 +3,15 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../common/consts/componentNames').RESOURCE_DECIDER;
 
 class ResourceDecider {
+    init(options) {
+        this._thresholdCpu = options.thresholds.cpu;
+        this._thresholdMem = options.thresholds.mem;
+    }
+
     run(data) {
         const results = [];
         const map = Object.create(null);
-        let totalCpu = 0;
-        let totalMem = 0;
-        let thresholdCpu = 0;
-        let thresholdMem = 0;
-        for (const [key, value] of data.k8s) {
-            totalCpu += value.freeCpu;
-            totalMem += value.freeMemory;
-        }
-        thresholdCpu = totalCpu * 0.8;
-        thresholdMem = totalMem * 0.8;
+        let { totalCpu, totalMem } = this._totalResources(data.k8s);
         const algorithmQueue = orderBy(data.algorithmQueue, q => q.score, 'desc');
         for (let res of algorithmQueue) {
             const { cpu, mem } = data.templatesStore[res.alg] || {};
@@ -35,6 +31,18 @@ class ResourceDecider {
             results.push({ alg: k, data: v });
         });
         return results;
+    }
+
+    _totalResources(data) {
+        let totalCpu = 0;
+        let totalMem = 0;
+        for (const [key, value] of data) {
+            totalCpu += value.freeCpu;
+            totalMem += value.freeMemory;
+        }
+        totalCpu = totalCpu * this._thresholdCpu;
+        totalMem = totalMem * this._thresholdMem;
+        return { totalCpu, totalMem };
     }
 }
 
