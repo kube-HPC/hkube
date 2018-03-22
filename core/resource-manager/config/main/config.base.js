@@ -17,11 +17,11 @@ config.etcd = {
 };
 
 config.k8s = {
-    host: process.env.KUBERNETES_SERVICE_HOST || 'https://10.32.10.6',
-    port: process.env.KUBERNETES_SERVICE_PORT || 6443,
-    user: process.env.KUBERNETES_SERVICE_USER || 'kube',
-    pass: process.env.KUBERNETES_SERVICE_PASS || 'ubadmin',
     local: !process.env.KUBERNETES_SERVICE_HOST
+}
+
+config.prometheus = {
+    endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.32.10.6:30909/api/v1'
 }
 
 config.interval = 1000;

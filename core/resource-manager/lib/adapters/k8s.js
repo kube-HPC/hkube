@@ -8,18 +8,10 @@ class K8sAdapter extends Adapter {
     constructor(settings, options) {
         super(settings);
         if (options.k8s.local) {
-            this._client = new Api.Core({
-                url: `${options.k8s.host}:${options.k8s.port}`,
-                insecureSkipTlsVerify: true,
-                auth: {
-                    user: options.k8s.user,
-                    pass: options.k8s.pass
-                }
-            });
+            this._client = new Api.Core(Api.config.fromKubeconfig());
         }
         else {
-            let clusterConfig = new Api.Core(Api.config.getInCluster());
-            this._client = new Api.Core(clusterConfig);
+            this._client = new Api.Core(Api.config.getInCluster());
         }
     }
 
@@ -47,9 +39,9 @@ class K8sAdapter extends Adapter {
                     let cpu = container.resources.requests.cpu;
                     let memory = container.resources.requests.memory;
                     if (cpu)
-                        cpuRequests += parse.parseUnitObj(cpu).val;//Number(cpu.substring(0, cpu.length - 1));
+                        cpuRequests += parse.parseUnitObj(cpu).val;
                     if (memory)
-                        memoryRequests += parse.parseUnitObj(memory).val;//Number(memory.substring(0, memory.length - 2));
+                        memoryRequests += parse.parseUnitObj(memory).val;
                 }
             });
             nodeResourcesInUse.set(node, { cpuRequests, memoryRequests });
