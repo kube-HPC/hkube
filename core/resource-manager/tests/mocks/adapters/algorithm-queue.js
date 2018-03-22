@@ -1,5 +1,5 @@
 const orderBy = require('lodash.orderby');
-const Adapter = require('./Adapter');
+const Adapter = require('../../../lib/adapters/Adapter');
 const algorithmQueue = require('../data/algorithm-queue.json');
 
 class AlgorithmQueueAdapter extends Adapter {

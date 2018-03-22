@@ -1,14 +1,14 @@
 {
     "green-alg": {
-        "cpu": 5000,
+        "cpu": 500,
         "mem": 256000
     },
     "yellow-alg": {
-        "cpu": 3000,
+        "cpu": 300,
         "mem": 1024000
     },
     "black-alg": {
-        "cpu": 1000,
+        "cpu": 100,
         "mem": 2048000
     }
 }

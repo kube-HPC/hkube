@@ -1,5 +1,5 @@
 
-const Adapter = require('./Adapter');
+const Adapter = require('../../../lib/adapters/Adapter');
 const store = require('../data/templates-store.json');
 
 class TemplatesStore extends Adapter {

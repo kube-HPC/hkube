@@ -9,7 +9,6 @@ const component = require('../../common/consts/componentNames').RUNNER;
 class Runner {
 
     async init(options) {
-
         setInterval(async () => {
             if (this._working) {
                 return;

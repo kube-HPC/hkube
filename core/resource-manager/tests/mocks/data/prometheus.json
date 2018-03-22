@@ -1,11 +1,11 @@
 {
     "green-alg": {
-        "runTime": 1800
+        "runTime": 5000
     },
     "yellow-alg": {
-        "runTime": 900
+        "runTime": 3000
     },
     "black-alg": {
-        "runTime": 700
+        "runTime": 1000
     }
 }

@@ -2,6 +2,7 @@
 const orderBy = require('lodash.orderby');
 const groupBy = require('lodash.groupby');
 const Metric = require('./Metric');
+const utils = require('../utils/utils');
 
 class PrometheusMetric extends Metric {
 
@@ -25,13 +26,10 @@ class PrometheusMetric extends Metric {
         ratios.forEach(r => {
             const length = grouped[r.type].length * r.ratio;
             if (!map[r.type]) {
-                map[r.type] = { pods: Math.round(length) };
+                map[r.type] = Math.round(length);
             }
         });
-
-        return map;
-
-        return this.calcBase(options);
+        return utils.mapToArray(map, ['alg', 'data']);
     }
 }
 

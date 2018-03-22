@@ -1,4 +1,3 @@
-const orderBy = require('lodash.orderby');
 const Adapter = require('./Adapter');
 const stateManager = require('../state/state-manager');
 
@@ -14,9 +13,7 @@ class AlgorithmQueueAdapter extends Adapter {
         algorithmQueue.forEach(q => {
             mergedQueue = mergedQueue.concat(q.data);
         });
-        mergedQueue = mergedQueue.map(q => ({ alg: q.algorithmName, batch: q.batchPlace, score: q.calculated.score * 10 }));
-        mergedQueue = orderBy(mergedQueue, q => q.score, 'desc');
-        return mergedQueue;
+        return mergedQueue.map(q => ({ alg: q.algorithmName, batch: q.batchPlace, score: q.calculated.score }));
     }
 }
 

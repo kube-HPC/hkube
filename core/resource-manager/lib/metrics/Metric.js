@@ -1,4 +1,4 @@
-const resourceDecider = require('../resource-handlers/resource-decider');
+
 
 class Metric {
 
@@ -7,8 +7,8 @@ class Metric {
         this.weight = options.weight;
     }
 
-    calcBase(options) {
-        return resourceDecider.run(options);
+    calcBase() {
+
     }
 }
 

@@ -1,6 +1,6 @@
 
 
-const Adapter = require('./Adapter');
+const Adapter = require('../../../lib/adapters/Adapter');
 const k8s = require('../data/k8s.json');
 
 class K8sAdapter extends Adapter {
