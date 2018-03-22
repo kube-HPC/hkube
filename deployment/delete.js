@@ -73,6 +73,7 @@ const _deleteThirdParty = async (args)=>{
     await syncSpawn('kubectl',`delete configmaps -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
     await syncSpawn('kubectl',`delete clusterroles -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
     await syncSpawn('kubectl',`delete clusterrolebindings -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
+    await syncSpawn('kubectl',`delete cronjob -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
     await syncSpawn('kubectl',`delete EtcdCluster --all`);
 }
 module.exports = deleteHkube
