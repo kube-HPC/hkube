@@ -25,8 +25,8 @@ describe('Test', function () {
         metricsRunner.init(main);
         resourceDecider.init(main);
     })
-    describe('Producer', function () {
-        describe('CreateJob', function () {
+    describe('Adapters', function () {
+        describe('adapterController', function () {
             it('should create job and return job id', async function () {
                 const data = await adapterController.getData();
                 const keys = adapterController._adapters.map(a => a.name);
@@ -36,8 +36,6 @@ describe('Test', function () {
                 const adaptersResults = await adapterController.getData();
                 const metricsResults = metricsRunner.run(adaptersResults);
             });
-        });
-        describe('CreateJob', function () {
             it('should create job and return job id', async function () {
                 const adaptersResults = await adapterController.getData();
                 const data = await resourceDecider.run(adaptersResults);
@@ -48,6 +46,38 @@ describe('Test', function () {
                 const adaptersResults = await adapterController.getData();
                 const metricsResults = metricsRunner.run(adaptersResults);
             });
+        });
+        describe('AlgorithmQueue', function () {
+
+        });
+        describe('K8s', function () {
+
+        });
+        describe('Prometheus', function () {
+
+        });
+        describe('TemplatesStore', function () {
+
+        });
+    });
+    describe('Metrics', function () {
+        describe('MetricsReducer', function () {
+
+        });
+        describe('MetricsRunner', function () {
+
+        });
+        describe('AlgorithmQueue', function () {
+
+        });
+        describe('K8s', function () {
+
+        });
+        describe('Prometheus', function () {
+
+        });
+        describe('TemplatesStore', function () {
+
         });
     });
 });
