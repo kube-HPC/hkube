@@ -7,8 +7,5 @@
     },
     "black-alg": {
         "runTime": 700
-    },
-    "blue-alg": {
-        "runTime": 100
     }
 }

@@ -10,7 +10,7 @@ class PrometheusMetric extends Metric {
     }
 
     calc(options) {
-        let prometheus = Object.entries(options.prometheus).map(([k, v]) => ({ type: k, ...v }));
+        const prometheus = Object.entries(options.prometheus).map(([k, v]) => ({ type: k, ...v }));
         const sum = prometheus.map(v => v.runTime).reduce((a, b) => a + b, 0);
         let ratios = prometheus.map(v => ({ ...v, ratio: 1 - (v.runTime / sum) }));
         const newRatio = ratios.map(v => v.ratio).reduce((a, b) => a + b, 0);
