@@ -5,7 +5,7 @@ const BatchPlace = queue => {
     //   const lengthByJobId = uniqueJobs.map(id => ({id, length: querier(queue).getJobId(id).length}));
 
     queue.forEach(task => { 
-        if (task.calculated.enrichment.batchPlace) {
+        if (task.calculated.enrichment.batchPlace.currentBatchPlace) {
             // incase of  tasks from the same  job addition 
             // if (lengthByJobId[0].length > task.calculated.enrichment.batchPlace.previousBatchLength) {
             //     task.calculated.enrichment.batchPlace = {

@@ -228,7 +228,7 @@ describe('persistency tests', () => {
             queueRunner = require('../lib/queue-runner'); //eslint-disable-line
             await bootstrap.init();
         }
-        catch (e) {generateArr
+        catch (e) {
             console.error('queue runner a');
         }   
         console.log('queue runner a');
@@ -264,7 +264,7 @@ describe('job-consume', () => {
             bootstrap = require('../bootstrap'); //eslint-disable-line
             queueRunner = require('../lib/queue-runner'); //eslint-disable-line
              //eslint-disable-line
-             _mockConsumer =  mockConsumer.register();
+           _mockConsumer =  mockConsumer.register();
              await bootstrap.init();
         }
         catch (error) {

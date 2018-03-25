@@ -25,7 +25,8 @@ config.queue={
 config.heuristicsWeights = {
     [heuristicsNames.PRIORITY]:0.1,
     [heuristicsNames.ENTRANCE_TIME]:0.1,
-    [heuristicsNames.BATCH]:0.8
+    [heuristicsNames.BATCH]:0.5,
+    [heuristicsNames.CURRENT_BATCH_PLACE]:0.3
 }
 config.metrics = {
     collectDefault: true,

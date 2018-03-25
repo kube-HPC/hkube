@@ -21,6 +21,7 @@ const stubTemplate = ({
         calculated: {
             score: `${score}`,
             entranceTime: `${entranceTime}`,
+            enrichment: {},
             latestScores: {
                 
             }
