@@ -21,7 +21,7 @@ config.k8s = {
 }
 
 config.prometheus = {
-    endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.32.10.6:30909/api/v1'
+    endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.42.128.109:9090/api/v1'
 }
 
 config.interval = 1000;

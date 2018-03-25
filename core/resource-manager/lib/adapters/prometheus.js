@@ -17,23 +17,25 @@ class PrometheusAdapter extends Adapter {
         let twentyMinutesBefore = new Date(currentDate - (6 * 60 * 60 * 1000));
 
         let res = await client.range({
-            query: 'histogram_quantile(0.5, sum(rate(algorithm_net_histogram_bucket[2m])) by (algorithmName, le)) / 1000',
+            query: 'algorithm_runtime_summary{quantile="0.5", algorithmName!~""}',
             start: twentyMinutesBefore / 1000,
             end: currentDate / 1000,
             step: 60
         });
         let arr = [];
+        let algoRunTime = new Map();
         res.data.result.forEach(algorithm => {
-            let algoRunTime = [];
             algorithm.values.forEach(slice => {
-                if (slice[1] != 0) {
-                    algoRunTime.push(parseFloat(slice[1]));
+                if (algoRunTime.has(algorithm.metric.algorithmName)) {
+                    let a = algoRunTime.get(algorithm.metric.algorithmName);
+                    a.push(parseFloat(slice[1]));
+                }
+                else {
+                    algoRunTime.set(algorithm.metric.algorithmName, [parseFloat(slice[1])]);
                 }
             })
-            if (algoRunTime.length > 0) {
-                arr.push({ algorithmName: algorithm.metric.algorithmName, runTime: median(algoRunTime) });
-            }
         });
+        algoRunTime.forEach((val, key) => arr.push({ algorithmName: key, runTime: median(val) }));
         return arr;
     }
 }
