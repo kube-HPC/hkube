@@ -24,30 +24,19 @@ class PrometheusMetric extends Metric {
         let ratio = 0;
         ratios.forEach((r, i) => {
             ratio += r.ratio;
-            r.range = {
-                from: i > 0 ? ratios[i - 1].range.to : 0,
-                to: ratio
-            }
+            r.range = { from: i > 0 ? ratios[i - 1].range.to + 0.00001 : 0, to: ratio }
+            r.size = grouped[r.type].length;
         });
 
         while (true) {
             const random = Math.random();
-            const ration = ratios.find(r => random >= r.range.from && random <= r.range.to);
+            const ratio = ratios.find(r => random >= r.range.from && random <= r.range.to);
+
+            ratios[ratio.type]--;
+
 
         }
 
-        Math.random();
-
-
-
-        const map = Object.create(null);
-
-        ratios.forEach(r => {
-            const length = grouped[r.type].length * r.ratio;
-            if (!map[r.type]) {
-                map[r.type] = Math.round(length);
-            }
-        });
         return utils.mapToArray(map, ['alg', 'data']);
     }
 }

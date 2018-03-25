@@ -1,14 +1,23 @@
-{
-    "green-alg": {
-        "cpu": 500,
-        "mem": 256000
+[
+    {
+        "alg": "green-alg",
+        "data": {
+            "cpu": 500,
+            "mem": 256000
+        }
     },
-    "yellow-alg": {
-        "cpu": 300,
-        "mem": 1024000
+    {
+        "alg": "yellow-alg",
+        "data": {
+            "cpu": 300,
+            "mem": 1024000
+        }
     },
-    "black-alg": {
-        "cpu": 100,
-        "mem": 2048000
+    {
+        "alg": "black-alg",
+        "data": {
+            "cpu": 100,
+            "mem": 2048000
+        }
     }
-}
+]

@@ -6,6 +6,14 @@ class ResourceDecider {
         this._thresholdMem = options.resourceThresholds.mem;
     }
 
+    get hasCpu() {
+
+    }
+
+    get hasMem() {
+
+    }
+
     run(data) {
         const resourceCounter = new ResourceCounter();
         let { totalCpu, totalMem } = this._totalResources(data.k8s);
@@ -33,4 +41,4 @@ class ResourceDecider {
     }
 }
 
-module.exports = new ResourceDecider();
+module.exports = ResourceDecider;

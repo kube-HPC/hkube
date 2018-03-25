@@ -19,10 +19,8 @@ describe('Test', function () {
         });
         mockery.registerSubstitute('@hkube/prometheus-client', `${process.cwd()}/tests/mocks/adapters/prometheus-client-mock.js`);
         mockery.registerSubstitute('kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
+        mockery.registerSubstitute('../state/state-manager', `${process.cwd()}/tests/mocks/adapters/state-manager.js`);
 
-        // main.metrics.forEach(m => {
-        //     mockery.registerSubstitute(`${process.cwd()}/lib/adapters/${m.name}`, `${process.cwd()}/tests/mocks/adapters/${m.name}.js`);
-        // });
         adapterController.init(main);
         metricsRunner.init(main);
         resourceDecider.init(main);
@@ -77,6 +75,7 @@ describe('Test', function () {
 
         });
         describe('Prometheus', function () {
+
 
         });
         describe('TemplatesStore', function () {
