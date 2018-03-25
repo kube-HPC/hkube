@@ -11,9 +11,9 @@ class AlgorithmQueueAdapter extends Adapter {
     async getData() {
         let mergedQueue = [];
         algorithmQueue.forEach(q => {
-            mergedQueue = mergedQueue.concat(q.data);
+            mergedQueue.push(...q.data);
         });
-        mergedQueue = mergedQueue.map(q => ({ alg: q.algorithmName, batch: q.batchPlace, score: q.calculated.score * 10 }));
+        mergedQueue = mergedQueue.map(q => ({ alg: q.algorithmName, batch: q.batchPlace, score: q.calculated.score }));
         mergedQueue = orderBy(mergedQueue, q => q.score, 'desc');
         return mergedQueue;
     }

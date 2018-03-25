@@ -17,9 +17,28 @@ class PrometheusMetric extends Metric {
         const newRatio = ratios.map(v => v.ratio).reduce((a, b) => a + b, 0);
         ratios = ratios.map(v => ({ ...v, ratio: (v.ratio / newRatio) }));
         ratios = orderBy(ratios, q => q.ratio);
+        const grouped = groupBy(options.algorithmQueue, 'alg');
+
         console.log(JSON.stringify(ratios, null, 2));
 
-        const grouped = groupBy(options.algorithmQueue, 'alg');
+        let ratio = 0;
+        ratios.forEach((r, i) => {
+            ratio += r.ratio;
+            r.range = {
+                from: i > 0 ? ratios[i - 1].range.to : 0,
+                to: ratio
+            }
+        });
+
+        while (true) {
+            const random = Math.random();
+            const ration = ratios.find(r => random >= r.range.from && random <= r.range.to);
+
+        }
+
+        Math.random();
+
+
 
         const map = Object.create(null);
 

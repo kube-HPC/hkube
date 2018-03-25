@@ -2,8 +2,8 @@ const ResourceCounter = require('./resource-counter');
 
 class ResourceDecider {
     init(options) {
-        this._thresholdCpu = options.thresholds.cpu;
-        this._thresholdMem = options.thresholds.mem;
+        this._thresholdCpu = options.resourceThresholds.cpu;
+        this._thresholdMem = options.resourceThresholds.mem;
     }
 
     run(data) {

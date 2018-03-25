@@ -26,7 +26,7 @@ config.prometheus = {
 
 config.interval = 1000;
 
-config.thresholds = {
+config.resourceThresholds = {
     cpu: 0.8,
     mem: 0.8
 };
