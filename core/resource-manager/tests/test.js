@@ -23,7 +23,6 @@ describe('Test', function () {
 
         adapterController.init(main);
         metricsRunner.init(main);
-        resourceDecider.init(main);
     })
     describe('Adapters', function () {
         describe('adapterController', function () {

@@ -3,8 +3,8 @@ const Metric = require('./Metric');
 
 class K8sMetric extends Metric {
 
-    constructor(options) {
-        super(options);
+    constructor(settings, options) {
+        super(settings, options);
     }
 
     calc(options) {

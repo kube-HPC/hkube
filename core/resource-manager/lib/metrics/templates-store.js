@@ -5,8 +5,8 @@ const resourceDecider = require('../resource-handlers/resource-decider');
 
 class TemplatesStoreMetric extends Metric {
 
-    constructor(options) {
-        super(options);
+    constructor(settings, options) {
+        super(settings, options);
     }
 
     calc(options) {

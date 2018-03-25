@@ -2,7 +2,7 @@
 const MAX_SCORE = 1;
 
 class MetricsRunner {
-    constructor(options) {
+    constructor() {
         this._metrics = [];
     }
 
@@ -14,7 +14,7 @@ class MetricsRunner {
         options.metrics.forEach(m => {
             score += m.weight;
             let Metric = require(__dirname + '/' + m.name);
-            this._metrics.push(new Metric(m));
+            this._metrics.push(new Metric(options, m));
         });
 
         score = parseFloat(score.toFixed(2));

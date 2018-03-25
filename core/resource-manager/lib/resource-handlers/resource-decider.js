@@ -1,43 +1,45 @@
 const ResourceCounter = require('./resource-counter');
 
 class ResourceDecider {
-    init(options) {
+    constructor(options) {
+        this._totalCpu = 0;
+        this._totalMem = 0;
         this._thresholdCpu = options.resourceThresholds.cpu;
         this._thresholdMem = options.resourceThresholds.mem;
+        this._totalResources(data.k8s);
     }
 
-    get hasCpu() {
-
-    }
-
-    get hasMem() {
+    static run() {
 
     }
 
-    run(data) {
+    get cpu() {
+
+    }
+
+    get mem() {
+
+    }
+
+    allocate(alg) {
         const resourceCounter = new ResourceCounter();
-        let { totalCpu, totalMem } = this._totalResources(data.k8s);
-        data.algorithmQueue.forEach(a => {
-            const { cpu, mem } = data.templatesStore[a.alg] || {};
-            if (cpu <= totalCpu && mem <= totalMem) {
-                totalCpu -= cpu;
-                totalMem -= mem;
-                resourceCounter.inc(a.alg);
-            }
-        });
+        const { cpu, mem } = data.templatesStore[alg] || {};
+        if (cpu <= totalCpu && mem <= totalMem) {
+            totalCpu -= cpu;
+            totalMem -= mem;
+            resourceCounter.inc(alg);
+        }
+
         return resourceCounter.toArray();
     }
 
     _totalResources(data) {
-        let totalCpu = 0;
-        let totalMem = 0;
         for (const [key, value] of data) {
-            totalCpu += value.freeCpu;
-            totalMem += value.freeMemory;
+            this._totalCpu += value.freeCpu;
+            this._totalMem += value.freeMemory;
         }
-        totalCpu = totalCpu * this._thresholdCpu;
-        totalMem = totalMem * this._thresholdMem;
-        return { totalCpu, totalMem };
+        this._totalCpu = this._totalCpu * this._thresholdCpu;
+        this._totalMem = this._totalMem * this._thresholdMem;
     }
 }
 

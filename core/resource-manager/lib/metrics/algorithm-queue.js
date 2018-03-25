@@ -6,8 +6,8 @@ const resourceDecider = require('../resource-handlers/resource-decider');
 
 class AlgorithmQueueMetric extends Metric {
 
-    constructor(options) {
-        super(options);
+    constructor(settings, options) {
+        super(settings, options);
     }
 
     calc(options) {

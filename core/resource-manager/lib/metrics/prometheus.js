@@ -3,23 +3,25 @@ const orderBy = require('lodash.orderby');
 const groupBy = require('lodash.groupby');
 const Metric = require('./Metric');
 const utils = require('../utils/utils');
+const ResourceDecider = require('../resource-handlers/resource-decider');
 
 class PrometheusMetric extends Metric {
 
-    constructor(options) {
-        super(options);
+    constructor(settings, options) {
+        super(settings, options);
     }
 
     calc(options) {
-        const prometheus = Object.entries(options.prometheus).map(([k, v]) => ({ type: k, ...v }));
-        const sum = prometheus.map(v => v.runTime).reduce((a, b) => a + b, 0);
-        let ratios = prometheus.map(v => ({ ...v, ratio: 1 - (v.runTime / sum) }));
+        const sum = options.prometheus.map(v => v.runTime).reduce((a, b) => a + b, 0);
+        let ratios = options.prometheus.map(v => ({ ...v, ratio: 1 - (v.runTime / sum) }));
         const newRatio = ratios.map(v => v.ratio).reduce((a, b) => a + b, 0);
         ratios = ratios.map(v => ({ ...v, ratio: (v.ratio / newRatio) }));
         ratios = orderBy(ratios, q => q.ratio);
         const grouped = groupBy(options.algorithmQueue, 'alg');
 
         console.log(JSON.stringify(ratios, null, 2));
+
+        const resourceDecider = new ResourceDecider(this.settings, options);
 
         let ratio = 0;
         ratios.forEach((r, i) => {
@@ -31,9 +33,8 @@ class PrometheusMetric extends Metric {
         while (true) {
             const random = Math.random();
             const ratio = ratios.find(r => random >= r.range.from && random <= r.range.to);
-
+            resourceDecider.allocate(ratio.type);
             ratios[ratio.type]--;
-
 
         }
 

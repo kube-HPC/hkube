@@ -27,10 +27,12 @@ class PrometheusAdapter extends Adapter {
             let algoRunTime = [];
             algorithm.values.forEach(slice => {
                 if (slice[1] != 0) {
-                    algoRunTime.push(slice[1]);
+                    algoRunTime.push(parseFloat(slice[1]));
                 }
             })
-            arr.push({ algorithmName: algorithm.metric.algorithmName, runTime: median(algoRunTime) })
+            if (algoRunTime.length > 0) {
+                arr.push({ algorithmName: algorithm.metric.algorithmName, runTime: median(algoRunTime) });
+            }
         });
         return arr;
     }
