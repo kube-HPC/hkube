@@ -59,8 +59,6 @@ describe('Test', function () {
                 const options = {};
                 expect(() => new MetricsRunner(options)).to.throw(`metrics`);
             });
-        });
-        describe('MetricsRunner', async function () {
             it('should create job and return job id', async function () {
                 const adapterController = new AdapterController(main);
                 const metricsRunner = new MetricsRunner(main);
@@ -68,6 +66,8 @@ describe('Test', function () {
                 const metricsResults = metricsRunner.run(adaptersResults);
                 const resourceResults = metricsReducer.reduce(metricsResults);
             });
+        });
+        describe('MetricsRunner', async function () {
             it('should throw metrics ReferenceError', function () {
                 const options = {};
                 expect(() => new MetricsRunner(options)).to.throw(`metrics`);

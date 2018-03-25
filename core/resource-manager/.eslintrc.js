@@ -10,7 +10,7 @@ module.exports = {
     "rules": {
         "no-use-before-define": "warn",
         "import/newline-after-import": "off",
-        "indent": ["warn", 4],
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
         "prefer-template": "off",
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
@@ -19,7 +19,6 @@ module.exports = {
         "no-trailing-spaces": "off",
         "no-console": "error",
         "linebreake-style": "off",
-
         "object-curly-spacing": "off",
         "arrow-body-style": "off"
     }

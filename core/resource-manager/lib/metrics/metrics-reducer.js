@@ -4,7 +4,6 @@ const utils = require('../utils/utils');
 class MetricsReducer {
     reduce(options) {
         const map = {};
-        console.log(JSON.stringify(options, null, 2));
         options.forEach(metric => {
             metric.data = metric.data || [];
             metric.data.reduce((prev, cur) => {
@@ -20,7 +19,6 @@ class MetricsReducer {
         });
 
         const results = utils.mapToArray(map, ['alg', 'data']);
-        console.log(JSON.stringify(results, null, 2));
         return results;
     }
 }

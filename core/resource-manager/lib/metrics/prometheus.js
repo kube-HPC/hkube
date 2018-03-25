@@ -23,7 +23,7 @@ class PrometheusMetric extends Metric {
         }
 
         const results = resourceAllocator.results();
-        console.log(JSON.stringify(results, null, 2));
+        // console.log(JSON.stringify(results, null, 2));
         return results;
     }
 }
