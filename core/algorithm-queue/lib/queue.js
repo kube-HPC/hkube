@@ -25,13 +25,14 @@ const queueEvents = require('./consts/queue-events');
 
 
 class Queue extends events {
-    constructor({ scoreHeuristic = {run: null}, updateInterval = 1000, persistence = null } = {}) {
+    constructor({ scoreHeuristic = {run: null}, updateInterval = 1000, persistence = null, enrichmentRunner = {run: null} } = {}) {
         super();
         log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE});
         aigle.mixin(_);
         //  this._heuristicRunner = scoreHeuristic;
         // handle empty heuristic on constructor
         this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
+        this.enrichmentRunner = enrichmentRunner.run ? enrichmentRunner.run.bind(enrichmentRunner) : enrichmentRunner.run;
         //    this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
         this.updateInterval = updateInterval;
         this.queue = [];
@@ -184,6 +185,7 @@ class Queue extends events {
     _queueInterval() {
         setTimeout(async () => {
             this.isScoreDuringUpdate = true;
+            await this.enrichmentRunner(this.queue);
             await this.updateScore();
             log.debug('queue update score cycle starts', { component: components.QUEUE});
             this._mergeTemp();

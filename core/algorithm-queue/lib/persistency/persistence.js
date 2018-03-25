@@ -21,7 +21,7 @@ class Persistence {
         log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT});
         const status = await this.etcd.algorithms.algorithmQueue.setState({queueName: this.queueName, data});
         if (status) {
-            log.info('queue stored successfully', { component: components.ETCD_PERSISTENT});
+            log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT});
         }
     }
     get() {

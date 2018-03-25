@@ -37,6 +37,7 @@ const stubTask = (batchIndex) => ({
 
 const generateConsumedArray = (number = 100) => ({ 
     jobID: `jobID-${uuidv4()}`,
+    initialBatchLength: number,
     pipelineName: `pipelineName-${uuidv4()}`,
     nodeName: `nodeName-${uuidv4()}`,
     priority: Math.floor((Math.random() * 5)),
