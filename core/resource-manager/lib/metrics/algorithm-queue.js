@@ -2,7 +2,7 @@
 const Metric = require('./Metric');
 const orderBy = require('lodash.orderby');
 const groupBy = require('lodash.groupby');
-const resourceDecider = require('../resource-handlers/resource-decider');
+const ResourceAllocator = require('../resource-handlers/resource-allocator');
 
 class AlgorithmQueueMetric extends Metric {
 
@@ -11,12 +11,13 @@ class AlgorithmQueueMetric extends Metric {
     }
 
     calc(options) {
+        const resourceAllocator = new ResourceAllocator(this.settings, options);
         const algorithmQueue = orderBy(options.algorithmQueue, q => q.score, 'desc');
-        const data = {
-            ...options,
-            algorithmQueue
-        }
-        return resourceDecider.run(data);
+        algorithmQueue.forEach(r => {
+            resourceAllocator.allocate(r.alg);
+        });
+        const results = resourceAllocator.results();
+        return results;
     }
 }
 

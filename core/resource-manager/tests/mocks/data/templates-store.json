@@ -2,21 +2,21 @@
     {
         "alg": "green-alg",
         "data": {
-            "cpu": 500,
+            "cpu": 5000,
             "mem": 256000
         }
     },
     {
         "alg": "yellow-alg",
         "data": {
-            "cpu": 300,
+            "cpu": 2000,
             "mem": 1024000
         }
     },
     {
         "alg": "black-alg",
         "data": {
-            "cpu": 100,
+            "cpu": 1000,
             "mem": 2048000
         }
     }

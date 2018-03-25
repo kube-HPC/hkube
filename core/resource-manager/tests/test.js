@@ -6,7 +6,8 @@ const mockery = require('mockery');
 const adapterController = require('../lib/adapters/adapters-controller');
 const metricsRunner = require('../lib/metrics/metrics-runner');
 const metricsReducer = require('../lib/metrics/metrics-reducer');
-const resourceDecider = require('../lib/resource-handlers/resource-decider');
+const ResourceAllocator = require('../lib/resource-handlers/resource-allocator');
+const ResourceCounter = require('../lib/resource-handlers/resource-counter');
 const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
 
@@ -35,10 +36,7 @@ describe('Test', function () {
 
             });
             it('should create job and return job id', async function () {
-                const adaptersResults = await adapterController.getData();
-                const data = await resourceDecider.run(adaptersResults);
-                const keys = adapterController._adapters.map(a => a.name);
-                expect(data).to.have.deep.keys(keys);
+
             });
             it('should create job and return job id', async function () {
             });
@@ -78,6 +76,19 @@ describe('Test', function () {
 
         });
         describe('TemplatesStore', function () {
+
+        });
+    });
+    describe('Resource-Handlers', function () {
+        describe('ResourceDecider', function () {
+            it('should create job and return job id', async function () {
+                const adaptersResults = await adapterController.getData();
+                const resourceAllocator = new ResourceAllocator(main, adaptersResults);
+                resourceAllocator.allocate(ratio.algorithmName);
+
+            });
+        });
+        describe('ResourceCounter', function () {
 
         });
     });
