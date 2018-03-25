@@ -1,6 +1,6 @@
 
 
-class Ratios {
+class RatiosAllocator {
 
     constructor({ ratios, prop, group }) {
         this._ratio = 0;
@@ -56,4 +56,4 @@ class Ratios {
     }
 }
 
-module.exports = Ratios;
+module.exports = RatiosAllocator;

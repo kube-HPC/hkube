@@ -4,11 +4,12 @@ const utils = require('../utils/utils');
 
 class AdapterController {
 
-    constructor() {
+    constructor(options) {
         this._adapters = [];
+        this._init(options);
     }
 
-    init(options) {
+    _init(options) {
         options.metrics.forEach(a => {
             const Adapter = require(__dirname + '/' + a.name);
             this._adapters.push(new Adapter(a, options));
@@ -26,4 +27,4 @@ class AdapterController {
     }
 }
 
-module.exports = new AdapterController();
+module.exports = AdapterController;

@@ -1,6 +1,6 @@
 const groupBy = require('lodash.groupby');
 const Metric = require('./Metric');
-const Ratios = require('./ratios');
+const RatiosAllocator = require('./ratios-allocator');
 const ResourceAllocator = require('../resource-handlers/resource-allocator');
 
 class PrometheusMetric extends Metric {
@@ -13,7 +13,7 @@ class PrometheusMetric extends Metric {
         const algorithmQueue = groupBy(options.algorithmQueue, 'alg');
         const algorithms = Object.keys(algorithmQueue);
         const prometheus = options.prometheus.filter(p => algorithms.includes(p.algorithmName));
-        const ratios = new Ratios({ ratios: prometheus, prop: 'runTime', group: algorithmQueue });
+        const ratios = new RatiosAllocator({ ratios: prometheus, prop: 'runTime', group: algorithmQueue });
         const resourceAllocator = new ResourceAllocator(this.settings, options);
 
         let algorithm = null;

@@ -2,11 +2,12 @@
 const MAX_SCORE = 1;
 
 class MetricsRunner {
-    constructor() {
+    constructor(options) {
         this._metrics = [];
+        this._init(options);
     }
 
-    init(options) {
+    _init(options) {
         if (!options.metrics) {
             throw new ReferenceError('metrics');
         }
@@ -28,4 +29,4 @@ class MetricsRunner {
     }
 }
 
-module.exports = new MetricsRunner();
+module.exports = MetricsRunner;

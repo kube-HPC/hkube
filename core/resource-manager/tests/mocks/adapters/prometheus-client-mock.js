@@ -1,7 +1,7 @@
 const qs = require('qs');
 const fetch = require('node-fetch');
 const { parse } = require('url');
-const prometheus = require('../data/prometheus.json');
+const prometheus = require('../data/prometheus.1.json');
 
 class Client {
 
