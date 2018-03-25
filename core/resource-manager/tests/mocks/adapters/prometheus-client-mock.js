@@ -1,0 +1,25 @@
+const qs = require('qs');
+const fetch = require('node-fetch');
+const { parse } = require('url');
+const prometheus = require('../data/prometheus.json');
+
+class Client {
+
+    init(options) {
+        return;
+    }
+
+
+    async query(opts) {
+        return;
+    }
+
+
+    async range(opts) {
+        return prometheus;
+    }
+
+
+}
+
+module.exports = new Client();

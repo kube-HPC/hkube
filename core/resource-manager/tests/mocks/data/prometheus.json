@@ -1,3 +1,25 @@
+<<<<<<< HEAD
+[
+    {
+        "algorithmName": "black-alg",
+        "runTime": null
+    },
+    {
+        "algorithmName": "eval-alg",
+        "runTime": "1.0205742266643185"
+    },
+    {
+        "algorithmName": "green-alg",
+        "runTime": null
+    },
+    {
+        "algorithmName": "red-alg",
+        "runTime": null
+    },
+    {
+        "algorithmName": "yellow-alg",
+        "runTime": null
+=======
 {
     "green-alg": {
         "runTime": 5000
@@ -7,5 +29,6 @@
     },
     "black-alg": {
         "runTime": 1000
+>>>>>>> d06ef79a16f1dfd49c9f992e3d59a6bb6b0e46a5
     }
-}
+]

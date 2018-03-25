@@ -13,13 +13,16 @@ const { main, logger } = configIt.load();
 describe('Test', function () {
     before(function () {
         mockery.enable({
-            useCleanCache: false,
+            useCleanCache: true,
             warnOnReplace: true,
             warnOnUnregistered: false
         });
-        main.metrics.forEach(m => {
-            mockery.registerSubstitute(`${process.cwd()}/lib/adapters/${m.name}`, `${process.cwd()}/tests/mocks/adapters/${m.name}.js`);
-        });
+        mockery.registerSubstitute('@hkube/prometheus-client', `${process.cwd()}/tests/mocks/adapters/prometheus-client-mock.js`);
+        mockery.registerSubstitute('kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
+
+        // main.metrics.forEach(m => {
+        //     mockery.registerSubstitute(`${process.cwd()}/lib/adapters/${m.name}`, `${process.cwd()}/tests/mocks/adapters/${m.name}.js`);
+        // });
         adapterController.init(main);
         metricsRunner.init(main);
         resourceDecider.init(main);
@@ -50,6 +53,7 @@ describe('Test', function () {
 
         });
         describe('Prometheus', function () {
+            expect(123).to.equals(123);
 
         });
         describe('TemplatesStore', function () {
