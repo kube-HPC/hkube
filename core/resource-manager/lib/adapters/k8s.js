@@ -16,33 +16,40 @@ class K8sAdapter extends Adapter {
     }
 
     async getData() {
-        let nodes = await this._client.nodes.get();
-        let pods = await this._client.pods.get();
-        let resourcesStatus = new Map();
-        const groupedByNodeName = groupBy(pods.items, 'spec.nodeName');
+        let data = this.cache.get();
+        if (data) {
+            return data;
+        }
+        else {
+            let nodes = await this._client.nodes.get();
+            let pods = await this._client.pods.get();
+            let resourcesStatus = new Map();
+            const groupedByNodeName = groupBy(pods.items, 'spec.nodeName');
 
-        nodes.items.forEach((node) => {
-            let nodeName = node.metadata.name;
-            let allocatableCpu = parse.parseUnitObj(node.status.allocatable.cpu).val;
-            let allocatableMemory = parse.parseUnitObj(node.status.allocatable.memory).val;
-            let pods = groupedByNodeName[nodeName];
-            let cpuRequests = 0;
-            let memoryRequests = 0;
+            nodes.items.forEach((node) => {
+                let nodeName = node.metadata.name;
+                let allocatableCpu = parse.parseUnitObj(node.status.allocatable.cpu).val;
+                let allocatableMemory = parse.parseUnitObj(node.status.allocatable.memory).val;
+                let pods = groupedByNodeName[nodeName];
+                let cpuRequests = 0;
+                let memoryRequests = 0;
 
-            pods.forEach(pod => {
-                pod.spec.containers.forEach(container => {
-                    if (container.resources.requests != undefined) {
-                        cpuRequests += this._getCpuInMiliCore(container.resources.requests.cpu);
-                        memoryRequests += this._getMemoryInKB(container.resources.requests.memory);
-                    }
+                pods.forEach(pod => {
+                    pod.spec.containers.forEach(container => {
+                        if (container.resources.requests != undefined) {
+                            cpuRequests += this._getCpuInMiliCore(container.resources.requests.cpu);
+                            memoryRequests += this._getMemoryInKB(container.resources.requests.memory);
+                        }
+                    });
                 });
-            });
 
-            let freeCpu = allocatableCpu - cpuRequests;
-            let freeMemory = allocatableMemory - memoryRequests;
-            resourcesStatus.set(nodeName, { allocatableCpu, allocatableMemory, cpuRequests, memoryRequests, freeCpu, freeMemory })
-        });
-        return resourcesStatus;
+                let freeCpu = allocatableCpu - cpuRequests;
+                let freeMemory = allocatableMemory - memoryRequests;
+                resourcesStatus.set(nodeName, { allocatableCpu, allocatableMemory, cpuRequests, memoryRequests, freeCpu, freeMemory })
+            });
+            this.cache.set(resourcesStatus);
+            return resourcesStatus;
+        }
     }
 
     _getCpuInMiliCore(cpu) {
