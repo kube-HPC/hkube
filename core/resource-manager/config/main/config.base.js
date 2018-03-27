@@ -60,7 +60,7 @@ config.resourceProviders = [
         name: 'prometheus',
         adapter: {
             connection: {
-                endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.42.128.109:9090/api/v1'
+                endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.32.10.6:30909/api/v1'
             },
             cache: { maxAge: 1000 * 60 * 5 }
         },

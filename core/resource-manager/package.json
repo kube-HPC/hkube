@@ -1,6 +1,6 @@
 {
   "name": "resource-manager",
-  "version": "1.0.11",
+  "version": "1.0.13",
   "description": "resource-manager",
   "main": "app.js",
   "directories": {
@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.41",
+    "@hkube/etcd": "^3.2.42",
     "@hkube/logger": "^1.0.12",
     "@hkube/prometheus-client": "^1.0.0",
     "kubernetes-client": "^5.1.0",
@@ -24,13 +24,13 @@
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.0",
-    "eslint": "^4.19.0",
+    "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
     "eslint-plugin-import": "^2.9.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^2.5.3",
-    "sinon": "^4.4.6"
+    "sinon": "^4.4.8"
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
