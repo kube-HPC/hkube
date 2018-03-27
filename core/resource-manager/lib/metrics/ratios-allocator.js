@@ -1,5 +1,10 @@
 
 
+/**
+ * 
+ * 
+ * @class RatiosAllocator
+ */
 class RatiosAllocator {
 
     constructor({ ratios, prop, group }) {

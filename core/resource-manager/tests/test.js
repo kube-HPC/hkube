@@ -8,11 +8,12 @@ const MetricsRunner = require('../lib/metrics/metrics-runner');
 const metricsReducer = require('../lib/metrics/metrics-reducer');
 const ResourceAllocator = require('../lib/resource-handlers/resource-allocator');
 const ResourceCounter = require('../lib/resource-handlers/resource-counter');
+const intervalRunner = require('../lib/interval/runner');
 const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
 
 describe('Test', function () {
-    before(function () {
+    before(async function () {
         mockery.enable({
             useCleanCache: true,
             warnOnReplace: true,
@@ -21,6 +22,7 @@ describe('Test', function () {
         mockery.registerSubstitute('@hkube/prometheus-client', `${process.cwd()}/tests/mocks/adapters/prometheus-client-mock.js`);
         mockery.registerSubstitute('kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
         mockery.registerSubstitute('../state/state-manager', `${process.cwd()}/tests/mocks/adapters/state-manager.js`);
+        await intervalRunner.init(main);
     })
     describe('Adapters', function () {
         describe('adapterController', function () {
@@ -123,5 +125,11 @@ describe('Test', function () {
         describe('ResourceCounter', function () {
 
         });
+    });
+    describe('Interval', async function () {
+        it('should throw metrics ReferenceError', function () {
+            // intervalRunner._doWork();
+        });
+
     });
 });

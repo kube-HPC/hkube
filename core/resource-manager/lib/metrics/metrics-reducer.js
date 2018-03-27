@@ -2,6 +2,15 @@
 const utils = require('../utils/utils');
 
 class MetricsReducer {
+
+    /**
+     * Take each metric
+     * 
+     * @param {any} options 
+     * @returns 
+     * 
+     * @memberOf MetricsReducer
+     */
     reduce(options) {
         const map = {};
         options.forEach(metric => {

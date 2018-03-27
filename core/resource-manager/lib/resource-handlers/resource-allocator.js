@@ -1,5 +1,10 @@
 const ResourceCounter = require('./resource-counter');
 
+/**
+ * 
+ * 
+ * @class ResourceAllocator
+ */
 class ResourceAllocator {
     constructor({ resourceThresholds }, { k8s, templatesStore }) {
         this._totalCpu = 0;
@@ -11,6 +16,16 @@ class ResourceAllocator {
         this._totalResources(k8s);
     }
 
+    /**
+     * The allocate method checks if there is sufficient cpu and memory
+     * for specific algorithm, by comparing the algorithm requirements
+     * against the the total available resources, if there is enough
+     * resources it will increase the algorithm counter.
+     * 
+     * @param {any} alg 
+     * 
+     * @memberOf ResourceAllocator
+     */
     allocate(alg) {
         const { cpu, mem } = this._templatesStore[alg] || {};
         if (cpu <= this._totalCpu && mem <= this._totalMem) {
@@ -20,6 +35,13 @@ class ResourceAllocator {
         }
     }
 
+    /**
+     * This method returns the required allocations for each algorithm
+     * 
+     * @returns 
+     * 
+     * @memberOf ResourceAllocator
+     */
     results() {
         return this._resourceCounter.toArray();
     }

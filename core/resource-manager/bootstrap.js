@@ -1,11 +1,13 @@
 
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
+const { tracer } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentName = require('./common/consts/componentNames');
 let log;
 
 const modules = [
+    './lib/monitoring/metrics-provider',
     './lib/state/state-manager',
     './lib/interval/runner'
 ];
@@ -62,6 +64,7 @@ class Bootstrap {
         });
         process.on('unhandledRejection', (error, promise) => {
             log.error('unhandledRejection: ' + error, { component: componentName.MAIN }, error);
+            log.error(error);
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);

@@ -23,6 +23,13 @@ config.resourceThresholds = {
     mem: 0.8
 };
 
+config.metrics = {
+    collectDefault: true,
+    server: {
+        port: process.env.METRICS_PORT
+    }
+}
+
 config.resourceProviders = [
     {
         name: 'templates-store',
