@@ -1,5 +1,5 @@
-var packageJson = require(process.cwd() + '/package.json');
-var config = module.exports = {};
+const packageJson = require(process.cwd() + '/package.json');
+const config = module.exports = {};
 
 config.serviceName = packageJson.name;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
@@ -16,14 +16,6 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
-config.k8s = {
-    local: !process.env.KUBERNETES_SERVICE_HOST
-}
-
-config.prometheus = {
-    endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.42.128.109:9090/api/v1'
-}
-
 config.interval = 1000;
 
 config.resourceThresholds = {
@@ -31,21 +23,49 @@ config.resourceThresholds = {
     mem: 0.8
 };
 
-config.metrics = [
+config.resourceProviders = [
     {
         name: 'templates-store',
-        weight: 0.3
+        adapter: {
+            connection: config.etcd,
+            cache: '1m'
+        },
+        metric: {
+            weight: 0.3
+        }
     },
     {
         name: 'algorithm-queue',
-        weight: 0.2
+        adapter: {
+            connection: config.etcd,
+            cache: '1m'
+        },
+        metric: {
+            weight: 0.2
+        }
     },
     {
         name: 'k8s',
-        weight: 0.2
+        adapter: {
+            connection: {
+                local: !process.env.KUBERNETES_SERVICE_HOST
+            },
+            cache: '1m'
+        },
+        metric: {
+            weight: 0.2
+        }
     },
     {
         name: 'prometheus',
-        weight: 0.3
+        adapter: {
+            connection: {
+                endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.42.128.109:9090/api/v1'
+            },
+            cache: '1m'
+        },
+        metric: {
+            weight: 0.3
+        }
     }
 ]

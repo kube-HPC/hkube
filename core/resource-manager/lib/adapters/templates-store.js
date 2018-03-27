@@ -5,7 +5,7 @@ const stateManager = require('../state/state-manager');
 class TemplatesStore extends Adapter {
 
     constructor(settings, options) {
-        super(settings);
+        super(settings, options);
     }
 
     async getData() {

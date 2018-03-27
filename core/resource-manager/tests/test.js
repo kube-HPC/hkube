@@ -74,13 +74,17 @@ describe('Test', function () {
             });
             it('should create job and return job id', function () {
                 const options = {
-                    metrics: [{
+                    resourceProviders: [{
                         name: 'templates-store',
-                        weight: 0.8
+                        metric: {
+                            weight: 0.8
+                        }
                     },
                     {
                         name: 'algorithm-queue',
-                        weight: 0.7
+                        metric: {
+                            weight: 0.7
+                        }
                     }]
                 };
                 expect(() => new MetricsRunner(options)).to.throw(`metrics total score must be equal to 1, current 1.5`);

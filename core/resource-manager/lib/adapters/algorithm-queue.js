@@ -4,7 +4,7 @@ const stateManager = require('../state/state-manager');
 class AlgorithmQueueAdapter extends Adapter {
 
     constructor(settings, options) {
-        super(settings);
+        super(settings, options);
     }
 
     async getData() {

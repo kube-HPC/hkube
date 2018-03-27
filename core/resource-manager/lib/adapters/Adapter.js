@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 class Adapter {
 
-    constructor(options) {
+    constructor(settings, options) {
         this.name = utils.capitalize(options.name);
     }
 }

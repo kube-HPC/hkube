@@ -6,8 +6,8 @@ const parse = require('parseunit');
 class K8sAdapter extends Adapter {
 
     constructor(settings, options) {
-        super(settings);
-        if (options.k8s.local) {
+        super(settings, options);
+        if (options.connection.local) {
             this._client = new Api.Core(Api.config.fromKubeconfig());
         }
         else {

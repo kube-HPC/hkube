@@ -7,7 +7,6 @@ let log;
 
 const modules = [
     './lib/state/state-manager',
-    './lib/adapters/adapters-controller',
     './lib/interval/runner'
 ];
 

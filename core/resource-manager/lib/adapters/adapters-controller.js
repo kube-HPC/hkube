@@ -10,9 +10,9 @@ class AdapterController {
     }
 
     _init(options) {
-        options.metrics.forEach(a => {
+        options.resourceProviders.map(a => ({ ...a.adapter, name: a.name })).forEach(a => {
             const Adapter = require(__dirname + '/' + a.name);
-            this._adapters.push(new Adapter(a, options));
+            this._adapters.push(new Adapter(options, a));
         });
     }
 

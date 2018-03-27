@@ -8,11 +8,11 @@ class MetricsRunner {
     }
 
     _init(options) {
-        if (!options.metrics) {
+        if (!options.resourceProviders) {
             throw new ReferenceError('metrics');
         }
         let score = 0;
-        options.metrics.forEach(m => {
+        options.resourceProviders.map(m => ({ ...m.metric, name: m.name })).forEach(m => {
             score += m.weight;
             let Metric = require(__dirname + '/' + m.name);
             this._metrics.push(new Metric(options, m));
