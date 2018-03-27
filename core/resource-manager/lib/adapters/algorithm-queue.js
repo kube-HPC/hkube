@@ -8,9 +8,13 @@ class AlgorithmQueueAdapter extends Adapter {
     }
 
     async getData() {
-        const algorithmQueue = await stateManager.getAlgorithmQueue();
+        let data = this.cache.get();
+        if (!data) {
+            data = await stateManager.getAlgorithmQueue();
+            this.cache.set(data);
+        }
         const mergedQueue = [];
-        algorithmQueue.forEach(q => {
+        data.forEach(q => {
             mergedQueue.push(...q.data);
         });
         return mergedQueue.map(q => ({ alg: q.algorithmName, batch: q.batchPlace, score: q.calculated.score }));

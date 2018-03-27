@@ -28,7 +28,7 @@ config.resourceProviders = [
         name: 'templates-store',
         adapter: {
             connection: config.etcd,
-            cache: '1m'
+            cache: { maxAge: 1000 * 60 * 5 }
         },
         metric: {
             weight: 0.3
@@ -38,7 +38,7 @@ config.resourceProviders = [
         name: 'algorithm-queue',
         adapter: {
             connection: config.etcd,
-            cache: '1m'
+            cache: { maxAge: 1000 * 5 }
         },
         metric: {
             weight: 0.2
@@ -50,7 +50,7 @@ config.resourceProviders = [
             connection: {
                 local: !process.env.KUBERNETES_SERVICE_HOST
             },
-            cache: '1m'
+            cache: { maxAge: 1000 * 60 * 1 }
         },
         metric: {
             weight: 0.2
@@ -62,7 +62,7 @@ config.resourceProviders = [
             connection: {
                 endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.42.128.109:9090/api/v1'
             },
-            cache: '1m'
+            cache: { maxAge: 1000 * 60 * 5 }
         },
         metric: {
             weight: 0.3

@@ -9,9 +9,13 @@ class TemplatesStore extends Adapter {
     }
 
     async getData() {
+        let data = this.cache.get();
+        if (!data) {
+            data = await stateManager.getStoreTemplates();
+            this.cache.set(data);
+        }
         const map = Object.create(null);
-        const response = await stateManager.getStoreTemplates();
-        response.forEach(r => {
+        data.forEach(r => {
             map[r.alg] = r.data;
         });
         return map;

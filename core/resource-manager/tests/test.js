@@ -31,7 +31,10 @@ describe('Test', function () {
                 expect(data).to.have.deep.keys(keys);
             });
             it('should create job and return job id', async function () {
-
+                const adapterController = new AdapterController(main);
+                const data = await adapterController.getData();
+                const keys = adapterController._adapters.map(a => a.name);
+                expect(data).to.have.deep.keys(keys);
             });
             it('should create job and return job id', async function () {
 
@@ -72,7 +75,7 @@ describe('Test', function () {
                 const options = {};
                 expect(() => new MetricsRunner(options)).to.throw(`metrics`);
             });
-            it('should create job and return job id', function () {
+            it('should throw total score error', function () {
                 const options = {
                     resourceProviders: [{
                         name: 'templates-store',

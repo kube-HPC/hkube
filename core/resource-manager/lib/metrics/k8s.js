@@ -8,7 +8,7 @@ class K8sMetric extends Metric {
     }
 
     calc(options) {
-        return this.calcBase(options);
+        return [];
     }
 }
 
