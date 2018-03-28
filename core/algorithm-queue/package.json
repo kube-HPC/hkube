@@ -9,7 +9,8 @@
   "scripts": {
     "test": "mocha test --colors --recursive --exit",
     "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test --exit",
-    "build": "npm publish"
+    "start": "node app",
+    "build": "./dockerfile/build.sh algorithm-queue"
   },
   "author": "maty zisserman",
   "license": "MIT",
