@@ -9,9 +9,9 @@ const components = require('../lib/consts/component-name');
 const queueEvents = require('../lib/consts/queue-events');
 const {callDone, done, semaphore} = require('await-done');
 const {mockConsumer} = require('./mock/index');
-let bootstrap = null;
+let   bootstrap = require('../bootstrap'); //eslint-disable-line
 let Queue = null;
-
+ const    queueRunner = require('../lib/queue-runner'); //eslint-disable-line
 const heuristic = score => job => (Promise.resolve({...job, ...{calculated: {score, entranceTime: Date.now(), latestScore: {}}}}));
 const heuristicBoilerPlate = (score, _heuristic) => ({
     run(job) {
@@ -42,244 +42,258 @@ const logMock = {
     warn: (data, object) => console.log(data, object),//eslint-disable-line
     
 };
-
-describe('algorithm queue', () => {
+describe('Test', () => {
     before(async () => {
-        bootstrap = require('../bootstrap'); //eslint-disable-line
-        Queue = require('../lib/queue'); //eslint-disable-line
-        mockery.registerMock('log', logMock);
         await bootstrap.init();
-        console.log('------------------------------------');
-        console.log('algorithm queue');
-        console.log('------------------------------------');
-    });  
+    });
+    describe('algorithm queue', () => {
+        // before(async () => {
+        //   //  bootstrap = require('../bootstrap'); //eslint-disable-line
+        //     Queue = require('../lib/queue'); //eslint-disable-line
+        //     mockery.registerMock('log', logMock);
+        //     try {
+        //         await bootstrap.init();
+        //     } catch (error) {
+        //         console.log(`error ${error}` );            
+        //     }
+        //     console.log('------------------------------------');
+        //     console.log('algorithm queue');
+        //     console.log('------------------------------------');
+        // });  
+        
+        describe('queue-tests', () => {
+            describe('add', () => {
+                beforeEach(() => {
+                    Queue = require('../lib/queue'); //eslint-disable-line
+                    queue = new Queue({updateInterval: QUEUE_INTERVAL});
+                });
+                it('should added to queue', async () => {
+                    queue.updateHeuristic(heuristicBoilerPlate(80, heuristic));
+                    await queue.add([stubTemplate()]);
+                    await delay(QUEUE_INTERVAL + 500);
+                    const q = queue.get;
+                    expect(q[0].calculated.score).to.eql(80);
+                });
+                it('should added to queue ordered', async () => {
+                    queue.updateHeuristic({run: heuristic(80)});
+                    await queue.add([stubTemplate()]);
+                    queue.updateHeuristic({run: heuristic(60)});
+                    await queue.add([stubTemplate()]);
+                    queue.updateHeuristic({run: heuristic(90)});
+                    await queue.add([stubTemplate()]);
+                    //  console.log('queue status', querier(queue.get).getScoreJobIdArray());
+                    expect(queue.get[0].calculated.score).to.eql(90);
+                    expect(queue.get[2].calculated.score).to.eql(60);
+                    queue.intervalRunningStatus = false;
+                }).timeout(5000);
+            });
+            describe('remove', () => {
+                let _semaphore = null;
+                beforeEach(() => {
+                    Queue = require('../lib/queue'); //eslint-disable-line
+                    queue = new Queue({updateInterval: QUEUE_INTERVAL});
+                    _semaphore = new semaphore();
+                });
+                it('should removed from queue', async () => {
+                    queue.updateHeuristic({run: heuristic(80)});
+                    const stubJob = stubTemplate();
+                    await queue.add([stubJob]);
+                    queue.on(queueEvents.REMOVE, () => {
+                        _semaphore.callDone(); 
+                    });
+                    queue.remove([stubJob.jobID]);
+                    //  await delay(QUEUE_INTERVAL + 500);
+                    await _semaphore.done();
+                    const q = queue.get;
+                    expect(q).to.have.length(0);
+                });
+                it('should not removed from queue when there is no matched id', async () => {
+                    queue.updateHeuristic({run: heuristic(80)});
+                    const stubJob = stubTemplate();
+                    await queue.add([stubJob]);
+                    queue.on(queueEvents.REMOVE, () => {
+                        _semaphore.callDone(); 
+                    });
+                    queue.remove(['111222333']);
+                    //  await delay(QUEUE_INTERVAL + 500);
+                    await _semaphore.done();
+                    const q = queue.get;
+                    expect(q).to.have.length(1);
+                    expect(q[0].jobID).to.be.eql(stubJob.jobID);
+                });
+            });
     
-    describe('queue-tests', () => {
-        describe('add', () => {
-            beforeEach(() => {
-                Queue = require('../lib/queue'); //eslint-disable-line
-                queue = new Queue({updateInterval: QUEUE_INTERVAL});
-            });
-            it('should added to queue', async () => {
-                queue.updateHeuristic(heuristicBoilerPlate(80, heuristic));
-                await queue.add([stubTemplate()]);
-                await delay(QUEUE_INTERVAL + 500);
-                const q = queue.get;
-                expect(q[0].calculated.score).to.eql(80);
-            });
-            it('should added to queue ordered', async () => {
-                queue.updateHeuristic({run: heuristic(80)});
-                await queue.add([stubTemplate()]);
-                queue.updateHeuristic({run: heuristic(60)});
-                await queue.add([stubTemplate()]);
-                queue.updateHeuristic({run: heuristic(90)});
-                await queue.add([stubTemplate()]);
-                //  console.log('queue status', querier(queue.get).getScoreJobIdArray());
-                expect(queue.get[0].calculated.score).to.eql(90);
-                expect(queue.get[2].calculated.score).to.eql(60);
-                queue.intervalRunningStatus = false;
-            }).timeout(5000);
-        });
-        describe('remove', () => {
-            let _semaphore = null;
-            beforeEach(() => {
-                Queue = require('../lib/queue'); //eslint-disable-line
-                queue = new Queue({updateInterval: QUEUE_INTERVAL});
-                _semaphore = new semaphore();
-            });
-            it('should removed from queue', async () => {
-                queue.updateHeuristic({run: heuristic(80)});
-                const stubJob = stubTemplate();
-                await queue.add([stubJob]);
-                queue.on(queueEvents.REMOVE, () => {
-                    _semaphore.callDone(); 
+    
+            describe('pop', () => {
+                let _semaphore = null;
+                beforeEach(() => {
+                    Queue = require('../lib/queue'); //eslint-disable-line
+                    queue = new Queue({updateInterval: QUEUE_INTERVAL});
+                    _semaphore = new semaphore();
                 });
-                queue.remove([stubJob.jobID]);
-                //  await delay(QUEUE_INTERVAL + 500);
-                await _semaphore.done();
-                const q = queue.get;
-                expect(q).to.have.length(0);
-            });
-            it('should not removed from queue when there is no matched id', async () => {
-                queue.updateHeuristic({run: heuristic(80)});
-                const stubJob = stubTemplate();
-                await queue.add([stubJob]);
-                queue.on(queueEvents.REMOVE, () => {
-                    _semaphore.callDone(); 
+                it('should pop from queue', async () => {
+                    queue.updateHeuristic({run: heuristic(80)});
+                    const stubJob = stubTemplate();
+                    await queue.add([stubJob]);
+                    queue.on(queueEvents.POP, () => {
+                        _semaphore.callDone(); 
+                    });
+                    queue.on(queueEvents.REMOVE, () => {
+                        _semaphore.callDone(); 
+                    });
+                    const job = queue.tryPop();
+                    //  await delay(QUEUE_INTERVAL + 500);
+                    await _semaphore.done({doneAmount: 2});
+                    const q = queue.get;
+                    expect(job.jobID).to.be.eql(stubJob.jobID);
+                    expect(q).to.have.length(0);
                 });
-                queue.remove(['111222333']);
-                //  await delay(QUEUE_INTERVAL + 500);
-                await _semaphore.done();
-                const q = queue.get;
-                expect(q).to.have.length(1);
-                expect(q[0].jobID).to.be.eql(stubJob.jobID);
             });
-        });
-
-
-        describe('pop', () => {
-            let _semaphore = null;
-            beforeEach(() => {
-                Queue = require('../lib/queue'); //eslint-disable-line
-                queue = new Queue({updateInterval: QUEUE_INTERVAL});
-                _semaphore = new semaphore();
-            });
-            it('should pop from queue', async () => {
-                queue.updateHeuristic({run: heuristic(80)});
-                const stubJob = stubTemplate();
-                await queue.add([stubJob]);
-                queue.on(queueEvents.POP, () => {
-                    _semaphore.callDone(); 
+            describe('queue-events', () => {
+                let _semaphore = null;
+                beforeEach(() => {
+                    Queue = require('../lib/queue'); //eslint-disable-line
+                    queue = new Queue({updateInterval: QUEUE_INTERVAL});
+                    _semaphore = new semaphore();
                 });
-                queue.on(queueEvents.REMOVE, () => {
-                    _semaphore.callDone(); 
+                it('check events insert', async () => {
+                    queue.on(queueEvents.INSERT, () => _semaphore.callDone());
+                    queue.updateHeuristic({run: heuristic(80)});
+                    queue.intervalRunningStatus = false;
+                    await queue.add([stubTemplate()]);
+                    await _semaphore.done();
+                    console.log('done '); //eslint-disable-line
                 });
-                const job = queue.tryPop();
-                //  await delay(QUEUE_INTERVAL + 500);
-                await _semaphore.done({doneAmount: 2});
-                const q = queue.get;
-                expect(job.jobID).to.be.eql(stubJob.jobID);
-                expect(q).to.have.length(0);
+                it('check events remove', async () => {
+                    queue.on(queueEvents.REMOVE, () => _semaphore.callDone());
+                    queue.updateHeuristic({run: heuristic(80)});
+                    queue.intervalRunningStatus = false;
+                    const stubJob = stubTemplate();
+                    await queue.add([stubJob]);
+                    await queue.remove([stubJob.jobID]);
+                    await _semaphore.done();
+                    console.log('done '); //eslint-disable-line
+                });
+                afterEach(() => {
+                    queue.intervalRunningStatus = false;
+                });
+                after(() => {
+                    try {
+                        clearCache(['../lib/queue']);
+                    }
+                    catch (e) {
+                       
+                    }
+                });
             });
         });
-        describe('queue-events', () => {
-            let _semaphore = null;
-            beforeEach(() => {
-                Queue = require('../lib/queue'); //eslint-disable-line
-                queue = new Queue({updateInterval: QUEUE_INTERVAL});
-                _semaphore = new semaphore();
+        
+        describe('queue-runner', () => {
+        //    let queueRunner = null;
+            before(async () => {
+                //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+            //    bootstrap = require('../bootstrap'); //eslint-disable-line
+           //     queueRunner = require('../lib/queue-runner'); //eslint-disable-line
+                 //eslint-disable-line
+           //     await bootstrap.init();
             });
-            it('check events insert', async () => {
-                queue.on(queueEvents.INSERT, () => _semaphore.callDone());
-                queue.updateHeuristic({run: heuristic(80)});
-                queue.intervalRunningStatus = false;
-                await queue.add([stubTemplate()]);
-                await _semaphore.done();
-                console.log('done '); //eslint-disable-line
-            });
-            it('check events remove', async () => {
-                queue.on(queueEvents.REMOVE, () => _semaphore.callDone());
-                queue.updateHeuristic({run: heuristic(80)});
-                queue.intervalRunningStatus = false;
+            it('check-that-heuristics-sets-to-latestScore', async () => {
+                //  queue.updateHeuristic(heuristic(80));
                 const stubJob = stubTemplate();
-                await queue.add([stubJob]);
-                await queue.remove([stubJob.jobID]);
-                await _semaphore.done();
-                console.log('done '); //eslint-disable-line
-            });
-            afterEach(() => {
-                queue.intervalRunningStatus = false;
+                await queueRunner.queue.add([stubJob]);
+                await delay(500);
+                const q = queueRunner.queue.get;
+                expect(q[0].calculated.latestScores).to.have.property('BATCH');
+                expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
+                expect(q[0].calculated.latestScores).to.have.property('ENTRANCE_TIME');
+                expect(q[0].calculated.score).to.be.above(0);
+                // await delay(5000);
+                // console.log(q);
             });
             after(() => {
-                try {
-                    clearCache(['../lib/queue']);
-                }
-                catch (e) {
-                   
-                }
+                //  clearCache(['../bootstrap', '../lib/queue-runner']);
             });
+        });
+    
+        after(() => {
+        //    clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+            console.log('--------cleared---------');
         });
     });
     
-    describe('queue-runner', () => {
-        let queueRunner = null;
-        before(async () => {
-            //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
-            bootstrap = require('../bootstrap'); //eslint-disable-line
-            queueRunner = require('../lib/queue-runner'); //eslint-disable-line
-             //eslint-disable-line
-            await bootstrap.init();
-        });
-        it('check-that-heuristics-sets-to-latestScore', async () => {
-            //  queue.updateHeuristic(heuristic(80));
-            const stubJob = stubTemplate();
-            await queueRunner.queue.add([stubJob]);
+    describe('persistency tests', () => {
+     //   let queueRunner = null;
+   //     let bootstrap = null;
+        // before(async () => {
+        //     console.log('------------------------------------');
+        //     console.log('persistency tests');
+        //     console.log('------------------------------------');
+        //     //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+        //     console.log('queue runner b');
+        //     try {
+        //    //     bootstrap = require('../bootstrap'); //eslint-disable-line
+        //    //     queueRunner = require('../lib/queue-runner'); //eslint-disable-line
+        //         await bootstrap.init();
+        //     }
+        //     catch (e) {
+        //         console.error('queue runner a');
+        //     }   
+        //     console.log('queue runner a');
+        //      //eslint-disable-line
+        // });
+        it('persistent load', async () => {
+            queueRunner.queue.flush()
+            await queueRunner.queue.add(generateArr(100));
+            await queueRunner.queue.persistenceStore();
+            queueRunner.queue.flush();
+            await queueRunner.queue.persistencyLoad();
             await delay(500);
             const q = queueRunner.queue.get;
-            expect(q[0].calculated.latestScores).to.have.property('BATCH');
-            expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
-            expect(q[0].calculated.latestScores).to.have.property('ENTRANCE_TIME');
-            expect(q[0].calculated.score).to.be.above(0);
-            // await delay(5000);
-            // console.log(q);
-        });
+             expect(q.length).to.be.greaterThan(98);
+            queueRunner.queue.flush();
+            await queueRunner.queue.persistenceStore();
+            await delay(500);
+        }); 
         after(() => {
-            //  clearCache(['../bootstrap', '../lib/queue-runner']);
+           // clearCache(['../bootstrap', '../lib/queue-runner']);
         });
     });
-
-    after(() => {
-    //    clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
-        console.log('--------cleared---------');
+    
+    
+    describe('job-consume', () => {
+        let _mockConsumer = null;
+        before(async () => {
+            try {
+                mockery.enable({
+                    warnOnReplace: false,
+                    warnOnUnregistered: false,
+                    useCleanCache:true
+                });
+     //           bootstrap = require('../bootstrap'); //eslint-disable-line
+       //         queueRunner = require('../lib/queue-runner'); //eslint-disable-line
+                 //eslint-disable-line
+               _mockConsumer =  mockConsumer.register();
+                 await bootstrap.init();
+            }
+            catch (error) {
+                console.error('could not locate binding file'); //eslint-disable-line
+            }
+            //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
+        });
+        // xit('should consume jobs and send to queue', async () => {
+        //     console.log('bla');
+        //    _mockConsumer.Consumer()._emit(generateConsumedArray(100))
+        //     await delay(100)
+        //     let q = queueRunner.queue.get;
+        //     expect(q.length).to.be.equal(100);
+        // });
+        // after(() => {
+        //     clearCache(['../bootstrap', '../lib/queue-runner']);
+        // });
     });
-});
-
-describe('persistency tests', () => {
-    let queueRunner = null;
-    let bootstrap = null;
-    before(async () => {
-        console.log('------------------------------------');
-        console.log('persistency tests');
-        console.log('------------------------------------');
-        //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
-        console.log('queue runner b');
-        try {
-            bootstrap = require('../bootstrap'); //eslint-disable-line
-            queueRunner = require('../lib/queue-runner'); //eslint-disable-line
-            await bootstrap.init();
-        }
-        catch (e) {
-            console.error('queue runner a');
-        }   
-        console.log('queue runner a');
-         //eslint-disable-line
-    });
-    it('persistent load', async () => {
-        await queueRunner.queue.add(generateArr(100));
-        await queueRunner.queue.persistenceStore();
+    afterEach(() => {
         queueRunner.queue.flush();
-        await queueRunner.queue.persistencyLoad();
-        await delay(500);
-        const q = queueRunner.queue.get;
-         expect(q.length).to.be.equal(100);
-        queueRunner.queue.flush();
-        await queueRunner.queue.persistenceStore();
-        await delay(500);
-    }); 
-    after(() => {
-        clearCache(['../bootstrap', '../lib/queue-runner']);
     });
+    
 });
 
-
-describe('job-consume', () => {
-    let _mockConsumer = null;
-    before(async () => {
-        try {
-            mockery.enable({
-                warnOnReplace: false,
-                warnOnUnregistered: false,
-                useCleanCache:true
-            });
-            bootstrap = require('../bootstrap'); //eslint-disable-line
-            queueRunner = require('../lib/queue-runner'); //eslint-disable-line
-             //eslint-disable-line
-           _mockConsumer =  mockConsumer.register();
-             await bootstrap.init();
-        }
-        catch (error) {
-            console.error('could not locate binding file'); //eslint-disable-line
-        }
-        //   clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
-    });
-    xit('should consume jobs and send to queue', async () => {
-        console.log('bla');
-       _mockConsumer.Consumer()._emit(generateConsumedArray(100))
-        await delay(100)
-        let q = queueRunner.queue.get;
-        expect(q.length).to.be.equal(100);
-    });
-    after(() => {
-        clearCache(['../bootstrap', '../lib/queue-runner']);
-    });
-});
