@@ -26,6 +26,12 @@ class CacheProvider {
             this._cache.set(this._cacheKey, value);
         }
     }
+
+    del() {
+        if (this._cache) {
+            this._cache.del(this._cacheKey);
+        }
+    }
 }
 
 module.exports = CacheProvider;

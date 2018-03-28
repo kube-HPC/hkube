@@ -10,21 +10,26 @@ class MetricsProvider {
     }
 
     _register() {
-        this.algorithmsAmount = metrics.addGaugeMeasure({
-            name: CONST.ALGORITHMS_AMOUNT,
+        this._podsRequestsMeasure = metrics.addGaugeMeasure({
+            name: CONST.PODS_REQUESTS,
+            labels: [CONST.ALGORITHM_NAME],
+        });
+        this._podsAllocationsMeasure = metrics.addGaugeMeasure({
+            name: CONST.PODS_ALLOCATIONS,
             labels: [CONST.ALGORITHM_NAME],
         });
     }
 
-    set(data) {
-        const metric = metrics.get(CONST.ALGORITHMS_AMOUNT);
-        const metricData = {
-            id: 33, // ???,
-            labelValues: {
-                [CONST.ALGORITHM_NAME]: 'name'
-            }
-        };
-        metric.set(data.pods);
+    setPodsRequests(data) {
+        data.forEach(d => {
+            this._podsRequestsMeasure.set({ value: d.data.length, labelValues: { [CONST.ALGORITHM_NAME]: d.queueName } });
+        });
+    }
+
+    setPodsAllocations(data) {
+        data.forEach(d => {
+            this._podsAllocationsMeasure.set({ value: d.data.pods, labelValues: { [CONST.ALGORITHM_NAME]: d.alg } });
+        });
     }
 }
 

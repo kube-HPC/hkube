@@ -1,7 +1,8 @@
+const EventEmitter = require('events');
 const algorithmQueue = require('../data/algorithm-queue.json');
 const storeTemplates = require('../data/templates-store.json');
 
-class StateManager {
+class StateManager extends EventEmitter {
 
     getAlgorithmQueue(options) {
         return algorithmQueue;

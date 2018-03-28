@@ -26,7 +26,7 @@ config.resourceThresholds = {
 config.metrics = {
     collectDefault: true,
     server: {
-        port: process.env.METRICS_PORT
+        port: process.env.METRICS_PORT || 9100
     }
 }
 
@@ -45,7 +45,7 @@ config.resourceProviders = [
         name: 'algorithm-queue',
         adapter: {
             connection: config.etcd,
-            cache: { maxAge: 1000 * 5 }
+            cache: {}
         },
         metric: {
             weight: 0.2

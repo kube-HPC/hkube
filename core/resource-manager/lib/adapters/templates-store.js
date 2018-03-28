@@ -2,24 +2,28 @@
 const Adapter = require('./Adapter');
 const stateManager = require('../state/state-manager');
 
-class TemplatesStore extends Adapter {
+class TemplatesStoreAdapter extends Adapter {
 
     constructor(settings, options) {
         super(settings, options);
+
+        stateManager.on('templates-store', () => {
+            this.cache.del();
+        })
     }
 
     async getData() {
         let data = this.cache.get();
         if (!data) {
-            data = await stateManager.getStoreTemplates();
+            const store = await stateManager.getStoreTemplates();
+            data = Object.create(null);
+            store.forEach(r => {
+                data[r.alg] = r.data;
+            });
             this.cache.set(data);
         }
-        const map = Object.create(null);
-        data.forEach(r => {
-            map[r.alg] = r.data;
-        });
-        return map;
+        return data;
     }
 }
 
-module.exports = TemplatesStore;
+module.exports = TemplatesStoreAdapter;

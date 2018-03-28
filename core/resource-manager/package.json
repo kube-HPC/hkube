@@ -13,6 +13,7 @@
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.28",
     "@hkube/prometheus-client": "^1.0.0",
+    "@hkube/rest-server": "^1.0.7",
     "kubernetes-client": "^5.1.0",
     "lodash.groupby": "^4.6.0",
     "lodash.orderby": "^4.6.0",

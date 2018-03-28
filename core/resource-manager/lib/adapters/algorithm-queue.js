@@ -1,5 +1,6 @@
 const Adapter = require('./Adapter');
 const stateManager = require('../state/state-manager');
+const metricsProvider = require('../monitoring/metrics-provider');
 
 class AlgorithmQueueAdapter extends Adapter {
 
@@ -10,14 +11,16 @@ class AlgorithmQueueAdapter extends Adapter {
     async getData() {
         let data = this.cache.get();
         if (!data) {
-            data = await stateManager.getAlgorithmQueue();
+            const algorithms = await stateManager.getAlgorithmQueue();
+            metricsProvider.setPodsRequests(algorithms);
+            data = [];
+            algorithms.forEach(q => {
+                data.push(...q.data);
+            });
+            data = data.map(q => ({ alg: q.algorithmName, batch: q.batchPlace, score: q.calculated.score }));
             this.cache.set(data);
         }
-        const mergedQueue = [];
-        data.forEach(q => {
-            mergedQueue.push(...q.data);
-        });
-        return mergedQueue.map(q => ({ alg: q.algorithmName, batch: q.batchPlace, score: q.calculated.score }));
+        return data;
     }
 }
 

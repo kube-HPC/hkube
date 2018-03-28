@@ -1,5 +1,6 @@
 const METRICS = {
-    ALGORITHMS_AMOUNT: 'resource_manager_algorithms_amount',
+    PODS_REQUESTS: 'resource_manager_pods_request',
+    PODS_ALLOCATIONS: 'resource_manager_pods_allocations',
     ALGORITHM_NAME: 'algorithm_name'
 };
 

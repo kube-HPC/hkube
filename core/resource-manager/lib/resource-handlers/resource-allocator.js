@@ -37,7 +37,13 @@ class ResourceAllocator {
 
     /**
      * This method returns the required allocations for each algorithm
-     * 
+     * @example
+     * results
+     * Array <Object>
+     * Object {
+     *    alg: "black-alg", 
+     *    data: 20
+     * }
      * @returns 
      * 
      * @memberOf ResourceAllocator

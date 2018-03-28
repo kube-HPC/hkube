@@ -8,21 +8,26 @@ const MetricsRunner = require('../lib/metrics/metrics-runner');
 const metricsReducer = require('../lib/metrics/metrics-reducer');
 const ResourceAllocator = require('../lib/resource-handlers/resource-allocator');
 const ResourceCounter = require('../lib/resource-handlers/resource-counter');
-const intervalRunner = require('../lib/interval/runner');
+// const intervalRunner = require('../lib/interval/runner');
+const metricsProvider = require('../lib/monitoring/metrics-provider');
 const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
 
 describe('Test', function () {
     before(async function () {
         mockery.enable({
-            useCleanCache: true,
-            warnOnReplace: true,
+            useCleanCache: false,
+            warnOnReplace: false,
             warnOnUnregistered: false
+        });
+        process.on('unhandledRejection', (error, promise) => {
+            console.error(error);
         });
         mockery.registerSubstitute('@hkube/prometheus-client', `${process.cwd()}/tests/mocks/adapters/prometheus-client-mock.js`);
         mockery.registerSubstitute('kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
         mockery.registerSubstitute('../state/state-manager', `${process.cwd()}/tests/mocks/adapters/state-manager.js`);
-        await intervalRunner.init(main);
+        await metricsProvider.init(main);
+        // await intervalRunner.init(main);
     })
     describe('Adapters', function () {
         describe('adapterController', function () {
@@ -70,6 +75,24 @@ describe('Test', function () {
                 const adaptersResults = await adapterController.getData();
                 const metricsResults = metricsRunner.run(adaptersResults);
                 const resourceResults = metricsReducer.reduce(metricsResults);
+            });
+
+            it('should create job and return job id', function () {
+                this.timeout(50000);
+                return new Promise(async function (resolve, reject) {
+                    const adapterController = new AdapterController(main);
+                    const metricsRunner = new MetricsRunner(main);
+                    const adaptersResults = await adapterController.getData();
+                    const metricsResults = metricsRunner.run(adaptersResults);
+                    const resourceResults = metricsReducer.reduce(metricsResults);
+                    metricsProvider.setPodsAllocations(resourceResults);
+                    resolve();
+
+                    // setTimeout(() => {
+                    //     resolve();
+                    // }, 20000)
+                });
+
             });
         });
         describe('MetricsRunner', async function () {
