@@ -12,6 +12,19 @@ class Utils {
         }, map);
     }
 
+    group(array, prop) {
+        const map = Object.create(null);
+        return array.reduce((prev, cur) => {
+            if (cur[prop] in prev) {
+                prev[cur[prop]] += 1;
+            }
+            else {
+                prev[cur[prop]] = 1;
+            }
+            return prev;
+        }, map)
+    }
+
     capitalize(str) {
         if (str.indexOf('-') === -1) {
             return str;

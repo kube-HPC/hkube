@@ -23,7 +23,6 @@ class AdapterController {
      * 
      * @memberOf AdapterController
      */
-
     async getData() {
         const response = await Promise.all(this._adapters.map(a => this._getData(a)));
         return utils.arrayToMap(response);

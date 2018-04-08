@@ -16,18 +16,18 @@ class MetricsReducer {
         options.forEach(metric => {
             metric.data = metric.data || [];
             metric.data.reduce((prev, cur) => {
-                if (cur.alg in prev) {
-                    prev[cur.alg].pods += cur.data * metric.weight
+                if (cur.name in prev) {
+                    prev[cur.name].pods += cur.data * metric.weight
                 }
                 else {
-                    prev[cur.alg] = { pods: cur.data * metric.weight };
+                    prev[cur.name] = { pods: cur.data * metric.weight };
                 }
-                prev[cur.alg].pods = Math.round(prev[cur.alg].pods);
+                prev[cur.name].pods = Math.round(prev[cur.name].pods);
                 return prev;
             }, map)
         });
 
-        const results = utils.mapToArray(map, ['alg', 'data']);
+        const results = utils.mapToArray(map, ['name', 'data']);
         return results;
     }
 }

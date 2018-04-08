@@ -6,7 +6,7 @@ const ResourceCounter = require('./resource-counter');
  * @class ResourceAllocator
  */
 class ResourceAllocator {
-    constructor({ resourceThresholds }, { k8s, templatesStore }) {
+    constructor({ resourceThresholds, k8s, templatesStore }) {
         this._totalCpu = 0;
         this._totalMem = 0;
         this._thresholdCpu = resourceThresholds.cpu;
@@ -20,18 +20,18 @@ class ResourceAllocator {
      * The allocate method checks if there is sufficient cpu and memory
      * for specific algorithm, by comparing the algorithm requirements
      * against the the total available resources, if there is enough
-     * resources it will increase the algorithm counter.
+     * resources it will increase the algorithm resource counter.
      * 
-     * @param {any} alg 
+     * @param {any} algorithm 
      * 
      * @memberOf ResourceAllocator
      */
-    allocate(alg) {
-        const { cpu, mem } = this._templatesStore[alg] || {};
+    allocate(algorithm) {
+        const { cpu, mem } = this._templatesStore[algorithm] || {};
         if (cpu <= this._totalCpu && mem <= this._totalMem) {
             this._totalCpu -= cpu;
             this._totalMem -= mem;
-            this._resourceCounter.inc(alg);
+            this._resourceCounter.inc(algorithm);
         }
     }
 
@@ -41,7 +41,7 @@ class ResourceAllocator {
      * results
      * Array <Object>
      * Object {
-     *    alg: "black-alg", 
+     *    name: "black-alg", 
      *    data: 20
      * }
      * @returns 

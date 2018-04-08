@@ -1,7 +1,7 @@
-const groupBy = require('lodash.groupby');
 const Metric = require('./Metric');
-const RatiosAllocator = require('./ratios-allocator');
-const ResourceAllocator = require('../resource-handlers/resource-allocator');
+const utils = require('../utils/utils');
+const AlgorithmRatios = require('../resources/ratios-allocator');
+const ResourceAllocator = require('../resources/resource-allocator');
 
 class PrometheusMetric extends Metric {
 
@@ -10,16 +10,16 @@ class PrometheusMetric extends Metric {
     }
 
     calc(options) {
-        const algorithmQueue = groupBy(options.algorithmQueue, 'alg');
-        const algorithms = Object.keys(algorithmQueue);
-        const prometheus = options.prometheus.filter(p => algorithms.includes(p.algorithmName));
-        const ratios = new RatiosAllocator({ ratios: prometheus, prop: 'runTime', group: algorithmQueue });
-        const resourceAllocator = new ResourceAllocator(this.settings, options);
+        const allocations = utils.group(options.algorithmQueue, 'name');
+        const keys = Object.keys(allocations);
+        const algorithms = options.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));
+        const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
+        const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.settings.resourceThresholds, ...options });
 
         let algorithm = null;
-        let algorithmGen = ratios.generate();
+        const algorithmGen = algorithmRatios.generateRandom();
         while (algorithm = algorithmGen.next().value) {
-            resourceAllocator.allocate(algorithm.algorithmName);
+            resourceAllocator.allocate(algorithm.name);
         }
 
         const results = resourceAllocator.results();

@@ -1,7 +1,7 @@
 
 const Metric = require('./Metric');
 const orderBy = require('lodash.orderby');
-const ResourceAllocator = require('../resource-handlers/resource-allocator');
+const ResourceAllocator = require('../resources/resource-allocator');
 
 class TemplatesStoreMetric extends Metric {
 
@@ -10,16 +10,14 @@ class TemplatesStoreMetric extends Metric {
     }
 
     calc(options) {
-        const resourceAllocator = new ResourceAllocator(this.settings, options);
+        const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.settings.resourceThresholds, ...options });
         let algorithmQueue = options.algorithmQueue.map(a => ({
             ...a,
-            cpu: options.templatesStore[a.alg].cpu,
-            mem: options.templatesStore[a.alg].mem
+            cpu: options.templatesStore[a.name].cpu,
+            mem: options.templatesStore[a.name].mem
         }));
         algorithmQueue = orderBy(algorithmQueue, q => q.cpu);
-        algorithmQueue.forEach(r => {
-            resourceAllocator.allocate(r.alg);
-        });
+        algorithmQueue.forEach(r => resourceAllocator.allocate(r.name));
         const results = resourceAllocator.results();
         return results;
     }

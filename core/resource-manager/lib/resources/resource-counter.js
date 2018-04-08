@@ -6,15 +6,15 @@ class ResourceCounter {
         this._map = Object.create(null);
     }
 
-    inc(alg) {
-        if (!this._map[alg]) {
-            this._map[alg] = 0;
+    inc(algorithm) {
+        if (!this._map[algorithm]) {
+            this._map[algorithm] = 0;
         }
-        this._map[alg]++;
+        this._map[algorithm]++;
     }
 
     toArray() {
-        return utils.mapToArray(this._map, ['alg', 'data']);
+        return utils.mapToArray(this._map, ['name', 'data']);
     }
 }
 

@@ -17,7 +17,7 @@ class AlgorithmQueueAdapter extends Adapter {
             algorithms.forEach(q => {
                 data.push(...q.data);
             });
-            data = data.map(q => ({ alg: q.algorithmName, batch: q.batchPlace, score: q.calculated.score }));
+            data = data.map(q => ({ name: q.algorithmName, score: q.calculated.score }));
             this.cache.set(data);
         }
         return data;
