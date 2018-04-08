@@ -255,7 +255,7 @@ class JobConsumer extends EventEmitter {
             storageLink = {
                 array: Array.isArray(data) && data.length,
                 storageInfo
-            }
+            };
             if (span) {
                 span.finish();
             }

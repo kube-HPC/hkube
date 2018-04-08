@@ -1,7 +1,4 @@
 
-process.env.NODE_PATH = __dirname;
-require('module').Module._initPaths();
-
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { VerbosityPlugin } = require('@hkube/logger');
@@ -12,11 +9,11 @@ let log;
 const worker = require('./lib/worker');
 
 const modules = [
-    'lib/algorunnerCommunication/workerCommunication.js',
-    'lib/consumer/JobConsumer.js',
-    'lib/states/discovery.js',
-    'lib/states/stateManager.js',
-    'lib/algorunnerLogging/loggingProxy.js'
+    './lib/states/stateManager.js',
+    './lib/states/discovery.js',
+    './lib/algorunnerCommunication/workerCommunication.js',
+    './lib/consumer/JobConsumer.js',
+    './lib/algorunnerLogging/loggingProxy.js'
 ];
 
 class Bootstrap {
@@ -39,7 +36,9 @@ class Bootstrap {
             await metrics.init(main.metrics);
             await tracer.init(main.tracer);
             worker.preInit();
-            await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
+            for (const m of modules) {// eslint-disable-line
+                await require(m).init(main);// eslint-disable-line
+            }
 
             await worker.init(main);
 

@@ -73,6 +73,7 @@ class Worker {
 
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
+            log.info(`Entering state: ${state}`);
             const result = { state, results };
             switch (state) {
                 case workerStates.results:
