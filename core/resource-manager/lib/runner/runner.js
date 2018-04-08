@@ -49,6 +49,7 @@ class Runner {
         const resourceResults = metricsReducer.reduce(metricsResults);
         await stateManager.setResourceRequirements(resourceResults);
         metricsProvider.setPodsAllocations(resourceResults);
+        return resourceResults;
     }
 }
 

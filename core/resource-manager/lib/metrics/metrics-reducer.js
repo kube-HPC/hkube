@@ -27,7 +27,7 @@ class MetricsReducer {
             }, map)
         });
 
-        const results = utils.mapToArray(map, ['name', 'data']);
+        const results = utils.mapToArray(map, ['alg', 'data']);
         return results;
     }
 }

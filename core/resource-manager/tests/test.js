@@ -10,7 +10,8 @@ const metricsReducer = require('../lib/metrics/metrics-reducer');
 const AlgorithmRatios = require('../lib/resources/ratios-allocator');
 const ResourceAllocator = require('../lib/resources/resource-allocator');
 const ResourceCounter = require('../lib/resources/resource-counter');
-// const intervalRunner = require('../lib/interval/runner');
+const intervalRunner = require('../lib/runner/runner');
+const stateManager = require('../lib/state/state-manager');
 const metricsProvider = require('../lib/monitoring/metrics-provider');
 const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
@@ -28,8 +29,9 @@ describe('Test', function () {
         mockery.registerSubstitute('@hkube/prometheus-client', `${process.cwd()}/tests/mocks/adapters/prometheus-client-mock.js`);
         mockery.registerSubstitute('kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
         mockery.registerSubstitute('../state/state-manager', `${process.cwd()}/tests/mocks/adapters/state-manager.js`);
+        await stateManager.init(main);
         await metricsProvider.init(main);
-        // await intervalRunner.init(main);
+        await intervalRunner.init(main);
     })
     describe('Adapters', function () {
         describe('adapterController', function () {
@@ -170,8 +172,9 @@ describe('Test', function () {
         });
     });
     describe('Interval', async function () {
-        it('should throw metrics ReferenceError', function () {
-            // intervalRunner._doWork();
+        it('should throw metrics ReferenceError', async function () {
+            const result = await intervalRunner._doWork();
+            expect(result).to.be.an('array');
         });
     });
 });
