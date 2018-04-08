@@ -17,33 +17,41 @@ class PrometheusAdapter extends Adapter {
         if (data) {
             return data;
         }
-        else {
-            let currentDate = Date.now();
-            let sixHoursBefore = new Date(currentDate - (6 * 60 * 60 * 1000));
 
-            let res = await client.range({
+        let resources = await this._getResources();
+        let arr = [];
+        let algoRunTime = new Map();
+        resources.algoRuntime.data.result.forEach(algorithm => {
+            algorithm.values.forEach(slice => {
+                if (algoRunTime.has(algorithm.metric.algorithmName)) {
+                    let a = algoRunTime.get(algorithm.metric.algorithmName);
+                    a.push(parseFloat(slice[1]));
+                }
+                else {
+                    algoRunTime.set(algorithm.metric.algorithmName, [parseFloat(slice[1])]);
+                }
+            })
+        });
+        algoRunTime.forEach((val, key) => arr.push({ algorithmName: key, runTime: median(val) }));
+        this.cache.set(arr);
+        return arr;
+
+    }
+
+    async _getResources() {
+        let currentDate = Date.now();
+        let sixHoursBefore = new Date(currentDate - (6 * 60 * 60 * 1000));
+        let [cpuCurrent, memCurrent, algoRuntime] = await Promise.all([
+            client.query({ query: '100 * (1 - avg by(instance)(irate(node_cpu{mode="idle"}[2m])))' }),
+            client.query({ query: '(1 - ((node_memory_MemFree + node_memory_Buffers + node_memory_Cached) / node_memory_MemTotal)) * 100' }),
+            client.range({
                 query: 'algorithm_runtime_summary{quantile="0.5", algorithmName!~""}',
                 start: sixHoursBefore / 1000,
                 end: currentDate / 1000,
                 step: 60
-            });
-            let arr = [];
-            let algoRunTime = new Map();
-            res.data.result.forEach(algorithm => {
-                algorithm.values.forEach(slice => {
-                    if (algoRunTime.has(algorithm.metric.algorithmName)) {
-                        let a = algoRunTime.get(algorithm.metric.algorithmName);
-                        a.push(parseFloat(slice[1]));
-                    }
-                    else {
-                        algoRunTime.set(algorithm.metric.algorithmName, [parseFloat(slice[1])]);
-                    }
-                })
-            });
-            algoRunTime.forEach((val, key) => arr.push({ algorithmName: key, runTime: median(val) }));
-            this.cache.set(arr);
-            return arr;
-        }
+            })
+        ]);
+        return { cpuCurrent, memCurrent, algoRuntime }
     }
 }
 
