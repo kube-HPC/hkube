@@ -59,6 +59,13 @@ class JobConsumer extends EventEmitter {
                     algorithmName: this._options.jobConsumer.job.type
                 }
             });
+            metrics.get(metricsNames.algorithm_runtime).start({
+                id: job.data.taskID,
+                labelValues: {
+                    pipelineName: job.data.pipelineName,
+                    algorithmName: this._options.jobConsumer.job.type
+                }
+            });
 
             this._job = job;
             this._jobID = job.data.jobID;
@@ -114,6 +121,12 @@ class JobConsumer extends EventEmitter {
         metrics.addCounterMeasure({
             name: metricsNames.algorithm_completed,
             labels: ['pipelineName', 'algorithmName'],
+        });
+        metrics.removeMeasure(metricsNames.algorithm_runtime);
+        metrics.addSummary({
+            name: metricsNames.algorithm_runtime,
+            labels: ['pipelineName', 'algorithmName', 'status'],
+            percentiles: [0.5]
         });
         metrics.removeMeasure(metricsNames.algorithm_started);
         metrics.addCounterMeasure({
@@ -183,7 +196,7 @@ class JobConsumer extends EventEmitter {
 
     async _tryExtractDataFromStorage(jobInfo) {
         try {
-            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, this._storageAdapter);
+            const input = await dataExtractor.extract(jobInfo.input, jobInfo.info.storage, this._storageAdapter);
             return { data: { ...jobInfo, input } };
         }
         catch (error) {
@@ -220,6 +233,12 @@ class JobConsumer extends EventEmitter {
             }
         });
         metrics.get(metricsNames.algorithm_net).end({
+            id: this._taskID,
+            labelValues: {
+                status: jobStatus
+            }
+        });
+        metrics.get(metricsNames.algorithm_runtime).end({
             id: this._taskID,
             labelValues: {
                 status: jobStatus

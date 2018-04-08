@@ -86,8 +86,10 @@ describe('consumer fail tests', () => {
                             jobID,
                             taskID,
                             input: ['$$guid-5'],
-                            storage: {
-                                'guid-5': { storageInfo: { Bucket: 'bucketNotExists', Key: taskID }, path: 'data.engine.inputs.raw' }
+                            info: {
+                                storage: {
+                                    'guid-5': { storageInfo: { Bucket: 'bucketNotExists', Key: taskID }, path: 'data.engine.inputs.raw' }
+                                }
                             }
                         }
                     }
