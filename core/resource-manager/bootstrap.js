@@ -8,7 +8,7 @@ let log;
 const modules = [
     './lib/monitoring/metrics-provider',
     './lib/state/state-manager',
-    './lib/interval/runner'
+    './lib/runner/runner'
 ];
 
 class Bootstrap {

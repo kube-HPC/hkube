@@ -5,7 +5,7 @@ const CONST = require('./const');
 class MetricsProvider {
 
     async init(options) {
-        await metrics.init(options.metrics);
+        await metrics.init(options.metricsMeasure);
         this._register();
     }
 

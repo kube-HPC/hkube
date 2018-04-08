@@ -96,17 +96,13 @@ describe('Test', function () {
             });
             it('should throw total score error', function () {
                 const options = {
-                    resourceProviders: [{
+                    metrics: [{
                         name: 'templates-store',
-                        metric: {
-                            weight: 0.8
-                        }
+                        weight: 0.8
                     },
                     {
                         name: 'algorithm-queue',
-                        metric: {
-                            weight: 0.7
-                        }
+                        weight: 0.7
                     }]
                 };
                 expect(() => new MetricsRunner(options)).to.throw(`metrics total score must be equal to 1, current 1.5`);
