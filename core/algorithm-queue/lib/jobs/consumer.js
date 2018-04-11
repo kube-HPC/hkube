@@ -88,13 +88,13 @@ class JobConsumer extends EventEmitter {
     }
                     
                     
-    pipelineToQueueAdapter({jobID, pipelineName, priority, info, nodeName, algorithmName}, task, initialBatchLength) {
+    pipelineToQueueAdapter({jobID, pipelineName, priority, nodeName, algorithmName}, task, initialBatchLength) {
         return {
             jobID,
             pipelineName,
             algorithmName,
             priority, 
-            info, 
+            info: task.storage, 
             nodeName,
             initialBatchLength,
             batchPlace: task.batchIndex || 1,
@@ -112,9 +112,9 @@ class JobConsumer extends EventEmitter {
     }
     
     queueTasksBuilder(job) {
-        const {jobID, pipelineName, priority, nodeName, info, algorithmName} = job.data;
+        const {jobID, pipelineName, priority, nodeName, algorithmName} = job.data;
         const tasks = job.data.tasks.map(task => {
-            return this.pipelineToQueueAdapter({jobID, pipelineName, priority, nodeName, info, algorithmName}, task, job.data.tasks.length);
+            return this.pipelineToQueueAdapter({jobID, pipelineName, priority, nodeName, algorithmName}, task, job.data.tasks.length);
         });    
         queueRunner.queue.add(tasks);
         job.done();
