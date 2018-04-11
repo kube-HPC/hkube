@@ -81,9 +81,9 @@ class ExecutionService {
         validator.addDefaults(pipeline);
         await this._createStorage(jobId, pipeline.name);
 
-        if (parseFlowInput) {
+        if (parseFlowInput && pipeline.flowInput) {
             const metadata = parser.replaceFlowInput(pipeline);
-            const storageInfo = await storageFactory.adapter.put({ jobId, taskId: jobId, data: pipeline.flowInput || {} });
+            const storageInfo = await storageFactory.adapter.put({ jobId, taskId: jobId, data: pipeline.flowInput });
             pipeline.flowInput = { metadata, storageInfo };
         }
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
