@@ -795,6 +795,9 @@
                     },
                     "priority": {
                         "$ref": "#/components/schemas/priority"
+                    },
+                    "trigger": {
+                        "$ref": "#/components/schemas/trigger"
                     }
                 },
                 "additionalProperties": false,
@@ -905,6 +908,21 @@
                         "type": "string",
                         "format": "url",
                         "description": "url to activate upon result"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "trigger": {
+                "id": "#/components/schemas/trigger",
+                "type": "object",
+                "properties": {
+                    "pipelines": {
+                        "type": "array",
+                        "description": "pipelines to activate upon result"
+                    },
+                    "cron": {
+                        "type": "string",
+                        "description": "cron job"
                     }
                 },
                 "additionalProperties": false
