@@ -1,5 +1,4 @@
 const uuidv4 = require('uuid/v4');
-const deepExtend = require('deep-extend');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
@@ -8,6 +7,7 @@ const States = require('../state/States');
 const levels = require('../progress/progressLevels');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors/errors');
 const { tracer } = require('@hkube/metrics');
+const { parser } = require('@hkube/parsers');
 
 class ExecutionService {
     /**
@@ -43,12 +43,20 @@ class ExecutionService {
      */
     async runStored(options) {
         validator.validateRunStoredPipeline(options);
+        return this._runStored(options, true);
+    }
+
+    async runStoredInternal(options) {
+        return this._runStored(options);
+    }
+
+    async _runStored(options, parseFlowInput) {
         const pipe = await stateManager.getPipeline(options);
         if (!pipe) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        const pipeline = deepExtend(pipe, options);
-        return this._run(pipeline);
+        const pipeline = Object.assign({}, pipe, options);
+        return this._run(pipeline, parseFlowInput);
     }
 
     /**
@@ -59,7 +67,7 @@ class ExecutionService {
      * 
      * @memberOf ExecutionService
      */
-    async _run(pipeline) {
+    async _run(pipeline, parseFlowInput) {
         const jobId = this._createJobID({ name: pipeline.name });
         const span = tracer.startSpan({
             id: jobId,
@@ -69,7 +77,23 @@ class ExecutionService {
                 name: pipeline.name
             }
         });
+
         validator.addDefaults(pipeline);
+        await this._createStorage(jobId, pipeline.name);
+
+        if (parseFlowInput) {
+            const metadata = parser.replaceFlowInput(pipeline);
+            const storageInfo = await storageFactory.adapter.put({ jobId, taskId: jobId, data: pipeline.flowInput });
+            pipeline.flowInput = { metadata, storageInfo };
+        }
+        await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
+        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
+        await producer.createJob({ jobId, parentSpan: span.context() });
+        span.finish();
+        return jobId;
+    }
+
+    async _createStorage(jobId, pipeline) {
         let spanStorage;
         try {
             spanStorage = tracer.startSpan({
@@ -77,7 +101,7 @@ class ExecutionService {
                 id: jobId,
                 tags: {
                     jobId,
-                    name: pipeline.name
+                    name: pipeline
                 }
             });
             await storageFactory.adapter.jobPath({ jobId });
@@ -91,11 +115,6 @@ class ExecutionService {
             }
             throw error;
         }
-        await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
-        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
-        await producer.createJob({ jobId, parentSpan: span.context() });
-        span.finish();
-        return jobId;
     }
 
     /**

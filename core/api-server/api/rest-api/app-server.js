@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const swagger = require('./swagger');
 const Logger = require('@hkube/logger');
+const internal = require('./internal/index');
 const log = Logger.GetLogFromContanier();
 const componentName = require('../../common/consts/componentNames');
 const { metrics } = require('@hkube/metrics');
@@ -18,7 +19,7 @@ class AppServer {
             });
 
             const { prefix, port, rateLimit, poweredBy } = options.rest;
-            const routes = [metrics.getRouter()];
+            const routes = [metrics.getRouter(), internal()];
             const versions = fs.readdirSync(path.join(__dirname, 'routes'));
             versions.forEach((v) => {
                 swagger.servers.push({ url: path.join('/', options.swagger.path, prefix, v) });
