@@ -25,7 +25,7 @@ class ExecutionService {
      */
     async runRaw(options) {
         validator.validateRunRawPipeline(options);
-        return this._run(options);
+        return this._run(options, true);
     }
 
     /**
@@ -47,7 +47,7 @@ class ExecutionService {
     }
 
     async runStoredInternal(options) {
-        return this._runStored(options);
+        return this._runStored(options, false);
     }
 
     async _runStored(options, parseFlowInput) {
