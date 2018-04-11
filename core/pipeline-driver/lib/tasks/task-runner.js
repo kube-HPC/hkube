@@ -24,6 +24,7 @@ class TaskRunner {
         this._nodes = null;
         this._active = false;
         this._pipelineName = null;
+        this._pipelinePriority = null;
     }
 
     init(options) {
@@ -39,13 +40,7 @@ class TaskRunner {
         stateManager.on(Events.JOBS.STOP, (data) => {
             this._tryStopPipeline(null, data.reason);
         });
-        producer.on(Events.TASKS.WAITING, (taskId) => {
-            this._setTaskState(taskId, { status: States.PENDING });
-        });
-        producer.on(Events.TASKS.STALLED, (taskId) => {
-            this._setTaskState(taskId, { status: States.STALLED });
-        });
-        producer.on(Events.TASKS.CRASHED, (data) => {
+        stateManager.on(Events.TASKS.FAILED, (data) => {
             this._setTaskState(data.taskId, { status: States.FAILED, error: data.error });
             this._taskComplete(data.taskId);
         });
@@ -91,6 +86,7 @@ class TaskRunner {
             throw new Error(`unable to find pipeline ${this._jobId}`);
         }
         this._pipelineName = this._pipeline.name;
+        this._pipelinePriority = this._pipeline.priority;
         this._nodes = new NodesMap(this._pipeline);
         this._nodes.on('node-ready', (node) => {
             log.debug(`new node ready to run: ${node.nodeName}`, { component: components.TASK_RUNNER });
@@ -316,13 +312,13 @@ class TaskRunner {
                 nodeName: node.nodeName,
                 batchIndex: (ind + 1),
                 algorithmName: node.algorithmName,
-                extraData: node.extraData,
-                input: inp
+                input: inp,
+                extraData: node.extraData
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch.taskId, batch);
-            this._createJob(batch, storage);
-        })
+        });
+        this._createJob(node, storage);
     }
 
     _taskComplete(taskId) {
@@ -376,25 +372,35 @@ class TaskRunner {
         else {
             log.debug(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName, taskId, algorithmName: task.algorithmName });
         }
-
         progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
         stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
     }
 
+
     async _createJob(node, storage) {
+        let tasks = [];
+        if (node.batch.length > 0) {
+            tasks = node.batch.map(b => ({ taskID: b.taskId, input: b.input, batchIndex: b.batchIndex }));
+        }
+        else {
+            tasks.push({ taskID: node.taskId, input: node.input });
+        }
         const options = {
             type: node.algorithmName,
             data: {
                 jobID: this._jobId,
+                tasks,
                 taskID: node.taskId,
-                input: node.input,
-                storage: storage,
                 node: node.nodeName,
-                batchIndex: node.batchIndex,
                 pipelineName: this._pipelineName,
-                extraData: node.extraData
+                priority: this._pipelinePriority,
+                algorithmName: node.algorithmName,
+                info: {
+                    storage: storage,
+                    extraData: node.extraData
+                }
             }
-        }
+        };
         await producer.createJob(options);
     }
 }

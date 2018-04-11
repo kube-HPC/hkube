@@ -1,9 +1,9 @@
 const EventEmitter = require('events');
 const validate = require('djsv');
 const uuidv4 = require('uuid/v4');
-const { Producer } = require('@hkube/producer-consumer');
+const { Producer, Events } = require('@hkube/producer-consumer');
 const schema = require('./schema');
-const Events = require('../consts/Events');
+const { TASKS } = require('../consts/Events');
 const States = require('../state/States');
 const stateManager = require('../state/state-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -27,21 +27,22 @@ class JobProducer extends EventEmitter {
         }
         setting.tracer = tracer;
         this._producer = new Producer({ setting });
-        this._producer.on(Events.JOBS.WAITING, (data) => {
-            this.emit(Events.TASKS.WAITING, data.jobID);
-        }).on(Events.JOBS.ACTIVE, (data) => {
-            this.emit(Events.TASKS.ACTIVE, data.jobID);
-        }).on(Events.JOBS.STALLED, (data) => {
-            this.emit(Events.TASKS.STALLED, data.jobID);
-        }).on(Events.JOBS.CRASHED, (data) => {
-            this.emit(Events.TASKS.CRASHED, { taskId: data.jobID, error: data.error });
+        this._producer.on(Events.WAITING, (data) => {
+            this.emit(TASKS.WAITING, data.jobID);
+        }).on(Events.COMPLETED, (data) => {
+            this.emit(TASKS.SUCCEED, data.jobID);
+        }).on(Events.ACTIVE, (data) => {
+            this.emit(TASKS.ACTIVE, data.jobID);
+        }).on(Events.STALLED, (data) => {
+            this.emit(TASKS.STALLED, data.jobID);
+        }).on(Events.CRASHED, (data) => {
+            this.emit(TASKS.CRASHED, { taskId: data.jobID, error: data.error });
         });
     }
 
     async createJob(options) {
         const opt = {
             job: {
-                id: options.data && options.data.taskID,
                 type: options.type,
                 data: options.data,
             }
