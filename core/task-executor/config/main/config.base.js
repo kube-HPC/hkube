@@ -2,22 +2,18 @@ const config = {};
 
 config.serviceName = 'task-executor';
 
+config.kubernetes = {
+    isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
+    namespace: process.env.NAMESPACE || 'default'
+};
 config.etcd = {
-    protocol: 'http',
-    host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
-    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
-};
-
-config.etcdDiscovery = {
-    init: {
-        etcd: config.etcd,
-        serviceName: config.serviceName
+    etcd: {
+        protocol: 'http',
+        host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
+        port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
     },
-    register: {
-        // use defaults for now
-    }
+    serviceName: config.serviceName
 };
-
 
 config.metrics = {
     collectDefault: true,

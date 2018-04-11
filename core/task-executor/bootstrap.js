@@ -1,27 +1,26 @@
-
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const { VerbosityPlugin } = require('@hkube/logger');
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
 const componentName = require('./common/consts/componentNames');
 const { tracer, metrics } = require('@hkube/metrics');
-let log;
-
+const etcd = require('./lib/helpers/etcd.js');
+const kubernetes = require('./lib/helpers/kubernetes');
+const executor = require('./lib/executor');
 const modules = [
-   
+    etcd,
+    kubernetes,
+    executor
 ];
 
 class Bootstrap {
     async init() { // eslint-disable-line
         try {
-            const { main, logger } = configIt.load();
             this._handleErrors();
-
-            log = new Logger(main.serviceName, logger);
             log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
-
             await metrics.init(main.metrics);
             await tracer.init(main.tracer);
-            await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
+            await Promise.all(modules.map(m => m.init(main)));
 
             return main;
         }
