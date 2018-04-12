@@ -51,6 +51,8 @@ describe('jobCreator', () => {
         const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1' });
         expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'myImage1' });
         expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
+        expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:latest' });
+        
         expect(res.metadata.name).to.include('myalgo1-');
     });
 

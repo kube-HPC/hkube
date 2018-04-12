@@ -13,6 +13,9 @@ const jobTemplate = {
     spec: {
         template: {
             spec: {
+                nodeSelector: {
+                    worker: 'true'
+                },
                 containers: [
                     {
                         name: 'worker',

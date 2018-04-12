@@ -1,7 +1,7 @@
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
-
-
+const { createJobSpec } = require('../jobs/jobCreator');
+const kubernetes = require('../helpers/kubernetes');
 /**
  * normalizes the worker info from discovery
  * input will look like:
@@ -69,10 +69,18 @@ const normalizeJobs = (jobsRaw) => {
     return jobs;
 };
 
-const reconcile = ({ algorithmRequests, algorithmPods, jobs } = {}) => {
+const _createJobs = async (numberOfJobs, jobDetails) => {
+    log.debug(`need to add ${numberOfJobs} jobs with details ${JSON.stringify(jobDetails, null, 2)}`);
+    const spec = createJobSpec(jobDetails);
+    const jobCreateResult = await kubernetes.createJob({ spec });
+    return jobCreateResult;
+};
+
+const reconcile = async ({ algorithmRequests, algorithmPods, jobs } = {}) => {
     const normPods = normalizeWorkers(algorithmPods);
     const normRequests = normalizeRequests(algorithmRequests);
     const normJobs = normalizeJobs(jobs);
+    const createPromises = [];
     normRequests.forEach((r) => {
         const { algorithmName } = r;
         // find workers currently for this algorithm
@@ -86,9 +94,14 @@ const reconcile = ({ algorithmRequests, algorithmPods, jobs } = {}) => {
             // need to add workers
             const numberOfNewJobs = -podDiff;
             log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`);
-            
+            createPromises.push(_createJobs(numberOfNewJobs, {
+                algorithmName,
+                algorithmImage: 'hkube/algorithm-example:latest'
+            }));
         }
     });
+
+    return Promise.all(createPromises);
 };
 
 module.exports = {

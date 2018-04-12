@@ -48,6 +48,9 @@ const applyResourceLimits = (inputSpec, resourceLimits) => {
 
 const applyWorkerImage = (inputSpec, workerImage) => {
     const spec = clonedeep(inputSpec);
+    if (!workerImage) {
+        return spec;
+    }
     const workerContainer = spec.spec.template.spec.containers.find(c => c.name === 'worker');
     if (!workerContainer) {
         const msg = 'Unable to create job spec. worker container not found';
