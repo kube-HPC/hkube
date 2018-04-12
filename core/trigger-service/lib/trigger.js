@@ -3,6 +3,7 @@ const {componentName} = require('./consts/index');
 const pipelineProducer = require('./pipeline-producer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const {queue} = require('async');
+const triggers = require('./triggers');
 // const INTERVAL = 500;
 class TriggerRunner {
     constructor() {
@@ -13,7 +14,12 @@ class TriggerRunner {
         log.info('trigger-runner is started', { component: componentName.TRIGGER});
         this.config = config;
         this.runQueue();
+        this._initTriggers();
     }
+    _initTriggers() {
+        Object.values(triggers).forEach(t => t.init());
+    }
+
     async runQueue() {
         this.queue = queue(async (task, callback) => {
             await pipelineProducer.produce(task);
@@ -22,9 +28,9 @@ class TriggerRunner {
         }, 1);
     }
 
-    async addTrigger(tasks, callback) {
+    async addTrigger(task, callback) {
         log.info(`task added to queue with ${task.pipelineName}`, { component: componentName.TRIGGER});
-        this.queue.push(tasks, (err) => {
+        this.queue.push(task, (err) => {
             log.info(`prpeline ${task.pipelineName} sent to api server`, { component: componentName.TRIGGER});
             callback();
         });        

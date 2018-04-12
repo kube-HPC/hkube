@@ -1,7 +1,8 @@
 const {CronJob} = require('cron');
-const {componentName} = require('../consts/index');
+const {componentName, storedPipelineEvents} = require('../consts/index');
 const log = require('@hkube/logger').GetLogFromContainer();
-
+const trigger = require('../trigger');
+const storedPipelineListener = require('../stored-pipelines-listener');
 // task:{
 //     cronTime:'00 30 11 * * 1-5',
 //     triggerPipeline:'pipelineName',
@@ -10,16 +11,16 @@ class CronTask {
     constructor() {
         this.tasks = [];
     }
-    init(triggers = []) {
-        triggers.forEach(trigger => this.addTrigger(trigger));
+    async init() {
+        storedPipelineListener.on(storedPipelineEvents.prefix.CHANGE, t => this.addTrigger(t));
+        storedPipelineListener.on(storedPipelineEvents.prefix.DELETE, t => this.removeTask(t.pipelineName));
+        const triggers = await storedPipelineListener.getTriggeredPipelineByType(storedPipelineEvents.suffix.CRON);
+        triggers.forEach(t => this.addTrigger(t));
     }
     addTrigger(task) {
-        const job = new CronJob({
-            cronTime: task.cronTime,
-            onTick: () => {
-                log.info(`cron job with ${task.triggerPipeline} Is Executed acording to schedule ${task.cronTime}`, { component: componentName.CRON});
-            },
-        });
+        const job = new CronJob(task.triggers.cron, () => {
+            log.info(`cron job with ${task.name} Is Executed acording to schedule ${task.triggers.cron}`, { component: componentName.CRON});
+        }, null, true);
         this.tasks.push({task, job});
     }
     removeTask(pipelineName) {
@@ -28,4 +29,4 @@ class CronTask {
 }
 
 
-module.exports = CronTask;
+module.exports = new CronTask();

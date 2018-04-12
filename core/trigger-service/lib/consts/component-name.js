@@ -5,5 +5,7 @@
 module.exports = {
     MAIN: 'MAIN',
     TRIGGER:'TRIGGER',
-    CRON:'CRON'
+    CRON:'CRON',
+    STORED_PIPELINES_LISTENER:'STORED_PIPELINES_LISTENER'
+
 };

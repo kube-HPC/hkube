@@ -1,4 +1,4 @@
-const bootstrap = require('./bootstrap');
+const bootstrap = require('./bootstrap.js');
 
 bootstrap.init().catch((error) => {
     console.error(error);

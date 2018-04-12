@@ -1,6 +1,6 @@
 const package = require(process.cwd() + '/package.json');
 const  config = module.exports = {};
-const heuristicsNames = require('../../lib/consts/heuristics-name')
+
 
 config.serviceName = package.name;
 const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
@@ -22,12 +22,7 @@ config.algorithmType =  process.env.ALGORITHM_TYPE||'green-alg'
 config.queue={
    updateInterval : 1000 
 }
-config.heuristicsWeights = {
-    [heuristicsNames.PRIORITY]:0.1,
-    [heuristicsNames.ENTRANCE_TIME]:0.1,
-    [heuristicsNames.BATCH]:0.5,
-    [heuristicsNames.CURRENT_BATCH_PLACE]:0.3
-}
+
 config.metrics = {
     collectDefault: true,
     server: {

@@ -13,6 +13,10 @@ const {componentName} = require('./lib/consts/index');
 // const consumer = require('./lib/jobs/consumer');
 const {tracer} = require('@hkube/metrics');
 const modules = [
+    './lib/stored-pipelines-listener',
+    './lib/trigger',
+    './lib/pipeline-producer',
+    
     // './lib/jobs/consumer',
     // './lib/jobs/producer',
     // './lib/queue-runner',
