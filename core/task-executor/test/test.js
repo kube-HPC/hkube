@@ -1,13 +1,24 @@
 /* eslint-disable global-require */
 const { expect } = require('chai');
+const mockery = require('mockery');
 const etcd = require('../lib/helpers/etcd');
 const decache = require('decache');
 const { discoveryStub } = require('./stub/discoveryStub');
+const { kubernetes } = require('./mocks/kubernetes.mock');
 describe('bootstrap', () => {
     before(async () => {
-        await require('../bootstrap').init();
+        mockery.enable({
+            warnOnReplace: false,
+            warnOnUnregistered: false,
+            // useCleanCache: true
+        });
+        mockery.registerMock('./lib/helpers/kubernetes',kubernetes);
+        const bootstrap = require('../bootstrap');
+
+        await bootstrap.init();
     });
     after(() => {
+        mockery.disable();
         decache('../bootstrap');
     });
     it('should init without error', async () => {
