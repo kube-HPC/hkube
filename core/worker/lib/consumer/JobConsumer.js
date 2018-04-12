@@ -196,7 +196,7 @@ class JobConsumer extends EventEmitter {
 
     async _tryExtractDataFromStorage(jobInfo) {
         try {
-            const input = await dataExtractor.extract(jobInfo.input, jobInfo.info.storage, this._storageAdapter);
+            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, this._storageAdapter);
             return { data: { ...jobInfo, input } };
         }
         catch (error) {

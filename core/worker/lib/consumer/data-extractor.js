@@ -20,11 +20,11 @@ class DataExtractor {
                 }
                 else {
                     data = await dataProvider.get(link.storageInfo);
-                    if (Number.isInteger(link.index)) {
-                        data = data[link.index];
-                    }
                     if (link.path) {
                         data = deep(data, link.path);
+                    }
+                    if (Number.isInteger(link.index)) {
+                        data = data[link.index];
                     }
                 }
                 deep(result, objectPath, data);
