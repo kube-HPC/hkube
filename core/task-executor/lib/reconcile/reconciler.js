@@ -1,5 +1,5 @@
 const Logger = require('@hkube/logger');
-let log = Logger.GetLogFromContainer();
+const log = Logger.GetLogFromContainer();
 
 
 /**
@@ -84,7 +84,9 @@ const reconcile = ({ algorithmRequests, algorithmPods, jobs } = {}) => {
         }
         else if (podDiff < 0) {
             // need to add workers
-            log.debug(`need to add ${-podDiff} pods for algorithm ${algorithmName}`);
+            const numberOfNewJobs = -podDiff;
+            log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`);
+            
         }
     });
 };
@@ -93,5 +95,5 @@ module.exports = {
     normalizeWorkers,
     normalizeRequests,
     normalizeJobs,
-    reconcile
+    reconcile,
 };

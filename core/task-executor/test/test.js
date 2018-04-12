@@ -2,7 +2,7 @@
 const { expect } = require('chai');
 const etcd = require('../lib/helpers/etcd');
 const decache = require('decache');
-const { discoveryStub } = require('./stub');
+const { discoveryStub } = require('./stub/discoveryStub');
 describe('bootstrap', () => {
     before(async () => {
         await require('../bootstrap').init();
