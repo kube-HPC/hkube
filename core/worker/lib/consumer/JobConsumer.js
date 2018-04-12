@@ -272,7 +272,7 @@ class JobConsumer extends EventEmitter {
                 jobId: this._job.data.jobID, taskId: this._job.data.taskID, data
             });
             storageLink = {
-                array: Array.isArray(data) && data.length,
+                metadata: { type: typeof (data), size: Array.isArray(data) ? data.length : 0 },
                 storageInfo
             };
             if (span) {
