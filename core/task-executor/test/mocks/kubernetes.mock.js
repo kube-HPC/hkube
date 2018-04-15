@@ -1,6 +1,6 @@
 module.exports = {
     kubernetes: {
-        init: async () => { console.log('kubernetes init mock') },
+        init: async () => { },
         createJob: async () => {},
         getWorkerJobs: async () => {},
         getVersionsConfigMap: async () => {},
