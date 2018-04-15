@@ -48,6 +48,46 @@ const jobTemplate = {
                                         fieldPath: 'metadata.name'
                                     }
                                 }
+                            },
+                            {
+                                name: 'AWS_ACCESS_KEY_ID',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 's3-secret',
+                                        key: 'awsKey'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'AWS_SECRET_ACCESS_KEY',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 's3-secret',
+                                        key: 'awsSecret'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'S3_ENDPOINT_URL',
+                                // value: 'http://10.32.10.24:9000'
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 's3-secret',
+                                        key: 'awsEndpoitUrl'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DEFAULT_STORAGE',
+                                value: 's3'
+                            },
+                            {
+                                name: 'JAEGER_AGENT_SERVICE_HOST',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'status.hostIP'
+                                    }
+                                }
                             }
                         ],
                         volumeMounts: [
