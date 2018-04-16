@@ -48,6 +48,7 @@ const _deleteCore = async (args)=>{
     await syncSpawn('kubectl',`delete sts -l ${HKUBE_APP_LABEL},${HKUBE_CORE_LABEL}`);
     await syncSpawn('kubectl',`delete sa -l ${HKUBE_APP_LABEL},${HKUBE_CORE_LABEL}`);
     await syncSpawn('kubectl',`delete rolebindings -l ${HKUBE_APP_LABEL},${HKUBE_CORE_LABEL}`);
+    await syncSpawn('kubectl',`delete role -l ${HKUBE_APP_LABEL},${HKUBE_CORE_LABEL}`);
     await syncSpawn('kubectl',`delete po -l ${HKUBE_APP_LABEL},${HKUBE_CORE_LABEL}`);
     await syncSpawn('kubectl',`delete jobs -l ${HKUBE_APP_LABEL},${HKUBE_CORE_LABEL}`);
     await syncSpawn('kubectl',`delete ingresses -l ${HKUBE_APP_LABEL},${HKUBE_CORE_LABEL}`);
@@ -67,6 +68,7 @@ const _deleteThirdParty = async (args)=>{
     await syncSpawn('kubectl',`delete sts -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
     await syncSpawn('kubectl',`delete sa -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
     await syncSpawn('kubectl',`delete rolebindings -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
+    await syncSpawn('kubectl',`delete role -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
     await syncSpawn('kubectl',`delete po -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
     await syncSpawn('kubectl',`delete jobs -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
     await syncSpawn('kubectl',`delete ingresses -l ${HKUBE_APP_LABEL},${HKUBE_THIRDPARTY_LABEL}`);
