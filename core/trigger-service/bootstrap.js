@@ -14,7 +14,7 @@ const {componentName} = require('./lib/consts/index');
 const {tracer} = require('@hkube/metrics');
 const modules = [
     './lib/stored-pipelines-listener',
-    './lib/trigger',
+    './lib/trigger-runner',
     './lib/pipeline-producer',
     
     // './lib/jobs/consumer',

@@ -27,6 +27,7 @@ class StoredPipelinesListener extends events {
     //         log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT});
     //     }
     //  }
+    
     async _getAndWatch() {
         this.etcd.pipelines.on('change', pipeline => this._filterForSpecificTrigger([pipeline], prefix.CHANGE));
         this.etcd.pipelines.on('delete', pipeline => this._filterForSpecificTrigger([pipeline], prefix.DELETE));
