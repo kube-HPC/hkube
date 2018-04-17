@@ -49,7 +49,7 @@ config.jobConsumer = {
 
 config.timeouts = {
     stop: 10000, // timeout to stop the algorithm in ms
-    inactive: process.env.INACTIVE_WORKER_TIMEOUT_MS || (10 * 1000)
+    // inactive: process.env.INACTIVE_WORKER_TIMEOUT_MS || (10 * 1000)
 };
 
 config.metrics = {
