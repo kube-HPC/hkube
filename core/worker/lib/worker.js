@@ -73,12 +73,29 @@ class Worker {
 
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
+            let pendingTransition = null;
             log.info(`Entering state: ${state}`);
             const result = { state, results };
+            if (state === workerStates.ready) {
+                if (this._inactiveTimer) {
+                    clearTimeout(this._inactiveTimer);
+                }
+                if (this._inactiveTimeoutMs !== 0 && this._inactiveTimeoutMs !== '0') {
+                    log.info('starting inactive timeout for worker');
+                    this._inactiveTimer = setTimeout(() => {
+                        log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`);
+                        process.exit(0);
+                    }, this._inactiveTimeoutMs);
+                }
+            }
+            else if (this._inactiveTimer) {
+                log.info(`worker is active (${state}). Clearing inactive timeout`);
+                clearTimeout(this._inactiveTimer);
+            }
             switch (state) {
                 case workerStates.results:
                     await jobConsumer.finishJob(result);
-                    stateManager.cleanup();
+                    pendingTransition = stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
                     break;
@@ -113,21 +130,8 @@ class Worker {
                 default:
             }
             jobConsumer.updateDiscovery(result);
-            if (state === workerStates.ready) {
-                if (this._inactiveTimer) {
-                    clearTimeout(this._inactiveTimer);
-                }
-                if (this._inactiveTimeoutMs !== 0 && this._inactiveTimeoutMs !== '0') {
-                    log.info('starting inactive timeout for worker');
-                    this._inactiveTimer = setTimeout(() => {
-                        log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`);
-                        process.exit(0);
-                    }, this._inactiveTimeoutMs);
-                }
-            }
-            else if (this._inactiveTimer) {
-                log.info('worker is active. Clearing inactive timeout');
-                clearTimeout(this._inactiveTimer);
+            if (pendingTransition) {
+                pendingTransition();
             }
         });
     }
