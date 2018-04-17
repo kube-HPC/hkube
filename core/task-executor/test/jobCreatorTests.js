@@ -2,10 +2,10 @@ const clonedeep = require('lodash.clonedeep');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
+const log = new Logger(main.serviceName, logger); // eslint-disable-line
 
-const { expect } = require('chai');
-const { applyAlgorithmImage, applyAlgorithmName, applyWorkerImage, createJobSpec } = require('../lib/jobs/jobCreator');
+const { expect } = require('chai'); // eslint-disable-line
+const { applyAlgorithmImage, applyAlgorithmName, applyWorkerImage, createJobSpec } = require('../lib/jobs/jobCreator'); // eslint-disable-line object-curly-newline
 const { jobTemplate } = require('./stub/jobTemplates');
 describe('jobCreator', () => {
     describe('applyAlgorithmName', () => {

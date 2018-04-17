@@ -76,8 +76,8 @@ const _createJobs = async (numberOfJobs, jobDetails) => {
     return jobCreateResult;
 };
 
-const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => {
-    const normPods = normalizeWorkers(algorithmPods);
+const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => { // eslint-disable-line object-curly-newline
+    const normPods = normalizeWorkers(algorithmPods); // eslint-disable-line no-unused-vars
     const normRequests = normalizeRequests(algorithmRequests);
     const normJobs = normalizeJobs(jobs);
     const createPromises = [];

@@ -31,7 +31,9 @@ class Executor {
         log.debug(`algorithmRequests: ${JSON.stringify(algorithmRequests, null, 2)}`, { component });
         // log.debug(`algorithmPods: ${JSON.stringify(algorithmPods, null, 2)}`, { component });
         // log.debug(`jobs: ${JSON.stringify(jobs, null, 2)}`, { component });
-        const newConfig = await reconciler.reconcile({ algorithmRequests, algorithmPods, jobs, versions });
+        const newConfig = await reconciler.reconcile({
+            algorithmRequests, algorithmPods, jobs, versions
+        });
         log.debug(`newConfig: ${JSON.stringify(newConfig, null, 2)}`, { component });
         setTimeout(this._intervalCallback.bind(this), this._intervalMs);
     }

@@ -29,6 +29,10 @@ class Etcd extends EventEmitter {
     async getAlgorithmRequests(options = {}) {
         return this._etcd.algorithms.resourceRequirements.list(options);
     }
+
+    async getAlgorithmTemplate({ algorithmName }) {
+        return this._etcd.algorithms.templatesStore.getState({ alg: algorithmName });
+    }
 }
 
 module.exports = new Etcd();
