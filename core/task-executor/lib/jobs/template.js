@@ -73,7 +73,7 @@ const jobTemplate = {
                                 valueFrom: {
                                     secretKeyRef: {
                                         name: 's3-secret',
-                                        key: 'awsEndpoitUrl'
+                                        key: 'awsEndpointUrl'
                                     }
                                 }
                             },

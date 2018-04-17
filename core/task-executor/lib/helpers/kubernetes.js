@@ -21,7 +21,7 @@ class KubernetesApi extends EventEmitter {
     }
 
     async createJob({ spec }) {
-        log.debug(`Creating job with spec ${JSON.stringify(spec)}`);
+        log.debug(`Creating job ${spec.metadata.name}`);
         const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs.post({ body: spec });
         return res;
     }
