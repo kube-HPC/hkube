@@ -2,6 +2,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const components = require('../consts/component-name');
+const producer = require('../jobs/producer');
 class Persistence {
     constructor() {
         this.queue = null;
@@ -19,7 +20,8 @@ class Persistence {
 
     async store(data) {
         log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT});
-        const status = await this.etcd.algorithms.algorithmQueue.setState({queueName: this.queueName, data});
+        const pendingAmount = await producer.getPendingAmount();
+        const status = await this.etcd.algorithms.algorithmQueue.setState({queueName: this.queueName, data, pendingAmount});
         if (status) {
             log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT});
         }
