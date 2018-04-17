@@ -6,6 +6,7 @@ const jobTemplate = {
         labels: {
             type: 'worker',
             group: 'hkube',
+            core: 'true',
             'algorithm-name': 'algorithm-name',
             'metrics-group': 'workers'
         }
