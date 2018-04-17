@@ -47,15 +47,15 @@ class JobProducer {
         this._etcd = new Etcd();
     }
     async init(options) {
-        const {etcd, serviceName} = options;
+        const { etcd, serviceName } = options;
         await this._etcd.init({ etcd, serviceName });
         //  const setting = Object.assign({}, { redis: options.redis });
         // setting.tracer = tracer;
-        this._producer = new Producer({setting: {redis: options.redis, prefix: 'jobs-workers'}});
-        this.bullQueue = this._producer._createQueue(options.algorithmType); 
+        this._producer = new Producer({ setting: { redis: options.redis, prefix: 'jobs-workers' } });
+        this.bullQueue = this._producer._createQueue(options.algorithmType);
         //   this.bullQueue.getWaitingCount();
         this._producerEventRegistry();
-        this._checkWorkingStatusInterval(); 
+        this._checkWorkingStatusInterval();
     }
     // should handle cases where there is currently not any active job and new job added to queue 
     _checkWorkingStatusInterval() {
@@ -63,7 +63,7 @@ class JobProducer {
             const waitingCount = await this.bullQueue.getWaitingCount();
             const activeCount = await this.bullQueue.getActiveCount();
             if (waitingCount === 0 && activeCount === 0 && queueRunner.queue.get.length > 0) {
-                await this.createJob();  
+                await this.createJob();
             }
         }, 1000);
     }
@@ -91,9 +91,9 @@ class JobProducer {
             log.error(`${bullEvents.STALLED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.STALLED });
         });
 
-        this._producer.on(Events.CRASHED, async ({taskID, jobID}) => {
+        this._producer.on(Events.CRASHED, async ({ taskID, jobID }) => {
             // { jobID, taskId, result, status, error }
-            await this._etcd.tasks.setState({taskId: taskID, jobID, status: taskStatus.fail, error: 'crashLoop backoff'});
+            await this._etcd.tasks.setState({ taskId: taskID, jobID, status: taskStatus.fail, error: 'crashLoop backoff' });
             log.error(`${Events.CRASHED} ${jobID}, `, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.STALLED });
         });
     }
@@ -106,6 +106,7 @@ class JobProducer {
                 jobID: task.jobID,
                 taskID: task.taskId,
                 input: task.taskData.input,
+                storage: task.storage,
                 info: task.info,
                 node: task.nodeName,
                 batchIndex: task.batchPlace,
@@ -119,16 +120,16 @@ class JobProducer {
     async createJob(options) {
         const task = queueRunner.queue.tryPop();
         if (task) {
-            log.info(`pop new task with taskId: ${task.taskId}`, { component: componentName.JOBS_PRODUCER});
-            log.info(`calculated score: ${task.calculated.score}`, { component: componentName.JOBS_PRODUCER});
+            log.info(`pop new task with taskId: ${task.taskId}`, { component: componentName.JOBS_PRODUCER });
+            log.info(`calculated score: ${task.calculated.score}`, { component: componentName.JOBS_PRODUCER });
             this._lastSentJob = task.taskId;
             const job = this._taskToProducerJob(task);
-            return this._producer.createJob({job});
+            return this._producer.createJob({ job });
         }
-        
-        log.info('queue is empty ', { component: componentName.JOBS_PRODUCER});
-            
-        
+
+        log.info('queue is empty ', { component: componentName.JOBS_PRODUCER });
+
+
         // if (options.parentSpan) {
         // opt.tracing = {
         //     parent: options.parentSpan,
