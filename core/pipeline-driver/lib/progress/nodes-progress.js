@@ -17,8 +17,7 @@ class ProgressManager {
         this._calc = this._default;
         this._throttledProgress = throttle(this._progress.bind(this), 1000, { trailing: false, leading: true });
         this._queue = async.queue((task, callback) => {
-            const { jobId, pipeline, data } = task;
-            stateManager.setJobStatus({ jobId, pipeline, data }).then(response => {
+            stateManager.setJobStatus(task).then(response => {
                 return callback(null, response);
             }).catch(error => {
                 return callback(error);
@@ -64,9 +63,8 @@ class ProgressManager {
 
     _progress(level, { jobId, pipeline, status, error }) {
         return new Promise((resolve, reject) => {
-            const { progress, details, activeNodes } = this._calc();
-            const data = { level, status, error, progress, details, activeNodes };
-            this._queue.push({ jobId, pipeline, data }, (err, res) => {
+            const data = this._calc();
+            this._queue.push({ jobId, pipeline, level, status, error, data }, (err, res) => {
                 if (err) {
                     return reject(err);
                 }

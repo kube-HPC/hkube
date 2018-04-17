@@ -32,8 +32,21 @@
             }
         ],
         "flowInput": {
-            "files": {
-                "link": "links-1"
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
             }
         },
         "webhooks": {
@@ -76,14 +89,21 @@
             }
         ],
         "flowInput": {
-            "files": {
-                "links": [
-                    "links-1",
-                    "links-2",
-                    "links-3",
-                    "links-4",
-                    "links-5"
-                ]
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
             }
         },
         "webhooks": {
@@ -125,19 +145,21 @@
             }
         ],
         "flowInput": {
-            "files": {
-                "links": [
-                    "links-1",
-                    "links-2",
-                    "links-3",
-                    "links-4",
-                    "links-5",
-                    "links-6",
-                    "links-7",
-                    "links-8",
-                    "links-9",
-                    "links-10"
-                ]
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
             }
         },
         "webhooks": {
@@ -248,10 +270,21 @@
             }
         ],
         "flowInput": {
-            "files": {
-                "links": [
-                    "links-1"
-                ]
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
             }
         },
         "options": {
@@ -290,10 +323,21 @@
             }
         ],
         "flowInput": {
-            "files": {
-                "links": [
-                    "links-1"
-                ]
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
             }
         },
         "options": {
@@ -320,14 +364,21 @@
             }
         ],
         "flowInput": {
-            "files": {
-                "links": [
-                    "links-1",
-                    "links-2",
-                    "links-3",
-                    "links-4",
-                    "links-5"
-                ]
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
             }
         },
         "options": {

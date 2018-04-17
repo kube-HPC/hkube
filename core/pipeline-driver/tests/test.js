@@ -94,7 +94,8 @@ describe('Test', function () {
         it('should throw exception and stop pipeline', function () {
             const jobId = `jobid-${uuidv4()}`;
             const job = {
-                id: jobId
+                id: jobId,
+                done: () => { }
             }
             const error = new Error(`unable to find pipeline ${jobId}`)
             return expect(taskRunner._startPipeline(job)).to.eventually.rejectedWith(error.message);

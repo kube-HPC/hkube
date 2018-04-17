@@ -143,28 +143,27 @@ class TaskRunner {
         this._active = false;
         let status;
         let error;
+        let data;
         if (err) {
             error = err.message;
             status = States.FAILED;
             log.error(`pipeline ${status} ${error}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
             await progress.error({ jobId: this._jobId, pipeline: this._pipelineName, status, error });
-            await stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipeline.startTime, pipeline: this._pipelineName, data: { error, status } });
         }
         else {
             if (reason) {
                 status = States.STOPPED;
                 log.info(`pipeline ${status} ${this._jobId}. ${reason}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
-                await stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipeline.startTime, pipeline: this._pipelineName, data: { reason, status } });
             }
             else {
                 status = States.COMPLETED;
                 log.info(`pipeline ${status} ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
-                const result = this._nodes.nodesResults();
-                await stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipeline.startTime, pipeline: this._pipelineName, data: { result, status } });
+                data = this._nodes.nodesResults();
             }
         }
+        await stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipeline.startTime, pipeline: this._pipelineName, data, reason, error, status });
         await stateManager.unWatchJobState({ jobId: this._jobId });
         await stateManager.unWatchTasks({ jobId: this._jobId });
         this._endMetrics(status);
@@ -270,7 +269,7 @@ class TaskRunner {
             this._runWaitAny(node, result.input, index, result.storage);
         }
         else if (result.batch) {
-            this._runNodeBatch(node, result.input, result.storage);
+            this._runNodeBatch(node, result.input);
         }
         else {
             this._runNodeSimple(node, result.input, result.storage);
@@ -306,19 +305,20 @@ class TaskRunner {
         this._createJob(node, storage);
     }
 
-    _runNodeBatch(node, input, storage) {
+    _runNodeBatch(node, input) {
         input.forEach((inp, ind) => {
             const batch = new Batch({
                 nodeName: node.nodeName,
                 batchIndex: (ind + 1),
                 algorithmName: node.algorithmName,
-                input: inp,
+                input: inp.input,
+                storage: inp.storage,
                 extraData: node.extraData
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch.taskId, batch);
         });
-        this._createJob(node, storage);
+        this._createJob(node);
     }
 
     _taskComplete(taskId) {
@@ -376,27 +376,24 @@ class TaskRunner {
         stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
     }
 
-
     async _createJob(node, storage) {
         let tasks = [];
-        if (node.batch.length > 0) {
-            tasks = node.batch.map(b => ({ taskID: b.taskId, input: b.input, batchIndex: b.batchIndex }));
+        if (node.batch && node.batch.length > 0) {
+            tasks = node.batch.map(b => ({ taskID: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
         }
         else {
-            tasks.push({ taskID: node.taskId, input: node.input });
+            tasks.push({ taskID: node.taskId, input: node.input, storage });
         }
         const options = {
             type: node.algorithmName,
             data: {
-                jobID: this._jobId,
                 tasks,
-                taskID: node.taskId,
-                node: node.nodeName,
+                jobID: this._jobId,
+                nodeName: node.nodeName,
                 pipelineName: this._pipelineName,
                 priority: this._pipelinePriority,
                 algorithmName: node.algorithmName,
                 info: {
-                    storage: storage,
                     extraData: node.extraData
                 }
             }

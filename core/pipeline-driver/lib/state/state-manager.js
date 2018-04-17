@@ -1,6 +1,6 @@
-const moment = require('moment');
-const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
+const { JobResult, JobStatus } = require('@hkube/etcd');
+const EventEmitter = require('events');
 
 class StateManager extends EventEmitter {
     init({ serviceName, etcd }) {
@@ -45,25 +45,11 @@ class StateManager extends EventEmitter {
     }
 
     async setJobResults(options) {
-        const now = moment(Date.now());
-        const startTime = moment(options.startTime);
-        const timeTook = now.diff(startTime, 'seconds', true);
-        const payload = {
-            timestamp: new Date(),
-            timeTook,
-            pipeline: options.pipeline,
-            data: options.data
-        }
-        return this._etcd.jobResults.setResults({ jobId: options.jobId, data: payload });
+        return this._etcd.jobResults.setResults({ jobId: options.jobId, data: new JobResult(options) });
     }
 
     async setJobStatus(options) {
-        const payload = {
-            timestamp: new Date(),
-            pipeline: options.pipeline,
-            data: options.data
-        }
-        return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: payload });
+        return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: new JobStatus(options) });
     }
 
     async getState(options) {
