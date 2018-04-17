@@ -211,7 +211,7 @@ class JobConsumer extends EventEmitter {
 
         await etcd.unwatch({ jobId: this._jobID });
         let resultLink = null;
-        let { resultData, jobStatus, error } = this._getStatus(data);
+        let { resultData, jobStatus, error } = this._getStatus(data); // eslint-disable-line prefer-const
 
         if (resultData != null && !error && jobStatus === constants.JOB_STATUS.SUCCEED) {
             const { storageError, storageLink } = await this._putResult(resultData);
