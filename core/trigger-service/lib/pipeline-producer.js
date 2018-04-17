@@ -1,7 +1,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const {componentName} = require('./consts/index');
 const request = require('requestretry');
-const {apiServer} = require('../consts/index');
+const {apiServer} = require('./consts/index');
 
 class PipelineProducer {
     constructor() {
@@ -14,7 +14,8 @@ class PipelineProducer {
     }
     async init(config) {
         this.config = config;
-        this.apiUrl = `${this.config.apiServer.protocol}//${this.config.apiServer.host}:${this.apiServer.protocol.port}/${apiServer.suffix}`;
+        const {protocol, host, port} = this.config.apiServer;
+        this.apiUrl = `${protocol}://${host}:${port}/${apiServer.suffix}`;
     }
     async produce(name, flowInput = []) {
         log.info(`try to serd pipeline with name ${name} to api server`, { component: componentName.PIPELINE_PRODUCER});

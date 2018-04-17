@@ -21,18 +21,19 @@ class TriggerQueue {
     }
 
     async runQueue() {
-        this.queue = queue(async (trigger, callback) => {
-            await pipelineProducer.produce(trigger.name, trigger.flowInput);
-            log.info(`pipeline ${trigger.task.name} sent successfully`, { component: componentName.TRIGGER_QUEUE});
-            callback();
+        this.queue = queue((trigger, callback) => {
+            pipelineProducer.produce(trigger.name, trigger.flowInput).then(() => {
+                log.info(`pipeline ${trigger.name} sent successfully`, { component: componentName.TRIGGER_QUEUE});
+                callback();
+            });
         }, 1);
     }
 
-    addTrigger(trigger, callback) {
+    addTrigger(trigger, cb) {
         log.info(`task added to queue with ${trigger.name}`, { component: componentName.TRIGGER_QUEUE});
         this.queue.push(trigger, (err) => {
             log.info(`pipeline ${trigger.name} sent to api server`, { component: componentName.TRIGGER_QUEUE});
-            callback(err);
+            cb(err);
         });        
     }
 }

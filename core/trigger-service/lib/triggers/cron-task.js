@@ -18,13 +18,15 @@ class CronTask {
         triggers.forEach(t => this.addTrigger(t));
     }
     addTrigger(task) {
+        log.info(`new cron task with name ${task.name} added with cron ${task.triggers.cron} `, { component: componentName.CRON});
         const job = new CronJob(task.triggers.cron, () => {
-            triggerQueue.addTrigger({name: task.name, flowInput: []}, err => log.error(`${err}`, { component: componentName.CRON}));
-            log.info(`cron job with ${task.name} Is Executed acording to schedule ${task.triggers.cron}`, { component: componentName.CRON});
+            triggerQueue.addTrigger({name: task.name, flowInput: []}, err => (err ? log.error(`callback sent from trigger-queue with error  ${err}`, { component: componentName.CRON}) : null));
+            log.info(`cron job with ${task.name} Is Executed according to schedule ${task.triggers.cron}`, { component: componentName.CRON});
         }, null, true);
         this.tasks.push({task, job});
     }
     removeTask(pipelineName) {
+        log.info(` task with name ${pipelineName} removed from cron `, { component: componentName.CRON});
         this.tasks = this.tasks.filter(t => t.task.triggerPipeline !== pipelineName);
     }
 }

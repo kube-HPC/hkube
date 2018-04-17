@@ -9,6 +9,7 @@ class PipelineTrigger {
     init(options) {
         const {etcd, serviceName} = options;
         this.etcd.init({ etcd, serviceName });
+        log.info('pipeline trigger initiated successfully', { component: componentName.PIPELINE_TRIGGER});
     }
     async _watchJobResults() {
         await this._etcd.jobResults.watch();
@@ -18,6 +19,7 @@ class PipelineTrigger {
             const flowInput = result.data.map(r => r.result);
             if (result.data && pipeline.triggers && pipeline.triggers.pipelines) {
                 pipeline.triggers.pipelines.forEach((name) => {
+                    log.info(`new pipeline with name ${result.name} was ended and triggered pipeline ${name}  `, { component: componentName.PIPELINE_TRIGGER});
                     triggerQueue.addTrigger({name, flowInput}, res => log.info(`cron job with ${res.name} Is Executed acording to schedule ${res.triggers.cron}`, { component: componentName.PIPELINE_TRIGGER}));
                 });
             }
@@ -27,7 +29,6 @@ class PipelineTrigger {
     async _getExecution(options) {
         return this.etcd.execution.getExecution(options);
     }
-                        
 }
 
 module.exports = new PipelineTrigger();

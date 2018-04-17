@@ -7,10 +7,10 @@ class TriggerRunner {
     // constructor() {
     // }
         
-    async init() {
-        log.info('trigger runnuer initiated', { component: componentName.TRIGGER_RUNNER});
-        await triggerQueue.init();
-        Object.values(triggers).forEach(t => t.init());    
+    async init(config) {
+        log.info('trigger runnuer initiated start initiating triggers', { component: componentName.TRIGGER_RUNNER});
+        await triggerQueue.init(config);
+        Object.values(triggers).forEach(t => t.init(config));    
     }
 }
 
