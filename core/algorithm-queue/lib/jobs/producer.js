@@ -1,4 +1,5 @@
-const { Producer, Events } = require('@hkube/producer-consumer');
+const { Events } = require('@hkube/producer-consumer');
+const producerSingleton = require('./producer-singleton');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
 const metrics = require('@hkube/metrics');
@@ -51,7 +52,7 @@ class JobProducer {
         await this._etcd.init({ etcd, serviceName });
         //  const setting = Object.assign({}, { redis: options.redis });
         // setting.tracer = tracer;
-        this._producer = new Producer({ setting: { redis: options.redis, prefix: 'jobs-workers' } });
+        this._producer = producerSingleton.get;
         this.bullQueue = this._producer._createQueue(options.algorithmType);
         //   this.bullQueue.getWaitingCount();
         this._producerEventRegistry();

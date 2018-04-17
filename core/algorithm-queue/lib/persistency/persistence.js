@@ -2,7 +2,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const components = require('../consts/component-name');
-const producer = require('../jobs/producer');
+const producerSingleton = require('../jobs/producer-singleton');
 class Persistence {
     constructor() {
         this.queue = null;
@@ -11,6 +11,7 @@ class Persistence {
         this.etcd = new Etcd();
     }  
     init({options}) {
+        this.options = options;
         const {etcd, algorithmType, serviceName} = options;
         this.queueName = algorithmType;
         //    this.queue = queue;
@@ -20,7 +21,8 @@ class Persistence {
 
     async store(data) {
         log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT});
-        const pendingAmount = await producer.getPendingAmount();
+        const bullQueue = producerSingleton.get.getQueueByJobType(this.options.algorithmType);
+        const pendingAmount = await bullQueue.getWaitingCount();
         const status = await this.etcd.algorithms.algorithmQueue.setState({queueName: this.queueName, data, pendingAmount});
         if (status) {
             log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT});

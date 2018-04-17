@@ -14,6 +14,7 @@ const { componentName } = require('./lib/consts/index');
 const { tracer } = require('@hkube/metrics');
 const modules = [
     './lib/jobs/consumer',
+    './lib/jobs/producer-singleton',
     './lib/jobs/producer',
     './lib/queue-runner',
     './lib/metrics/aggregation-metrics-factory'
