@@ -76,7 +76,7 @@ const _createJobs = async (numberOfJobs, jobDetails) => {
     return jobCreateResult;
 };
 
-const reconcile = async ({ algorithmRequests, algorithmPods, jobs } = {}) => {
+const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => {
     const normPods = normalizeWorkers(algorithmPods);
     const normRequests = normalizeRequests(algorithmRequests);
     const normJobs = normalizeJobs(jobs);
@@ -96,7 +96,8 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs } = {}) => {
             log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`);
             createPromises.push(_createJobs(numberOfNewJobs, {
                 algorithmName,
-                algorithmImage: 'hkube/algorithm-example:latest'
+                algorithmImage: `hkube/algorunner:${versions.versions.find(p => p.project === 'algorunner').tag}`,
+                workerImage: `hkube/worker:${versions.versions.find(p => p.project === 'worker').tag}`
             }));
         }
     });
