@@ -73,9 +73,10 @@ const testProducer = {
                 }
             ],
             info: {
-                storage: {
-                    'guid-3': { storageInfo: { Bucket: jobID, Key: taskID }, path: 'data.engine.inputs.raw' }
-                }
+                
+            },
+            storage: {
+                'guid-3': { storageInfo: { Bucket: jobID, Key: taskID }, path: 'data.engine.inputs.raw' }
             }
         }
     }
