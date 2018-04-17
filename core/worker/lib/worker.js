@@ -1,4 +1,3 @@
-
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorunnerCommunication/workerCommunication');
@@ -26,6 +25,7 @@ class Worker {
         this._registerToStateEvents();
         this._registerToEtcdEvents();
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
+        this._inactiveTimeoutMs = options.timeouts.inactive || 0;
     }
 
     _registerToEtcdEvents() {
@@ -113,6 +113,22 @@ class Worker {
                 default:
             }
             jobConsumer.updateDiscovery(result);
+            if (state === workerStates.ready) {
+                if (this._inactiveTimer) {
+                    clearTimeout(this._inactiveTimer);
+                }
+                if (this._inactiveTimeoutMs !== 0 && this._inactiveTimeoutMs !== '0') {
+                    log.info('starting inactive timeout for worker');
+                    this._inactiveTimer = setTimeout(() => {
+                        log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`);
+                        process.exit(0);
+                    }, this._inactiveTimeoutMs);
+                }
+            }
+            else if (this._inactiveTimer) {
+                log.info('worker is active. Clearing inactive timeout');
+                clearTimeout(this._inactiveTimer);
+            }
         });
     }
 }
