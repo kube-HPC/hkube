@@ -16,7 +16,7 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
-config.interval = 1000;
+config.interval = process.env.INTERVAL || 10000;
 
 config.resourceThresholds = {
     cpu: 0.8,

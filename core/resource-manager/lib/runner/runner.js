@@ -11,11 +11,11 @@ class Runner {
     async init(options) {
         this._adapterController = new AdapterController(options);
         this._metricsRunner = new MetricsRunner(options);
-        this._interval = options.interval;
-        this._run();
+        this._run(options.interval);
     }
 
-    _run() {
+    _run(interval) {
+        log.info(`running with current interval of: ${interval}`, { component });
         setInterval(async () => {
             if (this._working) {
                 return;
@@ -30,7 +30,7 @@ class Runner {
             finally {
                 this._working = false;
             }
-        }, this._interval);
+        }, interval);
     }
 
     /**
