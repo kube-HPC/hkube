@@ -1,7 +1,8 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
-const { getLatestVersions, changeYamlImageVersion, cloneRepo, parseImageName } = require('../common/githubHelper');
+const { getLatestVersions, cloneRepo } = require('../common/githubHelper');
+const { changeYamlImageVersion, parseImageName } = require('../common/yamlHelpers');
 const { YAML_PATH } = require('./consts');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
@@ -39,7 +40,7 @@ const pack = async (args) => {
     if (!await _cloneDeployment(versions, args)) {
         return;
     }
-    if (!await _getHkube(versions, args)){
+    if (!await _getHkube(versions, args)) {
         return;
     }
     for (const arg of args) {
@@ -71,18 +72,18 @@ const _setYamlPaths = (base) => {
     console.log(`Using core yaml path ${coreYamlPath}`)
     console.log(`Using thirdParty yaml path ${thirdPartyPath}`)
 }
-const _getHkube = async (versions, opts)=>{
-    
+const _getHkube = async (versions, opts) => {
+
     const hkubeFolder = `${FOLDERS.hkube}/${versions.systemVersion}/tools/hkube`;
     console.log(`installing hkube cli in ${hkubeFolder}`);
-    try{
+    try {
         await fs.mkdirp(hkubeFolder);
-        await syncSpawn('npm',`i --prefix ${hkubeFolder} --no-package-lock @hkube/hkube`);
+        await syncSpawn('npm', `i --prefix ${hkubeFolder} --no-package-lock @hkube/hkube`);
         console.log(`creating sym-link in ${FOLDERS.hkube}/${versions.systemVersion}/hkube`);
-        await syncSpawn('ln',`-s ${hkubeFolder}/node_modules/.bin/hkube ${FOLDERS.hkube}/${versions.systemVersion}/hkube`);
+        await syncSpawn('ln', `-s ${hkubeFolder}/node_modules/.bin/hkube ${FOLDERS.hkube}/${versions.systemVersion}/hkube`);
         return true;
     }
-    catch(e){
+    catch (e) {
         console.error(`Error installing hkube cli: ${e.message}`);
         return false;
     }
@@ -133,7 +134,7 @@ const _pullBaseImage = async (versions, project, repoFolder) => {
     }
     const dockerfileString = fs.readFileSync(dockerFilePath, { encoding: 'utf8' });
     const dockerfile = dockerParse(dockerfileString);
-    const image = dockerfile.from.replace('${BASE_PRIVATE_REGISTRY}','');
+    const image = dockerfile.from.replace('${BASE_PRIVATE_REGISTRY}', '');
 
     const imageParsed = parseImageName(image);
     const fileName = image.replace(/[\/:]/gi, '_')
@@ -164,7 +165,7 @@ const _getVersionsCore = async (versions, opts) => {
         if (path.basename(file).startsWith('#')) {
             continue;
         }
-        const { tmpFileName, images } = changeYamlImageVersion(file, versions, coreYamlPath)
+        const { tmpFileName, images } = await changeYamlImageVersion(file, versions, coreYamlPath)
         for (const i of images) {
             const fileName = i.fullImageName.replace(/[\/:]/gi, '_')
             if (alreadyWritten.includes(fileName)) {
@@ -204,7 +205,7 @@ const _getVersionsThirdParty = async (versions, opts) => {
             if (fs.lstatSync(file).isDirectory()) {
                 continue;
             }
-            const { tmpFileName, images } = changeYamlImageVersion(file, null, thirdPartyPath)
+            const { tmpFileName, images } = await changeYamlImageVersion(file, null, thirdPartyPath)
             for (const i of images) {
                 const fileName = i.fullImageName.replace(/[\/:]/gi, '_')
                 if (alreadyWritten.includes(fileName)) {

@@ -1,7 +1,8 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
-const { getLatestVersions, changeYamlImageVersion, cloneRepo, createImageName } = require('../common/githubHelper');
+const { getLatestVersions,  cloneRepo } = require('../common/githubHelper');
+const { createImageName} = require('../common/yamlHelpers');
 const { YAML_PATH } = require('./consts');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');

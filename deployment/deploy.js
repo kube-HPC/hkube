@@ -1,7 +1,9 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
-const { getLatestVersions, changeYamlImageVersion, cloneRepo } = require('../common/githubHelper');
+const { getLatestVersions, cloneRepo } = require('../common/githubHelper');
+const {changeYamlImageVersion } = require('../common/yamlHelpers');
+const kubernetes = require('../common/kubernetes');
 const { YAML_PATH } = require('./consts');
 const { FOLDERS } = require('./../consts.js');
 const syncSpawn = require('../minikube/sync-spawn');
@@ -24,6 +26,7 @@ const options = {
 
 }
 
+
 const deploy = async (args) => {
     let versions;
     if (args.folder) {
@@ -40,6 +43,7 @@ const deploy = async (args) => {
         console.error(`Unable to find version ${versionPrefix}`)
         return;
     }
+    kubernetes.init(args.kubernetesOptions);
     await _createVersionsConfigMap(versions, args);
     // clone deployment first to get all yamls
     if (!args.folder) {
@@ -84,11 +88,11 @@ const _createVersionsConfigMap = async (versions, args) => {
     const html = tableify(versions);
     const tmpFileName = tempfile('.html');
     console.log(`creating versions html file in ${tmpFileName}`);
-    fs.writeFileSync(tmpFileName,html);
+    fs.writeFileSync(tmpFileName, html);
     const jsonTmpFileName = tempfile('.json');
-    fs.writeJsonSync(jsonTmpFileName,versions);
-    await syncSpawn('kubectl',`delete configmap hkube-versions`);
-    await syncSpawn('kubectl',`create configmap hkube-versions  --from-file=versions.html=${tmpFileName} --from-file=versions.json=${jsonTmpFileName}`);
+    fs.writeJsonSync(jsonTmpFileName, versions);
+    await syncSpawn('kubectl', `delete configmap hkube-versions`);
+    await syncSpawn('kubectl', `create configmap hkube-versions  --from-file=versions.html=${tmpFileName} --from-file=versions.json=${jsonTmpFileName}`);
 }
 const _buildFromSource = async (versions, args) => {
     console.log(`System version: ${versions.systemVersion}`);
@@ -134,7 +138,7 @@ const _applyVersionsCore = async (versions, opts) => {
         if (path.basename(file).startsWith('#')) {
             continue;
         }
-        const { tmpFileName, images } = changeYamlImageVersion(file, versions, coreYamlPath, opts.registry)
+        const { tmpFileName, images } = await changeYamlImageVersion(file, versions, coreYamlPath, opts.registry)
         await syncSpawn('kubectl', `apply -f ${tmpFileName}`);
     }
 
@@ -159,7 +163,7 @@ const _applyVersionsThirdParty = async (versions, opts) => {
                 continue;
             }
 
-            const { tmpFileName, images, waitObjectName } = changeYamlImageVersion(file, null, thirdPartyPath, opts.registry)
+            const { tmpFileName, images, waitObjectName } = await changeYamlImageVersion(file, null, thirdPartyPath, opts.registry)
             await syncSpawn('kubectl', `apply -f ${tmpFileName}`);
             if (waitObjectName) {
                 await kubernetesApi.listenToK8sStatus(waitObjectName, `Running`)
@@ -172,4 +176,6 @@ const _applyVersionsThirdParty = async (versions, opts) => {
     }
 
 }
-module.exports = deploy
+module.exports = {
+    deploy
+}

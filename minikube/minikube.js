@@ -10,10 +10,11 @@ const delay = require('await-delay');
 const colors = require('colors');
 const kubernetesApi = require('./kubernetes-api');
 const jsYaml = require('js-yaml');
-const { getLatestVersions, changeYamlImageVersion } = require('../common/githubHelper');
+const { getLatestVersions } = require('../common/githubHelper');
+const { changeYamlImageVersion } = require('../common/yamlHelpers');
 const { FOLDERS, GIT_PREFIX } = require('./../consts.js');
 const { URL_PATH, YAML_PATH, REGISTRY, GITLAB, MINIKUBE, } = require('./consts-minikube');
-const {getOptionOrDefault} = require('../common/versionUtils')
+const { getOptionOrDefault } = require('../common/versionUtils')
 const Api = require('kubernetes-client');
 let coreYamlPath = YAML_PATH.core;
 let thirdPartyYamlPath = YAML_PATH.thirdParty;
@@ -96,8 +97,8 @@ const startMinikube = async (opts) => {
     if (REGISTRY) {
         args += `--insecure-registry ${REGISTRY} `
     }
-    const kubeVersion = getOptionOrDefault(opts, ['k8s-version'],null);
-    if (kubeVersion){
+    const kubeVersion = getOptionOrDefault(opts, ['k8s-version'], null);
+    if (kubeVersion) {
         args += `--kubernetes-version ${kubeVersion} `
     }
     console.log(`start new minikube with the following args: ${args}`.green);
@@ -198,13 +199,13 @@ const runCore = async (opts) => {
     opts = opts || [];
     const versionPrefix = getOptionOrDefault(opts, [MINIKUBE.apply, MINIKUBE.applyShort]);
     const versions = await getLatestVersions(versionPrefix);
-    fs.readdirSync(coreYamlPath).forEach(file => {
+    fs.readdirSync(coreYamlPath).forEach(async file => {
         if (path.basename(file).startsWith('#')) {
             return;
         }
         // const projectName = path.basename(file,path.extname(file));
         // const version = versions.versions.find(v=>v.project === projectName);
-        const {tmpFileName} = changeYamlImageVersion(file, versions,coreYamlPath)
+        const { tmpFileName } = await changeYamlImageVersion(file, versions, coreYamlPath)
         syncSpawn(`kubectl`, `apply -f ${tmpFileName}`)
     })
 }
