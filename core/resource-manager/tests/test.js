@@ -3,6 +3,10 @@ const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
 const mockery = require('mockery');
+const Logger = require('@hkube/logger');
+const configIt = require('@hkube/config');
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
 const utils = require('../lib/utils/utils');
 const AdapterController = require('../lib/adapters/adapters-controller');
 const MetricsRunner = require('../lib/metrics/metrics-runner');
@@ -13,8 +17,6 @@ const ResourceCounter = require('../lib/resources/resource-counter');
 const intervalRunner = require('../lib/runner/runner');
 const stateManager = require('../lib/state/state-manager');
 const metricsProvider = require('../lib/monitoring/metrics-provider');
-const configIt = require('@hkube/config');
-const { main, logger } = configIt.load();
 
 describe('Test', function () {
     before(async function () {
@@ -29,6 +31,7 @@ describe('Test', function () {
         mockery.registerSubstitute('@hkube/prometheus-client', `${process.cwd()}/tests/mocks/adapters/prometheus-client-mock.js`);
         mockery.registerSubstitute('kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
         mockery.registerSubstitute('../state/state-manager', `${process.cwd()}/tests/mocks/adapters/state-manager.js`);
+
         await stateManager.init(main);
         await metricsProvider.init(main);
         await intervalRunner.init(main);
