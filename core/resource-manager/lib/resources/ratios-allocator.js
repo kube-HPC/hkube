@@ -16,7 +16,7 @@ class AlgorithmRatios {
 
     _calcRatios() {
         const ratioSum = this._algorithms.map(v => v.value).reduce((a, b) => a + b, 0);
-        this._algorithms = this._algorithms.map(v => ({ ...v, ratio: 1 - (v.value / ratioSum) }));
+        this._algorithms = this._algorithms.map(v => ({ ...v, ratio: 1 - (v.value / ratioSum) + 0.001 }));
         const newRatioSum = this._algorithms.map(v => v.ratio).reduce((a, b) => a + b, 0);
         this._algorithms = this._algorithms.map(v => ({ ...v, ratio: (v.ratio / newRatioSum) }));
         this._calcRange();

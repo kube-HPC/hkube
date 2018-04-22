@@ -10,6 +10,37 @@ class TemplatesStoreAdapter extends Adapter {
         stateManager.on('templates-store', () => {
             this.cache.del();
         })
+
+        const defaultTemplates = [
+            {
+                "alg": "green-alg",
+                "data": {
+                    "cpu": 5000,
+                    "mem": 256000
+                }
+            },
+            {
+                "alg": "eval-alg",
+                "data": {
+                    "cpu": 500,
+                    "mem": 256000
+                }
+            },
+            {
+                "alg": "yellow-alg",
+                "data": {
+                    "cpu": 2000,
+                    "mem": 1024000
+                }
+            },
+            {
+                "alg": "black-alg",
+                "data": {
+                    "cpu": 1000,
+                    "mem": 2048000
+                }
+            }
+        ].forEach(t => stateManager.setStoreTemplates(t));
     }
 
     async getData() {

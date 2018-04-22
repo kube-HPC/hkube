@@ -15,6 +15,10 @@ class StateManager extends EventEmitter {
     getStoreTemplates(options) {
         return storeTemplates;
     }
+
+    setStoreTemplates(){
+        
+    }
 }
 
 module.exports = new StateManager();
