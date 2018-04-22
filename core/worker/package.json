@@ -16,16 +16,16 @@
   "license": "ISC",
   "dependencies": {
     "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.42",
+    "@hkube/etcd": "^3.2.46",
     "@hkube/etcd-adapter": "^1.0.4",
     "@hkube/logger": "^1.0.12",
-    "@hkube/metrics": "^1.0.27",
-    "@hkube/producer-consumer": "^1.0.32",
+    "@hkube/metrics": "^1.0.28",
+    "@hkube/producer-consumer": "^1.0.33",
     "@hkube/redis-storage-adapter": "^1.0.1",
     "@hkube/redis-utils": "^1.0.1",
     "@hkube/rest-server": "^1.0.7",
-    "@hkube/s3-adapter": "^1.0.10",
-    "chalk": "^2.3.2",
+    "@hkube/s3-adapter": "^1.0.13",
+    "chalk": "^2.4.0",
     "clone": "^2.1.2",
     "deep-get-set": "^1.1.0",
     "djsv": "^1.4.2",
@@ -44,10 +44,10 @@
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-import": "^2.11.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^3.5.3",
     "sinon": "^3.3.0",
-    "socket.io-client": "^2.0.4"
+    "socket.io-client": "^2.1.0"
   }
 }

@@ -36,7 +36,7 @@ class JobConsumer extends EventEmitter {
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
-        this._storageAdapter = await DatastoreFactory.getAdapter(options);
+        this._storageAdapter = await DatastoreFactory.getAdapter(options, log);
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;
