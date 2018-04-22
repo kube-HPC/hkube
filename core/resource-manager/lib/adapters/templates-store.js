@@ -15,29 +15,29 @@ class TemplatesStoreAdapter extends Adapter {
             {
                 "alg": "green-alg",
                 "data": {
-                    "cpu": 5000,
+                    "cpu": 100,
                     "mem": 256000
                 }
             },
             {
                 "alg": "eval-alg",
                 "data": {
-                    "cpu": 500,
+                    "cpu": 100,
                     "mem": 256000
                 }
             },
             {
                 "alg": "yellow-alg",
                 "data": {
-                    "cpu": 2000,
-                    "mem": 1024000
+                    "cpu": 100,
+                    "mem": 256000
                 }
             },
             {
                 "alg": "black-alg",
                 "data": {
-                    "cpu": 1000,
-                    "mem": 2048000
+                    "cpu": 100,
+                    "mem": 256000
                 }
             }
         ].forEach(t => stateManager.setStoreTemplates(t));
