@@ -378,7 +378,13 @@ class TaskRunner {
         }
         const task = this._nodes.updateTaskState(taskId, options);
         if (options.error) {
-            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName, taskId, algorithmName: task.algorithmName });
+            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, 
+                { 
+                    component: components.TASK_RUNNER,
+                    jobId: this._jobId,
+                    pipelineName: this._pipelineName,
+                    taskId, algorithmName: task.algorithmName 
+                });
         }
         else {
             log.debug(`task ${options.status} ${taskId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName, taskId, algorithmName: task.algorithmName });

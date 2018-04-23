@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.1.2",
+  "version": "1.1.4",
   "description": "pipeline execution based on producer-consumer",
   "main": "app.js",
   "directories": {
@@ -22,7 +22,8 @@
     "djsv": "^3.0.3",
     "graphlib": "^2.1.2",
     "lodash.groupby": "^4.6.0",
-    "lodash.throttle": "^4.1.1"
+    "lodash.throttle": "^4.1.1",
+    "moment": "^2.22.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
