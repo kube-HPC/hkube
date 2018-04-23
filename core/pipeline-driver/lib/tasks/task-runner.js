@@ -255,37 +255,48 @@ class TaskRunner {
 
     _runNode(nodeName, parentOutput, index) {
         const node = this._nodes.getNode(nodeName);
-        const options = {
+        const parse = {
             flowInput: this._pipeline.flowInput,
             nodeInput: node.input,
             parentOutput,
             index
         };
-        const result = parser.parse(options);
+        const result = parser.parse(parse);
+        const paths = this._nodes.extractPaths(nodeName);
+
+        const options = {
+            node,
+            index,
+            paths,
+            input: result.input,
+            storage: result.storage
+        }
         if (index && result.batch) {
-            this._runWaitAnyBatch(node, result.input, index, result.storage);
+            this._runWaitAnyBatch(options);
         }
         else if (index) {
-            this._runWaitAny(node, result.input, index, result.storage);
+            this._runWaitAny(options);
         }
         else if (result.batch) {
-            this._runNodeBatch(node, result.input);
+            this._runNodeBatch(options);
         }
         else {
-            this._runNodeSimple(node, result.input, result.storage);
+            this._runNodeSimple(options);
         }
     }
 
-    _runWaitAny(node, input, index, storage) {
-        const waitNode = this._nodes.getWaitAny(node.nodeName, index);
-        waitNode.input = input;
+    _runWaitAny(options) {
+        const waitNode = this._nodes.getWaitAny(options.node.nodeName, options.index);
+        waitNode.input = options.input;
+        options.node = waitNode;
         this._setTaskState(waitNode.taskId, waitNode);
-        this._createJob(waitNode, storage);
+        this._createJob(options);
     }
 
-    _runWaitAnyBatch(node, input, index, storage) {
-        const waitNode = this._nodes.getWaitAny(node.nodeName, index);
-        input.forEach((inp, ind) => {
+    /// TODO: CHECK THIS
+    _runWaitAnyBatch(options) {
+        const waitNode = this._nodes.getWaitAny(options.node.nodeName, options.index);
+        options.input.forEach((inp, ind) => {
             const batch = new Batch({
                 nodeName: waitNode.nodeName,
                 batchIndex: (ind + 1),
@@ -295,30 +306,30 @@ class TaskRunner {
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch.taskId, batch);
-            this._createJob(batch, storage);
+            this._createJob(batch, options.storage);
         })
     }
 
-    _runNodeSimple(node, input, storage) {
-        this._nodes.setNode(new Node({ ...node, input }));
-        this._setTaskState(node.taskId, node);
-        this._createJob(node, storage);
+    _runNodeSimple(options) {
+        this._nodes.setNode(new Node({ ...options.node, input: options.input }));
+        this._setTaskState(options.node.taskId, options.node);
+        this._createJob(options);
     }
 
-    _runNodeBatch(node, input) {
-        input.forEach((inp, ind) => {
+    _runNodeBatch(options) {
+        options.input.forEach((inp, ind) => {
             const batch = new Batch({
-                nodeName: node.nodeName,
+                nodeName: options.node.nodeName,
                 batchIndex: (ind + 1),
-                algorithmName: node.algorithmName,
+                algorithmName: options.node.algorithmName,
                 input: inp.input,
                 storage: inp.storage,
-                extraData: node.extraData
+                extraData: options.node.extraData
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch.taskId, batch);
         });
-        this._createJob(node);
+        this._createJob(options);
     }
 
     _taskComplete(taskId) {
@@ -376,29 +387,30 @@ class TaskRunner {
         stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
     }
 
-    async _createJob(node, storage) {
+    async _createJob(options) {
         let tasks = [];
-        if (node.batch && node.batch.length > 0) {
-            tasks = node.batch.map(b => ({ taskID: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
+        if (options.node.batch && options.node.batch.length > 0) {
+            tasks = options.node.batch.map(b => ({ taskID: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
         }
         else {
-            tasks.push({ taskID: node.taskId, input: node.input, storage });
+            tasks.push({ taskID: options.node.taskId, input: options.node.input, storage: options.storage });
         }
-        const options = {
-            type: node.algorithmName,
+        const jobOptions = {
+            type: options.node.algorithmName,
             data: {
                 tasks,
                 jobID: this._jobId,
-                nodeName: node.nodeName,
+                nodeName: options.node.nodeName,
                 pipelineName: this._pipelineName,
                 priority: this._pipelinePriority,
-                algorithmName: node.algorithmName,
+                algorithmName: options.node.algorithmName,
                 info: {
-                    extraData: node.extraData
+                    extraData: options.node.extraData,
+                    savePaths: options.paths
                 }
             }
         };
-        await producer.createJob(options);
+        await producer.createJob(jobOptions);
     }
 }
 

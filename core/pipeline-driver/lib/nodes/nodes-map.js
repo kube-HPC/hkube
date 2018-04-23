@@ -109,6 +109,14 @@ class NodesMap extends EventEmitter {
     }
 
     _updateChildNode(task, target) {
+
+        // const node = this._virtualGraph.findByEdge(source, target);
+        // const link = node.links.find(l => l.source === source && l.target === target);
+        // const edges = link.edges.map(e => e.type);
+        // if (edges.includes(consts.relations.WAIT_ANY) || edges.includes(consts.relations.WAIT_ANY_BATCH)) {
+
+        // }
+
         const source = task.nodeName;
         const index = task.batchIndex;
         const bNode = this._actualGraph.findByEdge(source, target);
@@ -172,6 +180,21 @@ class NodesMap extends EventEmitter {
 
     _childs(node) {
         return this._graph.successors(node);
+    }
+
+    extractPaths(nodeName) {
+        const paths = [];
+        const childs = this._childs(nodeName);
+        childs.forEach(c => {
+            const child = this.getNode(c);
+            child.input.forEach(i => {
+                const nodes = parser.extractNodesFromInput(i)
+                    .filter(n => n.nodeName === nodeName)
+                    .map(n => n.path);
+                paths.push(...nodes);
+            })
+        });
+        return paths;
     }
 
     updateCompletedTask(task, checkReadyNodes = true) {
