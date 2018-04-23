@@ -2,6 +2,8 @@ const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
+const etcd = require('../helpers/etcd');
+
 /**
  * normalizes the worker info from discovery
  * input will look like:
@@ -76,12 +78,18 @@ const _createJobs = async (numberOfJobs, jobDetails) => {
     return jobCreateResult;
 };
 
+const _setAlgorithmImage = (template, versions) => {
+    const imageName = template.algorithmImage;
+    const version = versions.versions.find(p => p.project === 'algorunner');
+    return `${imageName}:${version.tag}`;
+};
+
 const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => { // eslint-disable-line object-curly-newline
     const normPods = normalizeWorkers(algorithmPods); // eslint-disable-line no-unused-vars
     const normRequests = normalizeRequests(algorithmRequests);
     const normJobs = normalizeJobs(jobs);
     const createPromises = [];
-    normRequests.forEach((r) => {
+    normRequests.forEach(async (r) => {
         const { algorithmName } = r;
         // find workers currently for this algorithm
         const workersForAlgorithm = normJobs.filter(p => p.algorithmName === algorithmName && p.active);
@@ -94,9 +102,11 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
             // need to add workers
             const numberOfNewJobs = -podDiff;
             log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`);
+            const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName });
+            const algorithmImage = _setAlgorithmImage(algorithmTemplate, versions);
             createPromises.push(_createJobs(numberOfNewJobs, {
                 algorithmName,
-                algorithmImage: `hkube/algorunner:${versions.versions.find(p => p.project === 'algorunner').tag}`,
+                algorithmImage,
                 workerImage: `hkube/worker:${versions.versions.find(p => p.project === 'worker').tag}`
             }));
         }

@@ -11,6 +11,16 @@
             "name": "task-executor",
             "program": "${workspaceFolder}/app.js",
             "outputCapture": "std",
+            "env": {
+                "ALGORITHM_TYPE": "eval-alg",
+                "REDIS_SENTINEL_SERVICE_HOST":"10.233.63.64",
+                "REDIS_SENTINEL_SERVICE_PORT":"26379",
+                "ETCD_CLIENT_SERVICE_HOST":"10.233.7.94",
+                "ETCD_CLIENT_SERVICE_PORT":"2379",
+                "S3_ENDPOINT_URL": "http://10.32.10.24:9000",
+                "AWS_ACCESS_KEY_ID": "agambstorage",
+                "AWS_SECRET_ACCESS_KEY": "234eqndbpuCkGtH85KSyK/xAv3xuqdOpM3fKOLYlrSerpdKoG1FYy3kh6ArceL+yDwTvQOgs47xYO/ktnNzEeg==",
+            }
         }
     ]
 }
