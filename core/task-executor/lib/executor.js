@@ -1,6 +1,8 @@
 const Logger = require('@hkube/logger');
+const { metrics } = require('@hkube/metrics');
 const fs = require('fs');
 const component = require('../common/consts/componentNames').EXECUTOR;
+const { metricsNames } = require('../common/consts/metricsNames');
 const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const reconciler = require('./reconcile/reconciler');
@@ -15,6 +17,17 @@ class Executor {
         if (fs.existsSync(versionsFilePath)) {
             this._versions = JSON.parse(fs.readFileSync(versionsFilePath));
         }
+
+        metrics.removeMeasure(metricsNames.TASK_EXECUTOR_JOB_REQUESTS);
+        this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS] = metrics.addGaugeMeasure({
+            name: metricsNames.TASK_EXECUTOR_JOB_REQUESTS,
+            labels: ['algorithmName']
+        });
+        metrics.removeMeasure(metricsNames.TASK_EXECUTOR_JOB_CURRENT);
+        this[metricsNames.TASK_EXECUTOR_JOB_CURRENT] = metrics.addGaugeMeasure({
+            name: metricsNames.TASK_EXECUTOR_JOB_CURRENT,
+            labels: ['algorithmName']
+        });
         this._startInterval();
     }
 
@@ -31,10 +44,15 @@ class Executor {
         // log.debug(`algorithmRequests: ${JSON.stringify(algorithmRequests, null, 2)}`, { component });
         // log.debug(`algorithmPods: ${JSON.stringify(algorithmPods, null, 2)}`, { component });
         // log.debug(`jobs: ${JSON.stringify(jobs, null, 2)}`, { component });
-        const newConfig = await reconciler.reconcile({
+        const reconcilerResults = await reconciler.reconcile({
             algorithmRequests, algorithmPods, jobs, versions
         });
-        log.debug(`newConfig: ${JSON.stringify(newConfig, null, 2)}`, { component });
+        Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
+            this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
+            this[metricsNames.TASK_EXECUTOR_JOB_CURRENT].set({ value: res.actual, labelValues: { algorithmName } });
+        });
+
+        log.debug(`newConfig: ${JSON.stringify(reconcilerResults, null, 2)}`, { component });
         setTimeout(this._intervalCallback.bind(this), this._intervalMs);
     }
 }

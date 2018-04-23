@@ -89,10 +89,15 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
     const normRequests = normalizeRequests(algorithmRequests);
     const normJobs = normalizeJobs(jobs);
     const createPromises = [];
+    const reconcileResult = {};
     normRequests.forEach(async (r) => {
         const { algorithmName } = r;
         // find workers currently for this algorithm
         const workersForAlgorithm = normJobs.filter(p => p.algorithmName === algorithmName && p.active);
+        reconcileResult[algorithmName] = {
+            required: r.pods,
+            actual: workersForAlgorithm.length
+        };
         const podDiff = workersForAlgorithm.length - r.pods;
         if (podDiff > 0) {
             // need to stop some workers
@@ -112,7 +117,8 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
         }
     });
 
-    return Promise.all(createPromises);
+    await Promise.all(createPromises);
+    return reconcileResult;
 };
 
 module.exports = {
