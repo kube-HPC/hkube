@@ -101,18 +101,20 @@ class JobProducer {
 
     _taskToProducerJob(task) {
         return {
-            id: task.taskId,
-            type: task.algorithmName,
-            data: {
-                jobID: task.jobID,
-                taskID: task.taskId,
-                input: task.taskData.input,
-                storage: task.storage,
-                info: task.info,
-                node: task.nodeName,
-                batchIndex: task.batchPlace,
-                pipelineName: task.pipelineName,
-                //  extraData: node.extraData
+            job: {
+                id: task.taskId,
+                type: task.algorithmName,
+                data: {
+                    jobID: task.jobID,
+                    taskID: task.taskId,
+                    input: task.taskData.input,
+                    storage: task.storage,
+                    info: task.info,
+                    node: task.nodeName,
+                    batchIndex: task.batchPlace,
+                    pipelineName: task.pipelineName,
+                    //  extraData: node.extraData
+                }
             },
             tracing: {
                 parent: task.spanId,
@@ -132,7 +134,7 @@ class JobProducer {
             log.info(`calculated score: ${task.calculated.score}`, { component: componentName.JOBS_PRODUCER });
             this._lastSentJob = task.taskId;
             const job = this._taskToProducerJob(task);
-            return this._producer.createJob({ job });
+            return this._producer.createJob(job);
         }
 
         log.info('queue is empty ', { component: componentName.JOBS_PRODUCER });
