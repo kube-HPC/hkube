@@ -70,7 +70,7 @@ class JobProducer {
     }
     getPendingAmount() {
         return this.bullQueue.getWaitingCount();
-    } 
+    }
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
             log.info(`${Events.WAITING} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.WAITING });
@@ -113,6 +113,13 @@ class JobProducer {
                 batchIndex: task.batchPlace,
                 pipelineName: task.pipelineName,
                 //  extraData: node.extraData
+            },
+            tracing: {
+                parent: task.spanId,
+                tags: {
+                    jobID: task.jobID,
+                    taskID: task.taskId,
+                }
             }
         };
     }
