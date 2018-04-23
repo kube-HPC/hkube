@@ -35,7 +35,7 @@ describe('bootstrap', () => {
         const workers = await etcd.getWorkers({ workerServiceName: 'stub2' });
         expect(workers).to.be.empty;
     });
-    it('should get template store', async () => {
+    xit('should get template store', async () => {
         await Promise.all(Object.keys(templateStoreStub).map(path => etcd._etcd._client.put(path, templateStoreStub[path])));
         const template = await etcd.getAlgorithmTemplate({ algorithmName: 'algo2' });
         expect(template).to.eql(templateStoreStub['/templatesStore/algo2']);
