@@ -27,8 +27,12 @@ class KubernetesApi extends EventEmitter {
         if (!this._isInit){
             await this.init();
         }
-        const res = await this._client.apis.apps.v1.namespaces(this._namespace).deployments(deployment).get();
-        return objectPath.get(res,'body.spec.replicas'); 
+        try {
+            const res = await this._client.apis.apps.v1.namespaces(this._namespace).deployments(deployment).get();
+            return objectPath.get(res,'body.spec.replicas'); 
+        } catch (error) {
+            return null;            
+        }
     }
 }
 
