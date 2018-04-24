@@ -66,7 +66,7 @@ class StoreService {
      * returns defaultResponse
      * */
     async insertPipeline(options) {
-        validator.validateInsertPipeline(options);
+        validator.validateUpdatePipeline(options);
         const pipe = await stateManager.getPipeline(options);
         if (pipe) {
             throw new ResourceExistsError('pipeline', options.name);

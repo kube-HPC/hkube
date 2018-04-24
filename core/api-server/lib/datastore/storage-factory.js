@@ -9,9 +9,9 @@ class StorageFactory {
     }
 
     async setResultsFromStorage(options) {
-        if (options.data.result) {
-            options.data.result = await Promise.all(options.data.result.map(a => this._getStorageItem(a)));
-            options.data.storageModule = this.moduleName;
+        if (options.data) {
+            options.data = await Promise.all(options.data.map(a => this._getStorageItem(a)));
+            options.storageModule = this.moduleName;
         }
     }
 

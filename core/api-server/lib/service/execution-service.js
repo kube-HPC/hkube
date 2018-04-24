@@ -87,7 +87,7 @@ class ExecutionService {
             pipeline.flowInput = { metadata, storageInfo };
         }
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
-        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, data: { status: States.PENDING, level: levels.info.name } });
+        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.info.name });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
         return jobId;
@@ -165,8 +165,8 @@ class ExecutionService {
         if (!jobStatus) {
             throw new ResourceNotFoundError('status', options.jobId);
         }
-        if (stateManager.isActiveState(jobStatus.data.status)) {
-            throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
+        if (stateManager.isActiveState(jobStatus.status)) {
+            throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
         const response = await stateManager.getJobResult({ jobId: options.jobId });
         if (!response) {
@@ -193,10 +193,10 @@ class ExecutionService {
         if (!jobStatus) {
             throw new ResourceNotFoundError('jobId', options.jobId);
         }
-        if (!stateManager.isActiveState(jobStatus.data.status)) {
-            throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.data.status} status`);
+        if (!stateManager.isActiveState(jobStatus.status)) {
+            throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, data: { status: States.STOPPING, level: levels.info.name } });
+        await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, status: States.STOPPING, level: levels.info.name });
         await stateManager.stopJob({ jobId: options.jobId, reason: options.reason });
     }
 

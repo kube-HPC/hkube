@@ -1,5 +1,6 @@
-const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
+const { JobStatus } = require('@hkube/etcd');
+const EventEmitter = require('events');
 const States = require('./States');
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
 
@@ -54,7 +55,7 @@ class StateManager extends EventEmitter {
     }
 
     async getCompletedJobs() {
-        return this._etcd.jobResults.getResultsByFilter(s => (s.status && s.status.data.status === States.COMPLETED) || (s.result && s.result.data.status === States.COMPLETED));
+        return this._etcd.jobResults.getResultsByFilter(s => (s.status && s.status.status === States.COMPLETED) || (s.result && s.result.status === States.COMPLETED));
     }
 
     async setWebhooksResults(options) {
@@ -78,12 +79,7 @@ class StateManager extends EventEmitter {
     }
 
     async setJobStatus(options) {
-        const payload = {
-            timestamp: new Date(),
-            pipeline: options.pipeline,
-            data: options.data
-        };
-        return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: payload });
+        return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: new JobStatus(options) });
     }
 
     async stopJob(options) {

@@ -10,7 +10,7 @@ const routes = () => {
         next();
     });
     router.all('/exec/stored', methods(['POST']), logger(), (req, res, next) => {
-        Execution.runStored(req.body).then((jobId) => {
+        Execution.runStoredInternal(req.body).then((jobId) => {
             res.json({ jobId });
             res.jobId = jobId;
             next();

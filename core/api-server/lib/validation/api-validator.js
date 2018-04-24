@@ -42,15 +42,11 @@ class Validator {
     }
 
     validateUpdatePipeline(pipeline) {
-        this._validate(schemas.updatePipeline, pipeline);
+        this._validate(schemas.pipeline, pipeline);
     }
 
     validateDeletePipeline(pipeline) {
         this._validate(schemas.pipelineName, pipeline);
-    }
-
-    validateInsertPipeline(pipeline) {
-        this._validate(schemas.pipeline, pipeline);
     }
 
     validateGetPipeline(pipeline) {

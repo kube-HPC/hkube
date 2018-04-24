@@ -796,8 +796,8 @@
                     "priority": {
                         "$ref": "#/components/schemas/priority"
                     },
-                    "trigger": {
-                        "$ref": "#/components/schemas/trigger"
+                    "triggers": {
+                        "$ref": "#/components/schemas/triggers"
                     }
                 },
                 "additionalProperties": false,
@@ -862,39 +862,6 @@
                     "name"
                 ]
             },
-            "updatePipeline": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    "nodes": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/pipelineNode"
-                        }
-                    },
-                    "flowInput": {
-                        "type": "object",
-                        "description": "input object"
-                    },
-                    "webhooks": {
-                        "$ref": "#/components/schemas/webhooks"
-                    },
-                    "options": {
-                        "$ref": "#/components/schemas/options"
-                    },
-                    "priority": {
-                        "$ref": "#/components/schemas/priority"
-                    }
-                },
-                "additionalProperties": false,
-                "minProperties": 2,
-                "required": [
-                    "name"
-                ]
-            },
             "webhooks": {
                 "id": "#/components/schemas/webhooks",
                 "type": "object",
@@ -912,8 +879,8 @@
                 },
                 "additionalProperties": false
             },
-            "trigger": {
-                "id": "#/components/schemas/trigger",
+            "triggers": {
+                "id": "#/components/schemas/triggers",
                 "type": "object",
                 "properties": {
                     "pipelines": {
