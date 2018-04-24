@@ -1,9 +1,11 @@
+const log = require('@hkube/logger').GetLogFromContainer();
+
 class StorageFactory {
     async init(config) {
         const storage = config.storageAdapters[config.defaultStorage];
         this.moduleName = storage.moduleName;
         this.adapter = require(storage.moduleName);  // eslint-disable-line
-        await this.adapter.init(storage.connection);
+        await this.adapter.init(storage.connection, log);
     }
 
     async setResultsFromStorage(options) {
