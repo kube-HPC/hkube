@@ -78,10 +78,73 @@ const _createJobs = async (numberOfJobs, jobDetails) => {
     return jobCreateResult;
 };
 
+const _parseImageName = (image) => {
+    const match = image.match(/^(?:([^\/]+)\/)?(?:([^\/]+)\/)?([^@:\/]+)(?:[@:](.+))?$/);
+    if (!match) return null;
+
+    let registry = match[1];
+    let namespace = match[2];
+    const repository = match[3];
+    let tag = match[4];
+
+    if (!namespace && registry && !/[:.]/.test(registry)) {
+        namespace = registry;
+        registry = null;
+    }
+
+    const result = {
+        registry: registry || null,
+        namespace: namespace || null,
+        repository,
+        tag: tag || null
+    };
+
+    registry = registry ? registry + '/' : '';
+    namespace = namespace && namespace !== 'library' ? namespace + '/' : '';
+    tag = tag && tag !== 'latest' ? ':' + tag : '';
+
+    result.name = registry + namespace + repository + tag;
+    result.fullname = registry + (namespace || 'library/') + repository + (tag || ':latest');
+
+    return result;
+};
+
+const _createImageName = ({ registry, namespace, repository, tag }, ignoreTag) => {
+    let array = [registry, namespace, repository];
+    array = array.filter(a => a);
+    let image = array.join('/');
+    if (tag && !ignoreTag) {
+        image = `${image}:${tag}`;
+    }
+    return image;
+};
+
 const _setAlgorithmImage = (template, versions) => {
     const imageName = template.algorithmImage;
-    const version = versions.versions.find(p => p.project === 'algorunner');
-    return `${imageName}:${version.tag}`;
+    const imageParsed = _parseImageName(imageName);
+    if (imageParsed.tag) {
+        return _createImageName(imageParsed);
+    }
+    const version = versions && versions.versions.find(p => p.project === imageParsed.repository);
+    if (version && version.tag) {
+        imageParsed.tag = version.tag;
+    }
+    // return `${imageName}:${version.tag}`;
+    return _createImageName(imageParsed);
+};
+
+const _setWorkerImage = (template, versions) => {
+    const imageName = template.workerImage || 'hkube/worker';
+    const imageParsed = _parseImageName(imageName);
+    if (imageParsed.tag) {
+        return _createImageName(imageParsed);
+    }
+    const version = versions && versions.versions.find(p => p.project === imageParsed.repository);
+    if (version && version.tag) {
+        imageParsed.tag = version.tag;
+    }
+    // return `${imageName}:${version.tag}`;
+    return _createImageName(imageParsed);
 };
 
 const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => { // eslint-disable-line object-curly-newline
@@ -90,7 +153,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
     const normJobs = normalizeJobs(jobs);
     const createPromises = [];
     const reconcileResult = {};
-    normRequests.forEach(async (r) => {
+    for (let r of normRequests) { // eslint-disable-line
         const { algorithmName } = r;
         // find workers currently for this algorithm
         const workersForAlgorithm = normJobs.filter(p => p.algorithmName === algorithmName && p.active);
@@ -109,13 +172,16 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
             log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`);
             const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName });
             const algorithmImage = _setAlgorithmImage(algorithmTemplate, versions);
+            const workerImage = _setWorkerImage(algorithmTemplate, versions);
             createPromises.push(_createJobs(numberOfNewJobs, {
                 algorithmName,
                 algorithmImage,
-                workerImage: `hkube/worker:${versions.versions.find(p => p.project === 'worker').tag}`
+                workerImage
             }));
         }
-    });
+    }
+    // normRequests.forEach(async (r) => {
+    // });
 
     await Promise.all(createPromises);
     return reconcileResult;

@@ -1,7 +1,41 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests } = require('../lib/reconcile/reconciler');
+const mockery = require('mockery');
+const decache = require('decache');
+let normalizeWorkers, normalizeRequests, reconcile;
+// const { mock, callCount } = (require('./mocks/kubernetes.mock')).kubernetes();
+const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes()
+const { log } = require('./mocks/log.mock')
+const etcd = require('../lib/helpers/etcd');
 
 describe('reconciler', () => {
+    before(async () => {
+        mockery.enable({
+            warnOnReplace: false,
+            warnOnUnregistered: false,
+            // useCleanCache: true
+        });
+
+        // mockery.registerMock('@hkube/logger', log);
+        mockery.registerMock('../helpers/kubernetes', mock);
+        const bootstrap = require('../bootstrap');
+
+        await bootstrap.init();
+
+        const reconciler = require('../lib/reconcile/reconciler')
+        normalizeWorkers = reconciler.normalizeWorkers
+        normalizeRequests = reconciler.normalizeRequests;
+        reconcile = reconciler.reconcile;
+
+    });
+    after(() => {
+        mockery.disable();
+        decache('../bootstrap');
+
+    });
+
+    beforeEach(() => {
+        clearCount();
+    });
     describe('normalize workers', () => {
         it('should work with empty worker array', () => {
             const workers = {};
@@ -99,4 +133,68 @@ describe('reconciler', () => {
             });
         });
     });
+
+    describe('reconcile tests', () => {
+
+        it('should work with no params', async () => {
+            const res = await reconcile();
+            expect(res).to.exist
+            expect(res).to.be.empty
+            expect(callCount('createJob')).to.be.undefined
+
+        })
+
+        it('should work with one algo', async () => {
+            const res = await reconcile({
+                algorithmRequests: [{
+                    alg: 'green-alg',
+                    data: {
+                        pods: 1
+                    }
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist
+            expect(res).to.eql({ 'green-alg': { actual: 0, required: 1 } })
+            expect(callCount('createJob').length).to.eql(1)
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
+        })
+
+        it('should work with custom worker', async () => {
+            etcd._etcd.algorithms.templatesStore.setState({
+                alg: 'green-alg', 
+                data: {
+                    algorithmImage: 'hkube/algorithm-example',
+                    workerImage: 'myregistry:5000/stam/myworker:v2'
+                }
+            });
+            const res = await reconcile({
+                algorithmRequests: [{
+                    alg: 'green-alg',
+                    data: {
+                        pods: 1
+                    }
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist
+            expect(res).to.eql({ 'green-alg': { actual: 0, required: 1 } })
+            expect(callCount('createJob').length).to.eql(1)
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('myregistry:5000/stam/myworker:v2');
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
+        })
+    })
 });

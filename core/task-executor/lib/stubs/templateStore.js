@@ -13,10 +13,7 @@ const templateStore = {
     }
 };
 
-const getAlgorithmTemplate = ({ algorithmName }) => {
-    return templateStore[algorithmName];
-};
 
 module.exports = {
-    getAlgorithmTemplate
+    templateStore
 };
