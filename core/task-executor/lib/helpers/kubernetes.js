@@ -10,7 +10,13 @@ class KubernetesApi extends EventEmitter {
         log = Logger.GetLogFromContainer();
         let config;
         if (!k8sOptions.isLocal) {
-            config = kubernetesClient.config.fromKubeconfig();
+            try {
+                config = kubernetesClient.config.fromKubeconfig();
+            } 
+            catch (error) {
+                log.error(`Error initializing kubernetes. error: ${error.message}`, { component }, error);
+                return;
+            }
         }
         else {
             config = kubernetesClient.config.getInCluster();
@@ -36,7 +42,7 @@ class KubernetesApi extends EventEmitter {
             const configMap = await this._client.api.v1.namespaces(this._namespace).configmaps('hkube-versions').get();
             const versions = JSON.parse(configMap.body.data['versions.json']);
             return versions;
-        } 
+        }
         catch (error) {
             log.error(`unable to get configmap. error: ${error.message}`, { component }, error);
             return null;
