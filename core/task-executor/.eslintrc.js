@@ -30,6 +30,11 @@ module.exports = {
         "arrow-body-style": "off",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
-        "chai-friendly/no-unused-expressions": 2
+        "chai-friendly/no-unused-expressions": 2,
+        "object-curly-newline": ["error",{
+            "ObjectExpression": { "minProperties": 4, "multiline": true, "consistent": true },
+            "ObjectPattern":"never",
+            "ImportDeclaration": "never"
+        }]
     }
 };

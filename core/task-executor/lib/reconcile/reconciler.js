@@ -79,7 +79,7 @@ const _createJobs = async (numberOfJobs, jobDetails) => {
 };
 
 const _parseImageName = (image) => {
-    const match = image.match(/^(?:([^\/]+)\/)?(?:([^\/]+)\/)?([^@:\/]+)(?:[@:](.+))?$/);
+    const match = image.match(/^(?:([^/]+)\/)?(?:([^/]+)\/)?([^@:/]+)(?:[@:](.+))?$/);
     if (!match) return null;
 
     let registry = match[1];
@@ -147,7 +147,7 @@ const _setWorkerImage = (template, versions) => {
     return _createImageName(imageParsed);
 };
 
-const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => { // eslint-disable-line object-curly-newline
+const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => { 
     const normPods = normalizeWorkers(algorithmPods); // eslint-disable-line no-unused-vars
     const normRequests = normalizeRequests(algorithmRequests);
     const normJobs = normalizeJobs(jobs);
@@ -170,7 +170,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
             // need to add workers
             const numberOfNewJobs = -podDiff;
             log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`);
-            const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName });
+            const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName }); // eslint-disable-line
             const algorithmImage = _setAlgorithmImage(algorithmTemplate, versions);
             const workerImage = _setWorkerImage(algorithmTemplate, versions);
             createPromises.push(_createJobs(numberOfNewJobs, {
