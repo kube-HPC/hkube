@@ -1,54 +1,55 @@
 {
-  "name": "worker",
-  "version": "1.1.10",
-  "description": "worker process",
-  "main": "index.js",
-  "scripts": {
-    "test": "node_modules/mocha/bin/mocha test",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test",
-    "build": "dockerfile/build.sh worker"
-  },
-  "repository": {
-    "type": "git",
-    "url": "http://yehiyam@greenape.ddns.net/soundFactory/worker.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@hkube/config": "^2.0.0",
-    "@hkube/etcd": "^3.2.46",
-    "@hkube/etcd-adapter": "^1.0.4",
-    "@hkube/logger": "^1.0.12",
-    "@hkube/metrics": "^1.0.28",
-    "@hkube/producer-consumer": "^1.0.33",
-    "@hkube/redis-storage-adapter": "^1.0.1",
-    "@hkube/redis-utils": "^1.0.1",
-    "@hkube/rest-server": "^1.0.7",
-    "@hkube/s3-adapter": "^1.0.13",
-    "chalk": "^2.4.0",
-    "clone": "^2.1.2",
-    "deep-get-set": "^1.1.0",
-    "djsv": "^1.4.2",
-    "express": "^4.16.3",
-    "flat": "^4.0.0",
-    "forward-emitter": "^0.1.1",
-    "javascript-state-machine": "^3.0.1",
-    "kubernetes-client": "^5.2.0",
-    "object-path": "^0.11.4",
-    "socket.io": "^1.7.2",
-    "tail": "^1.2.3",
-    "uuid": "^3.2.1"
-  },
-  "devDependencies": {
-    "chai": "^4.1.2",
-    "coveralls": "^3.0.0",
-    "eslint": "^4.19.1",
-    "eslint-config-airbnb-base": "^12.1.0",
-    "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.11.0",
-    "istanbul": "^1.1.0-alpha.1",
-    "mocha": "^3.5.3",
-    "sinon": "^3.3.0",
-    "socket.io-client": "^2.1.0"
-  }
+    "name": "worker",
+    "version": "1.1.11",
+    "description": "worker process",
+    "main": "index.js",
+    "scripts": {
+        "test": "node_modules/mocha/bin/mocha test",
+        "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test",
+        "build": "dockerfile/build.sh worker"
+    },
+    "repository": {
+        "type": "git",
+        "url": "http://yehiyam@greenape.ddns.net/soundFactory/worker.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@hkube/config": "^2.0.0",
+        "@hkube/etcd": "^3.2.46",
+        "@hkube/etcd-adapter": "^1.0.4",
+        "@hkube/logger": "^1.0.12",
+        "@hkube/metrics": "^1.0.27",
+        "@hkube/parsers": "^1.0.15",
+        "@hkube/producer-consumer": "^1.0.33",
+        "@hkube/redis-storage-adapter": "^1.0.1",
+        "@hkube/redis-utils": "^1.0.1",
+        "@hkube/rest-server": "^1.0.7",
+        "@hkube/s3-adapter": "^1.0.15",
+        "chalk": "^2.4.0",
+        "clone": "^2.1.2",
+        "deep-get-set": "^1.1.0",
+        "djsv": "^1.4.2",
+        "express": "^4.16.3",
+        "flat": "^4.0.0",
+        "forward-emitter": "^0.1.1",
+        "javascript-state-machine": "^3.0.1",
+        "kubernetes-client": "^5.2.0",
+        "object-path": "^0.11.4",
+        "socket.io": "^1.7.2",
+        "tail": "^1.2.3",
+        "uuid": "^3.2.1"
+    },
+    "devDependencies": {
+        "chai": "^4.1.2",
+        "coveralls": "^3.0.0",
+        "eslint": "^4.19.1",
+        "eslint-config-airbnb-base": "^12.1.0",
+        "eslint-plugin-chai-friendly": "^0.4.1",
+        "eslint-plugin-import": "^2.11.0",
+        "istanbul": "^1.1.0-alpha.1",
+        "mocha": "^3.5.3",
+        "sinon": "^3.3.0",
+        "socket.io-client": "^2.1.0"
+    }
 }

@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
@@ -10,7 +11,6 @@ const component = require('../../common/consts/componentNames').CONSUMER;
 const DatastoreFactory = require('../datastore/datastore-factory');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
-
 const { MetadataPlugin } = Logger;
 let log;
 
@@ -271,8 +271,9 @@ class JobConsumer extends EventEmitter {
             const storageInfo = await this._storageAdapter.put({
                 jobId: this._job.data.jobID, taskId: this._job.data.taskID, data
             });
+            const object = { [this._job.data.node]: data };
             storageLink = {
-                metadata: { type: typeof (data), size: Array.isArray(data) ? data.length : 0 },
+                metadata: parser.objectToMetadata(object, this._job.data.info.savePaths),
                 storageInfo
             };
             if (span) {
