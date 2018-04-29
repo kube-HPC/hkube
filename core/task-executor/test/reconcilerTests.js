@@ -1,12 +1,12 @@
 const { expect } = require('chai');
 const mockery = require('mockery');
 const decache = require('decache');
-let normalizeWorkers, normalizeRequests, reconcile;
+let reconciler;
 // const { mock, callCount } = (require('./mocks/kubernetes.mock')).kubernetes();
 const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes()
 const { log } = require('./mocks/log.mock')
 const etcd = require('../lib/helpers/etcd');
-
+const { workersStub, jobsStub } = require('./stub/normalizedStub');
 describe('reconciler', () => {
     before(async () => {
         mockery.enable({
@@ -21,10 +21,7 @@ describe('reconciler', () => {
 
         await bootstrap.init();
 
-        const reconciler = require('../lib/reconcile/reconciler')
-        normalizeWorkers = reconciler.normalizeWorkers
-        normalizeRequests = reconciler.normalizeRequests;
-        reconcile = reconciler.reconcile;
+        reconciler = require('../lib/reconcile/reconciler')
 
     });
     after(() => {
@@ -39,11 +36,11 @@ describe('reconciler', () => {
     describe('normalize workers', () => {
         it('should work with empty worker array', () => {
             const workers = {};
-            const res = normalizeWorkers(workers);
+            const res = reconciler.normalizeWorkers(workers);
             expect(res).to.be.empty;
         });
         it('should work with undefined worker array', () => {
-            const res = normalizeWorkers();
+            const res = reconciler.normalizeWorkers();
             expect(res).to.be.empty;
         });
         it('should return object with ids', () => {
@@ -67,33 +64,36 @@ describe('reconciler', () => {
                     error: null
                 }
             };
-            const res = normalizeWorkers(workers);
+            const res = reconciler.normalizeWorkers(workers);
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
                 id: '62eee6c4-6f35-4a2d-8660-fad6295ab334',
                 algorithmName: 'green-alg',
                 workerStatus: 'ready',
+                podName: undefined
             });
             expect(res).to.deep.include({
                 id: 'id2',
                 algorithmName: 'green-alg',
                 workerStatus: 'not-ready',
+                podName: undefined
             });
             expect(res).to.deep.include({
                 id: 'ae96e6ba-0352-43c4-8862-0e749d2f76c4',
                 algorithmName: 'red-alg',
                 workerStatus: 'notready',
+                podName: undefined
             });
         });
     });
 
     describe('normalize requests', () => {
         it('should work with empty requests array', () => {
-            const res = normalizeRequests([]);
+            const res = reconciler.normalizeRequests([]);
             expect(res).to.be.empty;
         });
         it('should work with undefined requests array', () => {
-            const res = normalizeRequests();
+            const res = reconciler.normalizeRequests();
             expect(res).to.be.empty;
         });
         it('should return object with requests per algorithms', () => {
@@ -117,7 +117,7 @@ describe('reconciler', () => {
                     }
                 }
             ];
-            const res = normalizeRequests(stub);
+            const res = reconciler.normalizeRequests(stub);
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
                 algorithmName: 'black-alg',
@@ -133,11 +133,72 @@ describe('reconciler', () => {
             });
         });
     });
+    describe('merge workers', () => {
+        it('should work with empty items', () => {
+            const merged = reconciler.mergeWorkers([], []);
+            expect(merged.mergedWorkers).to.be.an('array')
+            expect(merged.mergedWorkers).to.be.empty;
+            expect(merged.extraJobs).to.be.an('array');
+            expect(merged.extraJobs).to.be.empty;
+        });
+        it('should keep all workers, and not change with no jobs', () => {
+            const merged = reconciler.mergeWorkers(workersStub, []);
+            expect(merged.mergedWorkers).to.be.an('array')
+            expect(merged.mergedWorkers).to.have.length(workersStub.length);
+            expect(merged.mergedWorkers[0].job).to.not.exist;
+            expect(merged.mergedWorkers[1].job).to.not.exist;
+            expect(merged.extraJobs).to.be.empty;
+            
+        });
+
+        it('should keep all workers, and enrich with one jobs', () => {
+            const merged = reconciler.mergeWorkers(workersStub, jobsStub.slice(0,1));
+            expect(merged.mergedWorkers).to.be.an('array')
+            expect(merged.mergedWorkers).to.have.length(workersStub.length);
+            expect(merged.mergedWorkers[0].job).to.eql(jobsStub[0]);
+            expect(merged.mergedWorkers[1].job).to.not.exist;
+            expect(merged.extraJobs).to.be.empty;
+            
+        });
+        it('should keep all workers, and enrich with all jobs', () => {
+            const merged = reconciler.mergeWorkers(workersStub, jobsStub);
+            expect(merged.mergedWorkers).to.be.an('array')
+            expect(merged.mergedWorkers).to.have.length(workersStub.length);
+            expect(merged.mergedWorkers[0].job).to.eql(jobsStub[0]);
+            expect(merged.mergedWorkers[1].job).to.eql(jobsStub[1]);
+            expect(merged.mergedWorkers[2].job).to.eql(jobsStub[2]);
+            expect(merged.mergedWorkers[3].job).to.eql(jobsStub[3]);
+            expect(merged.extraJobs).to.be.empty;
+            
+        });
+
+        it('should report all jobs as extra jobs', () => {
+            const merged = reconciler.mergeWorkers([], jobsStub);
+            expect(merged.mergedWorkers).to.be.an('array')
+            expect(merged.mergedWorkers).to.be.empty;
+            expect(merged.extraJobs).to.have.length(jobsStub.length);
+            expect(merged.extraJobs[0]).to.eql(jobsStub[0]);
+            expect(merged.extraJobs[1]).to.eql(jobsStub[1]);
+            expect(merged.extraJobs[2]).to.eql(jobsStub[2]);
+            expect(merged.extraJobs[3]).to.eql(jobsStub[3]);
+            
+        });
+        it('should report extra jobs', () => {
+            const merged = reconciler.mergeWorkers(workersStub.slice(0,1), jobsStub);
+            expect(merged.mergedWorkers).to.be.an('array')
+            expect(merged.mergedWorkers).to.have.length(1);
+            expect(merged.extraJobs).to.have.length(3);
+            expect(merged.extraJobs[0]).to.eql(jobsStub[1]);
+            expect(merged.extraJobs[1]).to.eql(jobsStub[2]);
+            expect(merged.extraJobs[2]).to.eql(jobsStub[3]);
+            
+        });
+    });
 
     describe('reconcile tests', () => {
 
         it('should work with no params', async () => {
-            const res = await reconcile();
+            const res = await reconciler.reconcile();
             expect(res).to.exist
             expect(res).to.be.empty
             expect(callCount('createJob')).to.be.undefined
@@ -145,7 +206,7 @@ describe('reconciler', () => {
         })
 
         it('should work with one algo', async () => {
-            const res = await reconcile({
+            const res = await reconciler.reconcile({
                 algorithmRequests: [{
                     alg: 'green-alg',
                     data: {
@@ -169,13 +230,13 @@ describe('reconciler', () => {
 
         it('should work with custom worker', async () => {
             etcd._etcd.algorithms.templatesStore.setState({
-                alg: 'green-alg', 
+                alg: 'green-alg',
                 data: {
                     algorithmImage: 'hkube/algorithm-example',
                     workerImage: 'myregistry:5000/stam/myworker:v2'
                 }
             });
-            const res = await reconcile({
+            const res = await reconciler.reconcile({
                 algorithmRequests: [{
                     alg: 'green-alg',
                     data: {

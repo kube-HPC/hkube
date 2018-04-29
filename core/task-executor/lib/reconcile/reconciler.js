@@ -3,7 +3,7 @@ const log = Logger.GetLogFromContainer();
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
-
+const component = require('../../common/consts/componentNames').RECONCILER;
 /**
  * normalizes the worker info from discovery
  * input will look like:
@@ -45,7 +45,8 @@ const normalizeWorkers = (workers) => {
         return {
             id: workerId,
             algorithmName: v.algorithmName,
-            workerStatus: v.workerStatus
+            workerStatus: v.workerStatus,
+            podName: v.podName
         };
     });
     return workersArray;
@@ -71,8 +72,24 @@ const normalizeJobs = (jobsRaw) => {
     return jobs;
 };
 
+const mergeWorkers = (workers, jobs) => {
+    const foundJobs = [];
+    const mergedWorkers = workers.map((w) => {
+        const jobForWorker = jobs.find(j => w.podName.startsWith(j.name));
+        if (jobForWorker) {
+            foundJobs.push(jobForWorker.name);
+        }
+        return { ...w, job: jobForWorker ? { ...jobForWorker } : undefined };
+    });
+
+    const extraJobs = jobs.filter((job) => {
+        return !foundJobs.find(j => j === job.name);
+    });
+    return { mergedWorkers, extraJobs };
+};
+
 const _createJobs = async (numberOfJobs, jobDetails) => {
-    log.debug(`need to add ${numberOfJobs} jobs with details ${JSON.stringify(jobDetails, null, 2)}`);
+    log.debug(`need to add ${numberOfJobs} jobs with details ${JSON.stringify(jobDetails, null, 2)}`, { component });
     const spec = createJobSpec(jobDetails);
     const jobCreateResult = await kubernetes.createJob({ spec });
     return jobCreateResult;
@@ -147,16 +164,26 @@ const _setWorkerImage = (template, versions) => {
     return _createImageName(imageParsed);
 };
 
-const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => { 
-    const normPods = normalizeWorkers(algorithmPods); // eslint-disable-line no-unused-vars
-    const normRequests = normalizeRequests(algorithmRequests);
+const _idleWorkerFilter = (worker, algorithmName) => {
+    return worker.algorithmName === algorithmName && worker.ready;
+};
+
+const _deleteJobs = (jobs) => {
+    log.debug(`deleting ${jobs.length} dangling jobs`, { component });
+    return jobs.map(j => kubernetes.deleteJob(j.name));
+};
+
+const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => {
+    const normPods = normalizeWorkers(algorithmPods);
     const normJobs = normalizeJobs(jobs);
+    const merged = mergeWorkers(normPods, normJobs);
+    const normRequests = normalizeRequests(algorithmRequests);
     const createPromises = [];
     const reconcileResult = {};
     for (let r of normRequests) { // eslint-disable-line
         const { algorithmName } = r;
         // find workers currently for this algorithm
-        const workersForAlgorithm = normJobs.filter(p => p.algorithmName === algorithmName && p.active);
+        const workersForAlgorithm = merged.mergedWorkers.filter(_idleWorkerFilter);
         reconcileResult[algorithmName] = {
             required: r.pods,
             actual: workersForAlgorithm.length
@@ -169,7 +196,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
         else if (podDiff < 0) {
             // need to add workers
             const numberOfNewJobs = -podDiff;
-            log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`);
+            log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`, { component });
             const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName }); // eslint-disable-line
             const algorithmImage = _setAlgorithmImage(algorithmTemplate, versions);
             const workerImage = _setWorkerImage(algorithmTemplate, versions);
@@ -180,8 +207,10 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
             }));
         }
     }
-    // normRequests.forEach(async (r) => {
-    // });
+    // if (merged.extraJobs) {
+    //     const deletePromises = _deleteJobs(merged.extraJobs);
+    //     deletePromises.forEach(p => createPromises.push(p));
+    // }
 
     await Promise.all(createPromises);
     return reconcileResult;
@@ -191,5 +220,6 @@ module.exports = {
     normalizeWorkers,
     normalizeRequests,
     normalizeJobs,
+    mergeWorkers,
     reconcile,
 };

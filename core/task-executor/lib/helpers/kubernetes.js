@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const kubernetesClient = require('kubernetes-client');
+const objectPath = require('object-path');
 const component = require('../../common/consts/componentNames').K8S;
 let log;
 
@@ -12,7 +13,7 @@ class KubernetesApi extends EventEmitter {
         if (!k8sOptions.isLocal) {
             try {
                 config = kubernetesClient.config.fromKubeconfig();
-            } 
+            }
             catch (error) {
                 log.error(`Error initializing kubernetes. error: ${error.message}`, { component }, error);
                 return;
@@ -27,14 +28,45 @@ class KubernetesApi extends EventEmitter {
     }
 
     async createJob({ spec }) {
-        log.debug(`Creating job ${spec.metadata.name}`);
-        const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs.post({ body: spec });
-        return res;
+        log.debug(`Creating job ${spec.metadata.name}`, { component });
+        try {
+            const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs.post({ body: spec });
+            return res;
+        }
+        catch (error) {
+            log.error(`unable to create job ${spec.metadata.name}. error: ${error.message}`, { component }, error);
+        }
+        return null;
     }
+
+    async deleteJob(jobName) {
+        log.debug(`Deleting job ${jobName}`, { component });
+        try {
+            const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs(jobName).delete();
+            return res;
+        }
+        catch (error) {
+            log.error(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
+        }
+        return null;
+    }
+
     async getWorkerJobs() {
         const jobsRaw = await this._client.apis.batch.v1.namespaces(this._namespace).jobs().get({ qs: { labelSelector: 'type=worker,group=hkube' } });
         // const jobsRaw = await this._client.apis.batch.v1.namespaces(this._namespace).jobs().get();
         return jobsRaw;
+    }
+
+    async getPodsForJob(job) {
+        if (!job) {
+            return [];
+        }
+        const podSelector = objectPath.get(job, 'spec.selector.matchLabels');
+        if (!podSelector) {
+            return [];
+        }
+        const pods = await this._client.api.v1.namespaces(this._namespace).pods().get({qs: {labelSelector: podSelector}});
+        return pods;
     }
 
     async getVersionsConfigMap() {

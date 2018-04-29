@@ -24,10 +24,13 @@ module.exports = {
                     registerCount('createJob', theArgs)
                 },
                 getWorkerJobs: async () => { },
-                getVersionsConfigMap: async () => { }
+                getVersionsConfigMap: async () => { },
+                deleteJob: async (...theArgs) => {
+                    registerCount('deleteJob', theArgs)
+                }
             },
             callCount: (name) => { return callCount[name]; },
-            clearCount: () => { callCount = {} }
+            clearCount: () => { callCount = {} },
         }
     }
 };
