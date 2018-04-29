@@ -33,6 +33,7 @@
     "flat": "^4.0.0",
     "forward-emitter": "^0.1.1",
     "javascript-state-machine": "^3.0.1",
+    "kubernetes-client": "^5.2.0",
     "object-path": "^0.11.4",
     "socket.io": "^1.7.2",
     "tail": "^1.2.3",

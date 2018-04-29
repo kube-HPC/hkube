@@ -40,7 +40,7 @@ const jobConsumerConfig = {
             moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
         }
     },
-    k8s: {
+    kubernetes: {
         pod_name: process.env.POD_NAME || 'tal'
     }
 };

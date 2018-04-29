@@ -102,7 +102,7 @@ class JobConsumer extends EventEmitter {
             pipelineName: this._pipelineName,
             jobData: this._jobData,
             algorithmName: this._options.jobConsumer.job.type,
-            podName: this._options.k8s.pod_name,
+            podName: this._options.kubernetes.pod_name,
             workerStatus,
             jobStatus,
             error

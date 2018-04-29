@@ -13,7 +13,8 @@ const modules = [
     './lib/states/discovery.js',
     './lib/algorunnerCommunication/workerCommunication.js',
     './lib/consumer/JobConsumer.js',
-    './lib/algorunnerLogging/loggingProxy.js'
+    './lib/algorunnerLogging/loggingProxy.js',
+    './lib/helpers/kubernetes.js'
 ];
 
 class Bootstrap {

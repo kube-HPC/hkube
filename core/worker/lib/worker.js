@@ -6,6 +6,7 @@ const Logger = require('@hkube/logger');
 let log;
 const { stateEvents } = require('../common/consts/events');
 const { workerStates } = require('../common/consts/states');
+const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorunnerCommunication/messages');
 const component = require('../common/consts/componentNames').WORKER;
 
@@ -21,6 +22,7 @@ class Worker {
     }
 
     async init(options) {
+        this._options = options;
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
@@ -71,6 +73,14 @@ class Worker {
         });
     }
 
+    async _handleExit() {
+        const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
+        if (jobName) {
+            await kubernetes.deleteJob(jobName);
+        }
+        // process.exit(0);
+    }
+
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
             let pendingTransition = null;
@@ -84,7 +94,7 @@ class Worker {
                     log.info('starting inactive timeout for worker');
                     this._inactiveTimer = setTimeout(() => {
                         log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`);
-                        process.exit(0);
+                        this._handleExit(0);
                     }, this._inactiveTimeoutMs);
                 }
             }
