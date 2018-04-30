@@ -221,15 +221,15 @@ describe('reconciler', () => {
                     }
                 }
             });
-            expect(res).to.exist
-            expect(res).to.eql({ 'green-alg': { actual: 0, required: 1 } })
-            expect(callCount('createJob').length).to.eql(1)
+            expect(res).to.exist;
+            expect(res).to.eql({ 'green-alg': { actual: 0, required: 1 } });
+            expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
-        })
+        });
 
         it('should work with custom worker', async () => {
-            etcd._etcd.algorithms.templatesStore.setState({
+            await etcd._etcd.algorithms.templatesStore.setState({
                 alg: 'green-alg',
                 data: {
                     algorithmImage: 'hkube/algorithm-example',
@@ -251,11 +251,11 @@ describe('reconciler', () => {
                     }
                 }
             });
-            expect(res).to.exist
-            expect(res).to.eql({ 'green-alg': { actual: 0, required: 1 } })
-            expect(callCount('createJob').length).to.eql(1)
+            expect(res).to.exist;
+            expect(res).to.eql({ 'green-alg': { actual: 0, required: 1 } });
+            expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('myregistry:5000/stam/myworker:v2');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
-        })
-    })
+        });
+    });
 });

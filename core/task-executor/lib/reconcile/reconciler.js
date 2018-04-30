@@ -170,11 +170,6 @@ const _idleWorkerFilter = (worker, algorithmName) => {
     return match;
 };
 
-const _deleteJobs = (jobs) => {
-    log.debug(`deleting ${jobs.length} dangling jobs`, { component });
-    return jobs.map(j => kubernetes.deleteJob(j.name));
-};
-
 const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => {
     const normPods = normalizeWorkers(algorithmPods);
     const normJobs = normalizeJobs(jobs);
