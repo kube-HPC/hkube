@@ -96,7 +96,7 @@ class JobConsumer extends EventEmitter {
 
     async updateDiscovery(data) {
         const { workerStatus, jobStatus, error } = this._getStatus(data);
-        await etcd.updateDiscovery({
+        const discoveryInfo = {
             jobID: this._jobID,
             taskID: this._taskID,
             pipelineName: this._pipelineName,
@@ -106,7 +106,8 @@ class JobConsumer extends EventEmitter {
             workerStatus,
             jobStatus,
             error
-        });
+        };
+        await etcd.updateDiscovery(discoveryInfo);
     }
 
     _registerMetrics() {
