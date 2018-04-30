@@ -17,6 +17,7 @@ const jobTemplate = {
                 nodeSelector: {
                     worker: 'true'
                 },
+                serviceAccountName: 'worker-serviceaccount',
                 containers: [
                     {
                         name: 'worker',

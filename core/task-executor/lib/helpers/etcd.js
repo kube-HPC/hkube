@@ -36,7 +36,6 @@ class Etcd extends EventEmitter {
     }
 
     async getAlgorithmTemplate({ algorithmName }) {
-        // return getAlgorithmTemplate({ algorithmName });
         return this._etcd.algorithms.templatesStore.getState({ alg: algorithmName });
     }
 }

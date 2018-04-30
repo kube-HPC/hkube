@@ -75,7 +75,7 @@ const normalizeJobs = (jobsRaw) => {
 const mergeWorkers = (workers, jobs) => {
     const foundJobs = [];
     const mergedWorkers = workers.map((w) => {
-        const jobForWorker = jobs.find(j => w.podName.startsWith(j.name));
+        const jobForWorker = jobs.find(j => w.podName && w.podName.startsWith(j.name));
         if (jobForWorker) {
             foundJobs.push(jobForWorker.name);
         }
@@ -165,7 +165,9 @@ const _setWorkerImage = (template, versions) => {
 };
 
 const _idleWorkerFilter = (worker, algorithmName) => {
-    return worker.algorithmName === algorithmName && worker.ready;
+    const match = worker.algorithmName === algorithmName && (worker.workerStatus === 'ready');
+    // log.info(`_idleWorkerFilter: algorithmName: ${algorithmName}, worker: ${JSON.stringify(worker)}, match: ${match}`);
+    return match;
 };
 
 const _deleteJobs = (jobs) => {
@@ -183,7 +185,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
     for (let r of normRequests) { // eslint-disable-line
         const { algorithmName } = r;
         // find workers currently for this algorithm
-        const workersForAlgorithm = merged.mergedWorkers.filter(_idleWorkerFilter);
+        const workersForAlgorithm = merged.mergedWorkers.filter(w => _idleWorkerFilter(w, algorithmName));
         reconcileResult[algorithmName] = {
             required: r.pods,
             actual: workersForAlgorithm.length
