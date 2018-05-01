@@ -22,7 +22,7 @@
   "homepage": "https://github.com/kube-HPC/task-executor#readme",
   "dependencies": {
     "@hkube/config": "^2.0.1",
-    "@hkube/etcd": "^3.2.43",
+    "@hkube/etcd": "^3.2.47",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.24",
     "@hkube/rest-server": "^1.0.7",

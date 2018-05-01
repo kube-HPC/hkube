@@ -24,6 +24,10 @@ class Etcd extends EventEmitter {
         }));
     }
 
+    sendCommandToWorker({ workerId, command }) {
+        return this._etcd.workers.setState({ workerId, status: { command } });
+    }
+    
     async getWorkers(options = {}) {
         const workerServiceName = options.workerServiceName || this._workerServiceName;
 

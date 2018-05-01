@@ -3,90 +3,9 @@ const log = Logger.GetLogFromContainer();
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
+const { workerCommands, workerStates } = require('../../common/consts/states');
 const component = require('../../common/consts/componentNames').RECONCILER;
-/**
- * normalizes the worker info from discovery
- * input will look like:
- * <code>
- * {
- *  '/discovery/workers/worker-uuid':{
- *      algorithmName,
- *      workerStatus,
- *      jobStatus,
- *      error
- *      },
- *  '/discovery/workers/worker-uuid2':{
- *      algorithmName,
- *      workerStatus,
- *      jobStatus,
- *      error
- *      }
- * }
- * </code>
- * normalized output should be:
- * <code>
- * {
- *   worker-uuid:{
- *     algorithmName,
- *     workerStatus // ready, working
- * 
- *   }
- * }
- * </code>
- * @param {*} workers 
- */
-
-const normalizeWorkers = (workers) => {
-    if (workers == null) {
-        return [];
-    }
-    const workersArray = Object.entries(workers).map(([k, v]) => {
-        const workerId = k.match(/([^/]*)\/*$/)[0];
-        return {
-            id: workerId,
-            algorithmName: v.algorithmName,
-            workerStatus: v.workerStatus,
-            podName: v.podName
-        };
-    });
-    return workersArray;
-};
-
-
-const normalizeRequests = (requests) => {
-    if (requests == null) {
-        return [];
-    }
-    return requests.map(r => ({ algorithmName: r.alg, pods: r.data.pods }));
-};
-
-const normalizeJobs = (jobsRaw) => {
-    if (jobsRaw == null) {
-        return [];
-    }
-    const jobs = jobsRaw.body.items.map(j => ({
-        name: j.metadata.name,
-        algorithmName: j.metadata.labels['algorithm-name'],
-        active: j.status.active === 1
-    }));
-    return jobs;
-};
-
-const mergeWorkers = (workers, jobs) => {
-    const foundJobs = [];
-    const mergedWorkers = workers.map((w) => {
-        const jobForWorker = jobs.find(j => w.podName && w.podName.startsWith(j.name));
-        if (jobForWorker) {
-            foundJobs.push(jobForWorker.name);
-        }
-        return { ...w, job: jobForWorker ? { ...jobForWorker } : undefined };
-    });
-
-    const extraJobs = jobs.filter((job) => {
-        return !foundJobs.find(j => j === job.name);
-    });
-    return { mergedWorkers, extraJobs };
-};
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers } = require('./normalize');
 
 const _createJobs = async (numberOfJobs, jobDetails) => {
     log.debug(`need to add ${numberOfJobs} jobs with details ${JSON.stringify(jobDetails, null, 2)}`, { component });
@@ -146,7 +65,6 @@ const _setAlgorithmImage = (template, versions) => {
     if (version && version.tag) {
         imageParsed.tag = version.tag;
     }
-    // return `${imageName}:${version.tag}`;
     return _createImageName(imageParsed);
 };
 
@@ -170,6 +88,23 @@ const _idleWorkerFilter = (worker, algorithmName) => {
     return match;
 };
 
+const _sendCommandToWorkers = (workers, count, command) => {
+    const promises = workers.slice(0, count).map((w) => {
+        const workerId = w.id;
+        return etcd.sendCommandToWorker({ workerId, command });
+    });
+    return Promise.all(promises);
+};
+
+const _stopWorkers = (workers, count) => {
+    return _sendCommandToWorkers(workers, count, workerCommands.stopProcessing);
+};
+
+const _resumeWorkers = (workers, count) => {
+    return _sendCommandToWorkers(workers, count, workerCommands.startProcessing);
+};
+
+
 const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => {
     const normPods = normalizeWorkers(algorithmPods);
     const normJobs = normalizeJobs(jobs);
@@ -189,6 +124,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
         if (podDiff > 0) {
             // need to stop some workers
             log.debug(`need to stop ${podDiff} pods for algorithm ${algorithmName}`);
+            _stopWorkers(workersForAlgorithm, podDiff);
         }
         else if (podDiff < 0) {
             // need to add workers
@@ -204,19 +140,10 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
             }));
         }
     }
-    // if (merged.extraJobs) {
-    //     const deletePromises = _deleteJobs(merged.extraJobs);
-    //     deletePromises.forEach(p => createPromises.push(p));
-    // }
-
     await Promise.all(createPromises);
     return reconcileResult;
 };
 
 module.exports = {
-    normalizeWorkers,
-    normalizeRequests,
-    normalizeJobs,
-    mergeWorkers,
     reconcile,
 };
