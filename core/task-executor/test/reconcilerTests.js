@@ -73,18 +73,21 @@ describe('reconciler', () => {
                 id: '62eee6c4-6f35-4a2d-8660-fad6295ab334',
                 algorithmName: 'green-alg',
                 workerStatus: 'ready',
+                workerPaused: false,
                 podName: undefined
             });
             expect(res).to.deep.include({
                 id: 'id2',
                 algorithmName: 'green-alg',
                 workerStatus: 'not-ready',
+                workerPaused: false,
                 podName: undefined
             });
             expect(res).to.deep.include({
                 id: 'ae96e6ba-0352-43c4-8862-0e749d2f76c4',
                 algorithmName: 'red-alg',
                 workerStatus: 'notready',
+                workerPaused: false,
                 podName: undefined
             });
         });
@@ -225,7 +228,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'green-alg': { actual: 0, required: 1 } });
+            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
@@ -255,7 +258,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'green-alg': { actual: 0, required: 1 } });
+            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('myregistry:5000/stam/myworker:v2');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
