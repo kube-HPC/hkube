@@ -40,6 +40,7 @@ const normalizeWorkers = (workers) => {
             id: workerId,
             algorithmName: v.algorithmName,
             workerStatus: v.workerStatus,
+            workerPaused: v.workerPaused,
             podName: v.podName
         };
     });

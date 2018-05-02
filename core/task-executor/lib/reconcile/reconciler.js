@@ -3,7 +3,7 @@ const log = Logger.GetLogFromContainer();
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
-const { workerCommands, workerStates } = require('../../common/consts/states');
+const { workerCommands } = require('../../common/consts/states');
 const component = require('../../common/consts/componentNames').RECONCILER;
 const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers } = require('./normalize');
 
@@ -83,25 +83,33 @@ const _setWorkerImage = (template, versions) => {
 };
 
 const _idleWorkerFilter = (worker, algorithmName) => {
-    const match = worker.algorithmName === algorithmName && (worker.workerStatus === 'ready');
+    const match = worker.algorithmName === algorithmName && worker.workerStatus === 'ready' && !worker.workerPaused;
+    // log.info(`_idleWorkerFilter: algorithmName: ${algorithmName}, worker: ${JSON.stringify(worker)}, match: ${match}`);
+    return match;
+};
+const _pausedWorkerFilter = (worker, algorithmName) => {
+    const match = worker.algorithmName === algorithmName && worker.workerStatus === 'ready' && worker.workerPaused;
     // log.info(`_idleWorkerFilter: algorithmName: ${algorithmName}, worker: ${JSON.stringify(worker)}, match: ${match}`);
     return match;
 };
 
-const _sendCommandToWorkers = (workers, count, command) => {
-    const promises = workers.slice(0, count).map((w) => {
+const _stopWorkers = (workers, count) => {
+    // sort workers so paused ones are in front
+    const sorted = workers.slice().sort((a, b) => (b.workerPaused - a.workerPaused));
+    const promises = sorted.slice(0, count).map((w) => {
         const workerId = w.id;
-        return etcd.sendCommandToWorker({ workerId, command });
+        return etcd.sendCommandToWorker({ workerId, command: workerCommands.stopProcessing });
     });
     return Promise.all(promises);
 };
 
-const _stopWorkers = (workers, count) => {
-    return _sendCommandToWorkers(workers, count, workerCommands.stopProcessing);
-};
-
 const _resumeWorkers = (workers, count) => {
-    return _sendCommandToWorkers(workers, count, workerCommands.startProcessing);
+    const sorted = workers.slice().sort((a, b) => (b.workerPaused - a.workerPaused));
+    const promises = sorted.slice(0, count).map((w) => {
+        const workerId = w.id;
+        return etcd.sendCommandToWorker({ workerId, command: workerCommands.startProcessing });
+    });
+    return Promise.all(promises);
 };
 
 
@@ -116,11 +124,23 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
         const { algorithmName } = r;
         // find workers currently for this algorithm
         const workersForAlgorithm = merged.mergedWorkers.filter(w => _idleWorkerFilter(w, algorithmName));
+        const pausedWorkers = merged.mergedWorkers.filter(w => _pausedWorkerFilter(w, algorithmName));
         reconcileResult[algorithmName] = {
             required: r.pods,
-            actual: workersForAlgorithm.length
+            idle: workersForAlgorithm.length,
+            paused: pausedWorkers.length
         };
-        const podDiff = workersForAlgorithm.length - r.pods;
+        let requiredCount = r.pods;
+        if (requiredCount > 0 && pausedWorkers.length > 0) {
+            const canWakeWorkersCount = requiredCount > pausedWorkers.length ? pausedWorkers.length : requiredCount;
+            if (canWakeWorkersCount > 0) {
+                log.debug(`waking up ${canWakeWorkersCount} pods for algorithm ${algorithmName}`, { component });
+                createPromises.push(_resumeWorkers(pausedWorkers, canWakeWorkersCount));
+                requiredCount -= canWakeWorkersCount;
+            }
+        }
+        const podDiff = workersForAlgorithm.length - requiredCount;
+
         if (podDiff > 0) {
             // need to stop some workers
             log.debug(`need to stop ${podDiff} pods for algorithm ${algorithmName}`);
@@ -129,7 +149,9 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
         else if (podDiff < 0) {
             // need to add workers
             const numberOfNewJobs = -podDiff;
+
             log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`, { component });
+
             const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName }); // eslint-disable-line
             const algorithmImage = _setAlgorithmImage(algorithmTemplate, versions);
             const workerImage = _setWorkerImage(algorithmTemplate, versions);

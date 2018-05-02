@@ -49,7 +49,7 @@ class Executor {
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
-            this[metricsNames.TASK_EXECUTOR_JOB_CURRENT].set({ value: res.actual, labelValues: { algorithmName } });
+            this[metricsNames.TASK_EXECUTOR_JOB_CURRENT].set({ value: res.required, labelValues: { algorithmName } });
         });
 
         log.debug(`newConfig: ${JSON.stringify(reconcilerResults, null, 2)}`, { component });
