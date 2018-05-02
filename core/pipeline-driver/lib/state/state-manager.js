@@ -45,6 +45,10 @@ class StateManager extends EventEmitter {
     }
 
     async setJobResults(options) {
+        if (options.data) {
+            // save to storage...
+            // options.data =  // overwrite
+        }
         return this._etcd.jobResults.setResults({ jobId: options.jobId, data: new JobResult(options) });
     }
 
