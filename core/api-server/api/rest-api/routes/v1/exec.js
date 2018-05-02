@@ -57,7 +57,16 @@ const routes = (options) => {
             return next(error);
         });
     });
-
+    router.all('/tree/:jobId?', methods(['GET']), (req, res, next) => {
+        const { jobId } = req.params;
+        Execution.getTree({ jobId }).then((response) => {
+            res.json(response);
+            res.jobId = jobId;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     return router;
 };
 

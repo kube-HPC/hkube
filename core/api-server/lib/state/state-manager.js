@@ -24,6 +24,10 @@ class StateManager extends EventEmitter {
         return this._etcd.execution.getExecution(options);
     }
 
+    async getExecutionsTree(options) {
+        return this._etcd.execution.getExecutionsTree(options);
+    }
+
     async setPipeline(options) {
         return this._etcd.pipelines.setPipeline({ name: options.name, data: options });
     }

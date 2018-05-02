@@ -310,6 +310,68 @@
                 }
             }
         },
+        "/exec/tree/{jobId}": {
+            "get": {
+                "tags": [
+                    "Execution"
+                ],
+                "summary": "pipeline execution tree",
+                "description": "returns a tree of pipelines.",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Unique identifier representing pipeline execution",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "pipeline tree",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/execTreeResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "jobId Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/store/pipelines/{name}": {
             "get": {
                 "tags": [
@@ -806,6 +868,33 @@
                     "nodes"
                 ]
             },
+            "runStoredPipeline": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "batch",
+                        "minLength": 1
+                    },
+                    "flowInput": {
+                        "type": "object",
+                        "description": "input object"
+                    },
+                    "webhooks": {
+                        "$ref": "#/components/schemas/webhooks"
+                    },
+                    "options": {
+                        "$ref": "#/components/schemas/options"
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/priority"
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "name"
+                ]
+            },
             "pipelineNode": {
                 "id": "#/components/schemas/pipelineNode",
                 "type": "object",
@@ -833,33 +922,6 @@
                 "required": [
                     "nodeName",
                     "algorithmName"
-                ]
-            },
-            "runStoredPipeline": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "example": "batch",
-                        "minLength": 1
-                    },
-                    "flowInput": {
-                        "type": "object",
-                        "description": "input object"
-                    },
-                    "webhooks": {
-                        "$ref": "#/components/schemas/webhooks"
-                    },
-                    "options": {
-                        "$ref": "#/components/schemas/options"
-                    },
-                    "priority": {
-                        "$ref": "#/components/schemas/priority"
-                    }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "name"
                 ]
             },
             "webhooks": {
@@ -1006,6 +1068,31 @@
                 "required": [
                     "jobId"
                 ]
+            },
+            "execTreeResult": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/execTreeNode"
+                }
+            },
+            "execTreeNode": {
+                "id": "#/components/schemas/execTreeNode",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Pipeline name"
+                    },
+                    "jobId": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific pipeline"
+                    },
+                    "children": {
+                        "items": {
+                            "$ref": "#/components/schemas/execTreeNode"
+                        }
+                    }
+                }
             },
             "pipelineResult": {
                 "type": "object",

@@ -47,16 +47,16 @@ class ExecutionService {
     }
 
     async runStoredInternal(options) {
-        return this._runStored(options, false);
+        return this._runStored(options, false, [options.parentJobId, options.name].join('.'));
     }
 
-    async _runStored(options, parseFlowInput) {
+    async _runStored(options, parseFlowInput, jobId) {
         const pipe = await stateManager.getPipeline(options);
         if (!pipe) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
         const pipeline = Object.assign({}, pipe, options);
-        return this._run(pipeline, parseFlowInput);
+        return this._run(pipeline, parseFlowInput, jobId);
     }
 
     /**
@@ -67,8 +67,11 @@ class ExecutionService {
      * 
      * @memberOf ExecutionService
      */
-    async _run(pipeline, parseFlowInput) {
-        const jobId = this._createJobID({ name: pipeline.name });
+    async _run(pipeline, parseFlowInput, jobId) {
+        if (!jobId) {
+            jobId = this._createJobID({ name: pipeline.name });
+        }
+
         const span = tracer.startSpan({
             id: jobId,
             name: 'run pipeline',
@@ -200,8 +203,17 @@ class ExecutionService {
         await stateManager.stopJob({ jobId: options.jobId, reason: options.reason });
     }
 
+    async getTree(options) {
+        validator.validateJobID(options);
+        const jobs = await stateManager.getExecutionsTree({ jobId: options.jobId });
+        if (jobs == null) {
+            throw new ResourceNotFoundError('jobs', options.jobId);
+        }
+        return jobs;
+    }
+
     _createJobID(options) {
-        return [options.name, uuidv4()].join(':');
+        return [uuidv4(), options.name].join('.');
     }
 }
 

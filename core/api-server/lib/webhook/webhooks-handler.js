@@ -26,6 +26,7 @@ class WebhooksHandler {
             this._requestResults(response.jobId, response);
 
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
+            // trigger call should be from Trigger Service (testing only)
             if (response.data && pipeline.triggers && pipeline.triggers.pipelines) {
                 const flowInput = response.data.map(r => r.result);
                 pipeline.triggers.pipelines.forEach((p) => {
@@ -34,6 +35,7 @@ class WebhooksHandler {
                         uri: 'http://localhost:3000/internal/v1/exec/stored',
                         body: {
                             name: p,
+                            parentJobId: response.jobId,
                             flowInput
                         },
                         json: true
