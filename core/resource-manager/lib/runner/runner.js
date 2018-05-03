@@ -15,7 +15,7 @@ class Runner {
     }
 
     _run(interval) {
-        log.info(`running with current interval of: ${interval}`, { component });
+        log.info(`running with current interval of: ${interval / 1000} sec`, { component });
         setInterval(async () => {
             if (this._working) {
                 return;
