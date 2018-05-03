@@ -17,12 +17,18 @@ class CronTask {
         const triggers = await storedPipelineListener.getTriggeredPipelineByType(storedPipelineEvents.suffix.CRON);
         triggers.forEach(t => this.addTrigger(t));
     }
-    addTrigger(task) {
+    addTrigger(task, cb = () => {}) {
         log.info(`new cron task with name ${task.name} added with cron ${task.triggers.cron} `, { component: componentName.CRON});
         const job = new CronJob(task.triggers.cron, () => {
-            triggerQueue.addTrigger({name: task.name, flowInput: []}, err => (err ? log.error(`callback sent from trigger-queue with error  ${err}`, { component: componentName.CRON}) : null));
+            triggerQueue.addTrigger({name: task.name, flowInput: [], jobId: 'cron'}, err => {
+                if (err) {
+                    log.error(`callback sent from trigger-queue with error  ${err}`, { component: componentName.CRON});
+                }
+                cb(task.name);
+            });
             log.info(`cron job with ${task.name} Is Executed according to schedule ${task.triggers.cron}`, { component: componentName.CRON});
         }, null, true);
+        
         this.tasks.push({task, job});
     }
     removeTask(pipelineName) {

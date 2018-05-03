@@ -17,13 +17,14 @@ class PipelineProducer {
         const {protocol, host, port} = this.config.apiServer;
         this.apiUrl = `${protocol}://${host}:${port}/${apiServer.suffix}`;
     }
-    async produce(name, flowInput = []) {
+    async produce(name, flowInput = [], jobId) {
         log.info(`try to serd pipeline with name ${name} to api server`, { component: componentName.PIPELINE_PRODUCER});
         request({
             method: 'POST',
             uri: this.apiUrl,
             body: {
                 name,
+                parentJobId: jobId,
                 flowInput
             },
             json: true,

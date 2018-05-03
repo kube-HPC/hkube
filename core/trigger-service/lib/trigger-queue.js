@@ -22,7 +22,7 @@ class TriggerQueue {
 
     async runQueue() {
         this.queue = queue((trigger, callback) => {
-            pipelineProducer.produce(trigger.name, trigger.flowInput).then(() => {
+            pipelineProducer.produce(trigger.name, trigger.flowInput, trigger.jobId).then(() => {
                 log.info(`pipeline ${trigger.name} sent successfully`, { component: componentName.TRIGGER_QUEUE});
                 callback();
             });

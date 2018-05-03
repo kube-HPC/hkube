@@ -10,7 +10,7 @@
     "test": "mocha test --colors --recursive --exit",
     "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test --exit",
     "start": "node app",
-    "build": "./dockerfile/build.sh algorithm-queue"
+    "build": "./dockerfile/build.sh trigger-service"
   },
   "keywords": [
     "hkube",
@@ -27,6 +27,7 @@
     "async": "^2.6.0",
     "await-delay": "^1.0.0",
     "cron": "^1.3.0",
+    "mockery": "^2.1.0",
     "node-cron": "^1.2.1",
     "request": "^2.85.0",
     "requestretry": "^1.13.0"
