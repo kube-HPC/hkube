@@ -30,7 +30,7 @@ class PipelineProducer {
             json: true,
             ...this.retrySettings
         }).then(() => {
-            log.info('pipeline sent to api server  ', { component: componentName.PIPELINE_PRODUCER});
+            log.info(`pipeline with name ${name} sent to api server  `, { component: componentName.PIPELINE_PRODUCER});
         }).catch((err) => {
             log.error(`an error acuured or maxretiries was reached errorMessage:${err} `, { component: componentName.PIPELINE_PRODUCER});
         });

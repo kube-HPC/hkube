@@ -33,7 +33,7 @@ class TriggerQueue {
         log.info(`task added to queue with ${trigger.name}`, { component: componentName.TRIGGER_QUEUE});
         this.queue.push(trigger, (err) => {
             log.info(`pipeline ${trigger.name} sent to api server`, { component: componentName.TRIGGER_QUEUE});
-            cb(err);
+            cb(err, trigger);
         });        
     }
 }

@@ -20,7 +20,7 @@ class CronTask {
     addTrigger(task, cb = () => {}) {
         log.info(`new cron task with name ${task.name} added with cron ${task.triggers.cron} `, { component: componentName.CRON});
         const job = new CronJob(task.triggers.cron, () => {
-            triggerQueue.addTrigger({name: task.name, flowInput: [], jobId: 'cron'}, err => {
+            triggerQueue.addTrigger({name: task.name, flowInput: [], jobId: 'cron'}, (err, res) => {
                 if (err) {
                     log.error(`callback sent from trigger-queue with error  ${err}`, { component: componentName.CRON});
                 }
