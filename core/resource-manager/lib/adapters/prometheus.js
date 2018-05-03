@@ -7,8 +7,8 @@ var median = require('median')
 
 class PrometheusAdapter extends Adapter {
 
-    constructor(settings, options) {
-        super(settings, options);
+    constructor(options) {
+        super(options);
         client.init(options.connection);
     }
 

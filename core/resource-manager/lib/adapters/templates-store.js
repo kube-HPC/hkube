@@ -4,8 +4,8 @@ const stateManager = require('../state/state-manager');
 
 class TemplatesStoreAdapter extends Adapter {
 
-    constructor(settings, options) {
-        super(settings, options);
+    constructor(options) {
+        super(options);
 
         stateManager.on('templates-store', () => {
             this.cache.del();

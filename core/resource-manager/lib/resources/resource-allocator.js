@@ -49,7 +49,7 @@ class ResourceAllocator {
      * @memberOf ResourceAllocator
      */
     results() {
-        return this._resourceCounter.toArray();
+        return this._resourceCounter.results();
     }
 
     _totalResources(data) {

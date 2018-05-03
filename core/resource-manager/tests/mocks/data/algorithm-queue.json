@@ -1,6 +1,7 @@
 [
     {
         "queueName": "black-alg",
+        "datax": [],
         "data": [
             {
                 "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
@@ -486,6 +487,7 @@
     },
     {
         "queueName": "green-alg",
+        "datax": [],
         "data": [
             {
                 "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
@@ -971,6 +973,7 @@
     },
     {
         "queueName": "yellow-alg",
+        "datax": [],
         "data": [
             {
                 "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",

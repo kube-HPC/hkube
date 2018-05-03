@@ -12,7 +12,7 @@ class AdapterController {
     _init(options) {
         options.adapters.forEach(a => {
             const Adapter = require(__dirname + '/' + a.name);
-            this._adapters.push(new Adapter(options, a));
+            this._adapters.push(new Adapter(a));
         });
     }
 

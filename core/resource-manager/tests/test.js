@@ -50,8 +50,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(main);
                 const adapter = adapterController._adapters.find(a => a.name === 'algorithmQueue');
                 const data = await adapter.getData();
-                expect(data.requests).to.be.an('array');
-                expect(data.emptyAlgorithms).to.be.an('array');
+                expect(data).to.be.an('array');
             });
         });
         describe('K8s', function () {
@@ -115,19 +114,94 @@ describe('Test', function () {
             });
         });
         describe('AlgorithmQueue', function () {
+            it('should return weight same as config', async function () {
+                const adapterController = new AdapterController(main);
+                const data = await adapterController.getData();
+                const metricsRunner = new MetricsRunner(main)
+                const metric = metricsRunner._metrics.find(a => a.name === 'algorithm-queue');
+                const metricConfig = main.metrics.find(a => a.name === 'algorithm-queue');
+                expect(metric.weight).to.equal(metricConfig.weight);
+            });
+            it('should calc metric and return results', async function () {
+                const adapterController = new AdapterController(main);
+                const adaptersResults = await adapterController.getData();
+                const metricsRunner = new MetricsRunner(main)
+                const metric = metricsRunner._metrics.find(a => a.name === 'algorithm-queue');
+                const metricResults = metric.calc(adaptersResults);
+                const map = metricResults.map(m => m.name).sort();
+                const algorithms = Object.keys(adaptersResults.templatesStore).sort();
+                expect(metricResults).to.be.an('array');
+                expect(map).to.deep.equal(algorithms);
+            });
         });
         describe('K8s', function () {
+            it('should return weight same as config', async function () {
+                const adapterController = new AdapterController(main);
+                const data = await adapterController.getData();
+                const metricsRunner = new MetricsRunner(main)
+                const metric = metricsRunner._metrics.find(a => a.name === 'k8s');
+                const metricConfig = main.metrics.find(a => a.name === 'k8s');
+                expect(metric.weight).to.equal(metricConfig.weight);
+            });
+            it('should calc metric and return results', async function () {
+                const adapterController = new AdapterController(main);
+                const adaptersResults = await adapterController.getData();
+                const metricsRunner = new MetricsRunner(main)
+                const metric = metricsRunner._metrics.find(a => a.name === 'k8s');
+                const metricResults = metric.calc(adaptersResults);
+                const map = metricResults.map(m => m.name).sort();
+                const algorithms = Object.keys(adaptersResults.templatesStore).sort();
+                expect(metricResults).to.be.an('array');
+            });
         });
         describe('Prometheus', function () {
+            it('should return weight same as config', async function () {
+                const adapterController = new AdapterController(main);
+                const data = await adapterController.getData();
+                const metricsRunner = new MetricsRunner(main)
+                const metric = metricsRunner._metrics.find(a => a.name === 'prometheus');
+                const metricConfig = main.metrics.find(a => a.name === 'prometheus');
+                expect(metric.weight).to.equal(metricConfig.weight);
+            });
+            it('should calc metric and return results', async function () {
+                const adapterController = new AdapterController(main);
+                const adaptersResults = await adapterController.getData();
+                const metricsRunner = new MetricsRunner(main)
+                const metric = metricsRunner._metrics.find(a => a.name === 'prometheus');
+                const metricResults = metric.calc(adaptersResults);
+                const map = metricResults.map(m => m.name).sort();
+                const algorithms = Object.keys(adaptersResults.templatesStore).sort();
+                expect(metricResults).to.be.an('array');
+                expect(map).to.deep.equal(algorithms);
+            });
         });
         describe('TemplatesStore', function () {
+            it('should return weight same as config', async function () {
+                const adapterController = new AdapterController(main);
+                const data = await adapterController.getData();
+                const metricsRunner = new MetricsRunner(main)
+                const metric = metricsRunner._metrics.find(a => a.name === 'templates-store');
+                const metricConfig = main.metrics.find(a => a.name === 'templates-store');
+                expect(metric.weight).to.equal(metricConfig.weight);
+            });
+            it('should calc metric and return results', async function () {
+                const adapterController = new AdapterController(main);
+                const adaptersResults = await adapterController.getData();
+                const metricsRunner = new MetricsRunner(main)
+                const metric = metricsRunner._metrics.find(a => a.name === 'templates-store');
+                const metricResults = metric.calc(adaptersResults);
+                const map = metricResults.map(m => m.name).sort();
+                const algorithms = Object.keys(adaptersResults.templatesStore).sort();
+                expect(metricResults).to.be.an('array');
+                expect(map).to.deep.equal(algorithms);
+            });
         });
     });
     describe('AlgorithmRatios', function () {
         it('should generate random allocations', async function () {
             const adapterController = new AdapterController(main);
             const adaptersResults = await adapterController.getData();
-            const allocations = utils.group(adaptersResults.algorithmQueue.requests, 'name');
+            const allocations = utils.group(adaptersResults.algorithmQueue, 'name');
             const keys = Object.keys(allocations);
             const algorithms = adaptersResults.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));
             const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
@@ -143,17 +217,13 @@ describe('Test', function () {
             const adapterController = new AdapterController(main);
             const adaptersResults = await adapterController.getData();
             const resourceAllocator = new ResourceAllocator({ resourceThresholds: main.resourceThresholds, ...adaptersResults });
-            const algorithms = Object.keys(adaptersResults.templatesStore);
-            resourceAllocator.allocate(algorithms[0]);
-            resourceAllocator.allocate(algorithms[1]);
-            resourceAllocator.allocate(algorithms[2]);
+            const algorithms = Object.keys(adaptersResults.templatesStore).sort();
+            algorithms.forEach((a) => resourceAllocator.allocate(a));
             const results = resourceAllocator.results();
-            expect(results[0].name).to.equal(algorithms[0]);
-            expect(results[1].name).to.equal(algorithms[1]);
-            expect(results[2].name).to.equal(algorithms[2]);
-            expect(results[0].data).to.equal(1);
-            expect(results[1].data).to.equal(1);
-            expect(results[2].data).to.equal(1);
+            const keys = Object.keys(results).sort();
+            const values = Object.values(results).sort();
+            expect(keys).to.deep.equal(algorithms);
+            expect(values).to.deep.equal([1, 1, 1]);
         });
     });
     describe('Monitoring', function () {

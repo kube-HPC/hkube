@@ -13,8 +13,8 @@ class ResourceCounter {
         this._map[algorithm]++;
     }
 
-    toArray() {
-        return utils.mapToArray(this._map, ['name', 'data']);
+    results() {
+        return this._map;
     }
 }
 

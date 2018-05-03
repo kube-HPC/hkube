@@ -23,8 +23,7 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.algorithmQueue.setState(options);
     }
 
-    async setResourceRequirements({ resourceResults, emptyAlgorithms }) {
-        await Promise.all(emptyAlgorithms.map(a => this._etcd.algorithms.resourceRequirements.setState(a)));
+    async setResourceRequirements(resourceResults) {
         return Promise.all(resourceResults.map(a => this._etcd.algorithms.resourceRequirements.setState(a)));
     }
 

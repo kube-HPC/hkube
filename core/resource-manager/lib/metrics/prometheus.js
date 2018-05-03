@@ -1,5 +1,6 @@
 const Metric = require('./Metric');
 const utils = require('../utils/utils');
+const queueUtils = require('../utils/algorithm-queue');
 const AlgorithmRatios = require('../resources/ratios-allocator');
 const ResourceAllocator = require('../resources/resource-allocator');
 
@@ -10,7 +11,8 @@ class PrometheusMetric extends Metric {
     }
 
     calc(options) {
-        const allocations = utils.group(options.algorithmQueue.requests, 'name');
+        let algorithmQueue = queueUtils.order(options.algorithmQueue);
+        const allocations = utils.group(algorithmQueue, 'name');
         const keys = Object.keys(allocations);
         const algorithms = options.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));
         const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
@@ -21,9 +23,8 @@ class PrometheusMetric extends Metric {
         while (algorithm = algorithmGen.next().value) {
             resourceAllocator.allocate(algorithm.name);
         }
-
-        const results = resourceAllocator.results();
-        // console.log(JSON.stringify(results, null, 2));
+        let results = resourceAllocator.results();
+        results = queueUtils.normalize(options.algorithmQueue, results);
         return results;
     }
 }

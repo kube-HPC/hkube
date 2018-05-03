@@ -47,7 +47,7 @@ class Runner {
         const adaptersResults = await this._adapterController.getData();
         const metricsResults = this._metricsRunner.run(adaptersResults);
         const resourceResults = metricsReducer.reduce(metricsResults);
-        await stateManager.setResourceRequirements({ resourceResults, emptyAlgorithms: adaptersResults.algorithmQueue.emptyAlgorithms });
+        await stateManager.setResourceRequirements(resourceResults);
         metricsProvider.setPodsAllocations(resourceResults);
         return resourceResults;
     }
