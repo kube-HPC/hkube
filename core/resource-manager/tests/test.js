@@ -14,8 +14,7 @@ const metricsReducer = require('../lib/metrics/metrics-reducer');
 const AlgorithmRatios = require('../lib/resources/ratios-allocator');
 const ResourceAllocator = require('../lib/resources/resource-allocator');
 const ResourceCounter = require('../lib/resources/resource-counter');
-const intervalRunner = require('../lib/runner/runner');
-const stateManager = require('../lib/state/state-manager');
+let intervalRunner = null;
 const metricsProvider = require('../lib/monitoring/metrics-provider');
 
 describe('Test', function () {
@@ -32,7 +31,7 @@ describe('Test', function () {
         mockery.registerSubstitute('kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
         mockery.registerSubstitute('../state/state-manager', `${process.cwd()}/tests/mocks/adapters/state-manager.js`);
 
-        await stateManager.init(main);
+        intervalRunner = require('../lib/runner/runner');
         await metricsProvider.init(main);
         await intervalRunner.init(main);
     })

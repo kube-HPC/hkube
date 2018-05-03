@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const algorithmQueue = require('../data/algorithm-queue.json');
 const storeTemplates = require('../data/templates-store.json');
 
-class StateManager extends EventEmitter {
+class StateManagerMock extends EventEmitter {
 
     getAlgorithmQueue(options) {
         return algorithmQueue;
@@ -16,9 +16,11 @@ class StateManager extends EventEmitter {
         return storeTemplates;
     }
 
-    setStoreTemplates(){
-        
+    setStoreTemplates() {
+    }
+
+    setResourceRequirements() {
     }
 }
 
-module.exports = new StateManager();
+module.exports = new StateManagerMock();
