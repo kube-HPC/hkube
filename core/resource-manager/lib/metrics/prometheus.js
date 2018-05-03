@@ -10,7 +10,7 @@ class PrometheusMetric extends Metric {
     }
 
     calc(options) {
-        const allocations = utils.group(options.algorithmQueue, 'name');
+        const allocations = utils.group(options.algorithmQueue.requests, 'name');
         const keys = Object.keys(allocations);
         const algorithms = options.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));
         const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });

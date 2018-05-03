@@ -12,7 +12,7 @@ class AlgorithmQueueMetric extends Metric {
 
     calc(options) {
         const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.settings.resourceThresholds, ...options });
-        const algorithmQueue = orderBy(options.algorithmQueue, q => q.score, 'desc');
+        const algorithmQueue = orderBy(options.algorithmQueue.requests, q => q.score, 'desc');
         algorithmQueue.forEach(r => resourceAllocator.allocate(r.name));
         const results = resourceAllocator.results();
         return results;

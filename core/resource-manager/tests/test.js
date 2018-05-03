@@ -50,7 +50,8 @@ describe('Test', function () {
                 const adapterController = new AdapterController(main);
                 const adapter = adapterController._adapters.find(a => a.name === 'algorithmQueue');
                 const data = await adapter.getData();
-                expect(data).to.be.an('array');
+                expect(data.requests).to.be.an('array');
+                expect(data.emptyAlgorithms).to.be.an('array');
             });
         });
         describe('K8s', function () {
@@ -126,7 +127,7 @@ describe('Test', function () {
         it('should generate random allocations', async function () {
             const adapterController = new AdapterController(main);
             const adaptersResults = await adapterController.getData();
-            const allocations = utils.group(adaptersResults.algorithmQueue, 'name');
+            const allocations = utils.group(adaptersResults.algorithmQueue.requests, 'name');
             const keys = Object.keys(allocations);
             const algorithms = adaptersResults.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));
             const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
