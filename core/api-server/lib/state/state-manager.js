@@ -2,6 +2,7 @@ const Etcd = require('@hkube/etcd');
 const { JobStatus } = require('@hkube/etcd');
 const EventEmitter = require('events');
 const States = require('./States');
+const storageFactory = require('../datastore/storage-factory');
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
 
 class StateManager extends EventEmitter {
@@ -55,7 +56,11 @@ class StateManager extends EventEmitter {
     }
 
     async getJobResult(options) {
-        return this._etcd.jobResults.getResults(options);
+        const result = await this._etcd.jobResults.getResults(options);
+        if (result.data) {
+            await storageFactory.getAndReplaceResults(result);
+        }
+        return result;
     }
 
     async getCompletedJobs() {

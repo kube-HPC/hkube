@@ -24,7 +24,7 @@ class WebhooksHandler {
     _watch() {
         stateManager.on('job-result', async (response) => {
             this._requestResults(response.jobId, response);
-
+            await storageFactory.getAndReplaceResults(response);
             const pipeline = await stateManager.getExecution({ jobId: response.jobId });
             // trigger call should be from Trigger Service (testing only)
             if (response.data && pipeline.triggers && pipeline.triggers.pipelines) {
@@ -46,8 +46,8 @@ class WebhooksHandler {
             }
         });
 
-        stateManager.on('job-status', (response) => {
-            this._requestStatus(response.jobId, response);
+        stateManager.on('job-status', (results) => {
+            this._requestStatus(results.jobId, results);
         });
     }
 
@@ -87,7 +87,7 @@ class WebhooksHandler {
             }
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
-            await storageFactory.setResultsFromStorage(payload);
+            await storageFactory.getAndReplaceResults(payload);
             const result = await this._request(pipeline.webhooks.result, payload, 'result', payload.status, jobId);
             stateManager.setWebhooksResults({ jobId, data: result });
         }

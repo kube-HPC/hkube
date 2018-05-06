@@ -15,6 +15,13 @@ class StorageFactory {
         }
     }
 
+    async getAndReplaceResults(options) {
+        if (options.data) {
+            options.data = await this.adapter.getResults({ jobId: options.jobId });
+        }
+        return options;
+    }
+
     async _getStorageItem(options) {
         if (options.result && options.result.storageInfo) {
             const result = await this.adapter.get(options.result.storageInfo);
