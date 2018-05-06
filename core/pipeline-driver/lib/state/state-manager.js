@@ -1,11 +1,14 @@
 const Etcd = require('@hkube/etcd');
 const { JobResult, JobStatus } = require('@hkube/etcd');
 const EventEmitter = require('events');
+const DatastoreFactory = require('../datastore/storage-factory');
 
 class StateManager extends EventEmitter {
-    init({ serviceName, etcd }) {
+    async init(options) {
         this._etcd = new Etcd();
-        this._etcd.init({ etcd, serviceName });
+        this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
+        this._storageAdapter = await DatastoreFactory.getAdapter(options);
+
         //this._etcd.discovery.register({ serviceName });
         this.watchJobState({ jobId: 'hookWatch' });
         this._subscribe();
@@ -46,8 +49,7 @@ class StateManager extends EventEmitter {
 
     async setJobResults(options) {
         if (options.data) {
-            // save to storage...
-            // options.data =  // overwrite
+            options.data = await this._storageAdapter.putResults({ jobId: options.jobId, data: options.data })
         }
         return this._etcd.jobResults.setResults({ jobId: options.jobId, data: new JobResult(options) });
     }
