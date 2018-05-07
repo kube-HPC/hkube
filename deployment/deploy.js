@@ -96,7 +96,7 @@ const _createVersionsConfigMap = async (versions, args) => {
     const jsonTmpFileName = tempfile('.json');
     fs.writeJsonSync(jsonTmpFileName, versions);
     await syncSpawn('kubectl', `delete configmap hkube-versions`);
-    await syncSpawn('kubectl', `create configmap hkube-versions  --from-file=versions.html=${tmpFileName} --from-file=versions.json=${jsonTmpFileName}`);
+    await syncSpawn('kubectl', `create configmap hkube-versions --from-file=versions.html=${tmpFileName} --from-file=versions.json=${jsonTmpFileName}`);
 }
 const _buildFromSource = async (versions, args) => {
     console.log(`System version: ${versions.systemVersion}`);

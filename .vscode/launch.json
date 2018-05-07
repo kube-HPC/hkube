@@ -34,8 +34,8 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "deploy",
-                "--cluster_name=pub",
-                "-t"
+                // "--cluster_name=pub",
+                "-c"
             ]
         },
         {
