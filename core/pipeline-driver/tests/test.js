@@ -61,6 +61,7 @@ describe('Test', function () {
     describe('Consumer', function () {
         describe('ConsumeJob', function () {
             it('should consume a job with properties', async function (done) {
+                this.timeout(5000);
                 const jobId = `jobid-${uuidv4()}`;
                 const data = { test: 'OK' };
                 consumer.on(Events.JOBS.START, async (job) => {
