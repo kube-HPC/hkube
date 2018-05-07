@@ -19,7 +19,7 @@ const cloneRepo = async (repo, tag, localFolder) => {
         return;
     }
     console.log(`cloning ${repoUrl} into ${localFolder}`);
-
+    
     await git().clone(repoUrl, localFolder);
     await git(localFolder).checkout(tag);
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const folder = `${process.env.HOME}/dev/hkube/`
-const git = require('simple-git')(folder);
+const simpleGit = require('simple-git');
 const i = require('npm-i')
 const fs = require('fs');
 const colors = require('colors');
@@ -23,7 +23,7 @@ const pull = async (reposTypes) => {
 const pullInternal = async (reposObj) => {
     let promiseArr = [];
 
-
+    const git = simpleGit(folder);
     let repos = reposObj.repo;
     for (r of repos) {
         let sema = new semaphore();
