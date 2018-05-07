@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { getOptionOrDefault } = require('../common/versionUtils')
 const { getLatestVersions, cloneRepo } = require('../common/githubHelper');
-const {changeYamlImageVersion } = require('../common/yamlHelpers');
+const { changeYamlImageVersion } = require('../common/yamlHelpers');
 const kubernetes = require('../common/kubernetes');
 const { YAML_PATH } = require('./consts');
 const { FOLDERS } = require('./../consts.js');
@@ -43,6 +43,10 @@ const deploy = async (args) => {
         console.error(`Unable to find version ${versionPrefix}`)
         return;
     }
+    const clusterName = args.cluster_name || 'cluster.local';
+    console.log(`Using cluster name: ${clusterName}`);
+    args.cluster_name=clusterName;
+
     kubernetes.init(args.kubernetesOptions);
     await _createVersionsConfigMap(versions, args);
     // clone deployment first to get all yamls
@@ -138,7 +142,7 @@ const _applyVersionsCore = async (versions, opts) => {
         if (path.basename(file).startsWith('#')) {
             continue;
         }
-        const { tmpFileName, images } = await changeYamlImageVersion(file, versions, coreYamlPath, opts.registry)
+        const { tmpFileName, images } = await changeYamlImageVersion(file, versions, coreYamlPath, opts.registry, opts.cluster_name)
         await syncSpawn('kubectl', `apply -f ${tmpFileName}`);
     }
 
@@ -163,7 +167,7 @@ const _applyVersionsThirdParty = async (versions, opts) => {
                 continue;
             }
 
-            const { tmpFileName, images, waitObjectName } = await changeYamlImageVersion(file, null, thirdPartyPath, opts.registry)
+            const { tmpFileName, images, waitObjectName } = await changeYamlImageVersion(file, null, thirdPartyPath, opts.registry,opts.cluster_name)
             await syncSpawn('kubectl', `apply -f ${tmpFileName}`);
             if (waitObjectName) {
                 await kubernetesApi.listenToK8sStatus(waitObjectName, `Running`)

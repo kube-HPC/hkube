@@ -6,7 +6,7 @@ const jsYaml = require('js-yaml')
 const objectPath = require('object-path');
 const kubernetes = require('./kubernetes');
 
-const changeYamlImageVersion = async (yamlFile, versions, coreYamlPath, registry) => {
+const changeYamlImageVersion = async (yamlFile, versions, coreYamlPath, registry, clusterName) => {
     versions = versions || { versions: [] }
     const fullPath = path.isAbsolute(yamlFile) ? yamlFile : `${coreYamlPath}/${yamlFile}`;
     try {
@@ -15,17 +15,17 @@ const changeYamlImageVersion = async (yamlFile, versions, coreYamlPath, registry
         const images = [];
         let waitObjectName;
         for (y of yml) {
-            if (!y){
+            if (!y) {
                 continue;
             }
             if (!waitObjectName && (y.kind === 'Deployment' || y.kind === 'EtcdCluster')) {
                 waitObjectName = y.metadata.name;
             }
-            
-            if (y.kind === 'Deployment'){
-                const replicas = await kubernetes.getDeploymentReplicas({deployment:y.metadata.name});
-                if (replicas){
-                    objectPath.set(y,'spec.replicas',replicas);
+
+            if (y.kind === 'Deployment') {
+                const replicas = await kubernetes.getDeploymentReplicas({ deployment: y.metadata.name });
+                if (replicas) {
+                    objectPath.set(y, 'spec.replicas', replicas);
                 }
             }
             const containers = [];
@@ -41,12 +41,12 @@ const changeYamlImageVersion = async (yamlFile, versions, coreYamlPath, registry
                         image: `${repository}:v${version}`,
                         paths: [
                             {
-                                path:'spec.version',
+                                path: 'spec.version',
                                 value: version
                             },
                             {
-                                path:'spec.repository',
-                                value: createImageName(x,true)
+                                path: 'spec.repository',
+                                value: createImageName(x, true)
                             }
                         ]
                     }
@@ -62,24 +62,31 @@ const changeYamlImageVersion = async (yamlFile, versions, coreYamlPath, registry
                         image,
                         paths: [
                             {
-                                path:'spec.pod.busyboxImage',
+                                path: 'spec.pod.busyboxImage',
                                 value: createImageName(x)
                             }
                         ]
                     }
                     containers.push(container);
                 }
-            } 
+            }
             else {
                 let containersFromYaml = objectPath.get(y, 'spec.template.spec.containers');
-                if (!containersFromYaml){
+                if (!containersFromYaml) {
                     containersFromYaml = objectPath.get(y, 'spec.jobTemplate.spec.template.spec.containers');
                 }
-                if (!containersFromYaml){
+                if (!containersFromYaml) {
                     containersFromYaml = objectPath.get(y, 'spec.containers');
                 }
                 if (containersFromYaml) {
                     containers.push(...containersFromYaml);
+                }
+                if (y.kind === 'StatefulSet' && objectPath.get(y, 'metadata.name') === 'jaeger-cassandra') {
+                    const cassandraContainer = containersFromYaml.find(c=>c.name === 'jaeger-cassandra');
+                    const seedEnv = cassandraContainer && cassandraContainer.env.find(e=>e.name === 'CASSANDRA_SEEDS');
+                    if (seedEnv){
+                        seedEnv.value = `jaeger-cassandra-0.jaeger-cassandra.default.svc.${clusterName}`
+                    }
                 }
             }
             if (containers.length === 0) {
@@ -91,8 +98,8 @@ const changeYamlImageVersion = async (yamlFile, versions, coreYamlPath, registry
                 if (imageParsed.tag && imageParsed.tag !== 'latest') {
                     const x = _.merge(imageParsed, { registry, fullImageName: c.image })
                     if (y.kind === 'EtcdCluster') {
-                        c.paths.forEach(p=>{
-                            objectPath.set(y,p.path,p.value);
+                        c.paths.forEach(p => {
+                            objectPath.set(y, p.path, p.value);
                         })
                     }
                     else {
@@ -115,7 +122,7 @@ const changeYamlImageVersion = async (yamlFile, versions, coreYamlPath, registry
                 console.log(`service ${imageName}. found version ${tag}`)
             })
         }
-        let withVersions = yml.filter(y=>y).map(y => jsYaml.safeDump(y))
+        let withVersions = yml.filter(y => y).map(y => jsYaml.safeDump(y))
         withVersions = withVersions.join('\r\n---\r\n')
         const tmpFileName = tempfile('.yml');
         fs.writeFileSync(tmpFileName, withVersions, 'utf8');
@@ -127,7 +134,7 @@ const changeYamlImageVersion = async (yamlFile, versions, coreYamlPath, registry
     }
 }
 
-const createImageName = ({ registry, namespace, repository, tag },ignoreTag) => {
+const createImageName = ({ registry, namespace, repository, tag }, ignoreTag) => {
     let array = [registry, namespace, repository];
     array = array.filter(a => a);
     let image = array.join('/');

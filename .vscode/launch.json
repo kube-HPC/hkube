@@ -34,7 +34,7 @@
             "program": "${workspaceFolder}/bin/hkube",
             "args": [
                 "deploy",
-                "--semver=v1.0.245",
+                "--cluster_name=pub",
                 "-t"
             ]
         },
