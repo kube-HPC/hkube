@@ -20,12 +20,15 @@ const stateManager = require('../lib/state/state-manager');
 const progress = require('../lib/progress/nodes-progress');
 const NodesMap = require('../lib/nodes/nodes-map');
 const WorkerStub = require('./mocks/worker');
+const DatastoreFactory = require('../lib/datastore/storage-factory');
+
 let taskRunner = null;
 
 describe('Test', function () {
     before(async () => {
         await bootstrap.init();
         taskRunner = require('../lib/tasks/task-runner');
+        const { main, logger } = configIt.load();
     })
     describe('Producer', function () {
         describe('Validation', function () {
@@ -101,6 +104,7 @@ describe('Test', function () {
             return expect(taskRunner._startPipeline(job)).to.eventually.rejectedWith(error.message);
         });
         it('should start pipeline successfully', async function () {
+            this.timeout(5000);
             const jobId = `jobid-${uuidv4()}`;
             const job = {
                 id: jobId,
@@ -728,9 +732,15 @@ describe('Test', function () {
         it('setJobResults', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { result: [1, 2, 3] };
+            const { main, logger } = configIt.load();
+            this._storageAdapter = await DatastoreFactory.getAdapter(main);
+
+            await this._storageAdapter.jobPath({ jobId });
+
             await stateManager.setJobResults({ jobId, data });
-            const response = await stateManager._etcd.jobResults.getResults({ jobId });
-            expect(response.data).to.deep.equal(data);
+            let res = await this._storageAdapter.getResults({ jobId: jobId });
+            //const response = await stateManager._etcd.jobResults.getResults({ jobId });
+            expect(data).to.deep.equal(res);
         });
         it('setJobStatus', async function () {
             const jobId = `jobid-${uuidv4()}`;

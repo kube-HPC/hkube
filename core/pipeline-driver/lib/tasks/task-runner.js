@@ -83,7 +83,7 @@ class TaskRunner {
         this._pipeline = await stateManager.getExecution({ jobId: this._jobId });
 
         if (!this._pipeline) {
-            throw new Error(`unable to find pipeline ${this._jobId}`);
+            throw new Error(`unable to find pipeline ${this._jobId}`); setJobResults
         }
         this._pipelineName = this._pipeline.name;
         this._pipelinePriority = this._pipeline.priority;
@@ -378,12 +378,12 @@ class TaskRunner {
         }
         const task = this._nodes.updateTaskState(taskId, options);
         if (options.error) {
-            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, 
-                { 
+            log.error(`task ${options.status} ${taskId}. error: ${options.error}`,
+                {
                     component: components.TASK_RUNNER,
                     jobId: this._jobId,
                     pipelineName: this._pipelineName,
-                    taskId, algorithmName: task.algorithmName 
+                    taskId, algorithmName: task.algorithmName
                 });
         }
         else {
