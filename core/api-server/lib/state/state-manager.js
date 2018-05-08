@@ -17,31 +17,47 @@ class StateManager extends EventEmitter {
         return ActiveState.includes(state);
     }
 
-    async setExecution(options) {
+    setExecution(options) {
         return this._etcd.execution.setExecution(options);
     }
 
-    async getExecution(options) {
+    getExecution(options) {
         return this._etcd.execution.getExecution(options);
     }
 
-    async getExecutionsTree(options) {
+    getExecutionsTree(options) {
         return this._etcd.execution.getExecutionsTree(options);
     }
 
-    async setPipeline(options) {
+    setAlgorithm(options) {
+        return this._etcd.algorithms.templatesStore.setAlgorithm({ name: options.name, data: options });
+    }
+
+    getAlgorithm(options) {
+        return this._etcd.algorithms.templatesStore.getAlgorithm({ name: options.name });
+    }
+
+    getAlgorithms() {
+        return this._etcd.algorithms.templatesStore.list();
+    }
+
+    deleteAlgorithm(options) {
+        return this._etcd.algorithms.templatesStore.deleteAlgorithm(options);
+    }
+
+    setPipeline(options) {
         return this._etcd.pipelines.setPipeline({ name: options.name, data: options });
     }
 
-    async getPipeline(options) {
+    getPipeline(options) {
         return this._etcd.pipelines.getPipeline({ name: options.name });
     }
 
-    async getPipelines() {
-        return this._etcd.pipelines.getPipelines();
+    getPipelines() {
+        return this._etcd.pipelines.list();
     }
 
-    async deletePipeline(options) {
+    deletePipeline(options) {
         return this._etcd.pipelines.deletePipeline(options);
     }
 
@@ -63,35 +79,35 @@ class StateManager extends EventEmitter {
         return result;
     }
 
-    async getCompletedJobs() {
+    getCompletedJobs() {
         return this._etcd.jobResults.getResultsByFilter(s => (s.status && s.status.status === States.COMPLETED) || (s.result && s.result.status === States.COMPLETED));
     }
 
-    async setWebhooksResults(options) {
+    setWebhooksResults(options) {
         return this._etcd.jobResults.setWebhooksResults(options);
     }
 
-    async setWebhooksStatus(options) {
+    setWebhooksStatus(options) {
         return this._etcd.jobResults.setWebhooksStatus(options);
     }
 
-    async getWebhooksResults(options) {
+    getWebhooksResults(options) {
         return this._etcd.jobResults.getWebhooksResults(options);
     }
 
-    async getWebhooksStatus(options) {
+    getWebhooksStatus(options) {
         return this._etcd.jobResults.getWebhooksStatus(options);
     }
 
-    async getJobStatus(options) {
+    getJobStatus(options) {
         return this._etcd.jobResults.getStatus(options);
     }
 
-    async setJobStatus(options) {
+    setJobStatus(options) {
         return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: new JobStatus(options) });
     }
 
-    async stopJob(options) {
+    stopJob(options) {
         return this._etcd.jobs.stop(options);
     }
 }

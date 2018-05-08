@@ -1,9 +1,12 @@
 
-const pipelines = require('../../lib/examples/pipelines.json');
+const algorithms = require('./algorithms.json');
+const pipelines = require('./pipelines.json');
 const stateManager = require('../../lib/state/state-manager');
 
 class PipelinesUpdater {
     init() {
+        algorithms.map(p => stateManager.setAlgorithm(p));
+
         const host = process.env.WEBHOOK_STUB_UI_SERVICE_HOST || 'localhost';
         const port = process.env.WEBHOOK_STUB_UI_SERVICE_PORT || 3003;
         pipelines.forEach((p) => {

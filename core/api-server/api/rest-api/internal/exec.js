@@ -1,5 +1,5 @@
 const express = require('express');
-const Execution = require('../../../lib/service/execution-service');
+const Execution = require('../../../lib/service/execution');
 const methods = require('../middlewares/methods');
 const logger = require('../middlewares/logger');
 

@@ -372,10 +372,267 @@
                 }
             }
         },
+        "/store/algorithms/{name}": {
+            "get": {
+                "tags": [
+                    "Algorithms"
+                ],
+                "summary": "get specific algorithm from store",
+                "description": "get specific algorithm from store",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "description": "algorithm name to get from the store",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Algorithms"
+                ],
+                "summary": "delete existing algorithm",
+                "description": "delete algorithm pipeline",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "description": "algorithm name to get from the store",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/store/algorithms": {
+            "get": {
+                "tags": [
+                    "Algorithms"
+                ],
+                "summary": "get all algorithms",
+                "description": "get all algorithms",
+                "parameters": [
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "sort by",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Algorithms"
+                ],
+                "summary": "insert new algorithm",
+                "description": "insert new algorithm",
+                "responses": {
+                    "201": {
+                        "description": "algorithm created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "pipeline conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/algorithm"
+                }
+            },
+            "put": {
+                "tags": [
+                    "Algorithms"
+                ],
+                "summary": "update existing algorithm",
+                "description": "update existing algorithm",
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/algorithm"
+                }
+            }
+        },
         "/store/pipelines/{name}": {
             "get": {
                 "tags": [
-                    "Store"
+                    "Pipelines"
                 ],
                 "summary": "get specific pipeline from store",
                 "description": "get specific pipeline from store",
@@ -435,7 +692,7 @@
             },
             "delete": {
                 "tags": [
-                    "Store"
+                    "Pipelines"
                 ],
                 "summary": "delete existing pipeline",
                 "description": "delete existing pipeline",
@@ -497,7 +754,7 @@
         "/store/pipelines": {
             "get": {
                 "tags": [
-                    "Store"
+                    "Pipelines"
                 ],
                 "summary": "get all pipelines",
                 "description": "get all pipelines",
@@ -536,7 +793,7 @@
             },
             "post": {
                 "tags": [
-                    "Store"
+                    "Pipelines"
                 ],
                 "summary": "insert new pipeline",
                 "description": "insert new pipeline",
@@ -588,7 +845,7 @@
             },
             "put": {
                 "tags": [
-                    "Store"
+                    "Pipelines"
                 ],
                 "summary": "update existing pipeline",
                 "description": "update existing pipeline",
@@ -828,6 +1085,17 @@
                 },
                 "description": "pipeline descriptor to be added to the store",
                 "required": true
+            },
+            "algorithm": {
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/algorithm"
+                        }
+                    }
+                },
+                "description": "algorithm descriptor to be added to the store",
+                "required": true
             }
         },
         "schemas": {
@@ -866,6 +1134,34 @@
                 "required": [
                     "name",
                     "nodes"
+                ]
+            },
+            "algorithm": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1
+                    },
+                    "image": {
+                        "type": "string",
+                        "description": "image name as in the docker registry",
+                        "minLength": 1
+                    },
+                    "cpu": {
+                        "type": "integer",
+                        "description": "algorithm cpu"
+                    },
+                    "mem": {
+                        "type": "integer",
+                        "description": "algorithm memory"
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "name",
+                    "image"
                 ]
             },
             "runStoredPipeline": {
@@ -1046,7 +1342,7 @@
                     "result": "{}"
                 }
             },
-            "pipelineName": {
+            "name": {
                 "type": "object",
                 "properties": {
                     "name": {

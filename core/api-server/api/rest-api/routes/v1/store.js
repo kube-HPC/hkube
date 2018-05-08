@@ -1,5 +1,6 @@
 const express = require('express');
-const Store = require('../../../../lib/service/store-service');
+const pipelineStore = require('../../../../lib/service/pipelines');
+const algorithmStore = require('../../../../lib/service/algorithms');
 const logger = require('../../middlewares/logger');
 
 const routes = (options) => {
@@ -8,9 +9,11 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
+
+    // pipelines
     router.get('/pipelines', logger(), (req, res, next) => {
         const { sort } = req.query;
-        Store.getPipelines({ sort }).then((response) => {
+        pipelineStore.getPipelines({ sort }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
@@ -19,7 +22,7 @@ const routes = (options) => {
     });
     router.get('/pipelines/:name', logger(), (req, res, next) => {
         const { name } = req.params;
-        Store.getPipeline({ name }).then((response) => {
+        pipelineStore.getPipeline({ name }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {
@@ -27,7 +30,7 @@ const routes = (options) => {
         });
     });
     router.post('/pipelines', logger(), (req, res, next) => {
-        Store.insertPipeline(req.body).then(() => {
+        pipelineStore.insertPipeline(req.body).then(() => {
             res.status(201).json({ message: 'OK' });
             next();
         }).catch((error) => {
@@ -35,7 +38,7 @@ const routes = (options) => {
         });
     });
     router.put('/pipelines', logger(), (req, res, next) => {
-        Store.updatePipeline(req.body).then(() => {
+        pipelineStore.updatePipeline(req.body).then(() => {
             res.json({ message: 'OK' });
             next();
         }).catch((error) => {
@@ -44,13 +47,60 @@ const routes = (options) => {
     });
     router.delete('/pipelines/:name', logger(), (req, res, next) => {
         const { name } = req.params;
-        Store.deletePipeline({ name }).then(() => {
+        pipelineStore.deletePipeline({ name }).then(() => {
             res.json({ message: 'OK' });
             next();
         }).catch((error) => {
             return next(error);
         });
     });
+    // pipelines
+
+    // algorithms
+    router.get('/algorithms', logger(), (req, res, next) => {
+        const { sort } = req.query;
+        algorithmStore.getAlgorithms({ sort }).then((response) => {
+            res.json(response);
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.get('/algorithms/:name', logger(), (req, res, next) => {
+        const { name } = req.params;
+        algorithmStore.getAlgorithm({ name }).then((response) => {
+            res.json(response);
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.post('/algorithms', logger(), (req, res, next) => {
+        algorithmStore.insertAlgorithm(req.body).then(() => {
+            res.status(201).json({ message: 'OK' });
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.put('/algorithms', logger(), (req, res, next) => {
+        algorithmStore.updateAlgorithm(req.body).then(() => {
+            res.json({ message: 'OK' });
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.delete('/algorithms/:name', logger(), (req, res, next) => {
+        const { name } = req.params;
+        algorithmStore.deleteAlgorithm({ name }).then(() => {
+            res.json({ message: 'OK' });
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    // algorithms
 
     return router;
 };

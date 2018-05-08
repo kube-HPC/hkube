@@ -3,7 +3,7 @@ const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, } = require('../errors/errors');
 
-class StoreService {
+class PipelineStore {
     /**
      * add a pipeline
      * adds the given pipeline to the store.
@@ -30,7 +30,7 @@ class StoreService {
      * returns defaultResponse
      * */
     async deletePipeline(options) {
-        validator.validateDeletePipeline(options);
+        validator.validateName(options);
         const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -46,7 +46,7 @@ class StoreService {
      * returns piplineNamesList
      * */
     async getPipeline(options) {
-        validator.validateGetPipeline(options);
+        validator.validateName(options);
         const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -76,4 +76,4 @@ class StoreService {
     }
 }
 
-module.exports = new StoreService();
+module.exports = new PipelineStore();

@@ -5,6 +5,7 @@ const requestClient = require('request');
 const clone = require('clone');
 const bootstrap = require('../bootstrap');
 const stateManager = require('../lib/state/state-manager');
+const algorithms = require('./mocks/algorithms.json');
 const pipelines = require('./mocks/pipelines.json');
 const triggersTreeExpected = require('./mocks/triggers-tree.json');
 const webhookStub = require('./mocks/webhook-stub');
@@ -29,11 +30,12 @@ function _request(options) {
     });
 }
 
-describe('Test', () => {
+describe('Rest', () => {
     before(async () => {
         config = await bootstrap.init();
         baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
         await Promise.all(pipelines.map(p => stateManager.setPipeline(p)));
+        await Promise.all(algorithms.map(p => stateManager.setAlgorithm(p)));
         webhookStub.start();
     });
     const versions = ['v1', 'v2'];
@@ -502,454 +504,611 @@ describe('Test', () => {
                         const response = await _request(options);
                         expect(response.body).to.deep.equal(triggersTreeExpected);
                     });
-                });
-                it('should failed if jobId not found', async () => {
+                    it('should failed if jobId not found', async () => {
 
-                    const options = {
-                        method: 'GET',
-                        uri: `${restUrl}/exec/tree/${uuidv4()}`
-                    };
-                    const response = await _request(options);
-                    expect(response.response.statusCode).to.deep.equal(404);
-                });
-            });
-        });
-        describe('Store', () => {
-            let restUrl = null;
-            before(() => {
-                restUrl = `${baseUrl}/${config.rest.prefix}/${v}`;
-            });
-            describe('/store/pipelines:name GET', () => {
-                it('should throw error pipeline not found', async () => {
-                    const options = {
-                        uri: restUrl + '/store/pipelines/not_exists',
-                        method: 'GET'
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(404);
-                    expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
-                });
-                it('should return specific pipeline', async () => {
-                    const options = {
-                        uri: restUrl + '/store/pipelines/flow1',
-                        method: 'GET'
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.deep.equal(pipelines[0]);
-                });
-            });
-            describe('/store/pipelines:name DELETE', () => {
-                it('should throw error pipeline not found', async () => {
-                    const options = {
-                        uri: restUrl + '/store/pipelines/not_exists',
-                        method: 'DELETE',
-                        body: {}
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(404);
-                    expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
-                });
-                it('should delete specific pipeline', async () => {
-                    const pipeline = clone(pipelines[0]);
-                    const optionsInsert = {
-                        uri: restUrl + '/store/pipelines',
-                        method: 'POST',
-                        body: pipeline
-                    };
-                    await _request(optionsInsert);
-
-                    const options = {
-                        uri: restUrl + '/store/pipelines/' + pipeline.name,
-                        method: 'DELETE',
-                        body: {}
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('message');
-                    expect(response.body.message).to.equal('OK');
-                });
-            });
-            describe('/store/pipelines GET', () => {
-                it('should throw validation error of required property jobId', async () => {
-                    const options = {
-                        uri: restUrl + '/store/pipelines',
-                        method: 'GET'
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.be.an('array');
-                });
-            });
-            describe('/store/pipelines POST', () => {
-                it('should throw validation error of required property name', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {}
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'name'");
-                });
-                it('should throw validation error of data.name should be string', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: {}
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data.name should be string');
-                });
-                it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: ''
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
-                });
-                it('should throw validation error of required property nodes', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string'
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data should have required property 'nodes'");
-                });
-                it('should throw validation error of required property nodes.nodeName', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    algorithmName: 'green-alg',
-                                    input: [
-                                        {}
-                                    ]
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'nodeName'");
-                });
-                it('should throw validation error of required property nodes.algorithmName', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    input: [
-                                        {}
-                                    ]
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
-                });
-                it('should throw validation error of nodes.input should be array', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: null
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                });
-                it('should throw validation error of data should NOT have additional properties', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/store/pipelines',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            additionalProps: {
-                                bla: 60,
-                                blabla: 'info'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data should NOT have additional properties');
-                });
-                it('should throw conflict error', async () => {
-                    const pipeline = clone(pipelines[0]);
-                    pipeline.name = 'flow1';
-                    const options = {
-                        uri: restUrl + '/store/pipelines',
-                        method: 'POST',
-                        body: pipeline
-                    };
-                    await _request(options);
-                    const response = await _request(options);
-                    expect(response.response.statusCode).to.equal(409);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.message).to.equal('pipeline flow1 already exists');
-                });
-                it('should throw validation error of duplicate node', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'dup',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                },
-                                {
-                                    nodeName: 'dup',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('found duplicate node dup');
-                });
-                it('should throw validation error of invalid reserved name flowInput', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'reservedName',
-                            nodes: [
-                                {
-                                    nodeName: 'flowInput',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ]
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
-                });
-                it('should throw validation error of node depend on not exists node', async () => {
-                    const pipeline = pipelines.find(p => p.name === 'NodeNotExists');
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: pipeline
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
-                });
-                it('should throw validation error of cyclic nodes', async () => {
-                    const pipeline = pipelines.find(p => p.name === 'cyclicNodes');
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: pipeline
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('pipeline cyclicNodes has cyclic nodes');
-                });
-                it('should throw validation error of flowInput not exist', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'flowInputPipeline',
-                            nodes: [
-                                {
-                                    nodeName: 'A',
-                                    algorithmName: 'green-alg',
-                                    input: ['@flowInput.notExist']
-                                }
-                            ],
-                            flowInput: {}
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
-                });
-                it('should succeed to store pipeline', async () => {
-                    const pipeline = clone(pipelines[0]);
-                    pipeline.name = uuidv4();
-                    const options = {
-                        uri: restUrl + '/store/pipelines',
-                        method: 'POST',
-                        body: pipeline
-                    };
-                    const response = await _request(options);
-                    expect(response.response.statusCode).to.equal(201);
-                    expect(response.body).to.have.property('message');
-                    expect(response.body.message).to.equal('OK');
-                });
-            });
-            describe('/store/pipelines PUT', () => {
-                it('should throw validation error of required property jobId', async () => {
-                    const options = {
-                        uri: restUrl + '/store/pipelines',
-                        method: 'PUT',
-                        body: pipelines[0]
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('message');
-                    expect(response.body.message).to.equal('OK');
-                });
-            });
-        });
-        describe('Webhooks', () => {
-            describe('Results', () => {
-            });
-            describe('Progress', () => {
-                let restUrl = null;
-                before(() => {
-                    restUrl = `${baseUrl}/${config.rest.prefix}/${v}`;
-                });
-                it('should succeed to post a webhook', async () => {
-                    let jobId = null;
-                    webhookStub.on('progress', async (request) => {
-                        if (request.body.jobId === jobId) {
-                            expect(request.body).to.have.property('data');
-                            expect(request.body).to.have.property('jobId');
-                            expect(request.body).to.have.property('timestamp');
-
-                            const status = {
-                                uri: restUrl + `/ exec / status / ${jobId} `,
-                                method: 'GET'
-                            };
-                            const responseStatus = await _request(status);
-                            expect(request.body).to.deep.equal(responseStatus.body);
-                        }
+                        const options = {
+                            method: 'GET',
+                            uri: `${restUrl}/exec/tree/${uuidv4()}`
+                        };
+                        const response = await _request(options);
+                        expect(response.response.statusCode).to.deep.equal(404);
                     });
-                    const stored = {
-                        uri: restUrl + '/exec/stored',
-                        body: { name: 'webhookFlow' }
-                    };
-                    const response = await _request(stored);
-                    jobId = response.body.jobId; // eslint-disable-line
                 });
-                it('should throw webhooks validation error of should match format "url', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                progress: 'not_a_url'
-                            }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data.webhooks.progress should match format "url"');
+            });
+            describe('Store/Algorithms', () => {
+                describe('/store/algorithms:name GET', () => {
+                    it('should throw error algorithm not found', async () => {
+                        const options = {
+                            uri: restUrl + '/store/algorithms/not_exists',
+                            method: 'GET'
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
+                    });
+                    it('should return specific algorithm', async () => {
+                        const options = {
+                            uri: restUrl + '/store/algorithms/' + algorithms[0].name,
+                            method: 'GET'
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.deep.equal(algorithms[0]);
+                    });
                 });
-                it('should throw webhooks validation error of NOT have additional properties', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                progress2: 'http://localhost'
+                describe('/store/algorithms:name DELETE', () => {
+                    it('should throw error algorithm not found', async () => {
+                        const options = {
+                            uri: restUrl + '/store/algorithms/not_exists',
+                            method: 'DELETE',
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
+                    });
+                    it('should delete specific algorithm', async () => {
+                        const optionsInsert = {
+                            uri: restUrl + '/store/algorithms',
+                            method: 'POST',
+                            body: {
+                                name: "delete",
+                                image: "image"
                             }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('error');
-                    expect(response.body.error.code).to.equal(400);
-                    expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
+                        };
+                        await _request(optionsInsert);
+
+                        const options = {
+                            uri: restUrl + '/store/algorithms/delete',
+                            method: 'DELETE',
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('message');
+                        expect(response.body.message).to.equal('OK');
+                    });
                 });
-                it('should throw webhooks validation error', async () => {
-                    const options = {
-                        method: 'POST',
-                        uri: restUrl + '/exec/raw',
-                        body: {
-                            name: 'string',
-                            nodes: [
-                                {
-                                    nodeName: 'string',
-                                    algorithmName: 'green-alg',
-                                    input: []
-                                }
-                            ],
-                            webhooks: {
-                                progress: 'http://localhost'
+                describe('/store/algorithms GET', () => {
+                    it('should throw validation error of required property jobId', async () => {
+                        const options = {
+                            uri: restUrl + '/store/algorithms',
+                            method: 'GET'
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.be.an('array');
+                    });
+                });
+                describe('/store/algorithms POST', () => {
+                    it('should throw validation error of required property name', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/algorithms',
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("data should have required property 'name'");
+                    });
+                    it('should throw validation error of data.name should be string', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/algorithms',
+                            body: {
+                                name: {}
                             }
-                        }
-                    };
-                    const response = await _request(options);
-                    expect(response.body).to.have.property('jobId');
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.name should be string');
+                    });
+                    it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/algorithms',
+                            body: {
+                                name: ''
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
+                    });
+                    it('should throw validation error of data should NOT have additional properties', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/algorithms',
+                            body: {
+                                name: 'string',
+                                additionalProps: {
+                                    bla: 'bla'
+                                }
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data should NOT have additional properties');
+                    });
+                    it('should throw conflict error', async () => {
+                        const options = {
+                            uri: restUrl + '/store/algorithms',
+                            method: 'POST',
+                            body: {
+                                name: "conflict",
+                                image: "image"
+                            }
+                        };
+                        await _request(options);
+                        const response = await _request(options);
+                        expect(response.response.statusCode).to.equal(409);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.message).to.equal('algorithm conflict already exists');
+                    });
+                    it('should succeed to store algorithm', async () => {
+                        const options = {
+                            uri: restUrl + '/store/algorithms',
+                            method: 'POST',
+                            body: {
+                                name: uuidv4(),
+                                image: "image"
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.response.statusCode).to.equal(201);
+                        expect(response.body).to.have.property('message');
+                        expect(response.body.message).to.equal('OK');
+                    });
+                });
+                describe('/store/algorithms PUT', () => {
+                    it('should succeed to update algorithm', async () => {
+                        const options = {
+                            uri: restUrl + '/store/algorithms',
+                            method: 'PUT',
+                            body: algorithms[0]
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('message');
+                        expect(response.body.message).to.equal('OK');
+                    });
+                });
+            });
+            describe('Store/Pipelines', () => {
+                describe('/store/pipelines:name GET', () => {
+                    it('should throw error pipeline not found', async () => {
+                        const options = {
+                            uri: restUrl + '/store/pipelines/not_exists',
+                            method: 'GET'
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
+                    });
+                    it('should return specific pipeline', async () => {
+                        const options = {
+                            uri: restUrl + '/store/pipelines/flow1',
+                            method: 'GET'
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.deep.equal(pipelines[0]);
+                    });
+                });
+                describe('/store/pipelines:name DELETE', () => {
+                    it('should throw error pipeline not found', async () => {
+                        const options = {
+                            uri: restUrl + '/store/pipelines/not_exists',
+                            method: 'DELETE',
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
+                    });
+                    it('should delete specific pipeline', async () => {
+                        const pipeline = clone(pipelines[0]);
+                        const optionsInsert = {
+                            uri: restUrl + '/store/pipelines',
+                            method: 'POST',
+                            body: pipeline
+                        };
+                        await _request(optionsInsert);
+
+                        const options = {
+                            uri: restUrl + '/store/pipelines/' + pipeline.name,
+                            method: 'DELETE',
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('message');
+                        expect(response.body.message).to.equal('OK');
+                    });
+                });
+                describe('/store/pipelines GET', () => {
+                    it('should throw validation error of required property jobId', async () => {
+                        const options = {
+                            uri: restUrl + '/store/pipelines',
+                            method: 'GET'
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.be.an('array');
+                    });
+                });
+                describe('/store/pipelines POST', () => {
+                    it('should throw validation error of required property name', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("data should have required property 'name'");
+                    });
+                    it('should throw validation error of data.name should be string', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: {
+                                name: {}
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.name should be string');
+                    });
+                    it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: {
+                                name: ''
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
+                    });
+                    it('should throw validation error of required property nodes', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: {
+                                name: 'string'
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("data should have required property 'nodes'");
+                    });
+                    it('should throw validation error of required property nodes.nodeName', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        algorithmName: 'green-alg',
+                                        input: [
+                                            {}
+                                        ]
+                                    }
+                                ]
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'nodeName'");
+                    });
+                    it('should throw validation error of required property nodes.algorithmName', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        input: [
+                                            {}
+                                        ]
+                                    }
+                                ]
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
+                    });
+                    it('should throw validation error of nodes.input should be array', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: null
+                                    }
+                                ]
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                    });
+                    it('should throw validation error of data should NOT have additional properties', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ],
+                                additionalProps: {
+                                    bla: 60,
+                                    blabla: 'info'
+                                }
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data should NOT have additional properties');
+                    });
+                    it('should throw conflict error', async () => {
+                        const pipeline = clone(pipelines[0]);
+                        pipeline.name = 'flow1';
+                        const options = {
+                            uri: restUrl + '/store/pipelines',
+                            method: 'POST',
+                            body: pipeline
+                        };
+                        await _request(options);
+                        const response = await _request(options);
+                        expect(response.response.statusCode).to.equal(409);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.message).to.equal('pipeline flow1 already exists');
+                    });
+                    it('should throw validation error of duplicate node', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'dup',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    },
+                                    {
+                                        nodeName: 'dup',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ]
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('found duplicate node dup');
+                    });
+                    it('should throw validation error of invalid reserved name flowInput', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'reservedName',
+                                nodes: [
+                                    {
+                                        nodeName: 'flowInput',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ]
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
+                    });
+                    it('should throw validation error of node depend on not exists node', async () => {
+                        const pipeline = pipelines.find(p => p.name === 'NodeNotExists');
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: pipeline
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
+                    });
+                    it('should throw validation error of cyclic nodes', async () => {
+                        const pipeline = pipelines.find(p => p.name === 'cyclicNodes');
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: pipeline
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('pipeline cyclicNodes has cyclic nodes');
+                    });
+                    it('should throw validation error of flowInput not exist', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'flowInputPipeline',
+                                nodes: [
+                                    {
+                                        nodeName: 'A',
+                                        algorithmName: 'green-alg',
+                                        input: ['@flowInput.notExist']
+                                    }
+                                ],
+                                flowInput: {}
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
+                    });
+                    it('should succeed to store pipeline', async () => {
+                        const pipeline = clone(pipelines[0]);
+                        pipeline.name = uuidv4();
+                        const options = {
+                            uri: restUrl + '/store/pipelines',
+                            method: 'POST',
+                            body: pipeline
+                        };
+                        const response = await _request(options);
+                        expect(response.response.statusCode).to.equal(201);
+                        expect(response.body).to.have.property('message');
+                        expect(response.body.message).to.equal('OK');
+                    });
+                });
+                describe('/store/pipelines PUT', () => {
+                    it('should succeed to update pipeline', async () => {
+                        const options = {
+                            uri: restUrl + '/store/pipelines',
+                            method: 'PUT',
+                            body: pipelines[0]
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('message');
+                        expect(response.body.message).to.equal('OK');
+                    });
+                });
+            });
+            describe('Webhooks', () => {
+                describe('Results', () => {
+                });
+                describe('Progress', () => {
+                    let restUrl = null;
+                    before(() => {
+                        restUrl = `${baseUrl}/${config.rest.prefix}/${v}`;
+                    });
+                    it('should succeed to post a webhook', async () => {
+                        let jobId = null;
+                        webhookStub.on('progress', async (request) => {
+                            if (request.body.jobId === jobId) {
+                                expect(request.body).to.have.property('data');
+                                expect(request.body).to.have.property('jobId');
+                                expect(request.body).to.have.property('timestamp');
+
+                                const status = {
+                                    uri: restUrl + `/ exec / status / ${jobId} `,
+                                    method: 'GET'
+                                };
+                                const responseStatus = await _request(status);
+                                expect(request.body).to.deep.equal(responseStatus.body);
+                            }
+                        });
+                        const stored = {
+                            uri: restUrl + '/exec/stored',
+                            body: { name: 'webhookFlow' }
+                        };
+                        const response = await _request(stored);
+                        jobId = response.body.jobId; // eslint-disable-line
+                    });
+                    it('should throw webhooks validation error of should match format "url', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ],
+                                webhooks: {
+                                    progress: 'not_a_url'
+                                }
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.webhooks.progress should match format "url"');
+                    });
+                    it('should throw webhooks validation error of NOT have additional properties', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ],
+                                webhooks: {
+                                    progress2: 'http://localhost'
+                                }
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
+                    });
+                    it('should throw webhooks validation error', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ],
+                                webhooks: {
+                                    progress: 'http://localhost'
+                                }
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('jobId');
+                    });
                 });
             });
         });
     });
 });
-describe('Rest-API internal', () => {
+describe('Rest internal', () => {
     let restUrl = null;
     before(() => {
         restUrl = `${baseUrl}/internal/v1`;

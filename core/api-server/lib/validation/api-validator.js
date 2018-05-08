@@ -45,12 +45,12 @@ class Validator {
         this._validate(schemas.pipeline, pipeline);
     }
 
-    validateDeletePipeline(pipeline) {
-        this._validate(schemas.pipelineName, pipeline);
+    validateUpdateAlgorithm(algorithm) {
+        this._validate(schemas.algorithm, algorithm);
     }
 
-    validateGetPipeline(pipeline) {
-        this._validate(schemas.pipelineName, pipeline);
+    validateName(pipeline) {
+        this._validate(schemas.name, pipeline);
     }
 
     validateJobID(pipeline) {
