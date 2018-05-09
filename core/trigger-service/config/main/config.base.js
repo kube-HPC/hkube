@@ -3,12 +3,12 @@ const  config = module.exports = {};
 
 
 config.serviceName = package.name;
-const useCluster = process.env.REDIS_CLUSTER_SERVICE_HOST ? true : false;
+const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.redis = {
-    host: useCluster ? process.env.REDIS_CLUSTER_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
-    port: useCluster ? process.env.REDIS_CLUSTER_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
-    cluster: useCluster
+    host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
+    port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
+    sentinel: useSentinel,
 };
 
 config.etcd = {
@@ -22,12 +22,6 @@ config.apiServer = {
     port: process.env.API_SERVER_SERVICE_PORT || 3000
 } 
 
-
-config.algorithmType =  process.env.ALGORITHM_TYPE||'green-alg'
-
-config.queue={
-   updateInterval : 1000 
-}
 
 config.metrics = {
     collectDefault: true,
