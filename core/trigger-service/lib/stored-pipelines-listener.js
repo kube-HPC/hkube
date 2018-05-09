@@ -32,12 +32,12 @@ class StoredPipelinesListener extends events {
         this.etcd.pipelines.on('change', pipeline => this._filterForSpecificTrigger([pipeline], prefix.CHANGE));
         this.etcd.pipelines.on('delete', pipeline => this._filterForSpecificTrigger([pipeline], prefix.DELETE));
         await this.etcd.pipelines.watch();
-        const pipelines = await this.etcd.pipelines.getPipelines();
+        const pipelines = await this.etcd.pipelines.list();
         this._filterForSpecificTrigger(pipelines, prefix.INIT);
     }
     async getTriggeredPipelineByType(type) {
         try {
-            const pipelines = await this.etcd.pipelines.getPipelines();
+            const pipelines = await this.etcd.pipelines.list();
             return this._filterForSpecificTrigger(pipelines)[type];
         }
         catch (error) {
