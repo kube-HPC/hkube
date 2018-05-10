@@ -6,6 +6,8 @@ let reconciler;
 const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes()
 const { log } = require('./mocks/log.mock')
 const etcd = require('../lib/helpers/etcd');
+const { templateStore } = require('./stub/templateStore');
+
 const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers} = require('../lib/reconcile/normalize');
 
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
@@ -25,6 +27,10 @@ describe('reconciler', () => {
         await bootstrap.init();
 
         reconciler = require('../lib/reconcile/reconciler')
+        // push to etcd
+        await Promise.all(Object.entries(templateStore).map(([alg, data]) => {
+            return etcd._etcd.algorithms.templatesStore.setState({ alg, data });
+        }));
 
     });
     after(() => {

@@ -2,7 +2,6 @@ const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const component = require('../../common/consts/componentNames').ETCD;
-const { templateStore } = require('../stubs/templateStore');
 let log;
 const WORKER_SERVICE_NAME_DEFAULT = 'worker';
 class Etcd extends EventEmitter {
@@ -18,10 +17,7 @@ class Etcd extends EventEmitter {
         await this._etcd.init(options.etcd);
         this._etcd.jobs.watch({ jobId: 'hookWatch' });
         this._workerServiceName = options.workerServiceName || WORKER_SERVICE_NAME_DEFAULT;
-        // push to etcd
-        await Promise.all(Object.entries(templateStore).map(([alg, data]) => {
-            return this._etcd.algorithms.templatesStore.setState({ alg, data });
-        }));
+        
     }
 
     sendCommandToWorker({ workerId, command }) {
