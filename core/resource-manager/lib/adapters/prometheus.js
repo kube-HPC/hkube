@@ -9,17 +9,17 @@ class PrometheusAdapter extends Adapter {
 
     constructor(options) {
         super(options);
-        if (!options.connection || ! options.connection.endpoint) {
+        if (!options.connection || !options.connection.endpoint) {
             log.warning('PrometheusAdapter not initialized. Connection is empty', { component });
-            this._isInit=false;
+            this._isInit = false;
             return;
         }
         client.init(options.connection);
-        this._isInit=true;
+        this._isInit = true;
     }
 
     async getData() {
-        if (!this._isInit){
+        if (!this._isInit) {
             return [];
         }
         let data = this.cache.get();
