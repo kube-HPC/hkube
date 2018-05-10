@@ -1,23 +1,26 @@
 [
     {
-        "alg": "green-alg",
-        "data": {
-            "cpu": 5000,
-            "mem": 256000
-        }
+        "name": "eval-alg",
+        "image": "hkube/algorunner",
+        "cpu": 500,
+        "mem": 0
     },
     {
-        "alg": "yellow-alg",
-        "data": {
-            "cpu": 2000,
-            "mem": 1024000
-        }
+        "name": "green-alg",
+        "image": "hkube/algorithm-example",
+        "cpu": 7000,
+        "mem": 0
     },
     {
-        "alg": "black-alg",
-        "data": {
-            "cpu": 1000,
-            "mem": 2048000
-        }
+        "name": "yellow-alg",
+        "image": "hkube/algorithm-example",
+        "cpu": 500,
+        "mem": 0
+    },
+    {
+        "name": "black-alg",
+        "image": "hkube/algorithm-example",
+        "cpu": 500,
+        "mem": 0
     }
 ]

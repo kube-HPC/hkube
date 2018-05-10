@@ -4,8 +4,9 @@ const utils = require('../utils/utils');
 const order = (queue) => {
     let algorithmQueue = [];
     queue.forEach(q => algorithmQueue.push(...q.data));
-    algorithmQueue = algorithmQueue.map(q => ({ name: q.algorithmName, score: q.calculated.score }));
-    algorithmQueue = orderBy(algorithmQueue, q => q.score, 'desc');
+    algorithmQueue = algorithmQueue.map(m => ({ name: m.algorithmName, score: m.calculated.score }));
+    algorithmQueue = orderBy(algorithmQueue, q => q.score, 'desc').map(m => ({ name: m.name }));
+    algorithmQueue.unshift(...queue.filter(q => q.pendingAmount > 0).map(q => ({ name: q.queueName })))
     return algorithmQueue;
 }
 

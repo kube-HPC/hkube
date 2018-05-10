@@ -17,9 +17,7 @@ class TemplatesStoreAdapter extends Adapter {
         if (!data) {
             const store = await stateManager.getStoreTemplates();
             data = Object.create(null);
-            store.forEach(r => {
-                data[r.alg] = r.data;
-            });
+            store.forEach(r => data[r.name] = r);
             this.cache.set(data);
         }
         return data;

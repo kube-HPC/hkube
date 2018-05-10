@@ -222,7 +222,7 @@ describe('Test', function () {
             const keys = Object.keys(results).sort();
             const values = Object.values(results).sort();
             expect(keys).to.deep.equal(algorithms);
-            expect(values).to.deep.equal([1, 1, 1]);
+            expect(values).to.deep.equal([1, 1, 1, 1]);
         });
     });
     describe('Monitoring', function () {

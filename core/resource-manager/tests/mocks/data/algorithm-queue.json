@@ -972,6 +972,492 @@
         ]
     },
     {
+        "queueName": "eval-alg",
+        "datax": [],
+        "data": [
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 1,
+                "taskId": "green:green-alg: 2cd35d35-6539-4a48-8108-09ad927925f9",
+                "taskData": {
+                    "input": [
+                        "links-1"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.8,
+                        "ENTRANCE_TIME": 0.000009055555555555556,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8600090555555556
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 2,
+                "taskId": "green:green-alg: 24d5328b-136b-43b5-9b00-f4f2ffab89a3",
+                "taskData": {
+                    "input": [
+                        "links-2"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7994666666666667,
+                        "ENTRANCE_TIME": 0.000009055555555555556,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8594757222222222
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 3,
+                "taskId": "green:green-alg:6ea59dff-ca7d-4356-88a2-421e678ef451",
+                "taskData": {
+                    "input": [
+                        "links-3"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7989333333333334,
+                        "ENTRANCE_TIME": 0.000009055555555555556,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.858942388888889
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 4,
+                "taskId": "green:green-alg: 4365301f-6a05-4633-93a8-78bef7c8de05",
+                "taskData": {
+                    "input": [
+                        "links-4"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7984,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8584090833333334
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 5,
+                "taskId": "green:green-alg:a8441001-b1be-461d-86df-37395186e707",
+                "taskData": {
+                    "input": [
+                        "links-5"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7978666666666667,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8578757500000002
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 6,
+                "taskId": "green:green-alg: 8d6914f8-3199-4141-98d1-ef2096ad2e9c",
+                "taskData": {
+                    "input": [
+                        "links-6"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7973333333333334,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8573424166666669
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 7,
+                "taskId": "green:green-alg: 4a953e8a-5702-41b6-b1f6-28f4f6c75d1f",
+                "taskData": {
+                    "input": [
+                        "links-7"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7968000000000001,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8568090833333335
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 8,
+                "taskId": "green:green-alg: 7b539414-ff53-4e3c-9faf-a60380b311fe",
+                "taskData": {
+                    "input": [
+                        "links-8"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7962666666666667,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8562757500000001
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 9,
+                "taskId": "green:green-alg: 7cd7785b-6782-4fbf-b342-e7466472238c",
+                "taskData": {
+                    "input": [
+                        "links-9"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7957333333333334,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8557424166666668
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 10,
+                "taskId": "green:green-alg:c8eb03f9-c008-488f-a6dc-eef224eefe27",
+                "taskData": {
+                    "input": [
+                        "links-10"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7952,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8552090833333335
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 11,
+                "taskId": "green:green-alg:e09f858a-1da2-4982-a1a7-e4ca92ba900d",
+                "taskData": {
+                    "input": [
+                        "links-11"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7946666666666666,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8546757500000001
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 12,
+                "taskId": "green:green-alg: 47cc9bae-1331-437d-b2e0-c50afd9cc1fd",
+                "taskData": {
+                    "input": [
+                        "links-12"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7941333333333334,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8541424166666668
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 13,
+                "taskId": "green:green-alg: 0281291b-9b59-48cd-946e-e1099f721dd6",
+                "taskData": {
+                    "input": [
+                        "links-13"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7936000000000001,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8536090833333335
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 14,
+                "taskId": "green:green-alg: 915c0572-08ef-4a18-9c30-381e35261a58",
+                "taskData": {
+                    "input": [
+                        "links-14"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7930666666666667,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8530757500000001
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 15,
+                "taskId": "green:green-alg:fd0be40d-2f6b-46be-a804-4b303c267171",
+                "taskData": {
+                    "input": [
+                        "links-15"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7925333333333334,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8525424166666669
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 16,
+                "taskId": "green:green-alg: 90c41a9a-8700-4c73-9310-9078fd236e58",
+                "taskData": {
+                    "input": [
+                        "links-16"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.792,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8520090833333335
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 17,
+                "taskId": "green:green-alg: 47677b08-5f76-4e6b-a24c-b4acced184bf",
+                "taskData": {
+                    "input": [
+                        "links-17"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7914666666666667,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8514757500000001
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 18,
+                "taskId": "green:green-alg: 475b0fc2-9c8a-4062-ade0-4579fd2e7895",
+                "taskData": {
+                    "input": [
+                        "links-18"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7909333333333334,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8509424166666668
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 19,
+                "taskId": "green:green-alg:81eefa6e-e136-41dc-b88e-c56cc258f07b",
+                "taskData": {
+                    "input": [
+                        "links-19"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7904,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8504090833333334
+                }
+            },
+            {
+                "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
+                "pipelineName": "big-batch",
+                "algorithmName": "green-alg",
+                "priority": 3,
+                "info": {},
+                "nodeName": "green",
+                "batchPlace": 20,
+                "taskId": "green:green-alg: 14e03ce2-a163-45b6-9f1b-e3d820fc2453",
+                "taskData": {
+                    "input": [
+                        "links-20"
+                    ]
+                },
+                "calculated": {
+                    "latestScores": {
+                        "BATCH": 0.7898666666666667,
+                        "ENTRANCE_TIME": 0.000009083333333333333,
+                        "PRIORITY": 0.06000000000000001
+                    },
+                    "entranceTime": 1521373949424,
+                    "score": 0.8498757500000002
+                }
+            }
+        ]
+    },
+    {
         "queueName": "yellow-alg",
         "datax": [],
         "data": [

@@ -22,11 +22,10 @@ class MetricsReducer {
                 else {
                     prev[cur.name] = { pods: cur.data * metric.weight };
                 }
-                prev[cur.name].pods = Math.round(prev[cur.name].pods);
                 return prev;
             }, map)
         });
-
+        Object.values(map).forEach((v) => v.pods = Math.ceil(v.pods));
         const results = utils.mapToArray(map, ['alg', 'data']);
         return results;
     }

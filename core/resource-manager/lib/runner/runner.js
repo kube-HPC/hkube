@@ -2,6 +2,7 @@ const AdapterController = require('../adapters/adapters-controller');
 const MetricsRunner = require('../metrics/metrics-runner');
 const metricsReducer = require('../metrics/metrics-reducer');
 const stateManager = require('../state/state-manager');
+const logger = require('../utils/logger');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../common/consts/componentNames').RUNNER;
 const metricsProvider = require('../monitoring/metrics-provider');
@@ -25,7 +26,7 @@ class Runner {
                 await this._doWork();
             }
             catch (error) {
-                log.error(error.message, { component });
+                logger.log(error);
             }
             finally {
                 this._working = false;
@@ -42,7 +43,6 @@ class Runner {
      * 
      * @memberOf Runner
      */
-
     async _doWork() {
         const adaptersResults = await this._adapterController.getData();
         const metricsResults = this._metricsRunner.run(adaptersResults);
