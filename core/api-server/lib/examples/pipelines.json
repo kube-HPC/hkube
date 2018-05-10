@@ -374,68 +374,6 @@
         }
     },
     {
-        "name": "trigger",
-        "nodes": [
-            {
-                "nodeName": "split",
-                "algorithmName": "eval-alg",
-                "input": [
-                    "#@flowInput.text"
-                ],
-                "extraData": {
-                    "code": [
-                        "function split(input) {",
-                        "return input[0].split(' ');",
-                        "}"
-                    ]
-                }
-            },
-            {
-                "nodeName": "reduce",
-                "algorithmName": "eval-alg",
-                "input": [
-                    "*@split"
-                ],
-                "extraData": {
-                    "code": [
-                        "function reduce(input) {",
-                        "return input[0].reduce((all, word) => { ",
-                        "if (word in all) {",
-                        "all[word]++;",
-                        "}",
-                        "else {",
-                        "all[word] = 1;",
-                        "}",
-                        "return all;",
-                        "}, {});",
-                        "}"
-                    ]
-                }
-            }
-        ],
-        "flowInput": {
-            "text": [
-                "In mathematics and computer science, a directed acyclic graph ",
-                "edges, with each edge directed from one vertex to another, ",
-                "such that there is no way to start at any vertex v and follow"
-            ]
-        },
-        "triggers": {
-            "pipelines": [
-                "triggered"
-            ],
-            "cron": "1 * * * *"
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        },
-        "webhooks": {
-            "progress": "http://localhost:3003/webhook/progress",
-            "result": "http://localhost:3003/webhook/result"
-        }
-    },
-    {
         "name": "triggered",
         "nodes": [
             {
