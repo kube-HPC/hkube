@@ -70,7 +70,7 @@ config.adapters = [
     {
         name: 'prometheus',
         connection: {
-            endpoint: process.env.PROMETHEUS_ENDPOINT || 'http://10.32.10.6:30909/api/v1'
+            endpoint: process.env.PROMETHEUS_ENDPOINT 
         },
         cache: { maxAge: 1000 * 60 * 5 }
     }
