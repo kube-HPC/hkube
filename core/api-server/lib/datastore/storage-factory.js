@@ -8,18 +8,12 @@ class StorageFactory {
         await this.adapter.init(storage.connection, log);
     }
 
-    async setResultsFromStorage(options) {
+    async _setResultsFromStorage(options) {
+        let response = options;
         if (options.data) {
-            options.data = await Promise.all(options.data.map(a => this._getStorageItem(a)));
-            options.storageModule = this.moduleName;
+            response = await Promise.all(options.data.map(a => this._getStorageItem(a)));
         }
-    }
-
-    async getAndReplaceResults(options) {
-        if (options.data) {
-            options.data = await this.adapter.getResults({ jobId: options.jobId });
-        }
-        return options;
+        return response;
     }
 
     async _getStorageItem(options) {
@@ -29,5 +23,16 @@ class StorageFactory {
         }
         return { ...options };
     }
+
+    async getResults(options) {
+        if (options.data) {
+            const data = await this.adapter.getResults({ jobId: options.jobId });
+            const result = await this._setResultsFromStorage({ data });
+            return { ...options, data: result, storageModule: this.moduleName };
+        }
+
+        return options;
+    }
 }
+
 module.exports = new StorageFactory();

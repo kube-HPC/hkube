@@ -1168,7 +1168,7 @@
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1
                     },
-                    "image": {
+                    "algorithmImage": {
                         "type": "string",
                         "description": "image name as in the docker registry",
                         "minLength": 1
@@ -1182,10 +1182,9 @@
                         "description": "algorithm memory"
                     }
                 },
-                "additionalProperties": false,
                 "required": [
                     "name",
-                    "image"
+                    "algorithmImage"
                 ]
             },
             "runStoredPipeline": {

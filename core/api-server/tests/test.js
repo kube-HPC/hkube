@@ -554,7 +554,7 @@ describe('Rest', () => {
                             method: 'POST',
                             body: {
                                 name: "delete",
-                                image: "image"
+                                algorithmImage: "image"
                             }
                         };
                         await _request(optionsInsert);
@@ -617,29 +617,13 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
                     });
-                    it('should throw validation error of data should NOT have additional properties', async () => {
-                        const options = {
-                            method: 'POST',
-                            uri: restUrl + '/store/algorithms',
-                            body: {
-                                name: 'string',
-                                additionalProps: {
-                                    bla: 'bla'
-                                }
-                            }
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal('data should NOT have additional properties');
-                    });
                     it('should throw conflict error', async () => {
                         const options = {
                             uri: restUrl + '/store/algorithms',
                             method: 'POST',
                             body: {
                                 name: "conflict",
-                                image: "image"
+                                algorithmImage: "image"
                             }
                         };
                         await _request(options);
@@ -654,7 +638,7 @@ describe('Rest', () => {
                             method: 'POST',
                             body: {
                                 name: uuidv4(),
-                                image: "image"
+                                algorithmImage: "image"
                             }
                         };
                         const response = await _request(options);

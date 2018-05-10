@@ -23,19 +23,19 @@ class WebhooksHandler {
 
     _watch() {
         stateManager.on('job-result', async (response) => {
-            this._requestResults(response.jobId, response);
-            await storageFactory.getAndReplaceResults(response);
-            const pipeline = await stateManager.getExecution({ jobId: response.jobId });
+            this._requestResults({ jobId: response.jobId, ...response });
+            const payloadData = await storageFactory.getResults(response);
+            const pipeline = await stateManager.getExecution({ jobId: payloadData.jobId });
             // trigger call should be from Trigger Service (testing only)
-            if (response.data && pipeline.triggers && pipeline.triggers.pipelines) {
-                const flowInput = response.data.map(r => r.result);
+            if (payloadData.data && pipeline.triggers && pipeline.triggers.pipelines) {
+                const flowInput = payloadData.data.map(r => r.result);
                 pipeline.triggers.pipelines.forEach((p) => {
                     request({
                         method: 'POST',
                         uri: 'http://localhost:3000/internal/v1/exec/stored',
                         body: {
                             name: p,
-                            parentJobId: response.jobId,
+                            parentJobId: payloadData.jobId,
                             flowInput
                         },
                         json: true
@@ -47,7 +47,7 @@ class WebhooksHandler {
         });
 
         stateManager.on('job-status', (results) => {
-            this._requestStatus(results.jobId, results);
+            this._requestStatus({ jobId: results.jobId, ...results });
         });
     }
 
@@ -55,29 +55,29 @@ class WebhooksHandler {
         const jobResults = await stateManager.getCompletedJobs();
         jobResults.forEach((job) => {
             if ((!job.webhooks) || (job.webhooks && job.webhooks.pipelineStatus !== job.result.status)) {
-                this._requestResults(job.jobId, job.result);
+                this._requestResults({ jobId: job.jobId, ...job.result });
             }
             if ((!job.webhooks) || (job.webhooks && job.webhooks.pipelineStatus !== job.status.status)) {
-                this._requestStatus(job.jobId, job.status);
+                this._requestStatus({ jobId: job.jobId, ...job.status });
             }
         });
     }
 
-    async _requestStatus(jobId, payload) {
-        const pipeline = await stateManager.getExecution({ jobId });
+    async _requestStatus(payload) {
+        const pipeline = await stateManager.getExecution({ jobId: payload.jobId });
         if (pipeline.webhooks && pipeline.webhooks.progress) {
             const clientLevel = levels[pipeline.options.progressVerbosityLevel].level;
             const pipelineLevel = levels[payload.level].level;
-            log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel} verbosity`, { component: components.WEBHOOK_HANDLER, jobId });
+            log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component: components.WEBHOOK_HANDLER, jobId: payload.jobId });
             if (clientLevel <= pipelineLevel) {
-                const result = await this._request(pipeline.webhooks.progress, payload, 'progress', payload.status, jobId);
-                stateManager.setWebhooksStatus({ jobId, data: result });
+                const result = await this._request(pipeline.webhooks.progress, payload, 'progress', payload.status, payload.jobId);
+                stateManager.setWebhooksStatus({ jobId: payload.jobId, data: result });
             }
         }
     }
 
-    async _requestResults(jobId, payload) {
-        const pipeline = await stateManager.getExecution({ jobId });
+    async _requestResults(payload) {
+        const pipeline = await stateManager.getExecution({ jobId: payload.jobId });
         const time = Date.now() - pipeline.startTime;
         metrics.get(metricsNames.pipelines_gross).retroactive({
             time,
@@ -87,9 +87,9 @@ class WebhooksHandler {
             }
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
-            await storageFactory.getAndReplaceResults(payload);
-            const result = await this._request(pipeline.webhooks.result, payload, 'result', payload.status, jobId);
-            stateManager.setWebhooksResults({ jobId, data: result });
+            const payloadData = await storageFactory.getResults(payload);
+            const result = await this._request(pipeline.webhooks.result, payloadData, 'result', payloadData.status, payloadData.jobId);
+            stateManager.setWebhooksResults({ jobId: payloadData.jobId, data: result });
         }
     }
 

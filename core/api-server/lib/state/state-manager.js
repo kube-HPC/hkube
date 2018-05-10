@@ -6,10 +6,11 @@ const storageFactory = require('../datastore/storage-factory');
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
 
 class StateManager extends EventEmitter {
-    init({ serviceName, etcd }) {
+    async init(options) {
         this._etcd = new Etcd();
-        this._etcd.init({ etcd, serviceName });
-        this._etcd.discovery.register({ serviceName });
+        this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
+        await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
+        this._etcd.discovery.get();
         this._watchJobResults();
     }
 
@@ -73,10 +74,7 @@ class StateManager extends EventEmitter {
 
     async getJobResult(options) {
         const result = await this._etcd.jobResults.getResults(options);
-        if (result.data) {
-            await storageFactory.getAndReplaceResults(result);
-        }
-        return result;
+        return storageFactory.getResults(result);
     }
 
     getCompletedJobs() {

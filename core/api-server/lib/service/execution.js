@@ -175,7 +175,6 @@ class ExecutionService {
         if (!response) {
             throw new ResourceNotFoundError('results', options.jobId);
         }
-        await storageFactory.setResultsFromStorage(response);
         return response;
     }
 
