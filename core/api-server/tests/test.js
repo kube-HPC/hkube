@@ -1,4 +1,3 @@
-
 const { expect } = require('chai');
 const uuidv4 = require('uuid/v4');
 const requestClient = require('request');
@@ -10,6 +9,7 @@ const algorithms = require('./mocks/algorithms.json');
 const pipelines = require('./mocks/pipelines.json');
 const triggersTreeExpected = require('./mocks/triggers-tree.json');
 const webhookStub = require('./mocks/webhook-stub');
+const workerStub = require('./mocks/worker');
 let config;
 let baseUrl;
 
@@ -502,14 +502,10 @@ describe('Rest', () => {
                             }
                         };
                         const responseRun = await _request(optionsRun);
-                        const results = {
-                            jobId: responseRun.body.jobId,
-                            status: 'completed',
-                            data: [{ res1: 100 }, { res2: 200 }]
-                        }
-                        await stateManager.setJobStatus(results);
-                        results.data = await storageFactory.adapter.putResults({ jobId: results.jobId, data: results.data })
-                        await stateManager.setJobResults(results);
+                        const jobId = responseRun.body.jobId;
+                        const taskId = responseRun.body.jobId;
+                        const data = 500;
+                        await workerStub.done({ jobId, taskId, data });
 
                         const options = {
                             uri: restUrl + `/exec/results/${responseRun.body.jobId}`,
@@ -518,6 +514,7 @@ describe('Rest', () => {
                         const response = await _request(options);
 
                         expect(response.response.statusCode).to.equal(200);
+                        expect(response.body.data[0].result).to.equal(data);
                         expect(response.body).to.have.property('jobId');
                         expect(response.body).to.have.property('data');
                         expect(response.body).to.have.property('storageModule');

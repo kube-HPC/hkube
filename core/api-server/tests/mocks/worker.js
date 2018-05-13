@@ -1,50 +1,24 @@
-const Etcd = require('@hkube/etcd');
-const { Consumer } = require('@hkube/producer-consumer');
-
-const etcdOptions = {
-    protocol: 'http',
-    host: process.env.ETCD_SERVICE_HOST || 'localhost',
-    port: process.env.ETCD_SERVICE_PORT || 4001
-};
-
-const serviceName = 'worker-stub';
+const stateManager = require('../../lib/state/state-manager');
+const storageFactory = require('../../lib/datastore/storage-factory');
 
 class WorkerStub {
-    constructor(options) {
-        const setting = {
-            job: {
-                type: options.type
-            },
-            setting: {
-                prefix: 'jobs-workers'
-            }
+
+    async done({ jobId, taskId, data }) {
+        const storageInfo = await storageFactory.adapter.put({ jobId, taskId, data });
+        const object = { green: data };
+        const storageLink = {
+            metadata: null,
+            storageInfo
         };
-        this._jobId = options.jobId;
-        const consumer = new Consumer(setting);
-        consumer.on('job', (job) => {
-            this._job = job;
-        });
-
-        consumer.register(setting);
-
-        this._etcd = new Etcd();
-        this._etcd.init({ etcd: etcdOptions, serviceName });
-    }
-
-    async done(result, error) {
-        if (!error) {
-            await this._etcd.tasks.setState({
-                jobId: this._jobId, taskId: this._job.id, result, status: 'completed' 
-            });
-            this._job.done();
+        const results = {
+            jobId,
+            status: 'completed',
+            data: [{ result: storageLink }]
         }
-        else {
-            await this._etcd.tasks.setState({
-                jobId: this._jobId, taskId: this._job.id, error: error.message, status: 'failed' 
-            });
-            this._job.done(error);
-        }
+        await stateManager.setJobStatus(results);
+        results.data = await storageFactory.adapter.putResults({ jobId: results.jobId, data: results.data })
+        await stateManager.setJobResults(results);
     }
 }
 
-module.exports = WorkerStub;
+module.exports = new WorkerStub();
