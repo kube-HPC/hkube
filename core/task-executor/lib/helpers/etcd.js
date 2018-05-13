@@ -17,7 +17,6 @@ class Etcd extends EventEmitter {
         await this._etcd.init(options.etcd);
         this._etcd.jobs.watch({ jobId: 'hookWatch' });
         this._workerServiceName = options.workerServiceName || WORKER_SERVICE_NAME_DEFAULT;
-        
     }
 
     sendCommandToWorker({ workerId, command }) {
@@ -36,7 +35,7 @@ class Etcd extends EventEmitter {
     }
 
     async getAlgorithmTemplate({ algorithmName }) {
-        return this._etcd.algorithms.templatesStore.getState({ alg: algorithmName });
+        return this._etcd.algorithms.templatesStore.getAlgorithm({ name: algorithmName });
     }
 }
 

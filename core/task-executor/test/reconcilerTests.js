@@ -28,8 +28,8 @@ describe('reconciler', () => {
 
         reconciler = require('../lib/reconcile/reconciler')
         // push to etcd
-        await Promise.all(Object.entries(templateStore).map(([alg, data]) => {
-            return etcd._etcd.algorithms.templatesStore.setState({ alg, data });
+        await Promise.all(Object.entries(templateStore).map(([name, data]) => {
+            return etcd._etcd.algorithms.templatesStore.setAlgorithm({ name, data });
         }));
 
     });
@@ -241,8 +241,8 @@ describe('reconciler', () => {
         });
 
         it('should work with custom worker', async () => {
-            await etcd._etcd.algorithms.templatesStore.setState({
-                alg: 'green-alg',
+            await etcd._etcd.algorithms.templatesStore.setAlgorithm({
+                name: 'green-alg',
                 data: {
                     algorithmImage: 'hkube/algorithm-example',
                     workerImage: 'myregistry:5000/stam/myworker:v2'
