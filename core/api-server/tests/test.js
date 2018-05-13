@@ -5,6 +5,7 @@ const requestClient = require('request');
 const clone = require('clone');
 const bootstrap = require('../bootstrap');
 const stateManager = require('../lib/state/state-manager');
+const storageFactory = require('../lib/datastore/storage-factory');
 const algorithms = require('./mocks/algorithms.json');
 const pipelines = require('./mocks/pipelines.json');
 const triggersTreeExpected = require('./mocks/triggers-tree.json');
@@ -14,7 +15,13 @@ let baseUrl;
 
 // TODO: WRITE DOCS ON WEBHOOKS
 
-function _request(options) {
+const delay = (delay) => {
+    return new Promise((fulfill) => {
+        setTimeout(fulfill, delay);
+    })
+}
+
+const _request = (options) => {
     return new Promise((resolve, reject) => {
         requestClient({
             method: options.method || 'POST',
@@ -150,7 +157,6 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                     });
-
                     it('should throw validation error of nodes.input should be array', async () => {
                         const options = {
                             method: 'POST',
@@ -245,7 +251,7 @@ describe('Rest', () => {
                             method: 'POST',
                             uri: restUrl + '/exec/raw',
                             body: {
-                                name: 'string',
+                                name: 'exec_raw',
                                 nodes: [
                                     {
                                         nodeName: 'string',
@@ -444,6 +450,9 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(200);
                         expect(response.body).to.have.property('jobId');
+                        expect(response.body).to.have.property('level');
+                        expect(response.body).to.have.property('pipeline');
+                        expect(response.body).to.have.property('status');
                         expect(response.body).to.have.property('timestamp');
                     });
                 });
@@ -476,6 +485,45 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal("data should have required property 'jobId'");
+                    });
+                    it('should succeed to get results', async () => {
+                        const optionsRun = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'exec_raw_results',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ]
+                            }
+                        };
+                        const responseRun = await _request(optionsRun);
+                        const results = {
+                            jobId: responseRun.body.jobId,
+                            status: 'completed',
+                            data: [{ res1: 100 }, { res2: 200 }]
+                        }
+                        await stateManager.setJobStatus(results);
+                        results.data = await storageFactory.adapter.putResults({ jobId: results.jobId, data: results.data })
+                        await stateManager.setJobResults(results);
+
+                        const options = {
+                            uri: restUrl + `/exec/results/${responseRun.body.jobId}`,
+                            method: 'GET'
+                        };
+                        const response = await _request(options);
+
+                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.body).to.have.property('jobId');
+                        expect(response.body).to.have.property('data');
+                        expect(response.body).to.have.property('storageModule');
+                        expect(response.body).to.have.property('status');
+                        expect(response.body).to.have.property('timeTook');
+                        expect(response.body).to.have.property('timestamp');
                     });
                 });
                 describe('/exec/tree', () => {
@@ -512,6 +560,53 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.deep.equal(404);
+                    });
+                });
+                describe('/exec/pipeline', () => {
+                    it('should throw Method Not Allowed', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/pipeline/job',
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(405);
+                        expect(response.body.error.message).to.equal('Method Not Allowed');
+                    });
+                    it('should throw validation error of required property name', async () => {
+                        const options = {
+                            method: 'GET',
+                            uri: restUrl + '/exec/pipeline/not_exists',
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal("pipeline not_exists Not Found");
+                    });
+                    it('should succeed and return execution id', async () => {
+                        const options1 = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'exec_pipeline',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ]
+                            }
+                        };
+                        const response1 = await _request(options1);
+                        const options = {
+                            method: 'GET',
+                            uri: restUrl + '/exec/pipeline/' + response1.body.jobId,
+                        };
+                        const response2 = await _request(options);
+                        expect(response2.body.name).to.equal(options1.body.name);
+                        expect(response2.body.nodes).to.deep.equal(options1.body.nodes);
                     });
                 });
             });
@@ -713,7 +808,7 @@ describe('Rest', () => {
                     });
                 });
                 describe('/store/pipelines GET', () => {
-                    it('should throw validation error of required property jobId', async () => {
+                    it('should get all pipelines', async () => {
                         const options = {
                             uri: restUrl + '/store/pipelines',
                             method: 'GET'
@@ -991,22 +1086,157 @@ describe('Rest', () => {
             });
             describe('Webhooks', () => {
                 describe('Results', () => {
+                    it('should succeed to send webhook', async () => {
+                        return new Promise(async (resolve) => {
+                            let jobId = null;
+                            webhookStub.on('result', async (request) => {
+                                if (request.body.jobId === jobId) {
+                                    expect(request.body).to.have.property('data');
+                                    expect(request.body).to.have.property('jobId');
+                                    expect(request.body).to.have.property('status');
+                                    expect(request.body).to.have.property('timestamp');
+
+                                    const status = {
+                                        uri: restUrl + '/exec/results/' + jobId,
+                                        method: 'GET'
+                                    };
+                                    const responseStatus = await _request(status);
+                                    expect(request.body).to.deep.equal(responseStatus.body);
+                                    return resolve();
+                                }
+                            });
+                            const stored = {
+                                uri: restUrl + '/exec/stored',
+                                body: { name: 'webhookFlow' }
+                            };
+                            const response = await _request(stored);
+                            jobId = response.body.jobId;
+
+                            const results = {
+                                jobId,
+                                status: 'completed',
+                                level: 'info',
+                                data: [{ res1: 400 }, { res2: 500 }]
+                            }
+                            await stateManager.setJobStatus(results);
+                            results.data = await storageFactory.adapter.putResults({ jobId, data: results.data })
+                            await stateManager.setJobResults(results);
+                        });
+                    });
+                    it('should throw webhooks validation error of should match format "url', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ],
+                                webhooks: {
+                                    result: 'not_a_url'
+                                }
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.webhooks.result should match format "url"');
+                    });
+                    it('should throw webhooks validation error of NOT have additional properties', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ],
+                                webhooks: {
+                                    result2: 'http://localhost'
+                                }
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
+                    });
+                    it('should succeed to store pipeline with webhooks', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'string',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ],
+                                webhooks: {
+                                    result: 'http://localhost'
+                                }
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('jobId');
+                    });
+                    it('should succeed to send webhook and get results', async () => {
+                        let options = {
+                            uri: restUrl + '/exec/stored',
+                            body: { name: 'webhookFlow' }
+                        };
+                        const response = await _request(options);
+                        jobId = response.body.jobId;
+
+                        const results = {
+                            jobId,
+                            status: 'completed',
+                            level: 'info',
+                            data: [{ res1: 400 }, { res2: 500 }]
+                        }
+                        await stateManager.setJobStatus(results);
+                        results.data = await storageFactory.adapter.putResults({ jobId, data: results.data })
+                        await stateManager.setJobResults(results);
+
+                        await delay(1000);
+
+                        options = {
+                            method: 'GET',
+                            uri: restUrl + '/webhooks/results/' + jobId
+                        };
+                        const response2 = await _request(options);
+
+                        expect(response2.body).to.have.property('httpResponse');
+                        expect(response2.body.httpResponse).to.have.property('statusCode');
+                        expect(response2.body.httpResponse).to.have.property('statusMessage');
+                        expect(response2.body).to.have.property('jobId');
+                        expect(response2.body).to.have.property('url');
+                        expect(response2.body).to.have.property('pipelineStatus');
+                        expect(response2.body).to.have.property('responseStatus');
+                    });
                 });
                 describe('Progress', () => {
-                    let restUrl = null;
-                    before(() => {
-                        restUrl = `${baseUrl}/${config.rest.prefix}/${v}`;
-                    });
-                    it('should succeed to post a webhook', async () => {
+                    it('should succeed to send webhook', async () => {
                         let jobId = null;
                         webhookStub.on('progress', async (request) => {
                             if (request.body.jobId === jobId) {
                                 expect(request.body).to.have.property('data');
                                 expect(request.body).to.have.property('jobId');
+                                expect(request.body).to.have.property('status');
                                 expect(request.body).to.have.property('timestamp');
 
                                 const status = {
-                                    uri: restUrl + `/ exec / status / ${jobId} `,
+                                    uri: restUrl + '/exec/status/' + jobId,
                                     method: 'GET'
                                 };
                                 const responseStatus = await _request(status);
@@ -1018,7 +1248,7 @@ describe('Rest', () => {
                             body: { name: 'webhookFlow' }
                         };
                         const response = await _request(stored);
-                        jobId = response.body.jobId; // eslint-disable-line
+                        jobId = response.body.jobId;
                     });
                     it('should throw webhooks validation error of should match format "url', async () => {
                         const options = {
@@ -1066,7 +1296,7 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
                     });
-                    it('should throw webhooks validation error', async () => {
+                    it('should succeed to store pipeline with webhooks', async () => {
                         const options = {
                             method: 'POST',
                             uri: restUrl + '/exec/raw',
@@ -1087,64 +1317,89 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.body).to.have.property('jobId');
                     });
+                    it('should succeed and return execution id', async () => {
+                        const options1 = {
+                            uri: restUrl + '/exec/stored',
+                            body: { name: 'webhookFlow' }
+                        };
+                        const response = await _request(options1);
+
+                        await delay(1000);
+
+                        const options2 = {
+                            method: 'GET',
+                            uri: restUrl + '/webhooks/status/' + response.body.jobId
+                        };
+                        const response2 = await _request(options2);
+
+                        expect(response2.body).to.have.property('httpResponse');
+                        expect(response2.body.httpResponse).to.have.property('statusCode');
+                        expect(response2.body.httpResponse).to.have.property('statusMessage');
+                        expect(response2.body).to.have.property('jobId');
+                        expect(response2.body).to.have.property('url');
+                        expect(response2.body).to.have.property('pipelineStatus');
+                        expect(response2.body).to.have.property('responseStatus');
+                    });
                 });
             });
         });
     });
-});
-describe('Rest internal', () => {
-    let restUrl = null;
-    before(() => {
-        restUrl = `${baseUrl}/internal/v1`;
-    });
-    it('should succeed and return job id', async () => {
-        const options = {
-            method: 'POST',
-            uri: `${restUrl}/exec/stored`,
-            body: {
-                name: 'flow1'
+
+    describe('Rest internal', () => {
+        let restUrl = null;
+        before(() => {
+            restUrl = `${baseUrl}/internal/v1`;
+        });
+        it('should succeed and return job id', async () => {
+            const options = {
+                method: 'POST',
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1'
+                }
+            };
+            const response = await _request(options);
+            expect(response.body).to.have.property('jobId');
+        });
+        it('should succeed without reaching too many request', async () => {
+            const requests = 10;
+            const promises = [];
+            const options = {
+                method: 'POST',
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1'
+                }
+            };
+            for (let i = 0; i < requests; i++) {
+                promises.push(_request(options));
             }
-        };
-        const response = await _request(options);
-        expect(response.body).to.have.property('jobId');
-    });
-    it('should succeed without reaching too many request', async () => {
-        const requests = 10;
-        const promises = [];
-        const options = {
-            method: 'POST',
-            uri: `${restUrl}/exec/stored`,
-            body: {
-                name: 'flow1'
-            }
-        };
-        for (let i = 0; i < requests; i++) {
-            promises.push(_request(options));
-        }
-        const response = await Promise.all(promises);
-        const jobs = response.map(r => r.body.jobId);
-        expect(jobs).to.have.lengthOf(requests);
-        expect(jobs.every(j => j.includes(options.body.name))).to.equal(true);
-    });
-    it('pipeline call stack by trigger', async () => {
-        let prefix = '57ec5c39-122b-4d7c-bc8f-580ba30df511';
-        await Promise.all([
-            stateManager.setExecution({ jobId: prefix + '.a', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.e', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.e.f', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.g', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.i', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.l', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.o', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.p', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.b.m', data: { startTime: Date.now() } }),
-            stateManager.setExecution({ jobId: prefix + '.a.n', data: { startTime: Date.now() } })
-        ]);
-        let r = await stateManager.getExecutionsTree({ jobId: prefix + '.a' });
-        expect(r).to.deep.equal(triggersTreeExpected);
+            const response = await Promise.all(promises);
+            const jobs = response.map(r => r.body.jobId);
+            expect(jobs).to.have.lengthOf(requests);
+            expect(jobs.every(j => j.includes(options.body.name))).to.equal(true);
+        });
+        it('pipeline tree call stack by trigger', async () => {
+            let prefix = '57ec5c39-122b-4d7c-bc8f-580ba30df511';
+            await Promise.all([
+                stateManager.setExecution({ jobId: prefix + '.a', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d.e', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d.e.f', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d.g', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d.i', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.l', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.o', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.p', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.b.m', data: { startTime: Date.now() } }),
+                stateManager.setExecution({ jobId: prefix + '.a.n', data: { startTime: Date.now() } })
+            ]);
+            let r = await stateManager.getExecutionsTree({ jobId: prefix + '.a' });
+            expect(r).to.deep.equal(triggersTreeExpected);
+        });
     });
 });
+
 

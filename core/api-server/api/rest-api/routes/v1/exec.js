@@ -9,6 +9,15 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
+    router.all('/pipeline/:jobId?', methods(['GET']), logger(), (req, res, next) => {
+        const { jobId } = req.params;
+        Execution.getPipeline({ jobId }).then((response) => {
+            res.json(response);
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     router.all('/raw', methods(['POST']), logger(), (req, res, next) => {
         Execution.runRaw(req.body).then((jobId) => {
             res.json({ jobId });
@@ -57,7 +66,7 @@ const routes = (options) => {
             return next(error);
         });
     });
-    router.all('/tree/:jobId?', methods(['GET']), (req, res, next) => {
+    router.all('/tree/:jobId?', methods(['GET']), logger(), (req, res, next) => {
         const { jobId } = req.params;
         Execution.getTree({ jobId }).then((response) => {
             res.json(response);

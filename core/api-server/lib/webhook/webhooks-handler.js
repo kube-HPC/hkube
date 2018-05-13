@@ -109,7 +109,7 @@ class WebhooksHandler {
                 retryDelay: this._options.webhooks.retryStrategy.retryDelay,
                 retryStrategy: request.RetryStrategies.HTTPOrNetworkError
             }).then((response) => {
-                data.responseStatus = response.statusCode >= 400 ? States.FAILED : States.SUCCEEDED;
+                data.responseStatus = response.statusCode >= 400 ? States.FAILED : States.SUCCEED;
                 data.httpResponse = { statusCode: response.statusCode, statusMessage: response.statusMessage };
                 log.debug(`webhook ${type} completed with status ${response.statusCode} ${response.statusMessage}, attempts: ${response.attempts}`, { component: components.WEBHOOK_HANDLER, jobId });
                 return resolve(data);

@@ -30,7 +30,6 @@ class StorageFactory {
             const result = await this._setResultsFromStorage({ data });
             return { ...options, data: result, storageModule: this.moduleName };
         }
-
         return options;
     }
 }

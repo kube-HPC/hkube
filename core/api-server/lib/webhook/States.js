@@ -2,6 +2,6 @@
 
 module.exports = {
     PENDING: 'pending',
-    SUCCEEDED: 'succeeded',
+    SUCCEED: 'succeed',
     FAILED: 'failed'
 };

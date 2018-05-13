@@ -1,4 +1,3 @@
-const deepExtend = require('deep-extend');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, } = require('../errors/errors');
@@ -17,9 +16,8 @@ class PipelineStore {
         if (!pipe) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        const pipeline = deepExtend(pipe, options);
-        validator.addDefaults(pipeline);
-        return stateManager.setPipeline(pipeline);
+        validator.addDefaults(options);
+        return stateManager.setPipeline(options);
     }
 
     /**

@@ -22,15 +22,19 @@
     "tags": [
         {
             "name": "Execution",
-            "description": "Execution pipelines"
+            "description": "Execution pipelines as raw or stored, get pipelines status and result"
         },
         {
             "name": "Algorithms",
-            "description": "Algorithms pipelines"
+            "description": "Store new algorithms, update, get and delete"
         },
         {
             "name": "Pipelines",
-            "description": "Pipelines pipelines"
+            "description": "Store new pipelines, update, get and delete"
+        },
+        {
+            "name": "Webhooks",
+            "description": "Webhooks status and result"
         }
     ],
     "servers": [],
@@ -40,7 +44,7 @@
                 "tags": [
                     "Execution"
                 ],
-                "summary": "run pipeline",
+                "summary": "Run raw pipeline",
                 "description": "Start pipeline execution with raw input, returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
                 "responses": {
                     "200": {
@@ -92,8 +96,8 @@
                 "tags": [
                     "Execution"
                 ],
-                "summary": "run algorithm flow",
-                "description": "Start pipeline execution when the name of the pipeline is known (/store/pipelines), all parameters in this action will be merged with the stored pipeline and then returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
+                "summary": "Run stored pipeline",
+                "description": "Start pipeline execution when the name of the pipeline is known, all parameters in this action will be merged with the stored pipeline and then returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
                 "responses": {
                     "200": {
                         "description": "pipeline execution data",
@@ -154,8 +158,8 @@
                 "tags": [
                     "Execution"
                 ],
-                "summary": "stop pipeline execution",
-                "description": "call to stop the flow execution",
+                "summary": "Stop pipeline",
+                "description": "Call to stop pipeline execution",
                 "responses": {
                     "200": {
                         "description": "the OK string",
@@ -210,13 +214,13 @@
                 }
             }
         },
-        "/exec/status/{jobId}": {
+        "/exec/pipeline/{jobId}": {
             "get": {
                 "tags": [
                     "Execution"
                 ],
-                "summary": "pipeline execution status",
-                "description": "returns a status for the current pipeline.",
+                "summary": "Get pipeline data",
+                "description": "Returns the executed pipeline data",
                 "parameters": [
                     {
                         "name": "jobId",
@@ -224,7 +228,69 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/components/schemas/jobIdParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "pipeline result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/pipelineResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "jobId Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/exec/status/{jobId}": {
+            "get": {
+                "tags": [
+                    "Execution"
+                ],
+                "summary": "Get pipeline status",
+                "description": "Returns a status for the current pipeline.",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Unique identifier representing pipeline execution",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/components/schemas/jobIdParam"
                         }
                     }
                 ],
@@ -277,7 +343,7 @@
                 "tags": [
                     "Execution"
                 ],
-                "summary": "get run result",
+                "summary": "Get pipeline result",
                 "description": "returns result for the execution of a specific pipeline run. if called before result is determined - returns error.",
                 "parameters": [
                     {
@@ -286,7 +352,7 @@
                         "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/components/schemas/jobIdParam"
                         }
                     }
                 ],
@@ -339,8 +405,8 @@
                 "tags": [
                     "Execution"
                 ],
-                "summary": "pipeline execution tree",
-                "description": "returns a tree of pipelines.",
+                "summary": "Pipeline execution tree",
+                "description": "Returns a tree of pipelines, usually a triggered pipelines",
                 "parameters": [
                     {
                         "name": "jobId",
@@ -348,7 +414,7 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/components/schemas/jobIdParam"
                         }
                     }
                 ],
@@ -401,7 +467,7 @@
                 "tags": [
                     "Algorithms"
                 ],
-                "summary": "get specific algorithm from store",
+                "summary": "Get algorithm",
                 "description": "get specific algorithm from store",
                 "parameters": [
                     {
@@ -461,8 +527,8 @@
                 "tags": [
                     "Algorithms"
                 ],
-                "summary": "delete existing algorithm",
-                "description": "delete algorithm pipeline",
+                "summary": "Delete algorithm",
+                "description": "Delete existing algorithm from store",
                 "parameters": [
                     {
                         "name": "name",
@@ -523,8 +589,8 @@
                 "tags": [
                     "Algorithms"
                 ],
-                "summary": "get all algorithms",
-                "description": "get all algorithms",
+                "summary": "Get all algorithms",
+                "description": "Get all available algorithms from store",
                 "parameters": [
                     {
                         "name": "sort",
@@ -562,8 +628,8 @@
                 "tags": [
                     "Algorithms"
                 ],
-                "summary": "insert new algorithm",
-                "description": "insert new algorithm",
+                "summary": "Insert algorithm",
+                "description": "Insert new algorithm to store if not exists",
                 "responses": {
                     "201": {
                         "description": "algorithm created",
@@ -614,8 +680,8 @@
                 "tags": [
                     "Algorithms"
                 ],
-                "summary": "update existing algorithm",
-                "description": "update existing algorithm",
+                "summary": "Update algorithm",
+                "description": "Update existing algorithm",
                 "responses": {
                     "200": {
                         "description": "action summery",
@@ -658,8 +724,8 @@
                 "tags": [
                     "Pipelines"
                 ],
-                "summary": "get specific pipeline from store",
-                "description": "get specific pipeline from store",
+                "summary": "Get pipeline",
+                "description": "Get specific pipeline from store",
                 "parameters": [
                     {
                         "name": "name",
@@ -718,8 +784,8 @@
                 "tags": [
                     "Pipelines"
                 ],
-                "summary": "delete existing pipeline",
-                "description": "delete existing pipeline",
+                "summary": "Delete pipeline",
+                "description": "Delete existing pipeline from store",
                 "parameters": [
                     {
                         "name": "name",
@@ -780,13 +846,13 @@
                 "tags": [
                     "Pipelines"
                 ],
-                "summary": "get all pipelines",
-                "description": "get all pipelines",
+                "summary": "Get all pipelines",
+                "description": "Get all pipelines from store",
                 "parameters": [
                     {
                         "name": "sort",
                         "in": "query",
-                        "description": "pipeline name to get from the store",
+                        "description": "sort by",
                         "schema": {
                             "type": "string"
                         }
@@ -819,8 +885,8 @@
                 "tags": [
                     "Pipelines"
                 ],
-                "summary": "insert new pipeline",
-                "description": "insert new pipeline",
+                "summary": "Insert pipeline",
+                "description": "Insert new pipeline to store if not exist",
                 "responses": {
                     "201": {
                         "description": "pipeline created",
@@ -871,8 +937,8 @@
                 "tags": [
                     "Pipelines"
                 ],
-                "summary": "update existing pipeline",
-                "description": "update existing pipeline",
+                "summary": "Update pipeline",
+                "description": "Update existing pipeline",
                 "responses": {
                     "200": {
                         "description": "action summery",
@@ -910,13 +976,13 @@
                 }
             }
         },
-        "/debug/exec/{jobId}": {
+        "/webhooks/status/{jobId}": {
             "get": {
                 "tags": [
-                    "Debug"
+                    "Webhooks"
                 ],
-                "summary": "pipeline execution status",
-                "description": "returns a status for the current pipeline.",
+                "summary": "Webhook status",
+                "description": "Returns a webhook status for specific pipeline",
                 "parameters": [
                     {
                         "name": "jobId",
@@ -924,7 +990,7 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/components/schemas/jobIdParam"
                         }
                     }
                 ],
@@ -972,13 +1038,13 @@
                 }
             }
         },
-        "/debug/webhooks/status/{jobId}": {
+        "/webhooks/results/{jobId}": {
             "get": {
                 "tags": [
-                    "Debug"
+                    "Webhooks"
                 ],
-                "summary": "pipeline execution status",
-                "description": "returns a status for the current pipeline.",
+                "summary": "Webhook result",
+                "description": "Returns a webhook result for specific pipeline",
                 "parameters": [
                     {
                         "name": "jobId",
@@ -986,69 +1052,7 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "pipeline result",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/pipelineResult"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "bad request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "jobId Not Found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "description": "Unexpected error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/debug/webhooks/results/{jobId}": {
-            "get": {
-                "tags": [
-                    "Debug"
-                ],
-                "summary": "get run result",
-                "description": "returns result for the execution of a specific pipeline run. if called before result is determined - returns error.",
-                "parameters": [
-                    {
-                        "name": "jobId",
-                        "in": "path",
-                        "description": "Unique identifier representing pipeline execution",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/components/schemas/jobIdParam"
                         }
                     }
                 ],
@@ -1133,6 +1137,7 @@
                     },
                     "nodes": {
                         "type": "array",
+                        "description": "Array of nodes",
                         "items": {
                             "$ref": "#/components/schemas/pipelineNode"
                         }
@@ -1192,7 +1197,6 @@
                 "properties": {
                     "name": {
                         "type": "string",
-                        "example": "batch",
                         "minLength": 1
                     },
                     "flowInput": {
@@ -1220,21 +1224,18 @@
                 "properties": {
                     "nodeName": {
                         "type": "string",
-                        "description": "Unique identifier",
+                        "description": "Unique node identifier",
                         "minLength": 1
                     },
                     "algorithmName": {
                         "type": "string",
-                        "description": "Unique identifier representing a specific function. e.g. \"Average\"",
+                        "description": "The name of the algorithm",
                         "minLength": 1
                     },
                     "input": {
                         "type": "array",
-                        "description": "extra input, in addition to the output from parent step.",
+                        "description": "The input for the algorithm",
                         "default": []
-                    },
-                    "code": {
-                        "type": "array"
                     }
                 },
                 "additionalProperties": true,
@@ -1302,11 +1303,7 @@
                         ]
                     }
                 },
-                "description": "optional properties",
-                "example": {
-                    "batchTolerance": 60,
-                    "progressVerbosityLevel": "info"
-                }
+                "description": "optional properties"
             },
             "stopRequest": {
                 "type": "object",
@@ -1323,11 +1320,7 @@
                 },
                 "required": [
                     "jobId"
-                ],
-                "example": {
-                    "jobId": "046b6c7f-0b8a-43b9-b35d-6489e6daee91",
-                    "reason": "cancel now"
-                }
+                ]
             },
             "defaultResponse": {
                 "type": "object",
@@ -1335,9 +1328,6 @@
                     "message": {
                         "type": "string"
                     }
-                },
-                "example": {
-                    "message": "message"
                 }
             },
             "Error": {
@@ -1360,9 +1350,6 @@
                         "description": "input object",
                         "properties": {}
                     }
-                },
-                "example": {
-                    "result": "{}"
                 }
             },
             "name": {
@@ -1387,6 +1374,11 @@
                 "required": [
                     "jobId"
                 ]
+            },
+            "jobIdParam": {
+                "type": "string",
+                "description": "Unique identifier representing pipeline execution",
+                "required": true
             },
             "execTreeResult": {
                 "type": "array",
