@@ -1,6 +1,6 @@
 {
   "name": "triggering-service",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "triggring service which allows flows ti be triggered from verity ways",
   "main": "app.js",
   "directories": {

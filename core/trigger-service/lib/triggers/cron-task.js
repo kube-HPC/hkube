@@ -12,8 +12,8 @@ class CronTask {
         this.tasks = [];
     }
     async init() {
-        storedPipelineListener.on(storedPipelineEvents.prefix.CHANGE, t => this.addTrigger(t));
-        storedPipelineListener.on(storedPipelineEvents.prefix.DELETE, t => this.removeTask(t.pipelineName));
+        storedPipelineListener.on(`${storedPipelineEvents.prefix.CHANGE}-cron`, t => this.addTrigger(t));
+        storedPipelineListener.on(`${storedPipelineEvents.prefix.DELETE}-cron`, t => this.removeTask(t.pipelineName));
         const triggers = await storedPipelineListener.getTriggeredPipelineByType(storedPipelineEvents.suffix.CRON);
         if (triggers) {
             triggers.forEach(t => this.addTrigger(t));

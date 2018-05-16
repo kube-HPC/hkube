@@ -55,7 +55,8 @@ class StoredPipelinesListener extends events {
             });
         });
         if (eventPrefix) {
-            Object.keys(pipelinesByTriggerType).forEach(t => this.emit(`${eventPrefix}-{t}`, pipelinesByTriggerType[t]));
+            Object.keys(pipelinesByTriggerType)
+                .forEach(t => pipelinesByTriggerType[t].forEach(task => this.emit(`${eventPrefix}-${t}`, task)));
         }
 
         return pipelinesByTriggerType;
