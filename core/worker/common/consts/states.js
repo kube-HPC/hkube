@@ -8,5 +8,9 @@ module.exports = {
         error: 'error',
         stop: 'stop',
         results: 'results'
+    },
+    workerCommands: {
+        stopProcessing: 'stopProcessing',
+        startProcessing: 'startProcessing'
     }
 };

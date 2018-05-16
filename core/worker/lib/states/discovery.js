@@ -16,6 +16,12 @@ class EtcdDiscovery extends EventEmitter {
         await this._etcd.init(options.etcdDiscovery.init);
         await this._etcd.discovery.register({ serviceName: options.etcdDiscovery.init.serviceName });
         log.info(`registering worker discovery for id ${this._etcd.discovery._instanceId}`);
+
+        await this.watchWorkerStates();
+        this._etcd.workers.on('change', (res) => {
+            log.info(`got worker state change ${JSON.stringify(res)}`, { component });
+            this.emit(res.status.command, res);
+        });
         this.watch({ jobId: 'hookWatch' });
         this._etcd.jobs.on('change', (res) => {
             log.info(JSON.stringify(res), { component });
@@ -48,6 +54,14 @@ class EtcdDiscovery extends EventEmitter {
 
     async watch(options) {
         return this._etcd.jobs.watch(options);
+    }
+
+    async watchWorkerStates() {
+        return this._etcd.workers.watch({ workerId: this._etcd.discovery._instanceId });
+    }
+
+    async unwatchWorkerStates() {
+        return this._etcd.workers.unwatch({ workerId: this._etcd.discovery._instanceId });
     }
 
     async unwatch(options) {

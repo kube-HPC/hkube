@@ -24,6 +24,7 @@ class JobConsumer extends EventEmitter {
         this._jobID = undefined;
         this._taskID = undefined;
         this._pipelineName = undefined;
+        this._consumerPaused = false;
     }
 
     async init(options) {
@@ -94,6 +95,16 @@ class JobConsumer extends EventEmitter {
         });
     }
 
+    pause() {
+        log.info('Job consumer paused', { component });
+        this._consumerPaused = true;
+        return this._consumer.pause({ type: this._options.jobConsumer.job.type });
+    }
+    resume() {
+        log.info('Job consumer resumed', { component });
+        this._consumerPaused = false;
+        return this._consumer.resume({ type: this._options.jobConsumer.job.type });
+    }
     async updateDiscovery(data) {
         const { workerStatus, jobStatus, error } = this._getStatus(data);
         const discoveryInfo = {
@@ -105,6 +116,7 @@ class JobConsumer extends EventEmitter {
             podName: this._options.kubernetes.pod_name,
             workerStatus,
             jobStatus,
+            workerPaused: this.isConsumerPaused,
             error
         };
         await etcd.updateDiscovery(discoveryInfo);
@@ -301,6 +313,10 @@ class JobConsumer extends EventEmitter {
             pipelineName: this._pipelineName,
             algorithmName: this._options.jobConsumer.job.type
         };
+    }
+
+    get isConsumerPaused() {
+        return this._consumerPaused;
     }
 }
 
