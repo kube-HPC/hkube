@@ -1,0 +1,76 @@
+{
+    "statusCode": 200,
+    "body": {
+        "kind": "JobList",
+        "apiVersion": "batch/v1",
+        "metadata": {
+            "selfLink": "/apis/batch/v1/namespaces/default/jobs/",
+            "resourceVersion": "15345497"
+        },
+        "items": [
+            {
+                "metadata": {
+                    "name": "pi",
+                    "namespace": "default",
+                    "selfLink": "/apis/batch/v1/namespaces/default/jobs/pi",
+                    "uid": "10f70a3a-3d80-11e8-b6cc-000d3ab7c6fe",
+                    "resourceVersion": "15345295",
+                    "creationTimestamp": "2018-04-11T12:01:28Z",
+                    "labels": {
+                        "group": "hkube",
+                        "type": "worker"
+                    },
+                    "annotations": {
+                        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"batch/v1\",\"kind\":\"Job\",\"metadata\":{\"annotations\":{},\"labels\":{\"group\":\"hkube\",\"type\":\"worker\"},\"name\":\"pi\",\"namespace\":\"default\"},\"spec\":{\"backoffLimit\":4,\"template\":{\"spec\":{\"containers\":[{\"command\":[\"perl\",\"-Mbignum=bpi\",\"-wle\",\"print bpi(2000)\"],\"image\":\"perl\",\"name\":\"pi\"}],\"restartPolicy\":\"Never\"}}}}\n"
+                    }
+                },
+                "spec": {
+                    "parallelism": 1,
+                    "completions": 1,
+                    "backoffLimit": 4,
+                    "selector": {
+                        "matchLabels": {
+                            "controller-uid": "10f70a3a-3d80-11e8-b6cc-000d3ab7c6fe"
+                        }
+                    },
+                    "template": {
+                        "metadata": {
+                            "creationTimestamp": null,
+                            "labels": {
+                                "controller-uid": "10f70a3a-3d80-11e8-b6cc-000d3ab7c6fe",
+                                "job-name": "pi"
+                            }
+                        },
+                        "spec": {
+                            "containers": [
+                                {
+                                    "name": "pi",
+                                    "image": "perl",
+                                    "command": [
+                                        "perl",
+                                        "-Mbignum=bpi",
+                                        "-wle",
+                                        "print bpi(2000)"
+                                    ],
+                                    "resources": {},
+                                    "terminationMessagePath": "/dev/termination-log",
+                                    "terminationMessagePolicy": "File",
+                                    "imagePullPolicy": "Always"
+                                }
+                            ],
+                            "restartPolicy": "Never",
+                            "terminationGracePeriodSeconds": 30,
+                            "dnsPolicy": "ClusterFirst",
+                            "securityContext": {},
+                            "schedulerName": "default-scheduler"
+                        }
+                    }
+                },
+                "status": {
+                    "startTime": "2018-04-11T12:01:28Z",
+                    "active": 1
+                }
+            }
+        ]
+    }
+}
