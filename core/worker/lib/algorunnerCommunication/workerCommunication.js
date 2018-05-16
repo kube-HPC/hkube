@@ -3,6 +3,7 @@ const Logger = require('@hkube/logger');
 let log;
 const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').workerCommunicationSchema;
+const wsAdapter = require('./wsWorkerCommunication');
 const socketAdapter = require('./socketWorkerCommunication');
 const loopbackAdapter = require('./loopbackWorkerCommunication');
 const { adapters } = require('./consts');
@@ -16,6 +17,7 @@ class WorkerCommunication extends EventEmitter {
         super();
         this._options = null;
         this._adapters = {};
+        this._adapters[adapters.ws] = wsAdapter;
         this._adapters[adapters.socket] = socketAdapter;
         this._adapters[adapters.loopback] = loopbackAdapter;
         this.adapter = null;
