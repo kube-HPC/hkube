@@ -1,7 +1,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const {componentName} = require('./consts/index');
+const { componentName } = require('./consts/index');
 const request = require('requestretry');
-const {apiServer} = require('./consts/index');
+const { apiServer } = require('./consts/index');
 
 class PipelineProducer {
     constructor() {
@@ -14,27 +14,27 @@ class PipelineProducer {
     }
     async init(config) {
         this.config = config;
-        const {protocol, host, port} = this.config.apiServer;
+        const { protocol, host, port } = this.config.apiServer;
         this.apiUrl = `${protocol}://${host}:${port}/${apiServer.suffix}`;
     }
-    async produce(name, flowInput = [], jobId) {
-        log.info(`try to serd pipeline with name ${name} to api server`, { component: componentName.PIPELINE_PRODUCER});
+
+    async produce(name, jobId) {
+        log.info(`try to send pipeline with name ${name} to api server`, { component: componentName.PIPELINE_PRODUCER });
         request({
             method: 'POST',
             uri: this.apiUrl,
             body: {
                 name,
-                parentJobId: jobId,
-                flowInput
+                parentJobId: jobId
             },
             json: true,
             ...this.retrySettings
         }).then(() => {
-            log.info(`pipeline with name ${name} sent to api server  `, { component: componentName.PIPELINE_PRODUCER});
+            log.info(`pipeline with name ${name} sent to api server`, { component: componentName.PIPELINE_PRODUCER });
         }).catch((err) => {
-            log.error(`an error acuured or maxretiries was reached errorMessage:${err} `, { component: componentName.PIPELINE_PRODUCER});
+            log.error(`an error occurred or max retries was reached error:${err} `, { component: componentName.PIPELINE_PRODUCER });
         });
-        
+
         return true;
     }
 }
