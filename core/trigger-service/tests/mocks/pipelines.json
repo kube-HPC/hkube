@@ -1,0 +1,31 @@
+[
+    {
+        "name": "simple"
+    },
+    {
+        "name": "batch"
+    },
+    {
+        "name": "simple_cron_trigger",
+        "triggers": {
+            "cron": "*/1 * * * *"
+        }
+    },
+    {
+        "name": "simple_pipelines_trigger",
+        "triggers": {
+            "pipelines": [
+                "batch_trigger"
+            ]
+        }
+    },
+    {
+        "name": "invalid_cron_trigger",
+        "triggers": {
+            "cron": "Im invalid cron"
+        }
+    },
+    {
+        "name": "batch_trigger"
+    }
+]

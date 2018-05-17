@@ -1,14 +1,10 @@
-// const componentName = ['QUERIER', 'QUEUE', 'QUEUE_RUNNER', 'BOOTSTRAP'];
-
-// module.exports = componentName.reduce((initial, component) => ({...initial, [component]: component}), {});
-
 module.exports = {
-    MAIN: 'MAIN',
-    TRIGGER_QUEUE: 'TRIGGER_QUEUE',
-    CRON: 'CRON',
-    STORED_PIPELINES_LISTENER: 'STORED_PIPELINES_LISTENER',
-    TRIGGER_RUNNER: 'TRIGGER_RUNNER',
-    PIPELINE_PRODUCER: 'PIPELINE_PRODUCER',
-    PIPELINE_TRIGGER: 'PIPELINE_TRIGGER'
+    MAIN: 'Main',
+    TRIGGER_QUEUE: 'Trigger-Queue',
+    CRON: 'Cron',
+    STORED_PIPELINES_LISTENER: 'Stored Pipelines Listener',
+    TRIGGER_RUNNER: 'Trigger-Runner',
+    PIPELINE_PRODUCER: 'Pipeline-Producer',
+    PIPELINE_TRIGGER: 'Pipeline-Trigger'
 
 };

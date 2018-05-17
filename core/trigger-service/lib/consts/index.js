@@ -1,9 +1,7 @@
 const componentName = require('./component-name');
-const storedPipelineEvents = require('./stroed-pipeline-events');
-const apiServer = require('./api-server');
+const storedPipelineEvents = require('./stored-pipeline-events');
 
 module.exports = {
-    componentName, 
-    storedPipelineEvents,
-    apiServer
+    componentName,
+    storedPipelineEvents
 };
