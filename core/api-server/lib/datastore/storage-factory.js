@@ -25,7 +25,7 @@ class StorageFactory {
     }
 
     async getResults(options) {
-        if (options.data) {
+        if (options && options.data) {
             const data = await this.adapter.getResults({ jobId: options.jobId });
             const result = await this._setResultsFromStorage({ data });
             return { ...options, data: result, storageModule: this.moduleName };

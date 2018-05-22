@@ -25,7 +25,7 @@ class ExecutionService {
      */
     async runRaw(options) {
         validator.validateRunRawPipeline(options);
-        return this._run(options, true);
+        return this._run(options);
     }
 
     /**
@@ -43,20 +43,36 @@ class ExecutionService {
      */
     async runStored(options) {
         validator.validateRunStoredPipeline(options);
-        return this._runStored(options, true);
+        return this._runStored(options);
     }
 
     async runStoredInternal(options) {
-        return this._runStored(options, false, [options.parentJobId, options.name].join('.'));
+        if (!options.name) {
+            throw new InvalidDataError('you must specify name for pipeline');
+        }
+        if (!options.jobId) {
+            throw new InvalidDataError(`you must specify jobId for pipeline ${options.name}`);
+        }
+
+        const option = {
+            name: options.name
+        };
+
+        let results = await stateManager.getJobResult({ jobId: options.jobId });
+        if (results && results.data) {
+            results = results.data.map(r => r.result);
+            option.flowInput = results;
+        }
+        return this._runStored(option, [options.jobId, options.name, uuidv4()].join('.'));
     }
 
-    async _runStored(options, parseFlowInput, jobId) {
+    async _runStored(options, jobId) {
         const pipe = await stateManager.getPipeline(options);
         if (!pipe) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
         const pipeline = Object.assign({}, pipe, options);
-        return this._run(pipeline, parseFlowInput, jobId);
+        return this._run(pipeline, jobId);
     }
 
     /**
@@ -67,11 +83,10 @@ class ExecutionService {
      * 
      * @memberOf ExecutionService
      */
-    async _run(pipeline, parseFlowInput, jobId) {
+    async _run(pipeline, jobId) {
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name });
         }
-
         const span = tracer.startSpan({
             id: jobId,
             name: 'run pipeline',
@@ -84,7 +99,7 @@ class ExecutionService {
         validator.addDefaults(pipeline);
         await this._createStorage(jobId, pipeline.name);
 
-        if (parseFlowInput && pipeline.flowInput) {
+        if (pipeline.flowInput) {
             const metadata = parser.replaceFlowInput(pipeline);
             const storageInfo = await storageFactory.adapter.put({ jobId, taskId: jobId, data: pipeline.flowInput });
             pipeline.flowInput = { metadata, storageInfo };
@@ -164,13 +179,6 @@ class ExecutionService {
     */
     async getJobResult(options) {
         validator.validateJobID(options);
-        const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
-        if (!jobStatus) {
-            throw new ResourceNotFoundError('status', options.jobId);
-        }
-        if (stateManager.isActiveState(jobStatus.status)) {
-            throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
-        }
         const response = await stateManager.getJobResult({ jobId: options.jobId });
         if (!response) {
             throw new ResourceNotFoundError('results', options.jobId);

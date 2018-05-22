@@ -30,16 +30,16 @@ const routes = (options) => {
         });
     });
     router.post('/pipelines', logger(), (req, res, next) => {
-        pipelineStore.insertPipeline(req.body).then(() => {
-            res.status(201).json({ message: 'OK' });
+        pipelineStore.insertPipeline(req.body).then((response) => {
+            res.status(201).json(response);
             next();
         }).catch((error) => {
             return next(error);
         });
     });
     router.put('/pipelines', logger(), (req, res, next) => {
-        pipelineStore.updatePipeline(req.body).then(() => {
-            res.json({ message: 'OK' });
+        pipelineStore.updatePipeline(req.body).then((response) => {
+            res.json(response);
             next();
         }).catch((error) => {
             return next(error);
@@ -76,16 +76,16 @@ const routes = (options) => {
         });
     });
     router.post('/algorithms', logger(), (req, res, next) => {
-        algorithmStore.insertAlgorithm(req.body).then(() => {
-            res.status(201).json({ message: 'OK' });
+        algorithmStore.insertAlgorithm(req.body).then((response) => {
+            res.status(201).json(response);
             next();
         }).catch((error) => {
             return next(error);
         });
     });
     router.put('/algorithms', logger(), (req, res, next) => {
-        algorithmStore.updateAlgorithm(req.body).then(() => {
-            res.json({ message: 'OK' });
+        algorithmStore.updateAlgorithm(req.body).then((response) => {
+            res.json(response);
             next();
         }).catch((error) => {
             return next(error);

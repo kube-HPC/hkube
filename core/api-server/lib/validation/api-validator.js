@@ -2,6 +2,7 @@
 const validator = require('djsv');
 const { parser } = require('@hkube/parsers');
 const { Graph, alg } = require('graphlib');
+const { CronJob } = require('cron');
 const { schemas } = require('../../api/rest-api/swagger.json').components;
 const { InvalidDataError, } = require('../errors/errors');
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
@@ -9,6 +10,7 @@ const URL_REGEX = /^(f|ht)tps?:\/\//i;
 class Validator {
     constructor() {
         validator.addFormat('url', this._validateWebhook);
+        validator.addFormat('cron', this._validateCron);
         Object.values(schemas).forEach((s) => {
             if (s.id) {
                 validator.addSchema(s);
@@ -34,15 +36,19 @@ class Validator {
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(schemas.runStoredPipeline, pipeline, { checkFlowInput: false });
+        this._validate(schemas.storedPipeline, pipeline, { checkFlowInput: false });
     }
 
     validateStopPipeline(pipeline) {
         this._validate(schemas.stopRequest, pipeline);
     }
 
-    validateUpdatePipeline(pipeline) {
+    validateInsertPipeline(pipeline) {
         this._validate(schemas.pipeline, pipeline);
+    }
+
+    validateUpdatePipeline(pipeline) {
+        this._validate(schemas.updatePipeline, pipeline);
     }
 
     validateUpdateAlgorithm(algorithm) {
@@ -118,6 +124,17 @@ class Validator {
 
     _validateWebhook(url) {
         return URL_REGEX.test(url);
+    }
+
+    _validateCron(cron) {
+        let result = true;
+        try {
+            new CronJob(cron); // eslint-disable-line
+        }
+        catch (e) {
+            result = false;
+        }
+        return result;
     }
 }
 

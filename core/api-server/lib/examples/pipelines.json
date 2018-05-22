@@ -318,66 +318,130 @@
         }
     },
     {
-        "name": "simple-eval",
+        "name": "simple_trigger",
         "nodes": [
             {
-                "nodeName": "eval1",
+                "nodeName": "split",
                 "algorithmName": "eval-alg",
                 "input": [
-                    [
-                        "(input,require) => {",
-                        "const result = input[0] + input[1]",
-                        "return result }"
-                    ],
-                    "@flowInput.num.inp1",
-                    "@flowInput.num.inp2"
-                ]
+                    "#@flowInput.text"
+                ],
+                "extraData": {
+                    "code": [
+                        "function split(input) { ",
+                        "return new Promise((resolve) => { ",
+                        "   setTimeout(() => resolve(input[0].split(' ')), 80);",
+                        "});",
+                        "}"
+                    ]
+                }
             },
             {
-                "nodeName": "eval2",
+                "nodeName": "reduce",
                 "algorithmName": "eval-alg",
                 "input": [
-                    [
-                        "(input,require) => {",
-                        "const result = input[0] * input[1]",
-                        "return result }"
-                    ],
-                    "@eval1",
-                    "@flowInput.num.inp3"
-                ]
-            },
-            {
-                "nodeName": "eval3",
-                "algorithmName": "eval-alg",
-                "input": [
-                    [
-                        "(input,require) => {",
-                        "const result = input[0] / input[1]",
-                        "return result }"
-                    ],
-                    "@eval2",
-                    "@flowInput.num.inp4"
-                ]
+                    "*@split"
+                ],
+                "extraData": {
+                    "code": [
+                        "function reduce(input) {",
+                        "return input[0].reduce((all, word) => {",
+                        "if (word in all) {",
+                        "all[word]++;",
+                        "}",
+                        "else {",
+                        "all[word] = 1;",
+                        "}",
+                        "return all;",
+                        "}, {});",
+                        "}"
+                    ]
+                }
             }
         ],
         "flowInput": {
-            "num": {
-                "inp1": 7,
-                "inp2": 5,
-                "inp3": 6,
-                "inp4": 2
-            }
+            "text": [
+                "In mathematics and computer science, a directed acyclic graph",
+                "edges, with each edge directed from one vertex to another",
+                "such that there is no way to start at any vertex v and follow"
+            ]
+        },
+        "triggers": {
+            "pipelines": [
+                "batch_trigger_not_found"
+            ],
+            "cron": "*/1 * * * *"
         },
         "options": {
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
+        },
+        "webhooks": {
+            "progress": "http://localhost:3003/webhook/progress",
+            "result": "http://localhost:3003/webhook/result"
         }
     },
     {
-        "name": "triggered",
+        "name": "simple_trigger2",
         "nodes": [
             {
+                "nodeName": "split",
+                "algorithmName": "eval-alg",
+                "input": [
+                    "#@flowInput.text"
+                ],
+                "extraData": {
+                    "code": [
+                        "function split(input) {",
+                        "return input[0].split(' ');",
+                        "}"
+                    ]
+                }
+            },
+            {
                 "nodeName": "reduce",
+                "algorithmName": "eval-alg",
+                "input": [
+                    "*@split"
+                ],
+                "extraData": {
+                    "code": [
+                        "function reduce(input) {",
+                        "return input[0].reduce((all, word) => { ",
+                        "if (word in all) {",
+                        "all[word]++;",
+                        "}",
+                        "else {",
+                        "all[word] = 1;",
+                        "}",
+                        "return all;",
+                        "}, {});",
+                        "}"
+                    ]
+                }
+            }
+        ],
+        "flowInput": {
+            "text": [
+                "In mathematics and computer science, a directed acyclic graph",
+                "edges, with each edge directed from one vertex to another",
+                "such that there is no way to start at any vertex v and follow"
+            ]
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        },
+        "webhooks": {
+            "progress": "http://localhost:3003/webhook/progress",
+            "result": "http://localhost:3003/webhook/result"
+        }
+    },
+    {
+        "name": "batch_trigger",
+        "nodes": [
+            {
+                "nodeName": "count",
                 "algorithmName": "eval-alg",
                 "input": [
                     "@flowInput"

@@ -17,7 +17,8 @@ class PipelineStore {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
         validator.addDefaults(options);
-        return stateManager.setPipeline(options);
+        await stateManager.setPipeline(options);
+        return options;
     }
 
     /**
@@ -64,13 +65,14 @@ class PipelineStore {
      * returns defaultResponse
      * */
     async insertPipeline(options) {
-        validator.validateUpdatePipeline(options);
+        validator.validateInsertPipeline(options);
         const pipe = await stateManager.getPipeline(options);
         if (pipe) {
             throw new ResourceExistsError('pipeline', options.name);
         }
         validator.addDefaults(options);
-        return stateManager.setPipeline(options);
+        await stateManager.setPipeline(options);
+        return options;
     }
 }
 

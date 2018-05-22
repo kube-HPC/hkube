@@ -14,7 +14,8 @@ class AlgorithmStore {
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        return stateManager.setAlgorithm(options);
+        await stateManager.setAlgorithm(options);
+        return options;
     }
 
     /**
@@ -60,7 +61,8 @@ class AlgorithmStore {
         if (algorithm) {
             throw new ResourceExistsError('algorithm', options.name);
         }
-        return stateManager.setAlgorithm(options);
+        await stateManager.setAlgorithm(options);
+        return options;
     }
 }
 

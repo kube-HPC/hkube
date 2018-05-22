@@ -37,6 +37,12 @@ const _request = (options) => {
     });
 }
 
+function split(input) {
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(input[0].split(' ')), 80000);
+    });
+}
+
 describe('Rest', () => {
     before(async () => {
         config = await bootstrap.init();
@@ -475,7 +481,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body.error.code).to.equal(404);
-                        expect(response.body.error.message).to.equal('status no_such_id Not Found');
+                        expect(response.body.error.message).to.equal('results no_such_id Not Found');
                     });
                     it('should throw validation error of required property execution id', async () => {
                         const options = {
@@ -725,30 +731,30 @@ describe('Rest', () => {
                         expect(response.body.error.message).to.equal('algorithm conflict already exists');
                     });
                     it('should succeed to store algorithm', async () => {
+                        const body = {
+                            name: uuidv4(),
+                            algorithmImage: "image"
+                        }
                         const options = {
                             uri: restUrl + '/store/algorithms',
                             method: 'POST',
-                            body: {
-                                name: uuidv4(),
-                                algorithmImage: "image"
-                            }
+                            body
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(201);
-                        expect(response.body).to.have.property('message');
-                        expect(response.body.message).to.equal('OK');
+                        expect(response.body).to.deep.equal(body);
                     });
                 });
                 describe('/store/algorithms PUT', () => {
                     it('should succeed to update algorithm', async () => {
+                        const body = algorithms[0];
                         const options = {
                             uri: restUrl + '/store/algorithms',
                             method: 'PUT',
-                            body: algorithms[0]
+                            body
                         };
                         const response = await _request(options);
-                        expect(response.body).to.have.property('message');
-                        expect(response.body.message).to.equal('OK');
+                        expect(response.body).to.deep.equal(body);
                     });
                 });
             });
@@ -1057,27 +1063,27 @@ describe('Rest', () => {
                     it('should succeed to store pipeline', async () => {
                         const pipeline = clone(pipelines[0]);
                         pipeline.name = uuidv4();
+                        const body = pipeline;
                         const options = {
                             uri: restUrl + '/store/pipelines',
                             method: 'POST',
-                            body: pipeline
+                            body
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(201);
-                        expect(response.body).to.have.property('message');
-                        expect(response.body.message).to.equal('OK');
+                        expect(response.body).to.deep.equal(body);
                     });
                 });
                 describe('/store/pipelines PUT', () => {
                     it('should succeed to update pipeline', async () => {
+                        const body = pipelines[0];
                         const options = {
                             uri: restUrl + '/store/pipelines',
                             method: 'PUT',
-                            body: pipelines[0]
+                            body
                         };
                         const response = await _request(options);
-                        expect(response.body).to.have.property('message');
-                        expect(response.body.message).to.equal('OK');
+                        expect(response.body).to.deep.equal(body);
                     });
                 });
             });
@@ -1347,12 +1353,37 @@ describe('Rest', () => {
         before(() => {
             restUrl = `${baseUrl}/internal/v1`;
         });
+        it('should throw error when invalid pipeline name', async () => {
+            const options = {
+                method: 'POST',
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: null,
+                    jobId: null
+                }
+            };
+            const response = await _request(options);
+            expect(response.body.error.message).to.equal('you must specify name for pipeline');
+        });
+        it('should throw error when invalid parent job id', async () => {
+            const options = {
+                method: 'POST',
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1',
+                    jobId: null
+                }
+            };
+            const response = await _request(options);
+            expect(response.body.error.message).to.equal(`you must specify jobId for pipeline ${options.body.name}`);
+        });
         it('should succeed and return job id', async () => {
             const options = {
                 method: 'POST',
                 uri: `${restUrl}/exec/stored`,
                 body: {
-                    name: 'flow1'
+                    name: 'flow1',
+                    jobId: uuidv4()
                 }
             };
             const response = await _request(options);
@@ -1361,20 +1392,22 @@ describe('Rest', () => {
         it('should succeed without reaching too many request', async () => {
             const requests = 10;
             const promises = [];
-            const options = {
-                method: 'POST',
-                uri: `${restUrl}/exec/stored`,
-                body: {
-                    name: 'flow1'
-                }
-            };
+            const pipeline = 'flow1';
             for (let i = 0; i < requests; i++) {
+                const options = {
+                    method: 'POST',
+                    uri: `${restUrl}/exec/stored`,
+                    body: {
+                        name: pipeline,
+                        jobId: uuidv4()
+                    }
+                };
                 promises.push(_request(options));
             }
             const response = await Promise.all(promises);
             const jobs = response.map(r => r.body.jobId);
             expect(jobs).to.have.lengthOf(requests);
-            expect(jobs.every(j => j.includes(options.body.name))).to.equal(true);
+            expect(jobs.every(j => j.includes(pipeline))).to.equal(true);
         });
         it('pipeline tree call stack by trigger', async () => {
             let prefix = '57ec5c39-122b-4d7c-bc8f-580ba30df511';

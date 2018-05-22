@@ -24,26 +24,6 @@ class WebhooksHandler {
     _watch() {
         stateManager.on('job-result', async (response) => {
             this._requestResults({ jobId: response.jobId, ...response });
-            const payloadData = await storageFactory.getResults(response);
-            const pipeline = await stateManager.getExecution({ jobId: payloadData.jobId });
-            // trigger call should be from Trigger Service (testing only)
-            if (payloadData.data && pipeline.triggers && pipeline.triggers.pipelines) {
-                const flowInput = payloadData.data.map(r => r.result);
-                pipeline.triggers.pipelines.forEach((p) => {
-                    request({
-                        method: 'POST',
-                        uri: 'http://localhost:3000/internal/v1/exec/stored',
-                        body: {
-                            name: p,
-                            parentJobId: payloadData.jobId,
-                            flowInput
-                        },
-                        json: true
-                    }).then(() => {
-                    }).catch(() => {
-                    });
-                });
-            }
         });
 
         stateManager.on('job-status', (results) => {

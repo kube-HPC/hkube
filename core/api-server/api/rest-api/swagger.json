@@ -1192,11 +1192,49 @@
                     "algorithmImage"
                 ]
             },
-            "runStoredPipeline": {
+            "updatePipeline": {
                 "type": "object",
                 "properties": {
                     "name": {
                         "type": "string",
+                        "description": "Unique identifier representing a specific pipeline",
+                        "minLength": 1
+                    },
+                    "nodes": {
+                        "type": "array",
+                        "description": "Array of nodes",
+                        "items": {
+                            "$ref": "#/components/schemas/pipelineNode"
+                        }
+                    },
+                    "flowInput": {
+                        "type": "object",
+                        "description": "input object"
+                    },
+                    "webhooks": {
+                        "$ref": "#/components/schemas/webhooks"
+                    },
+                    "options": {
+                        "$ref": "#/components/schemas/options"
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/priority"
+                    },
+                    "triggers": {
+                        "$ref": "#/components/schemas/triggers"
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "name"
+                ]
+            },
+            "storedPipeline": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific pipeline",
                         "minLength": 1
                     },
                     "flowInput": {
@@ -1211,6 +1249,9 @@
                     },
                     "priority": {
                         "$ref": "#/components/schemas/priority"
+                    },
+                    "triggers": {
+                        "$ref": "#/components/schemas/triggers"
                     }
                 },
                 "additionalProperties": false,
@@ -1271,7 +1312,9 @@
                     },
                     "cron": {
                         "type": "string",
-                        "description": "cron job"
+                        "description": "cron job",
+                        "minLength": 1,
+                        "format": "cron"
                     }
                 },
                 "additionalProperties": false
@@ -1342,16 +1385,6 @@
                     }
                 }
             },
-            "pipelineExecutionResult": {
-                "type": "object",
-                "properties": {
-                    "result": {
-                        "type": "object",
-                        "description": "input object",
-                        "properties": {}
-                    }
-                }
-            },
             "name": {
                 "type": "object",
                 "properties": {
@@ -1408,14 +1441,26 @@
             "pipelineResult": {
                 "type": "object",
                 "properties": {
-                    "timestamp": {
-                        "type": "string"
-                    },
                     "jobId": {
                         "type": "string"
                     },
+                    "timestamp": {
+                        "type": "string"
+                    },
+                    "pipeline": {
+                        "type": "string"
+                    },
                     "data": {
-                        "type": "object"
+                        "type": "array"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "timeTook": {
+                        "type": "float"
+                    },
+                    "storageModule": {
+                        "type": "string"
                     }
                 }
             }
