@@ -63,9 +63,9 @@ describe('Test', function () {
             it('should consume a job with properties', async function (done) {
                 this.timeout(5000);
                 const jobId = `jobid-${uuidv4()}`;
-                const data = { test: 'OK' };
+                const data = { test: 'OK', jobId };
                 consumer.on(Events.JOBS.START, async (job) => {
-                    if (job.id === jobId) {
+                    if (job.data.jobId === jobId) {
                         expect(job.data).to.deep.equal(data);
                         done();
                     }
@@ -75,7 +75,6 @@ describe('Test', function () {
                 }
                 const options = {
                     job: {
-                        id: jobId,
                         type: 'pipeline-driver-job',
                         data: data
                     }
@@ -98,7 +97,7 @@ describe('Test', function () {
         it('should throw exception and stop pipeline', function () {
             const jobId = `jobid-${uuidv4()}`;
             const job = {
-                id: jobId,
+                data: { jobId },
                 done: () => { }
             }
             const error = new Error(`unable to find pipeline ${jobId}`)
@@ -108,7 +107,7 @@ describe('Test', function () {
             this.timeout(5000);
             const jobId = `jobid-${uuidv4()}`;
             const job = {
-                id: jobId,
+                data: { jobId },
                 done: () => { }
             }
             const pipeline = pipelines[1];
@@ -122,7 +121,7 @@ describe('Test', function () {
             const jobId = `jobid-${uuidv4()}`;
             const taskIds = [uuidv4(), uuidv4(), uuidv4()];
             const job = {
-                id: jobId,
+                data: { jobId },
                 done: () => { }
             }
             const pipeline = pipelines[0];
@@ -162,7 +161,7 @@ describe('Test', function () {
         it('should throw when check batch tolerance', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const job = {
-                id: jobId,
+                data: { jobId },
                 done: () => { }
             }
             const pipeline = pipelines.find(p => p.name === 'batch');
