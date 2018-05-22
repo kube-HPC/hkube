@@ -26,16 +26,15 @@ class CronTask {
         try {
             const cron = new CronJob(trigger.cron, () => this._onTick(trigger), null, true);
             this._crons.set(trigger.name, cron);
-            log.info(`update cron job with pipeline ${trigger.name} (${trigger.cron}), total cron jobs: ${this._crons.size}`, { component: componentName.CRON });
+            log.info(`update cron job for pipeline ${trigger.name} (${trigger.cron}), total cron jobs: ${this._crons.size}`, { component: componentName.CRON });
         }
         catch (e) {
-            log.info(`cron pattern not valid for pipeline ${trigger.name} (${trigger.cron})`, { component: componentName.CRON });
-            this._removeTrigger(trigger);
+            log.error(`cron pattern not valid for pipeline ${trigger.name} (${trigger.cron})`, { component: componentName.CRON });
         }
     }
 
     _onTick(trigger) {
-        log.info(`cron job with ${trigger.name} is executed according to schedule ${trigger.cron}`, { component: componentName.CRON });
+        log.debug(`cron job for pipeline ${trigger.name} is executed according to schedule ${trigger.cron}`, { component: componentName.CRON });
         triggerQueue.addTrigger({ name: trigger.name, jobId: 'cron' });
     }
 
@@ -43,7 +42,7 @@ class CronTask {
         const cron = this._stopCron(trigger.name);
         if (cron) {
             this._crons.delete(trigger.name);
-            log.info(`remove cron trigger with name ${trigger.name}, cron jobs left: ${this._crons.size}`, { component: componentName.CRON });
+            log.info(`remove cron job for pipeline ${trigger.name}, cron jobs left: ${this._crons.size}`, { component: componentName.CRON });
         }
     }
 
@@ -51,6 +50,7 @@ class CronTask {
         const cron = this._crons.get(trigger);
         if (cron) {
             cron.stop();
+            log.info(`stop cron job for pipeline ${trigger}`, { component: componentName.CRON });
         }
         return cron;
     }

@@ -1,7 +1,7 @@
-const package = require(process.cwd() + '/package.json');
-const config = module.exports = {};
+const pkg = require(process.cwd() + '/package.json'); // eslint-disable-line
+const config = {};
 
-config.serviceName = package.name;
+config.serviceName = pkg.name;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.redis = {
@@ -21,7 +21,7 @@ config.apiServer = {
     host: process.env.API_SERVER_SERVICE_HOST || 'localhost',
     port: process.env.API_SERVER_SERVICE_PORT || 3000,
     path: 'internal/v1/exec/stored'
-}
+};
 
 config.metrics = {
     collectDefault: true,
@@ -40,3 +40,5 @@ config.tracer = {
         }
     }
 };
+
+module.exports = config;

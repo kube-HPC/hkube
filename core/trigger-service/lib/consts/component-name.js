@@ -6,5 +6,4 @@ module.exports = {
     TRIGGER_RUNNER: 'Trigger-Runner',
     PIPELINE_PRODUCER: 'Pipeline-Producer',
     PIPELINE_TRIGGER: 'Pipeline-Trigger'
-
 };

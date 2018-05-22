@@ -1,17 +1,14 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const mockery = require('mockery');
-const bootstrap = require('../bootstrap');
-let storedPipelineListener, cronTrigger, pipelineTrigger, stateManager;
+let storedPipelineListener, cronTrigger, pipelineTrigger, triggerQueue, pipelineProducer, stateManager;
 const Trigger = require('../lib/triggers/Trigger');
 const pipelines = require('./mocks/pipelines.json');
-
-const stubTask = {
-    name: 'stub',
-    triggers: {
-        cron: '*/1 * * * *'
-    }
-};
+const apiServerMock = require('./mocks/api-server');
+const Logger = require('@hkube/logger');
+const configIt = require('@hkube/config');
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
 
 describe('test', () => {
     before(async () => {
@@ -24,51 +21,83 @@ describe('test', () => {
         mockery.registerSubstitute('../state/state-manager', `${process.cwd()}/tests/mocks/state-manager.js`);
         mockery.registerSubstitute('../lib/state/state-manager', `${process.cwd()}/tests/mocks/state-manager.js`);
 
-        await bootstrap.init();
-
+        triggerQueue = require('../lib/queue/trigger-queue');
+        triggerRunner = require('../lib/queue/trigger-runner');
         storedPipelineListener = require('../lib/pipelines/stored-pipelines-listener');
+        pipelineProducer = require('../lib/pipelines/pipeline-producer');
         cronTrigger = require('../lib/triggers/index').cronTrigger;
         pipelineTrigger = require('../lib/triggers/index').pipelineTrigger;
         stateManager = require('../lib/state/state-manager');
 
+        await apiServerMock.init();
+        cronTrigger.init(main);
+        triggerRunner.init(main);
+        storedPipelineListener.init(main);
+        pipelineProducer.init(main);
     });
     describe('CronTrigger', () => {
-        it('should get cron job map ', () => {
-            cronTrigger._updateTrigger(new Trigger(stubTask));
-            const cron = cronTrigger._crons.get(stubTask.name);
-            expect(cron.cronTime.source).to.equal(stubTask.triggers.cron);
+        beforeEach(() => {
+            cronTrigger._crons.clear();
+        });
+        it('should get cron job map', () => {
+            const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
+            cronTrigger._updateTrigger(new Trigger(pipeline));
+            const cron = cronTrigger._crons.get(pipeline.name);
+            expect(cron.cronTime.source).to.equal(pipeline.triggers.cron);
         });
         it('should get array of pipelines by cron type', async () => {
-            const pipelines = await storedPipelineListener.getTriggeredPipelineByType('cron');
-            expect(pipelines).to.be.an('array');
+            const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
+            const pipelinesList = await storedPipelineListener.getTriggeredPipelineByType('cron');
+            expect(pipelinesList).to.be.an('array');
+            expect(pipelinesList[0]).to.deep.equal(new Trigger(pipeline));
         });
         it('should get array of pipelines by pipelines type', async () => {
-            const pipelines = await storedPipelineListener.getTriggeredPipelineByType('pipelines');
-            expect(pipelines).to.be.an('array');
+            const pipeline = pipelines.find(p => p.name === 'simple_pipelines_trigger');
+            const pipelinesList = await storedPipelineListener.getTriggeredPipelineByType('pipelines');
+            expect(pipelinesList).to.be.an('array');
+            expect(pipelinesList[0]).to.deep.equal(new Trigger(pipeline));
         });
-        it('should get array of pipelines by pipelines type', async () => {
+        it('should not change the cron jobs size when no cron', () => {
             const pipeline = pipelines.find(p => p.name === 'simple');
             stateManager.emit('change', pipeline);
-            expect(cronTrigger._crons.size).to.equal(2)
+            expect(cronTrigger._crons.size).to.equal(0)
         });
-        it('should get array of pipelines by pipelines type', async () => {
+        it('should not change the cron jobs size when same exist cron', () => {
             const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
             stateManager.emit('change', pipeline);
-            expect(cronTrigger._crons.size).to.equal(2)
-        });
-        it('should get array of pipelines by pipelines type', async () => {
-            const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
-            stateManager.emit('delete', pipeline);
             expect(cronTrigger._crons.size).to.equal(1)
         });
-        it('should get array of pipelines by pipelines type', async () => {
+        it('should increase the cron jobs size by one', () => {
+            const cron = pipelines.find(p => p.name === 'simple_cron_trigger');
+            const pipeline = { ...cron, name: 'new_simple_cron_trigger' };
+            stateManager.emit('change', pipeline);
+            expect(cronTrigger._crons.size).to.equal(1)
+        });
+        it('should decrease the cron jobs size by one', () => {
+            const cron = pipelines.find(p => p.name === 'simple_cron_trigger');
+            const pipeline = { ...cron, name: 'new_simple_cron_trigger' };
+            stateManager.emit('change', pipeline);
+            stateManager.emit('delete', pipeline);
+            expect(cronTrigger._crons.size).to.equal(0)
+        });
+        it('should decrease the cron jobs size when invalid cron pattern', () => {
             const pipeline = pipelines.find(p => p.name === 'invalid_cron_trigger');
             stateManager.emit('change', pipeline);
+            expect(cronTrigger._crons.size).to.equal(0)
+        });
+        it('should run cron job', () => {
+            const clock = sinon.useFakeTimers();
+            const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
+            const spy = sinon.spy(cronTrigger, "_onTick");
+            stateManager.emit('change', pipeline);
+            clock.tick(1000);
+            clock.restore();
+            expect(spy.calledOnce).to.equal(true);
             expect(cronTrigger._crons.size).to.equal(1)
         });
     });
     describe('PipelineTrigger', () => {
-        it('should get array of pipelines by pipelines type', async () => {
+        it('should trigger another pipeline', () => {
             const pipeline = pipelines.find(p => p.name === 'simple_pipelines_trigger');
             const result = {
                 data: 'data',
@@ -78,6 +107,42 @@ describe('test', () => {
             const spy = sinon.spy(pipelineTrigger, "_runPipeline");
             stateManager.emit('result-change', result, pipeline);
             expect(spy.calledOnce).to.equal(true);
+        });
+    });
+    describe('PipelineProducer', () => {
+        it('should throw error when pass invalid name', (done) => {
+            pipelineProducer.produce({ jobId: 'jobId' }).catch(error => {
+                expect(error.message).to.equal('invalid name');
+                done();
+            })
+        });
+        it('should throw error when pass invalid jobId', (done) => {
+            pipelineProducer.produce({ name: 'name' }).catch(error => {
+                expect(error.message).to.equal('invalid jobId');
+                done();
+            })
+        });
+        it('should send http request to api-server', async () => {
+            const response = await pipelineProducer.produce({ name: 'name', jobId: 'jobId' });
+            expect(response.body).to.have.property('jobId');
+        });
+    });
+    describe('TriggerQueue', () => {
+        it('should throw error when pass invalid name', (done) => {
+            triggerQueue.addTrigger({ jobId: 'jobId' }).catch(error => {
+                expect(error.message).to.equal('invalid name');
+                done();
+            })
+        });
+        it('should throw error when pass invalid jobId', (done) => {
+            triggerQueue.addTrigger({ name: 'name' }).catch(error => {
+                expect(error.message).to.equal('invalid jobId');
+                done();
+            })
+        });
+        it('should send http request to api-server', async () => {
+            const response = await triggerQueue.addTrigger({ name: 'name', jobId: 'jobId' });
+            expect(response.body).to.have.property('jobId');
         });
     });
 });

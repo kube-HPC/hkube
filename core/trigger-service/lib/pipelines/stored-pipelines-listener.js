@@ -18,7 +18,7 @@ class StoredPipelinesListener extends Events {
     async getTriggeredPipelineByType(type) {
         let pipelines = [];
         try {
-            pipelines = await stateManager.getPipelines(type);
+            pipelines = await stateManager.getPipelines();
             pipelines = pipelines.filter(p => p.triggers != null && p.triggers[type] != null).map(p => new Trigger(p));
         }
         catch (error) {

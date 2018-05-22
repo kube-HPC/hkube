@@ -17,10 +17,9 @@ class PipelineTrigger {
 
     _runPipeline(result, pipeline) {
         if (result.data && pipeline.triggers && pipeline.triggers.pipelines) {
-            pipeline.triggers.pipelines.forEach(async (name) => {
+            pipeline.triggers.pipelines.forEach((name) => {
                 log.info(`new pipeline with name ${result.pipeline} was ended and triggered pipeline ${name}`, { component: componentName.PIPELINE_TRIGGER });
-                await triggerQueue.addTrigger({ name, jobId: result.jobId });
-                log.info(`pipeline with job with ${name} is executed correctly`, { component: componentName.PIPELINE_TRIGGER });
+                triggerQueue.addTrigger({ name, jobId: result.jobId });
             });
         }
     }

@@ -1,23 +1,27 @@
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
 const monitor = require('@hkube/redis-utils').Monitor;
 const { componentName } = require('./lib/consts/index');
 const { tracer } = require('@hkube/metrics');
+let log;
 
 const modules = [
     './lib/state/state-manager',
-    './lib/pipelines/stored-pipelines-listener',
     './lib/queue/trigger-runner',
+    './lib/pipelines/stored-pipelines-listener',
     './lib/pipelines/pipeline-producer',
 ];
 
 class Bootstrap {
     async init() {
+        let config = null;
         try {
+            const { main, logger } = configIt.load();
             this._handleErrors();
+
+            log = new Logger(main.serviceName, logger);
             log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
+
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component: componentName.MAIN });
             });
@@ -30,12 +34,13 @@ class Bootstrap {
             }
             await Promise.all(modules.map(m => require(m).init(main)));// eslint-disable-line global-require, import/no-dynamic-require
 
-            return main;
+            config = main;
         }
         catch (error) {
             log.error(error);
             this._onInitFailed(new Error(`unable to start application. ${error.message}`));
         }
+        return config;
     }
 
     _onInitFailed(error) {
