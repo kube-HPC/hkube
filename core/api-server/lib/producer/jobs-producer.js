@@ -41,7 +41,7 @@ class JobProducer {
             job: {
                 type: JOB_TYPE,
                 data: {
-                    jobID: options.jobId
+                    jobId: options.jobId
                 }
             }
         };
