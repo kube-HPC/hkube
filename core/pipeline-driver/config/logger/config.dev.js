@@ -5,5 +5,5 @@ config.transport = {
     logstash: false,
     file: false
 };
-config.verbosityLevel = 2;
+config.verbosityLevel = 0;
 module.exports = config;

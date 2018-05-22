@@ -1,6 +1,6 @@
+const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const { JobResult, JobStatus } = require('@hkube/etcd');
-const EventEmitter = require('events');
 const DatastoreFactory = require('../datastore/storage-factory');
 
 class StateManager extends EventEmitter {
@@ -49,7 +49,9 @@ class StateManager extends EventEmitter {
 
     async setJobResults(options) {
         if (options.data) {
-            options.data = await this._storageAdapter.putResults({ jobId: options.jobId, data: options.data })
+            const metadata = null;
+            const storageInfo = await this._storageAdapter.putResults({ jobId: options.jobId, data: options.data })
+            options.data = { metadata, storageInfo };
         }
         return this._etcd.jobResults.setResults({ jobId: options.jobId, data: new JobResult(options) });
     }

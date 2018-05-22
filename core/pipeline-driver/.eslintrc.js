@@ -19,7 +19,6 @@ module.exports = {
         "no-trailing-spaces": "off",
         "no-console": "error",
         "linebreake-style": "off",
-
         "object-curly-spacing": "off",
         "arrow-body-style": "off"
     }

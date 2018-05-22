@@ -40,10 +40,6 @@ class TaskRunner {
         stateManager.on(Events.JOBS.STOP, (data) => {
             this._tryStopPipeline(null, data.reason);
         });
-        stateManager.on(Events.TASKS.FAILED, (data) => {
-            this._setTaskState(data.taskId, { status: States.FAILED, error: data.error });
-            this._taskComplete(data.taskId);
-        });
         stateManager.on(Events.TASKS.ACTIVE, (data) => {
             this._setTaskState(data.taskId, { status: States.ACTIVE });
         });
@@ -65,12 +61,12 @@ class TaskRunner {
 
     async _startPipeline(job) {
         if (this._active) {
-            log.critical(`start pipeline while already started ${job.id}`, { component: components.TASK_RUNNER, jobId: job.id });
+            log.critical(`start pipeline while already started ${job.data.jobID}`, { component: components.TASK_RUNNER, jobId: job.data.jobID });
             return;
         }
         this._active = true;
         this._job = job;
-        this._jobId = job.id;
+        this._jobId = job.data.jobID;
         log.info(`pipeline started ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId });
 
         await stateManager.watchTasks({ jobId: this._jobId });
@@ -83,7 +79,7 @@ class TaskRunner {
         this._pipeline = await stateManager.getExecution({ jobId: this._jobId });
 
         if (!this._pipeline) {
-            throw new Error(`unable to find pipeline ${this._jobId}`); setJobResults
+            throw new Error(`unable to find pipeline ${this._jobId}`);
         }
         this._pipelineName = this._pipeline.name;
         this._pipelinePriority = this._pipeline.priority;
@@ -137,7 +133,7 @@ class TaskRunner {
 
     async _stopPipeline(err, reason) {
         if (!this._active) {
-            log.critical(`stop pipeline while already stopped ${job.id}`, { component: components.TASK_RUNNER, jobId: job.id });
+            log.critical(`stop pipeline while already stopped`, { component: components.TASK_RUNNER });
             return;
         }
         this._active = false;
