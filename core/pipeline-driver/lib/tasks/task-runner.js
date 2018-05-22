@@ -61,12 +61,12 @@ class TaskRunner {
 
     async _startPipeline(job) {
         if (this._active) {
-            log.critical(`start pipeline while already started ${job.data.jobID}`, { component: components.TASK_RUNNER, jobId: job.data.jobID });
+            log.critical(`start pipeline while already started ${job.data.jobId}`, { component: components.TASK_RUNNER, jobId: job.data.jobId });
             return;
         }
         this._active = true;
         this._job = job;
-        this._jobId = job.data.jobID;
+        this._jobId = job.data.jobId;
         log.info(`pipeline started ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId });
 
         await stateManager.watchTasks({ jobId: this._jobId });
