@@ -32,9 +32,9 @@ module.exports = {
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2,
         "linebreak-style": 0,
-        "arrow-parens": 0,
-        'object-curly-newline': 0
-
+        "arrow-parens":0,
+        'object-curly-newline':0
+        
 
     }
 };

@@ -1,2 +1,1 @@
-const config = {};
-module.exports = config;
+var config = module.exports = {};
