@@ -56,6 +56,17 @@ const routes = (options) => {
             return next(error);
         });
     });
+    router.all('/cron/results/:name?', methods(['GET']), logger(), (req, res, next) => {
+        const { name } = req.params;
+        const { sort, order, limit } = req.query;
+        Execution.getCronJobResult({ name, sort, order, limit }).then((response) => {
+            res.json(response);
+            res.name = name;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     router.all('/stop', methods(['POST']), logger(), (req, res, next) => {
         const { jobId, reason } = req.body;
         Execution.stopJob({ jobId, reason }).then(() => {

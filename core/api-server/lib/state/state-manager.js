@@ -76,6 +76,11 @@ class StateManager extends EventEmitter {
         return storageFactory.getResults(result);
     }
 
+    async getCronJobResult(options) {
+        const result = await this._etcd.jobResults.getCronResults(options);
+        return storageFactory.getResults(result);
+    }
+
     setJobResults(options) {
         return this._etcd.jobResults.setResults({ jobId: options.jobId, data: new JobResult(options) });
     }

@@ -179,7 +179,24 @@ class ExecutionService {
     */
     async getJobResult(options) {
         validator.validateJobID(options);
+        const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
+        if (!jobStatus) {
+            throw new ResourceNotFoundError('status', options.jobId);
+        }
+        if (stateManager.isActiveState(jobStatus.status)) {
+            throw new InvalidDataError(`unable to get results for pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
+        }
         const response = await stateManager.getJobResult({ jobId: options.jobId });
+        if (!response) {
+            throw new ResourceNotFoundError('results', options.jobId);
+        }
+        return response;
+    }
+
+    async getCronJobResult(options) {
+        validator.validateName(options);
+        const name = ['cron', options.name].join('.');
+        const response = await stateManager.getCronJobResult({ ...options, name });
         if (!response) {
             throw new ResourceNotFoundError('results', options.jobId);
         }

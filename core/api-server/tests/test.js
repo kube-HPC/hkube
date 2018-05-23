@@ -481,7 +481,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body.error.code).to.equal(404);
-                        expect(response.body.error.message).to.equal('results no_such_id Not Found');
+                        expect(response.body.error.message).to.equal('status no_such_id Not Found');
                     });
                     it('should throw validation error of required property execution id', async () => {
                         const options = {
