@@ -38,11 +38,11 @@ const discoveryStub = {
 };
 
 const templateStoreStub = {
-    '/templatesStore/algo1': {
+    '/algorithmTemplates/algo1': {
         workerImage: 'worker1:latest',
         algorithmImage: 'algo1:v1.1'
     },
-    '/templatesStore/algo2': {
+    '/algorithmTemplates/algo2': {
         workerImage: 'worker2:latest',
         algorithmImage: 'algo2:v1.2'
     }
