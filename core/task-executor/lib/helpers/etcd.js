@@ -22,7 +22,7 @@ class Etcd extends EventEmitter {
     sendCommandToWorker({ workerId, command }) {
         return this._etcd.workers.setState({ workerId, status: { command } });
     }
-    
+
     async getWorkers(options = {}) {
         const workerServiceName = options.workerServiceName || this._workerServiceName;
 
@@ -35,7 +35,7 @@ class Etcd extends EventEmitter {
     }
 
     async getAlgorithmTemplate({ algorithmName }) {
-        return this._etcd.algorithms.templatesStore.getAlgorithm({ name: algorithmName });
+        return this._etcd.algorithms.templatesStore.get({ name: algorithmName });
     }
 }
 
