@@ -41,30 +41,33 @@ class Executor {
     }
 
     async _intervalCallback() {
-        // log.debug('Reconcile inteval.', { component });
-        const versions = await kubernetes.getVersionsConfigMap() || this._versions;
-        const algorithmRequests = await etcd.getAlgorithmRequests({});
-        const algorithmPods = await etcd.getWorkers({});
-        const jobs = await kubernetes.getWorkerJobs();
-        // log.debug(`algorithmRequests: ${JSON.stringify(algorithmRequests, null, 2)}`, { component });
-        // log.debug(`algorithmPods: ${JSON.stringify(algorithmPods, null, 2)}`, { component });
-        // log.debug(`jobs: ${JSON.stringify(jobs, null, 2)}`, { component });
-        const reconcilerResults = await reconciler.reconcile({
-            algorithmRequests, algorithmPods, jobs, versions
-        });
-        Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
-            this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
-            this[metricsNames.TASK_EXECUTOR_JOB_CURRENT].set({ value: res.idle, labelValues: { algorithmName } });
-            this[metricsNames.TASK_EXECUTOR_JOB_PAUSED].set({ value: res.paused, labelValues: { algorithmName } });
-        });
+        try {
+            const versions = await kubernetes.getVersionsConfigMap() || this._versions;
+            const algorithmRequests = await etcd.getAlgorithmRequests({});
+            const algorithmPods = await etcd.getWorkers({});
+            const jobs = await kubernetes.getWorkerJobs();
 
-        Object.entries(reconcilerResults).forEach(([alg, val]) => {
-            const totalForAlg = Object.values(val).reduce((sum, current) => sum + current);
-            if (totalForAlg) {
-                log.debug(`newConfig: ${alg} => ${JSON.stringify(val, null, 2)}`, { component });
-            }
-        });
-        setTimeout(this._intervalCallback.bind(this), this._intervalMs);
+            const reconcilerResults = await reconciler.reconcile({
+                algorithmRequests, algorithmPods, jobs, versions
+            });
+            Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
+                this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
+                this[metricsNames.TASK_EXECUTOR_JOB_CURRENT].set({ value: res.idle, labelValues: { algorithmName } });
+                this[metricsNames.TASK_EXECUTOR_JOB_PAUSED].set({ value: res.paused, labelValues: { algorithmName } });
+            });
+            Object.entries(reconcilerResults).forEach(([alg, val]) => {
+                const totalForAlg = Object.values(val).reduce((sum, current) => sum + current);
+                if (totalForAlg) {
+                    log.debug(`newConfig: ${alg} => ${JSON.stringify(val, null, 2)}`, { component });
+                }
+            });
+        }
+        catch (e) {
+            log.error(e.message, { component }, e);
+        }
+        finally {
+            setTimeout(this._intervalCallback.bind(this), this._intervalMs);
+        }
     }
 }
 
