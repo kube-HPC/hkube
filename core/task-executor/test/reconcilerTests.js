@@ -8,7 +8,7 @@ const { log } = require('./mocks/log.mock')
 const etcd = require('../lib/helpers/etcd');
 const { templateStore } = require('./stub/templateStore');
 
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers} = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers } = require('../lib/reconcile/normalize');
 
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
 
@@ -160,17 +160,17 @@ describe('reconciler', () => {
             expect(merged.mergedWorkers[0].job).to.not.exist;
             expect(merged.mergedWorkers[1].job).to.not.exist;
             expect(merged.extraJobs).to.be.empty;
-            
+
         });
 
         it('should keep all workers, and enrich with one jobs', () => {
-            const merged = mergeWorkers(workersStub, jobsStub.slice(0,1));
+            const merged = mergeWorkers(workersStub, jobsStub.slice(0, 1));
             expect(merged.mergedWorkers).to.be.an('array')
             expect(merged.mergedWorkers).to.have.length(workersStub.length);
             expect(merged.mergedWorkers[0].job).to.eql(jobsStub[0]);
             expect(merged.mergedWorkers[1].job).to.not.exist;
             expect(merged.extraJobs).to.be.empty;
-            
+
         });
         it('should keep all workers, and enrich with all jobs', () => {
             const merged = mergeWorkers(workersStub, jobsStub);
@@ -181,7 +181,7 @@ describe('reconciler', () => {
             expect(merged.mergedWorkers[2].job).to.eql(jobsStub[2]);
             expect(merged.mergedWorkers[3].job).to.eql(jobsStub[3]);
             expect(merged.extraJobs).to.be.empty;
-            
+
         });
 
         it('should report all jobs as extra jobs', () => {
@@ -193,17 +193,17 @@ describe('reconciler', () => {
             expect(merged.extraJobs[1]).to.eql(jobsStub[1]);
             expect(merged.extraJobs[2]).to.eql(jobsStub[2]);
             expect(merged.extraJobs[3]).to.eql(jobsStub[3]);
-            
+
         });
         it('should report extra jobs', () => {
-            const merged = mergeWorkers(workersStub.slice(0,1), jobsStub);
+            const merged = mergeWorkers(workersStub.slice(0, 1), jobsStub);
             expect(merged.mergedWorkers).to.be.an('array')
             expect(merged.mergedWorkers).to.have.length(1);
             expect(merged.extraJobs).to.have.length(3);
             expect(merged.extraJobs[0]).to.eql(jobsStub[1]);
             expect(merged.extraJobs[1]).to.eql(jobsStub[2]);
             expect(merged.extraJobs[2]).to.eql(jobsStub[3]);
-            
+
         });
     });
 
@@ -234,7 +234,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0 } });
+            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0, pending: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
@@ -264,7 +264,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0 } });
+            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0, pending: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('myregistry:5000/stam/myworker:v2');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');

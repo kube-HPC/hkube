@@ -6,13 +6,22 @@ const etcd = require('../helpers/etcd');
 const { workerCommands } = require('../../common/consts/states');
 const component = require('../../common/consts/componentNames').RECONCILER;
 const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers } = require('./normalize');
+const MAX_JOBS_PER_TICK = 30;
 
 const _createJobs = async (numberOfJobs, jobDetails) => {
     log.debug(`need to add ${numberOfJobs} jobs with details ${JSON.stringify(jobDetails, null, 2)}`, { component });
-    const spec = createJobSpec(jobDetails);
-    const jobCreateResult = await kubernetes.createJob({ spec });
-    return jobCreateResult;
+    if (numberOfJobs > MAX_JOBS_PER_TICK) {
+        numberOfJobs = MAX_JOBS_PER_TICK;
+    }
+
+    const results = Array.from(Array(numberOfJobs).keys()).map(() => {
+        const spec = createJobSpec(jobDetails);
+        const jobCreateResult = kubernetes.createJob({ spec });
+        return jobCreateResult;
+    });
+    return Promise.all(results);
 };
+
 
 const _parseImageName = (image) => {
     const match = image.match(/^(?:([^/]+)\/)?(?:([^/]+)\/)?([^@:/]+)(?:[@:](.+))?$/);
@@ -82,14 +91,16 @@ const _setWorkerImage = (template, versions) => {
     return _createImageName(imageParsed);
 };
 
+const _pendingJobjsFilter = (job, algorithmName) => {
+    const match = job.algorithmName === algorithmName;
+    return match;
+};
 const _idleWorkerFilter = (worker, algorithmName) => {
     const match = worker.algorithmName === algorithmName && worker.workerStatus === 'ready' && !worker.workerPaused;
-    // log.info(`_idleWorkerFilter: algorithmName: ${algorithmName}, worker: ${JSON.stringify(worker)}, match: ${match}`);
     return match;
 };
 const _pausedWorkerFilter = (worker, algorithmName) => {
     const match = worker.algorithmName === algorithmName && worker.workerStatus === 'ready' && worker.workerPaused;
-    // log.info(`_idleWorkerFilter: algorithmName: ${algorithmName}, worker: ${JSON.stringify(worker)}, match: ${match}`);
     return match;
 };
 
@@ -125,10 +136,12 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
         // find workers currently for this algorithm
         const workersForAlgorithm = merged.mergedWorkers.filter(w => _idleWorkerFilter(w, algorithmName));
         const pausedWorkers = merged.mergedWorkers.filter(w => _pausedWorkerFilter(w, algorithmName));
+        const pendingWorkers = merged.extraJobs.filter(j => _pendingJobjsFilter(j, algorithmName));
         reconcileResult[algorithmName] = {
             required: r.pods,
             idle: workersForAlgorithm.length,
-            paused: pausedWorkers.length
+            paused: pausedWorkers.length,
+            pending: pendingWorkers.length
         };
         let requiredCount = r.pods;
         if (requiredCount > 0 && pausedWorkers.length > 0) {
@@ -139,7 +152,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
                 requiredCount -= canWakeWorkersCount;
             }
         }
-        const podDiff = workersForAlgorithm.length - requiredCount;
+        const podDiff = (workersForAlgorithm.length + pendingWorkers.length) - requiredCount;
 
         if (podDiff > 0) {
             // need to stop some workers

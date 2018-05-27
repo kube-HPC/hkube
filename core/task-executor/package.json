@@ -1,6 +1,6 @@
 {
   "name": "task-executor",
-  "version": "1.1.18",
+  "version": "1.1.24",
   "description": "",
   "main": "app.js",
   "scripts": {

@@ -28,6 +28,11 @@ class Executor {
             name: metricsNames.TASK_EXECUTOR_JOB_CURRENT,
             labels: ['algorithmName']
         });
+        metrics.removeMeasure(metricsNames.TASK_EXECUTOR_JOB_PAUSED);
+        this[metricsNames.TASK_EXECUTOR_JOB_PAUSED] = metrics.addGaugeMeasure({
+            name: metricsNames.TASK_EXECUTOR_JOB_PAUSED,
+            labels: ['algorithmName']
+        });
         this._startInterval();
     }
 
@@ -36,7 +41,7 @@ class Executor {
     }
 
     async _intervalCallback() {
-        log.debug('Reconcile inteval.', { component });
+        // log.debug('Reconcile inteval.', { component });
         const versions = await kubernetes.getVersionsConfigMap() || this._versions;
         const algorithmRequests = await etcd.getAlgorithmRequests({});
         const algorithmPods = await etcd.getWorkers({});
@@ -49,10 +54,16 @@ class Executor {
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
-            this[metricsNames.TASK_EXECUTOR_JOB_CURRENT].set({ value: res.required, labelValues: { algorithmName } });
+            this[metricsNames.TASK_EXECUTOR_JOB_CURRENT].set({ value: res.idle, labelValues: { algorithmName } });
+            this[metricsNames.TASK_EXECUTOR_JOB_PAUSED].set({ value: res.paused, labelValues: { algorithmName } });
         });
 
-        log.debug(`newConfig: ${JSON.stringify(reconcilerResults, null, 2)}`, { component });
+        Object.entries(reconcilerResults).forEach(([alg, val]) => {
+            const totalForAlg = Object.values(val).reduce((sum, current) => sum + current);
+            if (totalForAlg) {
+                log.debug(`newConfig: ${alg} => ${JSON.stringify(val, null, 2)}`, { component });
+            }
+        });
         setTimeout(this._intervalCallback.bind(this), this._intervalMs);
     }
 }
