@@ -18,6 +18,7 @@ class AppServer {
                 log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component: componentName.REST_API, route, jobId, pipelineName });
             });
 
+            swagger.info.version = options.version;
             const { prefix, port, rateLimit, poweredBy } = options.rest;
             const routes = [metrics.getRouter(), internal()];
             const versions = fs.readdirSync(path.join(__dirname, 'routes'));

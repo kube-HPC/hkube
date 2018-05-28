@@ -59,6 +59,10 @@ class Validator {
         this._validate(schemas.name, pipeline);
     }
 
+    validateCronResults(pipeline) {
+        this._validate(schemas.name, pipeline);
+    }
+
     validateJobID(pipeline) {
         this._validate(schemas.jobId, pipeline);
     }

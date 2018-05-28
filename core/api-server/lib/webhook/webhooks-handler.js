@@ -4,7 +4,7 @@ const storageFactory = require('../datastore/storage-factory');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
 const levels = require('../progress/progressLevels');
-const States = require('./States');
+const { States, Types } = require('./States');
 const { metrics, utils } = require('@hkube/metrics');
 const { metricsNames } = require('../../common/consts/metricsNames');
 
@@ -17,27 +17,26 @@ class WebhooksHandler {
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
-        this._recovery();
+        // this._recovery();
         this._watch();
     }
 
     _watch() {
-        stateManager.on('job-result', async (response) => {
-            this._requestResults({ jobId: response.jobId, ...response });
+        stateManager.on('job-result', (response) => {
+            this._requestResults(response);
         });
-
-        stateManager.on('job-status', (results) => {
-            this._requestStatus({ jobId: results.jobId, ...results });
+        stateManager.on('job-status', (response) => {
+            this._requestStatus(response);
         });
     }
 
     async _recovery() {
-        const jobResults = await stateManager.getCompletedJobs();
+        const jobResults = await stateManager.getWebhooks({ order: 'desc', sort: 'mod' });
         jobResults.forEach((job) => {
-            if ((!job.webhooks) || (job.webhooks && job.webhooks.pipelineStatus !== job.result.status)) {
+            if ((!job.webhooks) || (job.webhooks && job.webhooks.result && job.webhooks.result.pipelineStatus !== job.result.status)) {
                 this._requestResults({ jobId: job.jobId, ...job.result });
             }
-            if ((!job.webhooks) || (job.webhooks && job.webhooks.pipelineStatus !== job.status.status)) {
+            if ((!job.webhooks) || (job.webhooks && job.webhooks.status && job.webhooks.status.pipelineStatus !== job.status.status)) {
                 this._requestStatus({ jobId: job.jobId, ...job.status });
             }
         });
@@ -50,8 +49,8 @@ class WebhooksHandler {
             const pipelineLevel = levels[payload.level].level;
             log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component: components.WEBHOOK_HANDLER, jobId: payload.jobId });
             if (clientLevel <= pipelineLevel) {
-                const result = await this._request(pipeline.webhooks.progress, payload, 'progress', payload.status, payload.jobId);
-                stateManager.setWebhooksStatus({ jobId: payload.jobId, data: result });
+                const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, payload.jobId);
+                stateManager.setWebhook({ jobId: payload.jobId, data: result });
             }
         }
     }
@@ -68,8 +67,8 @@ class WebhooksHandler {
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await storageFactory.getResults(payload);
-            const result = await this._request(pipeline.webhooks.result, payloadData, 'result', payloadData.status, payloadData.jobId);
-            stateManager.setWebhooksResults({ jobId: payloadData.jobId, data: result });
+            const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payloadData.status, payloadData.jobId);
+            stateManager.setWebhook({ jobId: payloadData.jobId, data: result });
         }
     }
 

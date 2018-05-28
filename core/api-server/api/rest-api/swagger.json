@@ -3,7 +3,6 @@
     "info": {
         "title": "HKube API",
         "description": "HKube RESTful API",
-        "version": "1.0.0",
         "contact": {
             "email": "hkube.dev@gmail.com"
         },
@@ -422,7 +421,7 @@
                         "in": "query",
                         "description": "sort by asc or desc",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/components/schemas/sortBy"
                         }
                     },
                     {

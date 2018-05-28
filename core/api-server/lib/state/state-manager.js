@@ -1,5 +1,5 @@
 const Etcd = require('@hkube/etcd');
-const { JobStatus, JobResult } = require('@hkube/etcd');
+const { JobStatus, JobResult, Webhook } = require('@hkube/etcd');
 const EventEmitter = require('events');
 const States = require('./States');
 const storageFactory = require('../datastore/storage-factory');
@@ -18,11 +18,11 @@ class StateManager extends EventEmitter {
     }
 
     setExecution(options) {
-        return this._etcd.execution.setExecution(options);
+        return this._etcd.execution.set(options);
     }
 
     getExecution(options) {
-        return this._etcd.execution.getExecution(options);
+        return this._etcd.execution.get(options);
     }
 
     getExecutionsTree(options) {
@@ -30,11 +30,11 @@ class StateManager extends EventEmitter {
     }
 
     setAlgorithm(options) {
-        return this._etcd.algorithms.templatesStore.setAlgorithm({ name: options.name, data: options });
+        return this._etcd.algorithms.templatesStore.set({ name: options.name, data: options });
     }
 
     getAlgorithm(options) {
-        return this._etcd.algorithms.templatesStore.getAlgorithm({ name: options.name });
+        return this._etcd.algorithms.templatesStore.get({ name: options.name });
     }
 
     getAlgorithms() {
@@ -42,15 +42,15 @@ class StateManager extends EventEmitter {
     }
 
     deleteAlgorithm(options) {
-        return this._etcd.algorithms.templatesStore.deleteAlgorithm(options);
+        return this._etcd.algorithms.templatesStore.delete(options);
     }
 
     setPipeline(options) {
-        return this._etcd.pipelines.setPipeline({ name: options.name, data: options });
+        return this._etcd.pipelines.set({ name: options.name, data: options });
     }
 
     getPipeline(options) {
-        return this._etcd.pipelines.getPipeline({ name: options.name });
+        return this._etcd.pipelines.get({ name: options.name });
     }
 
     getPipelines() {
@@ -58,59 +58,50 @@ class StateManager extends EventEmitter {
     }
 
     deletePipeline(options) {
-        return this._etcd.pipelines.deletePipeline(options);
+        return this._etcd.pipelines.delete(options);
     }
 
     async _watchJobResults() {
         await this._etcd.jobResults.watch();
-        this._etcd.jobResults.on('status-change', (result) => {
+        this._etcd.jobResults.on('change', (result) => {
             this.emit('job-status', result);
         });
-        this._etcd.jobResults.on('result-change', (result) => {
+        this._etcd.jobStatus.on('change', (result) => {
             this.emit('job-result', result);
         });
     }
 
     async getJobResult(options) {
-        const result = await this._etcd.jobResults.getResults(options);
+        const result = await this._etcd.jobResults.get(options);
         return storageFactory.getResults(result);
     }
 
-    async getCronJobResult(options) {
-        const result = await this._etcd.jobResults.getCronResults(options);
-        return storageFactory.getResults(result);
+    getJobResults(options) {
+        return this._etcd.jobResults.list(options);
     }
 
     setJobResults(options) {
-        return this._etcd.jobResults.setResults({ jobId: options.jobId, data: new JobResult(options) });
+        return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult(options) });
     }
 
-    getCompletedJobs() {
-        return this._etcd.jobResults.getResultsByFilter(s => (s.status && s.status.status === States.COMPLETED) || (s.result && s.result.status === States.COMPLETED));
+    setWebhook(options) {
+        return this._etcd.webhooks.set({ jobId: options.jobId, data: new Webhook(options) });
     }
 
-    setWebhooksResults(options) {
-        return this._etcd.jobResults.setWebhooksResults(options);
+    getWebhook(options) {
+        return this._etcd.webhooks.get(options);
     }
 
-    setWebhooksStatus(options) {
-        return this._etcd.jobResults.setWebhooksStatus(options);
-    }
-
-    getWebhooksResults(options) {
-        return this._etcd.jobResults.getWebhooksResults(options);
-    }
-
-    getWebhooksStatus(options) {
-        return this._etcd.jobResults.getWebhooksStatus(options);
+    getWebhooks(options) {
+        return this._etcd.webhooks.list(options);
     }
 
     getJobStatus(options) {
-        return this._etcd.jobResults.getStatus(options);
+        return this._etcd.jobStatus.get(options);
     }
 
     setJobStatus(options) {
-        return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: new JobStatus(options) });
+        return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
     }
 
     stopJob(options) {
