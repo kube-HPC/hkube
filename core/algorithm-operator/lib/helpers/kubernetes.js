@@ -38,6 +38,17 @@ class KubernetesApi extends EventEmitter {
         return null;
     }
 
+    async updateDeployment({ spec }) {
+        log.debug(`Updating deployment ${spec.metadata.name}`, { component });
+        try {
+            const res = await this._client.apis.apps.v1.namespaces(this._namespace).deployments(spec.metadata.name).patch({ body: spec });
+            return res;
+        }
+        catch (error) {
+            log.error(`unable to update deployment ${spec.metadata.name}. error: ${error.message}`, { component }, error);
+        }
+        return null;
+    }
     async deleteDeployment(deploymentName) {
         log.debug(`Deleting job ${deploymentName}`, { component });
         try {

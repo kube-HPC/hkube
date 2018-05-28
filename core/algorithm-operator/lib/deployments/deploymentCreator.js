@@ -50,27 +50,26 @@ const applyName = (inputSpec, algorithmName) => {
     return spec;
 };
 
-const _setAlgorithmImage = (versions) => {
+const _setAlgorithmImage = (version) => {
     const imageName = 'hkube/algorithm-queue';
     const imageParsed = parseImageName(imageName);
     if (imageParsed.tag) {
         return createImageName(imageParsed);
     }
-    const version = versions && versions.versions.find(p => p.project === imageParsed.repository);
-    if (version && version.tag) {
-        imageParsed.tag = version.tag;
+    if (version) {
+        imageParsed.tag = version;
     }
     return createImageName(imageParsed);
 };
 
-const createDeploymentSpec = ({ algorithmName, versions }) => {
+const createDeploymentSpec = ({ algorithmName, version }) => {
     if (!algorithmName) {
         const msg = 'Unable to create deployment spec. algorithmName is required';
         log.error(msg, { component });
         throw new Error(msg);
     }
 
-    const image = _setAlgorithmImage(versions);
+    const image = _setAlgorithmImage(version);
 
     let spec = clonedeep(algorithmQueueTemplate);
     spec = applyName(spec, algorithmName);
