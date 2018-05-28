@@ -1,15 +1,8 @@
 const EventEmitter = require('events');
-const Graph = require('graphlib').Graph;
-const alg = require('graphlib').alg;
+const { Graph } = require('graphlib');
 const deepExtend = require('deep-extend');
 const GroupBy = require('../helpers/group-by');
-const throttle = require('lodash.throttle');
-const Node = require('./node');
-const WaitBatch = require('../nodes/node-wait-batch');
-const VirtualNode = require('../graph/virtual-node');
-const VirtualLink = require('../graph/virtual-link');
-const ActualGraph = require('../graph/graph-actual');
-const VirtualGraph = require('../graph/graph-virtual');
+const GraphNode = require('./graph-node');
 const NodeResult = require('./node-result');
 const States = require('../state/States');
 const { parser, consts } = require('@hkube/parsers');
@@ -25,11 +18,8 @@ class NodesMap extends EventEmitter {
 
     constructor(options) {
         super();
-        this._virtualGraph = new VirtualGraph();
-        this._actualGraph = new ActualGraph();
         this._graph = new Graph({ directed: true });
         this._buildGraph(options);
-        this._throttledCheckReadyNodes = throttle(this.checkReadyNodes.bind(this), 1000, { trailing: true, leading: true });
     }
 
     _buildGraph(options) {
@@ -42,110 +32,103 @@ class NodesMap extends EventEmitter {
                     if (!node) {
                         node = { source: r.nodeName, target: n.nodeName, edges: [{ type: r.type }] }
                         nodes.push(node);
-                        this._graph.setEdge(node.source, node.target);
                     }
                     else {
                         node.edges.push({ type: r.type });
                     }
                 })
             })
-
-            const node = new Node({
-                nodeName: n.nodeName,
-                algorithmName: n.algorithmName,
-                input: n.input,
-                extraData: n.extraData
-            });
-            this._graph.setNode(node.nodeName, node);
+            this._graph.setNode(n.nodeName, new GraphNode(n));
         });
 
-        this._buildVirtualGraph(nodes);
+        nodes.forEach(n => {
+            this._graph.setEdge(n.source, n.target, n.edges);
+        });
     }
 
-    _buildVirtualGraph(nodes) {
-        nodes.forEach(n => {
-            let node = this._virtualGraph.findByTarget(n.target);
-            if (!node) {
-                node = new VirtualNode();
-                this._virtualGraph.addNode(node);
+    _checkChildNode(source, target, index) {
+        let nodeResults = [];
+        let completed = false;
+        const edges = this._graph.edge(source, target).map(e => e.type);
+
+        if (this._isWaitAny(edges) && this._isWaitNode(edges)) {
+            index = null;
+            completed = this.isAllParentsFinished(target);
+        }
+        else if (this._isWaitAny(edges) && index) {
+            completed = this.isAllParentsFinishedIndex(target, index);
+        }
+        else if (this._isWaitNode(edges)) {
+            index = null;
+            completed = this.isAllParentsFinished(target);
+        }
+        if (completed) {
+            nodeResults = this._analyzeResults(target, index);
+            nodeResults.forEach(n => {
+                this.emit('node-ready', n);
+            })
+        }
+        return nodeResults;
+    }
+
+    _analyzeResults(target, index) {
+        const nodeResults = [];
+        const parentOutput = [];
+        const parents = this._parents(target);
+        parents.forEach(p => {
+            const node = this._graph.node(p)
+            const edges = this._graph.edge(p, target).map(e => e.type);
+            if (this._isWaitNode(edges)) {
+                parentOutput.push({
+                    type: consts.relations.WAIT_NODE,
+                    node: p,
+                    result: this.getNodeResults(node.nodeName)
+                });
             }
-            node.links.push(new VirtualLink(n));
-        });
-    }
-
-    checkReadyNodes() {
-        const nodesToRun = [];
-        const nodes = this._actualGraph.list;
-
-        nodes.forEach(n => {
-            let run = true;
-            let nodeName = null;
-            let index = null;
-            let parentOutput = [];
-
-            n.links.forEach(l => {
-                nodeName = l.target;
-                l.edges.forEach(e => {
-                    if (e.index) {
-                        index = e.index;
+            if (this._isWaitAny(edges)) {
+                node.batch.forEach(b => {
+                    if (!index || index === b.batchIndex) {
+                        parentOutput.push({
+                            type: consts.relations.WAIT_ANY,
+                            node: b.nodeName,
+                            result: b.result,
+                            index: b.batchIndex
+                        });
                     }
-                    if (e.completed) {
-                        parentOutput.push({ type: e.type, node: l.source, result: e.result, index: e.index });
+                });
+            }
+        });
+        if (parentOutput.length > 0) {
+            const groupBy = new GroupBy(parentOutput, 'index');
+            const group = groupBy.group();
+            const waitNodes = group["undefined"];
+            const keys = Object.keys(group);
+            delete group["undefined"];
+            if (waitNodes && keys.length === 1) {
+                nodeResults.push({ nodeName: target, parentOutput: waitNodes });
+            }
+            else {
+                Object.entries(group).forEach(([k, v]) => {
+                    const index = parseInt(k);
+                    if (waitNodes) {
+                        const parentResults = [...waitNodes, ...v];
+                        nodeResults.push({ nodeName: target, parentOutput: parentResults, index });
                     }
                     else {
-                        run = false;
+                        nodeResults.push({ nodeName: target, parentOutput: v, index });
                     }
                 })
-            })
-            if (run) {
-                nodesToRun.push({ id: n.id, nodeName, parentOutput, index });
             }
-        })
-
-        nodesToRun.forEach(n => {
-            this._actualGraph.removeNode(n.id);
-            this.emit('node-ready', n);
-        });
+        }
+        return nodeResults;
     }
 
-    _updateChildNode(task, target) {
+    _isWaitAny(edges) {
+        return edges.includes(consts.relations.WAIT_ANY) || edges.includes(consts.relations.WAIT_ANY_BATCH);
+    }
 
-        // const node = this._virtualGraph.findByEdge(source, target);
-        // const link = node.links.find(l => l.source === source && l.target === target);
-        // const edges = link.edges.map(e => e.type);
-        // if (edges.includes(consts.relations.WAIT_ANY) || edges.includes(consts.relations.WAIT_ANY_BATCH)) {
-
-        // }
-
-        const source = task.nodeName;
-        const index = task.batchIndex;
-        const bNode = this._actualGraph.findByEdge(source, target);
-        let aNode = this._actualGraph.findByTargetAndIndex(target, index);
-
-        if ((!aNode && index) || (!aNode && !bNode)) {
-            const vNode = this._virtualGraph.getCopy(source, target);
-            this._actualGraph.addNode(vNode);
-            aNode = vNode;
-        }
-        else if (!aNode && bNode) {
-            aNode = bNode;
-        }
-        const link = aNode.links.find(l => l.source === source && l.target === target);
-        link.edges.forEach(e => {
-            if ((e.type === consts.relations.WAIT_ANY || e.type === consts.relations.WAIT_ANY_BATCH) && (index)) {
-                e.completed = true;
-                e.result = task.result;
-                e.index = index;
-            }
-            else if (e.type === consts.relations.WAIT_NODE || e.type === consts.relations.WAIT_BATCH) {
-                const completed = this.isNodeCompleted(source);
-                if (completed) {
-                    e.completed = true;
-                    e.result = this.getNodeResults(source);
-                    this._actualGraph.updateBySource(source, e.result);
-                }
-            }
-        })
+    _isWaitNode(edges) {
+        return edges.includes(consts.relations.WAIT_NODE) || edges.includes(consts.relations.WAIT_BATCH);
     }
 
     _getNodesAsFlat() {
@@ -197,16 +180,9 @@ class NodesMap extends EventEmitter {
         return paths;
     }
 
-    updateCompletedTask(task, checkReadyNodes = true) {
+    updateCompletedTask(task) {
         const childs = this._childs(task.nodeName);
-        if (childs.length > 0) {
-            childs.forEach(child => {
-                this._updateChildNode(task, child);
-            });
-            if (checkReadyNodes) {
-                this.checkReadyNodes();
-            }
-        }
+        return childs.map(child => this._checkChildNode(task.nodeName, child, task.batchIndex));
     }
 
     findEntryNodes() {
@@ -234,37 +210,11 @@ class NodesMap extends EventEmitter {
         return results;
     }
 
-    getWaitAny(nodeName, index) {
-        let waitAny = null;
-        const node = this._graph.node(nodeName);
-        if (node) {
-            waitAny = node.batch.find(b => b.waitIndex === index);
-        }
-        return waitAny;
-    }
-
     addBatch(batch) {
         const node = this._graph.node(batch.nodeName);
         if (node) {
             node.batch.push(batch);
         }
-        const childs = this._childs(batch.nodeName);
-        childs.forEach(child => {
-            const edge = this._virtualGraph.findEdge(batch.nodeName, child, [consts.relations.WAIT_ANY, consts.relations.WAIT_ANY_BATCH]);
-            if (edge) {
-                const node = this._graph.node(child);
-                const waitIndex = node.batch.find(b => b.waitIndex === batch.batchIndex);
-                if (!waitIndex) {
-                    const waitAny = new WaitBatch({
-                        nodeName: node.nodeName,
-                        waitIndex: batch.batchIndex,
-                        algorithmName: node.algorithmName,
-                        extraData: node.extraData
-                    });
-                    node.batch.push(waitAny);
-                }
-            }
-        });
     }
 
     setNode(node) {
@@ -324,15 +274,6 @@ class NodesMap extends EventEmitter {
         return nodes.map(n => this._graph.node(n));
     }
 
-    parentsResults(node) {
-        const parents = this._parents(node);
-        const results = Object.create(null);
-        parents.forEach(p => {
-            results[p] = this.getNodeResults(p);
-        })
-        return results;
-    }
-
     isAllParentsFinished(node) {
         const parents = this._parents(node);
         let states = [];
@@ -342,7 +283,33 @@ class NodesMap extends EventEmitter {
         return states.every(this._isCompleted);
     }
 
-    nodesResults() {
+    _parentNodes(node) {
+        const parents = this._parents(node);
+        return parents.map(p => this._graph.node(p));
+    }
+
+    isAllParentsFinishedIndex(node, index) {
+        const parents = this._parents(node);
+        const states = parents.map(p => {
+            const node = this._graph.node(p);
+            const batch = node.batch.find(b => b.batchIndex === index);
+            if (batch) {
+                return batch.status;
+            }
+        });
+        return states.every(this._isCompleted);
+    }
+
+    getParentsResultsIndex(node, index) {
+        const parents = this._parents(node);
+        return parents.map(p => {
+            const node = this._graph.node(p);
+            const batch = node.batch.find(b => b.batchIndex === index);
+            return { parent: p, result: batch.result };
+        });
+    }
+
+    pipelineResults() {
         const results = [];
         const nodes = this.getAllNodes();
         nodes.forEach(n => {

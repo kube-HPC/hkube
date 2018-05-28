@@ -53,11 +53,11 @@ class StateManager extends EventEmitter {
             const storageInfo = await this._storageAdapter.putResults({ jobId: options.jobId, data: options.data })
             options.data = { metadata, storageInfo };
         }
-        return this._etcd.jobResults.setResults({ jobId: options.jobId, data: new JobResult(options) });
+        return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult(options) });
     }
 
     async setJobStatus(options) {
-        return this._etcd.jobResults.setStatus({ jobId: options.jobId, data: new JobStatus(options) });
+        return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
     }
 
     async getState(options) {
@@ -74,11 +74,11 @@ class StateManager extends EventEmitter {
     }
 
     async getExecution(options) {
-        return this._etcd.execution.getExecution(options);
+        return this._etcd.execution.get(options);
     }
 
     async setExecution(options) {
-        return this._etcd.execution.setExecution(options);
+        return this._etcd.execution.set(options);
     }
 
     async watchTasks(options) {

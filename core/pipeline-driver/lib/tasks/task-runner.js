@@ -8,7 +8,6 @@ const States = require('../state/States');
 const Events = require('../consts/Events');
 const { parser } = require('@hkube/parsers');
 const Batch = require('../nodes/node-batch');
-const WaitBatch = require('../nodes/node-wait-batch');
 const Node = require('../nodes/node');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
@@ -156,7 +155,7 @@ class TaskRunner {
                 status = States.COMPLETED;
                 log.info(`pipeline ${status} ${this._jobId}`, { component: components.TASK_RUNNER, jobId: this._jobId, pipelineName: this._pipelineName });
                 await progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
-                data = this._nodes.nodesResults();
+                data = this._nodes.pipelineResults();
             }
         }
         await stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipeline.startTime, pipeline: this._pipelineName, data, reason, error, status });
@@ -173,8 +172,6 @@ class TaskRunner {
             await progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
             await stateManager.setTaskState({ jobId: this._jobId, taskId: task.taskId, data: task });
         }
-
-        this._nodes.checkReadyNodes();
 
         if (this._nodes.isAllNodesCompleted()) {
             this._tryStopPipeline();
@@ -282,11 +279,16 @@ class TaskRunner {
     }
 
     _runWaitAny(options) {
-        const waitNode = this._nodes.getWaitAny(options.node.nodeName, options.index);
-        waitNode.input = options.input;
-        options.node = waitNode;
-        this._setTaskState(waitNode.taskId, waitNode);
-        this._createJob(options);
+        const waitAny = new Batch({
+            ...options.node,
+            batchIndex: options.index,
+            input: options.input,
+            storage: options.storage
+        });
+        const batch = [waitAny];
+        this._nodes.addBatch(waitAny);
+        this._setTaskState(waitAny.taskId, waitAny);
+        this._createJob(options, batch);
     }
 
     /// TODO: CHECK THIS
@@ -307,25 +309,27 @@ class TaskRunner {
     }
 
     _runNodeSimple(options) {
-        this._nodes.setNode(new Node({ ...options.node, input: options.input }));
-        this._setTaskState(options.node.taskId, options.node);
+        const node = new Node({
+            ...options.node,
+            input: options.input
+        });
+        this._nodes.setNode(node);
+        this._setTaskState(node.taskId, node);
         this._createJob(options);
     }
 
     _runNodeBatch(options) {
         options.input.forEach((inp, ind) => {
             const batch = new Batch({
-                nodeName: options.node.nodeName,
+                ...options.node,
                 batchIndex: (ind + 1),
-                algorithmName: options.node.algorithmName,
                 input: inp.input,
-                storage: inp.storage,
-                extraData: options.node.extraData
+                storage: inp.storage
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch.taskId, batch);
         });
-        this._createJob(options);
+        this._createJob(options, options.node.batch);
     }
 
     _taskComplete(taskId) {
@@ -389,10 +393,10 @@ class TaskRunner {
         stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
     }
 
-    async _createJob(options) {
+    async _createJob(options, batch) {
         let tasks = [];
-        if (options.node.batch && options.node.batch.length > 0) {
-            tasks = options.node.batch.map(b => ({ taskID: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
+        if (batch) {
+            tasks = batch.map(b => ({ taskID: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
         }
         else {
             tasks.push({ taskID: options.node.taskId, input: options.node.input, storage: options.storage });

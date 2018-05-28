@@ -9,7 +9,6 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const Events = require('../lib/consts/Events');
 const Batch = require('../lib/nodes/node-batch');
-const WaitBatch = require('../lib/nodes/node-wait-batch');
 const Node = require('../lib/nodes/node');
 const Task = require('../lib/tasks/Task');
 const bootstrap = require('../bootstrap');
@@ -30,154 +29,6 @@ describe('Test', function () {
         taskRunner = require('../lib/tasks/task-runner');
         const { main, logger } = configIt.load();
     })
-    describe('Producer', function () {
-        describe('Validation', function () {
-            it('should not throw validation error', function () {
-                producer.init(null);
-            });
-            it('should throw validation error job.type should be string', function (done) {
-                const options = {
-                    taskId: null,
-                    type: null
-                }
-                producer.createJob(options).catch((error) => {
-                    expect(error.message).to.equal('data.job.type should be string');
-                    done();
-                });
-            });
-        });
-        describe('CreateJob', function () {
-            it('should create job and return job id', function (done) {
-                const options = {
-                    type: 'test-job'
-                }
-                producer.createJob(options).then((jobID) => {
-                    expect(jobID).to.be.a('string');
-                    done();
-                });
-            });
-        });
-    });
-    describe('Consumer', function () {
-        describe('ConsumeJob', function () {
-            it('should consume a job with properties', async function (done) {
-                this.timeout(5000);
-                const jobId = `jobid-${uuidv4()}`;
-                const data = { test: 'OK', jobId };
-                consumer.on(Events.JOBS.START, async (job) => {
-                    if (job.data.jobId === jobId) {
-                        expect(job.data).to.deep.equal(data);
-                        done();
-                    }
-                });
-                const setting = {
-                    prefix: 'jobs-pipeline'
-                }
-                const options = {
-                    job: {
-                        type: 'pipeline-driver-job',
-                        data: data
-                    }
-                }
-                await stateManager.setExecution({ jobId, data: pipelines[1] });
-                const p = new Producer({ setting: setting });
-                p.createJob(options);
-            });
-        });
-    });
-    describe('TaskRunner', function () {
-        beforeEach(function () {
-            taskRunner._job = null;
-            taskRunner._jobId = null;
-            taskRunner._pipeline = null;
-            taskRunner._nodes = null;
-            taskRunner._active = false;
-            taskRunner._pipelineName = null;
-        });
-        it('should throw exception and stop pipeline', function () {
-            const jobId = `jobid-${uuidv4()}`;
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
-            const error = new Error(`unable to find pipeline ${jobId}`)
-            return expect(taskRunner._startPipeline(job)).to.eventually.rejectedWith(error.message);
-        });
-        it('should start pipeline successfully', async function () {
-            this.timeout(5000);
-            const jobId = `jobid-${uuidv4()}`;
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
-            const pipeline = pipelines[1];
-            await stateManager.setExecution({ jobId, data: pipeline });
-            await taskRunner._startPipeline(job)
-            expect(taskRunner._jobId).to.equal(jobId);
-            expect(taskRunner._active).to.equal(true);
-            expect(taskRunner._pipelineName).to.equal(pipeline.name);
-        });
-        it('should recover pipeline successfully', async function () {
-            const jobId = `jobid-${uuidv4()}`;
-            const taskIds = [uuidv4(), uuidv4(), uuidv4()];
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
-            const pipeline = pipelines[0];
-            const node = pipeline.nodes[0];
-            const task1 = new Node({
-                taskId: taskIds[0],
-                nodeName: node.nodeName,
-                algorithmName: node.algorithmName
-            })
-            const task2 = new Batch({
-                taskId: taskIds[1],
-                batchIndex: 1,
-                nodeName: node.nodeName,
-                algorithmName: node.algorithmName
-            })
-            const task3 = new WaitBatch({
-                taskId: taskIds[2],
-                w_runWaitAnyBatchaitBatch: true,
-                nodeName: node.nodeName,
-                algorithmName: node.algorithmName
-            })
-            const data = { status: 'completed' };
-            await stateManager.setDriverState({ jobId, data });
-            await stateManager.setTaskState({ jobId, taskId: task1.taskId, data: task1 });
-            await stateManager.setTaskState({ jobId, taskId: task2.taskId, data: task2 });
-            await stateManager.setTaskState({ jobId, taskId: task3.taskId, data: task3 });
-
-            await stateManager._etcd.tasks.setState({ jobId: jobId, taskId: task1.taskId, result: 0, status: 'completed' });
-            await stateManager._etcd.tasks.setState({ jobId: jobId, taskId: task2.taskId, result: 1, status: 'completed' });
-            await stateManager._etcd.tasks.setState({ jobId: jobId, taskId: task3.taskId, error: 'error', status: 'failed' });
-
-            const state = await stateManager.getState({ jobId: jobId });
-            taskRunner._nodes = new NodesMap(pipeline);
-            const tasks = taskRunner._checkRecovery(state);
-            expect(tasks).to.have.lengthOf(3);
-        });
-        it('should throw when check batch tolerance', async function () {
-            const jobId = `jobid-${uuidv4()}`;
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
-            const pipeline = pipelines.find(p => p.name === 'batch');
-            const node = pipeline.nodes[0];
-            await stateManager.setExecution({ jobId, data: pipeline });
-            await taskRunner._startPipeline(job);
-
-            const tasks = taskRunner._nodes._getNodesAsFlat();
-
-            for (let i = 0; i < 4; i++) {
-                taskRunner._nodes.updateTaskState(tasks[i].taskId, { status: 'failed', error: 'oooohh noooo' });
-            }
-            const result = taskRunner._checkBatchTolerance(tasks[0]);
-            expect(result.message).to.equal("4/5 (80%) failed tasks, batch tolerance is 60%, error: oooohh noooo");
-        });
-    });
     describe('NodesMap', function () {
         describe('Graph', function () {
             it('findEntryNodes: should find entry nodes', function () {
@@ -200,303 +51,195 @@ describe('Test', function () {
                 const node = nodesMap.getNode('not_exists');
                 expect(node).to.be.undefined;
             });
-        });
-        describe('ActualGraph', function () {
-            it('should find Actual By Target And Index', function () {
-                const pipeline = {
-                    "nodes": [
-                        {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "yellow",
-                            "algorithmName": "yellow-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "black",
-                            "algorithmName": "black-alg",
-                            "input": [
-                                "*@green",
-                                "*@yellow",
-                                "@green",
-                                "@yellow"
-                            ]
-                        }
-                    ]
-                }
-                const pNode = pipeline.nodes[0];
-                const batch = new Batch({
-                    taskId: uuidv4(),
-                    nodeName: pNode.nodeName,
-                    batchIndex: 1,
-                    algorithmName: pNode.algorithmName
+            it('should run simple-flow', function () {
+                const pipeline = pipelines.find(p => p.name === 'simple-flow');
+                const green = pipeline.nodes[0];
+                const yellow = pipeline.nodes[1];
+                const status = 'succeed';
+                const result = 123;
+                const nodesMap = new NodesMap(pipeline);
+                const node = new Node({
+                    nodeName: green.nodeName,
+                    algorithmName: green.algorithmName,
+                    extraData: green.extraData,
+                    input: green.input
                 });
-
-                const nodesMap = new NodesMap(pipeline);
-                nodesMap.updateCompletedTask(batch);
-
-                const node = nodesMap._actualGraph.findByTargetAndIndex('black', 1);
-                const link = node.links[0];
-                const edge = link.edges.find(e => e.type === 'waitAny');
-
-                expect(edge.completed).to.equal(true);
-                expect(edge.index).to.equal(1);
-            });
-            it('should update Actual By Source', function () {
-                const pipeline = {
-                    "nodes": [
-                        {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "yellow",
-                            "algorithmName": "yellow-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "black",
-                            "algorithmName": "black-alg",
-                            "input": [
-                                "*@green",
-                                "*@yellow",
-                                "@green",
-                                "@yellow"
-                            ]
-                        }
-                    ]
-                }
-                const batchCount = 3;
-                const pNode = pipeline.nodes[0];
-                const nodesMap = new NodesMap(pipeline);
-
-                for (var i = 0; i < batchCount; i++) {
-                    const batch = new Batch({
-                        taskId: uuidv4(),
-                        nodeName: pNode.nodeName,
-                        batchIndex: (i + 1)
-                    });
-                    nodesMap.updateCompletedTask(batch);
-                }
-
-                const count = nodesMap._actualGraph.updateBySource(pNode.nodeName, { data: 'OK' });
-                expect(count).to.equal(batchCount);
-            });
-            it('should find Actual By edge', function () {
-                const pipeline = {
-                    "nodes": [
-                        {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "yellow",
-                            "algorithmName": "yellow-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "black",
-                            "algorithmName": "black-alg",
-                            "input": [
-                                "*@green",
-                                "*@yellow",
-                                "@green",
-                                "@yellow"
-                            ]
-                        }
-                    ]
-                }
-                const pNode = pipeline.nodes[0];
-                const batch = new Batch({
-                    taskId: uuidv4(),
-                    nodeName: pNode.nodeName,
-                    batchIndex: 1,
-                    algorithmName: pNode.algorithmName
+                nodesMap.setNode(node);
+                nodesMap.on('node-ready', (node) => {
+                    expect(node.nodeName).to.equal(yellow.nodeName);
+                    expect(node.nodeName).to.equal(pipeline.nodes[1].nodeName);
+                    expect(node.parentOutput).to.have.lengthOf(1);
+                    expect(node.parentOutput[0].node).to.equal(green.nodeName);
+                    expect(node.parentOutput[0].result).to.equal(result);
+                    expect(node.parentOutput[0].type).to.equal('waitNode');
                 });
-
-                const nodesMap = new NodesMap(pipeline);
-                nodesMap.updateCompletedTask(batch);
-
-                const node = nodesMap._actualGraph.findByEdge(pNode.nodeName, 'black');
-                const link0 = node.links[0];
-                const link1 = node.links[1];
-                const edges1 = link0.edges.map(e => e.type);
-                const edges2 = link1.edges.map(e => e.type);
-
-                expect(link0.source).to.equal('green');
-                expect(link0.target).to.equal('black');
-                expect(link1.source).to.equal('yellow');
-                expect(link0.target).to.equal('black');
-
-                expect(edges1).to.deep.equal(['waitAny', 'waitNode']);
-                expect(edges2).to.deep.equal(['waitAny', 'waitNode']);
+                const task = nodesMap.updateTaskState(node.taskId, { status, result });
+                nodesMap.updateCompletedTask(task);
             });
-        });
-        describe('VirtualGraph', function () {
-            it('should create virtualGraph', function () {
+            it('should run simple-wait-batch', function () {
                 const pipeline = pipelines.find(p => p.name === 'simple-wait-batch');
+                const green = pipeline.nodes[0];
+                const yellow = pipeline.nodes[1];
+                const black = pipeline.nodes[2];
                 const nodesMap = new NodesMap(pipeline);
-                const vg = nodesMap._virtualGraph.list[0];
-                const link = vg.links[0];
-                expect(nodesMap).to.have.property('_virtualGraph');
-                expect(vg).to.have.property('id');
-                expect(vg).to.have.property('links');
-                expect(link).to.have.property('edges');
-                expect(link).to.have.property('source');
-                expect(link).to.have.property('target');
+                const node0 = nodesMap.getNode(green.nodeName);
+                const node1 = nodesMap.getNode(yellow.nodeName);
+                const index = 1;
+                const batch0 = new Batch({
+                    nodeName: node0.nodeName,
+                    batchIndex: index,
+                    algorithmName: node0.algorithmName,
+                    input: node0.input
+                });
+                const batch1 = new Batch({
+                    nodeName: node1.nodeName,
+                    batchIndex: index,
+                    algorithmName: node1.algorithmName,
+                    input: node1.input
+                });
+                nodesMap.addBatch(batch0);
+                nodesMap.addBatch(batch1);
+                nodesMap.updateTaskState(batch0.taskId, { status: 'succeed', result: 123 });
+                nodesMap.updateTaskState(batch1.taskId, { status: 'succeed', result: 456 });
+                nodesMap.updateCompletedTask(batch0);
+                const nodeResults = nodesMap.updateCompletedTask(batch1);
+                const node = nodeResults[0][0];
+                expect(nodeResults).to.have.lengthOf(1);
+                expect(node.nodeName).to.equal(black.nodeName);
+                expect(node.index).to.equal(index);
+                expect(node.parentOutput).to.have.lengthOf(4);
+                expect(node.parentOutput[0].node).to.equal('green');
+                expect(node.parentOutput[1].node).to.equal('yellow');
+                expect(node.parentOutput[2].node).to.equal('green');
+                expect(node.parentOutput[3].node).to.equal('yellow');
+
+                expect(node.parentOutput[0].type).to.equal('waitNode');
+                expect(node.parentOutput[1].type).to.equal('waitNode');
+                expect(node.parentOutput[2].type).to.equal('waitAny');
+                expect(node.parentOutput[3].type).to.equal('waitAny');
             });
-            it('should create virtualGraph with links and edges', function () {
-                const pipeline = {
-                    "nodes": [
-                        {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "yellow",
-                            "algorithmName": "yellow-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "black",
-                            "algorithmName": "black-alg",
-                            "input": [
-                                "*@green",
-                                "*@yellow",
-                                "@green",
-                                "@yellow"
-                            ]
-                        }
-                    ]
+            it('should run double-wait-any', function () {
+                const pipeline = pipelines.find(p => p.name === 'double-wait-any');
+                const black = pipeline.nodes[2];
+                const result = 123;
+                const nodesMap = new NodesMap(pipeline);
+                let nodeResults = null;
+                for (let i = 0; i < 2; i++) {
+                    const node = pipeline.nodes[i];
+                    for (let j = 0; j < 3; j++) {
+                        const batch = new Batch({
+                            nodeName: node.nodeName,
+                            batchIndex: (j + 1),
+                            algorithmName: node.algorithmName,
+                            input: node.input
+                        });
+                        nodesMap.addBatch(batch);
+                    }
                 }
-                const nodesMap = new NodesMap(pipeline);
-                const link0 = nodesMap._virtualGraph.list[0].links[0];
-                const link1 = nodesMap._virtualGraph.list[0].links[1];
-                const edges1 = link0.edges.map(e => e.type);
-                const edges2 = link1.edges.map(e => e.type);
+                for (let i = 0; i < 2; i++) {
+                    const pnode = pipeline.nodes[i];
+                    const node = nodesMap.getNode(pnode.nodeName);
+                    node.batch.forEach(b => {
+                        nodesMap.updateTaskState(b.taskId, { status: 'succeed', result });
+                        nodeResults = nodesMap.updateCompletedTask(b);
+                        if (nodeResults.length > 0 && nodeResults[0].length > 0) {
+                            const node = nodeResults[0][0];
+                            expect(node.index).to.equal(b.batchIndex);
+                            expect(node.nodeName).to.equal(black.nodeName);
 
-                expect(link0.source).to.equal('green');
-                expect(link0.target).to.equal('black');
-                expect(link1.source).to.equal('yellow');
-                expect(link0.target).to.equal('black');
+                            expect(node.parentOutput[0].index).to.equal(b.batchIndex);
+                            expect(node.parentOutput[0].node).to.equal('green');
+                            expect(node.parentOutput[0].result).to.equal(result);
+                            expect(node.parentOutput[0].type).to.equal('waitAny');
 
-                expect(edges1).to.deep.equal(['waitAny', 'waitNode']);
-                expect(edges2).to.deep.equal(['waitAny', 'waitNode']);
-            });
-            it('should find Virtual node By Target', function () {
-                const pipeline = {
-                    "nodes": [
-                        {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "yellow",
-                            "algorithmName": "yellow-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "black",
-                            "algorithmName": "black-alg",
-                            "input": [
-                                "*@green",
-                                "*@yellow",
-                                "@green",
-                                "@yellow"
-                            ]
+                            expect(node.parentOutput[1].index).to.equal(b.batchIndex);
+                            expect(node.parentOutput[1].node).to.equal('yellow');
+                            expect(node.parentOutput[1].result).to.equal(result);
+                            expect(node.parentOutput[1].type).to.equal('waitAny');
                         }
-                    ]
+                    })
                 }
-                const nodesMap = new NodesMap(pipeline);
-                const node = nodesMap._virtualGraph.findByTarget('black');
-                const link0 = node.links[0];
-                const link1 = node.links[1];
-
-                expect(link0.source).to.equal('green');
-                expect(link0.target).to.equal('black');
-                expect(link1.source).to.equal('yellow');
-                expect(link1.target).to.equal('black');
-
             });
-            it('should find Virtual node By edge', function () {
-                const pipeline = {
-                    "nodes": [
-                        {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "yellow",
-                            "algorithmName": "yellow-alg",
-                            "input": [
-                                "#@flowInput.files.links"
-                            ]
-                        },
-                        {
-                            "nodeName": "black",
-                            "algorithmName": "black-alg",
-                            "input": [
-                                "*@green",
-                                "*@yellow",
-                                "@green",
-                                "@yellow"
-                            ]
+            it('should run complex-wait-any', function () {
+                const pipeline = pipelines.find(p => p.name === 'complex-wait-any');
+                const nodesMap = new NodesMap(pipeline);
+                const black = pipeline.nodes[2];
+                let nodeResults = null;
+                for (let i = 0; i < 2; i++) {
+                    const node = pipeline.nodes[i];
+                    for (let j = 0; j < 3; j++) {
+                        const batch = new Batch({
+                            nodeName: node.nodeName,
+                            batchIndex: (j + 1),
+                            algorithmName: node.algorithmName,
+                            input: node.input
+                        });
+                        nodesMap.addBatch(batch);
+                    }
+                }
+                for (let i = 0; i < 2; i++) {
+                    const pnode = pipeline.nodes[i];
+                    const node = nodesMap.getNode(pnode.nodeName);
+                    node.batch.forEach(b => {
+                        nodesMap.updateTaskState(b.taskId, { status: 'succeed', result: 123 });
+                        nodesMap.updateCompletedTask(b);
+                        nodeResults = nodesMap.updateCompletedTask(b);
+                        if (nodeResults.length > 0 && nodeResults[0].length > 0) {
+                            const node = nodeResults[0][0];
+                            expect(node.nodeName).to.equal(black.nodeName);
+
+                            expect(node.parentOutput[0].node).to.equal('green');
+                            expect(node.parentOutput[1].node).to.equal('yellow');
+                            expect(node.parentOutput[2].node).to.equal('green');
+                            expect(node.parentOutput[3].node).to.equal('yellow');
+
+                            expect(node.parentOutput[0].type).to.equal('waitNode');
+                            expect(node.parentOutput[1].type).to.equal('waitNode');
+                            expect(node.parentOutput[2].type).to.equal('waitAny');
+                            expect(node.parentOutput[3].type).to.equal('waitAny');
                         }
-                    ]
+                    })
+
                 }
-                const nodesMap = new NodesMap(pipeline);
-                const node = nodesMap._virtualGraph.findByEdge('green', 'black');
-                const link0 = node.links[0];
-                const link1 = node.links[1];
-
-                expect(link0.source).to.equal('green');
-                expect(link0.target).to.equal('black');
-                expect(link1.source).to.equal('yellow');
-                expect(link1.target).to.equal('black');
-
             });
-            it('should create virtualGraph with multi input types', function () {
-                const pipeline = pipelines.find(p => p.name === 'multi-input');
+            it('should run simple-wait-any', function () {
+                const pipeline = pipelines.find(p => p.name === 'simple-wait-any');
                 const nodesMap = new NodesMap(pipeline);
-                const link0 = nodesMap._virtualGraph.list[0].links[0];
-                const link1 = nodesMap._virtualGraph.list[0].links[1];
-                expect(link0.edges).to.have.lengthOf(3);
-                expect(link1.edges).to.have.lengthOf(3);
+                const black = pipeline.nodes[2];
+                let nodeResults = null;
+                for (let i = 0; i < 2; i++) {
+                    const node = pipeline.nodes[i];
+                    for (let j = 0; j < 3; j++) {
+                        const batch = new Batch({
+                            nodeName: node.nodeName,
+                            batchIndex: (j + 1),
+                            algorithmName: node.algorithmName,
+                            input: node.input
+                        });
+                        nodesMap.addBatch(batch);
+                    }
+                }
+                for (let i = 0; i < 2; i++) {
+                    const pnode = pipeline.nodes[i];
+                    const node = nodesMap.getNode(pnode.nodeName);
+                    node.batch.forEach(b => {
+                        nodesMap.updateTaskState(b.taskId, { status: 'succeed', result: 123 });
+                        nodeResults = nodesMap.updateCompletedTask(b);
+                        if (nodeResults.length > 0 && nodeResults[0].length > 0) {
+                            const node = nodeResults[0][0];
+                            expect(node.index).to.equal(b.batchIndex);
+                            expect(node.nodeName).to.equal(black.nodeName);
 
-                expect(link0.source).to.equal('green');
-                expect(link0.target).to.equal('black');
-                expect(link1.source).to.equal('yellow');
-                expect(link1.target).to.equal('black');
+                            expect(node.parentOutput[0].node).to.equal('green');
+                            expect(node.parentOutput[1].node).to.equal('green');
+                            expect(node.parentOutput[2].node).to.equal('yellow');
+
+                            expect(node.parentOutput[0].type).to.equal('waitNode');
+                            expect(node.parentOutput[1].type).to.equal('waitAny');
+                            expect(node.parentOutput[2].type).to.equal('waitAny');
+                        }
+                    })
+                }
             });
         });
         describe('State', function () {
@@ -598,19 +341,6 @@ describe('Test', function () {
                 expect(resultNodes).to.have.lengthOf(4);
                 expect(resultNodes).to.deep.equal(pipelineNodes);
             });
-            it('parentsResults: should return all nodes', function () {
-                const pipeline = clone(pipelines[0]);
-                const green = pipeline.nodes[0];
-                const yellow = pipeline.nodes[1];
-                const nodesMap = new NodesMap(pipeline);
-                nodesMap.setNode(new Node({
-                    nodeName: green.nodeName,
-                    algorithmName: green.algorithmName,
-                    result: { my: 'OK' }
-                }));
-                const result = nodesMap.parentsResults(yellow.nodeName);
-                expect(result).to.have.property(green.nodeName);
-            });
             it('isAllParentsFinished: should return false', function () {
                 const pipeline = clone(pipelines[0]);
                 const yellow = pipeline.nodes[1];
@@ -618,10 +348,10 @@ describe('Test', function () {
                 const result = nodesMap.isAllParentsFinished(yellow.nodeName);
                 expect(result).to.equal(false);
             });
-            it('nodesResults: should return array', function () {
+            it('pipelineResults: should return array', function () {
                 const pipeline = clone(pipelines[0]);
                 const nodesMap = new NodesMap(pipeline);
-                const result = nodesMap.nodesResults();
+                const result = nodesMap.pipelineResults();
                 expect(result).to.have.lengthOf(2);
             });
             it('should calc progress', function () {
@@ -633,6 +363,118 @@ describe('Test', function () {
                 expect(result.progress).to.equal(0);
                 expect(result.details).to.equal('0% completed, 4 creating');
             });
+        });
+    });
+    describe('Producer', function () {
+        describe('Validation', function () {
+            it('should not throw validation error', function () {
+                producer.init(null);
+            });
+            it('should throw validation error job.type should be string', function (done) {
+                const options = {
+                    taskId: null,
+                    type: null
+                }
+                producer.createJob(options).catch((error) => {
+                    expect(error.message).to.equal('data.job.type should be string');
+                    done();
+                });
+            });
+        });
+        describe('CreateJob', function () {
+            it('should create job and return job id', function (done) {
+                const options = {
+                    type: 'test-job'
+                }
+                producer.createJob(options).then((jobID) => {
+                    expect(jobID).to.be.a('string');
+                    done();
+                });
+            });
+        });
+    });
+    describe('TaskRunner', function () {
+        beforeEach(function () {
+            taskRunner._job = null;
+            taskRunner._jobId = null;
+            taskRunner._pipeline = null;
+            taskRunner._nodes = null;
+            taskRunner._active = false;
+            taskRunner._pipelineName = null;
+        });
+        it('should throw exception and stop pipeline', function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const error = new Error(`unable to find pipeline ${jobId}`)
+            return expect(taskRunner._startPipeline(job)).to.eventually.rejectedWith(error.message);
+        });
+        it('should start pipeline successfully', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines[1];
+            await stateManager.setExecution({ jobId, data: pipeline });
+            await taskRunner._startPipeline(job)
+            expect(taskRunner._jobId).to.equal(jobId);
+            expect(taskRunner._active).to.equal(true);
+            expect(taskRunner._pipelineName).to.equal(pipeline.name);
+        });
+        it('should recover pipeline successfully', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const taskIds = [uuidv4(), uuidv4(), uuidv4()];
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines[0];
+            const node = pipeline.nodes[0];
+            const task1 = new Node({
+                taskId: taskIds[0],
+                nodeName: node.nodeName,
+                algorithmName: node.algorithmName
+            })
+            const task2 = new Batch({
+                taskId: taskIds[1],
+                batchIndex: 1,
+                nodeName: node.nodeName,
+                algorithmName: node.algorithmName
+            })
+            const data = { status: 'completed' };
+            await stateManager.setDriverState({ jobId, data });
+            await stateManager.setTaskState({ jobId, taskId: task1.taskId, data: task1 });
+            await stateManager.setTaskState({ jobId, taskId: task2.taskId, data: task2 });
+
+            await stateManager._etcd.tasks.setState({ jobId: jobId, taskId: task1.taskId, result: 0, status: 'completed' });
+            await stateManager._etcd.tasks.setState({ jobId: jobId, taskId: task2.taskId, result: 1, status: 'completed' });
+
+            const state = await stateManager.getState({ jobId: jobId });
+            taskRunner._nodes = new NodesMap(pipeline);
+            const tasks = taskRunner._checkRecovery(state);
+            expect(tasks).to.have.lengthOf(2);
+        });
+        it('should throw when check batch tolerance', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines.find(p => p.name === 'batch');
+            const node = pipeline.nodes[0];
+            await stateManager.setExecution({ jobId, data: pipeline });
+            await taskRunner._startPipeline(job);
+
+            const tasks = taskRunner._nodes._getNodesAsFlat();
+
+            for (let i = 0; i < 4; i++) {
+                taskRunner._nodes.updateTaskState(tasks[i].taskId, { status: 'failed', error: 'oooohh noooo' });
+            }
+            const result = taskRunner._checkBatchTolerance(tasks[0]);
+            expect(result.message).to.equal("4/5 (80%) failed tasks, batch tolerance is 60%, error: oooohh noooo");
         });
     });
     describe('Progress', function () {
@@ -746,7 +588,7 @@ describe('Test', function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { status: 'completed' };
             await stateManager.setJobStatus({ jobId, data });
-            const response = await stateManager._etcd.jobResults.getStatus({ jobId });
+            const response = await stateManager._etcd.jobStatus.get({ jobId });
             expect(response.data).to.deep.equal(data);
         });
         it('getState', async function () {

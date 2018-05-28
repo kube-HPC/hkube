@@ -1,6 +1,6 @@
 [
     {
-        "name": "flow1",
+        "name": "simple-flow",
         "nodes": [
             {
                 "nodeName": "green",
@@ -290,6 +290,168 @@
         "options": {
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
+        }
+    },
+    {
+        "name": "complex-wait-any",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "*@green",
+                    "*@yellow",
+                    "@green",
+                    "@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        },
+        "webhooks": {
+            "progress": "http://localhost:3003/webhook/progress",
+            "result": "http://localhost:3003/webhook/result"
+        }
+    },
+    {
+        "name": "simple-wait-any",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@green",
+                    "*@green",
+                    "*@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        },
+        "webhooks": {
+            "progress": "http://localhost:3003/webhook/progress",
+            "result": "http://localhost:3003/webhook/result"
+        }
+    },
+    {
+        "name": "double-wait-any",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "*@green",
+                    "*@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "metadata": {
+                "flowInput": {
+                    "type": "object"
+                },
+                "flowInput.files": {
+                    "type": "object"
+                },
+                "flowInput.files.links": {
+                    "type": "array",
+                    "size": 5
+                }
+            },
+            "storageInfo": {
+                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
+                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        },
+        "webhooks": {
+            "progress": "http://localhost:3003/webhook/progress",
+            "result": "http://localhost:3003/webhook/result"
         }
     },
     {
