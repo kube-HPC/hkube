@@ -16,9 +16,6 @@ class StateManagerMock extends EventEmitter {
         return storeTemplates;
     }
 
-    setStoreTemplates() {
-    }
-
     setResourceRequirements() {
     }
 }

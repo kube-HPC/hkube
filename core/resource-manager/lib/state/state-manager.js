@@ -19,12 +19,8 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.algorithmQueue.list();
     }
 
-    setQueueMetrics(options) {
-        return this._etcd.algorithms.algorithmQueue.setState(options);
-    }
-
     setResourceRequirements(resourceResults) {
-        return Promise.all(resourceResults.map(a => this._etcd.algorithms.resourceRequirements.setState(a)));
+        return Promise.all(resourceResults.map(a => this._etcd.algorithms.resourceRequirements.set(a)));
     }
 
     getResourceRequirements(options) {
@@ -33,10 +29,6 @@ class StateManager extends EventEmitter {
 
     getStoreTemplates(options) {
         return this._etcd.algorithms.templatesStore.list(options);
-    }
-
-    setStoreTemplates(options) {
-        return this._etcd.algorithms.templatesStore.setState(options);
     }
 
     watchStoreTemplates(options) {
