@@ -64,6 +64,13 @@ class AlgorithmStore {
         await stateManager.setAlgorithm(options);
         return options;
     }
+
+    /**
+     * get current algorithms queue from etcd
+     */
+    async getAlgorithmsQueueList() {
+        return stateManager.getAlgorithmsQueueList();
+    }
 }
 
 module.exports = new AlgorithmStore();

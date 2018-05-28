@@ -37,6 +37,10 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.templatesStore.get({ name: options.name });
     }
 
+    getAlgorithmsQueueList() {
+        return this._etcd.algorithms.algorithmQueue.list();
+    }
+
     getAlgorithms() {
         return this._etcd.algorithms.templatesStore.list();
     }

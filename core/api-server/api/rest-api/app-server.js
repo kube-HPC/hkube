@@ -20,7 +20,8 @@ class AppServer {
 
             swagger.info.version = options.version;
             const { prefix, port, rateLimit, poweredBy } = options.rest;
-            const routes = [metrics.getRouter(), internal()];
+            const routes = internal();
+            routes.push(metrics.getRouter());
             const versions = fs.readdirSync(path.join(__dirname, 'routes'));
             versions.forEach((v) => {
                 swagger.servers.push({ url: path.join('/', options.swagger.path, prefix, v) });
