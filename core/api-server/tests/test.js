@@ -1320,7 +1320,7 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.body).to.have.property('jobId');
                     });
-                    it('should succeed and return execution id', async () => {
+                    it('should succeed and return webhooks progress', async () => {
                         const options1 = {
                             uri: restUrl + '/exec/stored',
                             body: { name: 'webhookFlow' }

@@ -113,9 +113,7 @@ class ExecutionService {
     }
 
     _setWebhooks(jobId, webhooks) {
-        Object.entries(webhooks).map(([k, v]) => {
-            stateManager.setWebhook({ jobId, url: v, type: k, state: States.PENDING });
-        });
+        Object.entries(webhooks).map(([k, v]) => stateManager.setWebhook({ jobId, url: v, type: k, state: States.PENDING }));
     }
 
     async _createStorage(jobId, pipeline) {

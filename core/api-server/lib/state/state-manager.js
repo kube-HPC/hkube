@@ -67,11 +67,12 @@ class StateManager extends EventEmitter {
 
     async _watchJobResults() {
         await this._etcd.jobResults.watch();
+        await this._etcd.jobStatus.watch();
         this._etcd.jobResults.on('change', (result) => {
-            this.emit('job-status', result);
+            this.emit('job-result', result);
         });
         this._etcd.jobStatus.on('change', (result) => {
-            this.emit('job-result', result);
+            this.emit('job-status', result);
         });
     }
 
@@ -89,7 +90,7 @@ class StateManager extends EventEmitter {
     }
 
     setWebhook(options) {
-        return this._etcd.webhooks.set({ jobId: options.jobId, data: new Webhook(options) });
+        return this._etcd.webhooks.set({ jobId: options.jobId, type: options.type, data: new Webhook(options.data) });
     }
 
     getWebhook(options) {

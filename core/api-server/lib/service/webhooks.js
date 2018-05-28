@@ -1,11 +1,12 @@
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, } = require('../errors/errors');
+const { Types } = require('../webhook/States');
 
 class WebhooksService {
     async getWebhooksResults(options) {
         validator.validateJobID(options);
-        const status = await stateManager.getWebhooksResults({ jobId: options.jobId });
+        const status = await stateManager.getWebhook({ jobId: options.jobId, type: Types.RESULT });
         if (!status) {
             throw new ResourceNotFoundError('webhookLog', options.jobId);
         }
@@ -14,7 +15,7 @@ class WebhooksService {
 
     async getWebhooksStatus(options) {
         validator.validateJobID(options);
-        const status = await stateManager.getWebhooksStatus({ jobId: options.jobId });
+        const status = await stateManager.getWebhook({ jobId: options.jobId, type: Types.PROGRESS });
         if (!status) {
             throw new ResourceNotFoundError('webhookLog', options.jobId);
         }

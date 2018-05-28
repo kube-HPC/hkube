@@ -31,13 +31,13 @@ class WebhooksHandler {
     }
 
     async _recovery() {
-        const jobResults = await stateManager.getWebhooks({ order: 'desc', sort: 'mod' });
-        jobResults.forEach((job) => {
-            if ((!job.webhooks) || (job.webhooks && job.webhooks.result && job.webhooks.result.pipelineStatus !== job.result.status)) {
-                this._requestResults({ jobId: job.jobId, ...job.result });
+        const webhooks = await stateManager.getWebhooks({ order: 'desc', sort: 'mod' });
+        webhooks.forEach((w) => {
+            if (w.results && w.results.pipelineStatus === States.PENDING) {
+                this._requestResults({ jobId: w.jobId, ...w });
             }
-            if ((!job.webhooks) || (job.webhooks && job.webhooks.status && job.webhooks.status.pipelineStatus !== job.status.status)) {
-                this._requestStatus({ jobId: job.jobId, ...job.status });
+            if (w.progress && w.progress.pipelineStatus === States.PENDING) {
+                this._requestStatus({ jobId: w.jobId, ...w });
             }
         });
     }
@@ -50,7 +50,7 @@ class WebhooksHandler {
             log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component: components.WEBHOOK_HANDLER, jobId: payload.jobId });
             if (clientLevel <= pipelineLevel) {
                 const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, payload.jobId);
-                stateManager.setWebhook({ jobId: payload.jobId, data: result });
+                stateManager.setWebhook({ jobId: payload.jobId, type: Types.PROGRESS, data: result });
             }
         }
     }
@@ -68,7 +68,7 @@ class WebhooksHandler {
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await storageFactory.getResults(payload);
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payloadData.status, payloadData.jobId);
-            stateManager.setWebhook({ jobId: payloadData.jobId, data: result });
+            stateManager.setWebhook({ jobId: payloadData.jobId, type: Types.RESULT, data: result });
         }
     }
 
