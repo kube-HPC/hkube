@@ -24,8 +24,8 @@ describe('worker communication', () => {
     it('should pass events', async () => {
         const spy = sinon.spy();
         const { adapter } = workerCommunication;
-        workerCommunication.on(messages.incomming.pong, spy);
-        adapter.emit(messages.incomming.pong, ['1', '2']);
+        workerCommunication.on(messages.incomming.started, spy);
+        adapter.emit(messages.incomming.started, ['1', '2']);
         expect(spy.callCount).to.eq(1);
         expect(spy.getCall(0).args[0]).to.eql(['1', '2']);
     });

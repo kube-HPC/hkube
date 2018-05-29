@@ -75,7 +75,7 @@ describe('consumer fail tests', () => {
         });
     });
 
-    it('should failed if bucket not exists', (done) => {
+    it('should fail if bucket not exists', (done) => {
         consumer.init(jobConsumerConfig2).then(() => {
             stateManager.once('stateEnteredready', () => {
                 producer = new Producer(producerSettings2);
@@ -86,16 +86,15 @@ describe('consumer fail tests', () => {
                             jobID,
                             taskID,
                             input: ['$$guid-5'],
-                            info: {
-                                storage: {
-                                    'guid-5': { storageInfo: { Bucket: 'bucketNotExists', Key: taskID }, path: 'data.engine.inputs.raw' }
-                                }
+                            storage: {
+                                'guid-5': { storageInfo: { Bucket: 'bucketNotExists', Key: taskID }, path: 'data.engine.inputs.raw' }
                             }
-                        }
+                        },
                     }
                 });
-                producer.on('job-failed', (error) => {
-                    expect(error).to.be.not.undefined;
+                stateManager.once('stateEnteredready', (job) => {
+                    expect(job.results.error.message).to.eql('The specified bucket does not exist');
+                    expect(job.results.error.code).to.eql('NoSuchBucket');
                     expect(stateManager.state).to.eql('ready');
                     done();
                 });
