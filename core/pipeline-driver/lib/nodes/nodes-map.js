@@ -51,14 +51,14 @@ class NodesMap extends EventEmitter {
         let completed = false;
         const edges = this._graph.edge(source, target).map(e => e.type);
 
-        if (this._isWaitAny(edges) && this._isWaitNode(edges)) {
+        if ((this._isWaitAny(edges)) && (this._isWaitNode(edges) || this._isWaitBatch(edges))) {
             index = null;
             completed = this.isAllParentsFinished(target);
         }
         else if (this._isWaitAny(edges) && index) {
             completed = this.isAllParentsFinishedIndex(target, index);
         }
-        else if (this._isWaitNode(edges)) {
+        else if (this._isWaitNode(edges) || this._isWaitBatch(edges)) {
             index = null;
             completed = this.isAllParentsFinished(target);
         }
@@ -81,6 +81,13 @@ class NodesMap extends EventEmitter {
             if (this._isWaitNode(edges)) {
                 parentOutput.push({
                     type: consts.relations.WAIT_NODE,
+                    node: p,
+                    result: this.getNodeResults(node.nodeName)
+                });
+            }
+            if (this._isWaitBatch(edges)) {
+                parentOutput.push({
+                    type: consts.relations.WAIT_BATCH,
                     node: p,
                     result: this.getNodeResults(node.nodeName)
                 });
@@ -128,7 +135,11 @@ class NodesMap extends EventEmitter {
     }
 
     _isWaitNode(edges) {
-        return edges.includes(consts.relations.WAIT_NODE) || edges.includes(consts.relations.WAIT_BATCH);
+        return edges.includes(consts.relations.WAIT_NODE);
+    }
+
+    _isWaitBatch(edges) {
+        return edges.includes(consts.relations.WAIT_BATCH);
     }
 
     _getNodesAsFlat() {
