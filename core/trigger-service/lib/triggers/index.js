@@ -1,7 +1,7 @@
-const cronTask = require('./cron-task');
+const cronTrigger = require('./cron-trigger');
 const pipelineTrigger = require('./pipeline-trigger');
 
 module.exports = {
-    cronTask,
+    cronTrigger,
     pipelineTrigger
 };

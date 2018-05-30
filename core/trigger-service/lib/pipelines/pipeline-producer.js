@@ -1,0 +1,38 @@
+const request = require('requestretry');
+
+class PipelineProducer {
+    constructor() {
+        this.retrySettings = {
+            maxAttempts: 5,
+            retryDelay: 5000,
+            retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+        };
+    }
+
+    async init(config) {
+        const { protocol, host, port, path } = config.apiServer;
+        this._apiUrl = `${protocol}://${host}:${port}/${path}`;
+    }
+
+    async produce(trigger) {
+        if (!trigger.name) {
+            throw new Error('invalid name');
+        }
+        if (!trigger.jobId) {
+            throw new Error('invalid jobId');
+        }
+        return request({
+            method: 'POST',
+            uri: this._apiUrl,
+            body: {
+                name: trigger.name,
+                jobId: trigger.jobId
+            },
+            json: true,
+            ...this.retrySettings
+        });
+    }
+}
+
+
+module.exports = new PipelineProducer();

@@ -1,34 +1,27 @@
-process.env.NODE_PATH = __dirname;
-require('module').Module._initPaths();
-
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
-const {VerbosityPlugin} = Logger;
-log.plugins.use(new VerbosityPlugin(main.redis));
 const monitor = require('@hkube/redis-utils').Monitor;
-const {componentName} = require('./lib/consts/index');
-// const metrics = require('@hkube/metrics');
-// const consumer = require('./lib/jobs/consumer');
-const {tracer} = require('@hkube/metrics');
-const modules = [
-    './lib/stored-pipelines-listener',
-    './lib/trigger-runner',
-    './lib/pipeline-producer',
-    
-    // './lib/jobs/consumer',
-    // './lib/jobs/producer',
-    // './lib/queue-runner',
-    // './lib/metrics/aggregation-metrics-factory'
-];
+const { componentName } = require('./lib/consts/index');
+const { tracer } = require('@hkube/metrics');
+let log;
 
+const modules = [
+    './lib/store/store-manager',
+    './lib/queue/trigger-runner',
+    './lib/pipelines/stored-pipelines-listener',
+    './lib/pipelines/pipeline-producer',
+];
 
 class Bootstrap {
     async init() {
+        let config = null;
         try {
+            const { main, logger } = configIt.load();
             this._handleErrors();
+
+            log = new Logger(main.serviceName, logger);
             log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
+
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component: componentName.MAIN });
             });
@@ -36,19 +29,18 @@ class Bootstrap {
                 log.error(data.error.message, { component: componentName.MAIN });
             });
             monitor.check(main.redis);
-            //   await metrics.init(main.metrics);
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            //       consumer.init(main);
             await Promise.all(modules.map(m => require(m).init(main)));// eslint-disable-line global-require, import/no-dynamic-require
-            
-            return main;
+
+            config = main;
         }
         catch (error) {
             log.error(error);
             this._onInitFailed(new Error(`unable to start application. ${error.message}`));
         }
+        return config;
     }
 
     _onInitFailed(error) {

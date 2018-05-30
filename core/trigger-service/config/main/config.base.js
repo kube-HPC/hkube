@@ -1,8 +1,7 @@
-const package = require(process.cwd() + '/package.json');
-const  config = module.exports = {};
+const pkg = require(process.cwd() + '/package.json'); // eslint-disable-line
+const config = {};
 
-
-config.serviceName = package.name;
+config.serviceName = pkg.name;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.redis = {
@@ -16,20 +15,21 @@ config.etcd = {
     host: process.env.ETCD_CLIENT_SERVICE_HOST || 'localhost',
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
+
 config.apiServer = {
     protocol: 'http',
     host: process.env.API_SERVER_SERVICE_HOST || 'localhost',
-    port: process.env.API_SERVER_SERVICE_PORT || 3000
-} 
-
+    port: process.env.API_SERVER_SERVICE_PORT || 3000,
+    path: 'internal/v1/exec/stored'
+};
 
 config.metrics = {
     collectDefault: true,
     server: {
-    
-        port: process.env.METRICS_PORT||9100
+
+        port: process.env.METRICS_PORT || 9100
     }
-}
+};
 
 config.tracer = {
     tracerConfig: {
@@ -39,4 +39,6 @@ config.tracer = {
             agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
         }
     }
-}
+};
+
+module.exports = config;

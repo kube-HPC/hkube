@@ -1,8 +1,8 @@
 const config = {};
 config.transport = {
     console: false,
-    logstash: false,
     fluentd: true,
+    logstash: false,
     file: false
 };
 config.verbosityLevel = 2;
