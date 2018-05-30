@@ -6,6 +6,14 @@ Hkube allows to run pipelines of algorithms on kubernetes cluster optimally util
 
 See [hkube.io](http://hkube.io/)
 
+## How to Install
+hkube delete -t -c
+hkube deploy --cluster_name=test -t 
+
+wait for etcd....
+
+hkube deploy --cluster_name=test -c
+
 ## License
 
   [MIT](LICENSE)
