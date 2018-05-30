@@ -410,7 +410,7 @@
                     {
                         "name": "name",
                         "in": "path",
-                        "description": "name of pipeline",
+                        "description": "pipeline name",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -508,7 +508,7 @@
                             "in": "query",
                             "description": "sort by asc or desc",
                             "schema": {
-                                "$ref": "#/components/schemas/sortBy"
+                                "type": "string"
                             }
                         },
                         {
@@ -1279,12 +1279,12 @@
                     "Execution"
                 ],
                 "summary": "Get pipeline cron result",
-                "description": "returns result for specific cron pipeline.",
+                "description": "return cron results by given pipeline name",
                 "parameters": [
                     {
                         "name": "name",
                         "in": "path",
-                        "description": "Unique identifier representing name of stored pipeline",
+                        "description": "pipeline name",
                         "required": true,
                         "schema": {
                             "type": "string"
@@ -1295,7 +1295,7 @@
                         "in": "query",
                         "description": "sort by asc or desc",
                         "schema": {
-                            "$ref": "#/components/schemas/sortBy"
+                            "type": "string"
                         }
                     },
                     {
