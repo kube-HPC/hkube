@@ -421,7 +421,7 @@
                         "in": "query",
                         "description": "sort by asc or desc",
                         "schema": {
-                            "$ref": "#/components/schemas/sortBy"
+                            "type": "string"
                         }
                     },
                     {
