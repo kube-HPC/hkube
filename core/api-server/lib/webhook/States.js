@@ -1,5 +1,6 @@
 const States = {
     PENDING: 'pending',
+    COMPLETED: 'completed',
     SUCCEED: 'succeed',
     FAILED: 'failed'
 };

@@ -17,7 +17,7 @@ class WebhooksHandler {
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
-        // this._recovery();
+        this._recovery();
         this._watch();
     }
 
@@ -31,13 +31,13 @@ class WebhooksHandler {
     }
 
     async _recovery() {
-        const webhooks = await stateManager.getWebhooks({ order: 'desc', sort: 'mod' });
-        webhooks.forEach((w) => {
-            if (w.results && w.results.pipelineStatus === States.PENDING) {
-                this._requestResults({ jobId: w.jobId, ...w });
-            }
-            if (w.progress && w.progress.pipelineStatus === States.PENDING) {
-                this._requestStatus({ jobId: w.jobId, ...w });
+        const webhooks = await stateManager.getWebhooks({ order: 'mod', sort: 'desc' });
+        webhooks.forEach(async (w) => {
+            if (w.result && w.result.status === States.PENDING) {
+                const results = await stateManager.getJobResultMetadata({ jobId: w.jobId });
+                if (results) {
+                    this._requestResults({ jobId: w.jobId, ...results });
+                }
             }
         });
     }
@@ -50,7 +50,7 @@ class WebhooksHandler {
             log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component: components.WEBHOOK_HANDLER, jobId: payload.jobId });
             if (clientLevel <= pipelineLevel) {
                 const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, payload.jobId);
-                stateManager.setWebhook({ jobId: payload.jobId, type: Types.PROGRESS, data: result });
+                await stateManager.setWebhook({ jobId: payload.jobId, type: Types.PROGRESS, data: result });
             }
         }
     }
@@ -68,7 +68,7 @@ class WebhooksHandler {
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await storageFactory.getResults(payload);
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payloadData.status, payloadData.jobId);
-            stateManager.setWebhook({ jobId: payloadData.jobId, type: Types.RESULT, data: result });
+            await stateManager.setWebhook({ jobId: payloadData.jobId, type: Types.RESULT, data: result });
         }
     }
 
@@ -77,7 +77,8 @@ class WebhooksHandler {
             log.debug(`trying to call ${type} webhook ${url}`, { component: components.WEBHOOK_HANDLER });
             const data = {
                 url,
-                pipelineStatus
+                pipelineStatus,
+                status: States.COMPLETED
             };
             request({
                 method: 'POST',

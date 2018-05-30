@@ -3,13 +3,13 @@ const validator = require('djsv');
 const { parser } = require('@hkube/parsers');
 const { Graph, alg } = require('graphlib');
 const { CronJob } = require('cron');
-const { schemas } = require('../../api/rest-api/swagger.json').components;
+const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
 const { InvalidDataError, } = require('../errors/errors');
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
 
 class Validator {
     constructor() {
-        validator.addFormat('url', this._validateWebhook);
+        validator.addFormat('url', this._validateUrl);
         validator.addFormat('cron', this._validateCron);
         Object.values(schemas).forEach((s) => {
             if (s.id) {
@@ -29,6 +29,10 @@ class Validator {
         if (!pipeline.options.progressVerbosityLevel) {
             pipeline.options.progressVerbosityLevel = 'info';
         }
+    }
+
+    validateStoredInternal(pipeline) {
+        this._validate(_schemas.storedInternal, pipeline);
     }
 
     validateRunRawPipeline(pipeline) {
@@ -59,8 +63,12 @@ class Validator {
         this._validate(schemas.name, pipeline);
     }
 
-    validateCronResults(pipeline) {
-        this._validate(schemas.name, pipeline);
+    validateResultList(pipeline) {
+        if (!pipeline.limit) {
+            pipeline.limit = 1;
+        }
+        pipeline.limit = parseInt(pipeline.limit, 10);
+        this._validate(_schemas.list, pipeline);
     }
 
     validateJobID(pipeline) {
@@ -126,7 +134,7 @@ class Validator {
         }
     }
 
-    _validateWebhook(url) {
+    _validateUrl(url) {
         return URL_REGEX.test(url);
     }
 

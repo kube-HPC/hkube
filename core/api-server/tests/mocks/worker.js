@@ -13,7 +13,8 @@ class WorkerStub {
         const results = {
             jobId,
             status: 'completed',
-            data: [{ result: storageLink }]
+            data: [{ result: storageLink }],
+            level: 'info'
         }
         await stateManager.setJobStatus(results);
         results.data = await storageFactory.adapter.putResults({ jobId: results.jobId, data: results.data })

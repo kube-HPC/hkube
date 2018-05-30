@@ -76,13 +76,18 @@ class StateManager extends EventEmitter {
         });
     }
 
+    async getJobResultMetadata(options) {
+        return this._etcd.jobResults.get(options);
+    }
+
     async getJobResult(options) {
         const result = await this._etcd.jobResults.get(options);
         return storageFactory.getResults(result);
     }
 
-    getJobResults(options) {
-        return this._etcd.jobResults.list(options);
+    async getJobResults(options) {
+        const list = await this._etcd.jobResults.list(options);
+        return Promise.all(list.map(r => storageFactory.getResults(r)));
     }
 
     setJobResults(options) {

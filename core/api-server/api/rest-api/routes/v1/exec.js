@@ -56,11 +56,21 @@ const routes = (options) => {
             return next(error);
         });
     });
+    router.all('/pipelines/results/:name?', methods(['GET']), logger(), (req, res, next) => {
+        const { name } = req.params;
+        const { sort, order, limit } = req.query;
+        Execution.getPipelinesResult({ name, sort, order, limit }).then((response) => {
+            res.json(response);
+            res.name = name;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     router.all('/cron/results/:name?', methods(['GET']), logger(), (req, res, next) => {
         const { name } = req.params;
-        req.query.limit = parseInt(req.query.limit, 10);
         const { sort, order, limit } = req.query;
-        Execution.getCronJobResult({ name, sort, order, limit }).then((response) => {
+        Execution.getCronResult({ name, sort, order, limit }).then((response) => {
             res.json(response);
             res.name = name;
             next();

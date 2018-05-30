@@ -143,7 +143,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/runStoredPipeline"
+                                "$ref": "#/components/schemas/storedPipeline"
                             }
                         }
                     },
@@ -227,17 +227,17 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "$ref": "#/components/schemas/jobIdParam"
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "pipeline result",
+                        "description": "pipeline data",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pipelineResult"
+                                    "$ref": "#/components/schemas/pipeline"
                                 }
                             }
                         }
@@ -289,7 +289,7 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "$ref": "#/components/schemas/jobIdParam"
+                            "type": "string"
                         }
                     }
                 ],
@@ -351,7 +351,7 @@
                         "description": "Unique identifier representing workflow execution - is given in response to calling pipeline run method .",
                         "required": true,
                         "schema": {
-                            "$ref": "#/components/schemas/jobIdParam"
+                            "type": "string"
                         }
                     }
                 ],
@@ -392,6 +392,880 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/exec/pipelines/results/{name}": {
+            "get": {
+                "tags": [
+                    "Execution"
+                ],
+                "summary": "Get pipeline results",
+                "description": "return results by given pipeline name",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "description": "name of pipeline",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "sort by asc or desc",
+                        "schema": {
+                            "$ref": "#/components/schemas/sortBy"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "description": "order by",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "limit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "type": "array",
+                                "description": "Array of results",
+                                "items": {
+                                    "$ref": "#/components/schemas/pipelineResult"
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "jobId Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/exec/cron/results/{name}": {
+                "get": {
+                    "tags": [
+                        "Execution"
+                    ],
+                    "summary": "Get pipeline cron result",
+                    "description": "returns result for specific cron pipeline.",
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "in": "path",
+                            "description": "Unique identifier representing name of stored pipeline",
+                            "required": true,
+                            "schema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "name": "sort",
+                            "in": "query",
+                            "description": "sort by asc or desc",
+                            "schema": {
+                                "$ref": "#/components/schemas/sortBy"
+                            }
+                        },
+                        {
+                            "name": "order",
+                            "in": "query",
+                            "description": "order by",
+                            "schema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "name": "limit",
+                            "in": "query",
+                            "description": "limit",
+                            "schema": {
+                                "type": "integer"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/pipelineResult"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "jobId Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/exec/tree/{jobId}": {
+                "get": {
+                    "tags": [
+                        "Execution"
+                    ],
+                    "summary": "Pipeline execution tree",
+                    "description": "Returns a tree of pipelines, usually a triggered pipelines",
+                    "parameters": [
+                        {
+                            "name": "jobId",
+                            "in": "path",
+                            "description": "Unique identifier representing pipeline execution",
+                            "required": true,
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "pipeline tree",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/execTreeResult"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "jobId Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/store/algorithms/{name}": {
+                "get": {
+                    "tags": [
+                        "Algorithms"
+                    ],
+                    "summary": "Get algorithm",
+                    "description": "get specific algorithm from store",
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "in": "path",
+                            "description": "algorithm name to get from the store",
+                            "required": true,
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "pipeline Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "delete": {
+                    "tags": [
+                        "Algorithms"
+                    ],
+                    "summary": "Delete algorithm",
+                    "description": "Delete existing algorithm from store",
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "in": "path",
+                            "description": "algorithm name to get from the store",
+                            "required": true,
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "pipeline Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/store/algorithms": {
+                "get": {
+                    "tags": [
+                        "Algorithms"
+                    ],
+                    "summary": "Get all algorithms",
+                    "description": "Get all available algorithms from store",
+                    "parameters": [
+                        {
+                            "name": "sort",
+                            "in": "query",
+                            "description": "sort by",
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "post": {
+                    "tags": [
+                        "Algorithms"
+                    ],
+                    "summary": "Insert algorithm",
+                    "description": "Insert new algorithm to store if not exists",
+                    "responses": {
+                        "201": {
+                            "description": "algorithm created",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "409": {
+                            "description": "pipeline conflict",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "requestBody": {
+                        "$ref": "#/components/requestBodies/algorithm"
+                    }
+                },
+                "put": {
+                    "tags": [
+                        "Algorithms"
+                    ],
+                    "summary": "Update algorithm",
+                    "description": "Update existing algorithm",
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "pipeline Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "requestBody": {
+                        "$ref": "#/components/requestBodies/algorithm"
+                    }
+                }
+            },
+            "/store/pipelines/{name}": {
+                "get": {
+                    "tags": [
+                        "Pipelines"
+                    ],
+                    "summary": "Get pipeline",
+                    "description": "Get specific pipeline from store",
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "in": "path",
+                            "description": "pipeline name to get from the store",
+                            "required": true,
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "pipeline Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "delete": {
+                    "tags": [
+                        "Pipelines"
+                    ],
+                    "summary": "Delete pipeline",
+                    "description": "Delete existing pipeline from store",
+                    "parameters": [
+                        {
+                            "name": "name",
+                            "in": "path",
+                            "description": "pipeline name to get from the store",
+                            "required": true,
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "pipeline Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/store/pipelines": {
+                "get": {
+                    "tags": [
+                        "Pipelines"
+                    ],
+                    "summary": "Get all pipelines",
+                    "description": "Get all pipelines from store",
+                    "parameters": [
+                        {
+                            "name": "sort",
+                            "in": "query",
+                            "description": "sort by",
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "post": {
+                    "tags": [
+                        "Pipelines"
+                    ],
+                    "summary": "Insert pipeline",
+                    "description": "Insert new pipeline to store if not exist",
+                    "responses": {
+                        "201": {
+                            "description": "pipeline created",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "409": {
+                            "description": "pipeline conflict",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "requestBody": {
+                        "$ref": "#/components/requestBodies/pipeline"
+                    }
+                },
+                "put": {
+                    "tags": [
+                        "Pipelines"
+                    ],
+                    "summary": "Update pipeline",
+                    "description": "Update existing pipeline",
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/defaultResponse"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "pipeline Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "requestBody": {
+                        "$ref": "#/components/requestBodies/pipeline"
+                    }
+                }
+            },
+            "/webhooks/status/{jobId}": {
+                "get": {
+                    "tags": [
+                        "Webhooks"
+                    ],
+                    "summary": "Webhook status",
+                    "description": "Returns a webhook status for specific pipeline",
+                    "parameters": [
+                        {
+                            "name": "jobId",
+                            "in": "path",
+                            "description": "Unique identifier representing pipeline execution",
+                            "required": true,
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "pipeline result",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/pipelineResult"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "jobId Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/webhooks/results/{jobId}": {
+                "get": {
+                    "tags": [
+                        "Webhooks"
+                    ],
+                    "summary": "Webhook result",
+                    "description": "Returns a webhook result for specific pipeline",
+                    "parameters": [
+                        {
+                            "name": "jobId",
+                            "in": "path",
+                            "description": "Unique identifier representing pipeline execution",
+                            "required": true,
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "action summery",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/pipelineResult"
+                                    }
+                                }
+                            }
+                        },
+                        "400": {
+                            "description": "bad request",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "404": {
+                            "description": "jobId Not Found",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
+                                }
+                            }
+                        },
+                        "default": {
+                            "description": "Unexpected error",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "$ref": "#/components/schemas/Error"
+                                    }
                                 }
                             }
                         }
@@ -446,7 +1320,9 @@
                         "description": "action summery",
                         "content": {
                             "application/json": {
-                                "schema": {
+                                "type": "array",
+                                "description": "Array of results",
+                                "items": {
                                     "$ref": "#/components/schemas/pipelineResult"
                                 }
                             }
@@ -499,7 +1375,7 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "$ref": "#/components/schemas/jobIdParam"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1075,7 +1951,7 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "$ref": "#/components/schemas/jobIdParam"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1137,7 +2013,7 @@
                         "description": "Unique identifier representing pipeline execution",
                         "required": true,
                         "schema": {
-                            "$ref": "#/components/schemas/jobIdParam"
+                            "type": "string"
                         }
                     }
                 ],
@@ -1493,11 +2369,6 @@
                     "jobId"
                 ]
             },
-            "jobIdParam": {
-                "type": "string",
-                "description": "Unique identifier representing pipeline execution",
-                "required": true
-            },
             "execTreeResult": {
                 "type": "array",
                 "items": {
@@ -1548,6 +2419,59 @@
                         "type": "string"
                     }
                 }
+            }
+        },
+        "_schemas": {
+            "list": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "order": {
+                        "type": "string",
+                        "default": "mod",
+                        "enum": [
+                            "key",
+                            "version",
+                            "create",
+                            "mod",
+                            "value"
+                        ]
+                    },
+                    "sort": {
+                        "type": "string",
+                        "default": "desc",
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ]
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1,
+                        "maximum": 1000
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "storedInternal": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "jobId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "jobId"
+                ]
             }
         }
     }

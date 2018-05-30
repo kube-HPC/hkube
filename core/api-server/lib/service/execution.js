@@ -47,23 +47,16 @@ class ExecutionService {
     }
 
     async runStoredInternal(options) {
-        if (!options.name) {
-            throw new InvalidDataError('you must specify name for pipeline');
-        }
-        if (!options.jobId) {
-            throw new InvalidDataError(`you must specify jobId for pipeline ${options.name}`);
-        }
-
+        validator.validateStoredInternal(options);
         const option = {
             name: options.name
         };
-
         let results = await stateManager.getJobResult({ jobId: options.jobId });
         if (results && results.data) {
             results = results.data.map(r => r.result);
             option.flowInput = results;
         }
-        return this._runStored(option, [options.jobId, options.name, uuidv4()].join('.'));
+        return this._runStored(option, [options.jobId, options.name, uuidv4()].join(':'));
     }
 
     async _runStored(options, jobId) {
@@ -104,7 +97,7 @@ class ExecutionService {
             const storageInfo = await storageFactory.adapter.put({ jobId, taskId: jobId, data: pipeline.flowInput });
             pipeline.flowInput = { metadata, storageInfo };
         }
-        // await this._setWebhooks(jobId, pipeline.webhooks);
+        await this._setWebhooks(jobId, pipeline.webhooks);
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.info.name });
         await producer.createJob({ jobId, parentSpan: span.context() });
@@ -112,8 +105,10 @@ class ExecutionService {
         return jobId;
     }
 
-    _setWebhooks(jobId, webhooks) {
-        Object.entries(webhooks).map(([k, v]) => stateManager.setWebhook({ jobId, url: v, type: k, state: States.PENDING }));
+    async _setWebhooks(jobId, webhooks) {
+        if (webhooks) {
+            await Promise.all(Object.entries(webhooks).map(([k, v]) => stateManager.setWebhook({ jobId, type: k, data: { url: v, status: States.PENDING } })));
+        }
     }
 
     async _createStorage(jobId, pipeline) {
@@ -198,12 +193,21 @@ class ExecutionService {
         return response;
     }
 
-    async getCronJobResult(options) {
-        validator.validateCronResults(options);
-        const name = ['cron', options.name].join('.');
-        const response = await stateManager.getCronJobResult({ ...options, name });
-        if (!response) {
-            throw new ResourceNotFoundError('results', options.jobId);
+    async getPipelinesResult(options) {
+        validator.validateResultList(options);
+        const response = await stateManager.getJobResults({ ...options, jobId: options.name });
+        if (response.length === 0) {
+            throw new ResourceNotFoundError('pipeline results', options.name);
+        }
+        return response;
+    }
+
+    async getCronResult(options) {
+        validator.validateResultList(options);
+        const jobId = ['cron', options.name].join(':');
+        const response = await stateManager.getJobResults({ ...options, jobId });
+        if (response.length === 0) {
+            throw new ResourceNotFoundError('cron results', options.name);
         }
         return response;
     }
@@ -242,7 +246,7 @@ class ExecutionService {
     }
 
     _createJobID(options) {
-        return [uuidv4(), options.name].join('.');
+        return [`${options.name}:${uuidv4()}`, options.name].join('.');
     }
 }
 
