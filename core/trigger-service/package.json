@@ -1,7 +1,7 @@
 {
   "name": "trigger-service",
   "version": "1.1.8",
-  "description": "triggring service which allows flows ti be triggered from verity ways",
+  "description": "trigger service which allows flows to be triggered from variety ways",
   "main": "app.js",
   "directories": {
     "lib": "lib"
