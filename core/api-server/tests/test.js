@@ -11,6 +11,7 @@ const pipelines = require('./mocks/pipelines.json');
 const triggersTreeExpected = require('./mocks/triggers-tree.json');
 const webhookStub = require('./mocks/webhook');
 const workerStub = require('./mocks/worker');
+const converter = require('@hkube/units-converter');
 let config;
 let baseUrl;
 
@@ -828,12 +829,27 @@ describe('Rest', () => {
                         expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
                     });
                     it('should return specific algorithm', async () => {
+
+                        const body = {
+                            "name": "test-alg",
+                            "algorithmImage": "hkube/algorithm-example",
+                            "cpu": 1,
+                            "mem": "600Ki"
+                        };
                         const options = {
-                            uri: restUrl + '/store/algorithms/' + algorithms[0].name,
+                            uri: restUrl + '/store/algorithms',
+                            method: 'POST',
+                            body
+                        };
+                        let r = await _request(options);
+
+                        const getOptions = {
+                            uri: restUrl + '/store/algorithms/test-alg',
                             method: 'GET'
                         };
-                        const response = await _request(options);
-                        expect(response.body).to.deep.equal(algorithms[0]);
+                        const response = await _request(getOptions);
+                        body.mem = converter.getMemoryInMB(body.mem);
+                        expect(response.body).to.deep.equal(body);
                     });
                 });
                 describe('/store/algorithms:name DELETE', () => {
@@ -935,7 +951,9 @@ describe('Rest', () => {
                     it('should succeed to store algorithm', async () => {
                         const body = {
                             name: uuidv4(),
-                            algorithmImage: "image"
+                            algorithmImage: "image",
+                            mem: "50M",
+                            cpu: 1
                         }
                         const options = {
                             uri: restUrl + '/store/algorithms',
@@ -944,18 +962,20 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(201);
+                        body.mem = converter.getMemoryInMB(body.mem);
                         expect(response.body).to.deep.equal(body);
                     });
                 });
                 describe('/store/algorithms PUT', () => {
                     it('should succeed to update algorithm', async () => {
-                        const body = algorithms[0];
+                        const body = Object.assign({}, algorithms[0]);
                         const options = {
                             uri: restUrl + '/store/algorithms',
                             method: 'PUT',
                             body
                         };
                         const response = await _request(options);
+                        body.mem = converter.getMemoryInMB(body.mem);
                         expect(response.body).to.deep.equal(body);
                     });
                 });

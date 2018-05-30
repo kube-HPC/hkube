@@ -1358,11 +1358,11 @@
                         "minLength": 1
                     },
                     "cpu": {
-                        "type": "integer",
+                        "type": "number",
                         "description": "algorithm cpu"
                     },
                     "mem": {
-                        "type": "integer",
+                        "type": "string",
                         "description": "algorithm memory"
                     }
                 },

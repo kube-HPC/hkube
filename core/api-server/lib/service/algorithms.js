@@ -1,6 +1,7 @@
+const converter = require('@hkube/units-converter');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ResourceExistsError, } = require('../errors/errors');
+const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors/errors');
 
 class AlgorithmStore {
     /**
@@ -13,6 +14,9 @@ class AlgorithmStore {
         const algorithm = await stateManager.getAlgorithm(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
+        }
+        if (options.mem) {
+            options.mem = this._convertMemoryToMB(options.mem);
         }
         await stateManager.setAlgorithm(options);
         return options;
@@ -61,8 +65,20 @@ class AlgorithmStore {
         if (algorithm) {
             throw new ResourceExistsError('algorithm', options.name);
         }
+        if (options.mem) {
+            options.mem = this._convertMemoryToMB(options.mem);
+        }
         await stateManager.setAlgorithm(options);
         return options;
+    }
+
+    _convertMemoryToMB(memory) {
+        try {
+            return converter.getMemoryInMB(memory);
+        }
+        catch (ex) {
+            throw new InvalidDataError(ex.message);
+        }
     }
 
     /**
