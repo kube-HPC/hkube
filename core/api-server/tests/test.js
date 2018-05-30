@@ -1,31 +1,24 @@
 const { expect } = require('chai');
 const uuidv4 = require('uuid/v4');
-const requestClient = require('request');
+const request = require('request');
 const querystring = require('querystring');
 const clone = require('clone');
 const bootstrap = require('../bootstrap');
 const stateManager = require('../lib/state/state-manager');
 const storageFactory = require('../lib/datastore/storage-factory');
-const algorithms = require('./mocks/algorithms.json');
-const pipelines = require('./mocks/pipelines.json');
-const triggersTreeExpected = require('./mocks/triggers-tree.json');
-const webhookStub = require('./mocks/webhook');
-const workerStub = require('./mocks/worker');
+const { algorithms, pipelines, triggersTree, webhookStub, workerStub } = require('./mocks');
 const converter = require('@hkube/units-converter');
 let config;
 let baseUrl;
-
-// TODO: WRITE DOCS ON WEBHOOKS
 
 const delay = (delay) => {
     return new Promise((fulfill) => {
         setTimeout(fulfill, delay);
     })
 }
-
 const _request = (options) => {
     return new Promise((resolve, reject) => {
-        requestClient({
+        request({
             method: options.method || 'POST',
             uri: options.uri,
             json: true,
@@ -38,7 +31,6 @@ const _request = (options) => {
         });
     });
 }
-
 function split(input) {
     return new Promise((resolve) => {
         setTimeout(() => resolve(input[0].split(' ')), 80000);
@@ -756,7 +748,7 @@ describe('Rest', () => {
                             uri: `${restUrl}/exec/tree/${prefix}.a`
                         };
                         const response = await _request(options);
-                        expect(response.body).to.deep.equal(triggersTreeExpected);
+                        expect(response.body).to.deep.equal(triggersTree);
                     });
                     it('should failed if jobId not found', async () => {
 
@@ -1644,7 +1636,7 @@ describe('Rest', () => {
                 stateManager.setExecution({ jobId: prefix + '.a.n', data: { startTime: Date.now() } })
             ]);
             let r = await stateManager.getExecutionsTree({ jobId: prefix + '.a' });
-            expect(r).to.deep.equal(triggersTreeExpected);
+            expect(r).to.deep.equal(triggersTree);
         });
     });
 });
