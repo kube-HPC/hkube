@@ -36,8 +36,8 @@ class K8sAdapter extends Adapter {
             pods.forEach(pod => {
                 pod.spec.containers.forEach(container => {
                     if (container.resources.requests != undefined) {
-                        cpuRequests += parse.getCpuInMiliCore(container.resources.requests.cpu);
-                        memoryRequests += parse.getMemoryInKB(container.resources.requests.memory);
+                        cpuRequests += parse.getCpuInMCore(container.resources.requests.cpu);
+                        memoryRequests += parse.getMemoryInKi(container.resources.requests.memory);
                     }
                 });
             });
