@@ -1,6 +1,6 @@
-const Etcd = require('@hkube/etcd');
 const EventEmitter = require('events');
-const { prefix } = require('../consts/stored-pipeline-events');
+const Etcd = require('@hkube/etcd');
+const { Events } = require('../consts/index');
 
 class StateManager extends EventEmitter {
     async init(options) {
@@ -12,8 +12,8 @@ class StateManager extends EventEmitter {
     }
 
     async _watchPipelines() {
-        this._etcd.pipelines.on(prefix.CHANGE, p => this.emit(prefix.CHANGE, p));
-        this._etcd.pipelines.on(prefix.DELETE, p => this.emit(prefix.DELETE, p));
+        this._etcd.pipelines.on(Events.CHANGE, p => this.emit(Events.CHANGE, p));
+        this._etcd.pipelines.on(Events.DELETE, p => this.emit(Events.DELETE, p));
         await this._etcd.pipelines.watch();
     }
 
@@ -23,9 +23,9 @@ class StateManager extends EventEmitter {
 
     async _watchJobResults() {
         await this._etcd.jobResults.watch();
-        this._etcd.jobResults.on('result-change', async (result) => {
-            const pipeline = await this._etcd.execution.getExecution({ jobId: result.jobId });
-            this.emit('result-change', result, pipeline);
+        this._etcd.jobResults.on(Events.CHANGE, async (result) => {
+            const pipeline = await this._etcd.execution.get({ jobId: result.jobId });
+            this.emit(Events.RESULTS, result, pipeline);
         });
     }
 }

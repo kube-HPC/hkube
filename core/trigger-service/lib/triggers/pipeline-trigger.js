@@ -1,7 +1,7 @@
 const storeManager = require('../store/store-manager');
 const triggerQueue = require('../queue/trigger-queue');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { componentName } = require('../consts/index');
+const { componentName, Events } = require('../consts/index');
 
 class PipelineTrigger {
     init() {
@@ -10,7 +10,7 @@ class PipelineTrigger {
     }
 
     _watchJobResults() {
-        storeManager.on('result-change', (result, pipeline) => {
+        storeManager.on(Events.RESULTS, (result, pipeline) => {
             this._runPipeline(result, pipeline);
         });
     }

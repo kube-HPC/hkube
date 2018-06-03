@@ -1,18 +1,17 @@
-const Events = require('events');
+const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { componentName } = require('../consts/index');
-const { prefix } = require('../consts/stored-pipeline-events');
+const { componentName, Events } = require('../consts/index');
 const storeManager = require('../store/store-manager');
 const Trigger = require('../triggers/Trigger');
 
-class StoredPipelinesListener extends Events {
+class StoredPipelinesListener extends EventEmitter {
     init() {
         this._watch();
     }
 
     _watch() {
-        storeManager.on(prefix.CHANGE, p => this.emit(prefix.CHANGE, new Trigger(p)));
-        storeManager.on(prefix.DELETE, p => this.emit(prefix.DELETE, new Trigger(p)));
+        storeManager.on(Events.CHANGE, p => this.emit(Events.CHANGE, new Trigger(p)));
+        storeManager.on(Events.DELETE, p => this.emit(Events.DELETE, new Trigger(p)));
     }
 
     async getTriggeredPipelineByType(type) {

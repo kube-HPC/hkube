@@ -105,7 +105,7 @@ describe('test', () => {
                 jobId: 'jobId'
             }
             const spy = sinon.spy(pipelineTrigger, "_runPipeline");
-            storeManager.emit('result-change', result, pipeline);
+            storeManager.emit('results', result, pipeline);
             expect(spy.calledOnce).to.equal(true);
         });
     });

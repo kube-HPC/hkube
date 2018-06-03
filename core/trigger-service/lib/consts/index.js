@@ -1,7 +1,8 @@
 const componentName = require('./component-name');
-const storedPipelineEvents = require('./stored-pipeline-events');
+const { Events, Triggers } = require('./types');
 
 module.exports = {
     componentName,
-    storedPipelineEvents
+    Events,
+    Triggers
 };

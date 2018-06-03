@@ -1,6 +1,5 @@
 const { CronJob } = require('cron');
-const { componentName } = require('../consts/index');
-const { prefix, suffix } = require('../consts/stored-pipeline-events');
+const { componentName, Events, Triggers } = require('../consts/index');
 const log = require('@hkube/logger').GetLogFromContainer();
 const triggerQueue = require('../queue/trigger-queue');
 const storedPipelineListener = require('../pipelines/stored-pipelines-listener');
@@ -11,9 +10,9 @@ class CronTask {
     }
 
     async init() {
-        storedPipelineListener.on(prefix.CHANGE, t => this._updateTrigger(t));
-        storedPipelineListener.on(prefix.DELETE, t => this._removeTrigger(t));
-        const triggers = await storedPipelineListener.getTriggeredPipelineByType(suffix.CRON);
+        storedPipelineListener.on(Events.CHANGE, t => this._updateTrigger(t));
+        storedPipelineListener.on(Events.DELETE, t => this._removeTrigger(t));
+        const triggers = await storedPipelineListener.getTriggeredPipelineByType(Triggers.CRON);
         triggers.forEach(t => this._updateTrigger(t));
     }
 
