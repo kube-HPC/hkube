@@ -1,43 +1,41 @@
 {
-  "name": "algorithem-queue",
-  "version": "1.1.12",
+  "name": "pipeline-driver-queue",
+  "version": "1.0.0",
   "description": "",
   "main": "app.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
-    "test": "mocha test --colors --recursive --exit",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test --exit",
+    "test": "mocha tests --colors --recursive --exit",
+    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --exit",
     "start": "node app",
-    "build": "./dockerfile/build.sh algorithm-queue"
+    "build": "./dockerfile/build.sh pipeline-driver-queue"
   },
   "author": "maty zisserman",
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.1",
-    "@hkube/etcd": "^4.0.3",
+    "@hkube/etcd": "^4.0.6",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.28",
     "@hkube/producer-consumer": "^1.0.33",
     "@hkube/redis-utils": "^1.0.1",
-    "@hkube/rest-server": "^1.0.8",
     "aigle": "^1.12.0",
-    "await-delay": "^1.0.0",
-    "await-done": "^1.0.10",
-    "lodash": "^4.17.10",
-    "mockery": "^2.1.0",
-    "mockery-partial": "^1.4.0"
+    "lodash": "^4.17.10"
   },
   "devDependencies": {
+    "await-delay": "^1.0.0",
+    "await-done": "^1.0.10",
     "chai": "^4.1.2",
-    "decache": "^4.4.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-import": "^2.12.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^3.5.3",
+    "mockery": "^2.1.0",
+    "mockery-partial": "^1.4.0",
     "sinon": "^3.3.0",
     "uuid": "^3.2.1"
   }

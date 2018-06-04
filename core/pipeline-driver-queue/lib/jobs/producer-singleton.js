@@ -5,14 +5,15 @@ class ProducerSingleton {
     constructor() {
         this.options = null;
     }
+
     async init(options) {
         this.options = options;
-        this.producer = new Producer({ setting: { redis: options.redis, prefix: 'jobs-workers', tracer} });
+        this._producer = new Producer({ setting: { redis: options.redis, prefix: 'jobs-pipeline', tracer } });
     }
+
     get get() {
-        return this.producer;
+        return this._producer;
     }
 }
-
 
 module.exports = new ProducerSingleton();

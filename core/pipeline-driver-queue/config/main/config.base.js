@@ -17,17 +17,19 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
-config.algorithmType = process.env.ALGORITHM_TYPE || 'green-alg';
+config.consumer = {
+    jobType: 'pipeline-job'
+};
 
 config.queue = {
     updateInterval: 1000
 };
+
 config.heuristicsWeights = {
-    [heuristicsNames.PRIORITY]: 0.1,
-    [heuristicsNames.ENTRANCE_TIME]: 0.1,
-    [heuristicsNames.BATCH]: 0.5,
-    [heuristicsNames.CURRENT_BATCH_PLACE]: 0.3
+    [heuristicsNames.PRIORITY]: 0.5,
+    [heuristicsNames.ENTRANCE_TIME]: 0.5
 };
+
 config.metrics = {
     collectDefault: true,
     server: {

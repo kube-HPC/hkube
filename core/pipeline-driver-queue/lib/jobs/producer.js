@@ -1,45 +1,10 @@
 const { Events } = require('@hkube/producer-consumer');
 const producerSingleton = require('./producer-singleton');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { tracer } = require('@hkube/metrics');
-const metrics = require('@hkube/metrics');
-const { jobPrefix, componentName, jobState, bullEvents, taskStatus } = require('../consts/index');
+const { componentName, jobState, bullEvents, taskStatus } = require('../consts');
+const component = componentName.JOBS_PRODUCER;
 const queueRunner = require('../queue-runner');
 const Etcd = require('@hkube/etcd');
-
-
-// const options = {
-//     id: node.taskId,
-//     type: node.algorithmName,
-//     data: {
-//         jobID: this._jobId,
-//         taskID: node.taskId,
-//         input: node.input,
-//         storage: node.storage,
-//         node: node.nodeName,
-//         batchIndex: node.batchIndex,
-//         pipelineName: this._pipelineName,
-//         extraData: node.extraData
-//     }
-// }
-
-// const./consts/queue-events = {
-//     jobID: 'uuid',
-//     pipelineName: 'id',
-//     priority: '1-5',
-//     algorithmName: 'alg name',
-//     taskId:'uuid'
-//     batchPlace: '0-n',
-// taskData: {
-//     input: task.input
-// },
-//     calculated: {
-//         score: '1-100',
-//         latestScores: {},
-//         entranceTime: 'date',
-//     }// const./consts/queue-events = {
-// } };
-
 
 class JobProducer {
     constructor() {
@@ -47,17 +12,16 @@ class JobProducer {
         this._lastSentJob = null;
         this._etcd = new Etcd();
     }
+
     async init(options) {
         const { etcd, serviceName } = options;
         await this._etcd.init({ etcd, serviceName });
-        //  const setting = Object.assign({}, { redis: options.redis });
-        // setting.tracer = tracer;
         this._producer = producerSingleton.get;
-        this.bullQueue = this._producer._createQueue(options.algorithmType);
-        //   this.bullQueue.getWaitingCount();
+        this.bullQueue = this._producer._createQueue(options.consumer.jobType);
         this._producerEventRegistry();
         this._checkWorkingStatusInterval();
     }
+
     // should handle cases where there is currently not any active job and new job added to queue 
     _checkWorkingStatusInterval() {
         setInterval(async () => {
@@ -68,84 +32,63 @@ class JobProducer {
             }
         }, 1000);
     }
+
     getPendingAmount() {
         return this.bullQueue.getWaitingCount();
     }
+
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            log.info(`${Events.WAITING} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.WAITING });
+            log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.WAITING });
         });
         this._producer.on(Events.ACTIVE, async (data) => {
-            log.info(`${Events.ACTIVE} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.ACTIVE });
+            log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.ACTIVE });
             // verify that not stalled job is the active one 
-            if (data.jobID === this._lastSentJob) {
+            if (data.jobId === this._lastSentJob) {
                 await this.createJob();
             }
         });
         this._producer.on(Events.COMPLETED, (data) => {
-            log.debug(`${bullEvents.COMPLETED} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.COMPLETED });
+            log.info(`${bullEvents.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
-            log.error(`${bullEvents.FAILED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.FAILED });
+            log.error(`${bullEvents.FAILED} ${data.jobId}, error: ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
         });
         this._producer.on(Events.STALLED, (data) => {
-            log.error(`${bullEvents.STALLED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.STALLED });
+            log.error(`${bullEvents.STALLED} ${data.jobId}, error: ${data.error}`, { component, jobId: data.jobId, status: jobState.STALLED });
         });
-
-        this._producer.on(Events.CRASHED, async ({ taskID, jobID }) => {
-            // { jobID, taskId, result, status, error }
-            await this._etcd.tasks.setState({ taskId: taskID, jobID, status: taskStatus.fail, error: 'crashLoop backoff' });
-            log.error(`${Events.CRASHED} ${jobID}, `, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.STALLED });
+        this._producer.on(Events.CRASHED, async ({ taskID, jobId }) => {
+            // { jobId, taskId, result, status, error }
+            await this._etcd.tasks.setState({ taskId: taskID, jobId, status: taskStatus.fail, error: 'crashLoop backoff' });
+            log.error(`${Events.CRASHED} ${jobId}, `, { component, jobId: data.jobId, status: jobState.STALLED });
         });
     }
 
-    _taskToProducerJob(task) {
+    _taskToProducerJob(pipeline) {
         return {
             job: {
-                id: task.taskId,
-                type: task.algorithmName,
+                type: 'pipeline-driver-job',
                 data: {
-                    jobID: task.jobID,
-                    taskID: task.taskId,
-                    input: task.taskData.input,
-                    storage: task.storage,
-                    info: task.info,
-                    node: task.nodeName,
-                    batchIndex: task.batchPlace,
-                    pipelineName: task.pipelineName,
-                    //  extraData: node.extraData
+                    jobId: pipeline.jobId
                 }
             },
             tracing: {
-                parent: task.spanId,
                 tags: {
-                    jobID: task.jobID,
-                    taskID: task.taskId,
+                    jobId: pipeline.jobId
                 }
             }
         };
     }
 
-
-    async createJob(options) {
-        const task = queueRunner.queue.tryPop();
-        if (task) {
-            log.info(`pop new task with taskId: ${task.taskId}`, { component: componentName.JOBS_PRODUCER });
-            log.info(`calculated score: ${task.calculated.score}`, { component: componentName.JOBS_PRODUCER });
-            this._lastSentJob = task.taskId;
-            const job = this._taskToProducerJob(task);
+    async createJob() {
+        const pipeline = queueRunner.queue.tryPop();
+        if (pipeline) {
+            log.info(`pop new job ${pipeline.jobId}, calculated score: ${pipeline.calculated.score}`, { component });
+            this._lastSentJob = pipeline.jobId;
+            const job = this._taskToProducerJob(pipeline);
             return this._producer.createJob(job);
         }
-
-        log.info('queue is empty ', { component: componentName.JOBS_PRODUCER });
-
-
-        // if (options.parentSpan) {
-        // opt.tracing = {
-        //     parent: options.parentSpan,
-        //     parentRelationship: tracer.parentRelationships.follows
-        // };
-        //    }
+        log.info('queue is empty', { component });
     }
 }
 

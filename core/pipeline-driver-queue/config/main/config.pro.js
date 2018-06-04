@@ -1,1 +1,2 @@
-var config = module.exports = {};
+const config = {};
+module.exports = config;
