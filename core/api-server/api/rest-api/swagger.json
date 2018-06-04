@@ -1360,6 +1360,7 @@
                     },
                     "cpu": {
                         "type": "number",
+                        "minimum": 0,
                         "description": "algorithm cpu"
                     },
                     "mem": {

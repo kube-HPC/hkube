@@ -944,7 +944,7 @@ describe('Rest', () => {
                         const body = {
                             name: uuidv4(),
                             algorithmImage: "image",
-                            mem: "50M",
+                            mem: "50Mi",
                             cpu: 1
                         }
                         const options = {
