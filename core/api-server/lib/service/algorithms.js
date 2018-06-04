@@ -74,7 +74,7 @@ class AlgorithmStore {
 
     _convertMemoryToMB(memory) {
         try {
-            return converter.getMemoryInMB(memory);
+            return converter.getMemoryInMi(memory);
         }
         catch (ex) {
             throw new InvalidDataError(ex.message);

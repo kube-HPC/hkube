@@ -840,8 +840,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(getOptions);
-                        body.mem = converter.getMemoryInMB(body.mem);
-                        expect(response.body).to.deep.equal(body);
+                        expect(response.body.mem).to.equal(0.6);
                     });
                 });
                 describe('/store/algorithms:name DELETE', () => {
@@ -954,7 +953,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(201);
-                        body.mem = converter.getMemoryInMB(body.mem);
+                        body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal(body);
                     });
                 });
@@ -967,7 +966,7 @@ describe('Rest', () => {
                             body
                         };
                         const response = await _request(options);
-                        body.mem = converter.getMemoryInMB(body.mem);
+                        body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal(body);
                     });
                 });
