@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const kubernetesClient = require('kubernetes-client');
 const objectPath = require('object-path');
+const delay = require('delay');
 const component = require('../../common/consts/componentNames').K8S;
 let log;
 
@@ -37,6 +38,38 @@ class KubernetesApi extends EventEmitter {
             log.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
             return null;
         }
+    }
+
+    async getPodContainerStatus(podName) {
+        try {
+            podName='process-item-apple-zxnff'
+            log.debug(`getPodContainers for pod ${podName}`, { component });
+            const pod = await this._client.api.v1.namespaces(this._namespace).pods(podName).get();
+            const statusRaw = objectPath.get(pod, 'body.status.containerStatuses');
+            return statusRaw.map(s => ({
+                name: s.name,
+                running: !!s.state.running,
+                terminated: !!s.state.terminated
+            }));
+        }
+        catch (error) {
+            log.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
+            return null;
+        }
+    }
+
+    async waitForTerminatedState(podName, containerName, timeout = 10000) {
+        containerName='c2'
+        const start = Date.now();
+        do {
+            const status = await this.getPodContainerStatus(podName); // eslint-disable-line no-await-in-loop
+            const containerStatus = status && status.find(s => s.name === containerName);
+            if (containerStatus && containerStatus.terminated) {
+                return true;
+            }
+            await delay(timeout); // eslint-disable-line no-await-in-loop
+        } while (Date.now() - start < 10000);
+        return false;
     }
 
     async deleteJob(jobName) {

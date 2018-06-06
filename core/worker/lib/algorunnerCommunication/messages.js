@@ -11,6 +11,7 @@ module.exports = {
         initialize: 'initialize',
         start: 'start',
         cleanup: 'cleanup',
-        stop: 'stop'
+        stop: 'stop',
+        exit: 'exit'
     }
 };

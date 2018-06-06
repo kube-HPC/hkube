@@ -98,12 +98,20 @@ class Worker {
         });
     }
 
-    async _handleExit() {
+    async _handleExit(code) {
+        algoRunnerCommunication.send({
+            command: messages.outgoing.exit
+        });
+        const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, 'algorunner');
+        if (terminated) {
+            log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
+            process.exit(code);
+        }
+        // if not terminated, kill job
         const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
         if (jobName) {
             await kubernetes.deleteJob(jobName);
         }
-        // process.exit(0);
     }
 
     _handleTimeout(state) {
@@ -163,7 +171,7 @@ class Worker {
                     this._stopTimeout = setTimeout(() => {
                         log.error('Timeout exceeded trying to stop algorithm.', { component });
                         stateManager.done('Timeout exceeded trying to stop algorithm');
-                        this._handleExit();
+                        this._handleExit(0);
                     }, this._stopTimeoutMs);
                     algoRunnerCommunication.send({
                         command: messages.outgoing.stop
