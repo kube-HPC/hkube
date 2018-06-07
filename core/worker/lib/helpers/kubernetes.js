@@ -68,8 +68,8 @@ class KubernetesApi extends EventEmitter {
             if (containerStatus && containerStatus.terminated) {
                 return true;
             }
-            await delay(timeout); // eslint-disable-line no-await-in-loop
-        } while (Date.now() - start < 10000);
+            await delay(1000); // eslint-disable-line no-await-in-loop
+        } while (Date.now() - start < timeout);
         log.info(`waitForTerminatedState for pod ${podName}, container: ${containerName} timeout waiting for terminated state`, { component });
         
         return false;
