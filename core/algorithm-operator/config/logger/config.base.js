@@ -9,6 +9,6 @@ config.transport = {
 
 config.extraDetails = false;
 config.isDefault = true;
-config.verbosityLevel = 2;
+config.config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
 
 module.exports = config;
