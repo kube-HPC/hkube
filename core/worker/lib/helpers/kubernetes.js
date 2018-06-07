@@ -57,16 +57,21 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
-    async waitForTerminatedState(podName, containerName, timeout = 10000) {
+    async waitForTerminatedState(podName, containerName, timeout = 20000) {
         const start = Date.now();
         do {
+            log.debug(`waitForTerminatedState for pod ${podName}, container: ${containerName}`, { component });
+            
             const status = await this.getPodContainerStatus(podName); // eslint-disable-line no-await-in-loop
             const containerStatus = status && status.find(s => s.name === containerName);
+            log.debug(`waitForTerminatedState for pod ${podName}, container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
             if (containerStatus && containerStatus.terminated) {
                 return true;
             }
             await delay(timeout); // eslint-disable-line no-await-in-loop
         } while (Date.now() - start < 10000);
+        log.info(`waitForTerminatedState for pod ${podName}, container: ${containerName} timeout waiting for terminated state`, { component });
+        
         return false;
     }
 
