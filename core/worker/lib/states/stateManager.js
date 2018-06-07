@@ -41,6 +41,7 @@ class StateManager extends EventEmitter {
                 { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop, workerStates.init], to: workerStates.results },
                 { name: 'cleanup', from: workerStates.results, to: workerStates.ready },
                 { name: 'error', from: [workerStates.working, workerStates.init], to: workerStates.error },
+                { name: 'exit', from: '*', to: workerStates.exit },
             ],
             methods: {
                 onPendingTransition: (transition, from, to) => { // eslint-disable-line
@@ -143,7 +144,18 @@ class StateManager extends EventEmitter {
             log.error(error, { component });
         }
     }
-   
+
+    /**
+     * transitions to exit state.
+     */
+    exit() {
+        try {
+            this._stateMachine.exit();
+        }
+        catch (error) {
+            log.error(error, { component });
+        }
+    }
     /**
      * transitions from working to results
      * finishes the processing, and get the results
@@ -175,7 +187,7 @@ class StateManager extends EventEmitter {
             log.error(error, { component });
         }
     }
-    
+
     /**
      * transitions from working to error
      * reports the error, cleanup the job and prepare for a new job

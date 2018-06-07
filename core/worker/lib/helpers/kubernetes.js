@@ -42,7 +42,6 @@ class KubernetesApi extends EventEmitter {
 
     async getPodContainerStatus(podName) {
         try {
-            podName='process-item-apple-zxnff'
             log.debug(`getPodContainers for pod ${podName}`, { component });
             const pod = await this._client.api.v1.namespaces(this._namespace).pods(podName).get();
             const statusRaw = objectPath.get(pod, 'body.status.containerStatuses');
@@ -59,7 +58,6 @@ class KubernetesApi extends EventEmitter {
     }
 
     async waitForTerminatedState(podName, containerName, timeout = 10000) {
-        containerName='c2'
         const start = Date.now();
         do {
             const status = await this.getPodContainerStatus(podName); // eslint-disable-line no-await-in-loop

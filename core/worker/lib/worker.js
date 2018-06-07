@@ -54,6 +54,9 @@ class Worker {
             }
         });
         discovery.on(workerCommands.startProcessing, () => {
+            if (stateManager.state === workerStates.exit) {
+                return;
+            }
             if (jobConsumer.isConsumerPaused) {
                 jobConsumer.resume();
                 jobConsumer.updateDiscovery({ state: stateManager.state });
@@ -124,7 +127,7 @@ class Worker {
                 log.info('starting inactive timeout for worker');
                 this._inactiveTimer = setTimeout(() => {
                     log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`);
-                    this._handleExit(0);
+                    stateManager.exit();
                 }, this._inactiveTimeoutMs);
             }
         }
@@ -142,6 +145,9 @@ class Worker {
             const result = { state, results };
             this._handleTimeout(state);
             switch (state) {
+                case workerStates.exit:
+                    this._handleExit(0);
+                    break;
                 case workerStates.results:
                     await jobConsumer.finishJob(result);
                     pendingTransition = stateManager.cleanup.bind(stateManager);

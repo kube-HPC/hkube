@@ -7,7 +7,8 @@ module.exports = {
         shutdown: 'shutdown',
         error: 'error',
         stop: 'stop',
-        results: 'results'
+        results: 'results',
+        exit: 'exit'
     },
     workerCommands: {
         stopProcessing: 'stopProcessing',
