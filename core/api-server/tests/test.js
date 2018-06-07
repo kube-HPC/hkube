@@ -840,7 +840,8 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(getOptions);
-                        expect(response.body.mem).to.equal(0.6);
+                        body.mem = converter.getMemoryInMi(body.mem);
+                        expect(response.body.mem).to.equal(body.mem);
                     });
                 });
                 describe('/store/algorithms:name DELETE', () => {
