@@ -67,11 +67,17 @@ class Worker {
 
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', () => {
+            if (stateManager.state === workerStates.exit) {
+                return;
+            }
             log.info('starting bootstrap state', { component });
             stateManager.bootstrap();
             log.info('finished bootstrap state', { component });
         });
         algoRunnerCommunication.on('disconnect', () => {
+            if (stateManager.state === workerStates.exit) {
+                return;
+            }
             log.warning('algorithm runner has disconnected', { component });
             stateManager.reset();
         });
