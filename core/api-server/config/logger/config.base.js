@@ -10,6 +10,6 @@ config.logstash = {
     logstashPort: 28777
 };
 config.extraDetails = false;
-config.config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
+config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
 config.isDefault = true;
 module.exports = config;
