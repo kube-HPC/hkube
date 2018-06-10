@@ -21,7 +21,8 @@ const algorithmQueueTemplate = {
             metadata: {
                 labels: {
                     app: 'algorithm-queue-algorithm-name',
-                    group: 'hkube'
+                    group: 'hkube',
+                    'metrics-group': 'algorithm-queue'
                 }
             },
             spec: {
