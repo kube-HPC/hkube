@@ -16,7 +16,6 @@
     "@hkube/redis-utils": "^1.0.2",
     "@hkube/rest-server": "^1.0.8",
     "@hkube/units-converter": "^1.0.8",
-    "deep-diff": "^1.0.1",
     "kubernetes-client": "^5.3.0",
     "lodash.groupby": "^4.6.0",
     "lodash.orderby": "^4.6.0",
