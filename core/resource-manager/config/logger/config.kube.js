@@ -5,5 +5,5 @@ config.transport = {
     fluentd: true,
     file: false
 };
-config.verbosityLevel = 2;
+config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
 module.exports = config;

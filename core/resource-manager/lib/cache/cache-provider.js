@@ -5,11 +5,8 @@ class CacheProvider {
         if (options.maxAge) {
             const settings = {
                 max: 50,
-                dispose: (key, n) => {
-                    // console.log(`key ${key} has disposed`);
-                },
                 maxAge: options.maxAge
-            }
+            };
             this._cacheKey = options.key;
             this._cache = Cache(settings);
         }
@@ -19,6 +16,7 @@ class CacheProvider {
         if (this._cache) {
             return this._cache.get(this._cacheKey);
         }
+        return null;
     }
 
     set(value) {

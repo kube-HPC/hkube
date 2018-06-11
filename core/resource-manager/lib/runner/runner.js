@@ -1,14 +1,13 @@
+
 const AdapterController = require('../adapters/adapters-controller');
 const MetricsRunner = require('../metrics/metrics-runner');
 const metricsReducer = require('../metrics/metrics-reducer');
-const stateManager = require('../state/state-manager');
 const logger = require('../utils/logger');
+const metricsProvider = require('../monitoring/metrics-provider');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../common/consts/componentNames').RUNNER;
-const metricsProvider = require('../monitoring/metrics-provider');
 
 class Runner {
-
     async init(options) {
         this._adapterController = new AdapterController(options);
         this._metricsRunner = new MetricsRunner(options);
@@ -44,10 +43,14 @@ class Runner {
      * @memberOf Runner
      */
     async _doWork() {
-        const adaptersResults = await this._adapterController.getData();
-        const metricsResults = this._metricsRunner.run(adaptersResults);
-        const resourceResults = metricsReducer.reduce(metricsResults);
-        await stateManager.setResourceRequirements(resourceResults);
+        const results = await this._adapterController.getData();
+        return Promise.all(Object.keys(results).map(k => this._setMetrics(k, results)));
+    }
+
+    async _setMetrics(type, results) {
+        const metricsResults = this._metricsRunner.run(type, results);
+        const resourceResults = metricsReducer.reduce(type, metricsResults);
+        await this._adapterController.setData(type, resourceResults);
         metricsProvider.setPodsAllocations(resourceResults);
         return resourceResults;
     }

@@ -28,11 +28,8 @@ class Bootstrap {
             });
             monitor.check(main.redis);
             await Promise.all(modules.map(m => require(m).init(main)));
-
-            return main;
         }
         catch (error) {
-            log.error(error);
             this._onInitFailed(new Error(`unable to start application. ${error.message}`));
         }
     }
@@ -61,7 +58,7 @@ class Bootstrap {
             log.info('SIGTERM', { component });
             process.exit(1);
         });
-        process.on('unhandledRejection', (error, promise) => {
+        process.on('unhandledRejection', (error) => {
             log.error('unhandledRejection: ' + error, { component }, error);
             log.error(error);
         });

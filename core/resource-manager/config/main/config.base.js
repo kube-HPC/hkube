@@ -16,11 +16,19 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
+config.prometheus = {
+    endpoint: process.env.PROMETHEUS_ENDPOINT
+};
+
+config.k8s = {
+    local: !process.env.KUBERNETES_SERVICE_HOST
+};
+
 config.interval = process.env.INTERVAL || 1000;
 
 config.resourceThresholds = {
-    cpu: 0.8,
-    mem: 0.8
+    cpu: 0.9,
+    mem: 0.9
 };
 
 config.metricsMeasure = {
@@ -28,50 +36,4 @@ config.metricsMeasure = {
     server: {
         port: process.env.METRICS_PORT
     }
-}
-
-config.metrics = [
-    {
-        name: 'templates-store',
-        weight: 0.3
-    },
-    {
-        name: 'algorithm-queue',
-        weight: 0.2
-    },
-    {
-        name: 'k8s',
-        weight: 0.2
-    },
-    {
-        name: 'prometheus',
-        weight: 0.3
-    }
-]
-
-config.adapters = [
-    {
-        name: 'templates-store',
-        connection: config.etcd,
-        cache: { maxAge: 1000 * 60 * 5 }
-    },
-    {
-        name: 'algorithm-queue',
-        connection: config.etcd,
-        cache: {}
-    },
-    {
-        name: 'k8s',
-        connection: {
-            local: !process.env.KUBERNETES_SERVICE_HOST
-        },
-        cache: { maxAge: 1000 * 60 * 1 }
-    },
-    {
-        name: 'prometheus',
-        connection: {
-            endpoint: process.env.PROMETHEUS_ENDPOINT 
-        },
-        cache: { maxAge: 1000 * 60 * 5 }
-    }
-]
+};

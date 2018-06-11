@@ -4,7 +4,6 @@ const INTERVAL = 10000;
 const THRESHOLD = 30000;
 
 class Logger {
-
     constructor() {
         this._logs = new Map();
         this._interval();
@@ -16,7 +15,7 @@ class Logger {
             log = { count: 0, error, timestamp: Date.now() };
             this._logs.set(error.message, log);
         }
-        log.count++;
+        log.count += 1;
     }
 
     _interval() {
@@ -26,7 +25,7 @@ class Logger {
                     this._log(v);
                     this._logs.delete(k);
                 }
-            })
+            });
         }, INTERVAL);
     }
 

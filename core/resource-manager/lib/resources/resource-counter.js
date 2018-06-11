@@ -1,8 +1,6 @@
 
-const utils = require('../utils/utils');
-
 class ResourceCounter {
-    constructor(options) {
+    constructor() {
         this._map = Object.create(null);
     }
 
@@ -10,7 +8,7 @@ class ResourceCounter {
         if (!this._map[algorithm]) {
             this._map[algorithm] = 0;
         }
-        this._map[algorithm]++;
+        this._map[algorithm] += 1;
     }
 
     results() {

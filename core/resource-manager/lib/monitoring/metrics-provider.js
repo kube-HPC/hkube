@@ -1,9 +1,7 @@
 const { metrics } = require('@hkube/metrics');
-const log = require('@hkube/logger').GetLogFromContainer();
 const CONST = require('./const');
 
 class MetricsProvider {
-
     async init(options) {
         await metrics.init(options.metricsMeasure);
         this._register();
@@ -28,7 +26,7 @@ class MetricsProvider {
 
     setPodsAllocations(data) {
         data.forEach(d => {
-            this._podsAllocationsMeasure.set({ value: d.data.pods, labelValues: { [CONST.ALGORITHM_NAME]: d.name } });
+            this._podsAllocationsMeasure.set({ value: d.data.pods, labelValues: { [CONST.ALGORITHM_NAME]: d.alg } });
         });
     }
 }

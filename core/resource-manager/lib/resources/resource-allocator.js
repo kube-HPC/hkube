@@ -53,10 +53,10 @@ class ResourceAllocator {
     }
 
     _totalResources(data) {
-        for (const [key, value] of data) {
-            this._totalCpu += value.freeCpu;
-            this._totalMem += value.freeMemory;
-        }
+        data.forEach(v => {
+            this._totalCpu += v.freeCpu;
+            this._totalMem += v.freeMemory;
+        });
         this._totalCpu = this._totalCpu * this._thresholdCpu;
         this._totalMem = this._totalMem * this._thresholdMem;
     }

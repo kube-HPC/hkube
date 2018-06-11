@@ -11,20 +11,28 @@ class StateManager extends EventEmitter {
     _subscribe() {
         this.watchStoreTemplates();
         this._etcd.algorithms.templatesStore.on('change', (res) => {
-            this.emit(`templates-store`, res);
+            this.emit('templates-store', res);
         });
     }
 
-    getAlgorithmQueue(options) {
+    getAlgorithmQueue() {
         return this._etcd.algorithms.algorithmQueue.list();
     }
 
-    setResourceRequirements(resourceResults) {
+    setAlgorithmsResourceRequirements(resourceResults) {
         return Promise.all(resourceResults.map(a => this._etcd.algorithms.resourceRequirements.set(a)));
     }
 
     getResourceRequirements(options) {
         return this._etcd.algorithms.resourceRequirements.list(options);
+    }
+
+    getPipelineDriverQueue(options) {
+        return this._etcd.pipelineDrivers.queue.list(options);
+    }
+
+    setPipelineDriverRequirements(resourceResults) {
+        return Promise.all(resourceResults.map(a => this._etcd.pipelineDrivers.resourceRequirements.set(a)));
     }
 
     getStoreTemplates(options) {

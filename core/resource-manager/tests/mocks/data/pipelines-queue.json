@@ -1,0 +1,60 @@
+[
+    {
+        "queueName": "pipeline-driver-job",
+        "data": [
+            {
+                "jobId": "eval-1:c1792042-2c5a-4ed9-906a-c83f4575437d",
+                "pipelineName": "eval-1",
+                "priority": 1,
+                "calculated": {
+                    "latestScores": {
+                        "ENTRANCE_TIME": 0.0022506944444444445,
+                        "PRIORITY": 0.3
+                    },
+                    "entranceTime": 1528274952849,
+                    "score": 0.8
+                }
+            },
+            {
+                "jobId": "eval-2:c1792042-2c5a-4ed9-906a-c83f4575437d",
+                "pipelineName": "eval-2",
+                "priority": 2,
+                "calculated": {
+                    "latestScores": {
+                        "ENTRANCE_TIME": 0.0022506944444444445,
+                        "PRIORITY": 0.3
+                    },
+                    "entranceTime": 1528274952849,
+                    "score": 0.7
+                }
+            },
+            {
+                "jobId": "eval-3:c1792042-2c5a-4ed9-906a-c83f4575437d",
+                "pipelineName": "eval-3",
+                "priority": 3,
+                "calculated": {
+                    "latestScores": {
+                        "ENTRANCE_TIME": 0.0022506944444444445,
+                        "PRIORITY": 0.3
+                    },
+                    "entranceTime": 1528274952849,
+                    "score": 0.6
+                }
+            },
+            {
+                "jobId": "eval-4:c1792042-2c5a-4ed9-906a-c83f4575437d",
+                "pipelineName": "eval-4",
+                "priority": 4,
+                "calculated": {
+                    "latestScores": {
+                        "ENTRANCE_TIME": 0.0022506944444444445,
+                        "PRIORITY": 0.3
+                    },
+                    "entranceTime": 1528274952849,
+                    "score": 0.5
+                }
+            }
+        ],
+        "pendingAmount": 1
+    }
+]

@@ -5,7 +5,6 @@
  * @class AlgorithmRatios
  */
 class AlgorithmRatios {
-
     constructor({ algorithms, allocations }) {
         this._ratio = 0;
         this._totalAllocations = 0;
@@ -37,7 +36,7 @@ class AlgorithmRatios {
         });
     }
 
-    *generateRandom() {
+    * generateRandom() {
         while (this._totalAllocations > 0) {
             const random = Math.random();
             let algorithm = this._findRange(random);
@@ -45,8 +44,8 @@ class AlgorithmRatios {
                 this._reCalcRange(algorithm);
                 algorithm = this._findRange(random);
             }
-            algorithm.allocations--;
-            this._totalAllocations--;
+            algorithm.allocations -= 1;
+            this._totalAllocations -= 1;
             yield algorithm;
         }
     }

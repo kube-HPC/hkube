@@ -1,9 +1,8 @@
 
 class Metric {
-    constructor(settings, options) {
-        this.settings = settings;
-        this.name = options.name;
-        this.weight = options.weight;
+    constructor(options, name) {
+        this.options = options;
+        this.name = name;
     }
 }
 
