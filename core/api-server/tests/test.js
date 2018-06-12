@@ -514,7 +514,7 @@ describe('Rest', () => {
                         const response = await _request(options);
 
                         expect(response.response.statusCode).to.equal(200);
-                        expect(response.body.data[0].result).to.equal(data);
+                        expect(response.body.data).to.equal(data);
                         expect(response.body).to.have.property('jobId');
                         expect(response.body).to.have.property('data');
                         expect(response.body).to.have.property('storageModule');
@@ -612,7 +612,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        const result = response.body.map(r => r.data[0].result).sort();
+                        const result = response.body.map(r => r.data).sort();
                         expect(response.response.statusCode).to.equal(200);
                         expect(result).to.deep.equal(data);
                         expect(response.body[0]).to.have.property('jobId');
@@ -713,7 +713,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        const result = response.body.map(r => r.data[0].result).sort();
+                        const result = response.body.map(r => r.data).sort();
                         expect(response.response.statusCode).to.equal(200);
                         expect(result).to.deep.equal(data);
                         expect(response.body[0]).to.have.property('jobId');
@@ -1336,7 +1336,9 @@ describe('Rest', () => {
                                 data: [{ res1: 400 }, { res2: 500 }]
                             }
                             await stateManager.setJobStatus(results);
-                            results.data = await storageFactory.adapter.putResults({ jobId, data: results.data })
+                            let link = await storageFactory.adapter.putResults({ jobId, data: results.data })
+                            results.data = {};
+                            results.data.storageInfo = link;
                             await stateManager.setJobResults(results);
                         });
                     });
@@ -1422,7 +1424,9 @@ describe('Rest', () => {
                             data: [{ res1: 400 }, { res2: 500 }]
                         }
                         await stateManager.setJobStatus(results);
-                        results.data = await storageFactory.adapter.putResults({ jobId, data: results.data })
+                        let link = await storageFactory.adapter.putResults({ jobId, data: results.data })
+                        results.data = {};
+                        results.data.storageInfo = link;
                         await stateManager.setJobResults(results);
 
                         await delay(1000);
