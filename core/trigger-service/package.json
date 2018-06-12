@@ -8,10 +8,16 @@
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
-    "test": "mocha tests --colors --recursive --exit && npm run lint",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --exit && npm run lint",
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --colors --recursive --exit",
+    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --colors --recursive --exit",
     "start": "node app",
     "build": "./dockerfile/build.sh trigger-service"
+  },
+  "pre-commit": {
+    "run": [
+      "lint",
+      "test"
+    ]
   },
   "keywords": [
     "hkube",
@@ -20,8 +26,8 @@
   "author": "maty zisserman",
   "license": "MIT",
   "dependencies": {
-    "@hkube/config": "^2.0.1",
-    "@hkube/etcd": "^4.0.5",
+    "@hkube/config": "^2.0.5",
+    "@hkube/etcd": "^4.0.7",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.24",
     "@hkube/redis-utils": "^1.0.2",
@@ -40,7 +46,8 @@
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^5.2.0",
     "mockery": "^2.1.0",
-    "sinon": "^5.0.7",
+    "pre-commit": "^1.2.2",
+    "sinon": "^5.1.1",
     "uuid": "^3.2.1"
   }
 }
