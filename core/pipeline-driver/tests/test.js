@@ -575,7 +575,7 @@ describe('Test', function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { result: [1, 2, 3] };
             const { main, logger } = configIt.load();
-            this._storageAdapter = await DatastoreFactory.getAdapter(main);
+            this._storageAdapter = await DatastoreFactory.getAdapter(main, true);
 
             await this._storageAdapter.jobPath({ jobId });
 
