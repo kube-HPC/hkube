@@ -7,7 +7,14 @@
     "test": "node_modules/mocha/bin/mocha test --exit",
     "test-travis": "./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha --exit",
     "build": "dockerfile/build.sh task-executor",
+    "start": "node app",
     "lint": "./node_modules/eslint/bin/eslint.js ."
+  },
+  "pre-commit": {
+    "run": [
+      "lint",
+      "test"
+    ]
   },
   "repository": {
     "type": "git",
@@ -21,28 +28,29 @@
   },
   "homepage": "https://github.com/kube-HPC/task-executor#readme",
   "dependencies": {
-    "@hkube/config": "^2.0.1",
-    "@hkube/etcd": "^4.0.3",
+    "@hkube/config": "^2.0.5",
+    "@hkube/etcd": "^4.0.7",
     "@hkube/logger": "^1.0.12",
-    "@hkube/metrics": "^1.0.24",
-    "@hkube/rest-server": "^1.0.7",
+    "@hkube/metrics": "^1.0.28",
+    "@hkube/rest-server": "^1.0.8",
     "express": "^4.16.3",
-    "kubernetes-client": "^5.1.0",
+    "kubernetes-client": "^5.3.0",
     "lodash.clonedeep": "^4.5.0",
     "object-path": "^0.11.4",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "coveralls": "^3.0.0",
+    "coveralls": "^3.0.1",
     "decache": "^4.4.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.9.0",
-    "mocha": "^5.0.4",
+    "eslint-plugin-import": "^2.12.0",
+    "mocha": "^5.2.0",
     "mockery": "^2.1.0",
-    "nyc": "^11.6.0",
-    "sinon": "^4.4.8"
+    "nyc": "^11.9.0",
+    "pre-commit": "^1.2.2",
+    "sinon": "^4.5.0"
   }
 }
