@@ -1,6 +1,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 
 class DatastoreFactory {
+
     async getAdapter(config, bootstrap = false) {
         const storage = config.storageAdapters[config.defaultStorage];
         const adapter = require(storage.moduleName);  // eslint-disable-line

@@ -1,20 +1,14 @@
 const EventEmitter = require('events');
 const validate = require('djsv');
-const uuidv4 = require('uuid/v4');
 const { Producer, Events } = require('@hkube/producer-consumer');
 const schema = require('./schema');
 const { TASKS } = require('../consts/Events');
-const States = require('../state/States');
-const stateManager = require('../state/state-manager');
-const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('../../common/consts/componentNames');
 const { tracer } = require('@hkube/metrics');
 
 class JobProducer extends EventEmitter {
 
     constructor() {
         super();
-        this._job = null;
         this._producer = null;
     }
 
@@ -59,17 +53,6 @@ class JobProducer extends EventEmitter {
             }
         }
         return this._producer.createJob(opt);
-    }
-
-    async stopJob(options) {
-        let result = null;
-        try {
-            result = await this._producer.stopJob({ type: options.type, jobID: options.jobID });
-        }
-        catch (error) {
-            log.error(error.message, { component: components.JOBS_PRODUCER });
-        }
-        return result;
     }
 }
 

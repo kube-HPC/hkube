@@ -1,15 +1,10 @@
-const EventEmitter = require('events');
 const validate = require('djsv');
 const { Consumer } = require('@hkube/producer-consumer');
 const schema = require('./schema');
-const Events = require('../consts/Events');
+const TaskRunner = require('../tasks/task-runner');
 const { tracer } = require('@hkube/metrics');
 
-class JobConsumer extends EventEmitter {
-
-    constructor() {
-        super();
-    }
+class JobConsumer {
 
     /**
      * Init the consumer and register for jobs
@@ -31,7 +26,8 @@ class JobConsumer extends EventEmitter {
         this._consumer = new Consumer(options);
         this._consumer.register(options);
         this._consumer.on('job', (job) => {
-            this.emit(Events.JOBS.START, job);
+            const taskRunner = new TaskRunner(option);
+            taskRunner.start(job);
         })
     }
 }

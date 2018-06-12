@@ -1,5 +1,4 @@
 const uuidv4 = require('uuid/v4');
-const { Producer } = require('@hkube/producer-consumer');
 const configIt = require('@hkube/config');
 const clone = require('clone');
 const chai = require('chai');
@@ -10,25 +9,27 @@ const sinon = require('sinon');
 const Events = require('../lib/consts/Events');
 const Batch = require('../lib/nodes/node-batch');
 const Node = require('../lib/nodes/node');
-const Task = require('../lib/tasks/Task');
 const bootstrap = require('../bootstrap');
 const pipelines = require('./mocks/pipelines');
 const producer = require('../lib/producer/jobs-producer');
-const consumer = require('../lib/consumer/jobs-consumer');
-const stateManager = require('../lib/state/state-manager');
-const progress = require('../lib/progress/nodes-progress');
+const StateManager = require('../lib/state/state-manager');
+const Progress = require('../lib/progress/nodes-progress');
 const NodesMap = require('../lib/nodes/nodes-map');
-const WorkerStub = require('./mocks/worker');
 const DatastoreFactory = require('../lib/datastore/storage-factory');
+
+let config, progress, taskRunner, TaskRunner, stateManager;
 const { main, logger } = configIt.load();
+config = main;
 let taskRunner = null;
 let storageAdapter = null;
+
 
 describe('Test', function () {
     before(async () => {
         storageAdapter = await DatastoreFactory.getAdapter(main, true);
         await bootstrap.init();
-        taskRunner = require('../lib/tasks/task-runner');
+        TaskRunner = require('../lib/tasks/task-runner');
+        stateManager = new StateManager(main);
     })
     describe('NodesMap', function () {
         describe('Graph', function () {
@@ -396,12 +397,7 @@ describe('Test', function () {
     });
     describe('TaskRunner', function () {
         beforeEach(function () {
-            taskRunner._job = null;
-            taskRunner._jobId = null;
-            taskRunner._pipeline = null;
-            taskRunner._nodes = null;
-            taskRunner._active = false;
-            taskRunner._pipelineName = null;
+            taskRunner = new TaskRunner(config);
         });
         it('should throw exception and stop pipeline', function () {
             const jobId = `jobid-${uuidv4()}`;
@@ -410,7 +406,7 @@ describe('Test', function () {
                 done: () => { }
             }
             const error = new Error(`unable to find pipeline ${jobId}`)
-            return expect(taskRunner._startPipeline(job)).to.eventually.rejectedWith(error.message);
+            return expect(taskRunner.start(job)).to.eventually.rejectedWith(error.message);
         });
         it('should start pipeline successfully', async function () {
             const jobId = `jobid-${uuidv4()}`;
@@ -420,7 +416,7 @@ describe('Test', function () {
             }
             const pipeline = pipelines[1];
             await stateManager.setExecution({ jobId, data: pipeline });
-            await taskRunner._startPipeline(job)
+            await taskRunner.start(job)
             expect(taskRunner._jobId).to.equal(jobId);
             expect(taskRunner._active).to.equal(true);
             expect(taskRunner._pipelineName).to.equal(pipeline.name);
@@ -467,7 +463,7 @@ describe('Test', function () {
             const pipeline = pipelines.find(p => p.name === 'batch');
             const node = pipeline.nodes[0];
             await stateManager.setExecution({ jobId, data: pipeline });
-            await taskRunner._startPipeline(job);
+            await taskRunner.start(job);
 
             const tasks = taskRunner._nodes._getNodesAsFlat();
 
@@ -479,12 +475,14 @@ describe('Test', function () {
         });
     });
     describe('Progress', function () {
+        beforeEach(() => {
+            progress = new Progress();
+        })
         it('should call progress with level silly', function () {
             const jobId = `jobid-${uuidv4()}`;
-            const prog = clone(progress);
             const data = { status: 'active' };
-            const spy = sinon.spy(prog, "_throttledProgress");
-            prog.silly({ jobId, status: 'active' })
+            const spy = sinon.spy(progress, "_throttledProgress");
+            progress.silly({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('silly');
@@ -493,10 +491,9 @@ describe('Test', function () {
         });
         it('should call progress with level debug', function () {
             const jobId = `jobid-${uuidv4()}`;
-            const prog = clone(progress);
             const data = { status: 'active' };
-            const spy = sinon.spy(prog, "_throttledProgress");
-            prog.debug({ jobId, status: 'active' })
+            const spy = sinon.spy(progress, "_throttledProgress");
+            progress.debug({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('debug');
@@ -505,10 +502,9 @@ describe('Test', function () {
         });
         it('should call progress with level info', function () {
             const jobId = `jobid-${uuidv4()}`;
-            const prog = clone(progress);
             const data = { status: 'active' };
-            const spy = sinon.spy(prog, "_progress");
-            prog.info({ jobId, status: 'active' })
+            const spy = sinon.spy(progress, "_progress");
+            progress.info({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('info');
@@ -517,10 +513,9 @@ describe('Test', function () {
         });
         it('should call progress with level warning', function () {
             const jobId = `jobid-${uuidv4()}`;
-            const prog = clone(progress);
             const data = { status: 'active' };
-            const spy = sinon.spy(prog, "_progress");
-            prog.warning({ jobId, status: 'active' })
+            const spy = sinon.spy(progress, "_progress");
+            progress.warning({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('warning');
@@ -529,10 +524,9 @@ describe('Test', function () {
         });
         it('should call progress with level error', function () {
             const jobId = `jobid-${uuidv4()}`;
-            const prog = clone(progress);
             const data = { status: 'active' };
-            const spy = sinon.spy(prog, "_progress");
-            prog.error({ jobId, status: 'active' })
+            const spy = sinon.spy(progress, "_progress");
+            progress.error({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('error');
@@ -541,10 +535,9 @@ describe('Test', function () {
         });
         it('should call progress with level critical', function () {
             const jobId = `jobid-${uuidv4()}`;
-            const prog = clone(progress);
             const data = { status: 'active' };
-            const spy = sinon.spy(prog, "_progress");
-            prog.critical({ jobId, status: data.status })
+            const spy = sinon.spy(progress, "_progress");
+            progress.critical({ jobId, status: data.status })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0]).to.equal('critical');

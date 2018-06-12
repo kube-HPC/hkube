@@ -1,6 +1,5 @@
 const async = require('async');
 const throttle = require('lodash.throttle');
-const stateManager = require('../state/state-manager');
 
 const levels = {
     silly: 'silly',
@@ -13,11 +12,13 @@ const levels = {
 
 class ProgressManager {
 
-    constructor() {
-        this._calc = this._default;
+    constructor(options) {
+        options = options || {};
+        this._calcProgress = options.calcProgress || this._defaultCalcProgress;
+        this._sendProgress = options.sendProgress || this._defaultSendProgress;
         this._throttledProgress = throttle(this._progress.bind(this), 1000, { trailing: false, leading: true });
         this._queue = async.queue((task, callback) => {
-            stateManager.setJobStatus(task).then(response => {
+            this._sendProgress(task).then(response => {
                 return callback(null, response);
             }).catch(error => {
                 return callback(error);
@@ -25,16 +26,16 @@ class ProgressManager {
         }, 1);
     }
 
-    calcMethod(method) {
-        this._calc = method;
-    }
-
-    _default() {
+    _defaultCalcProgress() {
         return {
             progress: 0,
             details: '',
             activeNodes: []
         };
+    }
+
+    async _defaultSendProgress() {
+        return null;
     }
 
     silly(data) {
@@ -63,7 +64,7 @@ class ProgressManager {
 
     _progress(level, { jobId, pipeline, status, error }) {
         return new Promise((resolve, reject) => {
-            const data = this._calc();
+            const data = this._calcProgress();
             this._queue.push({ jobId, pipeline, level, status, error, data }, (err, res) => {
                 if (err) {
                     return reject(err);
@@ -74,4 +75,4 @@ class ProgressManager {
     }
 }
 
-module.exports = new ProgressManager();
+module.exports = ProgressManager;

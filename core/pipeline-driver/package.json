@@ -36,14 +36,21 @@
     "eslint-plugin-import": "^2.12.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^2.5.3",
+    "pre-commit": "^1.2.2",
     "sinon": "^4.5.0"
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
-    "test": "./node_modules/mocha/bin/_mocha tests --colors --recursive",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests",
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --colors --recursive --exit",
+    "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --colors --recursive --exit",
     "start": "node app",
     "build": "./dockerfile/build.sh pipeline-driver"
+  },
+  "pre-commit": {
+    "run": [
+      "lint",
+      "test"
+    ]
   },
   "author": "Hkube",
   "license": "MIT"

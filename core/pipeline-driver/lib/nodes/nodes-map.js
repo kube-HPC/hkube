@@ -18,6 +18,7 @@ class NodesMap extends EventEmitter {
 
     constructor(options) {
         super();
+        this.calcProgress = this.calcProgress.bind(this);
         this._graph = new Graph({ directed: true });
         this._buildGraph(options);
     }

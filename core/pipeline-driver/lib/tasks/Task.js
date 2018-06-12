@@ -1,5 +1,4 @@
 const uuidv4 = require('uuid/v4');
-const States = require('../state/States');
 
 class Task {
     constructor(options) {
