@@ -15,21 +15,18 @@ const producer = require('../lib/producer/jobs-producer');
 const StateManager = require('../lib/state/state-manager');
 const Progress = require('../lib/progress/nodes-progress');
 const NodesMap = require('../lib/nodes/nodes-map');
-const DatastoreFactory = require('../lib/datastore/storage-factory');
+const datastoreFactory = require('../lib/datastore/storage-factory');
 
-let config, progress, taskRunner, TaskRunner, stateManager;
-const { main, logger } = configIt.load();
-config = main;
-let taskRunner = null;
-let storageAdapter = null;
-
+let progress, storageAdapter, taskRunner, TaskRunner, stateManager;
+const config = configIt.load().main;
 
 describe('Test', function () {
     before(async () => {
-        storageAdapter = await DatastoreFactory.getAdapter(main, true);
+        await datastoreFactory.init(config, true);
+        storageAdapter = datastoreFactory.getAdapter();
         await bootstrap.init();
         TaskRunner = require('../lib/tasks/task-runner');
-        stateManager = new StateManager(main);
+        stateManager = new StateManager(config);
     })
     describe('NodesMap', function () {
         describe('Graph', function () {

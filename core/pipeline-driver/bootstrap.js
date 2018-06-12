@@ -8,7 +8,8 @@ let log;
 
 const modules = [
     './lib/producer/jobs-producer',
-    './lib/consumer/jobs-consumer'
+    './lib/consumer/jobs-consumer',
+    './lib/datastore/storage-factory'
 ];
 
 class Bootstrap {

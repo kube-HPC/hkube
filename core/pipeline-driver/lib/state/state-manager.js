@@ -8,7 +8,7 @@ class StateManager extends EventEmitter {
         super();
         this._etcd = new Etcd();
         this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
-        this._storageAdapter = DatastoreFactory.getAdapter(options);
+        this._storageAdapter = DatastoreFactory.getAdapter();
 
         //this._etcd.discovery.register({ serviceName });
         this.watchJobState({ jobId: 'hookWatch' });
