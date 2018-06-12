@@ -46,7 +46,7 @@ class Executor {
             const algorithmRequests = await etcd.getAlgorithmRequests({});
             const algorithmPods = await etcd.getWorkers({});
             const jobs = await kubernetes.getWorkerJobs();
-
+            const resources = await kubernetes.getReourcesPerNode();
             const reconcilerResults = await reconciler.reconcile({
                 algorithmRequests, algorithmPods, jobs, versions
             });

@@ -21,12 +21,12 @@ module.exports = {
             mock: {
                 init: async () => { },
                 createJob: async (...theArgs) => {
-                    registerCount('createJob', theArgs)
+                    registerCount('createJob', theArgs);
                 },
                 getWorkerJobs: async () => { },
                 getVersionsConfigMap: async () => { },
                 deleteJob: async (...theArgs) => {
-                    registerCount('deleteJob', theArgs)
+                    registerCount('deleteJob', theArgs);
                 }
             },
             callCount: (name) => { return callCount[name]; },

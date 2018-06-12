@@ -52,18 +52,20 @@ const normalizeRequests = (requests) => {
     if (requests == null) {
         return [];
     }
-    return requests.map(r => ({ algorithmName: r.alg, pods: r.data.pods }));
+    return requests.map(r => ({ algorithmName: r.name, pods: r.data.pods }));
 };
 
-const normalizeJobs = (jobsRaw) => {
-    if (jobsRaw == null) {
+const normalizeJobs = (jobsRaw, predicate = () => true) => {
+    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
         return [];
     }
-    const jobs = jobsRaw.body.items.map(j => ({
-        name: j.metadata.name,
-        algorithmName: j.metadata.labels['algorithm-name'],
-        active: j.status.active === 1
-    }));
+    const jobs = jobsRaw.body.items
+        .filter(predicate)
+        .map(j => ({
+            name: j.metadata.name,
+            algorithmName: j.metadata.labels['algorithm-name'],
+            active: j.status.active === 1
+        }));
     return jobs;
 };
 

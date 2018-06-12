@@ -2,6 +2,7 @@ const uuidv4 = require('uuid/v4');
 const clonedeep = require('lodash.clonedeep');
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
+const objectPath = require('object-path');
 const component = require('../../common/consts/componentNames').K8S;
 const { jobTemplate } = require('./template.js');
 
@@ -28,21 +29,7 @@ const applyResourceRequests = (inputSpec, resourceRequests) => {
         log.error(msg, { component });
         throw new Error(msg);
     }
-    algorithmContainer.resources = { ...algorithmContainer.resources, requests: resourceRequests };
-    return spec;
-};
-const applyResourceLimits = (inputSpec, resourceLimits) => {
-    const spec = clonedeep(inputSpec);
-    if (!resourceLimits) {
-        return spec;
-    }
-    const algorithmContainer = spec.spec.template.spec.containers.find(c => c.name === 'algorunner');
-    if (!algorithmContainer) {
-        const msg = 'Unable to create job spec. algorithm container not found';
-        log.error(msg, { component });
-        throw new Error(msg);
-    }
-    algorithmContainer.resources = { ...algorithmContainer.resources, limits: resourceLimits };
+    algorithmContainer.resources = { ...algorithmContainer.resources, ...resourceRequests };
     return spec;
 };
 
@@ -60,10 +47,42 @@ const applyWorkerImage = (inputSpec, workerImage) => {
     workerContainer.image = workerImage;
     return spec;
 };
-
+const applyEnvToContainer = (inputSpec, containerName, workerEnv) => {
+    const spec = clonedeep(inputSpec);
+    if (!workerEnv) {
+        return spec;
+    }
+    const workerContainer = spec.spec.template.spec.containers.find(c => c.name === containerName);
+    if (!workerContainer) {
+        const msg = `Unable to create job spec. ${containerName} container not found`;
+        log.error(msg, { component });
+        throw new Error(msg);
+    }
+    if (!workerContainer.env) {
+        workerContainer.env = [];
+    }
+    const { env } = workerContainer;
+    Object.entries(workerEnv).forEach(([key, value]) => {
+        const index = env.findIndex(i => i.name === key);
+        if (index !== -1) {
+            if (!value) {
+                env.splice(index, 1);
+            }
+            else {
+                env[index] = { name: key, value };
+            }
+        }
+        else {
+            env.push({ name: key, value });
+        }
+    });
+    return spec;
+};
 const applyAlgorithmName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
-    spec.metadata.labels['algorithm-name'] = algorithmName;
+    objectPath.set(spec, 'metadata.labels.algorithm-name', algorithmName);
+    objectPath.set(spec, 'spec.template.metadata.labels.algorithm-name', algorithmName);
+    spec.spec.template.metadata.labels['algorithm-name'] = algorithmName;
     const workerContainer = spec.spec.template.spec.containers.find(c => c.name === 'worker');
     if (!workerContainer) {
         const msg = 'Unable to create job spec. worker container not found';
@@ -87,7 +106,7 @@ const applyName = (inputSpec, algorithmName) => {
     return spec;
 };
 
-const createJobSpec = ({ algorithmName, resourceRequests, resourceLimits, workerImage, algorithmImage }) => {
+const createJobSpec = ({ algorithmName, resourceRequests, resourceLimits, workerImage, algorithmImage, workerEnv, algorithmEnv }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -102,9 +121,10 @@ const createJobSpec = ({ algorithmName, resourceRequests, resourceLimits, worker
     spec = applyName(spec, algorithmName);
     spec = applyAlgorithmName(spec, algorithmName);
     spec = applyAlgorithmImage(spec, algorithmImage);
+    spec = applyEnvToContainer(spec, 'algorunner', algorithmEnv);
     spec = applyWorkerImage(spec, workerImage);
+    spec = applyEnvToContainer(spec, 'worker', workerEnv);
     spec = applyResourceRequests(spec, resourceRequests);
-    spec = applyResourceLimits(spec, resourceLimits);
 
     return spec;
 };
@@ -114,6 +134,7 @@ module.exports = {
     applyAlgorithmName,
     applyAlgorithmImage,
     applyWorkerImage,
+    applyEnvToContainer,
     applyResourceRequests
 
 };

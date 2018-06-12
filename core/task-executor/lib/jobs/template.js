@@ -13,6 +13,14 @@ const jobTemplate = {
     },
     spec: {
         template: {
+            metadata: {
+                labels: {
+                    group: 'hkube',
+                    type: 'worker',
+                    'algorithm-name': 'algorithm-name',
+                    'metrics-group': 'workers'
+                }
+            },
             spec: {
                 nodeSelector: {
                     worker: 'true'
@@ -34,6 +42,10 @@ const jobTemplate = {
                             {
                                 name: 'METRICS_PORT',
                                 value: '3001'
+                            },
+                            {
+                                name: 'INACTIVE_PAUSED_WORKER_TIMEOUT_MS',
+                                value: '60000'
                             },
                             {
                                 name: 'POD_ID',

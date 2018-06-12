@@ -6,6 +6,7 @@ const etcd = require('../helpers/etcd');
 const { workerCommands } = require('../../common/consts/states');
 const component = require('../../common/consts/componentNames').RECONCILER;
 const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers } = require('./normalize');
+const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
 const MAX_JOBS_PER_TICK = 30;
 
 const _createJobs = async (numberOfJobs, jobDetails) => {
@@ -20,75 +21,6 @@ const _createJobs = async (numberOfJobs, jobDetails) => {
         return jobCreateResult;
     });
     return Promise.all(results);
-};
-
-
-const _parseImageName = (image) => {
-    const match = image.match(/^(?:([^/]+)\/)?(?:([^/]+)\/)?([^@:/]+)(?:[@:](.+))?$/);
-    if (!match) return null;
-
-    let registry = match[1];
-    let namespace = match[2];
-    const repository = match[3];
-    let tag = match[4];
-
-    if (!namespace && registry && !/[:.]/.test(registry)) {
-        namespace = registry;
-        registry = null;
-    }
-
-    const result = {
-        registry: registry || null,
-        namespace: namespace || null,
-        repository,
-        tag: tag || null
-    };
-
-    registry = registry ? registry + '/' : '';
-    namespace = namespace && namespace !== 'library' ? namespace + '/' : '';
-    tag = tag && tag !== 'latest' ? ':' + tag : '';
-
-    result.name = registry + namespace + repository + tag;
-    result.fullname = registry + (namespace || 'library/') + repository + (tag || ':latest');
-
-    return result;
-};
-
-const _createImageName = ({ registry, namespace, repository, tag }, ignoreTag) => {
-    let array = [registry, namespace, repository];
-    array = array.filter(a => a);
-    let image = array.join('/');
-    if (tag && !ignoreTag) {
-        image = `${image}:${tag}`;
-    }
-    return image;
-};
-
-const _setAlgorithmImage = (template, versions) => {
-    const imageName = template.algorithmImage;
-    const imageParsed = _parseImageName(imageName);
-    if (imageParsed.tag) {
-        return _createImageName(imageParsed);
-    }
-    const version = versions && versions.versions.find(p => p.project === imageParsed.repository);
-    if (version && version.tag) {
-        imageParsed.tag = version.tag;
-    }
-    return _createImageName(imageParsed);
-};
-
-const _setWorkerImage = (template, versions) => {
-    const imageName = template.workerImage || 'hkube/worker';
-    const imageParsed = _parseImageName(imageName);
-    if (imageParsed.tag) {
-        return _createImageName(imageParsed);
-    }
-    const version = versions && versions.versions.find(p => p.project === imageParsed.repository);
-    if (version && version.tag) {
-        imageParsed.tag = version.tag;
-    }
-    // return `${imageName}:${version.tag}`;
-    return _createImageName(imageParsed);
 };
 
 const _pendingJobjsFilter = (job, algorithmName) => {
@@ -126,7 +58,7 @@ const _resumeWorkers = (workers, count) => {
 
 const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => {
     const normPods = normalizeWorkers(algorithmPods);
-    const normJobs = normalizeJobs(jobs);
+    const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const merged = mergeWorkers(normPods, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
     const createPromises = [];
@@ -166,12 +98,17 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
             log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`, { component });
 
             const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName }); // eslint-disable-line
-            const algorithmImage = _setAlgorithmImage(algorithmTemplate, versions);
-            const workerImage = _setWorkerImage(algorithmTemplate, versions);
+            const algorithmImage = setAlgorithmImage(algorithmTemplate, versions);
+            const workerImage = setWorkerImage(algorithmTemplate, versions);
+            const resourceLimits = createContainerResource(algorithmTemplate);
+            const { workerEnv, algorithmEnv } = algorithmTemplate;
             createPromises.push(_createJobs(numberOfNewJobs, {
                 algorithmName,
                 algorithmImage,
-                workerImage
+                workerImage,
+                workerEnv,
+                algorithmEnv,
+                resourceLimits
             }));
         }
     }
