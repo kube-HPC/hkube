@@ -12,8 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hkube/config": "^2.0.1",
-    "@hkube/etcd": "^4.0.4",
+    "@hkube/config": "^2.0.5",
+    "@hkube/etcd": "^4.0.7",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.28",
     "@hkube/rest-server": "^1.0.8",
@@ -33,7 +33,7 @@
     "eslint-plugin-import": "^2.12.0",
     "mocha": "^5.2.0",
     "mockery": "^2.1.0",
-    "nyc": "^11.6.0",
+    "nyc": "^11.9.0",
     "sinon": "^4.4.8"
   }
 }
