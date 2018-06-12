@@ -48,12 +48,18 @@ class StateManager extends EventEmitter {
     }
 
     async setJobResults(options) {
+        let storageInfo = null;
         if (options.data) {
             const metadata = null;
-            const storageInfo = await this._storageAdapter.putResults({ jobId: options.jobId, data: options.data })
-            options.data = { metadata, storageInfo };
+            const data = await Promise.all(options.data.map(async a => {
+                if (a.result && a.result.storageInfo) {
+                    const result = await this._storageAdapter.get(a.result.storageInfo);
+                    return { ...a, result }
+                }
+            }));
+            storageInfo = await this._storageAdapter.putResults({ jobId: options.jobId, data })
         }
-        return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult(options) });
+        return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult({ ...options, data: { storageInfo } }) });
     }
 
     async setJobStatus(options) {

@@ -20,14 +20,13 @@ const progress = require('../lib/progress/nodes-progress');
 const NodesMap = require('../lib/nodes/nodes-map');
 const WorkerStub = require('./mocks/worker');
 const DatastoreFactory = require('../lib/datastore/storage-factory');
-
+const { main, logger } = configIt.load();
 let taskRunner = null;
 
 describe('Test', function () {
     before(async () => {
         await bootstrap.init();
         taskRunner = require('../lib/tasks/task-runner');
-        const { main, logger } = configIt.load();
     })
     describe('NodesMap', function () {
         describe('Graph', function () {
@@ -573,16 +572,20 @@ describe('Test', function () {
         });
         it('setJobResults', async function () {
             const jobId = `jobid-${uuidv4()}`;
-            const data = { result: [1, 2, 3] };
-            const { main, logger } = configIt.load();
-            this._storageAdapter = await DatastoreFactory.getAdapter(main, true);
-
-            await this._storageAdapter.jobPath({ jobId });
-
-            await stateManager.setJobResults({ jobId, data });
-            let res = await this._storageAdapter.getResults({ jobId: jobId });
-            //const response = await stateManager._etcd.jobResults.getResults({ jobId });
-            expect(data).to.deep.equal(res);
+            const taskId = `taskId-${uuidv4()}`;
+            const data = [{ koko: [1, 2, 3] }];
+            const results = {
+                jobId,
+                data
+            };
+            const storageAdapter = await DatastoreFactory.getAdapter(main, true);
+            const storageInfo = await storageAdapter.put({ jobId, taskId, data });
+            let result = { storageInfo };
+            results.data = [{ result }];
+            await stateManager.setJobResults(results);
+            const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
+            const res = await storageAdapter.get(etcdResult.data.storageInfo);
+            expect(data).to.deep.equal(res[0].result);
         });
         it('setJobStatus', async function () {
             const jobId = `jobid-${uuidv4()}`;
