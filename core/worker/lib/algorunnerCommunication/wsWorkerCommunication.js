@@ -3,7 +3,6 @@ const Logger = require('@hkube/logger');
 const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const WebSocket = require('ws');
-const messages = require('./messages');
 const http = require('http');
 const component = require('../../common/consts/componentNames').COMMUNICATIONS;
 let log;
@@ -32,7 +31,7 @@ class WsWorkerCommunication extends EventEmitter {
                 const server = this._options.httpServer || http.createServer();
                 this._socketServer = new WebSocket.Server({ server });
 
-                this._socketServer.on('connection', (socket, request) => {
+                this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!', { component });
                     this._registerSocketMessages(socket);
                     this.emit('connection');
@@ -62,7 +61,7 @@ class WsWorkerCommunication extends EventEmitter {
             log.debug(`got message ${payload.command}`, { component });
             this.emit(payload.command, payload);
         });
-        socket.on('disconnect', (e, t) => {
+        socket.on('disconnect', () => {
             log.debug('socket disconnected', { component });
             this._socket = null;
             this.emit('disconnect');

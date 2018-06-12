@@ -6,8 +6,6 @@ const { expect } = require('chai');
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
 const messages = require('../lib/algorunnerCommunication/messages');
 const worker = require('../lib/worker');
-const s3adapter = require('@hkube/s3-adapter');
-
 const uuid = require('uuid/v4');
 const jobID = 'jobId:' + uuid();
 const taskID = 'taskId:' + uuid();
@@ -73,10 +71,9 @@ const testProducer = {
                 }
             ],
             info: {
-                
             },
             storage: {
-                'guid-3': { storageInfo: { Bucket: jobID, Key: taskID }, path: 'data.engine.inputs.raw' }
+                'guid-3': { storageInfo: { Bucket: 'hkube', Key: taskID }, path: 'data.engine.inputs.raw' }
             }
         }
     }
@@ -99,20 +96,10 @@ describe('consumer', () => {
     beforeEach((done) => {
         bootstrap.init().then(() => {
             consumer = Consumer;
-            // init s3
-            s3adapter.jobPath({ jobId: jobID }).then(() => {
-                s3adapter.put({
-                    jobId: jobID,
-                    taskId: taskID,
-                    data: {
-                        data: { engine: { inputs: { raw: ['input-31', 'input-32'] } } }
-                    }
-                });
-                done();
-            });
+            done();
         });
     });
-    it('should send init to worker and validate data from s3', (done) => {
+    xit('should send init to worker and validate data from storage', (done) => {
         consumer.init(jobConsumerConfig).then(() => {
             stateManager.once('stateEnteredready', () => {
                 workerCommunication.once(messages.incomming.initialized, (message) => {
@@ -147,6 +134,6 @@ describe('consumer', () => {
             worker._registerToConnectionEvents();
             workerCommunication.adapter.start();
         });
-    }).timeout(5000);
+    });
 
 });

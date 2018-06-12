@@ -9,6 +9,7 @@ let log;
 const worker = require('./lib/worker');
 
 const modules = [
+    './lib/datastore/datastore-factory.js',
     './lib/states/stateManager.js',
     './lib/states/discovery.js',
     './lib/algorunnerCommunication/workerCommunication.js',
@@ -38,7 +39,7 @@ class Bootstrap {
             await tracer.init(main.tracer);
             worker.preInit();
             for (const m of modules) {// eslint-disable-line
-                await require(m).init(main);// eslint-disable-line
+                await require(m).init(main, log);// eslint-disable-line
             }
 
             await worker.init(main);

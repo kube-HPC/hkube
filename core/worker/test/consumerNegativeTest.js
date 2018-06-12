@@ -5,8 +5,6 @@ const stateManager = require('../lib/states/stateManager.js');
 const { expect } = require('chai');
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
 const worker = require('../lib/worker');
-const s3adapter = require('@hkube/s3-adapter');
-
 const uuid = require('uuid/v4');
 const jobID = 'jobId:' + uuid();
 const taskID = 'taskId:' + uuid();
@@ -61,21 +59,10 @@ describe('consumer fail tests', () => {
     beforeEach((done) => {
         bootstrap.init().then(() => {
             consumer = Consumer;
-            // init s3
-            s3adapter.jobPath({ jobId: jobID }).then(() => {
-                s3adapter.put({
-                    jobId: jobID,
-                    taskId: taskID,
-                    data: {
-                        data: { engine: { inputs: { raw: ['input-31', 'input-32'] } } }
-                    }
-                });
-                done();
-            });
+            done();
         });
     });
-
-    it('should fail if bucket not exists', (done) => {
+    xit('should failed if bucket not exists', (done) => {
         consumer.init(jobConsumerConfig2).then(() => {
             stateManager.once('stateEnteredready', () => {
                 producer = new Producer(producerSettings2);
@@ -102,5 +89,5 @@ describe('consumer fail tests', () => {
             worker._registerToConnectionEvents();
             workerCommunication.adapter.start();
         });
-    }).timeout(5000);
+    });
 });

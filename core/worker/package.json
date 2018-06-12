@@ -1,16 +1,24 @@
 {
     "name": "worker",
-    "version": "1.1.27",
+    "version": "1.1.28",
     "description": "worker process",
-    "main": "index.js",
+    "main": "app.js",
     "scripts": {
-        "test": "node_modules/mocha/bin/mocha test",
-        "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test",
+        "lint": "./node_modules/eslint/bin/eslint.js .",
+        "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha test --colors --recursive --exit",
+        "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test --colors --recursive --exit",
+        "start": "node app",
         "build": "dockerfile/build.sh worker"
+    },
+    "pre-commit": {
+        "run": [
+            "lint",
+            "test"
+        ]
     },
     "repository": {
         "type": "git",
-        "url": "http://yehiyam@greenape.ddns.net/soundFactory/worker.git"
+        "url": "git@github.com:kube-HPC/worker.git"
     },
     "author": "",
     "license": "ISC",
@@ -51,6 +59,7 @@
         "eslint-plugin-import": "^2.12.0",
         "istanbul": "^1.1.0-alpha.1",
         "mocha": "^3.5.3",
+        "pre-commit": "^1.2.2",
         "sinon": "^3.3.0",
         "socket.io-client": "^2.1.1"
     }
