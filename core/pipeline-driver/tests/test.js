@@ -22,9 +22,11 @@ const WorkerStub = require('./mocks/worker');
 const DatastoreFactory = require('../lib/datastore/storage-factory');
 const { main, logger } = configIt.load();
 let taskRunner = null;
+let storageAdapter = null;
 
 describe('Test', function () {
     before(async () => {
+        storageAdapter = await DatastoreFactory.getAdapter(main, true);
         await bootstrap.init();
         taskRunner = require('../lib/tasks/task-runner');
     })
@@ -578,7 +580,6 @@ describe('Test', function () {
                 jobId,
                 data
             };
-            const storageAdapter = await DatastoreFactory.getAdapter(main, true);
             const storageInfo = await storageAdapter.put({ jobId, taskId, data });
             let result = { storageInfo };
             results.data = [{ result }];
