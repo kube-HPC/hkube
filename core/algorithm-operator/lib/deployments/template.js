@@ -45,7 +45,7 @@ const algorithmQueueTemplate = {
                             },
                             {
                                 name: 'NODE_ENV',
-                                value: 'kube'
+                                value: 'production'
                             },
                             {
                                 name: 'METRICS_PORT',
