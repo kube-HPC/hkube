@@ -5,10 +5,11 @@ const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
 const { workerCommands } = require('../../common/consts/states');
 const component = require('../../common/consts/componentNames').RECONCILER;
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers } = require('./normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources } = require('./normalize');
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
 const MAX_JOBS_PER_TICK = 30;
-
+const CPU_RATIO_PRESURE = 0.8;
+const MEMORY_RATIO_PRESURE = 0.8;
 const _createJobs = async (numberOfJobs, jobDetails) => {
     log.debug(`need to add ${numberOfJobs} jobs with details ${JSON.stringify(jobDetails, null, 2)}`, { component });
     if (numberOfJobs > MAX_JOBS_PER_TICK) {
@@ -56,11 +57,15 @@ const _resumeWorkers = (workers, count) => {
 };
 
 
-const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = {}) => {
+const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, resources } = {}) => {
     const normPods = normalizeWorkers(algorithmPods);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const merged = mergeWorkers(normPods, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
+    const normResouces = normalizeResources(resources);
+    const isCpuPresure = normResouces.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
+    const isMemoryPresure = normResouces.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
+    const isResourcePresure = isCpuPresure || isMemoryPresure;
     const createPromises = [];
     const reconcileResult = {};
     for (let r of normRequests) { // eslint-disable-line
@@ -88,8 +93,13 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions } = 
 
         if (podDiff > 0) {
             // need to stop some workers
-            log.debug(`need to stop ${podDiff} pods for algorithm ${algorithmName}`);
-            _stopWorkers(workersForAlgorithm, podDiff);
+            if (isResourcePresure) {
+                log.debug(`need to stop ${podDiff} pods for algorithm ${algorithmName}`);
+                _stopWorkers(workersForAlgorithm, podDiff);
+            }
+            else {
+                log.debug(`resources ratio is: ${JSON.stringify(normResouces.allNodes.ratio)}. no need to stop pods`);
+            }
         }
         else if (podDiff < 0) {
             // need to add workers

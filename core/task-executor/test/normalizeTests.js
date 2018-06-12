@@ -1,9 +1,9 @@
 const { expect } = require('chai');
 
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources } = require('../lib/reconcile/normalize');
 const { twoCompleted } = require('./stub/jobsRaw');
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
-
+const { nodes, pods } = require('./stub/resources');
 describe('normalize', () => {
     describe('normalize jobs', () => {
         it('should work with no jobs', () => {
@@ -129,6 +129,30 @@ describe('normalize', () => {
                 algorithmName: 'yellow-alg',
                 pods: 1
             });
+        });
+    });
+
+    describe('normalize resources', () => {
+        it('should work with empty resources array', () => {
+            const res = normalizeResources({});
+            expect(res.allNodes.ratio.cpu).to.eq(0);
+            expect(res.allNodes.ratio.memory).to.eq(0);
+        });
+        it('should work with undefined resources array', () => {
+            const res = normalizeResources();
+            expect(res.allNodes.ratio.cpu).to.eq(0);
+            expect(res.allNodes.ratio.memory).to.eq(0);
+        });
+        it('should return resources by node and totals', () => {
+            const res = normalizeResources({ pods, nodes });
+            expect(res.allNodes.total.cpu).to.eq(23.4);
+            expect(res.allNodes.total.memory).to.eq(94677.796875);
+            expect(res).to.have.property('node1');
+            expect(res).to.have.property('node2');
+            expect(res).to.have.property('node3');
+            expect(res.node1.requests.cpu).to.eq(0.2);
+            expect(res.node2.requests.cpu).to.eq(0.25);
+            expect(res.node3.requests.cpu).to.eq(0);
         });
     });
     describe('merge workers', () => {

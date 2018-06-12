@@ -1,9 +1,6 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const kubernetesClient = require('kubernetes-client');
-const groupBy = require('lodash.groupby');
-const sumBy = require('lodash.sumby');
-const parse = require('@hkube/units-converter');
 const objectPath = require('object-path');
 const component = require('../../common/consts/componentNames').K8S;
 let log;
@@ -84,38 +81,8 @@ class KubernetesApi extends EventEmitter {
     }
 
     async getReourcesPerNode() {
-        const podsPromise = this._client.api.v1.pods.get();
-        const nodesPromise = this._client.api.v1.nodes.get();
-        const [pods, nodes] = await Promise.all([podsPromise, nodesPromise]);
-        const initial = nodes.body.items.reduce((acc, cur) => {
-            acc[cur.metadata.name] = {
-                requests: { cpu: 0, memomy: 0 },
-                limits: { cpu: 0, memomy: 0 },
-                total: {
-                    cpu: parse.getCpuInCore(cur.status.allocatable.cpu),
-                    memory: parse.getMemoryInMi(cur.status.allocatable.memory)
-                }
-            };
-            return acc;
-        }, {});
-        const resourcesPerNode = pods.body.items.filter(p => p.status.phase === 'Running').reduce((accumulator, pod) => {
-            const { nodeName } = pod.spec;
-            if (!nodeName) {
-                return accumulator;
-            }
-            const requestCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
-            const requestMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0)));
-            accumulator[nodeName].requests.cpu += requestCpu;
-            accumulator[nodeName].requests.memomy += requestMem;
-            return accumulator;
-        }, initial);
-        return resourcesPerNode;
-        // const podsPerNode = groupBy(pods.body.items, 'spec.nodeName');
-        // const resourcesPerNode = Object.entries(podsPerNode).map(([nodeName, value]) => ({
-        //     nodeName,
-        //     requests: sumBy(value, p => sumBy(p.spec.containers, 'resources.requests'))
-
-        // }))
+        const [pods, nodes] = await Promise.all([this._client.api.v1.pods.get(), this._client.api.v1.nodes.get()]);
+        return { pods, nodes };
     }
 }
 

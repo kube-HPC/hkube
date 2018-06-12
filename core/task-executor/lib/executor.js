@@ -48,7 +48,7 @@ class Executor {
             const jobs = await kubernetes.getWorkerJobs();
             const resources = await kubernetes.getReourcesPerNode();
             const reconcilerResults = await reconciler.reconcile({
-                algorithmRequests, algorithmPods, jobs, versions
+                algorithmRequests, algorithmPods, jobs, versions, resources
             });
             Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
                 this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });

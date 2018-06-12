@@ -33,7 +33,7 @@ const jobTemplate = {
                         env: [
                             {
                                 name: 'NODE_ENV',
-                                value: 'kube'
+                                value: 'production'
                             },
                             {
                                 name: 'ALGORITHM_TYPE',
