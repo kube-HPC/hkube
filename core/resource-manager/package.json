@@ -8,7 +8,7 @@
     "tests": "tests"
   },
   "dependencies": {
-    "@hkube/config": "^2.0.0",
+    "@hkube/config": "^2.0.5",
     "@hkube/etcd": "^4.0.7",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.28",
@@ -39,7 +39,7 @@
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --colors --recursive --exit",
-    "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --exit && npm run lint",
+    "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --colors --recursive --exit",
     "start": "node app",
     "build": "./dockerfile/build.sh resource-manager"
   },
