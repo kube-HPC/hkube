@@ -23,8 +23,8 @@ config.consumer = {
 };
 
 config.producer = {
-    prefix: 'jobs-pipeline',
-    jobType: 'pipeline-driver-job'
+    prefix: 'pipeline-driver',
+    jobType: 'pipeline-job'
 };
 
 config.queue = {
