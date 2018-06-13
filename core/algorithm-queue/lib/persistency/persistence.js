@@ -23,13 +23,13 @@ class Persistence {
         log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT });
         const bullQueue = producerSingleton.get.getQueueByJobType(this.options.algorithmType);
         const pendingAmount = await bullQueue.getWaitingCount();
-        const status = await this.etcd.algorithms.algorithmQueue.set({ queueName: this.queueName, data, pendingAmount });
+        const status = await this.etcd.algorithms.algorithmQueue.set({ name: this.queueName, data, pendingAmount });
         if (status) {
             log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
         }
     }
     get() {
-        return this.etcd.algorithms.algorithmQueue.get({ queueName: this.queueName });
+        return this.etcd.algorithms.algorithmQueue.get({ name: this.queueName });
     }
 }
 
