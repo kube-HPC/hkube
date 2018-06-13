@@ -7,7 +7,7 @@ module.exports = {
             "properties": {
                 "type": {
                     "type": "string",
-                    "default": "pipeline-driver-job",
+                    "default": "pipeline-job",
                     "description": "the job type of this driver"
                 }
             },
@@ -18,7 +18,7 @@ module.exports = {
             "properties": {
                 "prefix": {
                     "type": "string",
-                    "default": "jobs-pipeline",
+                    "default": "pipeline-driver",
                     "description": "prefix for all queue keys"
                 }
             },

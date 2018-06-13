@@ -7,7 +7,7 @@ module.exports = {
             "properties": {
                 "prefix": {
                     "type": "string",
-                    "default": "pipeline-queue",
+                    "default": "algorithm-queue",
                     "description": "prefix for all queue keys"
                 }
             },
