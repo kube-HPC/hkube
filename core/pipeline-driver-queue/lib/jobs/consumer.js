@@ -19,8 +19,13 @@ class JobConsumer extends EventEmitter {
             }
         });
         this._consumer.register({ job: { type: options.consumer.jobType } });
-        this._consumer.on('job', job => {
-            this._queueTasksBuilder(job);
+        this._consumer.on('job', async job => {
+            try {
+                await this._queueTasksBuilder(job);
+            }
+            catch (error) {
+                job.done(error);
+            }
         });
     }
 
@@ -38,6 +43,9 @@ class JobConsumer extends EventEmitter {
 
     async _queueTasksBuilder(job) {
         const pipeline = await persistence.getExecution({ jobId: job.data.jobId });
+        if (!pipeline) {
+            throw new Error(`unable to find pipeline for job ${job.data.jobId}`);
+        }
         const jobs = this._pipelineToQueueAdapter(pipeline, job.data.jobId);
         queueRunner.queue.add([jobs]);
         job.done();
