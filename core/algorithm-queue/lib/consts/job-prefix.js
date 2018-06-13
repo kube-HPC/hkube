@@ -1,4 +1,4 @@
-const JOB_PREFIX = 'pipeline-queue';
+const JOB_PREFIX = 'algorithm-queue';
 
 
-module.exports = {JOB_PREFIX};
+module.exports = { JOB_PREFIX };
