@@ -8,12 +8,12 @@ class AlgorithmQueueAdapter extends Adapter {
     }
 
     async getData() {
-        const algorithms = await stateManager.getAlgorithmQueue();
-        algorithms.forEach(al => {
+        const queue = await stateManager.getAlgorithmQueue();
+        queue.forEach(al => {
             al.data = al.data.map(a => ({ name: a.algorithmName, score: a.calculated.score }));
         });
-        metricsProvider.setPodsRequests(algorithms);
-        return algorithms;
+        metricsProvider.setPodsRequests(queue);
+        return queue;
     }
 }
 

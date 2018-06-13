@@ -1,16 +1,18 @@
 const Adapter = require('./../Adapter');
-// const stateManager = require('../../state/state-manager');
+const stateManager = require('../../state/state-manager');
 
-class PipelineDriversAdapter extends Adapter {
+class PipelineDriversQueueAdapter extends Adapter {
     constructor(options, name) {
         super(options, name);
     }
 
     async getData() {
-        // const queue = await stateManager.getPipelineDriverQueue();
-        // return queue;
-        return [];
+        const queue = await stateManager.getPipelineDriverQueue();
+        queue.forEach(al => {
+            al.data = al.data.map(a => ({ name: 'pipeline-job', score: a.calculated.score }));
+        });
+        return queue;
     }
 }
 
-module.exports = PipelineDriversAdapter;
+module.exports = PipelineDriversQueueAdapter;

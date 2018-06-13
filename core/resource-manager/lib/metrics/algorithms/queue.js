@@ -1,8 +1,8 @@
 const Metric = require('../Metric');
-const queueUtils = require('../../utils/algorithm-queue');
+const queueUtils = require('../../utils/queue');
 const ResourceAllocator = require('../../resources/resource-allocator');
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../../common/consts/componentNames').RUNNER;
+const component = require('../../../common/consts/componentNames').ALGORITHM_QUEUE;
 
 class QueueMetric extends Metric {
     constructor(options, name) {
@@ -24,9 +24,9 @@ class QueueMetric extends Metric {
     }
 
     _text(queue) {
-        const text = queue.map(q => `${q.data.length + q.pendingAmount} ${q.queueName}`).sort().join(', ');
-        if (text !== this._state) {
-            log.debug(`request queue: ${text}`, { component });
+        const text = queue.map(q => `${q.data.length + q.pendingAmount} ${q.name}`).sort().join(', ');
+        if (text && text !== this._state) {
+            log.debug(`requested queue: ${text}`, { component });
             this._state = text;
         }
     }

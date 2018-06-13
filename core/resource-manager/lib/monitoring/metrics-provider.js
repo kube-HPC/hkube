@@ -20,7 +20,7 @@ class MetricsProvider {
 
     setPodsRequests(data) {
         data.forEach(d => {
-            this._podsRequestsMeasure.set({ value: d.data.length, labelValues: { [CONST.ALGORITHM_NAME]: d.queueName } });
+            this._podsRequestsMeasure.set({ value: d.data.length, labelValues: { [CONST.ALGORITHM_NAME]: d.name } });
         });
     }
 

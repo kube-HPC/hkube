@@ -1,6 +1,6 @@
 const Metric = require('../Metric');
 const { groupBy } = require('../../utils/utils');
-const queueUtils = require('../../utils/algorithm-queue');
+const queueUtils = require('../../utils/queue');
 const AlgorithmRatios = require('../../resources/ratios-allocator');
 const ResourceAllocator = require('../../resources/resource-allocator');
 

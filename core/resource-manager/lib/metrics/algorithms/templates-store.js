@@ -1,7 +1,7 @@
 
 const Metric = require('../Metric');
 const orderBy = require('lodash.orderby');
-const queueUtils = require('../../utils/algorithm-queue');
+const queueUtils = require('../../utils/queue');
 const ResourceAllocator = require('../../resources/resource-allocator');
 
 class TemplatesStoreMetric extends Metric {

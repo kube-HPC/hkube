@@ -1,6 +1,6 @@
 [
     {
-        "queueName": "black-alg",
+        "name": "black-alg",
         "data": [
             {
                 "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
@@ -485,7 +485,7 @@
         ]
     },
     {
-        "queueName": "green-alg",
+        "name": "green-alg",
         "data": [
             {
                 "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
@@ -970,7 +970,7 @@
         ]
     },
     {
-        "queueName": "eval-alg",
+        "name": "eval-alg",
         "data": [
             {
                 "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",
@@ -1455,7 +1455,7 @@
         ]
     },
     {
-        "queueName": "yellow-alg",
+        "name": "yellow-alg",
         "data": [
             {
                 "jobID": "big-batch: 4168d796-c97d-4820-987e-f0912edd6161",

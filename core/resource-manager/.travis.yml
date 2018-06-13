@@ -16,7 +16,7 @@ install:
 #  directories:
 #  - node_modules
 script:
-- NODE_ENV=test npm run-script test-travis
+- npm run-script test-travis
 after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
 after_success:
 - |

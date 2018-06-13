@@ -10,7 +10,7 @@ class TemplatesStoreAdapter extends Adapter {
 
     async getData() {
         const data = Object.create(null);
-        data['pipeline-driver'] = {
+        data['pipeline-job'] = {
             cpu: 0.1,
             mem: 0
         };

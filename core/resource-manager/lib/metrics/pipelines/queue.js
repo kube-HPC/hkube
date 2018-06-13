@@ -1,8 +1,9 @@
 
 const Metric = require('../Metric');
-const queueUtils = require('../../utils/pipeline-queue');
+const queueUtils = require('../../utils/queue');
 const ResourceAllocator = require('../../resources/resource-allocator');
-const utils = require('../../utils/utils');
+const log = require('@hkube/logger').GetLogFromContainer();
+const component = require('../../../common/consts/componentNames').PIPELINES_QUEUE;
 
 class QueueMetric extends Metric {
     constructor(options, name) {
@@ -11,17 +12,29 @@ class QueueMetric extends Metric {
     }
 
     calc(options) {
-        const option = {
-            resourceThresholds: this.options.resourceThresholds,
-            k8s: options.algorithms.k8s,
-            templatesStore: options.pipelines.templatesStore
-        };
-        const resourceAllocator = new ResourceAllocator(option);
-        const queue = queueUtils.order(options.pipelines.queue, 'pipeline-driver');
-        queue.forEach(r => resourceAllocator.allocate(r.name));
-        let results = resourceAllocator.results();
-        results = utils.mapToArray(results, ['name', 'data']);
+        let results = Object.create(null);
+        const queue = queueUtils.order(options.pipelines.queue, 'pipeline-job');
+        this._text(options.pipelines.queue);
+        if (queue.length > 0) {
+            const option = {
+                resourceThresholds: this.options.resourceThresholds,
+                k8s: options.algorithms.k8s,
+                templatesStore: options.pipelines.templatesStore
+            };
+            const resourceAllocator = new ResourceAllocator(option);
+            queue.forEach(r => resourceAllocator.allocate(r.name));
+            results = resourceAllocator.results();
+        }
+        results = queueUtils.normalize(options.pipelines.queue, results);
         return results;
+    }
+
+    _text(queue) {
+        const text = queue.map(q => `${q.data.length + q.pendingAmount} ${q.name}`).sort().join(', ');
+        if (text && text !== this._state) {
+            log.debug(`requested queue: ${text}`, { component });
+            this._state = text;
+        }
     }
 }
 

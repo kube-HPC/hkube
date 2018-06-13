@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/kube-HPC/resource-manager/badge.svg?branch=master)](https://coveralls.io/github/kube-HPC/resource-manager?branch=master)
 
 
-![Diagram](/docs/images/resource-manager.png)
-
 ## Documentation
+
+See [hkube.io](http://hkube.io/)
 
