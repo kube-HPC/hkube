@@ -8,7 +8,7 @@ const components = require('../../common/consts/componentNames');
 const { tracer } = require('@hkube/metrics');
 const States = require('../state/States');
 const levels = require('../progress/progressLevels');
-const JOB_TYPE = 'pipeline-driver-job';
+const JOB_TYPE = 'pipeline-job';
 
 class JobProducer {
     init(options) {

@@ -7,7 +7,7 @@ module.exports = {
             properties: {
                 prefix: {
                     type: 'string',
-                    default: 'jobs-pipeline',
+                    default: 'pipeline-driver-queue',
                     description: 'prefix for all queue keys'
                 }
             }
