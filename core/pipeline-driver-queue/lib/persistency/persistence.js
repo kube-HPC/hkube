@@ -19,12 +19,12 @@ class Persistence {
         // log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT });
         const bullQueue = producerSingleton.get.getQueueByJobType(this.queueName);
         const pendingAmount = await bullQueue.getWaitingCount();
-        await this.etcd.pipelineDrivers.queue.set({ queueName: this.queueName, data, pendingAmount });
+        await this.etcd.pipelineDrivers.queue.set({ name: this.queueName, data, pendingAmount });
         // log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
     }
 
     get() {
-        return this.etcd.pipelineDrivers.queue.get({ queueName: this.queueName });
+        return this.etcd.pipelineDrivers.queue.get({ name: this.queueName });
     }
 
     getExecution(options) {
