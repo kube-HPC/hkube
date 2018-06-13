@@ -1,6 +1,6 @@
 const events = {
     INSERT: 'INSERT',
-    REMOVE: 'REOMVE',
+    REMOVE: 'REMOVE',
     POP: 'POP',
     UPDATE_SCORE: 'UPDATE_SCORE'
 };

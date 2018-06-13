@@ -1,7 +1,5 @@
-
-const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
-const components = require('../consts/component-name');
+const { JobStatus } = require('@hkube/etcd');
 const producerSingleton = require('../jobs/producer-singleton');
 
 class Persistence {
@@ -11,21 +9,18 @@ class Persistence {
     }
 
     init({ options }) {
-        this.options = options;
-        const { etcd, consumer, serviceName } = options;
-        this.queueName = consumer.jobType;
+        const { etcd, producer, serviceName } = options;
+        this.queueName = producer.jobType;
         this.etcd.init({ etcd, serviceName });
         return this;
     }
 
     async store(data) {
-        log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT });
+        // log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT });
         const bullQueue = producerSingleton.get.getQueueByJobType(this.queueName);
         const pendingAmount = await bullQueue.getWaitingCount();
-        const status = await this.etcd.pipelineDrivers.queue.set({ queueName: this.queueName, data, pendingAmount });
-        if (status) {
-            log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
-        }
+        await this.etcd.pipelineDrivers.queue.set({ queueName: this.queueName, data, pendingAmount });
+        // log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
     }
 
     get() {
@@ -38,6 +33,10 @@ class Persistence {
 
     setExecution(options) {
         return this.etcd.execution.set(options);
+    }
+
+    setJobStatus(options) {
+        return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
     }
 }
 

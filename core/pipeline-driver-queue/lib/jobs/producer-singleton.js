@@ -8,7 +8,7 @@ class ProducerSingleton {
 
     async init(options) {
         this.options = options;
-        this._producer = new Producer({ setting: { redis: options.redis, prefix: 'jobs-pipeline', tracer } });
+        this._producer = new Producer({ setting: { redis: options.redis, prefix: options.producer.prefix, tracer } });
     }
 
     get get() {

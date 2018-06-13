@@ -1,4 +1,4 @@
-const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line 
+const packageJson = require(process.cwd() + '/package.json');
 const config = {};
 const heuristicsNames = require('../../lib/consts/heuristics-name');
 
@@ -18,7 +18,13 @@ config.etcd = {
 };
 
 config.consumer = {
+    prefix: 'pipeline-driver-queue',
     jobType: 'pipeline-job'
+};
+
+config.producer = {
+    prefix: 'jobs-pipeline',
+    jobType: 'pipeline-driver-job'
 };
 
 config.queue = {
@@ -33,7 +39,6 @@ config.heuristicsWeights = {
 config.metrics = {
     collectDefault: true,
     server: {
-
         port: process.env.METRICS_PORT
     }
 };

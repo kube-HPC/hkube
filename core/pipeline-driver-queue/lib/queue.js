@@ -1,11 +1,11 @@
+const Events = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('./consts/component-name');
 const _ = require('lodash');
 const aigle = require('aigle');
-const events = require('events');
-const queueEvents = require('./consts/queue-events');
+const { queueEvents } = require('./consts');
 
-class Queue extends events {
+class Queue extends Events {
     constructor({ scoreHeuristic = { run: null }, updateInterval = 1000, persistence = null } = {}) {
         super();
         log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE });
@@ -49,11 +49,11 @@ class Queue extends events {
     }
 
     async persistenceStore() {
-        log.debug('try to store data to  storage', { component: components.QUEUE });
+        // log.debug('try to store data to storage', { component: components.QUEUE });
         if (this.persistence) {
             try {
                 await this.persistence.store(this.queue);
-                log.debug('store data to storage succeed', { component: components.QUEUE });
+                // log.debug('store data to storage succeed', { component: components.QUEUE });
             }
             catch (e) {
                 log.warning('fail to store data', { component: components.QUEUE });
@@ -95,15 +95,6 @@ class Queue extends events {
         return job;
     }
 
-    removeJobId(jobsId) {
-        if (this.isScoreDuringUpdate) {
-            log.debug('remove -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
-            this.tempRemoveQueue = this.tempRemoveQueue.concat(jobsId);
-            return;
-        }
-        this._removeJobId(jobsId);
-    }
-
     remove(taskId) {
         if (this.isScoreDuringUpdate) {
             log.debug('remove -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
@@ -128,7 +119,7 @@ class Queue extends events {
 
     _insert(jobArr) {
         if (jobArr.length === 0) {
-            log.debug('there is no new inserted jobs', { component: components.QUEUE });
+            // log.debug('there is no new inserted jobs', { component: components.QUEUE });
             return;
         }
         this.queue = _.orderBy([...this.queue, ...jobArr], j => j.calculated.score, 'desc');
@@ -136,21 +127,9 @@ class Queue extends events {
         log.info(`new jobs inserted to queue jobs: ${jobArr.length}`, { component: components.QUEUE });
     }
 
-    _removeJobID(jobArr) {
-        if (jobArr.length === 0) {
-            log.debug('there is no deleted jobs', { component: components.QUEUE });
-            return;
-        }
-        log.info(`${[...jobArr]} removed from queue  `, { component: components.QUEUE });
-        jobArr.forEach((jobId) => {
-            _.remove(this.queue, job => job.jobId === jobId);
-        });
-        this.emit(queueEvents.REMOVE, jobArr);
-    }
-
     _remove(taskArr) {
         if (taskArr.length === 0) {
-            log.debug('there is no deleted jobs', { component: components.QUEUE });
+            // log.debug('there is no deleted jobs', { component: components.QUEUE });
             return;
         }
         log.info(`${[...taskArr]} removed from queue  `, { component: components.QUEUE });
@@ -177,7 +156,7 @@ class Queue extends events {
             try {
                 this.isScoreDuringUpdate = true;
                 await this.updateScore();
-                log.debug('queue update score cycle starts', { component: components.QUEUE });
+                // log.debug('queue update score cycle starts', { component: components.QUEUE });
                 this._mergeTemp();
                 await this.persistenceStore();
                 this.isScoreDuringUpdate = false;

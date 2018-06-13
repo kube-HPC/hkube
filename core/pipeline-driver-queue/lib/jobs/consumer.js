@@ -1,12 +1,8 @@
 const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
-const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { jobPrefix, componentName } = require('../consts');
-const component = componentName.CONSUMER;
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
-let log;
 
 class JobConsumer extends EventEmitter {
     constructor() {
@@ -15,35 +11,34 @@ class JobConsumer extends EventEmitter {
     }
 
     async init(options) {
-        log = Logger.GetLogFromContainer();
         this._consumer = new Consumer({
             setting: {
                 redis: options.redis,
                 tracer,
-                prefix: jobPrefix.JOB_PREFIX
+                prefix: options.consumer.prefix
             }
         });
         this._consumer.register({ job: { type: options.consumer.jobType } });
         this._consumer.on('job', job => {
-            this.queueTasksBuilder(job);
+            this._queueTasksBuilder(job);
         });
     }
 
-    pipelineToQueueAdapter(pipeline, jobId) {
+    _pipelineToQueueAdapter(pipeline, jobId) {
         return {
-            priority: pipeline.priority,
             jobId,
+            pipelineName: pipeline.name,
+            priority: pipeline.priority,
+            entranceTime: Date.now(),
             calculated: {
-                latestScores: {},
-                //  score: '1-100',
-                entranceTime: Date.now()
+                latestScores: {}
             }
         };
     }
 
-    async queueTasksBuilder(job) {
+    async _queueTasksBuilder(job) {
         const pipeline = await persistence.getExecution({ jobId: job.data.jobId });
-        const jobs = this.pipelineToQueueAdapter(pipeline, job.data.jobId);
+        const jobs = this._pipelineToQueueAdapter(pipeline, job.data.jobId);
         queueRunner.queue.add([jobs]);
         job.done();
     }

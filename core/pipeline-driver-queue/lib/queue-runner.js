@@ -16,7 +16,6 @@ class QueueRunner {
     async init(config) {
         log.info('queue runner started', { component: componentName.QUEUE_RUNNER });
         this.config = config;
-        log.debug('start filling heuristics', { component: componentName.QUEUE_RUNNER });
         this.heuristicRunner.init(this.config.heuristicsWeights);
         Object.values(heuristic).map(v => this.heuristicRunner.addHeuristicToQueue(v));
         log.debug('calling to queue', { component: componentName.QUEUE_RUNNER });
