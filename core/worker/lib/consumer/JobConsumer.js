@@ -106,6 +106,11 @@ class JobConsumer extends EventEmitter {
         return this._consumer.resume({ type: this._options.jobConsumer.job.type });
     }
     async updateDiscovery(data) {
+        const discoveryInfo = this.getDiscoveryData(data);
+        await etcd.updateDiscovery(discoveryInfo);
+    }
+
+    getDiscoveryData(data) {
         const { workerStatus, jobStatus, error } = this._getStatus(data);
         const discoveryInfo = {
             jobID: this._jobID,
@@ -119,7 +124,7 @@ class JobConsumer extends EventEmitter {
             workerPaused: this.isConsumerPaused,
             error
         };
-        await etcd.updateDiscovery(discoveryInfo);
+        return discoveryInfo;
     }
 
     _registerMetrics() {

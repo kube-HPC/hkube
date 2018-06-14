@@ -14,7 +14,11 @@ class EtcdDiscovery extends EventEmitter {
         log = Logger.GetLogFromContainer();
         this._etcd = new Etcd();
         await this._etcd.init(options.etcdDiscovery.init);
-        await this._etcd.discovery.register({ serviceName: options.etcdDiscovery.init.serviceName });
+        const discoveryInfo = {
+            algorithmName: options.jobConsumer.job.type,
+            podName: options.kubernetes.pod_name,
+        };
+        await this._etcd.discovery.register({ data: discoveryInfo});
         log.info(`registering worker discovery for id ${this._etcd.discovery._instanceId}`);
 
         await this.watchWorkerStates();
