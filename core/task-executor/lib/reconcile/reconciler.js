@@ -63,8 +63,11 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
     const merged = mergeWorkers(normPods, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
     const normResouces = normalizeResources(resources);
+    log.debug(`resources:\n${JSON.stringify(normResouces, null, 2)}`);
     const isCpuPresure = normResouces.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResouces.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
+    log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
+
     const isResourcePresure = isCpuPresure || isMemoryPresure;
     const createPromises = [];
     const reconcileResult = {};
@@ -110,7 +113,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
             const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName }); // eslint-disable-line
             const algorithmImage = setAlgorithmImage(algorithmTemplate, versions);
             const workerImage = setWorkerImage(algorithmTemplate, versions);
-            const resourceLimits = createContainerResource(algorithmTemplate);
+            const resourceRequests = createContainerResource(algorithmTemplate);
             const { workerEnv, algorithmEnv } = algorithmTemplate;
             createPromises.push(_createJobs(numberOfNewJobs, {
                 algorithmName,
@@ -118,7 +121,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
                 workerImage,
                 workerEnv,
                 algorithmEnv,
-                resourceLimits
+                resourceRequests
             }));
         }
     }

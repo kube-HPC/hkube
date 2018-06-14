@@ -106,7 +106,7 @@ const applyName = (inputSpec, algorithmName) => {
     return spec;
 };
 
-const createJobSpec = ({ algorithmName, resourceRequests, resourceLimits, workerImage, algorithmImage, workerEnv, algorithmEnv }) => {
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
