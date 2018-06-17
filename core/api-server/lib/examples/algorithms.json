@@ -15,12 +15,12 @@
         "name": "yellow-alg",
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
-        "mem": 1
+        "mem": 256
     },
     {
         "name": "black-alg",
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 0.5,
-        "mem": 1
+        "mem": 256
     }
 ]
