@@ -821,19 +821,18 @@ describe('Rest', () => {
                         expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
                     });
                     it('should return specific algorithm', async () => {
-
                         const body = {
                             "name": "test-alg",
                             "algorithmImage": "hkube/algorithm-example",
                             "cpu": 1,
-                            "mem": "600Ki"
+                            "mem": "5000Ki"
                         };
                         const options = {
                             uri: restUrl + '/store/algorithms',
                             method: 'POST',
                             body
                         };
-                        let r = await _request(options);
+                        await _request(options);
 
                         const getOptions = {
                             uri: restUrl + '/store/algorithms/test-alg',
@@ -912,6 +911,23 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal('data.name should be string');
                     });
+                    it('should throw validation error of memory min 4 Mi', async () => {
+                        const body = {
+                            name: uuidv4(),
+                            algorithmImage: "image",
+                            mem: "3900Ki",
+                            cpu: 1
+                        }
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/algorithms',
+                            body
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
+                    });
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
                         const options = {
                             method: 'POST',
@@ -959,6 +975,19 @@ describe('Rest', () => {
                     });
                 });
                 describe('/store/algorithms PUT', () => {
+                    it('should throw validation error of memory min 4 Mi', async () => {
+                        const body = Object.assign({}, algorithms[0]);
+                        body.mem = '3900Ki';
+                        const options = {
+                            method: 'PUT',
+                            uri: restUrl + '/store/algorithms',
+                            body
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
+                    });
                     it('should succeed to update algorithm', async () => {
                         const body = Object.assign({}, algorithms[0]);
                         const options = {

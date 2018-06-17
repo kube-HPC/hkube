@@ -1,11 +1,13 @@
 
 const validator = require('djsv');
+const converter = require('@hkube/units-converter');
 const { parser } = require('@hkube/parsers');
 const { Graph, alg } = require('graphlib');
 const { CronJob } = require('cron');
 const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
 const { InvalidDataError, } = require('../errors/errors');
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
+const MIN_MEMORY = 4;
 
 class Validator {
     constructor() {
@@ -57,6 +59,7 @@ class Validator {
 
     validateUpdateAlgorithm(algorithm) {
         this._validate(schemas.algorithm, algorithm);
+        this._validateMemory(algorithm);
     }
 
     validateName(pipeline) {
@@ -136,6 +139,22 @@ class Validator {
 
     _validateUrl(url) {
         return URL_REGEX.test(url);
+    }
+
+    _validateMemory(algorithm) {
+        if (!algorithm.mem) {
+            algorithm.mem = 4;
+            return;
+        }
+        try {
+            algorithm.mem = converter.getMemoryInMi(algorithm.mem);
+        }
+        catch (ex) {
+            throw new InvalidDataError(ex.message);
+        }
+        if (algorithm.mem < MIN_MEMORY) {
+            throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
+        }
     }
 
     _validateCron(cron) {
