@@ -74,7 +74,7 @@ class WebhooksHandler {
 
     _request(url, body, type, pipelineStatus, jobId) {
         return new Promise((resolve) => {
-            log.debug(`trying to call ${type} webhook ${url}`, { component: components.WEBHOOK_HANDLER });
+            log.debug(`trying to call ${type} webhook ${url} (${pipelineStatus})`, { component: components.WEBHOOK_HANDLER });
             const data = {
                 url,
                 pipelineStatus,

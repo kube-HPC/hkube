@@ -3,7 +3,7 @@ const storageFactory = require('../../lib/datastore/storage-factory');
 
 class WorkerStub {
 
-    async done({ jobId, taskId, data }) {
+    async done({ jobId, data }) {
         const results = {
             jobId,
             status: 'completed',

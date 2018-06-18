@@ -31,11 +31,6 @@ const _request = (options) => {
         });
     });
 }
-function split(input) {
-    return new Promise((resolve) => {
-        setTimeout(() => resolve(input[0].split(' ')), 80000);
-    });
-}
 
 describe('Rest', () => {
     before(async () => {
@@ -505,7 +500,7 @@ describe('Rest', () => {
                         const jobId = responseRun.body.jobId;
                         const taskId = responseRun.body.jobId;
                         const data = 500;
-                        await workerStub.done({ jobId, taskId, data });
+                        await workerStub.done({ jobId, data });
 
                         const options = {
                             uri: restUrl + `/exec/results/${responseRun.body.jobId}`,
@@ -604,7 +599,7 @@ describe('Rest', () => {
                         };
                         const data = [100, 200, 300];
                         const responses = await Promise.all(data.map(d => _request(optionsRun)));
-                        await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, taskId: r.body.jobId, data: data[i] })));
+                        await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, data: data[i] })));
 
                         const qs = querystring.stringify({ sort: 'desc', limit: 3 });
                         const options = {
@@ -699,13 +694,12 @@ describe('Rest', () => {
                             method: 'POST',
                             uri: `${baseUrl}/internal/v1/exec/stored`,
                             body: {
-                                name: pipeline,
-                                jobId: 'cron'
+                                name: pipeline
                             }
                         };
                         const data = [100, 200, 300];
                         const responses = await Promise.all(data.map(d => _request(optionsRun)));
-                        await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, taskId: r.body.jobId, data: data[i] })));
+                        await Promise.all(responses.map((r, i) => workerStub.done({ jobId: r.body.jobId, data: data[i] })));
 
                         const qs = querystring.stringify({ sort: 'desc', limit: 3 });
                         const options = {
@@ -1134,6 +1128,51 @@ describe('Rest', () => {
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'nodeName'");
+                    });
+                    it('should throw validation error of cron trigger', async () => {
+                        const pipeline = clone(pipelines[0]);
+                        pipeline.triggers = {
+                            cron: "bla"
+                        }
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: pipeline
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.triggers.cron should match format "cron"');
+                    });
+                    it('should throw validation error of pipelines trigger should be array', async () => {
+                        const pipeline = clone(pipelines[0]);
+                        pipeline.triggers = {
+                            pipelines: 1
+                        }
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: pipeline
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.triggers.pipelines should be array');
+                    });
+                    it('should throw validation error of pipelines trigger should NOT be shorter than 1 characters', async () => {
+                        const pipeline = clone(pipelines[0]);
+                        pipeline.triggers = {
+                            pipelines: [""]
+                        };
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/store/pipelines',
+                            body: pipeline
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('data.triggers.pipelines[0] should NOT be shorter than 1 characters');
                     });
                     it('should throw validation error of required property nodes.algorithmName', async () => {
                         const options = {
@@ -1594,11 +1633,12 @@ describe('Rest', () => {
             });
         });
     });
-
     describe('Rest internal', () => {
         let restUrl = null;
+        let realUrl = null;
         before(() => {
             restUrl = `${baseUrl}/internal/v1`;
+            realUrl = `${baseUrl}/${config.rest.prefix}/${versions[0]}`;
         });
         it('should throw error when invalid pipeline name', async () => {
             const options = {
@@ -1608,18 +1648,7 @@ describe('Rest', () => {
             const response = await _request(options);
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
-        it('should throw error when invalid parent job id', async () => {
-            const options = {
-                method: 'POST',
-                uri: `${restUrl}/exec/stored`,
-                body: {
-                    name: 'flow1'
-                }
-            };
-            const response = await _request(options);
-            expect(response.body.error.message).to.equal(`data should have required property 'jobId'`);
-        });
-        xit('should succeed and return job id', async () => {
+        it('should succeed and return job id', async () => {
             const options = {
                 method: 'POST',
                 uri: `${restUrl}/exec/stored`,
@@ -1631,7 +1660,19 @@ describe('Rest', () => {
             const response = await _request(options);
             expect(response.body).to.have.property('jobId');
         });
-        xit('should succeed without reaching too many request', async () => {
+        it('should succeed and return job id', async () => {
+            const options = {
+                method: 'POST',
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1',
+                    jobId: uuidv4()
+                }
+            };
+            const response = await _request(options);
+            expect(response.body).to.have.property('jobId');
+        });
+        it('should succeed without reaching too many request', async () => {
             const requests = 10;
             const promises = [];
             const pipeline = 'flow1';
@@ -1651,6 +1692,143 @@ describe('Rest', () => {
             expect(jobs).to.have.lengthOf(requests);
             expect(jobs.every(j => j.includes(pipeline))).to.equal(true);
         });
+        it('should run triggered pipelines and the executions tree', async () => {
+            const requests = 10;
+            const pipeline = 'trigger-test';
+            const results = [];
+
+            // insert 10 triggered pipelines
+            for (let i = 1; i < requests; i++) {
+                const body = {
+                    name: `${pipeline}-${i}`,
+                    nodes: [
+                        {
+                            "nodeName": "green",
+                            "algorithmName": "green-alg",
+                            "input": [
+                                "@flowInput"
+                            ]
+                        }
+                    ],
+                    flowInput: {
+                        "files": {
+                            "link": "links-1"
+                        }
+                    },
+                    triggers: {
+                        pipelines: [
+                            `${pipeline}-${(i + 1)}`
+                        ]
+                    }
+                }
+                const options = {
+                    uri: realUrl + '/store/pipelines',
+                    method: 'POST',
+                    body
+                };
+                await _request(options);
+            }
+
+            // run the first pipeline
+            const options = {
+                method: 'POST',
+                uri: `${realUrl}/exec/stored`,
+                body: {
+                    name: `${pipeline}-${1}`
+                }
+            };
+
+            const response = await _request(options);
+            const firstJobId = response.body.jobId;
+            let jobId = response.body.jobId
+            results.push(jobId);
+
+            // run the rest of the triggered pipelines
+            for (let i = 1; i < requests; i++) {
+                const name = `${pipeline}-${(i + 1)}`;
+                const options = {
+                    method: 'POST',
+                    uri: `${restUrl}/exec/stored`,
+                    body: {
+                        name,
+                        jobId
+                    }
+                };
+                const res = await _request(options);
+                jobId = res.body.jobId
+                results.push(jobId);
+            }
+
+            // get the exec tree
+            const opt = {
+                uri: realUrl + `/exec/tree/${firstJobId}`,
+                method: 'GET'
+            };
+            const tree = await _request(opt);
+            expect(tree.body[0]).to.have.property('children');
+            expect(tree.body[0]).to.have.property('jobId');
+            expect(tree.body[0]).to.have.property('name');
+        });
+        it('should run triggered cron pipelines and get the results', async () => {
+            const requests = 20;
+            const limit = 12;
+            const pipeline = 'cron-test';
+            const results = [];
+
+            const options = {
+                uri: realUrl + '/store/pipelines',
+                method: 'POST',
+                body: {
+                    name: `${pipeline}`,
+                    nodes: [
+                        {
+                            "nodeName": "green",
+                            "algorithmName": "green-alg",
+                            "input": [
+                                "@flowInput"
+                            ]
+                        }
+                    ],
+                    flowInput: {
+                        "files": {
+                            "link": "links-1"
+                        }
+                    }
+                }
+            };
+            await _request(options);
+
+            // run the rest of the triggered pipelines
+            for (let i = 0; i < requests; i++) {
+                const name = `${pipeline}`;
+                const options = {
+                    method: 'POST',
+                    uri: `${restUrl}/exec/stored`,
+                    body: {
+                        name
+                    }
+                };
+                const res = await _request(options);
+                await workerStub.done({ jobId: res.body.jobId, data: i });
+                results.push(res.body.jobId);
+            }
+
+            // get the cron results
+            const qs = querystring.stringify({ sort: 'desc', limit });
+            const opt = {
+                uri: realUrl + `/exec/cron/results/${pipeline}?${qs}`,
+                method: 'GET'
+            };
+            const response = await _request(opt);
+            expect(response.response.statusCode).to.equal(200);
+            expect(response.body).to.have.lengthOf(limit);
+            expect(response.body[0]).to.have.property('jobId');
+            expect(response.body[0]).to.have.property('data');
+            expect(response.body[0]).to.have.property('storageModule');
+            expect(response.body[0]).to.have.property('status');
+            expect(response.body[0]).to.have.property('timeTook');
+            expect(response.body[0]).to.have.property('timestamp');
+        }).timeout(10000);
         it('pipeline tree call stack by trigger', async () => {
             let prefix = '57ec5c39-122b-4d7c-bc8f-580ba30df511';
             await Promise.all([

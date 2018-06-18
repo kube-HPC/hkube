@@ -51,21 +51,28 @@ class ExecutionService {
         const option = {
             name: options.name
         };
-        let results = await stateManager.getJobResult({ jobId: options.jobId });
-        if (results && results.data) {
-            results = results.data.map(r => r.result);
-            option.flowInput = results;
+        let jobId;
+        if (options.jobId) {
+            jobId = this._createStoredJobID(options);
+            let results = await stateManager.getJobResult({ jobId: options.jobId });
+            if (results && results.data) {
+                results = results.data.map(r => r.result);
+                option.flowInput = results;
+            }
         }
-        return this._runStored(option, [options.jobId, options.name, uuidv4()].join(':'));
+        else {
+            jobId = this._createCronJobID(options, uuidv4());
+        }
+        return this._runStored(option, jobId);
     }
 
     async _runStored(options, jobId) {
-        const pipe = await stateManager.getPipeline(options);
-        if (!pipe) {
+        const pipeline = await stateManager.getPipeline(options);
+        if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        const pipeline = Object.assign({}, pipe, options);
-        return this._run(pipeline, jobId);
+        const pipe = { ...pipeline, ...options };
+        return this._run(pipe, jobId);
     }
 
     /**
@@ -204,7 +211,7 @@ class ExecutionService {
 
     async getCronResult(options) {
         validator.validateResultList(options);
-        const jobId = ['cron', options.name].join(':');
+        const jobId = this._createCronJobID(options);
         const response = await stateManager.getJobResults({ ...options, jobId });
         if (response.length === 0) {
             throw new ResourceNotFoundError('cron results', options.name);
@@ -243,6 +250,14 @@ class ExecutionService {
             throw new ResourceNotFoundError('jobs', options.jobId);
         }
         return jobs;
+    }
+
+    _createStoredJobID(options) {
+        return [options.jobId, options.name].join('.');
+    }
+
+    _createCronJobID(options, uuid) {
+        return ['cron', options.name, uuid].join(':');
     }
 
     _createJobID(options) {

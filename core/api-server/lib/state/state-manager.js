@@ -66,8 +66,8 @@ class StateManager extends EventEmitter {
     }
 
     async _watchJobResults() {
-        await this._etcd.jobResults.watch();
-        await this._etcd.jobStatus.watch();
+        await this._etcd.jobResults.singleWatch();
+        await this._etcd.jobStatus.singleWatch();
         this._etcd.jobResults.on('change', (result) => {
             this.emit('job-result', result);
         });

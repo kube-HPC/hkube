@@ -1489,7 +1489,11 @@
                 "properties": {
                     "pipelines": {
                         "type": "array",
-                        "description": "pipelines to activate upon result"
+                        "description": "pipelines to activate upon result",
+                        "items": {
+                            "type": "string",
+                            "minLength": 1
+                        }
                     },
                     "cron": {
                         "type": "string",
@@ -1689,8 +1693,7 @@
                     }
                 },
                 "required": [
-                    "name",
-                    "jobId"
+                    "name"
                 ]
             }
         }

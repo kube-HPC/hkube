@@ -318,59 +318,161 @@
         }
     },
     {
-        "name": "simple_trigger2",
+        "name": "trigger1",
         "nodes": [
             {
-                "nodeName": "split",
-                "algorithmName": "eval-alg",
+                "nodeName": "green",
+                "algorithmName": "green-alg",
                 "input": [
-                    "#@flowInput.text"
-                ],
-                "extraData": {
-                    "code": [
-                        "function split(input) {",
-                        "return input[0].split(' ');",
-                        "}"
-                    ]
-                }
+                    "@flowInput"
+                ]
             },
             {
-                "nodeName": "reduce",
-                "algorithmName": "eval-alg",
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
                 "input": [
-                    "*@split"
-                ],
-                "extraData": {
-                    "code": [
-                        "function reduce(input) {",
-                        "return input[0].reduce((all, word) => { ",
-                        "if (word in all) {",
-                        "all[word]++;",
-                        "}",
-                        "else {",
-                        "all[word] = 1;",
-                        "}",
-                        "return all;",
-                        "}, {});",
-                        "}"
-                    ]
-                }
+                    "@green"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ]
             }
         ],
         "flowInput": {
-            "text": [
-                "In mathematics and computer science, a directed acyclic graph",
-                "edges, with each edge directed from one vertex to another",
-                "such that there is no way to start at any vertex v and follow"
+            "files": {
+                "link": "links-1"
+            }
+        },
+        "triggers": {
+            "pipelines": [
+                "trigger2"
             ]
         },
         "options": {
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
+        }
+    },
+    {
+        "name": "trigger2",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "link": "links-1"
+            }
         },
-        "webhooks": {
-            "progress": "http://localhost:3003/webhook/progress",
-            "result": "http://localhost:3003/webhook/result"
+        "triggers": {
+            "pipelines": [
+                "trigger3"
+            ]
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        }
+    },
+    {
+        "name": "trigger3",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "link": "links-1"
+            }
+        },
+        "triggers": {
+            "pipelines": [
+                "trigger4"
+            ]
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        }
+    },
+    {
+        "name": "trigger4",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "link": "links-1"
+            }
+        },
+        "triggers": {
+            "pipelines": []
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
         }
     },
     {
@@ -404,10 +506,6 @@
         "options": {
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
-        },
-        "webhooks": {
-            "progress": "http://localhost:3003/webhook/progress",
-            "result": "http://localhost:3003/webhook/result"
         }
     }
 ]

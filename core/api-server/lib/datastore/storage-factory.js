@@ -8,14 +8,6 @@ class StorageFactory {
         await this.adapter.init(storage.connection, log, true);
     }
 
-    async _setResultsFromStorage(options) {
-        let response = options;
-        if (options.data) {
-            response = await Promise.all(options.data.map(a => this._getStorageItem(a)));
-        }
-        return response;
-    }
-
     async getResults(options) {
         if (options && options.data) {
             const data = await this.adapter.get(options.data.storageInfo);
