@@ -116,12 +116,6 @@ describe('test', () => {
                 done();
             })
         });
-        it('should throw error when pass invalid jobId', (done) => {
-            pipelineProducer.produce({ name: 'name' }).catch(error => {
-                expect(error.message).to.equal('invalid jobId');
-                done();
-            })
-        });
         it('should send http request to api-server', async () => {
             const response = await pipelineProducer.produce({ name: 'name', jobId: 'jobId' });
             expect(response.body).to.have.property('jobId');
@@ -131,12 +125,6 @@ describe('test', () => {
         it('should throw error when pass invalid name', (done) => {
             triggerQueue.addTrigger({ jobId: 'jobId' }).catch(error => {
                 expect(error.message).to.equal('invalid name');
-                done();
-            })
-        });
-        it('should throw error when pass invalid jobId', (done) => {
-            triggerQueue.addTrigger({ name: 'name' }).catch(error => {
-                expect(error.message).to.equal('invalid jobId');
                 done();
             })
         });

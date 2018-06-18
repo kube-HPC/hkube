@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --colors --recursive --exit",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --colors --recursive --exit",
+    "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --colors --recursive --exit",
     "start": "node app",
     "build": "./dockerfile/build.sh trigger-service"
   },
@@ -27,7 +27,7 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.5",
-    "@hkube/etcd": "^4.0.7",
+    "@hkube/etcd": "^4.0.9",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.24",
     "@hkube/redis-utils": "^1.0.2",

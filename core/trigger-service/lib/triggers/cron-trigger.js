@@ -34,7 +34,7 @@ class CronTask {
 
     _onTick(trigger) {
         log.debug(`cron job for pipeline ${trigger.name} is executed according to schedule ${trigger.cron}`, { component: componentName.CRON });
-        triggerQueue.addTrigger({ name: trigger.name, jobId: 'cron' });
+        triggerQueue.addTrigger({ name: trigger.name });
     }
 
     _removeTrigger(trigger) {

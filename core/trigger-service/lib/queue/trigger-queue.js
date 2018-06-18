@@ -13,7 +13,8 @@ class TriggerQueue {
         this.queue = queue((trigger, callback) => {
             log.info(`try to send pipeline ${trigger.name} to api server`, { component: componentName.TRIGGER_QUEUE });
             pipelineProducer.produce(trigger).then((response) => {
-                log.info(`pipeline ${trigger.name} sent to api server, response: ${response.body.jobId}`, { component: componentName.TRIGGER_QUEUE });
+                const res = response.body.error ? response.body.error.message : response.body.jobId;
+                log.info(`pipeline ${trigger.name} sent to api server, response: ${res}`, { component: componentName.TRIGGER_QUEUE });
                 callback(null, response);
             }).catch((error) => {
                 log.error(`pipeline ${trigger.name} failed sending to api server, error: ${error}`, { component: componentName.TRIGGER_QUEUE });

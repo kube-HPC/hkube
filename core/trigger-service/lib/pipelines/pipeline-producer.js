@@ -18,9 +18,6 @@ class PipelineProducer {
         if (!trigger.name) {
             throw new Error('invalid name');
         }
-        if (!trigger.jobId) {
-            throw new Error('invalid jobId');
-        }
         return request({
             method: 'POST',
             uri: this._apiUrl,
