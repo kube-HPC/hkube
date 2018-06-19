@@ -1,23 +1,23 @@
 const templateStore = {
     'eval-alg': {
         algorithmImage: 'hkube/algorunner',
-        cpu: 500,
-        mem: 0
+        cpu: 0.5,
+        mem: '256Mi'
     },
     'green-alg': {
         algorithmImage: 'hkube/algorithm-example',
-        cpu: 7000,
-        mem: 0
+        cpu: 7,
+        mem: '512Mi'
     },
     'yellow-alg': {
         algorithmImage: 'hkube/algorithm-example',
-        cpu: 500,
-        mem: 0
+        cpu: 0.5,
+        mem: '128Mi'
     },
     'black-alg': {
         algorithmImage: 'hkube/algorithm-example',
-        cpu: 500,
-        mem: 0
+        cpu: 0.5,
+        mem: '128Mi'
     }
 };
 

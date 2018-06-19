@@ -54,13 +54,13 @@ const setAlgorithmImage = (template, versions) => {
 
 const _createContainerResourceByFactor = ({ cpu, mem }, factor = 1) => {
     const cpuFactored = (cpu || 0.1) * factor;
-    const memory = `${(mem || 1) * factor}Mi`;
+    const memory = `${(mem || 4) * factor}Mi`;
     return { cpu: cpuFactored, memory };
 };
 
 const createContainerResource = (template) => {
-    const requests = _createContainerResourceByFactor(template, 0.5);
-    const limits = _createContainerResourceByFactor(template, 1);
+    const requests = _createContainerResourceByFactor(template, 1);
+    const limits = _createContainerResourceByFactor(template, 2);
     return { requests, limits };
 };
 

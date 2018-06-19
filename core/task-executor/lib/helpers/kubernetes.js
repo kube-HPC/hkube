@@ -87,3 +87,4 @@ class KubernetesApi extends EventEmitter {
 }
 
 module.exports = new KubernetesApi();
+module.exports.KubernetesApi = KubernetesApi;

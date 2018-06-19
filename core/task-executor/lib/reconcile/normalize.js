@@ -58,6 +58,10 @@ const normalizeResources = ({ pods, nodes } = {}) => {
                 ratio: {
                     cpu: 0,
                     memory: 0
+                },
+                free: {
+                    cpu: 0,
+                    memory: 0
                 }
             }
         };
@@ -106,6 +110,10 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         resourcesPerNode[k].ratio = {
             cpu: resourcesPerNode[k].requests.cpu / resourcesPerNode[k].total.cpu,
             memory: resourcesPerNode[k].requests.memory / resourcesPerNode[k].total.memory,
+        };
+        resourcesPerNode[k].free = {
+            cpu: resourcesPerNode[k].total.cpu - resourcesPerNode[k].requests.cpu,
+            memory: resourcesPerNode[k].total.memory - resourcesPerNode[k].requests.memory,
         };
     });
 

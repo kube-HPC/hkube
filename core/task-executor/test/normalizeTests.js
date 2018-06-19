@@ -146,7 +146,7 @@ describe('normalize', () => {
         it('should return resources by node and totals', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.total.cpu).to.eq(23.4);
-            expect(res.allNodes.total.memory).to.eq(94677.796875);
+            expect(res.allNodes.total.memory).to.eq(98304);
             expect(res).to.have.property('node1');
             expect(res).to.have.property('node2');
             expect(res).to.have.property('node3');
@@ -154,11 +154,20 @@ describe('normalize', () => {
             expect(res.node2.requests.cpu).to.eq(0.25);
             expect(res.node3.requests.cpu).to.eq(0);
         });
+
+        it('should return resources free resources by node', () => {
+            const res = normalizeResources({ pods, nodes });
+            expect(res.allNodes.free.cpu).to.eq(22.95);
+            expect(res.allNodes.free.memory).to.eq(97664);
+            expect(res.node1.free.cpu).to.eq(7.6);
+            expect(res.node2.free.cpu).to.eq(7.55);
+            expect(res.node3.free.cpu).to.eq(7.8);
+        });
     });
     describe('merge workers', () => {
         it('should work with empty items', () => {
             const merged = mergeWorkers([], []);
-            expect(merged.mergedWorkers).to.be.an('array')
+            expect(merged.mergedWorkers).to.be.an('array');
             expect(merged.mergedWorkers).to.be.empty;
             expect(merged.extraJobs).to.be.an('array');
             expect(merged.extraJobs).to.be.empty;

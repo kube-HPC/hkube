@@ -7,24 +7,17 @@ const { workerCommands } = require('../../common/consts/states');
 const component = require('../../common/consts/componentNames').RECONCILER;
 const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources } = require('./normalize');
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
-const MAX_JOBS_PER_TICK = 30;
-const CPU_RATIO_PRESURE = 0.8;
-const MEMORY_RATIO_PRESURE = 0.8;
-const _createJobs = async (numberOfJobs, jobDetails) => {
-    log.debug(`need to add ${numberOfJobs} jobs with details ${JSON.stringify(jobDetails, null, 2)}`, { component });
-    if (numberOfJobs > MAX_JOBS_PER_TICK) {
-        numberOfJobs = MAX_JOBS_PER_TICK;
-    }
+const { matchJobsToResources } = require('./resources');
+const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = require('../../common/consts/consts');
 
-    const results = Array.from(Array(numberOfJobs).keys()).map(() => {
-        const spec = createJobSpec(jobDetails);
-        const jobCreateResult = kubernetes.createJob({ spec });
-        return jobCreateResult;
-    });
-    return Promise.all(results);
+const _createJob = async (jobDetails) => {
+    const spec = createJobSpec(jobDetails);
+    const jobCreateResult = kubernetes.createJob({ spec });
+    return jobCreateResult;
 };
 
-const _pendingJobjsFilter = (job, algorithmName) => {
+
+const _pendingJobsFilter = (job, algorithmName) => {
     const match = job.algorithmName === algorithmName;
     return match;
 };
@@ -62,13 +55,14 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const merged = mergeWorkers(normPods, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
-    const normResouces = normalizeResources(resources);
-    log.debug(`resources:\n${JSON.stringify(normResouces, null, 2)}`);
-    const isCpuPresure = normResouces.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
-    const isMemoryPresure = normResouces.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
+    const normResources = normalizeResources(resources);
+    log.debug(`resources:\n${JSON.stringify(normResources, null, 2)}`);
+    const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
+    const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
     log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
 
     const isResourcePresure = isCpuPresure || isMemoryPresure;
+    const createDetails = [];
     const createPromises = [];
     const reconcileResult = {};
     for (let r of normRequests) { // eslint-disable-line
@@ -76,7 +70,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
         // find workers currently for this algorithm
         const workersForAlgorithm = merged.mergedWorkers.filter(w => _idleWorkerFilter(w, algorithmName));
         const pausedWorkers = merged.mergedWorkers.filter(w => _pausedWorkerFilter(w, algorithmName));
-        const pendingWorkers = merged.extraJobs.filter(j => _pendingJobjsFilter(j, algorithmName));
+        const pendingWorkers = merged.extraJobs.filter(j => _pendingJobsFilter(j, algorithmName));
         reconcileResult[algorithmName] = {
             required: r.pods,
             idle: workersForAlgorithm.length,
@@ -101,7 +95,7 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
                 _stopWorkers(workersForAlgorithm, podDiff);
             }
             else {
-                log.debug(`resources ratio is: ${JSON.stringify(normResouces.allNodes.ratio)}. no need to stop pods`);
+                log.debug(`resources ratio is: ${JSON.stringify(normResources.allNodes.ratio)}. no need to stop pods`);
             }
         }
         else if (podDiff < 0) {
@@ -114,18 +108,28 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
             const algorithmImage = setAlgorithmImage(algorithmTemplate, versions);
             const workerImage = setWorkerImage(algorithmTemplate, versions);
             const resourceRequests = createContainerResource(algorithmTemplate);
-            const { workerEnv, algorithmEnv } = algorithmTemplate;
-            createPromises.push(_createJobs(numberOfNewJobs, {
-                algorithmName,
-                algorithmImage,
-                workerImage,
-                workerEnv,
-                algorithmEnv,
-                resourceRequests
-            }));
+            const { workerEnv, algorithmEnv, } = algorithmTemplate;
+            createDetails.push({
+                numberOfNewJobs,
+                jobDetails: {
+                    algorithmName,
+                    algorithmImage,
+                    workerImage,
+                    workerEnv,
+                    algorithmEnv,
+                    resourceRequests
+                }
+            });
         }
     }
+    const { created, skipped } = matchJobsToResources(createDetails, normResources);
+    createPromises.push(created.map(r => _createJob(r)));
     await Promise.all(createPromises);
+    // add created and skipped info
+    Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
+        res.created = created.filter(c => c.algorithmName === algorithmName).length;
+        res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
+    });
     return reconcileResult;
 };
 

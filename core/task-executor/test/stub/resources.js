@@ -165,12 +165,12 @@ const nodes = {
                 status: {
                     capacity: {
                         cpu: '8',
-                        memory: '32919088Ki',
+                        memory: '32Gi',
                         pods: '110'
                     },
                     allocatable: {
                         cpu: '7800m',
-                        memory: '32316688Ki',
+                        memory: '32Gi',
                         pods: '110'
                     },
                 }
@@ -183,12 +183,12 @@ const nodes = {
                 status: {
                     capacity: {
                         cpu: '8',
-                        memory: '32919088Ki',
+                        memory: '32Gi',
                         pods: '110'
                     },
                     allocatable: {
                         cpu: '7800m',
-                        memory: '32316688Ki',
+                        memory: '32Gi',
                         pods: '110'
                     },
                 }
@@ -201,12 +201,12 @@ const nodes = {
                 status: {
                     capacity: {
                         cpu: '8',
-                        memory: '32919088Ki',
+                        memory: '32Gi',
                         pods: '110'
                     },
                     allocatable: {
                         cpu: '7800m',
-                        memory: '32316688Ki',
+                        memory: '32Gi',
                         pods: '110'
                     },
                 }
