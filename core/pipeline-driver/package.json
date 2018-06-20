@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.1.11",
+  "version": "1.1.12",
   "description": "pipeline execution based on producer-consumer",
   "main": "app.js",
   "directories": {
