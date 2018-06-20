@@ -6,7 +6,6 @@ const { TASKS } = require('../consts/Events');
 const { tracer } = require('@hkube/metrics');
 
 class JobProducer extends EventEmitter {
-
     constructor() {
         super();
         this._producer = null;
@@ -40,7 +39,7 @@ class JobProducer extends EventEmitter {
                 type: options.type,
                 data: options.data,
             }
-        }
+        };
         if (options.data && options.data.jobID) {
             const topSpan = tracer.topSpan(options.data.jobID);
             if (topSpan) {
@@ -49,7 +48,7 @@ class JobProducer extends EventEmitter {
                     tags: {
                         taskID: opt.job.taskID
                     }
-                }
+                };
             }
         }
         return this._producer.createJob(opt);

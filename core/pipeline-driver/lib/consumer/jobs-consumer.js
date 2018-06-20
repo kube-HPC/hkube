@@ -5,7 +5,6 @@ const TaskRunner = require('../tasks/task-runner');
 const { tracer } = require('@hkube/metrics');
 
 class JobConsumer {
-
     /**
      * Init the consumer and register for jobs
      * @param {*} options
@@ -28,7 +27,7 @@ class JobConsumer {
         this._consumer.on('job', (job) => {
             const taskRunner = new TaskRunner(option);
             taskRunner.start(job);
-        })
+        });
     }
 }
 

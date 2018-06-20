@@ -2,13 +2,14 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
-const componentName = require('./common/consts/componentNames');
+const component = require('./common/consts/componentNames').MAIN;
 const { tracer, metrics } = require('@hkube/metrics');
 let log;
 
 const modules = [
     './lib/producer/jobs-producer',
     './lib/consumer/jobs-consumer',
+    './lib/state/state-factory',
     './lib/datastore/storage-factory'
 ];
 
@@ -19,13 +20,13 @@ class Bootstrap {
             this._handleErrors();
 
             log = new Logger(main.serviceName, logger);
-            log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
+            log.info('running application in ' + configIt.env() + ' environment', { component });
 
             monitor.on('ready', (data) => {
-                log.info((data.message).green, { component: componentName.MAIN });
+                log.info((data.message).green, { component });
             });
             monitor.on('close', (data) => {
-                log.error(data.error.message, { component: componentName.MAIN });
+                log.error(data.error.message, { component });
             });
             monitor.check(main.redis);
 
@@ -33,9 +34,7 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            await Promise.all(modules.map(m => require(m).init(main)));
-
-            return main;
+            await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
         }
         catch (error) {
             log.error(error);
@@ -45,7 +44,7 @@ class Bootstrap {
 
     _onInitFailed(error) {
         if (log) {
-            log.error(error.message, { component: componentName.MAIN }, error);
+            log.error(error.message, { component }, error);
             log.error(error);
         }
         else {
@@ -57,21 +56,21 @@ class Bootstrap {
 
     _handleErrors() {
         process.on('exit', (code) => {
-            log.info('exit' + (code ? ' code ' + code : ''), { component: componentName.MAIN });
+            log.info('exit' + (code ? ' code ' + code : ''), { component });
         });
         process.on('SIGINT', () => {
-            log.info('SIGINT', { component: componentName.MAIN });
+            log.info('SIGINT', { component });
             process.exit(1);
         });
         process.on('SIGTERM', () => {
-            log.info('SIGTERM', { component: componentName.MAIN });
+            log.info('SIGTERM', { component });
             process.exit(1);
         });
-        process.on('unhandledRejection', (error, promise) => {
-            log.error('unhandledRejection: ' + error, { component: componentName.MAIN }, error);
+        process.on('unhandledRejection', (error) => {
+            log.error('unhandledRejection: ' + error, { component }, error);
         });
         process.on('uncaughtException', (error) => {
-            log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
+            log.error('uncaughtException: ' + error.message, { component }, error);
             log.error(error);
             process.exit(1);
         });

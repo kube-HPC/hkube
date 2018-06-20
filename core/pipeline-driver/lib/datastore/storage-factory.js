@@ -1,7 +1,6 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 
-class DatastoreFactory {
-
+class StorageFactory {
     constructor() {
         this._adapter = null;
     }
@@ -17,4 +16,4 @@ class DatastoreFactory {
     }
 }
 
-module.exports = new DatastoreFactory();
+module.exports = new StorageFactory();

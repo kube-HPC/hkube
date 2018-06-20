@@ -1,28 +1,24 @@
 const EventEmitter = require('events');
-const Etcd = require('@hkube/etcd');
 const { JobResult, JobStatus } = require('@hkube/etcd');
-const DatastoreFactory = require('../datastore/storage-factory');
+const StateFactory = require('./state-factory');
+const StorageFactory = require('../datastore/storage-factory');
 
 class StateManager extends EventEmitter {
-    constructor(options) {
+    constructor() {
         super();
-        this._etcd = new Etcd();
-        this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
-        this._storageAdapter = DatastoreFactory.getAdapter();
-
-        //this._etcd.discovery.register({ serviceName });
-        this.watchJobState({ jobId: 'hookWatch' });
-        this._subscribe();
+        this._handleEvent = this._handleEvent.bind(this);
         this.setJobStatus = this.setJobStatus.bind(this);
+        this._etcd = StateFactory.getClient();
+        this._storageAdapter = StorageFactory.getAdapter();
+        StateFactory.on('event', this._handleEvent);
     }
 
-    _subscribe() {
-        this._etcd.tasks.on('change', (res) => {
-            this.emit(`task-${res.status}`, res);
-        });
-        this._etcd.jobs.on('change', (res) => {
-            this.emit(`job-${res.state}`, res);
-        });
+    _handleEvent(event) {
+        this.emit(event.name, event.data);
+    }
+
+    clean() {
+        StateFactory.removeListener('event', this._handleEvent);
     }
 
     async getTaskState(options) {
@@ -50,16 +46,16 @@ class StateManager extends EventEmitter {
     }
 
     async setJobResults(options) {
-        let storageInfo = null;
+        let storageInfo;
         if (options.data) {
-            const metadata = null;
-            const data = await Promise.all(options.data.map(async a => {
+            const data = await Promise.all(options.data.map(async (a) => {
                 if (a.result && a.result.storageInfo) {
                     const result = await this._storageAdapter.get(a.result.storageInfo);
-                    return { ...a, result }
+                    return { ...a, result };
                 }
+                return null;
             }));
-            storageInfo = await this._storageAdapter.putResults({ jobId: options.jobId, data })
+            storageInfo = await this._storageAdapter.putResults({ jobId: options.jobId, data });
         }
         return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult({ ...options, data: { storageInfo } }) });
     }

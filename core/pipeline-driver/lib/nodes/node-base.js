@@ -2,7 +2,6 @@ const Task = require('../tasks/Task');
 const States = require('../state/States');
 
 class NodeBase extends Task {
-
     constructor(options) {
         super(options);
         this.nodeName = options.nodeName;

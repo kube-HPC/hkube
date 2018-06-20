@@ -1,7 +1,6 @@
 const groupBy = require('lodash.groupby');
 
 class GroupBy {
-
     constructor(array, property) {
         this._grouped = groupBy(array, property);
     }

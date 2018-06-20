@@ -1,6 +1,5 @@
 
 class NodeResult {
-
     constructor(options) {
         this.nodeName = options.nodeName;
         this.batchIndex = options.batchIndex;

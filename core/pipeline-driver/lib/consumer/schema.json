@@ -1,4 +1,4 @@
-module.exports = {
+{
     "name": "options",
     "type": "object",
     "properties": {

@@ -478,7 +478,7 @@ describe('Test', function () {
         it('should call progress with level silly', function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { status: 'active' };
-            const spy = sinon.spy(progress, "_throttledProgress");
+            const spy = sinon.spy(progress, "_progress");
             progress.silly({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
@@ -489,7 +489,7 @@ describe('Test', function () {
         it('should call progress with level debug', function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { status: 'active' };
-            const spy = sinon.spy(progress, "_throttledProgress");
+            const spy = sinon.spy(progress, "_progress");
             progress.debug({ jobId, status: 'active' })
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);

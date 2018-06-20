@@ -1,5 +1,3 @@
-
-
 module.exports = {
     CREATING: 'creating',
     PENDING: 'pending',
