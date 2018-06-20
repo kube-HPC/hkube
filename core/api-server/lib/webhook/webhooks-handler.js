@@ -2,7 +2,7 @@ const request = require('requestretry');
 const stateManager = require('../state/state-manager');
 const storageFactory = require('../datastore/storage-factory');
 const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('../../common/consts/componentNames');
+const component = require('../../common/consts/componentNames').WEBHOOK_HANDLER;
 const levels = require('../progress/progressLevels');
 const { States, Types } = require('./States');
 const { metrics, utils } = require('@hkube/metrics');
@@ -47,11 +47,14 @@ class WebhooksHandler {
         if (pipeline.webhooks && pipeline.webhooks.progress) {
             const clientLevel = levels[pipeline.options.progressVerbosityLevel].level;
             const pipelineLevel = levels[payload.level].level;
-            log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component: components.WEBHOOK_HANDLER, jobId: payload.jobId });
+            log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component, jobId: payload.jobId });
             if (clientLevel <= pipelineLevel) {
                 const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, payload.jobId);
                 await stateManager.setWebhook({ jobId: payload.jobId, type: Types.PROGRESS, data: result });
             }
+        }
+        if (stateManager.isCompletedState(payload.status)) {
+            await stateManager.releaseJobStatusLock({ jobId: payload.jobId });
         }
     }
 
@@ -70,11 +73,12 @@ class WebhooksHandler {
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payloadData.status, payloadData.jobId);
             await stateManager.setWebhook({ jobId: payloadData.jobId, type: Types.RESULT, data: result });
         }
+        await stateManager.releaseJobResultsLock({ jobId: payload.jobId });
     }
 
     _request(url, body, type, pipelineStatus, jobId) {
         return new Promise((resolve) => {
-            log.debug(`trying to call ${type} webhook ${url} (${pipelineStatus})`, { component: components.WEBHOOK_HANDLER });
+            log.debug(`trying to call ${type} webhook ${url} (${pipelineStatus})`, { component });
             const data = {
                 url,
                 pipelineStatus,
@@ -91,12 +95,12 @@ class WebhooksHandler {
             }).then((response) => {
                 data.responseStatus = response.statusCode >= 400 ? States.FAILED : States.SUCCEED;
                 data.httpResponse = { statusCode: response.statusCode, statusMessage: response.statusMessage };
-                log.debug(`webhook ${type} completed with status ${response.statusCode} ${response.statusMessage}, attempts: ${response.attempts}`, { component: components.WEBHOOK_HANDLER, jobId });
+                log.debug(`${type} webhook has been sent with status ${response.statusCode} ${response.statusMessage}, attempts: ${response.attempts}`, { component, jobId });
                 return resolve(data);
             }).catch((error) => {
                 data.responseStatus = States.FAILED;
                 data.httpResponse = { statusCode: error.code, statusMessage: error.message };
-                log.warning(`webhook ${type} failed ${error.message}`, { component: components.WEBHOOK_HANDLER, jobId });
+                log.warning(`webhook ${type} failed ${error.message}`, { component, jobId });
                 return resolve(data);
             });
         });

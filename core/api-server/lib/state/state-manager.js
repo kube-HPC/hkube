@@ -4,6 +4,7 @@ const EventEmitter = require('events');
 const States = require('./States');
 const storageFactory = require('../datastore/storage-factory');
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
+const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
 
 class StateManager extends EventEmitter {
     async init(options) {
@@ -15,6 +16,10 @@ class StateManager extends EventEmitter {
 
     isActiveState(state) {
         return ActiveState.includes(state);
+    }
+
+    isCompletedState(state) {
+        return CompletedState.includes(state);
     }
 
     setExecution(options) {
@@ -74,6 +79,14 @@ class StateManager extends EventEmitter {
         this._etcd.jobStatus.on('change', (result) => {
             this.emit('job-status', result);
         });
+    }
+
+    releaseJobResultsLock(options) {
+        return this._etcd.jobResults.releaseChangeLock(options.jobId);
+    }
+
+    releaseJobStatusLock(options) {
+        return this._etcd.jobStatus.releaseChangeLock(options.jobId);
     }
 
     async getJobResultMetadata(options) {

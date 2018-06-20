@@ -9,7 +9,7 @@ class StorageFactory {
     }
 
     async getResults(options) {
-        if (options && options.data) {
+        if (options && options.data && options.data.storageInfo) {
             const data = await this.adapter.get(options.data.storageInfo);
             return { ...options, data, storageModule: this.moduleName };
         }
