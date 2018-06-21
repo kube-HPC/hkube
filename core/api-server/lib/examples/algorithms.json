@@ -8,8 +8,8 @@
     {
         "name": "green-alg",
         "algorithmImage": "hkube/algorithm-example",
-        "cpu": 7,
-        "mem": 2048
+        "cpu": 2,
+        "mem": 1024
     },
     {
         "name": "yellow-alg",
