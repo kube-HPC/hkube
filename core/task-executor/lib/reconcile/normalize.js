@@ -85,7 +85,8 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             memory: sumBy(Object.values(initial), 'total.memory'),
         }
     };
-    const resourcesPerNode = pods.body.items.filter(p => p.status.phase === 'Running').reduce((accumulator, pod) => {
+    const stateFilter = p => p.status.phase === 'Running' || p.status.phase === 'Pending';
+    const resourcesPerNode = pods.body.items.filter(stateFilter).reduce((accumulator, pod) => {
         const { nodeName } = pod.spec;
         if (!nodeName) {
             return accumulator;
