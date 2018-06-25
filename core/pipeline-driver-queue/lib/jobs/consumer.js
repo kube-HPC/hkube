@@ -19,19 +19,29 @@ class JobConsumer extends EventEmitter {
             }
         });
         this._consumer.register({ job: { type: options.consumer.jobType } });
-        this._consumer.on('job', async job => {
+        this._consumer.on('job', async (job) => {
             try {
-                await this._queueTasksBuilder(job);
+                const watchState = await persistence.watchJobState({ jobId: job.data.jobId });
+                if (watchState && watchState.state === 'stop') {
+                    queueRunner.queue.remove([job.data.jobId]);
+                }
+                else {
+                    await this._queueTasksBuilder(job);
+                }
             }
             catch (error) {
                 job.done(error);
             }
         });
+        persistence.on('job-stop', (job) => {
+            queueRunner.queue.remove([job.jobId]);
+        });
     }
 
-    _pipelineToQueueAdapter(pipeline, jobId) {
+    _pipelineToQueueAdapter(pipeline, jobId, spanId) {
         return {
             jobId,
+            spanId,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
             entranceTime: Date.now(),
@@ -46,7 +56,7 @@ class JobConsumer extends EventEmitter {
         if (!pipeline) {
             throw new Error(`unable to find pipeline for job ${job.data.jobId}`);
         }
-        const jobs = this._pipelineToQueueAdapter(pipeline, job.data.jobId);
+        const jobs = this._pipelineToQueueAdapter(pipeline, job.data.jobId, job.data.spanId);
         queueRunner.queue.add([jobs]);
         job.done();
     }

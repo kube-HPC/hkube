@@ -67,7 +67,6 @@ class Queue extends Events {
     // todo:add merge on async 
     updateHeuristic(scoreHeuristic) {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
-        //   this.scoreHeuristic = heuristic.run.bind(heuristic);
     }
 
     async add(jobs) {

@@ -1,9 +1,11 @@
+const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const { JobStatus } = require('@hkube/etcd');
 const producerSingleton = require('../jobs/producer-singleton');
 
-class Persistence {
+class Persistence extends EventEmitter {
     constructor() {
+        super();
         this.queueName = null;
         this.etcd = new Etcd();
     }
@@ -12,6 +14,9 @@ class Persistence {
         const { etcd, producer, serviceName } = options;
         this.queueName = producer.jobType;
         this.etcd.init({ etcd, serviceName });
+        this.etcd.jobs.on('change', (data) => {
+            this.emit(`job-${data.state}`, data);
+        });
         return this;
     }
 
@@ -36,7 +41,15 @@ class Persistence {
     }
 
     setJobStatus(options) {
-        return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
+        return this.etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
+    }
+
+    watchJobState(options) {
+        return this.etcd.jobs.watch(options);
+    }
+
+    unWatchJobState(options) {
+        return this.etcd.jobs.unwatch(options);
     }
 }
 
