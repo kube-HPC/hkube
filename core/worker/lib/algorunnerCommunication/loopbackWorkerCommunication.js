@@ -7,6 +7,7 @@ class LoopbackWorkerCommunication extends EventEmitter {
     constructor() {
         super();
         this._options = null;
+        this.LastInput = null;
     }
     async init(options) {
         options = options || {};
@@ -25,6 +26,7 @@ class LoopbackWorkerCommunication extends EventEmitter {
     send(message) {
         switch (message.command) {
             case messages.outgoing.initialize:
+                this._lastInput = message.data;
                 this._simulateSend({ command: messages.incomming.initialized, data: message.data });
                 break;
             case messages.outgoing.start:
@@ -43,12 +45,16 @@ class LoopbackWorkerCommunication extends EventEmitter {
         }
     }
 
+    getLastInput() {
+        return this._lastInput;
+    }
+    sendCommandWithDelay(message) {
+        setTimeout(() => {
+            this._simulateSend({ command: message.command, data: this._lastInput });
+        }, 1000);
+    }
     _simulateSend(message) {
         this.emit(message.command, message.data);
-        // return new Promise((resolve, reject)=> {
-        //     this.emit('message', message);
-        //     resolve();
-        // });
     }
 }
 

@@ -7,10 +7,10 @@ const sinon = require('sinon');
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
 const config = {
     workerCommunication:
-    {
-        adapterName: 'loopback',
-        config: {}
-    }
+        {
+            adapterName: 'loopback',
+            config: {}
+        }
 };
 describe('worker communication', () => {
     beforeEach(async () => {

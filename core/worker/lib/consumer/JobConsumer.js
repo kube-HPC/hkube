@@ -37,7 +37,7 @@ class JobConsumer extends EventEmitter {
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
-        this._storageAdapter = await DatastoreFactory.getAdapter();
+        this._storageAdapter = DatastoreFactory.getAdapter();
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;
@@ -231,7 +231,7 @@ class JobConsumer extends EventEmitter {
         let resultLink = null;
         let { resultData, jobStatus, error } = this._getStatus(data); // eslint-disable-line prefer-const
 
-        if (resultData != null && !error && jobStatus === constants.JOB_STATUS.SUCCEED) {
+        if (!error && jobStatus === constants.JOB_STATUS.SUCCEED) {
             const { storageError, storageLink } = await this._putResult(resultData);
             if (storageError) {
                 jobStatus = constants.JOB_STATUS.FAILED;
@@ -286,6 +286,9 @@ class JobConsumer extends EventEmitter {
                     taskID: this._taskID,
                 }
             });
+            if (data === undefined) {
+                data = null;
+            }
             const storageInfo = await this._storageAdapter.put({
                 jobId: this._job.data.jobID, taskId: this._job.data.taskID, data
             });
