@@ -44,7 +44,6 @@ class Bootstrap {
             config = main;
         }
         catch (error) {
-            log.error(error);
             this._onInitFailed(new Error(`unable to start application. ${error.message}`));
         }
         return config;

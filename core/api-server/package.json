@@ -4,7 +4,7 @@
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
-        "@hkube/config": "^2.0.5",
+        "@hkube/config": "^2.0.6",
         "@hkube/etcd": "^4.0.10",
         "@hkube/etcd-adapter": "^1.0.4",
         "@hkube/logger": "^1.0.12",
