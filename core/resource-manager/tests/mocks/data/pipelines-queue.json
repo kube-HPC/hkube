@@ -1,6 +1,6 @@
 [
     {
-        "name": "pipeline-driver-job",
+        "name": "pipeline-job",
         "data": [
             {
                 "jobId": "eval-1:c1792042-2c5a-4ed9-906a-c83f4575437d",

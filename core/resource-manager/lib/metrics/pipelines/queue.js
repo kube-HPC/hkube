@@ -13,11 +13,11 @@ class QueueMetric extends Metric {
 
     calc(options) {
         let results = Object.create(null);
-        const queue = queueUtils.order(options.pipelines.queue, 'pipeline-job');
+        const queue = queueUtils.order(options.pipelines.queue);
         this._text(options.pipelines.queue);
         if (queue.length > 0) {
             const option = {
-                resourceThresholds: this.options.resourceThresholds,
+                resourceThresholds: this.options.resourceThresholds.pipelineDrivers,
                 k8s: options.algorithms.k8s,
                 templatesStore: options.pipelines.templatesStore
             };
@@ -25,8 +25,8 @@ class QueueMetric extends Metric {
             queue.forEach(r => resourceAllocator.allocate(r.name));
             results = resourceAllocator.results();
         }
-        results = queueUtils.normalize(options.pipelines.queue, results);
-        return results;
+        const res = queueUtils.normalize(options.pipelines.queue, results);
+        return res;
     }
 
     _text(queue) {

@@ -9,8 +9,8 @@ class ResourceAllocator {
     constructor({ resourceThresholds, k8s, templatesStore }) {
         this._totalCpu = 0;
         this._totalMem = 0;
-        this._thresholdCpu = resourceThresholds.cpu;
-        this._thresholdMem = resourceThresholds.mem;
+        this._thresholdCpu = parseFloat(resourceThresholds.cpu);
+        this._thresholdMem = parseFloat(resourceThresholds.mem);
         this._templatesStore = templatesStore;
         this._resourceCounter = new ResourceCounter();
         this._totalResources(k8s);

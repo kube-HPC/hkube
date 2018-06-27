@@ -27,8 +27,14 @@ config.k8s = {
 config.interval = process.env.INTERVAL || 1000;
 
 config.resourceThresholds = {
-    cpu: 0.9,
-    mem: 0.9
+    algorithms: {
+        cpu: process.env.ALGORITHM_THRESHOLD_CPU || 0.9,
+        mem: process.env.ALGORITHM_THRESHOLD_MEM || 0.9
+    },
+    pipelineDrivers: {
+        cpu: process.env.DRIVERS_THRESHOLD_CPU || 0.6,
+        mem: process.env.DRIVERS_THRESHOLD_MEM || 1
+    }
 };
 
 config.metricsMeasure = {

@@ -1,4 +1,3 @@
-
 const Adapter = require('../Adapter');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../../common/consts/componentNames').AlgorithmDb;
@@ -28,38 +27,72 @@ class PrometheusAdapter extends Adapter {
             return data;
         }
         const resources = await this._getResources();
-        const arr = [];
-        const algoRunTime = new Map();
-        resources.algoRuntime.data.result.forEach(algorithm => {
-            algorithm.values.forEach(slice => {
-                if (algoRunTime.has(algorithm.metric.algorithmName)) {
-                    const a = algoRunTime.get(algorithm.metric.algorithmName);
-                    a.push(parseFloat(slice[1]));
+        const result = [];
+        const algorithms = new Map();
+        const podToAlgorithm = new Map();
+        resources.algorithms.data.result.forEach(r => {
+            podToAlgorithm.set(r.metric.pod, r.metric.label_algorithm_name);
+        });
+        resources.cpuUsage.data.result.forEach(r => {
+            r.values.forEach(slice => {
+                const cpuUsage = parseFloat(slice[1]);
+                const algorithmName = podToAlgorithm.get(r.metric.pod_name);
+                if (!algorithmName) {
+                    log.warning(`cant find algorithm name by pod ${r.metric.pod_name}`, { component });
+                }
+                else if (algorithms.has(algorithmName)) {
+                    const a = algorithms.get(algorithmName);
+                    a.cpuUsage.push(cpuUsage);
                 }
                 else {
-                    algoRunTime.set(algorithm.metric.algorithmName, [parseFloat(slice[1])]);
+                    algorithms.set(algorithmName, { cpuUsage: [cpuUsage], runTime: [] });
                 }
             });
         });
-        algoRunTime.forEach((val, key) => arr.push({ algorithmName: key, runTime: median(val) }));
-        this._cache.set(arr);
-        return arr;
+        resources.runTime.data.result.forEach(algorithm => {
+            algorithm.values.forEach(slice => {
+                const runTime = parseFloat(slice[1]);
+                if (algorithms.has(algorithm.metric.algorithmName)) {
+                    const a = algorithms.get(algorithm.metric.algorithmName);
+                    a.runTime.push(runTime);
+                }
+                else {
+                    algorithms.set(algorithm.metric.algorithmName, { runTime: [runTime] });
+                }
+            });
+        });
+        algorithms.forEach((val, key) => result.push({ algorithmName: key, runTime: median(val.runTime), cpuUsage: median(val.cpuUsage) }));
+        this._cache.set(result);
+        return result;
     }
 
     async _getResources() {
         const currentDate = Date.now();
-        const sixHoursBefore = new Date(currentDate - (6 * 60 * 60 * 1000));
-        const [cpuCurrent, memCurrent, algoRuntime] = await Promise.all([
-            client.query({ query: '100 * (1 - avg by(instance)(irate(node_cpu{mode="idle"}[2m])))' }),
-            client.query({ query: '(1 - ((node_memory_MemFree + node_memory_Buffers + node_memory_Cached) / node_memory_MemTotal)) * 100' }),
+        const hoursBefore = new Date(currentDate - (48 * 60 * 60 * 1000));
+        const start = hoursBefore / 1000;
+        const end = currentDate / 1000;
+        const step = 60;
+        const [algorithms, cpuUsage, runTime] = await Promise.all([
+            client.range({
+                query: 'rate(kube_pod_labels{label_algorithm_name!~""}[30m])',
+                start,
+                end,
+                step
+            }),
+            client.range({
+                query: 'sum (rate (container_cpu_usage_seconds_total{container_name="algorunner"}[30m])) by (pod_name)',
+                start,
+                end,
+                step
+            }),
             client.range({
                 query: 'algorithm_runtime_summary{quantile="0.5", algorithmName!~""}',
-                start: sixHoursBefore / 1000,
-                end: currentDate / 1000,
-                step: 60
+                start,
+                end,
+                step
             })
         ]);
-        return { cpuCurrent, memCurrent, algoRuntime };
+        return { algorithms, cpuUsage, runTime };
     }
 }
 

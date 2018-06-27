@@ -12,7 +12,6 @@ const MetricsRunner = require('../lib/metrics/metrics-runner');
 const metricsReducer = require('../lib/metrics/metrics-reducer');
 const AlgorithmRatios = require('../lib/resources/ratios-allocator');
 const ResourceAllocator = require('../lib/resources/resource-allocator');
-const ResourceCounter = require('../lib/resources/resource-counter');
 let intervalRunner, AdapterController;
 const metricsProvider = require('../lib/monitoring/metrics-provider');
 
@@ -117,38 +116,39 @@ describe('Test', function () {
                 expect(map).to.deep.equal(algorithms);
             });
         });
-        describe('K8s', function () {
+        describe('CpuUsage', function () {
             it('should return weight same as config', async function () {
                 const adapterController = new AdapterController(main);
                 const data = await adapterController.getData();
                 const metricsRunner = new MetricsRunner(main)
-                const metric = metricsRunner._metrics.algorithms.find(a => a.name === 'k8s');
+                const metric = metricsRunner._metrics.algorithms.find(a => a.name === 'cpuUsage');
                 expect(metric.weight).to.greaterThan(0);
             });
             it('should calc metric and return results', async function () {
                 const adapterController = new AdapterController(main);
                 const adaptersResults = await adapterController.getData();
                 const metricsRunner = new MetricsRunner(main)
-                const metric = metricsRunner._metrics.algorithms.find(a => a.name === 'k8s');
+                const metric = metricsRunner._metrics.algorithms.find(a => a.name === 'cpuUsage');
                 const metricResults = metric.calc(adaptersResults);
                 const map = metricResults.map(m => m.name).sort();
                 const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
                 expect(metricResults).to.be.an('array');
+                expect(map).to.deep.equal(algorithms);
             });
         });
-        describe('Prometheus', function () {
+        describe('RunTime', function () {
             it('should return weight same as config', async function () {
                 const adapterController = new AdapterController(main);
                 const data = await adapterController.getData();
                 const metricsRunner = new MetricsRunner(main)
-                const metric = metricsRunner._metrics.algorithms.find(a => a.name === 'prometheus');
+                const metric = metricsRunner._metrics.algorithms.find(a => a.name === 'runTime');
                 expect(metric.weight).to.greaterThan(0);
             });
             it('should calc metric and return results', async function () {
                 const adapterController = new AdapterController(main);
                 const adaptersResults = await adapterController.getData();
                 const metricsRunner = new MetricsRunner(main)
-                const metric = metricsRunner._metrics.algorithms.find(a => a.name === 'prometheus');
+                const metric = metricsRunner._metrics.algorithms.find(a => a.name === 'runTime');
                 const metricResults = metric.calc(adaptersResults);
                 const map = metricResults.map(m => m.name).sort();
                 const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
@@ -196,7 +196,7 @@ describe('Test', function () {
         it('should allocate successfully', async function () {
             const adapterController = new AdapterController(main);
             const adaptersResults = await adapterController.getData();
-            const resourceAllocator = new ResourceAllocator({ resourceThresholds: main.resourceThresholds, ...adaptersResults.algorithms });
+            const resourceAllocator = new ResourceAllocator({ resourceThresholds: main.resourceThresholds.algorithms, ...adaptersResults.algorithms });
             const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
             algorithms.forEach((a) => resourceAllocator.allocate(a));
             const results = resourceAllocator.results();
@@ -229,6 +229,26 @@ describe('Test', function () {
         it('should execute doWork and return results', async function () {
             const result = await intervalRunner._doWork();
             expect(result).to.be.an('array');
+        });
+        it('should execute _run and call _doWork once', async function () {
+            const clock = sinon.useFakeTimers();
+            const spy = sinon.spy(intervalRunner, '_doWork');
+            intervalRunner._run(200);
+            clock.tick(1000);
+            clock.restore();
+            expect(spy.calledOnce).to.equal(true);
+        });
+        it('should execute _doWork and call to _onError once', async function () {
+            const clock = sinon.useFakeTimers();
+            const spy = sinon.spy(intervalRunner, '_onError');
+            intervalRunner._doWork = () => {
+                throw new Error('some error');
+            }
+            intervalRunner._run(200);
+            clock.tick(300);
+            clock.restore();
+            expect(spy.calledOnce).to.equal(true);
+            expect(spy.args[0][0].message).to.equal('some error');
         });
     });
 });

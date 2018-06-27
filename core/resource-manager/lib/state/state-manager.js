@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 
 class StateManager extends EventEmitter {
-    init({ serviceName, etcd }) {
+    async init({ serviceName, etcd }) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
         this._subscribe();

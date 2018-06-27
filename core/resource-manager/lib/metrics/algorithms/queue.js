@@ -15,7 +15,7 @@ class QueueMetric extends Metric {
         const queue = queueUtils.order(options.algorithms.queue);
         this._text(options.algorithms.queue);
         if (queue.length > 0) {
-            const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds, ...options.algorithms });
+            const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds.algorithms, ...options.algorithms });
             queue.forEach(r => resourceAllocator.allocate(r.name));
             results = resourceAllocator.results();
         }

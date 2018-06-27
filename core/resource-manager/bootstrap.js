@@ -48,7 +48,7 @@ class Bootstrap {
 
     _handleErrors() {
         process.on('exit', (code) => {
-            log.info('exit' + (code ? ' code ' + code : ''), { component });
+            log.info(`exit with code ${code}`, { component });
         });
         process.on('SIGINT', () => {
             log.info('SIGINT', { component });
@@ -59,7 +59,7 @@ class Bootstrap {
             process.exit(1);
         });
         process.on('unhandledRejection', (error) => {
-            log.error('unhandledRejection: ' + error, { component }, error);
+            log.error(`Unhandled Rejection, error: ${error}`, { component }, error);
             log.error(error);
         });
         process.on('uncaughtException', (error) => {

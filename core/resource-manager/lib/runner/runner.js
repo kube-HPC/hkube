@@ -25,12 +25,16 @@ class Runner {
                 await this._doWork();
             }
             catch (error) {
-                logger.log(error);
+                this._onError(error);
             }
             finally {
                 this._working = false;
             }
         }, interval);
+    }
+
+    _onError(error) {
+        logger.log(error);
     }
 
     /**

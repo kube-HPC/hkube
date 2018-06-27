@@ -11,7 +11,7 @@ class TemplatesStoreMetric extends Metric {
     }
 
     calc(options) {
-        const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds, ...options.algorithms });
+        const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds.algorithms, ...options.algorithms });
         let algorithmQueue = queueUtils.order(options.algorithms.queue);
         algorithmQueue = algorithmQueue.map(a => ({
             ...a,
