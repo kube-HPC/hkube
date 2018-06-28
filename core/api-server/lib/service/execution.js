@@ -200,9 +200,18 @@ class ExecutionService {
         return response;
     }
 
-    async getPipelinesResult(options) {
+    async getPipelinesResultStored(options) {
         validator.validateResultList(options);
         const response = await stateManager.getJobResults({ ...options, jobId: options.name });
+        if (response.length === 0) {
+            throw new ResourceNotFoundError('pipeline results', options.name);
+        }
+        return response;
+    }
+
+    async getPipelinesResultRaw(options) {
+        validator.validateResultList(options);
+        const response = await stateManager.getJobResults({ ...options, jobId: `raw-${options.name}` });
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline results', options.name);
         }
