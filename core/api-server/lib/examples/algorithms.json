@@ -22,5 +22,11 @@
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 0.5,
         "mem": 256
+    },
+    {
+        "name": "cpu-load",
+        "algorithmImage": "hkube/cpu-load-algorithm",
+        "cpu": 1,
+        "mem": 256
     }
 ]
