@@ -49,10 +49,14 @@ describe('Rest', () => {
             });
             describe('Execution', () => {
                 describe('/exec/raw', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/raw`;
+                    });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
                             method: 'GET',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -63,7 +67,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property name', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -74,7 +78,7 @@ describe('Rest', () => {
                     it('should throw validation error of data.name should be string', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: {}
                             }
@@ -87,7 +91,7 @@ describe('Rest', () => {
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: ''
                             }
@@ -100,7 +104,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property nodes', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'string'
                             }
@@ -113,7 +117,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property nodes.nodeName', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -134,7 +138,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property nodes.algorithmName', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -155,7 +159,7 @@ describe('Rest', () => {
                     it('should throw validation error of nodes.input should be array', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -174,7 +178,7 @@ describe('Rest', () => {
                     it('should throw validation error of data should NOT have additional properties', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -198,7 +202,7 @@ describe('Rest', () => {
                     it('should throw validation error of duplicate node', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -223,7 +227,7 @@ describe('Rest', () => {
                     it('should throw validation error priority range', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -241,10 +245,30 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal('data.priority should be <= 5');
                     });
+                    it('should throw validation error pipeline name', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restPath,
+                            body: {
+                                name: 'exec/raw',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'green-alg',
+                                        input: []
+                                    }
+                                ]
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('name must contain only alphanumeric, dash, dot or underscore');
+                    });
                     it('should succeed and return execution id', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'exec_raw',
                                 nodes: [
@@ -261,10 +285,14 @@ describe('Rest', () => {
                     });
                 });
                 describe('/exec/stored', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/stored`;
+                    });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
                             method: 'GET',
-                            uri: restUrl + '/exec/stored',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -275,7 +303,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property name', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/stored',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -286,7 +314,7 @@ describe('Rest', () => {
                     it('should throw validation error of data.name should be string', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/stored',
+                            uri: restPath,
                             body: {
                                 name: {}
                             }
@@ -299,7 +327,7 @@ describe('Rest', () => {
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/stored',
+                            uri: restPath,
                             body: {
                                 name: ''
                             }
@@ -312,7 +340,7 @@ describe('Rest', () => {
                     it('should throw validation error of data should NOT have additional properties', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/stored',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -332,7 +360,7 @@ describe('Rest', () => {
                     it('should throw pipeline not found', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/stored',
+                            uri: restPath,
                             body: {
                                 name: 'not_found'
                             }
@@ -342,10 +370,23 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(404);
                         expect(response.body.error.message).to.equal('pipeline not_found Not Found');
                     });
+                    it('should throw validation error pipeline name', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restPath,
+                            body: {
+                                name: 'exec/stored'
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal('name must contain only alphanumeric, dash, dot or underscore');
+                    });
                     it('should succeed and return execution id', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/stored',
+                            uri: restPath,
                             body: {
                                 name: 'flow1'
                             }
@@ -355,10 +396,14 @@ describe('Rest', () => {
                     });
                 });
                 describe('/exec/stop', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/stop`;
+                    });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
                             method: 'GET',
-                            uri: restUrl + '/exec/stop',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -368,7 +413,7 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of required property jobId', async () => {
                         const options = {
-                            uri: restUrl + '/exec/stop',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -377,7 +422,7 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of data.name should be string', async () => {
                         const options = {
-                            uri: restUrl + '/exec/stop',
+                            uri: restPath,
                             body: { jobId: 'no_such_id' }
                         };
                         const response = await _request(options);
@@ -391,7 +436,7 @@ describe('Rest', () => {
                         };
                         const stored = await _request(optionsStored);
                         const optionsStop = {
-                            uri: restUrl + '/exec/stop',
+                            uri: restPath,
                             body: { jobId: stored.body.jobId }
                         };
                         const response = await _request(optionsStop);
@@ -400,10 +445,14 @@ describe('Rest', () => {
                     });
                 });
                 describe('/exec/status', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/status`;
+                    });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/status',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -413,7 +462,7 @@ describe('Rest', () => {
                     });
                     it('should throw status Not Found with params', async () => {
                         const options = {
-                            uri: restUrl + '/exec/status/no_such_id',
+                            uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -422,7 +471,7 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of required property execution id', async () => {
                         const options = {
-                            uri: restUrl + '/exec/status',
+                            uri: restPath,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -439,7 +488,7 @@ describe('Rest', () => {
                         };
                         const responseRun = await _request(optionsRun);
                         const options = {
-                            uri: restUrl + `/exec/status/${responseRun.body.jobId}`,
+                            uri: restPath + `/${responseRun.body.jobId}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -452,10 +501,14 @@ describe('Rest', () => {
                     });
                 });
                 describe('/exec/results', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/results`;
+                    });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/results',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -465,7 +518,7 @@ describe('Rest', () => {
                     });
                     it('should throw status Not Found with params', async () => {
                         const options = {
-                            uri: restUrl + '/exec/results/no_such_id',
+                            uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -474,7 +527,7 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of required property execution id', async () => {
                         const options = {
-                            uri: restUrl + '/exec/results',
+                            uri: restPath,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -503,7 +556,7 @@ describe('Rest', () => {
                         await workerStub.done({ jobId, data });
 
                         const options = {
-                            uri: restUrl + `/exec/results/${responseRun.body.jobId}`,
+                            uri: restPath + `/${responseRun.body.jobId}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -519,10 +572,14 @@ describe('Rest', () => {
                     });
                 });
                 describe('/exec/pipelines/results', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/pipelines/results`;
+                    });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/pipelines/results',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -532,7 +589,7 @@ describe('Rest', () => {
                     });
                     it('should throw status Not Found with params', async () => {
                         const options = {
-                            uri: restUrl + '/exec/pipelines/results/no_such_id',
+                            uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -541,7 +598,7 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of required property name', async () => {
                         const options = {
-                            uri: restUrl + '/exec/pipelines/results',
+                            uri: restPath,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -551,7 +608,7 @@ describe('Rest', () => {
                     it('should throw validation error of order property', async () => {
                         const qs = querystring.stringify({ order: 'bla' });
                         const options = {
-                            uri: restUrl + `/exec/pipelines/results/pipe?${qs}`,
+                            uri: restPath + `/pipe?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -561,7 +618,7 @@ describe('Rest', () => {
                     it('should throw validation error of sort property', async () => {
                         const qs = querystring.stringify({ sort: 'bla' });
                         const options = {
-                            uri: restUrl + `/exec/pipelines/results/pipe?${qs}`,
+                            uri: restPath + `/pipe?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -571,7 +628,7 @@ describe('Rest', () => {
                     it('should throw validation error of limit should be >= 1', async () => {
                         const qs = querystring.stringify({ limit: 0 });
                         const options = {
-                            uri: restUrl + `/exec/pipelines/results/pipe?${qs}`,
+                            uri: restPath + `/pipe?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -581,7 +638,7 @@ describe('Rest', () => {
                     it('should throw validation error of limit should be integer', async () => {
                         const qs = querystring.stringify({ limit: "y" });
                         const options = {
-                            uri: restUrl + `/exec/pipelines/results/pipe?${qs}`,
+                            uri: restPath + `/pipe?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -603,7 +660,7 @@ describe('Rest', () => {
 
                         const qs = querystring.stringify({ sort: 'desc', limit: 3 });
                         const options = {
-                            uri: restUrl + `/exec/pipelines/results/${pipeline}?${qs}`,
+                            uri: restPath + `/${pipeline}?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -619,10 +676,14 @@ describe('Rest', () => {
                     })
                 });
                 describe('/exec/cron/results', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/cron/results`;
+                    });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/cron/results',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -632,7 +693,7 @@ describe('Rest', () => {
                     });
                     it('should throw status Not Found with params', async () => {
                         const options = {
-                            uri: restUrl + '/exec/cron/results/no_such_id',
+                            uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -641,7 +702,7 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of required property name', async () => {
                         const options = {
-                            uri: restUrl + '/exec/cron/results',
+                            uri: restPath,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -651,7 +712,7 @@ describe('Rest', () => {
                     it('should throw validation error of order property', async () => {
                         const qs = querystring.stringify({ order: 'bla' });
                         const options = {
-                            uri: restUrl + `/exec/pipelines/results/pipe?${qs}`,
+                            uri: restPath + `/pipe?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -661,7 +722,7 @@ describe('Rest', () => {
                     it('should throw validation error of sort property', async () => {
                         const qs = querystring.stringify({ sort: 'bla' });
                         const options = {
-                            uri: restUrl + `/exec/pipelines/results/pipe?${qs}`,
+                            uri: restPath + `/pipe?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -671,7 +732,7 @@ describe('Rest', () => {
                     it('should throw validation error of limit should be >= 1', async () => {
                         const qs = querystring.stringify({ limit: 0 });
                         const options = {
-                            uri: restUrl + `/exec/cron/results/pipe?${qs}`,
+                            uri: restPath + `/pipe?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -681,7 +742,7 @@ describe('Rest', () => {
                     it('should throw validation error of limit should be integer', async () => {
                         const qs = querystring.stringify({ limit: "y" });
                         const options = {
-                            uri: restUrl + `/exec/cron/results/pipe?${qs}`,
+                            uri: restPath + `/pipe?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -703,7 +764,7 @@ describe('Rest', () => {
 
                         const qs = querystring.stringify({ sort: 'desc', limit: 3 });
                         const options = {
-                            uri: restUrl + `/exec/cron/results/${pipeline}?${qs}`,
+                            uri: restPath + `/${pipeline}?${qs}`,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -719,6 +780,10 @@ describe('Rest', () => {
                     })
                 });
                 describe('/exec/tree', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/tree`;
+                    });
                     it('pipeline call stack by trigger', async () => {
                         let prefix = '57ec5c39-122b-4d7c-bc8f-580ba30df511';
                         await Promise.all([
@@ -739,26 +804,29 @@ describe('Rest', () => {
 
                         const options = {
                             method: 'GET',
-                            uri: `${restUrl}/exec/tree/${prefix}.a`
+                            uri: restPath + `/${prefix}.a`
                         };
                         const response = await _request(options);
                         expect(response.body).to.deep.equal(triggersTree);
                     });
                     it('should failed if jobId not found', async () => {
-
                         const options = {
                             method: 'GET',
-                            uri: `${restUrl}/exec/tree/${uuidv4()}`
+                            uri: restPath + `/${uuidv4()}`
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.deep.equal(404);
                     });
                 });
                 describe('/exec/pipeline', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/pipeline`;
+                    });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/pipeline/job',
+                            uri: restPath + '/job',
                             body: {}
                         };
                         const response = await _request(options);
@@ -769,7 +837,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property name', async () => {
                         const options = {
                             method: 'GET',
-                            uri: restUrl + '/exec/pipeline/not_exists',
+                            uri: restPath + '/not_exists',
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
@@ -794,7 +862,7 @@ describe('Rest', () => {
                         const response1 = await _request(options1);
                         const options = {
                             method: 'GET',
-                            uri: restUrl + '/exec/pipeline/' + response1.body.jobId,
+                            uri: restPath + '/' + response1.body.jobId,
                         };
                         const response2 = await _request(options);
                         expect(response2.body.name).to.equal(options1.body.name);
@@ -803,10 +871,14 @@ describe('Rest', () => {
                 });
             });
             describe('Store/Algorithms', () => {
+                let restPath = null;
+                before(() => {
+                    restPath = `${restUrl}/store/algorithms`;
+                });
                 describe('/store/algorithms:name GET', () => {
                     it('should throw error algorithm not found', async () => {
                         const options = {
-                            uri: restUrl + '/store/algorithms/not_exists',
+                            uri: restPath + '/not_exists',
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -822,14 +894,14 @@ describe('Rest', () => {
                             "mem": "5000Ki"
                         };
                         const options = {
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             method: 'POST',
                             body
                         };
                         await _request(options);
 
                         const getOptions = {
-                            uri: restUrl + '/store/algorithms/test-alg',
+                            uri: restPath + '/test-alg',
                             method: 'GET'
                         };
                         const response = await _request(getOptions);
@@ -840,7 +912,7 @@ describe('Rest', () => {
                 describe('/store/algorithms:name DELETE', () => {
                     it('should throw error algorithm not found', async () => {
                         const options = {
-                            uri: restUrl + '/store/algorithms/not_exists',
+                            uri: restPath + '/not_exists',
                             method: 'DELETE',
                             body: {}
                         };
@@ -851,7 +923,7 @@ describe('Rest', () => {
                     });
                     it('should delete specific algorithm', async () => {
                         const optionsInsert = {
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             method: 'POST',
                             body: {
                                 name: "delete",
@@ -861,7 +933,7 @@ describe('Rest', () => {
                         await _request(optionsInsert);
 
                         const options = {
-                            uri: restUrl + '/store/algorithms/delete',
+                            uri: restPath + '/delete',
                             method: 'DELETE',
                             body: {}
                         };
@@ -873,7 +945,7 @@ describe('Rest', () => {
                 describe('/store/algorithms GET', () => {
                     it('should throw validation error of required property jobId', async () => {
                         const options = {
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -884,7 +956,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property name', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -895,7 +967,7 @@ describe('Rest', () => {
                     it('should throw validation error of data.name should be string', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             body: {
                                 name: {}
                             }
@@ -914,7 +986,7 @@ describe('Rest', () => {
                         }
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             body
                         };
                         const response = await _request(options);
@@ -925,7 +997,7 @@ describe('Rest', () => {
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             body: {
                                 name: ''
                             }
@@ -937,7 +1009,7 @@ describe('Rest', () => {
                     });
                     it('should throw conflict error', async () => {
                         const options = {
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             method: 'POST',
                             body: {
                                 name: "conflict",
@@ -958,7 +1030,7 @@ describe('Rest', () => {
                             cpu: 1
                         }
                         const options = {
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             method: 'POST',
                             body
                         };
@@ -974,7 +1046,7 @@ describe('Rest', () => {
                         body.mem = '3900Ki';
                         const options = {
                             method: 'PUT',
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             body
                         };
                         const response = await _request(options);
@@ -985,7 +1057,7 @@ describe('Rest', () => {
                     it('should succeed to update algorithm', async () => {
                         const body = Object.assign({}, algorithms[0]);
                         const options = {
-                            uri: restUrl + '/store/algorithms',
+                            uri: restPath,
                             method: 'PUT',
                             body
                         };
@@ -996,10 +1068,14 @@ describe('Rest', () => {
                 });
             });
             describe('Store/Pipelines', () => {
+                let restPath = null;
+                before(() => {
+                    restPath = `${restUrl}/store/pipelines`;
+                });
                 describe('/store/pipelines:name GET', () => {
                     it('should throw error pipeline not found', async () => {
                         const options = {
-                            uri: restUrl + '/store/pipelines/not_exists',
+                            uri: restPath + '/not_exists',
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -1009,7 +1085,7 @@ describe('Rest', () => {
                     });
                     it('should return specific pipeline', async () => {
                         const options = {
-                            uri: restUrl + '/store/pipelines/flow1',
+                            uri: restPath + '/flow1',
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -1019,7 +1095,7 @@ describe('Rest', () => {
                 describe('/store/pipelines:name DELETE', () => {
                     it('should throw error pipeline not found', async () => {
                         const options = {
-                            uri: restUrl + '/store/pipelines/not_exists',
+                            uri: restPath + '/not_exists',
                             method: 'DELETE',
                             body: {}
                         };
@@ -1031,14 +1107,14 @@ describe('Rest', () => {
                     it('should delete specific pipeline', async () => {
                         const pipeline = clone(pipelines[0]);
                         const optionsInsert = {
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             method: 'POST',
                             body: pipeline
                         };
                         await _request(optionsInsert);
 
                         const options = {
-                            uri: restUrl + '/store/pipelines/' + pipeline.name,
+                            uri: restPath + '/' + pipeline.name,
                             method: 'DELETE',
                             body: {}
                         };
@@ -1050,7 +1126,7 @@ describe('Rest', () => {
                 describe('/store/pipelines GET', () => {
                     it('should get all pipelines', async () => {
                         const options = {
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             method: 'GET'
                         };
                         const response = await _request(options);
@@ -1061,7 +1137,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property name', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
@@ -1072,7 +1148,7 @@ describe('Rest', () => {
                     it('should throw validation error of data.name should be string', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: {
                                 name: {}
                             }
@@ -1085,7 +1161,7 @@ describe('Rest', () => {
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: {
                                 name: ''
                             }
@@ -1098,7 +1174,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property nodes', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: {
                                 name: 'string'
                             }
@@ -1111,7 +1187,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property nodes.nodeName', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -1136,7 +1212,7 @@ describe('Rest', () => {
                         }
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: pipeline
                         };
                         const response = await _request(options);
@@ -1151,7 +1227,7 @@ describe('Rest', () => {
                         }
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: pipeline
                         };
                         const response = await _request(options);
@@ -1166,7 +1242,7 @@ describe('Rest', () => {
                         };
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: pipeline
                         };
                         const response = await _request(options);
@@ -1177,7 +1253,7 @@ describe('Rest', () => {
                     it('should throw validation error of required property nodes.algorithmName', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -1198,7 +1274,7 @@ describe('Rest', () => {
                     it('should throw validation error of nodes.input should be array', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -1217,7 +1293,7 @@ describe('Rest', () => {
                     it('should throw validation error of data should NOT have additional properties', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -1242,7 +1318,7 @@ describe('Rest', () => {
                         const pipeline = clone(pipelines[0]);
                         pipeline.name = 'flow1';
                         const options = {
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             method: 'POST',
                             body: pipeline
                         };
@@ -1255,7 +1331,7 @@ describe('Rest', () => {
                     it('should throw validation error of duplicate node', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'string',
                                 nodes: [
@@ -1280,7 +1356,7 @@ describe('Rest', () => {
                     it('should throw validation error of invalid reserved name flowInput', async () => {
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: {
                                 name: 'reservedName',
                                 nodes: [
@@ -1301,7 +1377,7 @@ describe('Rest', () => {
                         const pipeline = pipelines.find(p => p.name === 'NodeNotExists');
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: pipeline
                         };
                         const response = await _request(options);
@@ -1313,7 +1389,7 @@ describe('Rest', () => {
                         const pipeline = pipelines.find(p => p.name === 'cyclicNodes');
                         const options = {
                             method: 'POST',
-                            uri: restUrl + '/exec/raw',
+                            uri: restPath,
                             body: pipeline
                         };
                         const response = await _request(options);
@@ -1347,7 +1423,7 @@ describe('Rest', () => {
                         pipeline.name = uuidv4();
                         const body = pipeline;
                         const options = {
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             method: 'POST',
                             body
                         };
@@ -1360,7 +1436,7 @@ describe('Rest', () => {
                     it('should succeed to update pipeline', async () => {
                         const body = pipelines[0];
                         const options = {
-                            uri: restUrl + '/store/pipelines',
+                            uri: restPath,
                             method: 'PUT',
                             body
                         };

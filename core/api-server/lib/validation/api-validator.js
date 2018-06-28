@@ -7,16 +7,17 @@ const { CronJob } = require('cron');
 const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
 const { InvalidDataError, } = require('../errors/errors');
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
+const NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
 const MIN_MEMORY = 4;
 
 class Validator {
     constructor() {
         validator.addFormat('url', this._validateUrl);
         validator.addFormat('cron', this._validateCron);
-        Object.values(schemas).forEach((s) => {
-            if (s.id) {
-                validator.addSchema(s);
-            }
+        validator.addFormat('name', this._validateName);
+        Object.entries(schemas).forEach(([k, v]) => {
+            v.id = `#/components/schemas/${k}`;
+            validator.addSchema(v);
         });
     }
 
@@ -63,7 +64,7 @@ class Validator {
     }
 
     validateName(pipeline) {
-        this._validate(schemas.name, pipeline);
+        this._validate(_schemas.name, pipeline);
     }
 
     validateResultList(pipeline) {
@@ -139,6 +140,13 @@ class Validator {
 
     _validateUrl(url) {
         return URL_REGEX.test(url);
+    }
+
+    _validateName(name) {
+        if (!NAME_REGEX.test(name)) {
+            throw new InvalidDataError('name must contain only alphanumeric, dash, dot or underscore');
+        }
+        return true;
     }
 
     _validateMemory(algorithm) {

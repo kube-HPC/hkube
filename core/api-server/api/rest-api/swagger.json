@@ -853,7 +853,15 @@
                     }
                 },
                 "requestBody": {
-                    "$ref": "#/components/requestBodies/algorithm"
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/algorithm"
+                            }
+                        }
+                    },
+                    "description": "algorithm descriptor to be added to the store",
+                    "required": true
                 }
             },
             "put": {
@@ -895,7 +903,15 @@
                     }
                 },
                 "requestBody": {
-                    "$ref": "#/components/requestBodies/algorithm"
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/algorithm"
+                            }
+                        }
+                    },
+                    "description": "algorithm descriptor to be added to the store",
+                    "required": true
                 }
             }
         },
@@ -1110,7 +1126,15 @@
                     }
                 },
                 "requestBody": {
-                    "$ref": "#/components/requestBodies/pipeline"
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/pipeline"
+                            }
+                        }
+                    },
+                    "description": "an object representing all information needed for pipeline execution",
+                    "required": true
                 }
             },
             "put": {
@@ -1152,7 +1176,15 @@
                     }
                 },
                 "requestBody": {
-                    "$ref": "#/components/requestBodies/pipeline"
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/pipeline"
+                            }
+                        }
+                    },
+                    "description": "an object representing all information needed for pipeline execution",
+                    "required": true
                 }
             }
         },
@@ -1282,30 +1314,6 @@
         }
     },
     "components": {
-        "requestBodies": {
-            "pipeline": {
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/pipeline"
-                        }
-                    }
-                },
-                "description": "pipeline descriptor to be added to the store",
-                "required": true
-            },
-            "algorithm": {
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "$ref": "#/components/schemas/algorithm"
-                        }
-                    }
-                },
-                "description": "algorithm descriptor to be added to the store",
-                "required": true
-            }
-        },
         "schemas": {
             "pipeline": {
                 "type": "object",
@@ -1313,7 +1321,8 @@
                     "name": {
                         "type": "string",
                         "description": "Unique identifier representing a specific pipeline",
-                        "minLength": 1
+                        "minLength": 1,
+                        "format": "name"
                     },
                     "nodes": {
                         "type": "array",
@@ -1351,7 +1360,8 @@
                     "name": {
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
-                        "minLength": 1
+                        "minLength": 1,
+                        "format": "name"
                     },
                     "algorithmImage": {
                         "type": "string",
@@ -1379,7 +1389,8 @@
                     "name": {
                         "type": "string",
                         "description": "Unique identifier representing a specific pipeline",
-                        "minLength": 1
+                        "minLength": 1,
+                        "format": "name"
                     },
                     "nodes": {
                         "type": "array",
@@ -1416,7 +1427,8 @@
                     "name": {
                         "type": "string",
                         "description": "Unique identifier representing a specific pipeline",
-                        "minLength": 1
+                        "minLength": 1,
+                        "format": "name"
                     },
                     "flowInput": {
                         "type": "object",
@@ -1441,7 +1453,6 @@
                 ]
             },
             "pipelineNode": {
-                "id": "#/components/schemas/pipelineNode",
                 "type": "object",
                 "properties": {
                     "nodeName": {
@@ -1457,17 +1468,16 @@
                     "input": {
                         "type": "array",
                         "description": "The input for the algorithm",
+                        "items": {},
                         "default": []
                     }
                 },
-                "additionalProperties": true,
                 "required": [
                     "nodeName",
                     "algorithmName"
                 ]
             },
             "webhooks": {
-                "id": "#/components/schemas/webhooks",
                 "type": "object",
                 "properties": {
                     "progress": {
@@ -1484,7 +1494,6 @@
                 "additionalProperties": false
             },
             "triggers": {
-                "id": "#/components/schemas/triggers",
                 "type": "object",
                 "properties": {
                     "pipelines": {
@@ -1505,13 +1514,11 @@
                 "additionalProperties": false
             },
             "priority": {
-                "id": "#/components/schemas/priority",
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 5
             },
             "options": {
-                "id": "#/components/schemas/options",
                 "type": "object",
                 "properties": {
                     "batchTolerance": {
@@ -1570,17 +1577,6 @@
                     }
                 }
             },
-            "name": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "name"
-                ]
-            },
             "jobId": {
                 "type": "object",
                 "properties": {
@@ -1600,7 +1596,6 @@
                 }
             },
             "execTreeNode": {
-                "id": "#/components/schemas/execTreeNode",
                 "type": "object",
                 "properties": {
                     "name": {
@@ -1631,13 +1626,14 @@
                         "type": "string"
                     },
                     "data": {
-                        "type": "array"
+                        "type": "array",
+                        "items": {}
                     },
                     "status": {
                         "type": "string"
                     },
                     "timeTook": {
-                        "type": "float"
+                        "type": "number"
                     },
                     "storageModule": {
                         "type": "string"
@@ -1676,6 +1672,17 @@
                         "default": 1,
                         "minimum": 1,
                         "maximum": 1000
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "name": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
                     }
                 },
                 "required": [
