@@ -28,8 +28,8 @@ config.interval = process.env.INTERVAL || 1000;
 
 config.resourceThresholds = {
     algorithms: {
-        cpu: process.env.ALGORITHM_THRESHOLD_CPU || 0.9,
-        mem: process.env.ALGORITHM_THRESHOLD_MEM || 0.9
+        cpu: process.env.ALGORITHMS_THRESHOLD_CPU || 0.9,
+        mem: process.env.ALGORITHMS_THRESHOLD_MEM || 0.9
     },
     pipelineDrivers: {
         cpu: process.env.DRIVERS_THRESHOLD_CPU || 0.6,

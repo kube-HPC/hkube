@@ -34,34 +34,26 @@ class PrometheusAdapter extends Adapter {
             podToAlgorithm.set(r.metric.pod, r.metric.label_algorithm_name);
         });
         resources.cpuUsage.data.result.forEach(r => {
-            r.values.forEach(slice => {
-                const cpuUsage = parseFloat(slice[1]);
-                const algorithmName = podToAlgorithm.get(r.metric.pod_name);
-                if (!algorithmName) {
-                    log.warning(`cant find algorithm name by pod ${r.metric.pod_name}`, { component });
-                }
-                else if (algorithms.has(algorithmName)) {
-                    const a = algorithms.get(algorithmName);
-                    a.cpuUsage.push(cpuUsage);
-                }
-                else {
-                    algorithms.set(algorithmName, { cpuUsage: [cpuUsage], runTime: [] });
-                }
-            });
+            const values = r.values.map(v => parseFloat(v[1]));
+            const algorithmName = podToAlgorithm.get(r.metric.pod_name);
+            if (!algorithmName) {
+                log.warning(`cant find algorithm name by pod ${r.metric.pod_name}`, { component });
+            }
+            algorithms.set(algorithmName, { cpuUsage: values });
         });
-        resources.runTime.data.result.forEach(algorithm => {
-            algorithm.values.forEach(slice => {
-                const runTime = parseFloat(slice[1]);
-                if (algorithms.has(algorithm.metric.algorithmName)) {
-                    const a = algorithms.get(algorithm.metric.algorithmName);
-                    a.runTime.push(runTime);
-                }
-                else {
-                    algorithms.set(algorithm.metric.algorithmName, { runTime: [runTime] });
-                }
-            });
+        resources.runTime.data.result.forEach(a => {
+            const values = a.values.map(v => parseFloat(v[1]));
+            algorithms.set(a.metric.algorithmName, { runTime: values });
         });
-        algorithms.forEach((val, key) => result.push({ algorithmName: key, runTime: median(val.runTime), cpuUsage: median(val.cpuUsage) }));
+        algorithms.forEach((val, key) => {
+            if (!val.runTime) {
+                val.runTime = [0.0001];
+            }
+            if (!val.cpuUsage) {
+                val.cpuUsage = [0.0001];
+            }
+            result.push({ algorithmName: key, runTime: median(val.runTime), cpuUsage: median(val.cpuUsage) });
+        });
         this._cache.set(result);
         return result;
     }
