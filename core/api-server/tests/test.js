@@ -265,7 +265,7 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal('name must contain only alphanumeric, dash, dot or underscore');
                     });
-                    it('should succeed and return execution id', async () => {
+                    it('should succeed and return job id', async () => {
                         const options = {
                             method: 'POST',
                             uri: restPath,
@@ -383,7 +383,7 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal('name must contain only alphanumeric, dash, dot or underscore');
                     });
-                    it('should succeed and return execution id', async () => {
+                    it('should succeed and return job id', async () => {
                         const options = {
                             method: 'POST',
                             uri: restPath,
@@ -844,7 +844,7 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(404);
                         expect(response.body.error.message).to.equal("pipeline not_exists Not Found");
                     });
-                    it('should succeed and return execution id', async () => {
+                    it('should succeed and return job id', async () => {
                         const options1 = {
                             method: 'POST',
                             uri: restUrl + '/exec/raw',
@@ -865,7 +865,12 @@ describe('Rest', () => {
                             uri: restPath + '/' + response1.body.jobId,
                         };
                         const response2 = await _request(options);
-                        expect(response2.body.name).to.equal(options1.body.name);
+                        expect(response2.body).to.have.property('name');
+                        expect(response2.body).to.have.property('nodes');
+                        expect(response2.body).to.have.property('options');
+                        expect(response2.body).to.have.property('priority');
+                        expect(response2.body).to.have.property('startTime');
+                        expect(response2.body.name).to.have.string(options1.body.name);
                         expect(response2.body.nodes).to.deep.equal(options1.body.nodes);
                     });
                 });
