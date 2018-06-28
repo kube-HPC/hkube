@@ -73,7 +73,7 @@ class Queue extends events {
                 log.debug('store data to storage succeed', { component: components.QUEUE });
             }
             catch (e) {
-                log.warning('fail to store data', { component: components.QUEUE });
+                log.error(`fail to store data. error is: ${e.message}`, { component: components.QUEUE }, e);
             }
         }
         else {
