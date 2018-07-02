@@ -12,7 +12,7 @@ const stubTemplate = ({
             priority: priority,
             entranceTime: entranceTime,
             calculated: {
-                score: `${score}`,
+                score: score,
                 latestScores: {}
             }
         }

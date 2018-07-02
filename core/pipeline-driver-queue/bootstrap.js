@@ -3,12 +3,11 @@ const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const monitor = require('@hkube/redis-utils').Monitor;
-const { component } = require('./lib/consts').componentName.MAIN;
+const component = require('./lib/consts').componentName.MAIN;
 const { tracer } = require('@hkube/metrics');
 
 const modules = [
     './lib/jobs/consumer',
-    './lib/jobs/producer-singleton',
     './lib/jobs/producer',
     './lib/queue-runner',
     './lib/metrics/aggregation-metrics-factory'

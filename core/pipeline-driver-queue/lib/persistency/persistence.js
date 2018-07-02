@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
-const { JobStatus } = require('@hkube/etcd');
-const producerSingleton = require('../jobs/producer-singleton');
+const { JobStatus, JobResult } = require('@hkube/etcd');
 
 class Persistence extends EventEmitter {
     constructor() {
@@ -20,12 +19,8 @@ class Persistence extends EventEmitter {
         return this;
     }
 
-    async store(data) {
-        // log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT });
-        const bullQueue = producerSingleton.get.getQueueByJobType(this.queueName);
-        const pendingAmount = await bullQueue.getWaitingCount();
-        await this.etcd.pipelineDrivers.queue.set({ name: this.queueName, data, pendingAmount });
-        // log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
+    store(data) {
+        return this.etcd.pipelineDrivers.queue.set({ name: this.queueName, ...data });
     }
 
     get() {
@@ -42,6 +37,10 @@ class Persistence extends EventEmitter {
 
     setJobStatus(options) {
         return this.etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
+    }
+
+    setJobResults(options) {
+        return this.etcd.jobResults.set({ jobId: options.jobId, data: new JobResult(options) });
     }
 
     watchJobState(options) {

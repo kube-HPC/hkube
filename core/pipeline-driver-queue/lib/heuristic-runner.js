@@ -1,11 +1,8 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('./consts/component-name').HEURISTIC_RUNNER;
-const _ = require('lodash');
-const aigle = require('aigle');
 
 class heuristicRunner {
     constructor() {
-        aigle.mixin(_);
         this.heuristicMap = [];
     }
 
@@ -22,15 +19,15 @@ class heuristicRunner {
         }
     }
 
-    async run(job) {
-        // log.debug('start running heuristic for ', { component });
-        const score = await this.heuristicMap.reduce((result, algorithm) => {
+    run(job) {
+        log.debug(`running heuristic for ${job.pipelineName}`, { component });
+        const score = this.heuristicMap.reduce((result, algorithm) => {
             const heuristicScore = algorithm.heuristic(job);
             job.calculated.latestScores[algorithm.name] = heuristicScore;
             // log.debug(`${algorithm.name} - score:${heuristicScore} calculated:${result + heuristicScore}`, { component });
             return result + heuristicScore;
         }, 0);
-        log.debug(`${job.pipelineName} - score:${score}`, { component });
+        log.debug(`finish heuristic for ${job.pipelineName} - score:${score}`, { component });
         return { ...job, calculated: { ...job.calculated, score } };
     }
 }

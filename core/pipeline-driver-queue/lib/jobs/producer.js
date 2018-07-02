@@ -1,10 +1,10 @@
-const { Events } = require('@hkube/producer-consumer');
-const producerSingleton = require('./producer-singleton');
+const { Events, Producer } = require('@hkube/producer-consumer');
+const { tracer } = require('@hkube/metrics');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, jobState } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
-const queueRunner = require('../queue-runner');
 const persistence = require('../persistency/persistence');
+const queueRunner = require('../queue-runner');
 
 class JobProducer {
     constructor() {
@@ -13,25 +13,29 @@ class JobProducer {
     }
 
     async init(options) {
-        this._producer = producerSingleton.get;
-        this.jobType = options.producer.jobType;
-        this.bullQueue = this._producer._createQueue(this.jobType);
+        this._jobType = options.producer.jobType;
+        this._producer = new Producer({ setting: { redis: options.redis, prefix: options.producer.prefix, tracer } });
+        this._bullQueue = this._producer._createQueue(this._jobType);
         this._producerEventRegistry();
         this._checkWorkingStatusInterval();
+    }
+
+    get get() {
+        return this._producer;
     }
 
     // should handle cases where there is currently not any active job and new job added to queue 
     _checkWorkingStatusInterval() {
         setInterval(async () => {
-            const waitingCount = await this.bullQueue.getWaitingCount();
-            if (waitingCount === 0 && queueRunner.queue.get.length > 0) {
+            const pendingAmount = await this.getWaitingCount();
+            if (pendingAmount === 0 && queueRunner.queue.get.length > 0) {
                 await this.createJob();
             }
         }, 1000);
     }
 
-    getPendingAmount() {
-        return this.bullQueue.getWaitingCount();
+    getWaitingCount() {
+        return this._bullQueue.getWaitingCount();
     }
 
     _producerEventRegistry() {
@@ -59,7 +63,7 @@ class JobProducer {
         return {
             job: {
                 id: pipeline.jobId,
-                type: this.jobType,
+                type: this._jobType,
                 data: {
                     jobId: pipeline.jobId,
                     pipelineName: pipeline.pipelineName
@@ -77,7 +81,7 @@ class JobProducer {
     async createJob() {
         const pipeline = queueRunner.queue.tryPop();
         if (pipeline) {
-            log.info(`pop new job ${pipeline.jobId}, calculated score: ${pipeline.score}`, { component });
+            log.debug(`pop new job ${pipeline.jobId}, calculated score: ${pipeline.calculated.score}`, { component });
             this._lastSentJob = pipeline.jobId;
             const job = this._taskToProducerJob(pipeline);
             await this._producer.createJob(job);
