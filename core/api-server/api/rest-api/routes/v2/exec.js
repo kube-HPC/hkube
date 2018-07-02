@@ -78,10 +78,43 @@ const routes = (options) => {
             return next(error);
         });
     });
+    router.all('/pipelines/status/raw/:name?', methods(['GET']), logger(), (req, res, next) => {
+        const { name } = req.params;
+        const { sort, order, limit } = req.query;
+        Execution.getPipelinesStatusRaw({ name, sort, order, limit }).then((response) => {
+            res.json(response);
+            res.name = name;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.all('/pipelines/status/stored/:name?', methods(['GET']), logger(), (req, res, next) => {
+        const { name } = req.params;
+        const { sort, order, limit } = req.query;
+        Execution.getPipelinesStatusStored({ name, sort, order, limit }).then((response) => {
+            res.json(response);
+            res.name = name;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     router.all('/cron/results/:name?', methods(['GET']), logger(), (req, res, next) => {
         const { name } = req.params;
         const { sort, order, limit } = req.query;
         Execution.getCronResult({ name, sort, order, limit }).then((response) => {
+            res.json(response);
+            res.name = name;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.all('/cron/status/:name?', methods(['GET']), logger(), (req, res, next) => {
+        const { name } = req.params;
+        const { sort, order, limit } = req.query;
+        Execution.getCronStatus({ name, sort, order, limit }).then((response) => {
             res.json(response);
             res.name = name;
             next();

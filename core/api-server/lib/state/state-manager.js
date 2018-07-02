@@ -123,6 +123,10 @@ class StateManager extends EventEmitter {
         return this._etcd.jobStatus.get(options);
     }
 
+    getJobStatuses(options) {
+        return this._etcd.jobStatus.list(options);
+    }
+
     setJobStatus(options) {
         return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
     }

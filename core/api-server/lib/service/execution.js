@@ -218,12 +218,40 @@ class ExecutionService {
         return response;
     }
 
+    async getPipelinesStatusStored(options) {
+        validator.validateResultList(options);
+        const response = await stateManager.getJobStatuses({ ...options, jobId: options.name });
+        if (response.length === 0) {
+            throw new ResourceNotFoundError('pipeline status', options.name);
+        }
+        return response;
+    }
+
+    async getPipelinesStatusRaw(options) {
+        validator.validateResultList(options);
+        const response = await stateManager.getJobStatuses({ ...options, jobId: `raw-${options.name}` });
+        if (response.length === 0) {
+            throw new ResourceNotFoundError('pipeline status', options.name);
+        }
+        return response;
+    }
+
     async getCronResult(options) {
         validator.validateResultList(options);
         const jobId = this._createCronJobID(options);
         const response = await stateManager.getJobResults({ ...options, jobId });
         if (response.length === 0) {
             throw new ResourceNotFoundError('cron results', options.name);
+        }
+        return response;
+    }
+
+    async getCronStatus(options) {
+        validator.validateResultList(options);
+        const jobId = this._createCronJobID(options);
+        const response = await stateManager.getJobStatuses({ ...options, jobId });
+        if (response.length === 0) {
+            throw new ResourceNotFoundError('cron status', options.name);
         }
         return response;
     }

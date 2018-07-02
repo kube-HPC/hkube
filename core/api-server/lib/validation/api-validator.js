@@ -1,6 +1,6 @@
 
 const validator = require('djsv');
-const shortid = require('shortid');
+const randString = require('crypto-random-string');
 const converter = require('@hkube/units-converter');
 const { parser } = require('@hkube/parsers');
 const { Graph, alg } = require('graphlib');
@@ -41,7 +41,7 @@ class Validator {
 
     validateRunRawPipeline(pipeline) {
         this._validate(schemas.pipeline, pipeline, { checkFlowInput: true });
-        pipeline.name = `raw-${pipeline.name}-${shortid.generate()}`;
+        pipeline.name = `raw-${pipeline.name}-${randString(10)}`;
     }
 
     validateRunStoredPipeline(pipeline) {

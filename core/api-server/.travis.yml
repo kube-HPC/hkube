@@ -22,8 +22,8 @@ cache:
   directories:
   - node_modules
 script:
-- npm run-script test-travis
-after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+- npm run lint && npm run test:cov
+after_script: "npm run coverage"
 after_success:
 - |
   if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
