@@ -38,7 +38,7 @@ class LoggingProxy {
             return;
         }
         try {
-            this._tail = new Tail(this._algorunnerLogFilePath);
+            this._tail = new Tail(this._algorunnerLogFilePath, { fromBeginning: true });
             this._tail.on('line', (line) => {
                 try {
                     const logParsed = JSON.parse(line);
