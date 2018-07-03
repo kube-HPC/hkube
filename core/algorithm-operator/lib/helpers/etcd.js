@@ -14,7 +14,7 @@ class Etcd extends EventEmitter {
         this._etcd = new EtcdClient();
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
         await this._etcd.init(options.etcd);
-        this._etcd.jobs.watch({ jobId: 'hookWatch' });
+        await this._etcd.jobs.watch({ jobId: 'hookWatch' });
     }
     
     getAlgorithmTemplate({ algorithmName }) {
