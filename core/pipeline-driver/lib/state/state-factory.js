@@ -10,7 +10,7 @@ class StateFactory extends EventEmitter {
     async init(options) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
-        this._etcd.jobs.watch({ jobId: 'hookWatch' });
+        await this._etcd.jobs.watch({ jobId: 'hookWatch' });
         this._subscribe();
     }
 
