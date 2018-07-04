@@ -17,11 +17,7 @@ class ProgressManager {
         this._sendProgress = options.sendProgress || this._defaultSendProgress;
         this._progress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
         this._queue = async.queue((task, callback) => {
-            this._sendProgress(task).then((response) => {
-                return callback(null, response);
-            }).catch((error) => {
-                return callback(error);
-            });
+            this._sendProgress(task).then(response => callback(null, response)).catch(error => callback(error));
         }, 1);
     }
 

@@ -370,7 +370,7 @@ class TaskRunner {
                 }
             }
             else {
-                error = new Error(`${task.error}`);
+                error = new Error(task.error);
             }
         }
         return error;

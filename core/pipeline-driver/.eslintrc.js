@@ -29,7 +29,7 @@ module.exports = {
         "object-curly-spacing": "off",
         "object-curly-newline": "off",
         "newline-per-chained-call": "off",
-        "arrow-body-style": "off",
+        "arrow-body-style": "error",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2
