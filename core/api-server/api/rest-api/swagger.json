@@ -1699,10 +1699,12 @@
                         "$ref": "#/components/schemas/webhooks"
                     },
                     "options": {
-                        "$ref": "#/components/schemas/options"
+                        "$ref": "#/components/schemas/options",
+                        "default": {}
                     },
                     "priority": {
-                        "$ref": "#/components/schemas/priority"
+                        "$ref": "#/components/schemas/priority",
+                        "default": 3
                     },
                     "triggers": {
                         "$ref": "#/components/schemas/triggers"
@@ -1743,44 +1745,6 @@
                     "algorithmImage"
                 ]
             },
-            "updatePipeline": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific pipeline",
-                        "minLength": 1,
-                        "format": "name"
-                    },
-                    "nodes": {
-                        "type": "array",
-                        "description": "Array of nodes",
-                        "items": {
-                            "$ref": "#/components/schemas/pipelineNode"
-                        }
-                    },
-                    "flowInput": {
-                        "type": "object",
-                        "description": "input object"
-                    },
-                    "webhooks": {
-                        "$ref": "#/components/schemas/webhooks"
-                    },
-                    "options": {
-                        "$ref": "#/components/schemas/options"
-                    },
-                    "priority": {
-                        "$ref": "#/components/schemas/priority"
-                    },
-                    "triggers": {
-                        "$ref": "#/components/schemas/triggers"
-                    }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "name"
-                ]
-            },
             "storedPipeline": {
                 "type": "object",
                 "properties": {
@@ -1798,10 +1762,12 @@
                         "$ref": "#/components/schemas/webhooks"
                     },
                     "options": {
-                        "$ref": "#/components/schemas/options"
+                        "$ref": "#/components/schemas/options",
+                        "default": {}
                     },
                     "priority": {
-                        "$ref": "#/components/schemas/priority"
+                        "$ref": "#/components/schemas/priority",
+                        "default": 3
                     },
                     "triggers": {
                         "$ref": "#/components/schemas/triggers"
@@ -1884,10 +1850,12 @@
                     "batchTolerance": {
                         "type": "integer",
                         "minimum": 0,
-                        "maximum": 100
+                        "maximum": 100,
+                        "default": 80
                     },
                     "progressVerbosityLevel": {
                         "type": "string",
+                        "default": "info",
                         "enum": [
                             "trace",
                             "debug",

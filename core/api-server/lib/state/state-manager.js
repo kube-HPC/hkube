@@ -30,6 +30,10 @@ class StateManager extends EventEmitter {
         return this._etcd.execution.get(options);
     }
 
+    deleteExecution(options) {
+        return this._etcd.execution.delete(options);
+    }
+
     getExecutionsTree(options) {
         return this._etcd.execution.getExecutionsTree(options);
     }
@@ -107,6 +111,10 @@ class StateManager extends EventEmitter {
         return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult(options) });
     }
 
+    deleteJobResults(options) {
+        return this._etcd.jobResults.delete(options);
+    }
+
     setWebhook(options) {
         return this._etcd.webhooks.set({ jobId: options.jobId, type: options.type, data: new Webhook(options.data) });
     }
@@ -119,6 +127,10 @@ class StateManager extends EventEmitter {
         return this._etcd.webhooks.list(options);
     }
 
+    deleteWebhook(options) {
+        return this._etcd.webhooks.delete(options);
+    }
+
     getJobStatus(options) {
         return this._etcd.jobStatus.get(options);
     }
@@ -129,6 +141,10 @@ class StateManager extends EventEmitter {
 
     setJobStatus(options) {
         return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
+    }
+
+    deleteJobStatus(options) {
+        return this._etcd.jobStatus.delete(options);
     }
 
     stopJob(options) {

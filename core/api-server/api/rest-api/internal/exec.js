@@ -19,6 +19,16 @@ const routes = () => {
         });
     });
 
+    router.all('/exec/clean/:jobId?', methods(['POST']), logger(), (req, res, next) => {
+        Execution.cleanJob(req.body).then((jobId) => {
+            res.json({ jobId });
+            res.jobId = jobId;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+
     return router;
 };
 

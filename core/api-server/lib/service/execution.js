@@ -4,6 +4,7 @@ const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const storageFactory = require('../datastore/storage-factory');
 const States = require('../state/States');
+const WebhookTypes = require('../webhook/States').Types;
 const levels = require('../progress/progressLevels');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors/errors');
 const { tracer } = require('@hkube/metrics');
@@ -96,7 +97,6 @@ class ExecutionService {
             }
         });
 
-        validator.addDefaults(pipeline);
         await this._createStorage(jobId, pipeline.name);
 
         if (pipeline.flowInput) {
@@ -287,6 +287,17 @@ class ExecutionService {
             throw new ResourceNotFoundError('jobs', options.jobId);
         }
         return jobs;
+    }
+
+    async cleanJob(options) {
+        const { jobId } = options;
+        await stateManager.deleteExecution({ jobId });
+        await stateManager.deleteJobResults({ jobId });
+        await stateManager.deleteJobStatus({ jobId });
+        await stateManager.deleteWebhook({ jobId, type: WebhookTypes.PROGRESS });
+        await stateManager.deleteWebhook({ jobId, type: WebhookTypes.RESULT });
+        // await storageFactory.adapter.delete({ jobId });
+        await producer.stopJob({ jobId });
     }
 
     _createStoredJobID(options) {

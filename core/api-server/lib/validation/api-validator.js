@@ -22,19 +22,6 @@ class Validator {
         });
     }
 
-    addDefaults(pipeline) {
-        pipeline.options = pipeline.options || {};
-        if (!Number.isInteger(pipeline.options.batchTolerance)) {
-            pipeline.options.batchTolerance = 80;
-        }
-        if (!Number.isInteger(pipeline.priority)) {
-            pipeline.priority = 3;
-        }
-        if (!pipeline.options.progressVerbosityLevel) {
-            pipeline.options.progressVerbosityLevel = 'info';
-        }
-    }
-
     validateStoredInternal(pipeline) {
         this._validate(_schemas.storedInternal, pipeline);
     }
@@ -52,12 +39,8 @@ class Validator {
         this._validate(schemas.stopRequest, pipeline);
     }
 
-    validateInsertPipeline(pipeline) {
-        this._validate(schemas.pipeline, pipeline);
-    }
-
     validateUpdatePipeline(pipeline) {
-        this._validate(schemas.updatePipeline, pipeline);
+        this._validate(schemas.pipeline, pipeline);
     }
 
     validateUpdateAlgorithm(algorithm) {

@@ -2141,6 +2141,33 @@ describe('Rest', () => {
             restUrl = `${baseUrl}/internal/v1`;
             realUrl = `${baseUrl}/${config.rest.prefix}/${versions[0]}`;
         });
+        it('should clean the job', async () => {
+            const options1 = {
+                method: 'POST',
+                uri: `${realUrl}/exec/raw`,
+                body: {
+                    name: 'clean',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg'
+                        }
+                    ]
+                }
+            };
+            const response1 = await _request(options1);
+            const jobId = response1.body.jobId;
+
+            await delay(1000);
+
+            const options2 = {
+                method: 'POST',
+                uri: `${restUrl}/exec/clean`,
+                body: { jobId }
+            };
+            const response2 = await _request(options2);
+            //expect(response2.body.error.message).to.equal(`data should have required property 'name'`);
+        });
         it('should throw error when invalid pipeline name', async () => {
             const options = {
                 method: 'POST',

@@ -39,6 +39,7 @@ class JobProducer {
     async createJob(options) {
         const opt = {
             job: {
+                id: options.jobId,
                 type: JOB_TYPE,
                 data: {
                     jobId: options.jobId
@@ -52,6 +53,14 @@ class JobProducer {
             };
         }
         return this._producer.createJob(opt);
+    }
+
+    async stopJob(options) {
+        const option = {
+            type: JOB_TYPE,
+            jobID: options.jobId
+        };
+        return this._producer.stopJob(option);
     }
 }
 
