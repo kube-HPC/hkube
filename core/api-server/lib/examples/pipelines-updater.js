@@ -5,7 +5,7 @@ const stateManager = require('../../lib/state/state-manager');
 
 class PipelinesUpdater {
     init(options) {
-        if (options.addDefaultAlgorithms) {
+        if (options.addDefaultAlgorithms !== 'false') {
             algorithms.map(p => stateManager.setAlgorithm(p));
         }
 

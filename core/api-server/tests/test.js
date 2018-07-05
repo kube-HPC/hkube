@@ -1264,6 +1264,26 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(404);
                         expect(response.body.error.message).to.equal("pipeline not_exists Not Found");
                     });
+                    it('should throw validation error if algorithmName not exists', async () => {
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/raw',
+                            body: {
+                                name: 'exec_pipeline',
+                                nodes: [
+                                    {
+                                        nodeName: 'string',
+                                        algorithmName: 'dummy',
+                                        input: []
+                                    }
+                                ]
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal("algorithm dummy Not Found");
+                    });
                     it('should succeed and return job id', async () => {
                         const options1 = {
                             method: 'POST',
@@ -1843,6 +1863,21 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
                     });
+                    it('should throw validation error if algorithmName not exists', async () => {
+                        const pipeline = clone(pipelines[0]);
+                        pipeline.nodes[0].algorithmName = 'not_exists'
+                        pipeline.name = uuidv4();
+                        const body = pipeline;
+                        const options = {
+                            uri: restPath,
+                            method: 'POST',
+                            body
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
+                    });
                     it('should succeed to store pipeline', async () => {
                         const pipeline = clone(pipelines[0]);
                         pipeline.name = uuidv4();
@@ -1867,6 +1902,20 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.deep.equal(body);
+                    });
+                    it('should throw validation error if algorithmName not exists', async () => {
+                        const pipeline = clone(pipelines[0]);
+                        pipeline.nodes[0].algorithmName = 'not_exists'
+                        const body = pipeline;
+                        const options = {
+                            uri: restPath,
+                            method: 'PUT',
+                            body
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
                     });
                 });
             });

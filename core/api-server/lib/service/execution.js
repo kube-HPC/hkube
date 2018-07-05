@@ -97,6 +97,7 @@ class ExecutionService {
             }
         });
 
+        await validator.validateAlgorithmName(pipeline);
         await this._createStorage(jobId, pipeline.name);
 
         if (pipeline.flowInput) {

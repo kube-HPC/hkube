@@ -1,4 +1,4 @@
-
+const stateManager = require('../state/state-manager');
 const validator = require('djsv');
 const randString = require('crypto-random-string');
 const converter = require('@hkube/units-converter');
@@ -6,7 +6,8 @@ const { parser } = require('@hkube/parsers');
 const { Graph, alg } = require('graphlib');
 const { CronJob } = require('cron');
 const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
-const { InvalidDataError, } = require('../errors/errors');
+const { ResourceNotFoundError, InvalidDataError } = require('../errors/errors');
+
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
 const NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
 const MIN_MEMORY = 4;
@@ -62,6 +63,16 @@ class Validator {
 
     validateJobID(pipeline) {
         this._validate(schemas.jobId, pipeline);
+    }
+
+    async validateAlgorithmName(pipeline) {
+        const result = await stateManager.getAlgorithms();
+        const algorithms = new Set(result.map(x => x.name));
+        pipeline.nodes.forEach((node) => {
+            if (!algorithms.has(node.algorithmName)) {
+                throw new ResourceNotFoundError('algorithm', node.algorithmName);
+            }
+        });
     }
 
     _validate(schema, object, options) {

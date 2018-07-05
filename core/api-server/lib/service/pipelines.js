@@ -16,6 +16,7 @@ class PipelineStore {
         if (!pipe) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
+        await validator.validateAlgorithmName(options);
         await stateManager.setPipeline(options);
         return options;
     }
@@ -69,6 +70,7 @@ class PipelineStore {
         if (pipe) {
             throw new ResourceExistsError('pipeline', options.name);
         }
+        await validator.validateAlgorithmName(options);
         await stateManager.setPipeline(options);
         return options;
     }
