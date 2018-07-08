@@ -23,10 +23,10 @@ config.queue = {
     updateInterval: 1000
 };
 config.heuristicsWeights = {
-    [heuristicsNames.PRIORITY]: 0.1,
-    [heuristicsNames.ENTRANCE_TIME]: 0.1,
-    [heuristicsNames.BATCH]: 0.5,
-    [heuristicsNames.CURRENT_BATCH_PLACE]: 0.3
+    [heuristicsNames.PRIORITY]: 0.4,
+    [heuristicsNames.ENTRANCE_TIME]: 0.2,
+    [heuristicsNames.BATCH]: 0.2,
+    [heuristicsNames.CURRENT_BATCH_PLACE]: 0.2
 };
 config.metrics = {
     collectDefault: true,
