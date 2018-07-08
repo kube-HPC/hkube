@@ -53,7 +53,7 @@ class StateManager extends EventEmitter {
                     const result = await this._storageAdapter.get(a.result.storageInfo);
                     return { ...a, result };
                 }
-                return null;
+                return a;
             }));
             storageInfo = await this._storageAdapter.putResults({ jobId: options.jobId, data });
         }

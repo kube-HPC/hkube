@@ -578,6 +578,52 @@ describe('Test', function () {
             const res = await storageAdapter.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
         });
+        it('setJobResults with null', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const taskId = `taskId-${uuidv4()}`;
+            const data = [{ koko: [null, 2, 3] }];
+            const results = {
+                jobId,
+                data
+            };
+            const storageInfo = await storageAdapter.put({ jobId, taskId, data });
+            let result = { storageInfo };
+            results.data = [{ result }];
+            await stateManager.setJobResults(results);
+            const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
+            const res = await storageAdapter.get(etcdResult.data.storageInfo);
+            expect(data).to.deep.equal(res[0].result);
+        });
+        it('setJobResults with error', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const taskId = `taskId-${uuidv4()}`;
+            const data = [
+                {
+                    "nodeName": "eval1",
+                    "batchIndex": 1,
+                    "algorithmName": "eval-alg",
+                    "error": "Error: no odd numbers"
+                },
+                {
+                    "nodeName": "eval1",
+                    "batchIndex": 2,
+                    "algorithmName": "eval-alg",
+                    "result": {
+                        "xxx": {}
+                    }
+                }];
+            const results = {
+                jobId,
+                data
+            };
+            const storageInfo = await storageAdapter.put({ jobId, taskId, data });
+            let result = { storageInfo };
+            results.data = [{ result }];
+            await stateManager.setJobResults(results);
+            const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
+            const res = await storageAdapter.get(etcdResult.data.storageInfo);
+            expect(data).to.deep.equal(res[0].result);
+        });
         it('setJobStatus', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { status: 'completed' };
