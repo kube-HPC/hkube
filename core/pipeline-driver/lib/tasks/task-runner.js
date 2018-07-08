@@ -20,6 +20,11 @@ metrics.addTimeMeasure({
         .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
 });
 
+metrics.addGaugeMeasure({
+    name: metricsNames.pipelines_progress,
+    labels: ['pipeline_name', 'jobId', 'status'],
+});
+
 class TaskRunner {
     constructor(options) {
         this._job = null;
@@ -243,11 +248,25 @@ class TaskRunner {
                 status
             }
         });
+
+        this._setProgressMetric(status);
+
         const topSpan = tracer.topSpan(this._jobId);
         if (topSpan) {
             topSpan.addTag({ status });
             topSpan.finish();
         }
+    }
+
+    _setProgressMetric(status) {
+        metrics.get(metricsNames.pipelines_progress).set({
+            value: this._progress.currentProgress,
+            labelValues: {
+                status,
+                jobId: this._jobId,
+                pipeline_name: this._pipelineName
+            }
+        });
     }
 
     _runNode(nodeName, parentOutput, index) {
@@ -389,6 +408,7 @@ class TaskRunner {
         }
         this._progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: States.ACTIVE });
         this._stateManager.setTaskState({ jobId: this._jobId, taskId, data: task });
+        this._setProgressMetric(States.ACTIVE);
     }
 
     _createJob(options, batch) {

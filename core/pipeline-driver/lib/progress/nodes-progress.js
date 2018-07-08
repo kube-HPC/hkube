@@ -13,12 +13,17 @@ const levels = {
 class ProgressManager {
     constructor(options) {
         options = options || {};
+        this._currentProgress = 0;
         this._calcProgress = options.calcProgress || this._defaultCalcProgress;
         this._sendProgress = options.sendProgress || this._defaultSendProgress;
-        this._progress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
+        this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
         this._queue = async.queue((task, callback) => {
             this._sendProgress(task).then(response => callback(null, response)).catch(error => callback(error));
         }, 1);
+    }
+
+    get currentProgress() {
+        return this._currentProgress;
     }
 
     _defaultCalcProgress() {
@@ -57,9 +62,14 @@ class ProgressManager {
         return this._progress(levels.critical, data);
     }
 
-    _queueProgress(level, { jobId, pipeline, status, error }) {
+    _progress(level, options) {
+        const data = this._calcProgress();
+        this._currentProgress = data.progress;
+        return this._throttleProgress(level, { ...options, data });
+    }
+
+    _queueProgress(level, { jobId, pipeline, data, status, error }) {
         return new Promise((resolve, reject) => {
-            const data = this._calcProgress();
             this._queue.push({ jobId, pipeline, level, status, error, data }, (err, res) => {
                 if (err) {
                     return reject(err);
