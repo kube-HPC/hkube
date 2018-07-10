@@ -6,6 +6,7 @@ const component = require('./common/consts/componentNames').MAIN;
 let log;
 
 const modules = [
+    './lib/helpers/prometheus',
     './lib/monitoring/metrics-provider',
     './lib/state/state-manager',
     './lib/runner/runner'

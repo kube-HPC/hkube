@@ -1,0 +1,120 @@
+{
+    "status": "success",
+    "data": {
+        "resultType": "matrix",
+        "result": [
+            {
+                "metric": {
+                    "__name__": "pipelines_progress_gauge",
+                    "instance": "10.42.128.96:9200",
+                    "job": "node",
+                    "jobId": "raw-simple-0ff2fe5f74:415a16a7-3bc8-47b6-82c8-c9f621fa90d4.raw-simple-0ff2fe5f74",
+                    "pipeline_name": "raw-simple-0ff2fe5f74",
+                    "status": "active"
+                },
+                "values": [
+                    [
+                        1531223906.875,
+                        "100"
+                    ]
+                ]
+            },
+            {
+                "metric": {
+                    "__name__": "pipelines_progress_gauge",
+                    "instance": "10.42.128.96:9200",
+                    "job": "node",
+                    "jobId": "raw-simple-1686fa2b92:54dba9fa-a941-4e21-980e-d1b56bfc2fd2.raw-simple-1686fa2b92",
+                    "pipeline_name": "raw-simple-1686fa2b92",
+                    "status": "active"
+                },
+                "values": [
+                    [
+                        1531223892.875,
+                        "100"
+                    ],
+                    [
+                        1531223906.875,
+                        "100"
+                    ]
+                ]
+            },
+            {
+                "metric": {
+                    "__name__": "pipelines_progress_gauge",
+                    "instance": "10.42.128.96:9200",
+                    "job": "node",
+                    "jobId": "raw-simple-1e903baf7e:b1e4bfad-c022-4488-8f50-fecb2c8c0245.raw-simple-1e903baf7e",
+                    "pipeline_name": "raw-simple-1e903baf7e",
+                    "status": "active"
+                },
+                "values": [
+                    [
+                        1531223878.875,
+                        "33.33"
+                    ],
+                    [
+                        1531223892.875,
+                        "100"
+                    ],
+                    [
+                        1531223906.875,
+                        "100"
+                    ]
+                ]
+            },
+            {
+                "metric": {
+                    "__name__": "pipelines_progress_gauge",
+                    "instance": "10.42.128.96:9200",
+                    "job": "node",
+                    "jobId": "raw-simple-5756cc2677:be8b704f-70be-4622-aac5-1e6ee0386af9.raw-simple-5756cc2677",
+                    "pipeline_name": "raw-simple-5756cc2677",
+                    "status": "active"
+                },
+                "values": [
+                    [
+                        1531223892.875,
+                        "66.67"
+                    ],
+                    [
+                        1531223906.875,
+                        "100"
+                    ]
+                ]
+            },
+            {
+                "metric": {
+                    "__name__": "pipelines_progress_gauge",
+                    "instance": "10.42.128.96:9200",
+                    "job": "node",
+                    "jobId": "raw-simple-5ca00ee83e:50b550ef-5dc5-48cb-b91e-b53d0edff56b.raw-simple-5ca00ee83e",
+                    "pipeline_name": "raw-simple-5ca00ee83e",
+                    "status": "active"
+                },
+                "values": [
+                    [
+                        1531223906.875,
+                        "0"
+                    ]
+                ]
+            },
+            {
+                "metric": {
+                    "__name__": "pipelines_progress_gauge",
+                    "instance": "10.42.128.96:9200",
+                    "job": "node",
+                    "jobId": "raw-simple-f59241cfd1:89b366ae-ac7c-4da9-a00a-0b13d0c5b0e1.raw-simple-f59241cfd1",
+                    "pipeline_name": "raw-simple-f59241cfd1",
+                    "status": "active"
+                },
+                "values": [
+                    [
+                        1531223906.875,
+                        "100"
+                    ]
+                ]
+            }
+        ]
+    }
+}

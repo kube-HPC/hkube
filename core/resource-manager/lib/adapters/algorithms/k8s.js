@@ -16,6 +16,10 @@ class K8sAdapter extends Adapter {
         }
     }
 
+    stateFilter(p) {
+        return p.status.phase === 'Running' || p.status.phase === 'Pending';
+    }
+
     async getData() {
         const data = this._cache.get();
         if (data) {
@@ -28,13 +32,13 @@ class K8sAdapter extends Adapter {
 
         nodes.items.forEach((node) => {
             const nodeName = node.metadata.name;
-            const allocatableCpu = parse.parseUnitObj(node.status.allocatable.cpu).val;
-            const allocatableMemory = parse.parseUnitObj(node.status.allocatable.memory).val;
+            const allocatableCpu = parse.getCpuInCore(node.status.allocatable.cpu);
+            const allocatableMemory = parse.getMemoryInMi(node.status.allocatable.memory);
             const pods = groupedByNodeName[nodeName];
             let cpuRequests = 0;
             let memoryRequests = 0;
 
-            pods.forEach(pod => {
+            pods.filter(this.stateFilter).forEach(pod => {
                 pod.spec.containers.forEach(container => {
                     if (container.resources.requests !== undefined) {
                         cpuRequests += parse.getCpuInCore(container.resources.requests.cpu);
@@ -42,10 +46,7 @@ class K8sAdapter extends Adapter {
                     }
                 });
             });
-
-            const freeCpu = allocatableCpu - cpuRequests;
-            const freeMemory = allocatableMemory - memoryRequests;
-            resourcesStatus.set(nodeName, { allocatableCpu, allocatableMemory, cpuRequests, memoryRequests, freeCpu, freeMemory });
+            resourcesStatus.set(nodeName, { allocatableCpu, allocatableMemory, cpuRequests, memoryRequests });
         });
         this._cache.set(resourcesStatus);
         return resourcesStatus;

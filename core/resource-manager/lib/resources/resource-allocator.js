@@ -53,12 +53,19 @@ class ResourceAllocator {
     }
 
     _totalResources(data) {
+        let allocatableCpu = 0;
+        let allocatableMemory = 0;
+        let cpuRequests = 0;
+        let memoryRequests = 0;
+
         data.forEach(v => {
-            this._totalCpu += v.freeCpu;
-            this._totalMem += v.freeMemory;
+            allocatableCpu += v.allocatableCpu;
+            allocatableMemory += v.allocatableMemory;
+            cpuRequests += v.cpuRequests;
+            memoryRequests += v.memoryRequests;
         });
-        this._totalCpu = this._totalCpu * this._thresholdCpu;
-        this._totalMem = this._totalMem * this._thresholdMem;
+        this._totalCpu = (allocatableCpu * this._thresholdCpu) - cpuRequests;
+        this._totalMem = (allocatableMemory * this._thresholdMem) - memoryRequests;
     }
 }
 
