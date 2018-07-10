@@ -62,8 +62,8 @@ class JobProducer {
     _checkWorkingStatusInterval() {
         setInterval(async () => {
             const waitingCount = await this.bullQueue.getWaitingCount();
-            const activeCount = await this.bullQueue.getActiveCount();
-            if (waitingCount === 0 && activeCount === 0 && queueRunner.queue.get.length > 0) {
+            //    const activeCount = await this.bullQueue.getActiveCount();
+            if (waitingCount === 0 && queueRunner.queue.get.length > 0) {
                 await this.createJob();
             }
         }, 1000);
