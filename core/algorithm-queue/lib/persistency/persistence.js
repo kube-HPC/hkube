@@ -1,6 +1,6 @@
-
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
+const redisStorage = require('./redis-storage-adapter');
 const components = require('../consts/component-name');
 const producerSingleton = require('../jobs/producer-singleton');
 class Persistence {
@@ -10,10 +10,11 @@ class Persistence {
         this.etcdConfig = null;
         this.etcd = new Etcd();
     }
-    init({ options }) {
-        this.options = options;
+    async init({ options }) {
         const { etcd, algorithmType, serviceName } = options;
+        this.options = options;
         this.queueName = algorithmType;
+        await redisStorage.init(options.redis, this.queueName);
         //    this.queue = queue;
         this.etcd.init({ etcd, serviceName });
         return this;
@@ -23,13 +24,16 @@ class Persistence {
         log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT });
         const bullQueue = producerSingleton.get.getQueueByJobType(this.options.algorithmType);
         const pendingAmount = await bullQueue.getWaitingCount();
-        const status = await this.etcd.algorithms.algorithmQueue.set({ name: this.queueName, data, pendingAmount });
+        await redisStorage.put(data);
+        const scoreArray = data.map(d => d.calculated.score);
+        const status = await this.etcd.algorithms.algorithmQueue.set({ name: this.queueName, data: scoreArray, pendingAmount });
         if (status) {
             log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
         }
     }
     get() {
-        return this.etcd.algorithms.algorithmQueue.get({ name: this.queueName });
+        return redisStorage.get();
+        //  return this.etcd.algorithms.algorithmQueue.get({ name: this.queueName });
     }
 }
 

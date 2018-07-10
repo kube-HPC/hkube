@@ -1,4 +1,4 @@
-process.env.NODE_PATH = __dirname;
+process.env.NODE_PATH = __dirname; // eslint-disable-line
 require('module').Module._initPaths();
 
 const Logger = require('@hkube/logger');
@@ -45,6 +45,7 @@ class Bootstrap {
         catch (error) {
             log.error(error);
             this._onInitFailed(new Error(`unable to start application. ${error.message}`));
+            return null;
         }
     }
 
@@ -72,8 +73,9 @@ class Bootstrap {
             log.info('SIGTERM', { component: componentName.MAIN });
             process.exit(1);
         });
-        process.on('unhandledRejection', (error) => {
+        process.on('unhandledRejection', (error, reason) => {
             log.error('unhandledRejection: ' + error, { component: componentName.MAIN }, error);
+            log.error('unhandledRejection:reson ' + JSON.stringify(reason), { component: componentName.MAIN }, reason);
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);

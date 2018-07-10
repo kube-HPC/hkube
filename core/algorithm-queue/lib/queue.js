@@ -54,7 +54,7 @@ class Queue extends events {
         if (this.persistence) {
             try {
                 const queueItems = await this.persistence.get();
-                await this.add(queueItems.data);
+                await this.add(queueItems);
                 log.info('persistent added sucessfully', { component: components.QUEUE });
             }
             catch (e) {
@@ -144,7 +144,7 @@ class Queue extends events {
         }
         this.queue = _.orderBy([...this.queue, ...jobArr], j => j.calculated.score, 'desc');
         this.emit(queueEvents.INSERT);
-        log.info(`new jobs inserted to queue jobs:${jobArr}`, { component: components.QUEUE });
+        log.info('new jobs inserted to queue jobs', { component: components.QUEUE });
     }
 
     _removeJobID(jobArr) {
@@ -184,15 +184,20 @@ class Queue extends events {
     // 3. in case something is add when there is no running cycle each job inserted/ removed directly to the queue
     _queueInterval() {
         setTimeout(async () => {
-            this.isScoreDuringUpdate = true;
-            await this.enrichmentRunner(this.queue);
-            await this.updateScore();
-            log.debug('queue update score cycle starts', { component: components.QUEUE });
-            this._mergeTemp();
-            await this.persistenceStore();
-            this.isScoreDuringUpdate = false;
-            if (this.isIntervalRunning) {
-                this._queueInterval();
+            try {
+                this.isScoreDuringUpdate = true;
+                await this.enrichmentRunner(this.queue);
+                await this.updateScore();
+                log.debug('queue update score cycle starts', { component: components.QUEUE });
+                this._mergeTemp();
+                await this.persistenceStore();
+                this.isScoreDuringUpdate = false;
+                if (this.isIntervalRunning) {
+                    this._queueInterval();
+                }
+            } 
+            catch (error) {
+                log.error(`fail on queue interval ${error}`, { component: components.QUEUE });
             }
         }, this.updateInterval);
     }

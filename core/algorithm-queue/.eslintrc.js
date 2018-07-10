@@ -13,6 +13,7 @@ module.exports = {
         "ecmaVersion": 2017
     },
     "rules": {
+        "quotes": ["error", "single", { "allowTemplateLiterals": true }],
         "no-param-reassign": "off",
         "no-use-before-define": "warn",
         "import/newline-after-import": "off",

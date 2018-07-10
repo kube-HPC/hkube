@@ -24,7 +24,7 @@ class QueueRunner {
         Object.values(heuristic).map(v => this.heuristicRunner.addHeuristicToQueue(v));
         Object.values(enrichments).map(v => this.enrichmentRunner.addEnrichments(v));
         log.debug('calling to queue', { component: componentName.QUEUE_RUNNER});
-        const persistence = Persistence.init({options: this.config});
+        const persistence = await Persistence.init({options: this.config});
         this.queue = new Queue({ 
             scoreHeuristic: this.heuristicRunner,
             updateInterval: this.config.queue.updateInterval,
