@@ -8,7 +8,7 @@
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
-    "test": "mocha test --colors --recursive --exit",
+    "test": "mocha test --colors  --exit",
     "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test --exit",
     "start": "node app",
     "build": "./dockerfile/build.sh algorithm-queue"
