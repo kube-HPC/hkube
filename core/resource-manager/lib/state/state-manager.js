@@ -11,7 +11,10 @@ class StateManager extends EventEmitter {
     _subscribe() {
         this.watchStoreTemplates();
         this._etcd.algorithms.templatesStore.on('change', (res) => {
-            this.emit('templates-store', res);
+            this.emit('templates-store-change', res);
+        });
+        this._etcd.algorithms.templatesStore.on('delete', (res) => {
+            this.emit('templates-store-change', res);
         });
     }
 

@@ -52,6 +52,7 @@ class Runner {
     }
 
     async _setMetrics(type, results) {
+        results.algorithms.queue = results.algorithms.queue.filter(q => results.algorithms.templatesStore[q.name]);
         const metricsResults = this._metricsRunner.run(type, results);
         const resourceResults = metricsReducer.reduce(type, metricsResults);
         await this._adapterController.setData(type, resourceResults);

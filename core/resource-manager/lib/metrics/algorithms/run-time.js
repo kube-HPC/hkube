@@ -11,19 +11,22 @@ class RunTimeMetric extends Metric {
     }
 
     calc(options) {
-        const algorithmQueue = queueUtils.order(options.algorithms.queue);
-        const allocations = groupBy(algorithmQueue, 'name');
-        const keys = Object.keys(allocations);
-        const algorithms = options.algorithms.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));
-        const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
-        const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds.algorithms, ...options.algorithms });
+        let results = Object.create(null);
+        const queue = queueUtils.order(options.algorithms.queue);
+        if (queue.length > 0) {
+            const allocations = groupBy(queue, 'name');
+            const keys = Object.keys(allocations);
+            const algorithms = options.algorithms.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));
+            const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
+            const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds.algorithms, ...options.algorithms });
 
-        let algorithm = null;
-        const algorithmGen = algorithmRatios.generateRandom();
-        while (algorithm = algorithmGen.next().value) {
-            resourceAllocator.allocate(algorithm.name);
+            let algorithm = null;
+            const algorithmGen = algorithmRatios.generateRandom();
+            while (algorithm = algorithmGen.next().value) {
+                resourceAllocator.allocate(algorithm.name);
+            }
+            results = resourceAllocator.results();
         }
-        let results = resourceAllocator.results();
         results = queueUtils.normalize(options.algorithms.queue, results);
         return results;
     }

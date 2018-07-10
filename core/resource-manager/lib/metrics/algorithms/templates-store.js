@@ -11,16 +11,16 @@ class TemplatesStoreMetric extends Metric {
     }
 
     calc(options) {
-        const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds.algorithms, ...options.algorithms });
-        let algorithmQueue = queueUtils.order(options.algorithms.queue);
-        algorithmQueue = algorithmQueue.map(a => ({
-            ...a,
-            cpu: options.algorithms.templatesStore[a.name].cpu,
-            mem: options.algorithms.templatesStore[a.name].mem
-        }));
-        algorithmQueue = orderBy(algorithmQueue, q => q.cpu);
-        algorithmQueue.forEach(r => resourceAllocator.allocate(r.name));
-        let results = resourceAllocator.results();
+        let results = Object.create(null);
+        let queue = queueUtils.order(options.algorithms.queue);
+        if (queue.length > 0) {
+            const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds.algorithms, ...options.algorithms });
+            const ts = options.algorithms.templatesStore;
+            queue = queue.map(a => ({ ...a, cpu: ts[a.name].cpu, mem: ts[a.name].mem }));
+            queue = orderBy(queue, q => q.cpu);
+            queue.forEach(r => resourceAllocator.allocate(r.name));
+            results = resourceAllocator.results();
+        }
         results = queueUtils.normalize(options.algorithms.queue, results);
         return results;
     }

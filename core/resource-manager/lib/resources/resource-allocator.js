@@ -27,7 +27,7 @@ class ResourceAllocator {
      * @memberOf ResourceAllocator
      */
     allocate(algorithm) {
-        const { cpu, mem } = this._templatesStore[algorithm] || {};
+        const { cpu, mem } = this._templatesStore[algorithm];
         if (cpu <= this._totalCpu && mem <= this._totalMem) {
             this._totalCpu -= cpu;
             this._totalMem -= mem;

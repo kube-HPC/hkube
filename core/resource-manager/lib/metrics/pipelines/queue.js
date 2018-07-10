@@ -25,8 +25,8 @@ class QueueMetric extends Metric {
             queue.forEach(r => resourceAllocator.allocate(r.name));
             results = resourceAllocator.results();
         }
-        const res = queueUtils.normalize(options.pipelines.queue, results);
-        return res;
+        results = queueUtils.normalize(options.pipelines.queue, results);
+        return results;
     }
 
     _text(queue) {
