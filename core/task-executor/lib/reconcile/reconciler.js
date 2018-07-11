@@ -7,10 +7,10 @@ const { workerCommands } = require('../../common/consts/states');
 const component = require('../../common/consts/componentNames').RECONCILER;
 const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources } = require('./normalize');
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
-const { matchJobsToResources } = require('./resources');
+const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
 const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = require('../../common/consts/consts');
 
-const _createJob = async (jobDetails) => {
+const _createJob = (jobDetails) => {
     const spec = createJobSpec(jobDetails);
     const jobCreateResult = kubernetes.createJob({ spec });
     return jobCreateResult;
@@ -30,16 +30,6 @@ const _pausedWorkerFilter = (worker, algorithmName) => {
     return match;
 };
 
-const _stopWorkers = (workers, count) => {
-    // sort workers so paused ones are in front
-    const sorted = workers.slice().sort((a, b) => (b.workerPaused - a.workerPaused));
-    const promises = sorted.slice(0, count).map((w) => {
-        const workerId = w.id;
-        return etcd.sendCommandToWorker({ workerId, command: workerCommands.stopProcessing });
-    });
-    return Promise.all(promises);
-};
-
 const _resumeWorkers = (workers, count) => {
     const sorted = workers.slice().sort((a, b) => (b.workerPaused - a.workerPaused));
     const promises = sorted.slice(0, count).map((w) => {
@@ -49,6 +39,9 @@ const _resumeWorkers = (workers, count) => {
     return Promise.all(promises);
 };
 
+const _stopWorker = (worker) => {
+    return etcd.sendCommandToWorker({ workerId: worker.id, command: workerCommands.stopProcessing });
+};
 
 const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, resources } = {}) => {
     const normPods = normalizeWorkers(algorithmPods);
@@ -56,13 +49,14 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
     const merged = mergeWorkers(normPods, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
     const normResources = normalizeResources(resources);
-    log.debug(`resources:\n${JSON.stringify(normResources, null, 2)}`);
+    log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
     log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
 
-    const isResourcePresure = isCpuPresure || isMemoryPresure;
+    // const isResourcePresure = isCpuPresure || isMemoryPresure;
     const createDetails = [];
+    const stopDetails = [];
     const createPromises = [];
     const reconcileResult = {};
     for (let r of normRequests) { // eslint-disable-line
@@ -87,16 +81,26 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
             }
         }
         const podDiff = (workersForAlgorithm.length + pendingWorkers.length) - requiredCount;
-
-        if (podDiff > 0) {
+        const podDiffForDelete = workersForAlgorithm.length - requiredCount;
+        if (podDiffForDelete > 0) {
             // need to stop some workers
-            if (isResourcePresure) {
-                log.debug(`need to stop ${podDiff} pods for algorithm ${algorithmName}`);
-                _stopWorkers(workersForAlgorithm, podDiff);
-            }
-            else {
-                log.debug(`resources ratio is: ${JSON.stringify(normResources.allNodes.ratio)}. no need to stop pods`);
-            }
+            // if (isResourcePresure) {
+            log.debug(`need to stop ${podDiffForDelete} pods for algorithm ${algorithmName}`);
+            // _stopWorkers(workersForAlgorithm, 1);
+            const algorithmTemplate = await etcd.getAlgorithmTemplate({ algorithmName }); // eslint-disable-line
+            const resourceRequests = createContainerResource(algorithmTemplate);
+
+            stopDetails.push({
+                count: podDiffForDelete,
+                details: {
+                    algorithmName,
+                    resourceRequests
+                }
+            });
+            // }
+            // else {
+            //     log.debug(`resources ratio is: ${JSON.stringify(normResources.allNodes.ratio)}. no need to stop pods`);
+            // }
         }
         else if (podDiff < 0) {
             // need to add workers
@@ -122,13 +126,16 @@ const reconcile = async ({ algorithmRequests, algorithmPods, jobs, versions, res
             });
         }
     }
+    const { toStop } = pauseAccordingToResources(stopDetails, normResources, merged.mergedWorkers);
+    const stopPromises = toStop.map(r => _stopWorker(r));
     const { created, skipped } = matchJobsToResources(createDetails, normResources);
     createPromises.push(created.map(r => _createJob(r)));
-    await Promise.all(createPromises);
+    await Promise.all([...createPromises, ...stopPromises]);
     // add created and skipped info
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;
         res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
+        res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
     });
     return reconcileResult;
 };

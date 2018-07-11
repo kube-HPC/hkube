@@ -4,7 +4,7 @@ const decache = require('decache');
 let reconciler;
 // const { mock, callCount } = (require('./mocks/kubernetes.mock')).kubernetes();
 const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes()
-const { log } = require('./mocks/log.mock');
+// const { log } = require('./mocks/log.mock');
 const etcd = require('../lib/helpers/etcd');
 const { templateStore } = require('./stub/templateStore');
 
@@ -23,6 +23,7 @@ describe('reconciler', () => {
         });
 
         // mockery.registerMock('@hkube/logger', log);
+        mockery.deregisterMock('@hkube/logger');
         mockery.registerMock('../helpers/kubernetes', mock);
         const bootstrap = require('../bootstrap');
 

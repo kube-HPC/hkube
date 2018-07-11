@@ -52,7 +52,7 @@ const setAlgorithmImage = (template, versions) => {
     return createImageName(imageParsed);
 };
 
-const _createContainerResourceByFactor = ({ cpu, mem }, factor = 1) => {
+const _createContainerResourceByFactor = ({ cpu, mem } = {}, factor = 1) => {
     const cpuFactored = (cpu || 0.1) * factor;
     const memory = `${(mem || 4) * factor}Mi`;
     return { cpu: cpuFactored, memory };

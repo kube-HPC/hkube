@@ -15,6 +15,8 @@ config.etcd = {
     serviceName: config.serviceName
 };
 
+config.intervalMs = process.env.INTERVAL_MS || '3000';
+
 config.metrics = {
     collectDefault: true,
     server: {

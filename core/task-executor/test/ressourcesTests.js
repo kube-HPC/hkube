@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { shouldAddJob } = require('../lib/reconcile/resources');
+const { shouldAddJob, _sortWorkers } = require('../lib/reconcile/resources');
 
 describe('resources manager', () => {
     it('should add job only when enough resources', () => {
@@ -200,5 +200,75 @@ describe('resources manager', () => {
         expect(res.shouldAdd).to.be.false;
         expect(res.newResources.allNodes.free.cpu).to.eq(6);
         expect(res.newResources.allNodes.free.memory).to.eq(5000);
+    });
+});
+describe('utils', () => {
+    describe('worker sorter', () => {
+        it('should sort paused first', () => {
+            const workers = [
+                {
+                    id: 1,
+                    workerPaused: false,
+                    workerStatus: 'ready'
+                },
+                {
+                    id: 2,
+                    workerPaused: true,
+                    workerStatus: 'working'
+                },
+                {
+                    id: 3,
+                    workerPaused: true,
+                    workerStatus: 'ready'
+                },
+                {
+                    id: 4,
+                    workerPaused: false,
+                    workerStatus: 'working'
+                }
+            ];
+            const res = workers.slice().sort(_sortWorkers);
+            expect(res).to.have.lengthOf(4);
+            expect(res[0].id).to.eql(2);
+            expect(res[1].id).to.eql(3);
+            expect(res[2].id).to.eql(1);
+            expect(res[3].id).to.eql(4);
+        });
+        it('should sort paused first different order', () => {
+            const workers = [
+                {
+                    id: 1,
+                    workerPaused: false,
+                    workerStatus: 'ready'
+                },
+                {
+                    id: 4,
+                    workerPaused: false,
+                    workerStatus: 'working'
+                },
+
+                {
+                    id: 3,
+                    workerPaused: true,
+                    workerStatus: 'ready'
+                },
+                {
+                    id: 2,
+                    workerPaused: true,
+                    workerStatus: 'working'
+                },
+            ];
+            const res = workers.slice().sort(_sortWorkers);
+            expect(res).to.have.lengthOf(4);
+            expect(res[0].id).to.eql(3);
+            expect(res[1].id).to.eql(2);
+            expect(res[2].id).to.eql(1);
+            expect(res[3].id).to.eql(4);
+        });
+        it('should work with empty list', () => {
+            const workers = [];
+            const res = workers.slice().sort(_sortWorkers);
+            expect(res).to.have.lengthOf(0);
+        });
     });
 });

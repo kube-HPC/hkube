@@ -33,7 +33,7 @@ class Executor {
             name: metricsNames.TASK_EXECUTOR_JOB_PAUSED,
             labels: ['algorithmName']
         });
-        this._startInterval();
+        this._intervalCallback();
     }
 
     _startInterval() {
