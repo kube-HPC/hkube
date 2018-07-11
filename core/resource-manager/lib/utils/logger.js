@@ -14,6 +14,7 @@ class Logger {
         if (!log) {
             log = { count: 0, error, timestamp: Date.now() };
             this._logs.set(error.message, log);
+            this._log(log);
         }
         log.count += 1;
     }
