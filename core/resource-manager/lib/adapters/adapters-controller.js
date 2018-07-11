@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const utils = require('../utils/utils');
+const dir = require('../utils/dir');
 
 class AdapterController {
     constructor(options) {
@@ -9,7 +10,7 @@ class AdapterController {
     }
 
     _init(options) {
-        const folders = fs.readdirSync(path.join(__dirname)).map(n => path.join(__dirname, n)).filter(s => fs.lstatSync(s).isDirectory());
+        const folders = dir.readdirSync(__dirname);
         folders.forEach(f => {
             const folder = path.basename(f);
             const type = utils.capitalize(folder);

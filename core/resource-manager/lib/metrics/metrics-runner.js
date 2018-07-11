@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const utils = require('../utils/utils');
+const dir = require('../utils/dir');
 const MAX_SCORE = 1;
 
 class MetricsRunner {
@@ -10,7 +11,7 @@ class MetricsRunner {
     }
 
     _init(options) {
-        const folders = fs.readdirSync(path.join(__dirname)).map(name => path.join(__dirname, name)).filter(source => fs.lstatSync(source).isDirectory());
+        const folders = dir.readdirSync(__dirname);
         folders.forEach(f => {
             let score = 0;
             const folder = path.basename(f);

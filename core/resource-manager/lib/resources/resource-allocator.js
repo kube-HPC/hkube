@@ -18,25 +18,25 @@ class ResourceAllocator {
 
     /**
      * The allocate method checks if there is sufficient cpu and memory
-     * for specific algorithm, by comparing the algorithm requirements
+     * for specific resource, by comparing the resource requirements
      * against the the total available resources, if there is enough
-     * resources it will increase the algorithm resource counter.
+     * resources it will increase the resource counter.
      * 
-     * @param {any} algorithm 
+     * @param {any} resource 
      * 
      * @memberOf ResourceAllocator
      */
-    allocate(algorithm) {
-        const { cpu, mem } = this._templatesStore[algorithm];
+    allocate(resource) {
+        const { cpu, mem } = this._templatesStore[resource];
         if (cpu <= this._totalCpu && mem <= this._totalMem) {
             this._totalCpu -= cpu;
             this._totalMem -= mem;
-            this._resourceCounter.inc(algorithm);
+            this._resourceCounter.inc(resource);
         }
     }
 
     /**
-     * This method returns the required allocations for each algorithm
+     * This method returns the required allocations for each resource
      * @example
      * results
      * Array <Object>
