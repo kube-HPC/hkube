@@ -13,7 +13,7 @@ class RunTimeMetric extends Metric {
     calc(options) {
         let results = Object.create(null);
         const queue = queueUtils.order(options.algorithms.queue);
-        if (queue.length > 0) {
+        if (queue.length > 0 && options.algorithms.prometheus) {
             const allocations = groupBy(queue, 'name');
             const keys = Object.keys(allocations);
             const algorithms = options.algorithms.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));

@@ -24,8 +24,8 @@ class Runner {
                 this._working = true;
                 await this._doWork();
             }
-            catch (error) {
-                this._onError(error);
+            catch (e) {
+                this._onError(e);
             }
             finally {
                 this._working = false;
@@ -55,7 +55,7 @@ class Runner {
         results.algorithms.queue = results.algorithms.queue.filter(q => results.algorithms.templatesStore[q.name]);
         results.pipelines.queue = results.pipelines.queue.filter(q => results.pipelines.templatesStore[q.name]);
         const metricsResults = this._metricsRunner.run(type, results);
-        const resourceResults = metricsReducer.reduce(type, metricsResults);
+        const resourceResults = metricsReducer.reduce(metricsResults);
         await this._adapterController.setData(type, resourceResults);
         metricsProvider.setPodsAllocations(resourceResults);
         return resourceResults;

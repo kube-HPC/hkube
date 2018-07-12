@@ -4,6 +4,7 @@ const stateManager = require('../../state/state-manager');
 class PipelineDriversQueueAdapter extends Adapter {
     constructor(options, name) {
         super(options, name);
+        this.mandatory = true;
     }
 
     async getData() {

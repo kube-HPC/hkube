@@ -10,6 +10,7 @@ const PROM_SETTINGS = {
 class PrometheusAdapter extends Adapter {
     constructor(options, name) {
         super(options, name);
+        this.mandatory = false;
         this._cache = new Cache({ key: this.name, maxAge: 1000 * 60 * 1 });
     }
 

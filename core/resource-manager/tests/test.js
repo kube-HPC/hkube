@@ -85,7 +85,7 @@ describe('Test', function () {
                 const metricsRunner = new MetricsRunner(main);
                 const adaptersResults = await adapterController.getData();
                 const metricsResults = metricsRunner.run('algorithms', adaptersResults);
-                const resourceResults = metricsReducer.reduce('algorithms', metricsResults);
+                const resourceResults = metricsReducer.reduce(metricsResults);
                 expect(resourceResults).to.be.an('array');
             });
         });
@@ -214,7 +214,7 @@ describe('Test', function () {
                 const metricsRunner = new MetricsRunner(main);
                 const adaptersResults = await adapterController.getData();
                 const metricsResults = metricsRunner.run('algorithms', adaptersResults);
-                const resourceResults = metricsReducer.reduce('algorithms', metricsResults);
+                const resourceResults = metricsReducer.reduce(metricsResults);
                 metricsProvider.setPodsAllocations(resourceResults);
                 resolve();
 

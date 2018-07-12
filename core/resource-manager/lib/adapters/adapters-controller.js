@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const utils = require('../utils/utils');
 const dir = require('../utils/dir');
+const logger = require('../utils/logger');
 
 class AdapterController {
     constructor(options) {
@@ -44,7 +45,18 @@ class AdapterController {
     }
 
     async _getData(adapter) {
-        const data = await adapter.getData();
+        let data = null;
+        try {
+            data = await adapter.getData();
+        }
+        catch (e) {
+            if (adapter.mandatory) {
+                throw e;
+            }
+            else {
+                logger.log(e);
+            }
+        }
         return { key: adapter.name, value: data };
     }
 

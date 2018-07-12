@@ -10,10 +10,11 @@ class Logger {
     }
 
     log(error) {
-        let log = this._logs.get(error.message);
+        const message = error.message.substr(0, 100);
+        let log = this._logs.get(message);
         if (!log) {
             log = { count: 0, error, timestamp: Date.now() };
-            this._logs.set(error.message, log);
+            this._logs.set(message, log);
             this._log(log);
         }
         log.count += 1;

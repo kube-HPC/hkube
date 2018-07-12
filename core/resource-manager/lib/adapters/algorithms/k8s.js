@@ -7,7 +7,8 @@ const Cache = require('../../cache/cache-provider');
 class K8sAdapter extends Adapter {
     constructor(options, name) {
         super(options, name);
-        this._cache = new Cache({ key: this.name, maxAge: 1000 * 60 * 1 });
+        this.mandatory = true;
+        this._cache = new Cache({ key: this.name, maxAge: 1000 * 60 * 0.2 });
         if (options.k8s.local) {
             this._client = new Api.Core(Api.config.fromKubeconfig());
         }
@@ -48,6 +49,17 @@ class K8sAdapter extends Adapter {
             });
             resourcesStatus.set(nodeName, { allocatableCpu, allocatableMemory, cpuRequests, memoryRequests });
         });
+
+        // let allocatableCpu = 0;
+        // let cpuRequests = 0;
+
+        // resourcesStatus.forEach(v => {
+        //     allocatableCpu += v.allocatableCpu;
+        //     cpuRequests += v.cpuRequests;
+        // });
+        // const totalCpu = allocatableCpu - cpuRequests;
+        // console.log(totalCpu);
+
         this._cache.set(resourcesStatus);
         return resourcesStatus;
     }

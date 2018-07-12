@@ -5,6 +5,7 @@ const metricsProvider = require('../../monitoring/metrics-provider');
 class AlgorithmQueueAdapter extends Adapter {
     constructor(options, name) {
         super(options, name);
+        this.mandatory = true;
     }
 
     async getData() {

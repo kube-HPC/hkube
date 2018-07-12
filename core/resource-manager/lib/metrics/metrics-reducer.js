@@ -10,7 +10,7 @@ class MetricsReducer {
      * 
      * @memberOf MetricsReducer
      */
-    reduce(type, options) {
+    reduce(options) {
         const map = {};
         options.forEach(metric => {
             metric.data = metric.data || [];
