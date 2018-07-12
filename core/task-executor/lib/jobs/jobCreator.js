@@ -64,16 +64,17 @@ const applyEnvToContainer = (inputSpec, containerName, workerEnv) => {
     const { env } = workerContainer;
     Object.entries(workerEnv).forEach(([key, value]) => {
         const index = env.findIndex(i => i.name === key);
+        const valueString = `${value}`;
         if (index !== -1) {
-            if (!value) {
+            if (value == null) {
                 env.splice(index, 1);
             }
             else {
-                env[index] = { name: key, value };
+                env[index] = { name: key, value: valueString };
             }
         }
         else {
-            env.push({ name: key, value });
+            env.push({ name: key, value: valueString });
         }
     });
     return spec;

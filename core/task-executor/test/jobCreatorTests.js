@@ -63,12 +63,17 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[0].env).to.have.lengthOf(5);
             expect(res.spec.template.spec.containers[0].env).to.not.deep.include({ name: 'NODE_ENV', value: 'kube' });
             expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'ALGORITHM_TYPE', value: 'myalgo' });
-            expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'newEnv', value: 3 });
+            expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'newEnv', value: '3' });
         });
         it('should add env to algorunner spec', () => {
             const res = applyEnvToContainer(jobTemplate, 'algorunner', { newEnv: 3 });
             expect(res.spec.template.spec.containers[1].env).to.have.lengthOf(1);
-            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'newEnv', value: 3 });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'newEnv', value: '3' });
+        });
+        it('should add string env to algorunner spec', () => {
+            const res = applyEnvToContainer(jobTemplate, 'algorunner', { newEnv: '5' });
+            expect(res.spec.template.spec.containers[1].env).to.have.lengthOf(1);
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'newEnv', value: '5' });
         });
     });
     it('should throw if no image name', () => {
