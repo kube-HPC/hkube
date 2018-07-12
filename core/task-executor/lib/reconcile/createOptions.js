@@ -59,8 +59,8 @@ const _createContainerResourceByFactor = ({ cpu, mem } = {}, factor = 1) => {
 };
 
 const createContainerResource = (template) => {
-    const requests = _createContainerResourceByFactor(template, 1);
-    const limits = _createContainerResourceByFactor(template, 2);
+    const requests = _createContainerResourceByFactor(template || {}, 1);
+    const limits = _createContainerResourceByFactor(template || {}, 2);
     return { requests, limits };
 };
 
