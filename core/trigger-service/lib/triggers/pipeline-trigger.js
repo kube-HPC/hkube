@@ -10,24 +10,24 @@ class PipelineTrigger {
     }
 
     _watchJobResults() {
-        storeManager.on(Events.RESULTS, (result, pipeline) => {
-            this._runPipeline(result, pipeline);
+        storeManager.on(Events.RESULTS, (result) => {
+            this._runPipeline(result);
         });
     }
 
-    async _runPipeline(result, pipeline) {
+    hasTrigger(pipeline, name) {
+        return pipeline.triggers && pipeline.triggers.pipelines && pipeline.triggers.pipelines.includes(name);
+    }
+
+    async _runPipeline(result) {
         if (!result.data) {
             return;
         }
         const pipelines = await storeManager.getPipelines();
-        const pipelinesWithTrigger = pipelines.filter(p => p.triggers && p.triggers.pipelines);
+        const pipelinesWithTrigger = pipelines.filter(p => this.hasTrigger(p, result.pipeline));
         pipelinesWithTrigger.forEach((p) => {
-            p.triggers.pipelines.forEach(tp => {
-                if (tp === pipeline.name) {
-                    log.info(`pipeline with name ${pipeline.name} was ended and triggered pipeline ${p.name}`, { component: componentName.PIPELINE_TRIGGER });
-                    triggerQueue.addTrigger({ name: p.name, jobId: result.jobId });
-                }
-            });
+            log.info(`pipeline with name ${result.pipeline} was ended and triggered pipeline ${p.name}`, { component: componentName.PIPELINE_TRIGGER });
+            triggerQueue.addTrigger({ name: p.name, jobId: result.jobId });
         });
     }
 }

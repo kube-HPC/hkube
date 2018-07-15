@@ -99,15 +99,14 @@ describe('test', () => {
     });
     describe('PipelineTrigger', () => {
         it('should trigger 3 pipelines', async () => {
-            const pipeline = pipelines.find(p => p.name === 'pipeline_triggered_three');
             const result = {
                 data: 'data',
-                pipeline: 'pipeline',
+                pipeline: 'pipeline_triggered_three',
                 jobId: 'jobId'
             }
             const spyAdd = sinon.spy(triggerQueue, "addTrigger");
             const spy = sinon.spy(pipelineTrigger, "_runPipeline");
-            storeManager.emit('results', result, pipeline);
+            storeManager.emit('results', result);
             await delay(1000);
 
             expect(spy.calledOnce).to.equal(true);

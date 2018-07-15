@@ -24,8 +24,7 @@ class StateManager extends EventEmitter {
     async _watchJobResults() {
         await this._etcd.jobResults.watch();
         this._etcd.jobResults.on(Events.CHANGE, async (result) => {
-            const pipeline = await this._etcd.execution.get({ jobId: result.jobId });
-            this.emit(Events.RESULTS, result, pipeline);
+            this.emit(Events.RESULTS, result);
         });
     }
 }
