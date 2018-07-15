@@ -34,6 +34,10 @@ class StateManager extends EventEmitter {
         return this._etcd.execution.delete(options);
     }
 
+    getExecutionsList(options) {
+        return this._etcd.execution.list(options);
+    }
+
     getExecutionsTree(options) {
         return this._etcd.execution.getExecutionsTree(options);
     }
@@ -46,12 +50,12 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.templatesStore.get({ name: options.name });
     }
 
-    getAlgorithmsQueueList() {
-        return this._etcd.algorithms.algorithmQueue.list();
+    getAlgorithmsQueueList(options) {
+        return this._etcd.algorithms.algorithmQueue.list(options);
     }
 
-    getAlgorithms() {
-        return this._etcd.algorithms.templatesStore.list();
+    getAlgorithms(options) {
+        return this._etcd.algorithms.templatesStore.list(options);
     }
 
     deleteAlgorithm(options) {
@@ -66,8 +70,8 @@ class StateManager extends EventEmitter {
         return this._etcd.pipelines.get({ name: options.name });
     }
 
-    getPipelines() {
-        return this._etcd.pipelines.list();
+    getPipelines(options) {
+        return this._etcd.pipelines.list(options);
     }
 
     deletePipeline(options) {
@@ -148,7 +152,7 @@ class StateManager extends EventEmitter {
     }
 
     stopJob(options) {
-        return this._etcd.jobs.stop(options);
+        return this._etcd.jobState.stop(options);
     }
 }
 

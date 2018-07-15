@@ -1,6 +1,6 @@
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
-const { ResourceNotFoundError, } = require('../errors/errors');
+const { ResourceNotFoundError, } = require('../errors');
 const { Types } = require('../webhook/States');
 
 class WebhooksService {

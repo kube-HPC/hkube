@@ -1,4 +1,5 @@
 const uuidv4 = require('uuid/v4');
+const randString = require('crypto-random-string');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
@@ -6,7 +7,7 @@ const storageFactory = require('../datastore/storage-factory');
 const States = require('../state/States');
 const WebhookTypes = require('../webhook/States').Types;
 const levels = require('../progress/progressLevels');
-const { ResourceNotFoundError, InvalidDataError, } = require('../errors/errors');
+const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 
@@ -26,6 +27,7 @@ class ExecutionService {
      */
     async runRaw(options) {
         validator.validateRunRawPipeline(options);
+        options.name = `raw-${options.name}-${randString(10)}`;
         return this._run(options);
     }
 

@@ -1,14 +1,10 @@
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ResourceExistsError, } = require('../errors/errors');
+const { ResourceNotFoundError, ResourceExistsError, } = require('../errors');
 
 class PipelineStore {
     /**
-     * add a pipeline
-     * adds the given pipeline to the store.
-     *
-     * pipeline Pipeline pipeline descriptor to be added to the store
-     * returns defaultResponse
+     * update existing pipeline
      * */
     async updatePipeline(options) {
         validator.validateUpdatePipeline(options);
@@ -22,11 +18,7 @@ class PipelineStore {
     }
 
     /**
-     * delete stored pipeline
-     * removes selected stored pipeline from store
-     *
-     * pipelineName String pipeline name to get from the store
-     * returns defaultResponse
+     * delete existing pipeline
      * */
     async deletePipeline(options) {
         validator.validateName(options);
@@ -38,11 +30,7 @@ class PipelineStore {
     }
 
     /**
-     * get pipeline data from store
-     * returns stored pipeline
-     *
-     * pipelineName String pipeline name to get from the store
-     * returns piplineNamesList
+     * get existing pipeline
      * */
     async getPipeline(options) {
         validator.validateName(options);
@@ -53,16 +41,15 @@ class PipelineStore {
         return pipeline;
     }
 
+    /**
+     * get all pipelines
+     */
     async getPipelines() {
         return stateManager.getPipelines();
     }
 
     /**
-     * add a pipeline
-     * adds the given pipeline to the store.
-     *
-     * pipeline Pipeline pipeline descriptor to be added to the store
-     * returns defaultResponse
+     * add new pipeline
      * */
     async insertPipeline(options) {
         validator.validateUpdatePipeline(options);

@@ -1,12 +1,11 @@
 const stateManager = require('../state/state-manager');
 const validator = require('djsv');
-const randString = require('crypto-random-string');
 const converter = require('@hkube/units-converter');
 const { parser } = require('@hkube/parsers');
 const { Graph, alg } = require('graphlib');
 const { CronJob } = require('cron');
 const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
-const { ResourceNotFoundError, InvalidDataError } = require('../errors/errors');
+const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
 const NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
@@ -29,7 +28,6 @@ class Validator {
 
     validateRunRawPipeline(pipeline) {
         this._validate(schemas.pipeline, pipeline, { checkFlowInput: true });
-        pipeline.name = `raw-${pipeline.name}-${randString(10)}`;
     }
 
     validateRunStoredPipeline(pipeline) {
@@ -54,10 +52,6 @@ class Validator {
     }
 
     validateResultList(pipeline) {
-        if (!pipeline.limit) {
-            pipeline.limit = 1;
-        }
-        pipeline.limit = parseInt(pipeline.limit, 10);
         this._validate(_schemas.list, pipeline);
     }
 
@@ -128,9 +122,6 @@ class Validator {
 
         if (!alg.isAcyclic(graph)) {
             throw new InvalidDataError(`pipeline ${pipeline.name} has cyclic nodes`);
-        }
-        if (!graph.isDirected()) {
-            throw new InvalidDataError(`pipeline ${pipeline.name} is not directed graph`);
         }
     }
 

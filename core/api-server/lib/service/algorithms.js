@@ -1,13 +1,11 @@
 
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ResourceExistsError } = require('../errors/errors');
+const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
 
 class AlgorithmStore {
     /**
      * update algorithm
-     * update the given algorithm.
-     *
      * */
     async updateAlgorithm(options) {
         validator.validateUpdateAlgorithm(options);
@@ -21,8 +19,6 @@ class AlgorithmStore {
 
     /**
      * delete stored algorithm
-     * removes selected stored algorithm from store
-     *
      * */
     async deleteAlgorithm(options) {
         validator.validateName(options);
@@ -30,7 +26,27 @@ class AlgorithmStore {
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
+        await this._findAlgorithmDependency(options.name);
         return stateManager.deleteAlgorithm(options);
+    }
+
+    async _findAlgorithmDependency(algorithmName) {
+        const limit = 1000;
+        const pipelines = await stateManager.getPipelines({ limit });
+        let result = this._findAlgorithm(pipelines, algorithmName);
+        if (result.length > 0) {
+            throw new InvalidDataError(`${algorithmName} is stored in ${result.length} different pipelines`);
+        }
+
+        const executions = await stateManager.getExecutionsList({ limit });
+        result = this._findAlgorithm(executions, algorithmName);
+        if (result.length > 0) {
+            throw new InvalidDataError(`${algorithmName} is running in ${result.length} different pipelines`);
+        }
+    }
+
+    _findAlgorithm(list, algorithmName) {
+        return list.filter(l => l.nodes && l.nodes.filter(n => n.algorithmName === algorithmName));
     }
 
     /**

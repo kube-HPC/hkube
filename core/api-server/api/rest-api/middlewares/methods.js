@@ -1,4 +1,4 @@
-const { MethodNotAllowed } = require('../../../lib/errors/errors');
+const { MethodNotAllowed } = require('../../../lib/errors');
 
 const method = (methods = ['GET']) => (req, res, next) => {
     if (methods.includes(req.method)) {

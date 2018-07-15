@@ -11,11 +11,8 @@ const converter = require('@hkube/units-converter');
 let config;
 let baseUrl;
 
-const delay = (delay) => {
-    return new Promise((fulfill) => {
-        setTimeout(fulfill, delay);
-    })
-}
+const delay = d => new Promise(r => setTimeout(r, d));
+
 const _request = (options) => {
     return new Promise((resolve, reject) => {
         request({
@@ -1366,7 +1363,7 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(404);
                         expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
                     });
-                    it('should delete specific algorithm', async () => {
+                    xit('should delete specific algorithm', async () => {
                         const optionsInsert = {
                             uri: restPath,
                             method: 'POST',
@@ -2347,8 +2344,8 @@ describe('Rest', () => {
             expect(tree.body[0]).to.have.property('name');
         });
         it('should run triggered cron pipelines and get the results', async () => {
-            const requests = 20;
-            const limit = 12;
+            const requests = 10;
+            const limit = 5;
             const pipeline = 'cron-test';
             const results = [];
 
@@ -2356,7 +2353,7 @@ describe('Rest', () => {
                 uri: realUrl + '/store/pipelines',
                 method: 'POST',
                 body: {
-                    name: `${pipeline}`,
+                    name: pipeline,
                     nodes: [
                         {
                             "nodeName": "green",
@@ -2377,12 +2374,11 @@ describe('Rest', () => {
 
             // run the rest of the triggered pipelines
             for (let i = 0; i < requests; i++) {
-                const name = `${pipeline}`;
                 const options = {
                     method: 'POST',
                     uri: `${restUrl}/exec/stored`,
                     body: {
-                        name
+                        name: pipeline
                     }
                 };
                 const res = await _request(options);
