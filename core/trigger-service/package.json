@@ -36,6 +36,7 @@
     "requestretry": "^1.13.0"
   },
   "devDependencies": {
+    "await-delay": "^1.0.0",
     "chai": "^4.1.2",
     "coveralls": "^3.0.1",
     "eslint": "^4.18.2",

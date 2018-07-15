@@ -7,6 +7,7 @@ const pipelines = require('./mocks/pipelines.json');
 const apiServerMock = require('./mocks/api-server');
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
+const delay = require('await-delay');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
@@ -97,16 +98,23 @@ describe('test', () => {
         });
     });
     describe('PipelineTrigger', () => {
-        it('should trigger another pipeline', () => {
-            const pipeline = pipelines.find(p => p.name === 'simple_pipelines_trigger');
+        it('should trigger 3 pipelines', async () => {
+            const pipeline = pipelines.find(p => p.name === 'pipeline_triggered_three');
             const result = {
                 data: 'data',
                 pipeline: 'pipeline',
                 jobId: 'jobId'
             }
+            const spyAdd = sinon.spy(triggerQueue, "addTrigger");
             const spy = sinon.spy(pipelineTrigger, "_runPipeline");
             storeManager.emit('results', result, pipeline);
+            await delay(1000);
+
             expect(spy.calledOnce).to.equal(true);
+            const triggerCalls = spyAdd.args.filter(x => x[0].name.includes("trigger-"));
+            const wasNotCalled = spyAdd.args.filter(x => x[0].name.includes("test-not-called"));
+            expect(wasNotCalled.length).to.equal(0);
+            expect(triggerCalls.length).to.equal(3);
         });
     });
     describe('PipelineProducer', () => {

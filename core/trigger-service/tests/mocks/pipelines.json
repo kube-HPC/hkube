@@ -21,11 +21,44 @@
         "name": "simple_pipelines_trigger",
         "triggers": {
             "pipelines": [
-                "batch_trigger"
+                "xxx"
             ]
         }
     },
     {
-        "name": "batch_trigger"
+        "name": "trigger-4",
+        "triggers": {
+            "pipelines": [
+                "test-not-called"
+            ]
+        }
+    },
+    {
+        "name": "trigger-1",
+        "triggers": {
+            "pipelines": [
+                "pipeline_triggered_three"
+            ]
+        }
+    },
+    {
+        "name": "trigger-2",
+        "triggers": {
+            "pipelines": [
+                "pipeline_triggered_three"
+            ]
+        }
+    },
+    {
+        "name": "trigger-3",
+        "triggers": {
+            "pipelines": [
+                "pipeline_triggered_three",
+                "test_pl"
+            ]
+        }
+    },
+    {
+        "name": "pipeline_triggered_three"
     }
 ]

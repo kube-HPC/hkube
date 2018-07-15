@@ -15,13 +15,20 @@ class PipelineTrigger {
         });
     }
 
-    _runPipeline(result, pipeline) {
-        if (result.data && pipeline.triggers && pipeline.triggers.pipelines) {
-            pipeline.triggers.pipelines.forEach((name) => {
-                log.info(`new pipeline with name ${result.pipeline} was ended and triggered pipeline ${name}`, { component: componentName.PIPELINE_TRIGGER });
-                triggerQueue.addTrigger({ name, jobId: result.jobId });
-            });
+    async _runPipeline(result, pipeline) {
+        if (!result.data) {
+            return;
         }
+        const pipelines = await storeManager.getPipelines();
+        const pipelinesWithTrigger = pipelines.filter(p => p.triggers && p.triggers.pipelines);
+        pipelinesWithTrigger.forEach((p) => {
+            p.triggers.pipelines.forEach(tp => {
+                if (tp === pipeline.name) {
+                    log.info(`pipeline with name ${pipeline.name} was ended and triggered pipeline ${p.name}`, { component: componentName.PIPELINE_TRIGGER });
+                    triggerQueue.addTrigger({ name: p.name, jobId: result.jobId });
+                }
+            });
+        });
     }
 }
 
