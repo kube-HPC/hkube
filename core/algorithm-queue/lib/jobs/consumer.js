@@ -1,12 +1,13 @@
 const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
-const Logger = require('@hkube/logger');
+
+const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
 const metrics = require('@hkube/metrics');
 const { jobPrefix } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 // const../queue-runner { metricsNames } = require('../../common/consts/metricsNames');
-let log;
+const log = require('@hkube/logger').GetLogFromContainer();
 
 // const consumedObject = {
 //     jobID: 'jobID',
@@ -46,13 +47,16 @@ class JobConsumer extends EventEmitter {
         this._options = null;
         this._job = null;
         this._active = false;
+        this.etcd = new Etcd();
     }
 
 
     async init(options) {
-        log = Logger.GetLogFromContainer();
+        const { etcd, serviceName, algorithmType } = options;
         this._options = options;
-
+        this.etcd.init({ etcd, serviceName });
+        await this.etcd.jobState.watch();
+       
         // this._registerMetrics();
         this._consumer = new Consumer({
             setting: {
@@ -62,29 +66,26 @@ class JobConsumer extends EventEmitter {
             }
         });
         this._consumer.register({
-            job: { type: this._options.algorithmType }
+            job: { type: algorithmType }
         });
         log.info(`registering for job ${JSON.stringify(options)}`);
-        this._consumer.on('job', job => {
-            log.info(`Job arrived with inputs amount: ${JSON.stringify(job.data.tasks.length)}`);
-            this.queueTasksBuilder(job);
+        this._consumer.on('job', async job => {
+            const data = await this.etcd.jobState.getState({ jobId: job.data.jobID });
+            if (data && data.state == 'stop') {
+                log.info(`Job arrived with state stop therefore will not added to queue : ${JSON.stringify(job.data.tasks.length)}`);
+                queueRunner.queue.removeJobId(job.data.jobID);
+            }
+            else {
+                log.info(`Job arrived with inputs amount: ${JSON.stringify(job.data.tasks.length)}`);
+                this.queueTasksBuilder(job);
+            }
         });
-        // metrics.get(metricsNames.algorithm_started).inc({
-        //     labelValues: {
-        //         pipeline_name: job.data.pipeline_name,
-        //         algorithm_name: this._options.jobConsumer.job.type
-        //     }
-        // });
-        // metrics.get(metricsNames.algorithm_net).start({
-        //     id: job.data.taskID,
-        //     labelValues: {
-        //         pipeline_name: job.data.pipeline_name,
-        //         algorithm_name: this._options.jobConsumer.job.type
-        //     }
-        // });
 
-
-        // this._unRegister();
+        this.etcd.jobState.on('change', data => {
+            if (data && data.state == 'stop') {
+                queueRunner.queue.removeJobId(data.jobId);
+            }
+        });
     }
 
 

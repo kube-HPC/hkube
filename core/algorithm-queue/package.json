@@ -8,8 +8,8 @@
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
-    "test": "mocha test --colors  --exit",
-    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test --exit",
+    "test": "mocha tests --colors  --exit",
+    "test-travis": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --exit",
     "start": "node app",
     "build": "./dockerfile/build.sh algorithm-queue"
   },
@@ -21,11 +21,11 @@
   "author": "maty zisserman",
   "license": "MIT",
   "dependencies": {
-    "@hkube/config": "^2.0.5",
-    "@hkube/etcd": "^4.0.8",
+    "@hkube/config": "^2.0.7",
+    "@hkube/etcd": "^4.0.15",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.28",
-    "@hkube/producer-consumer": "^1.0.33",
+    "@hkube/producer-consumer": "^1.0.34",
     "@hkube/redis-utils": "^1.0.1",
     "@hkube/rest-server": "^1.0.8",
     "aigle": "^1.12.0",
@@ -41,11 +41,11 @@
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-import": "^2.13.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^3.5.3",
     "pre-commit": "^1.2.2",
     "sinon": "^3.3.0",
-    "uuid": "^3.2.1"
+    "uuid": "^3.3.2"
   }
 }

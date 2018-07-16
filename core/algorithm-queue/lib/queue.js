@@ -146,7 +146,9 @@ class Queue extends events {
         this.emit(queueEvents.INSERT);
         log.info('new jobs inserted to queue jobs', { component: components.QUEUE });
     }
-
+    _orderQueue() {
+        this.queue = _.orderBy([...this.queue], j => j.calculated.score, 'desc');
+    }
     _removeJobID(jobArr) {
         if (jobArr.length === 0) {
             log.debug('there is no deleted jobs', { component: components.QUEUE });
@@ -190,12 +192,13 @@ class Queue extends events {
                 await this.updateScore();
                 log.debug('queue update score cycle starts', { component: components.QUEUE });
                 this._mergeTemp();
+                this._orderQueue();
                 await this.persistenceStore();
                 this.isScoreDuringUpdate = false;
                 if (this.isIntervalRunning) {
                     this._queueInterval();
                 }
-            } 
+            }
             catch (error) {
                 log.error(`fail on queue interval ${error}`, { component: components.QUEUE });
             }

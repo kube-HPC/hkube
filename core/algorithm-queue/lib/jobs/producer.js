@@ -50,6 +50,7 @@ class JobProducer {
     async init(options) {
         const { etcd, serviceName } = options;
         await this._etcd.init({ etcd, serviceName });
+            
         //  const setting = Object.assign({}, { redis: options.redis });
         // setting.tracer = tracer;
         this._producer = producerSingleton.get;

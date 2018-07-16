@@ -197,7 +197,7 @@ describe('Test', () => {
             });
         });
 
-     
+
         after(() => {
             //    clearCache(['../lib/queue', '../bootstrap', '../lib/queue-runner']);
             console.log('--------cleared---------');
@@ -241,7 +241,17 @@ describe('Test', () => {
             // clearCache(['../bootstrap', '../lib/queue-runner']);
         });
     });
+    describe('test jobs order', () => {
+        it('order 100', async () => {
+            queueRunner.queue.flush()
+            await queueRunner.queue.add(generateArr(100));
+            await delay(500);
+            const q = queueRunner.queue.get;
+            expect(q.length).to.be.greaterThan(98);
 
+            await delay(500);
+        });
+    })
 
     describe('job-consume', () => {
         let _mockConsumer = null;
