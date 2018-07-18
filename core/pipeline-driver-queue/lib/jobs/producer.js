@@ -85,7 +85,6 @@ class JobProducer {
             this._lastSentJob = pipeline.jobId;
             const job = this._taskToProducerJob(pipeline);
             await this._producer.createJob(job);
-            await persistence.unWatchJobState({ jobId: pipeline.jobId });
         }
         else {
             log.info('queue is empty', { component });

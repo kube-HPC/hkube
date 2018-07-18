@@ -71,9 +71,11 @@ class Queue extends Events {
     }
 
     remove(jobId) {
-        _.remove(this.queue, job => job.jobId === jobId);
-        this.emit(queueEvents.REMOVE, jobId);
-        log.info(`job removed from queue, queue size: ${this.queue.length}`, { component });
+        const jobs = _.remove(this.queue, job => job.jobId === jobId);
+        if (jobs.length > 0) {
+            this.emit(queueEvents.REMOVE, jobId);
+            log.info(`job removed from queue, queue size: ${this.queue.length}`, { component });
+        }
     }
 
     get get() {

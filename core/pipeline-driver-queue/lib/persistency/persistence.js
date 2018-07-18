@@ -9,11 +9,12 @@ class Persistence extends EventEmitter {
         this.etcd = new Etcd();
     }
 
-    init({ options }) {
+    async init({ options }) {
         const { etcd, producer, serviceName } = options;
         this.queueName = producer.jobType;
         this.etcd.init({ etcd, serviceName });
-        this.etcd.jobs.on('change', (data) => {
+        await this.watchJobState();
+        this.etcd.jobState.on('change', (data) => {
             this.emit(`job-${data.state}`, data);
         });
         return this;
@@ -44,11 +45,11 @@ class Persistence extends EventEmitter {
     }
 
     watchJobState(options) {
-        return this.etcd.jobs.watch(options);
+        return this.etcd.jobState.watch(options);
     }
 
-    unWatchJobState(options) {
-        return this.etcd.jobs.unwatch(options);
+    getJobState(options) {
+        return this.etcd.jobState.getState(options);
     }
 }
 

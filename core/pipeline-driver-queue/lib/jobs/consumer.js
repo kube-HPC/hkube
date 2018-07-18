@@ -36,7 +36,7 @@ class JobConsumer {
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
             }
-            const watchState = await persistence.watchJobState({ jobId });
+            const watchState = await persistence.getJobState({ jobId });
             if (watchState && watchState.state === jobState.STOP) {
                 await this._stopJob(jobId, pipeline, watchState.reason);
             }
@@ -58,7 +58,6 @@ class JobConsumer {
         this._updateState();
         await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, level: 'info' });
         await persistence.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status });
-        await persistence.unWatchJobState({ jobId });
     }
 
     async _queueJob(pipeline, job) {

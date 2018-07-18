@@ -71,17 +71,16 @@ describe('Test', () => {
                     expect(q).to.have.length(0);
                 });
                 it('should not removed from queue when there is no matched id', async () => {
+                    let called = false;
                     queue.updateHeuristic({ run: heuristic(80) });
                     const stubJob = stubTemplate();
                     queue.add(stubJob);
                     queue.on(queueEvents.REMOVE, () => {
-                        _semaphore.callDone();
+                        called = true;
                     });
-                    queue.remove('111222333');
-                    await _semaphore.done();
-                    const q = queue.get;
-                    expect(q).to.have.length(1);
-                    expect(q[0].jobId).to.be.eql(stubJob.jobId);
+                    queue.remove('not_exist job');
+                    await delay(1000);
+                    expect(called).to.equal(false);
                 });
             });
             describe('pop', () => {
