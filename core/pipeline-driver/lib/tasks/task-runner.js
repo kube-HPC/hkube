@@ -3,7 +3,7 @@ const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
 const Progress = require('../progress/nodes-progress');
 const NodesMap = require('../nodes/nodes-map');
-const States = require('../state/States');
+const States = require('../state/NodeStates');
 const Events = require('../consts/Events');
 const { parser } = require('@hkube/parsers');
 const Batch = require('../nodes/node-batch');
@@ -58,6 +58,10 @@ class TaskRunner {
     }
 
     async start(job) {
+        if (this._active) {
+            return;
+        }
+        this._active = true;
         try {
             await this._startPipeline(job);
         }
@@ -68,6 +72,10 @@ class TaskRunner {
     }
 
     async stop(error, reason) {
+        if (!this._active) {
+            return;
+        }
+        this._active = false;
         try {
             await this._stopPipeline(error, reason);
         }
@@ -82,10 +90,6 @@ class TaskRunner {
     }
 
     async _startPipeline(job) {
-        if (this._active) {
-            return;
-        }
-        this._active = true;
         this._job = job;
         this._jobId = job.data.jobId;
         log.info(`pipeline started ${this._jobId}`, { component, jobId: this._jobId });
@@ -140,10 +144,6 @@ class TaskRunner {
     }
 
     async _stopPipeline(err, reason) {
-        if (!this._active) {
-            return;
-        }
-        this._active = false;
         let status;
         let error;
         let data;
@@ -152,6 +152,9 @@ class TaskRunner {
             status = States.FAILED;
             log.error(`pipeline ${status} ${error}`, { component, jobId: this._jobId, pipelineName: this._pipelineName });
             await this._progress.error({ jobId: this._jobId, pipeline: this._pipelineName, status, error });
+            if (err.batchTolerance) {
+                await this._stateManager.stopJob({ jobId: this._jobId });
+            }
         }
         else if (reason) {
             status = States.STOPPED;
@@ -365,7 +368,7 @@ class TaskRunner {
         }
         const error = this._checkBatchTolerance(task);
         if (error) {
-            this.stop(error);
+            this.stop(error, error.reason);
         }
         else if (this._nodes.isAllNodesCompleted()) {
             this.stop();
@@ -386,6 +389,7 @@ class TaskRunner {
 
                 if (percent >= batchTolerance) {
                     error = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${task.error}`);
+                    error.batchTolerance = true;
                 }
             }
             else {

@@ -1,16 +1,17 @@
 const EventEmitter = require('events');
 const { JobResult, JobStatus } = require('@hkube/etcd');
-const StateFactory = require('./state-factory');
+const stateFactory = require('./state-factory');
 const StorageFactory = require('../datastore/storage-factory');
+const DriverStates = require('../state/DriverStates');
 
 class StateManager extends EventEmitter {
     constructor() {
         super();
         this._handleEvent = this._handleEvent.bind(this);
         this.setJobStatus = this.setJobStatus.bind(this);
-        this._etcd = StateFactory.getClient();
+        this._etcd = stateFactory.getClient();
         this._storageAdapter = StorageFactory.getAdapter();
-        StateFactory.on('event', this._handleEvent);
+        stateFactory.on('event', this._handleEvent);
     }
 
     _handleEvent(event) {
@@ -18,30 +19,31 @@ class StateManager extends EventEmitter {
     }
 
     clean() {
-        StateFactory.removeListener('event', this._handleEvent);
+        stateFactory.state = DriverStates.IDLE;
+        stateFactory.removeListener('event', this._handleEvent);
     }
 
-    async getTaskState(options) {
+    getTaskState(options) {
         return this._etcd.services.pipelineDriver.getTaskState({ jobId: options.jobId, taskId: options.taskId });
     }
 
-    async setTaskState(options) {
+    setTaskState(options) {
         return this._etcd.services.pipelineDriver.setTaskState({ jobId: options.jobId, taskId: options.taskId, data: options.data });
     }
 
-    async getDriverState(options) {
+    getDriverState(options) {
         return this._etcd.services.pipelineDriver.getState(options);
     }
 
-    async setDriverState(options) {
+    setDriverState(options) {
         return this._etcd.services.pipelineDriver.setState({ jobId: options.jobId, data: { state: options.data, startTime: new Date() } });
     }
 
-    async getDriverTasks(options) {
+    getDriverTasks(options) {
         return this._etcd.services.pipelineDriver.getDriverTasks(options);
     }
 
-    async deleteDriverState(options) {
+    deleteDriverState(options) {
         return this._etcd.services.pipelineDriver.deleteState(options);
     }
 
@@ -60,7 +62,7 @@ class StateManager extends EventEmitter {
         return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult({ ...options, data: { storageInfo } }) });
     }
 
-    async setJobStatus(options) {
+    setJobStatus(options) {
         return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
     }
 
@@ -77,32 +79,36 @@ class StateManager extends EventEmitter {
         return result;
     }
 
-    async getExecution(options) {
+    getExecution(options) {
         return this._etcd.execution.get(options);
     }
 
-    async setExecution(options) {
+    setExecution(options) {
         return this._etcd.execution.set(options);
     }
 
-    async watchTasks(options) {
+    watchTasks(options) {
         return this._etcd.tasks.watch(options);
     }
 
-    async unWatchTasks(options) {
+    unWatchTasks(options) {
         return this._etcd.tasks.unwatch(options);
     }
 
-    async deleteWorkersState(options) {
+    deleteWorkersState(options) {
         return this._etcd.tasks.delete(options);
     }
 
-    async watchJobState(options) {
-        return this._etcd.jobs.watch(options);
+    stopJob(options) {
+        return this._etcd.jobState.stop(options);
     }
 
-    async unWatchJobState(options) {
-        return this._etcd.jobs.unwatch(options);
+    watchJobState(options) {
+        return this._etcd.jobState.watch(options);
+    }
+
+    unWatchJobState(options) {
+        return this._etcd.jobState.unwatch(options);
     }
 }
 

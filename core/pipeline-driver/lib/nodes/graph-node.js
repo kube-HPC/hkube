@@ -1,4 +1,4 @@
-const States = require('../state/States');
+const States = require('../state/NodeStates');
 
 class GraphNode {
     constructor(options) {

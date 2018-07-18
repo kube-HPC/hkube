@@ -1,5 +1,5 @@
 const Task = require('../tasks/Task');
-const States = require('../state/States');
+const States = require('../state/NodeStates');
 
 class NodeBase extends Task {
     constructor(options) {

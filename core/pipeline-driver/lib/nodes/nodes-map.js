@@ -4,7 +4,7 @@ const deepExtend = require('deep-extend');
 const GroupBy = require('../helpers/group-by');
 const GraphNode = require('./graph-node');
 const NodeResult = require('./node-result');
-const States = require('../state/States');
+const States = require('../state/NodeStates');
 const { parser, consts } = require('@hkube/parsers');
 
 /**
