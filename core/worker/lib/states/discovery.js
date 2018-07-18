@@ -18,7 +18,7 @@ class EtcdDiscovery extends EventEmitter {
             algorithmName: options.jobConsumer.job.type,
             podName: options.kubernetes.pod_name,
         };
-        await this._etcd.discovery.register({ data: discoveryInfo});
+        await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering worker discovery for id ${this._etcd.discovery._instanceId}`);
 
         await this.watchWorkerStates();
@@ -27,7 +27,7 @@ class EtcdDiscovery extends EventEmitter {
             this.emit(res.status.command, res);
         });
         this.watch({ jobId: 'hookWatch' });
-        this._etcd.jobs.on('change', (res) => {
+        this._etcd.jobState.on('change', (res) => {
             log.info(JSON.stringify(res), { component });
             switch (res.state) {
                 case 'stop':
@@ -57,7 +57,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async watch(options) {
-        return this._etcd.jobs.watch(options);
+        return this._etcd.jobState.watch(options);
     }
 
     async watchWorkerStates() {
@@ -71,7 +71,7 @@ class EtcdDiscovery extends EventEmitter {
     async unwatch(options) {
         try {
             log.debug('start unwatch', { component });
-            await this._etcd.jobs.unwatch(options);
+            await this._etcd.jobState.unwatch(options);
             log.debug('end unwatch', { component });
         }
         catch (error) {
