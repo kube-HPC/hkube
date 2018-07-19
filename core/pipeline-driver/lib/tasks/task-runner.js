@@ -12,6 +12,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../common/consts/componentNames').TASK_RUNNER;
 const { metricsNames } = require('../consts/metricsNames');
 const { tracer, metrics, utils } = require('@hkube/metrics');
+const graphStore = require('../datastore/graph-store');
 
 metrics.addTimeMeasure({
     name: metricsNames.pipelines_net,
@@ -109,6 +110,8 @@ class TaskRunner {
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
         this._progress = new Progress({ calcProgress: this._nodes.calcProgress, sendProgress: this._stateManager.setJobStatus });
+        graphStore.start(job.data.jobId, this._nodes);
+
 
         await this._stateManager.watchTasks({ jobId: this._jobId });
         const watchState = await this._stateManager.watchJobState({ jobId: this._jobId });
@@ -195,6 +198,7 @@ class TaskRunner {
         this._job = null;
         this._jobId = null;
         this._stateManager.clean();
+        graphStore.stop();
         this._stateManager = null;
         this._progress = null;
     }

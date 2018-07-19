@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const graphlib = require('graphlib');
 const { Graph } = require('graphlib');
 const deepExtend = require('deep-extend');
 const GroupBy = require('../helpers/group-by');
@@ -278,6 +279,10 @@ class NodesMap extends EventEmitter {
             states.push(node.status);
         }
         return states.every(this._isCompleted);
+    }
+
+    getJSONGraph(filterFunction) {
+        return filterFunction(graphlib.json.write(this._graph));
     }
 
     getAllNodes() {

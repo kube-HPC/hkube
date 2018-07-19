@@ -10,7 +10,10 @@ const modules = [
     './lib/producer/jobs-producer',
     './lib/consumer/jobs-consumer',
     './lib/state/state-factory',
-    './lib/datastore/storage-factory'
+    './lib/datastore/storage-factory',
+    './lib/datastore/graph-store',
+    './lib/datastore/redis-storage-adapter',
+
 ];
 
 class Bootstrap {
