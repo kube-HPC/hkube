@@ -49,7 +49,6 @@ class GraphStore {
     }
 
     _store() {
-
         if (!this._nodesMap) {
             throw new Error('nodeMap not referenced');
         }

@@ -106,7 +106,7 @@ class TaskRunner extends EventEmitter {
         finally {
             await this._stateManager.deleteTasks({ jobId: this._jobId });
             await graphStore.deleteGraph({ jobId: this._jobId });
-            this.emit('completed', this._getDiscoveryData());  
+            this.emit('completed', this._getDiscoveryData());
             await this._cleanJob(error);
         }
     }
@@ -202,12 +202,12 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    async _progressInfo({ status, error }) {
+    async _progressInfo({ status }) {
         if (this._progress) {
-            await this._progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status, error });
+            await this._progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, startTime: this.__pipelineStartTime, pipeline: this._pipelineName, status, error });
+            await this._stateManager.setJobStatus({ jobId: this._jobId, startTime: this._pipelineStartTime, pipeline: this._pipelineName, status });
         }
     }
 
