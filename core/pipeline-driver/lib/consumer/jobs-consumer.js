@@ -9,6 +9,9 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../common/consts/componentNames').JOBS_CONSUMER;
 
 class JobConsumer {
+    constructor() {
+        this._inactiveTimer = null;
+    }
     /**
      * Init the consumer and register for jobs
      * @param {*} options
@@ -31,8 +34,13 @@ class JobConsumer {
         this._consumer = new Consumer(options);
         this._consumer.register(options);
         this._consumer.on('job', (job) => {
-            stateFactory.state = DriverStates.ACTIVE;
             const taskRunner = new TaskRunner(option);
+            taskRunner.on('started', (data) => {
+                stateFactory.setState({ ...data, driverStatus: DriverStates.ACTIVE });
+            });
+            taskRunner.on('completed', (data) => {
+                stateFactory.setState({ ...data, driverStatus: DriverStates.READY });
+            });
             taskRunner.start(job);
         });
 
@@ -40,7 +48,7 @@ class JobConsumer {
             log.info('got pause event', { component });
             if (!this._consumerPaused) {
                 this._pause();
-                stateFactory.state = DriverStates.PAUSED;
+                stateFactory.setState({ driverStatus: DriverStates.PAUSED, paused: true });
                 this._handleTimeout();
             }
         });
@@ -48,7 +56,7 @@ class JobConsumer {
             log.info('got resume event', { component });
             if (this._consumerPaused) {
                 this._resume();
-                stateFactory.state = DriverStates.RESUMED;
+                stateFactory.setState({ driverStatus: DriverStates.RESUMED, paused: false });
                 this._handleTimeout();
             }
         });
@@ -59,7 +67,7 @@ class JobConsumer {
             clearTimeout(this._inactiveTimer);
             this._inactiveTimer = null;
         }
-        if (stateFactory.state === DriverStates.IDLE) {
+        if (stateFactory.getState().driverStatus === DriverStates.READY) {
             log.info(`starting pause timeout for driver, ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
             this._inactiveTimer = setTimeout(() => {
                 log.info(`driver is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });

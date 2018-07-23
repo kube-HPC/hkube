@@ -11,24 +11,40 @@ class StateFactory extends EventEmitter {
     async init(options) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
-        const discoveryInfo = {
-            podName: options.kubernetes.pod_name,
-        };
-
-        await this._etcd.discovery.register({ data: discoveryInfo });
+        this._options = options;
+        this._discoveryMethod = options.discoveryMethod || function noop() { };
+        await this._etcd.discovery.register({ data: this.getState() });
         await this._etcd.discovery.watch({ instanceId: this._etcd.discovery._instanceId });
         await this._etcd.jobState.watch({ jobId: 'hookWatch' });
-        this.state = DriverStates.IDLE;
         this._subscribe();
     }
 
-    get state() {
-        return this._state;
+    getDiscovery() {
+        const discovery = this._discoveryMethod();
+        const data = {
+            paused: false,
+            driverStatus: DriverStates.READY,
+            jobStatus: DriverStates.READY,
+            podName: this._options.kubernetes.pod_name,
+            ...this._state,
+            ...discovery
+        };
+        return data;
     }
 
-    set state(status) {
-        this._state = status;
-        this._updateDiscovery({ status });
+    methods(options) {
+        this._discoveryMethod = options.discoveryMethod;
+    }
+
+    getState() {
+        return this.getDiscovery();
+    }
+
+    setState(options) {
+        const discovery = this.getDiscovery();
+        const state = { ...discovery, ...options };
+        this._state = state;
+        return this._updateDiscovery(state);
     }
 
     _updateDiscovery(data) {
