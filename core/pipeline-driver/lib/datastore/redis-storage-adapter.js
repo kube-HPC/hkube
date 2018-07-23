@@ -2,39 +2,46 @@ const { Factory } = require('@hkube/redis-utils');
 const pathLib = require('path');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
-
+const PREFIX_GRAPH_PATH = 'pipeline-driver/graph';
+const PREFIX_NODES_GRAPH_PATH = 'pipeline-driver/nodes-graph';
 
 class RedisAdapter {
     constructor() {
-        this.PREFIX_PATH = 'pipeline-driver/graph';
         this._isInit = false;
-        this.client = null;
-        this.currentJobId = '';
-        this.path = null;
+        this._client = null;
     }
 
     async init(options) {
         if (!this._isInit) {
-            this.client = Factory.getClient(options.redis);
+            this._client = Factory.getClient(options.redis);
             this._isInit = true;
             log.info('redis initiated', { component: components.REDIS_PERSISTENT });
         }
     }
 
-    setJobId(jobid) {
-        this.currentJobId = jobid;
-        this.path = pathLib.join('/', this.PREFIX_PATH, this.currentJobId);
-    }
-    async put(options) {
-        return this._set(options);
+    updateGraph(options) {
+        const path = pathLib.join('/', PREFIX_GRAPH_PATH, options.jobId);
+        return this._set(path, options.data);
     }
 
-    _set(data) {
-        return new Promise((resolve, reject) => { // eslint-disable-line
-            if (!this.path) {
-                return reject(new Error('path not set'));
-            }
-            this.client.set(this.path, JSON.stringify(data), (err) => {
+    getNodesGraph(options) {
+        const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, options.jobId);
+        return this._get(path);
+    }
+
+    updateNodesGraph(options) {
+        const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, options.jobId);
+        return this._set(path, options.data);
+    }
+
+    deleteNodesGraph(options) {
+        const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, options.jobId);
+        return this._del(path);
+    }
+
+    _set(path, options) {
+        return new Promise((resolve, reject) => {
+            this._client.set(path, JSON.stringify(options), (err) => {
                 if (err) {
                     return reject(err);
                 }
@@ -43,13 +50,9 @@ class RedisAdapter {
         });
     }
 
-    async get() {
-        return this._get();
-    }
-
-    _get() {
+    _get(path) {
         return new Promise((resolve, reject) => {
-            this.client.get(this.path, (err, res) => {
+            this._client.get(path, (err, res) => {
                 if (err) {
                     return reject(err);
                 }
@@ -58,6 +61,16 @@ class RedisAdapter {
         });
     }
 
+    _del(path) {
+        return new Promise((resolve, reject) => {
+            this._client.del(path, (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(true);
+            });
+        });
+    }
 
     _tryParseJSON(json) {
         let parsed = json;

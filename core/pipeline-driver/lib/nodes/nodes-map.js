@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
 const graphlib = require('graphlib');
-const { Graph } = require('graphlib');
 const deepExtend = require('deep-extend');
 const GroupBy = require('../helpers/group-by');
 const GraphNode = require('./graph-node');
@@ -19,7 +18,7 @@ class NodesMap extends EventEmitter {
     constructor(options) {
         super();
         this.calcProgress = this.calcProgress.bind(this);
-        this._graph = new Graph({ directed: true });
+        this._graph = new graphlib.Graph({ directed: true });
         this._buildGraph(options);
     }
 
@@ -281,8 +280,12 @@ class NodesMap extends EventEmitter {
         return states.every(this._isCompleted);
     }
 
-    getJSONGraph(filterFunction) {
-        return filterFunction(graphlib.json.write(this._graph));
+    getJSONGraph() {
+        return graphlib.json.write(this._graph);
+    }
+
+    setJSONGraph(graph) {
+        this._graph = graphlib.json.read(graph);
     }
 
     getAllNodes() {

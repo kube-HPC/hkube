@@ -4,72 +4,67 @@ const RedisStorage = require('./redis-storage-adapter');
 const { groupTypes } = require('../consts/graph-storage-types');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../../common/consts/componentNames');
+const INTERVAL = 4000;
+
 class GraphStore {
     constructor() {
-        this.nodesMap = null;
-        this.INTERVAL = 4000;
-        this.currentJobID = null;
-        this.started = false;
-        this._filterData = this.filterData.bind(this);
-    }
-    async init(options) {
-        this.options = options;
+        this._nodesMap = null;
+        this._currentJobID = null;
+        this._interval = this._interval.bind(this);
     }
 
     start(jobId, nodeMap) {
-        this.currentJobID = jobId;
-        this.nodesMap = nodeMap;
-        RedisStorage.setJobId(jobId);
-        this.started = true;
-        this.store();
+        this._currentJobID = jobId;
+        this._nodesMap = nodeMap;
+        this._interval();
     }
-    async stop() {
+
+    stop() {
+        this._currentJobID = null;
+        this._nodesMap = null;
+    }
+
+    getGraph(options) {
+        return RedisStorage.getNodesGraph({ jobId: options.jobId });
+    }
+
+    deleteGraph(options) {
+        return RedisStorage.deleteNodesGraph({ jobId: options.jobId });
+    }
+
+    async _interval() {
         try {
-            await this._store();
-            this.started = false;
-            this.currentJobID = null;
-            this.nodesMap = null;
+            if (this._nodesMap) {
+                await this._store();
+            }
         }
-        catch (e) {
-            log.error(`stop: ${e} `, { component: components.GRAPH_STORE });
+        catch (error) {
+            log.error(error, { component: components.GRAPH_STORE });
+        }
+        finally {
+            if (this._nodesMap) {
+                setTimeout(this._interval, INTERVAL);
+            }
         }
     }
-    store() {
-        setTimeout(async () => {
-            try {
-                if (this.started) {
-                    await this._store();
-                }
-            }
-            catch (error) {
-                log.error(error, { component: components.GRAPH_STORE });
-            }
-            finally {
-                if (this.started) {
-                    this.store();
-                }
-            }
-        }, this.INTERVAL);
-    }
+
     _store() {
-        return new Promise(async (resolve, reject) => {
-            try {
-                if (!this.nodesMap) {
-                    return reject(new Error('nodeMap not referenced'));
-                }
-                this.caluclatedGraph = this.nodesMap.getJSONGraph(this._filterData);
-                await RedisStorage.put(this.caluclatedGraph);
-                return resolve();
-            }
-            catch (error) {
-                return reject(new Error(`faild on storing graph to redis error:${error}`));
-            }
-        });
+
+        if (!this._nodesMap) {
+            throw new Error('nodeMap not referenced');
+        }
+        const graph = this._nodesMap.getJSONGraph();
+        const filterGraph = this._filterData(graph);
+        return Promise.all([
+            RedisStorage.updateGraph({ jobId: this._currentJobID, data: filterGraph }),
+            RedisStorage.updateNodesGraph({ jobId: this._currentJobID, data: graph })
+        ]);
     }
-    filterData(graph) {
+
+    _filterData(graph) {
         const { EDGE } = groupTypes;
         const adaptedGraph = {
-            jobId: this.currentJobID,
+            jobId: this._currentJobID,
             graph: {
                 edges: [],
                 nodes: [],
@@ -79,12 +74,14 @@ class GraphStore {
         adaptedGraph.graph.nodes = graph.nodes.map(n => this._handleNode(n.value));
         return adaptedGraph;
     }
+
     _handleNode(node) {
         if (node.batch.length === 0) {
             return this._handleSingle(node);
         }
         return this._handleBatch(node);
     }
+
     _handleSingle(node) {
         const { SINGLE } = groupTypes;
         const calculatedNode = { id: node.nodeName, label: node.nodeName, extra: {}, group: SINGLE.NOT_STARTED };
@@ -111,7 +108,6 @@ class GraphStore {
         return calculatedNode;
     }
 
-
     _batchStatusCounter(node) {
         const batchState = {
             idle: 0,
@@ -134,6 +130,7 @@ class GraphStore {
         });
         return batchState;
     }
+
     _singleStatus(s) {
         const { STATUS } = groupTypes;
         if (s === States.SUCCEED || s === States.FAILED) {
@@ -145,6 +142,5 @@ class GraphStore {
         return STATUS.RUNNING;
     }
 }
-
 
 module.exports = new GraphStore();

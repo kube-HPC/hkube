@@ -423,37 +423,7 @@ describe('Test', function () {
             expect(taskRunner._pipelineName).to.equal(pipeline.name);
         });
         it('should recover pipeline successfully', async function () {
-            const jobId = `jobid-${uuidv4()}`;
-            const taskIds = [uuidv4(), uuidv4(), uuidv4()];
-            const job = {
-                data: { jobId },
-                done: () => { }
-            }
-            const pipeline = pipelines[0];
-            const node = pipeline.nodes[0];
-            const task1 = new Node({
-                taskId: taskIds[0],
-                nodeName: node.nodeName,
-                algorithmName: node.algorithmName
-            })
-            const task2 = new Batch({
-                taskId: taskIds[1],
-                batchIndex: 1,
-                nodeName: node.nodeName,
-                algorithmName: node.algorithmName
-            })
-            const data = { status: 'completed' };
-            await stateManager.setDriverState({ jobId, data });
-            await stateManager.setTaskState({ jobId, taskId: task1.taskId, data: task1 });
-            await stateManager.setTaskState({ jobId, taskId: task2.taskId, data: task2 });
 
-            await stateManager._etcd.tasks.setState({ jobId: jobId, taskId: task1.taskId, result: 0, status: 'completed' });
-            await stateManager._etcd.tasks.setState({ jobId: jobId, taskId: task2.taskId, result: 1, status: 'completed' });
-
-            const state = await stateManager.getState({ jobId: jobId });
-            taskRunner._nodes = new NodesMap(pipeline);
-            const tasks = taskRunner._checkRecovery(state);
-            expect(tasks).to.have.lengthOf(2);
         });
         it('should throw when check batch tolerance', async function () {
             const jobId = `jobid-${uuidv4()}`;
@@ -547,25 +517,6 @@ describe('Test', function () {
         });
     });
     describe('StateManager', function () {
-        it('set/get/TaskState', async function () {
-            const jobId = `jobid-${uuidv4()}`;
-            const task = new Node({
-                taskId: 'taskId-test',
-                nodeName: 'nodeName-test',
-                algorithmName: 'algorithm-test',
-                status: 'completed'
-            })
-            await stateManager.setTaskState({ jobId, taskId: task.taskId, data: task });
-            const response = await stateManager.getTaskState({ jobId, taskId: task.taskId });
-            expect(response.taskId).to.equal(task.taskId);
-        });
-        it('set/get/DriverState', async function () {
-            const jobId = `jobid-${uuidv4()}`;
-            const data = { status: 'completed' };
-            await stateManager.setDriverState({ jobId, data });
-            const response = await stateManager.getDriverState({ jobId });
-            expect(response.state).to.deep.equal(data);
-        });
         it('setJobResults', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const taskId = `taskId-${uuidv4()}`;
@@ -635,23 +586,6 @@ describe('Test', function () {
             const response = await stateManager._etcd.jobStatus.get({ jobId });
             expect(response.data).to.deep.equal(data);
         });
-        it('getState', async function () {
-            const jobId = `jobid-${uuidv4()}`;
-            const task = new Node({
-                taskId: 'taskId-test',
-                nodeName: 'nodeName-test',
-                algorithmName: 'algorithm-test',
-                status: 'completed'
-            })
-            const data = { status: 'completed' };
-            await stateManager.setDriverState({ jobId, data });
-            await stateManager.setTaskState({ jobId, taskId: task.taskId, data: task });
-            const response = await stateManager.getState({ jobId });
-            expect(response).to.have.property('driverTasks');
-            expect(response).to.have.property('jobTasks');
-            expect(response).to.have.property('startTime');
-            expect(response).to.have.property('state');
-        });
         it('getExecution', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { status: 'completed' };
@@ -697,67 +631,24 @@ describe('Test', function () {
                 done();
             }, 1000)
         });
-        it('getDriverTasks', async function () {
-            const jobId = `jobid-${uuidv4()}`;
-            const task = new Node({
-                taskId: 'taskId-test',
-                nodeName: 'nodeName-test',
-                algorithmName: 'algorithm-test',
-                status: 'completed'
-            })
-            await stateManager.setTaskState({ jobId, taskId: task.taskId, data: task });
-            const response = await stateManager.getDriverTasks({ jobId });
-            expect(response[0].nodeName).to.equal(task.nodeName);
-            expect(response[0].algorithmName).to.equal(task.algorithmName);
-        });
     });
     describe('Consumer', function () {
-        xit('should pause', async function () {
-            this.timeout(50000);
-            const setting = {
-                prefix: 'pipeline-driver'
-            };
-            const options = {
-                job: {
-                    type: 'pipeline-job',
-                    data: 99
-                }
-            };
-            const producer = new Producer({ setting });
-            await producer.createJob(options);
+        it('should pause', async function () {
             const spy = sinon.spy(consumer, "_pause");
-            stateFactory._etcd.discovery.set({ serviceName: config.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'stopProcessing' } });
-
+            await stateFactory._etcd.discovery.set({ serviceName: config.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'stopProcessing' } });
             await delay(500);
-
             expect(spy.calledOnce).to.equal(true);
         });
-        xit('should pause', async function () {
-            this.timeout(50000);
-            const jobId = `jobid-${uuidv4()}`;
-            const setting = {
-                prefix: 'pipeline-driver'
-            };
-            const options = {
-                job: {
-                    type: 'pipeline-job',
-                    data: {
-                        jobId
-                    }
-                }
-            };
-            const producer = new Producer({ setting });
-            await producer.createJob(options);
+        it('should resume', async function () {
+            const spy = sinon.spy(consumer, "_resume");
+            await stateFactory._etcd.discovery.set({ serviceName: config.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'startProcessing' } });
             await delay(500);
-            const state = stateFactory.getState();
-            expect(state.paused).to.equal(false);
-            expect(state.driverStatus).to.equal('active');
-            expect(state.jobStatus).to.equal('active');
-            expect(state.jobID).to.equal(jobId);
-            expect(state.pipelineName).to.equal('simple-flow');
+            expect(spy.calledOnce).to.equal(true);
         });
-        xit('should pause', async function () {
-            this.timeout(50000);
+    });
+    describe('State Factory', function () {
+        it('should get state', async function () {
+            this.timeout(5000);
             const jobId = `jobid-${uuidv4()}`;
             const setting = {
                 prefix: 'pipeline-driver'
@@ -770,10 +661,9 @@ describe('Test', function () {
                     }
                 }
             };
-
             const pipeline = pipelines[0];
             await stateManager.setExecution({ jobId, data: pipeline });
-            await delay(500);
+            await stateFactory._etcd.discovery.set({ serviceName: config.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'startProcessing' } });
             const producer = new Producer({ setting });
             await producer.createJob(options);
             await delay(500);
@@ -783,26 +673,6 @@ describe('Test', function () {
             expect(state.jobStatus).to.equal('active');
             expect(state.jobID).to.equal(jobId);
             expect(state.pipelineName).to.equal('simple-flow');
-        });
-        xit('should resume', async function () {
-            this.timeout(50000);
-            const setting = {
-                prefix: 'pipeline-driver'
-            };
-            const options = {
-                job: {
-                    type: 'pipeline-job',
-                    data: 99
-                }
-            };
-            const producer = new Producer({ setting });
-            await producer.createJob(options);
-            const spy = sinon.spy(consumer, "_resume");
-            stateFactory._etcd.discovery.set({ serviceName: config.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'startProcessing' } });
-
-            await delay(500);
-
-            expect(spy.calledOnce).to.equal(true);
         });
     });
 });

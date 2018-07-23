@@ -23,30 +23,6 @@ class StateManager extends EventEmitter {
         stateFactory.removeListener('event', this._handleEvent);
     }
 
-    getTaskState(options) {
-        return this._etcd.services.pipelineDriver.getTaskState({ jobId: options.jobId, taskId: options.taskId });
-    }
-
-    setTaskState(options) {
-        return this._etcd.services.pipelineDriver.setTaskState({ jobId: options.jobId, taskId: options.taskId, data: options.data });
-    }
-
-    getDriverState(options) {
-        return this._etcd.services.pipelineDriver.getState(options);
-    }
-
-    setDriverState(options) {
-        return this._etcd.services.pipelineDriver.setState({ jobId: options.jobId, data: { state: options.data, startTime: new Date() } });
-    }
-
-    getDriverTasks(options) {
-        return this._etcd.services.pipelineDriver.getDriverTasks(options);
-    }
-
-    deleteDriverState(options) {
-        return this._etcd.services.pipelineDriver.deleteState(options);
-    }
-
     async setJobResults(options) {
         let results;
         if (options.data) {
@@ -67,17 +43,8 @@ class StateManager extends EventEmitter {
         return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
     }
 
-    async getState(options) {
-        let result = null;
-        const driver = await this.getDriverState(options);
-        if (driver) {
-            const driverTasks = await this.getDriverTasks(options);
-            const jobTasks = await this._etcd.tasks.list(options);
-            result = Object.assign({}, driver);
-            result.driverTasks = driverTasks || [];
-            result.jobTasks = jobTasks || new Map();
-        }
-        return result;
+    tasksList(options) {
+        return this._etcd.tasks.list(options);
     }
 
     getExecution(options) {
@@ -96,7 +63,7 @@ class StateManager extends EventEmitter {
         return this._etcd.tasks.unwatch(options);
     }
 
-    deleteWorkersState(options) {
+    deleteTasks(options) {
         return this._etcd.tasks.delete(options);
     }
 

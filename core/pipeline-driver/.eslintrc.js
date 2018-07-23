@@ -16,7 +16,7 @@ module.exports = {
         "no-param-reassign": "off",
         "no-use-before-define": "warn",
         "import/newline-after-import": "off",
-        "indent": ["warn", 4],
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
         "prefer-template": "off",
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
