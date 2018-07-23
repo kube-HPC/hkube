@@ -86,7 +86,7 @@ class TaskRunner {
         finally {
             await this._stateManager.deleteDriverState({ jobId: this._jobId });
             await this._stateManager.deleteWorkersState({ jobId: this._jobId });
-            this._cleanJob(error);
+            await this._cleanJob(error);
         }
     }
 
@@ -190,7 +190,8 @@ class TaskRunner {
         }
     }
 
-    _cleanJob(error) {
+    async _cleanJob(error) {
+        await graphStore.stop();
         this._pipeline = null;
         this._pipelineName = null;
         this._nodes = null;
@@ -198,7 +199,6 @@ class TaskRunner {
         this._job = null;
         this._jobId = null;
         this._stateManager.clean();
-        graphStore.stop();
         this._stateManager = null;
         this._progress = null;
     }

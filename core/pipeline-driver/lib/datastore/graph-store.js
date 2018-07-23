@@ -23,10 +23,16 @@ class GraphStore {
         this.started = true;
         this.store();
     }
-    stop() {
-        this.started = false;
-        this.currentJobID = null;
-        this.nodesMap = null;
+    async stop() {
+        try {
+            await this._store();
+            this.started = false;
+            this.currentJobID = null;
+            this.nodesMap = null;
+        }
+        catch (e) {
+            log.error(`stop: ${e} `, { component: components.GRAPH_STORE });
+        }
     }
     store() {
         setTimeout(async () => {
@@ -46,7 +52,7 @@ class GraphStore {
         }, this.INTERVAL);
     }
     _store() {
-        return new Promise(async (resolve, reject) => { 
+        return new Promise(async (resolve, reject) => {
             try {
                 if (!this.nodesMap) {
                     return reject(new Error('nodeMap not referenced'));
@@ -99,7 +105,7 @@ class GraphStore {
             calculatedNode.group = BATCH.NOT_STARTED;
         }
         else {
-            calculatedNode.extra.batch = `${batchStatus.running}/${node.batch.length}`;
+            calculatedNode.extra.batch = `${batchStatus.running + batchStatus.completed}/${node.batch.length}`;
             calculatedNode.group = BATCH.RUNNING;
         }
         return calculatedNode;
