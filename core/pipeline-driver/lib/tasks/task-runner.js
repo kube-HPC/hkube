@@ -406,11 +406,11 @@ class TaskRunner extends EventEmitter {
         if (error) {
             this.stop(error, error.reason);
         }
-        else if (this._nodes.isAllNodesCompleted()) {
+
+        this._nodes.updateCompletedTask(task);
+
+        if (this._nodes.isAllNodesCompleted()) {
             this.stop();
-        }
-        else {
-            this._nodes.updateCompletedTask(task);
         }
     }
 

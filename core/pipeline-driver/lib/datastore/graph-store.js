@@ -13,13 +13,14 @@ class GraphStore {
         this._interval = this._interval.bind(this);
     }
 
-    start(jobId, nodeMap) {
+    async start(jobId, nodeMap) {
         this._currentJobID = jobId;
         this._nodesMap = nodeMap;
-        this._interval();
+        await this._interval();
     }
 
-    stop() {
+    async stop() {
+        await this._interval();
         this._currentJobID = null;
         this._nodesMap = null;
     }
