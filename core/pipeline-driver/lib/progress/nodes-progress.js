@@ -65,12 +65,12 @@ class ProgressManager {
     _progress(level, options) {
         const data = this._calcProgress();
         this._currentProgress = data.progress;
-        return this._throttleProgress(level, { ...options, data });
+        return this._throttleProgress({ ...options, data, level });
     }
 
-    _queueProgress(level, { jobId, pipeline, data, status, error }) {
+    _queueProgress(options) {
         return new Promise((resolve, reject) => {
-            this._queue.push({ jobId, pipeline, level, status, error, data }, (err, res) => {
+            this._queue.push(options, (err, res) => {
                 if (err) {
                     return reject(err);
                 }
