@@ -1,7 +1,7 @@
 
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
+const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed } = require('../errors');
 
 class AlgorithmStore {
     /**
@@ -26,27 +26,39 @@ class AlgorithmStore {
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        await this._findAlgorithmDependency(options.name);
+        await this._checkAlgorithmDependencies(options.name);
         return stateManager.deleteAlgorithm(options);
     }
 
-    async _findAlgorithmDependency(algorithmName) {
-        const limit = 1000;
-        const pipelines = await stateManager.getPipelines({ limit });
-        let result = this._findAlgorithm(pipelines, algorithmName);
-        if (result.length > 0) {
-            throw new InvalidDataError(`${algorithmName} is stored in ${result.length} different pipelines`);
+    async _checkAlgorithmDependencies(algorithmName) {
+        const { pipelines, executions } = await this._findAlgorithmDependencies(algorithmName);
+        const messages = [];
+        if (pipelines.length > 0) {
+            messages.push(`algorithm ${algorithmName} is stored in ${pipelines.length} different pipelines`);
         }
-
-        const executions = await stateManager.getExecutionsList({ limit });
-        result = this._findAlgorithm(executions, algorithmName);
-        if (result.length > 0) {
-            throw new InvalidDataError(`${algorithmName} is running in ${result.length} different pipelines`);
+        if (executions.length > 0) {
+            messages.push(`algorithm ${algorithmName} is running in ${executions.length} different executions`);
+        }
+        if (messages.length > 0) {
+            messages.push(`before you delete algorithm ${algorithmName} you must first delete all related pipelines and executions`);
+            throw new ActionNotAllowed(messages.join(', '), {
+                pipelines: pipelines.map(p => p.name),
+                executions: executions.map(e => e.jobId)
+            });
         }
     }
 
-    _findAlgorithm(list, algorithmName) {
-        return list.filter(l => l.nodes && l.nodes.filter(n => n.algorithmName === algorithmName));
+    async _findAlgorithmDependencies(algorithmName) {
+        const limit = 1000;
+        const [pipelines, executions] = await Promise.all([
+            stateManager.getPipelines({ limit }, this._findAlgorithm(algorithmName)),
+            stateManager.getExecutions({ limit }, this._findAlgorithm(algorithmName))
+        ]);
+        return { pipelines, executions };
+    }
+
+    _findAlgorithm(algorithmName) {
+        return (l => l.nodes && l.nodes.some(n => n.algorithmName === algorithmName));
     }
 
     /**

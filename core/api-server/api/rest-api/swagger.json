@@ -1847,6 +1847,11 @@
             "options": {
                 "type": "object",
                 "properties": {
+                    "ttl": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "default": 3600
+                    },
                     "batchTolerance": {
                         "type": "integer",
                         "minimum": 0,

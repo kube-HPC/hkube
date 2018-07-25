@@ -42,6 +42,7 @@
         },
         "priority": 5,
         "options": {
+            "ttl": 3600,
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
         }

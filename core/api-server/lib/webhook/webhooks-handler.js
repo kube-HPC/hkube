@@ -43,23 +43,28 @@ class WebhooksHandler {
     }
 
     async _requestStatus(payload) {
-        const pipeline = await stateManager.getExecution({ jobId: payload.jobId });
+        const { jobId } = payload;
+        const pipeline = await stateManager.getExecution({ jobId });
+
         if (pipeline.webhooks && pipeline.webhooks.progress) {
             const clientLevel = levels[pipeline.options.progressVerbosityLevel].level;
             const pipelineLevel = levels[payload.level].level;
-            log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component, jobId: payload.jobId });
+            log.debug(`progress event with ${payload.level} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component, jobId });
             if (clientLevel <= pipelineLevel) {
-                const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, payload.jobId);
-                await stateManager.setWebhook({ jobId: payload.jobId, type: Types.PROGRESS, data: result });
+                const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, jobId);
+                await stateManager.setWebhook({ jobId, type: Types.PROGRESS, data: result });
             }
         }
         if (stateManager.isCompletedState(payload.status)) {
-            await stateManager.releaseJobStatusLock({ jobId: payload.jobId });
+            await stateManager.releaseJobStatusLock({ jobId });
         }
     }
 
     async _requestResults(payload) {
-        const pipeline = await stateManager.getExecution({ jobId: payload.jobId });
+        const { jobId } = payload;
+        const pipeline = await stateManager.getExecution({ jobId });
+        this._deleteExecution({ jobId });
+
         const time = Date.now() - pipeline.startTime;
         metrics.get(metricsNames.pipelines_gross).retroactive({
             time,
@@ -70,10 +75,17 @@ class WebhooksHandler {
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await storageFactory.getResults(payload);
-            const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payloadData.status, payloadData.jobId);
-            await stateManager.setWebhook({ jobId: payloadData.jobId, type: Types.RESULT, data: result });
+            const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
+            await stateManager.setWebhook({ jobId, type: Types.RESULT, data: result });
         }
-        await stateManager.releaseJobResultsLock({ jobId: payload.jobId });
+        await stateManager.releaseJobResultsLock({ jobId });
+    }
+
+    // let anyone time to use this execution before deleting it
+    _deleteExecution(options) {
+        setTimeout(() => {
+            stateManager.deleteExecution(options);
+        }, 3000);
     }
 
     _request(url, body, type, pipelineStatus, jobId) {

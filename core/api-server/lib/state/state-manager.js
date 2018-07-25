@@ -1,6 +1,6 @@
+const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const { JobStatus, JobResult, Webhook } = require('@hkube/etcd');
-const EventEmitter = require('events');
 const States = require('./States');
 const storageFactory = require('../datastore/storage-factory');
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
@@ -34,8 +34,9 @@ class StateManager extends EventEmitter {
         return this._etcd.execution.delete(options);
     }
 
-    getExecutionsList(options) {
-        return this._etcd.execution.list(options);
+    async getExecutions(options, filter = () => true) {
+        const executions = await this._etcd.execution.list(options);
+        return executions.filter(filter);
     }
 
     getExecutionsTree(options) {
@@ -70,8 +71,9 @@ class StateManager extends EventEmitter {
         return this._etcd.pipelines.get({ name: options.name });
     }
 
-    getPipelines(options) {
-        return this._etcd.pipelines.list(options);
+    async getPipelines(options, filter = () => true) {
+        const pipelines = await this._etcd.pipelines.list(options);
+        return pipelines.filter(filter);
     }
 
     deletePipeline(options) {

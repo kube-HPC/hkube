@@ -43,7 +43,7 @@ class AppServer {
                 routes,
                 prefix,
                 versions,
-                port,
+                port: parseInt(port, 10),
                 rateLimit,
                 poweredBy,
                 name: options.serviceName,
