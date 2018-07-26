@@ -24,6 +24,7 @@ class WebhooksHandler {
     _watch() {
         stateManager.on('job-result', (response) => {
             this._requestResults(response);
+            this._deleteExecution({ jobId: response.jobId });
         });
         stateManager.on('job-status', (response) => {
             this._requestStatus(response);
@@ -63,7 +64,6 @@ class WebhooksHandler {
     async _requestResults(payload) {
         const { jobId } = payload;
         const pipeline = await stateManager.getExecution({ jobId });
-        this._deleteExecution({ jobId });
 
         const time = Date.now() - pipeline.startTime;
         metrics.get(metricsNames.pipelines_gross).retroactive({
