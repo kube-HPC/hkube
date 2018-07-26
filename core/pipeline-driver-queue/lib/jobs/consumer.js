@@ -53,11 +53,13 @@ class JobConsumer {
     }
 
     async _stopJob(jobId, pipeline, reason) {
-        const status = jobState.STOPPED;
-        queueRunner.queue.remove(jobId);
-        this._updateState();
-        await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, level: 'info' });
-        await persistence.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status });
+        const jobs = queueRunner.queue.remove(jobId);
+        if (jobs.length > 0) {
+            const status = jobState.STOPPED;
+            this._updateState();
+            await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, level: 'info' });
+            await persistence.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status });
+        }
     }
 
     async _queueJob(pipeline, job) {

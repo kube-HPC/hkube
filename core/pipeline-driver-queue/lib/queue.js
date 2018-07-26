@@ -76,6 +76,7 @@ class Queue extends Events {
             this.emit(queueEvents.REMOVE, jobId);
             log.info(`job removed from queue, queue size: ${this.queue.length}`, { component });
         }
+        return jobs;
     }
 
     get get() {
