@@ -260,7 +260,7 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal('name must contain only alphanumeric, dash, dot or underscore');
+                        expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
                     });
                     it('should succeed and return job id', async () => {
                         const options = {
@@ -378,7 +378,7 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal('name must contain only alphanumeric, dash, dot or underscore');
+                        expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
                     });
                     it('should succeed and return job id', async () => {
                         const options = {

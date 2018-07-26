@@ -8,14 +8,16 @@ const { schemas, _schemas } = require('../../api/rest-api/swagger.json').compone
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
-const NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
+const PIPELINE_NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
+const ALGORITHM_NAME_REGEX = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/; // eslint-disable-line
 const MIN_MEMORY = 4;
 
 class Validator {
     constructor() {
         validator.addFormat('url', this._validateUrl);
         validator.addFormat('cron', this._validateCron);
-        validator.addFormat('name', this._validateName);
+        validator.addFormat('pipeline-name', this._validatePipelineName);
+        validator.addFormat('algorithm-name', this._validateAlgorithmName);
         Object.entries(schemas).forEach(([k, v]) => {
             v.id = `#/components/schemas/${k}`;
             validator.addSchema(v);
@@ -129,9 +131,15 @@ class Validator {
         return URL_REGEX.test(url);
     }
 
-    _validateName(name) {
-        if (!NAME_REGEX.test(name)) {
-            throw new InvalidDataError('name must contain only alphanumeric, dash, dot or underscore');
+    _validatePipelineName(name) {
+        if (!PIPELINE_NAME_REGEX.test(name)) {
+            throw new InvalidDataError('pipeline name must contain only alphanumeric, dash, dot or underscore');
+        }
+        return true;
+    }
+    _validateAlgorithmName(name) {
+        if (!ALGORITHM_NAME_REGEX.test(name)) {
+            throw new InvalidDataError('algorithm name must contain only alphanumeric, dash or dot');
         }
         return true;
     }

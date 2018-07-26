@@ -1682,7 +1682,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific pipeline",
                         "minLength": 1,
-                        "format": "name"
+                        "format": "pipeline-name"
                     },
                     "nodes": {
                         "type": "array",
@@ -1723,7 +1723,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1,
-                        "format": "name"
+                        "format": "algorithm-name"
                     },
                     "algorithmImage": {
                         "type": "string",
@@ -1752,7 +1752,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific pipeline",
                         "minLength": 1,
-                        "format": "name"
+                        "format": "pipeline-name"
                     },
                     "flowInput": {
                         "type": "object",
