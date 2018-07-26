@@ -1464,6 +1464,21 @@ describe('Rest', () => {
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.message).to.equal('algorithm conflict already exists');
                     });
+                    it('should throw invalid algorithm name', async () => {
+                        const options = {
+                            uri: restPath,
+                            method: 'POST',
+                            body: {
+                                name: "not_valid/name",
+                                algorithmImage: "image"
+                            }
+                        };
+                        await _request(options);
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.response.statusCode).to.equal(400);
+                        expect(response.body.error.message).to.equal('algorithm name must contain only alphanumeric, dash or dot');
+                    });
                     it('should succeed to store algorithm', async () => {
                         const body = {
                             name: uuidv4(),
@@ -1862,7 +1877,7 @@ describe('Rest', () => {
                     });
                     it('should throw validation error if algorithmName not exists', async () => {
                         const pipeline = clone(pipelines[0]);
-                        pipeline.nodes[0].algorithmName = 'not_exists'
+                        pipeline.nodes[0].algorithmName = 'not.exists'
                         pipeline.name = uuidv4();
                         const body = pipeline;
                         const options = {
@@ -1873,7 +1888,7 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.code).to.equal(404);
-                        expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
+                        expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
                     });
                     it('should succeed to store pipeline', async () => {
                         const pipeline = clone(pipelines[0]);
@@ -1902,7 +1917,7 @@ describe('Rest', () => {
                     });
                     it('should throw validation error if algorithmName not exists', async () => {
                         const pipeline = clone(pipelines[0]);
-                        pipeline.nodes[0].algorithmName = 'not_exists'
+                        pipeline.nodes[0].algorithmName = 'not.exists'
                         const body = pipeline;
                         const options = {
                             uri: restPath,
@@ -1912,7 +1927,7 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.code).to.equal(404);
-                        expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
+                        expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
                     });
                 });
             });
