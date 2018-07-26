@@ -404,13 +404,14 @@ class TaskRunner extends EventEmitter {
         }
         const error = this._checkBatchTolerance(task);
         if (error) {
-            this.stop(error, error.reason);
+            this.stop(error);
         }
+        else {
+            this._nodes.updateCompletedTask(task);
 
-        this._nodes.updateCompletedTask(task);
-
-        if (this._nodes.isAllNodesCompleted()) {
-            this.stop();
+            if (this._nodes.isAllNodesCompleted()) {
+                this.stop();
+            }
         }
     }
 
@@ -421,7 +422,7 @@ class TaskRunner extends EventEmitter {
                 const { batchTolerance } = this._pipeline.options;
                 const states = this._nodes.getNodeStates(task.nodeName);
                 const failed = states.filter(s => s === NodeStates.FAILED);
-                const percent = (failed.length / states.length) * 100;
+                const percent = ((failed.length / states.length) * 100).toFixed(0);
 
                 if (percent >= batchTolerance) {
                     error = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${task.error}`);
