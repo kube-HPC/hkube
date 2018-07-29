@@ -114,7 +114,7 @@ class Queue extends events {
             this.tempRemoveQueue = this.tempRemoveQueue.concat(jobsId);
             return;
         }
-        this._removeJobId(jobsId);
+        this._removeJobID(jobsId);
     }
 
     remove(taskId) {

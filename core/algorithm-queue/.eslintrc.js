@@ -10,14 +10,13 @@ module.exports = {
     ],
     "parserOptions": {
         "sourceType": "module",
-        "ecmaVersion": 2017
+        "ecmaVersion": 2018
     },
     "rules": {
-        "quotes": ["error", "single", { "allowTemplateLiterals": true }],
         "no-param-reassign": "off",
         "no-use-before-define": "warn",
         "import/newline-after-import": "off",
-        "indent": ["warn", 4],
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
         "prefer-template": "off",
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
@@ -28,14 +27,11 @@ module.exports = {
         "linebreake-style": "off",
         "no-var": "error",
         "object-curly-spacing": "off",
-        "arrow-body-style": "off",
+        "object-curly-newline": "off",
+        "newline-per-chained-call": "off",
+        "arrow-body-style": "error",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
-        "chai-friendly/no-unused-expressions": 2,
-        "linebreak-style": 0,
-        "arrow-parens":0,
-        'object-curly-newline':0
-        
-
+        "chai-friendly/no-unused-expressions": 2
     }
 };
