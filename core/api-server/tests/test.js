@@ -1072,7 +1072,8 @@ describe('Rest', () => {
                             method: 'POST',
                             uri: `${baseUrl}/internal/v1/exec/stored`,
                             body: {
-                                name: pipeline
+                                name: pipeline,
+                                type: 'cron'
                             }
                         };
                         const data = [100, 200, 300];
@@ -1176,7 +1177,8 @@ describe('Rest', () => {
                             method: 'POST',
                             uri: `${baseUrl}/internal/v1/exec/stored`,
                             body: {
-                                name: pipeline
+                                name: pipeline,
+                                type: 'cron'
                             }
                         };
                         const limit = 3;
@@ -2237,17 +2239,28 @@ describe('Rest', () => {
             const response = await _request(options);
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
-        it('should succeed and return job id', async () => {
+        it('should throw error when required type', async () => {
+            const options = {
+                method: 'POST',
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1'
+                }
+            };
+            const response = await _request(options);
+            expect(response.body.error.message).to.equal(`data should have required property 'type'`);
+        });
+        it('should throw error when invalid type', async () => {
             const options = {
                 method: 'POST',
                 uri: `${restUrl}/exec/stored`,
                 body: {
                     name: 'flow1',
-                    jobId: uuidv4()
+                    type: 'no_such'
                 }
             };
             const response = await _request(options);
-            expect(response.body).to.have.property('jobId');
+            expect(response.body.error.message).to.equal(`data.type should be equal to one of the allowed values`);
         });
         it('should succeed and return job id', async () => {
             const options = {
@@ -2255,6 +2268,7 @@ describe('Rest', () => {
                 uri: `${restUrl}/exec/stored`,
                 body: {
                     name: 'flow1',
+                    type: 'stored',
                     jobId: uuidv4()
                 }
             };
@@ -2271,7 +2285,8 @@ describe('Rest', () => {
                     uri: `${restUrl}/exec/stored`,
                     body: {
                         name: pipeline,
-                        jobId: uuidv4()
+                        jobId: uuidv4(),
+                        type: 'stored'
                     }
                 };
                 promises.push(_request(options));
@@ -2340,7 +2355,8 @@ describe('Rest', () => {
                     uri: `${restUrl}/exec/stored`,
                     body: {
                         name,
-                        jobId
+                        jobId,
+                        type: 'stored',
                     }
                 };
                 const res = await _request(options);
@@ -2393,7 +2409,8 @@ describe('Rest', () => {
                     method: 'POST',
                     uri: `${restUrl}/exec/stored`,
                     body: {
-                        name: pipeline
+                        name: pipeline,
+                        type: 'cron'
                     }
                 };
                 const res = await _request(options);

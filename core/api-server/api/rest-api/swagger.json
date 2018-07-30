@@ -2029,12 +2029,20 @@
                     "name": {
                         "type": "string"
                     },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "cron",
+                            "stored"
+                        ]
+                    },
                     "jobId": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "name"
+                    "name",
+                    "type"
                 ]
             }
         }

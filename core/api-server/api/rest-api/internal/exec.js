@@ -18,10 +18,28 @@ const routes = () => {
             return next(error);
         });
     });
-
+    router.all('/exec/raw', methods(['POST']), logger(), (req, res, next) => {
+        Execution.runRaw(req.body).then((jobId) => {
+            res.json({ jobId });
+            res.jobId = jobId;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.all('/exec/stop', methods(['POST']), logger(), (req, res, next) => {
+        const { jobId, reason } = req.body;
+        Execution.stopJob({ jobId, reason }).then(() => {
+            res.json({ message: 'OK' });
+            res.jobId = jobId;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     router.all('/exec/clean/:jobId?', methods(['POST']), logger(), (req, res, next) => {
         Execution.cleanJob(req.body).then((jobId) => {
-            res.json({ jobId });
+            res.json({ message: 'OK' });
             res.jobId = jobId;
             next();
         }).catch((error) => {

@@ -12,6 +12,12 @@ const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 
 class ExecutionService {
+    constructor() {
+        this._createJobIdMap = new Map();
+        this._createJobIdMap.set('cron', this._createCronJobID);
+        this._createJobIdMap.set('stored', this._createStoredJobID);
+    }
+
     /**
      * run algorithm flow
      * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
@@ -51,20 +57,18 @@ class ExecutionService {
 
     async runStoredInternal(options) {
         validator.validateStoredInternal(options);
+        const createJobId = this._createJobIdMap.get(options.type);
+        const jobId = createJobId(options, uuidv4());
+
         const option = {
             name: options.name
         };
-        let jobId;
+
         if (options.jobId) {
-            jobId = this._createStoredJobID(options);
-            let results = await stateManager.getJobResult({ jobId: options.jobId });
+            const results = await stateManager.getJobResult({ jobId: options.jobId });
             if (results && results.data) {
-                results = results.data.map(r => r.result);
-                option.flowInput = results;
+                option.flowInput = results.data.map(r => r.result);
             }
-        }
-        else {
-            jobId = this._createCronJobID(options, uuidv4());
         }
         return this._runStored(option, jobId);
     }
@@ -294,13 +298,16 @@ class ExecutionService {
 
     async cleanJob(options) {
         const { jobId } = options;
-        await stateManager.deleteExecution({ jobId });
-        await stateManager.deleteJobResults({ jobId });
-        await stateManager.deleteJobStatus({ jobId });
-        await stateManager.deleteWebhook({ jobId, type: WebhookTypes.PROGRESS });
-        await stateManager.deleteWebhook({ jobId, type: WebhookTypes.RESULT });
-        // await storageFactory.adapter.delete({ jobId });
-        await producer.stopJob({ jobId });
+        await stateManager.stopJob({ jobId: options.jobId, reason: 'clean job' });
+        await Promise.all([
+            stateManager.deleteExecution({ jobId }),
+            stateManager.deleteJobResults({ jobId }),
+            stateManager.deleteJobStatus({ jobId }),
+            stateManager.deleteWebhook({ jobId, type: WebhookTypes.PROGRESS }),
+            stateManager.deleteWebhook({ jobId, type: WebhookTypes.RESULT }),
+            // storageFactory.adapter.delete({ jobId }),
+            producer.stopJob({ jobId })
+        ]);
     }
 
     _createStoredJobID(options) {
