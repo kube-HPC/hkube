@@ -6,7 +6,7 @@ const Events = {
 
 const Triggers = {
     CRON: 'cron',
-    PIPELINE: 'pipeline'
+    STORED: 'stored'
 };
 
 module.exports = { Events, Triggers };

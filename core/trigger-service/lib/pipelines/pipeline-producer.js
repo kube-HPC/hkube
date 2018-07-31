@@ -23,7 +23,8 @@ class PipelineProducer {
             uri: this._apiUrl,
             body: {
                 name: trigger.name,
-                jobId: trigger.jobId
+                jobId: trigger.jobId,
+                type: trigger.type
             },
             json: true,
             ...this.retrySettings
