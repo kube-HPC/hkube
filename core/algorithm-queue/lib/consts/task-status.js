@@ -1,6 +1,6 @@
 const taskStatus = {
-    fail: 'fail'
+    FAILED: 'failed',
+    CRASHED: 'crashed'
 };
-
 
 module.exports = taskStatus;

@@ -3,7 +3,7 @@ const producerSingleton = require('./producer-singleton');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
 const metrics = require('@hkube/metrics');
-const { jobPrefix, componentName, jobState, bullEvents, taskStatus } = require('../consts/index');
+const { jobPrefix, componentName, jobState, taskStatus } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const Etcd = require('@hkube/etcd');
 
@@ -50,7 +50,7 @@ class JobProducer {
     async init(options) {
         const { etcd, serviceName } = options;
         await this._etcd.init({ etcd, serviceName });
-            
+
         //  const setting = Object.assign({}, { redis: options.redis });
         // setting.tracer = tracer;
         this._producer = producerSingleton.get;
@@ -84,19 +84,20 @@ class JobProducer {
             }
         });
         this._producer.on(Events.COMPLETED, (data) => {
-            log.debug(`${bullEvents.COMPLETED} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.COMPLETED });
+            log.debug(`${Events.COMPLETED} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
-            log.error(`${bullEvents.FAILED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.FAILED });
+            log.error(`${Events.FAILED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.FAILED });
         });
         this._producer.on(Events.STALLED, (data) => {
-            log.error(`${bullEvents.STALLED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.STALLED });
+            log.error(`${Events.STALLED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.STALLED });
         });
-
-        this._producer.on(Events.CRASHED, async ({ taskID, jobID }) => {
-            // { jobID, taskId, result, status, error }
-            await this._etcd.tasks.setState({ taskId: taskID, jobID, status: taskStatus.fail, error: 'crashLoop backoff' });
-            log.error(`${Events.CRASHED} ${jobID}, `, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.STALLED });
+        this._producer.on(Events.CRASHED, async (job) => {
+            const { jobID, taskID } = job.options;
+            const { error } = job;
+            const status = taskStatus.CRASHED;
+            await this._etcd.tasks.setState({ jobId: jobID, taskId: taskID, status, error });
+            log.error(`${error} ${taskID}`, { component: componentName.JOBS_PRODUCER, jobID, status });
         });
     }
 
