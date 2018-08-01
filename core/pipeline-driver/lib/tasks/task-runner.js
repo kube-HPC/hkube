@@ -61,6 +61,10 @@ class TaskRunner extends EventEmitter {
         this._stateManager.on(Events.TASKS.FAILED, (task) => {
             this._handleTaskEvent(task);
         });
+        this._stateManager.on(Events.TASKS.CRASHED, (task) => {
+            const data = { ...task, status: NodeStates.FAILED };
+            this._handleTaskEvent(data);
+        });
     }
 
     _handleTaskEvent(task) {
@@ -418,7 +422,7 @@ class TaskRunner extends EventEmitter {
     _checkBatchTolerance(task) {
         let error;
         if (task.error) {
-            if (task.batchIndex || task.waitIndex) {
+            if (task.batchIndex) {
                 const { batchTolerance } = this._pipeline.options;
                 const states = this._nodes.getNodeStates(task.nodeName);
                 const failed = states.filter(s => s === NodeStates.FAILED);
