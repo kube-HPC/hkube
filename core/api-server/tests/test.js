@@ -2296,7 +2296,8 @@ describe('Rest', () => {
             expect(jobs).to.have.lengthOf(requests);
             expect(jobs.every(j => j.includes(pipeline))).to.equal(true);
         });
-        it('should run triggered pipelines and the executions tree', async () => {
+        it('should run triggered pipelines and the executions tree', async function () {
+            this.timeout(5000);
             const requests = 10;
             const pipeline = 'trigger-test';
             const results = [];

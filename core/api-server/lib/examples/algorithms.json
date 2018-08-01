@@ -3,30 +3,30 @@
         "name": "eval-alg",
         "algorithmImage": "hkube/algorunner",
         "cpu": 1,
-        "mem": 512
+        "mem": "512Mi"
     },
     {
         "name": "green-alg",
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 2,
-        "mem": 1024
+        "mem": "1024Mi"
     },
     {
         "name": "yellow-alg",
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
-        "mem": 256
+        "mem": "256Mi"
     },
     {
         "name": "black-alg",
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 0.5,
-        "mem": 256
+        "mem": "256Mi"
     },
     {
         "name": "cpu-load",
         "algorithmImage": "hkube/cpu-load-algorithm",
         "cpu": 1,
-        "mem": 256
+        "mem": "256Mi"
     }
 ]
