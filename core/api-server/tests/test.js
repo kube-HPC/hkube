@@ -1892,6 +1892,39 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(404);
                         expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
                     });
+                    it('should succeed to store pipeline and add defaults', async () => {
+                        const name = uuidv4();
+                        const options = {
+                            uri: restPath,
+                            method: 'POST',
+                            body: {
+                                name,
+                                nodes: [
+                                    {
+                                        nodeName: "green",
+                                        algorithmName: "green-alg",
+                                        input: [
+                                            "args"
+                                        ]
+                                    }
+                                ],
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.response.statusCode).to.equal(201);
+                        expect(response.body).to.have.property('name');
+                        expect(response.body).to.have.property('nodes');
+                        expect(response.body).to.have.property('options');
+                        expect(response.body).to.have.property('priority');
+                        expect(response.body.options).to.have.property('ttl');
+                        expect(response.body.options).to.have.property('batchTolerance');
+                        expect(response.body.options).to.have.property('progressVerbosityLevel');
+
+                        expect(response.body.priority).to.equal(3);
+                        expect(response.body.options.ttl).to.equal(3600);
+                        expect(response.body.options.batchTolerance).to.equal(80);
+                        expect(response.body.options.progressVerbosityLevel).to.equal('info');
+                    });
                     it('should succeed to store pipeline', async () => {
                         const pipeline = clone(pipelines[0]);
                         pipeline.name = uuidv4();
@@ -2268,7 +2301,7 @@ describe('Rest', () => {
                 uri: `${restUrl}/exec/stored`,
                 body: {
                     name: 'flow1',
-                    type: 'stored',
+                    type: 'trigger',
                     jobId: uuidv4()
                 }
             };
@@ -2286,7 +2319,7 @@ describe('Rest', () => {
                     body: {
                         name: pipeline,
                         jobId: uuidv4(),
-                        type: 'stored'
+                        type: 'trigger'
                     }
                 };
                 promises.push(_request(options));
@@ -2357,7 +2390,7 @@ describe('Rest', () => {
                     body: {
                         name,
                         jobId,
-                        type: 'stored',
+                        type: 'trigger',
                     }
                 };
                 const res = await _request(options);
@@ -2374,6 +2407,22 @@ describe('Rest', () => {
             expect(tree.body[0]).to.have.property('children');
             expect(tree.body[0]).to.have.property('jobId');
             expect(tree.body[0]).to.have.property('name');
+        });
+        it('should run subPipeline pipeline', async function () {
+            const pipeline = clone(pipelines[0]);
+            const options = {
+                method: 'POST',
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: pipeline.name,
+                    type: 'subPipeline',
+                    flowInput: {
+                        bla: 'bla'
+                    }
+                }
+            };
+            const response = await _request(options);
+            expect(response.body).to.have.property('jobId');
         });
         it('should run triggered cron pipelines and get the results', async () => {
             const requests = 10;

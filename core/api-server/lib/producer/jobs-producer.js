@@ -1,4 +1,5 @@
-const validate = require('djsv');
+const Validator = require('ajv');
+const validator = new Validator({ useDefaults: false, coerceTypes: true });
 const { Producer, Events } = require('@hkube/producer-consumer');
 const schema = require('../../lib/producer/schema');
 const stateManager = require('../state/state-manager');
@@ -13,9 +14,10 @@ const JOB_TYPE = 'pipeline-job';
 class JobProducer {
     init(options) {
         const setting = Object.assign({}, { redis: options.redis });
-        const res = validate(schema.properties.setting, setting);
-        if (!res.valid) {
-            throw new Error(res.error);
+        const valid = validator.validate(schema.properties.setting, setting);
+        if (!valid) {
+            const error = validator.errorsText(validator.errors);
+            throw new Error(error);
         }
         setting.tracer = tracer;
         this._producer = new Producer({ setting });

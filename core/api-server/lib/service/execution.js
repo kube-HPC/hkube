@@ -1,4 +1,5 @@
 const uuidv4 = require('uuid/v4');
+const merge = require('lodash.merge');
 const randString = require('crypto-random-string');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
@@ -15,7 +16,8 @@ class ExecutionService {
     constructor() {
         this._createJobIdMap = new Map();
         this._createJobIdMap.set('cron', this._createCronJobID);
-        this._createJobIdMap.set('stored', this._createStoredJobID);
+        this._createJobIdMap.set('trigger', this._createTriggerJobID);
+        this._createJobIdMap.set('subPipeline', this._createSubPipelineJobID);
     }
 
     /**
@@ -74,7 +76,7 @@ class ExecutionService {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        const pipe = { ...pipeline, ...options };
+        const pipe = merge(pipeline, options);
         return this._run(pipe, jobId);
     }
 
@@ -99,6 +101,7 @@ class ExecutionService {
             }
         });
 
+        validator.addPipelineDefaults(pipeline);
         await validator.validateAlgorithmName(pipeline);
         await this._createStorage(jobId, pipeline.name);
 
@@ -306,12 +309,16 @@ class ExecutionService {
         ]);
     }
 
-    _createStoredJobID(options) {
+    _createCronJobID(options, uuid) {
+        return ['cron', options.name, uuid].join(':');
+    }
+
+    _createTriggerJobID(options) {
         return [options.jobId, options.name].join('.');
     }
 
-    _createCronJobID(options, uuid) {
-        return ['cron', options.name, uuid].join(':');
+    _createSubPipelineJobID(options) {
+        return [options.name, uuidv4()].join('.');
     }
 
     _createJobID(options) {

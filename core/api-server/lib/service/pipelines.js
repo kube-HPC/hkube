@@ -8,8 +8,8 @@ class PipelineStore {
      * */
     async updatePipeline(options) {
         validator.validateUpdatePipeline(options);
-        const pipe = await stateManager.getPipeline(options);
-        if (!pipe) {
+        const pipeline = await stateManager.getPipeline(options);
+        if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
         await validator.validateAlgorithmName(options);

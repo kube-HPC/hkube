@@ -2034,11 +2034,20 @@
                         "type": "string",
                         "enum": [
                             "cron",
-                            "stored"
+                            "trigger",
+                            "subPipeline"
                         ]
                     },
                     "jobId": {
                         "type": "string"
+                    },
+                    "options": {
+                        "$ref": "#/components/schemas/options",
+                        "default": {}
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/priority",
+                        "default": 3
                     }
                 },
                 "required": [
