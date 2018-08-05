@@ -60,17 +60,13 @@ class ExecutionService {
         const createJobId = this._createJobIdMap.get(options.type);
         const jobId = createJobId(options, uuidv4());
 
-        const option = {
-            name: options.name
-        };
-
         if (options.jobId) {
             const results = await stateManager.getJobResult({ jobId: options.jobId });
             if (results && results.data) {
-                option.flowInput = results.data.map(r => r.result);
+                options.flowInput = results.data.map(r => r.result);
             }
         }
-        return this._runStored(option, jobId);
+        return this._runStored(options, jobId);
     }
 
     async _runStored(options, jobId) {

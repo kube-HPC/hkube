@@ -1850,6 +1850,7 @@
                 "properties": {
                     "ttl": {
                         "type": "integer",
+                        "description": "pipeline time to live in seconds",
                         "minimum": 1,
                         "default": 3600
                     },
