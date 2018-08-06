@@ -1,28 +1,21 @@
+const median = require('median');
 const Adapter = require('../Adapter');
 const prometheus = require('../../helpers/prometheus');
-const median = require('median');
-const Cache = require('../../cache/cache-provider');
 
 const PROM_SETTINGS = {
-    HOURS: 500
+    HOURS: 120
 };
 
 class PrometheusAdapter extends Adapter {
-    constructor(options, name) {
-        super(options, name);
-        this.mandatory = false;
-        this._cache = new Cache({ key: this.name, maxAge: 1000 * 60 * 1 });
+    constructor(options) {
+        super(options);
     }
 
-    async getData() {
-        const data = this._cache.get();
-        if (data) {
-            return data;
-        }
+    async _getData() {
         const resources = await this._getResources();
         const result = [];
         const algorithms = new Map();
-        resources.cpuUsage.data.result.forEach(a => {
+        resources.cpuUsage.data.result.forEach((a) => {
             const values = a.values.map(v => parseFloat(v[1]));
             algorithms.set(a.metric.label_algorithm_name, { cpuUsage: values });
         });
@@ -40,7 +33,6 @@ class PrometheusAdapter extends Adapter {
             }
             result.push({ algorithmName: key, runTime: median(val.runTime), cpuUsage: Math.max(...val.cpuUsage) });
         });
-        this._cache.set(result);
         return result;
     }
 

@@ -1,24 +1,17 @@
+const median = require('median');
 const Adapter = require('../Adapter');
 const prometheus = require('../../helpers/prometheus');
-const median = require('median');
-const Cache = require('../../cache/cache-provider');
 
 const PROM_SETTINGS = {
-    HOURS: 0.5
+    HOURS: 120
 };
 
 class PrometheusAdapter extends Adapter {
-    constructor(options, name) {
-        super(options, name);
-        this.mandatory = false;
-        this._cache = new Cache({ key: this.name, maxAge: 1000 * 60 * 1 });
+    constructor(options) {
+        super(options);
     }
 
-    async getData() {
-        const data = this._cache.get();
-        if (data) {
-            return data;
-        }
+    async _getData() {
         const resources = await this._getResources();
         const progress = [];
         const result = {};
@@ -27,7 +20,6 @@ class PrometheusAdapter extends Adapter {
             progress.push(value);
         });
         result.pipelinesProgress = median(progress);
-        this._cache.set(result);
         return result;
     }
 

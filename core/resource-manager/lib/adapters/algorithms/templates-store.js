@@ -1,28 +1,21 @@
 
 const Adapter = require('../Adapter');
 const stateManager = require('../../state/state-manager');
-const Cache = require('../../cache/cache-provider');
 
 class TemplatesStoreAdapter extends Adapter {
-    constructor(options, name) {
-        super(options, name);
-        this.mandatory = true;
-        this._cache = new Cache({ key: this.name, maxAge: 1000 * 60 * 1 });
+    constructor(options) {
+        super(options);
         stateManager.on('templates-store-change', () => {
-            this._cache.del();
+            this.updateCache();
         });
     }
 
-    async getData() {
-        let data = this._cache.get();
-        if (!data) {
-            const store = await stateManager.getStoreTemplates();
-            data = Object.create(null);
-            store.forEach(r => {
-                data[r.name] = r;
-            });
-            this._cache.set(data);
-        }
+    async _getData() {
+        const store = await stateManager.getStoreTemplates();
+        const data = Object.create(null);
+        store.forEach(r => {
+            data[r.name] = r;
+        });
         return data;
     }
 }

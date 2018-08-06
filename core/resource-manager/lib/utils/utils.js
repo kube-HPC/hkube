@@ -25,19 +25,15 @@ const groupBy = (array, prop) => {
     }, map);
 };
 
-const capitalize = (str) => {
-    if (str.indexOf('-') === -1) {
-        return str;
-    }
-    const [first, second] = str.split('-');
-    const result = first + second.charAt(0).toUpperCase() + second.slice(1);
-    return result;
+
+const filterEnable = (settings, name, type) => {
+    const setting = settings[type][name];
+    return setting && setting.enable;
 };
 
-
 module.exports = {
+    filterEnable,
     mapToArray,
     arrayToMap,
-    groupBy,
-    capitalize
+    groupBy
 };

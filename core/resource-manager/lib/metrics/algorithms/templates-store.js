@@ -1,20 +1,23 @@
 
-const Metric = require('../Metric');
 const orderBy = require('lodash.orderby');
+const Metric = require('../Metric');
 const queueUtils = require('../../utils/queue');
 const ResourceAllocator = require('../../resources/resource-allocator');
 
 class TemplatesStoreMetric extends Metric {
-    constructor(options, name) {
-        super(options, name);
-        this.weight = 0.1;
+    constructor(options) {
+        super(options);
     }
 
     calc(options) {
         let results = Object.create(null);
         let queue = queueUtils.order(options.algorithms.queue);
         if (queue.length > 0) {
-            const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds.algorithms, ...options.algorithms });
+            const resourceAllocator = new ResourceAllocator({
+                resourceThresholds: this.config.resourceThresholds.algorithms,
+                resources: options.resources.k8s,
+                templatesStore: options.algorithms.templatesStore
+            });
             const ts = options.algorithms.templatesStore;
             queue = queue.map(a => ({ ...a, cpu: ts[a.name].cpu, mem: ts[a.name].mem }));
             queue = orderBy(queue, q => q.cpu);

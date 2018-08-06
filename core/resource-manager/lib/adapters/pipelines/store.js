@@ -1,23 +1,23 @@
+const log = require('@hkube/logger').GetLogFromContainer();
 const Adapter = require('../Adapter');
 const stateManager = require('../../state/state-manager');
-const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../../common/consts/componentNames').PIPELINES_QUEUE;
+const component = require('../../consts/components').PIPELINES_QUEUE;
 
 class StoreAdapter extends Adapter {
-    constructor(options, name) {
-        super(options, name);
+    constructor(options) {
+        super(options);
     }
 
-    async getData() {
+    async _getData() {
         return [];
     }
 
     async setData(data) {
-        this._text(data);
+        this._log(data);
         return stateManager.setPipelineDriverRequirements(data);
     }
 
-    _text(queue) {
+    _log(queue) {
         const text = queue.map(q => `${q.data.pods} ${q.name}`).sort().join(', ');
         if (text && text !== this._state) {
             log.debug(`allocated queue: ${text}`, { component });

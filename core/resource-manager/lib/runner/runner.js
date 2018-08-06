@@ -1,21 +1,14 @@
 
-const AdapterController = require('../adapters/adapters-controller');
-const MetricsRunner = require('../metrics/metrics-runner');
-const metricsReducer = require('../metrics/metrics-reducer');
-const logger = require('../utils/logger');
-const metricsProvider = require('../monitoring/metrics-provider');
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../common/consts/componentNames').RUNNER;
+const adapterController = require('../adapters/adapters-controller');
+const metricsController = require('../metrics/metrics-controller');
+const metricsProvider = require('../monitoring/metrics-provider');
+const logger = require('../utils/logger');
+const component = require('../consts/components').RUNNER;
 
 class Runner {
-    async init(options) {
-        this._adapterController = new AdapterController(options);
-        this._metricsRunner = new MetricsRunner(options);
-        this._run(options.interval);
-    }
-
-    _run(interval) {
-        log.info(`running with current interval of: ${interval / 1000} sec`, { component });
+    init(options) {
+        log.info(`running with current interval of: ${options.interval / 1000} sec`, { component });
         setInterval(async () => {
             if (this._working) {
                 return;
@@ -30,11 +23,11 @@ class Runner {
             finally {
                 this._working = false;
             }
-        }, interval);
+        }, options.interval);
     }
 
     _onError(error) {
-        logger.log(error);
+        logger.log(error, component);
     }
 
     /**
@@ -47,18 +40,18 @@ class Runner {
      * @memberOf Runner
      */
     async _doWork() {
-        const results = await this._adapterController.getData();
-        return Promise.all(Object.keys(results).map(k => this._setMetrics(k, results)));
+        const adaptersResults = await adapterController.getData();
+        return this._setMetrics(adaptersResults);
     }
 
-    async _setMetrics(type, results) {
-        results.algorithms.queue = results.algorithms.queue.filter(q => results.algorithms.templatesStore[q.name]);
-        results.pipelines.queue = results.pipelines.queue.filter(q => results.pipelines.templatesStore[q.name]);
-        const metricsResults = this._metricsRunner.run(type, results);
-        const resourceResults = metricsReducer.reduce(metricsResults);
-        await this._adapterController.setData(type, resourceResults);
-        metricsProvider.setPodsAllocations(resourceResults);
-        return resourceResults;
+    async _setMetrics(adaptersResults) {
+        metricsProvider.setPodsRequests(adaptersResults.algorithms.queue);
+        adaptersResults.algorithms.queue = adaptersResults.algorithms.queue.filter(q => adaptersResults.algorithms.templatesStore[q.name]);
+        adaptersResults.pipelines.queue = adaptersResults.pipelines.queue.filter(q => adaptersResults.pipelines.templatesStore[q.name]);
+        const metricsResults = metricsController.run(adaptersResults);
+        await adapterController.setData(metricsResults);
+        metricsProvider.setPodsAllocations(metricsResults);
+        return metricsResults;
     }
 }
 

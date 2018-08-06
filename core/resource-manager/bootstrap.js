@@ -2,13 +2,15 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
-const component = require('./common/consts/componentNames').MAIN;
+const component = require('./lib/consts/components').MAIN;
 let log;
 
 const modules = [
-    './lib/helpers/prometheus',
-    './lib/monitoring/metrics-provider',
     './lib/state/state-manager',
+    './lib/monitoring/metrics-provider',
+    './lib/helpers/prometheus',
+    './lib/metrics/metrics-controller',
+    './lib/adapters/adapters-controller',
     './lib/runner/runner'
 ];
 
@@ -28,10 +30,12 @@ class Bootstrap {
                 log.error(data.error.message, { component });
             });
             monitor.check(main.redis);
-            await Promise.all(modules.map(m => require(m).init(main)));
+            for (const m of modules) {       // eslint-disable-line
+                await require(m).init(main); // eslint-disable-line
+            }
         }
         catch (error) {
-            this._onInitFailed(new Error(`unable to start application. ${error.message}`));
+            this._onInitFailed(error);
         }
     }
 
@@ -72,4 +76,3 @@ class Bootstrap {
 }
 
 module.exports = new Bootstrap();
-

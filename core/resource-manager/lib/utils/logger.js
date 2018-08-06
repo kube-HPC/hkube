@@ -1,5 +1,4 @@
 const logger = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../common/consts/componentNames').RUNNER;
 const INTERVAL = 10000;
 const THRESHOLD = 30000;
 
@@ -9,11 +8,11 @@ class Logger {
         this._interval();
     }
 
-    log(error) {
+    log(error, component) {
         const message = error.message.substr(0, 100);
         let log = this._logs.get(message);
         if (!log) {
-            log = { count: 0, error, timestamp: Date.now() };
+            log = { count: 0, error: message, component, timestamp: Date.now() };
             this._logs.set(message, log);
             this._log(log);
         }
@@ -32,7 +31,7 @@ class Logger {
     }
 
     _log(log) {
-        logger.error(`${log.error.message}. (${log.count} occurrences)`, { component }, log.error);
+        logger.error(`${log.error}. (${log.count} occurrences)`, { component: log.component });
     }
 }
 

@@ -1,7 +1,7 @@
 
 const log = require('@hkube/logger').GetLogFromContainer();
 const client = require('@hkube/prometheus-client');
-const component = require('../../common/consts/componentNames').PROMETHEUS_ADAPTER;
+const component = require('../consts/components').PROMETHEUS_ADAPTER;
 
 const PROM_SETTINGS = {
     STEP: 14
@@ -16,7 +16,6 @@ class Prometheus {
         }
         client.init(options.prometheus);
     }
-
 
     async range(hours, queries) {
         const now = Date.now();

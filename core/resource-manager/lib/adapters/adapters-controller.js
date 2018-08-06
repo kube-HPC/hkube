@@ -1,29 +1,35 @@
-const fs = require('fs');
-const path = require('path');
+
+const adapterTypes = require('./index');
+const adapterSettings = require('./settings');
 const utils = require('../utils/utils');
-const dir = require('../utils/dir');
 const logger = require('../utils/logger');
 
 class AdapterController {
-    constructor(options) {
+    constructor() {
         this._adapters = Object.create(null);
-        this._init(options);
     }
 
-    _init(options) {
-        const folders = dir.readdirSync(__dirname);
-        folders.forEach(f => {
-            const folder = path.basename(f);
-            const type = utils.capitalize(folder);
-            this._adapters[type] = Object.create(null);
-            const files = fs.readdirSync(path.join(__dirname, folder)).filter(a => !a.startsWith('_'));
-            files.forEach(fi => {
-                const file = path.basename(fi, '.js');
-                const name = utils.capitalize(file);
-                const Adapter = require(`./${folder}/${file}`);
-                this._adapters[type][name] = new Adapter(options, name);
-            });
-        });
+    async init(options) {
+        await Promise.all(Object.entries(adapterTypes).map(([k, v]) => this._initAdapters(k, v, options)));
+    }
+
+    async _initAdapters(type, collection, options) {
+        const results = await Promise.all(Object.entries(collection)
+            .filter(([name]) => utils.filterEnable(adapterSettings, name, type))
+            .map(([name, adapter]) => this._initAdapter(type, name, adapter, options)));
+        this._adapters[type] = utils.arrayToMap(results);
+    }
+
+    async _initAdapter(type, name, Adapter, config) {
+        const setting = adapterSettings[type][name];
+        const options = {
+            name,
+            setting,
+            config
+        };
+        const adapter = new Adapter(options);
+        await adapter.init();
+        return { key: adapter.name, value: adapter };
     }
 
     /**
@@ -35,34 +41,31 @@ class AdapterController {
      */
     async getData() {
         const results = Object.create(null);
-        await Promise.all(Object.entries(this._adapters).map(([k, v]) => this._fetch(k, v, results)));
+        await Promise.all(Object.entries(this._adapters).map(([k, v]) => this._getAdaptersData(k, v, results)));
         return results;
     }
 
-    async _fetch(k, v, results) {
-        const response = await Promise.all(Object.values(v).map(a => this._getData(a)));
-        results[k] = utils.arrayToMap(response);
+    async _getAdaptersData(type, adapters, results) {
+        const response = await Promise.all(Object.values(adapters).map(a => this._getAdapterData(type, a)));
+        results[type] = utils.arrayToMap(response);
     }
 
-    async _getData(adapter) {
-        let data = null;
-        try {
-            data = await adapter.getData();
-        }
-        catch (e) {
+    async _getAdapterData(type, adapter) {
+        const result = await adapter.getData();
+        if (result.error) {
             if (adapter.mandatory) {
-                throw e;
+                throw new Error(`unable to get data for ${adapter.name} adapter in ${type}, ${result.error.message}`);
             }
             else {
-                logger.log(e);
+                logger.log(result.error, adapter.name);
             }
         }
-        return { key: adapter.name, value: data };
+        return { key: adapter.name, value: result.data };
     }
 
-    async setData(type, data) {
-        return this._adapters[type].store.setData(data);
+    async setData(metricsResults) {
+        return Promise.all(Object.entries(this._adapters).map(([k, v]) => v.store && v.store.setData(metricsResults[k])));
     }
 }
 
-module.exports = AdapterController;
+module.exports = new AdapterController();

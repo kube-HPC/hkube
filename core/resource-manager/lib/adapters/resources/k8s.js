@@ -1,15 +1,12 @@
+const parse = require('@hkube/units-converter');
 const groupBy = require('lodash.groupby');
 const Api = require('kubernetes-client');
 const Adapter = require('../Adapter');
-const parse = require('@hkube/units-converter');
-const Cache = require('../../cache/cache-provider');
 
 class K8sAdapter extends Adapter {
-    constructor(options, name) {
-        super(options, name);
-        this.mandatory = true;
-        this._cache = new Cache({ key: this.name, maxAge: 1000 * 60 * 0.2 });
-        if (options.k8s.local) {
+    constructor(options) {
+        super(options);
+        if (options.config.k8s.local) {
             this._client = new Api.Core(Api.config.fromKubeconfig());
         }
         else {
@@ -17,15 +14,11 @@ class K8sAdapter extends Adapter {
         }
     }
 
-    stateFilter(p) {
+    _stateFilter(p) {
         return p.status.phase === 'Running' || p.status.phase === 'Pending';
     }
 
-    async getData() {
-        const data = this._cache.get();
-        if (data) {
-            return data;
-        }
+    async _getData() {
         const nodes = await this._client.nodes.get();
         const kpods = await this._client.pods.get();
         const resourcesStatus = new Map();
@@ -39,7 +32,7 @@ class K8sAdapter extends Adapter {
             let cpuRequests = 0;
             let memoryRequests = 0;
 
-            pods.filter(this.stateFilter).forEach(pod => {
+            pods.filter(this._stateFilter).forEach(pod => {
                 pod.spec.containers.forEach(container => {
                     if (container.resources.requests !== undefined) {
                         cpuRequests += parse.getCpuInCore(container.resources.requests.cpu);
@@ -49,18 +42,6 @@ class K8sAdapter extends Adapter {
             });
             resourcesStatus.set(nodeName, { allocatableCpu, allocatableMemory, cpuRequests, memoryRequests });
         });
-
-        // let allocatableCpu = 0;
-        // let cpuRequests = 0;
-
-        // resourcesStatus.forEach(v => {
-        //     allocatableCpu += v.allocatableCpu;
-        //     cpuRequests += v.cpuRequests;
-        // });
-        // const totalCpu = allocatableCpu - cpuRequests;
-        // console.log(totalCpu);
-
-        this._cache.set(resourcesStatus);
         return resourcesStatus;
     }
 }

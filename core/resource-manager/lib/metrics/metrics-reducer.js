@@ -3,16 +3,11 @@ const utils = require('../utils/utils');
 
 class MetricsReducer {
     /**
-     * Take each metric
-     * 
-     * @param {any} options 
-     * @returns 
-     * 
-     * @memberOf MetricsReducer
+     * Take each metric and reduce pods calculation
      */
-    reduce(options) {
+    reduce(metrics) {
         const map = {};
-        options.forEach(metric => {
+        metrics.forEach((metric) => {
             metric.data = metric.data || [];
             metric.data.reduce((prev, cur) => {
                 if (cur.name in prev) {

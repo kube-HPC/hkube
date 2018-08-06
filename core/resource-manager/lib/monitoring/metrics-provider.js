@@ -25,7 +25,7 @@ class MetricsProvider {
     }
 
     setPodsAllocations(data) {
-        data.forEach(d => {
+        data.algorithms.forEach(d => {
             this._podsAllocationsMeasure.set({ value: d.data.pods, labelValues: { [CONST.ALGORITHM_NAME]: d.name } });
         });
     }

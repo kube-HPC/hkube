@@ -1,7 +1,7 @@
 sudo: required
 language: node_js
 node_js:
-- '8'
+- '10'
 services:
 - docker
 - redis
@@ -17,7 +17,7 @@ install:
 #  - node_modules
 script:
 - npm run lint && npm run test:cov
-after_script: "npm run coverage"
+after_script: "npm run coveralls"
 after_success:
 - |
   if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then

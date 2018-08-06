@@ -5,9 +5,8 @@ const AlgorithmRatios = require('../../resources/ratios-allocator');
 const ResourceAllocator = require('../../resources/resource-allocator');
 
 class CpuUsageMetric extends Metric {
-    constructor(options, name) {
-        super(options, name);
-        this.weight = 0.1;
+    constructor(options) {
+        super(options);
     }
 
     calc(options) {
@@ -18,8 +17,11 @@ class CpuUsageMetric extends Metric {
             const keys = Object.keys(allocations);
             const algorithms = options.algorithms.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.cpuUsage }));
             const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
-            const resourceAllocator = new ResourceAllocator({ resourceThresholds: this.options.resourceThresholds.algorithms, ...options.algorithms });
-
+            const resourceAllocator = new ResourceAllocator({
+                resourceThresholds: this.config.resourceThresholds.algorithms,
+                resources: options.resources.k8s,
+                templatesStore: options.algorithms.templatesStore
+            });
             let algorithm = null;
             const algorithmGen = algorithmRatios.generateRandom();
             while (algorithm = algorithmGen.next().value) {
