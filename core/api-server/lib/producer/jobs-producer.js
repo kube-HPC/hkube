@@ -1,5 +1,5 @@
 const Validator = require('ajv');
-const validator = new Validator({ useDefaults: false, coerceTypes: true });
+const validator = new Validator({ useDefaults: true, coerceTypes: true });
 const { Producer, Events } = require('@hkube/producer-consumer');
 const schema = require('../../lib/producer/schema');
 const stateManager = require('../state/state-manager');
