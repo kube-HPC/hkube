@@ -20,11 +20,10 @@ class PipelineProducer {
         }
         return request({
             method: 'POST',
-            uri: this._apiUrl,
+            uri: `${this._apiUrl}/${trigger.type}`,
             body: {
                 name: trigger.name,
-                jobId: trigger.jobId,
-                type: trigger.type
+                jobId: trigger.jobId
             },
             json: true,
             ...this.retrySettings

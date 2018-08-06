@@ -5,6 +5,7 @@ let storedPipelineListener, cronTrigger, pipelineTrigger, triggerQueue, pipeline
 const Trigger = require('../lib/triggers/Trigger');
 const pipelines = require('./mocks/pipelines.json');
 const apiServerMock = require('./mocks/api-server');
+const { Triggers } = require('../lib/consts/index');
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
 const delay = require('await-delay');
@@ -124,7 +125,7 @@ describe('test', () => {
             })
         });
         it('should send http request to api-server', async () => {
-            const response = await pipelineProducer.produce({ name: 'name', jobId: 'jobId' });
+            const response = await pipelineProducer.produce({ name: 'name', jobId: 'jobId', type: Triggers.PIPELINE });
             expect(response.body).to.have.property('jobId');
         });
     });
@@ -136,7 +137,7 @@ describe('test', () => {
             })
         });
         it('should send http request to api-server', async () => {
-            const response = await triggerQueue.addTrigger({ name: 'name', jobId: 'jobId' });
+            const response = await triggerQueue.addTrigger({ name: 'name', jobId: 'jobId', type: Triggers.PIPELINE });
             expect(response.body).to.have.property('jobId');
         });
     });
