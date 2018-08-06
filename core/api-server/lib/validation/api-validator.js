@@ -35,7 +35,15 @@ class ApiValidator {
     }
 
     validateStoredInternal(pipeline) {
-        this._validate(_schemas.storedInternal, pipeline, false);
+        this._validate(_schemas.pipeline, pipeline, false);
+    }
+
+    validateRawSubPipeline(pipeline) {
+        this._validate(_schemas.rawSubPipeline, pipeline, false);
+    }
+
+    validateStoredSubPipeline(pipeline) {
+        this._validate(_schemas.storedSubPipeline, pipeline, false);
     }
 
     validateRunRawPipeline(pipeline) {

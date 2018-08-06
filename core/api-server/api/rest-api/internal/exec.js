@@ -1,5 +1,6 @@
 const express = require('express');
 const Execution = require('../../../lib/service/execution');
+const Internal = require('../../../lib/service/internal');
 const methods = require('../middlewares/methods');
 const logger = require('../middlewares/logger');
 
@@ -9,8 +10,8 @@ const routes = () => {
         res.json({ message: 'internal api' });
         next();
     });
-    router.all('/exec/stored', methods(['POST']), logger(), (req, res, next) => {
-        Execution.runStoredInternal(req.body).then((jobId) => {
+    router.all('/exec/stored/cron', methods(['POST']), logger(), (req, res, next) => {
+        Internal.runStoredCron(req.body).then((jobId) => {
             res.json({ jobId });
             res.jobId = jobId;
             next();
@@ -18,8 +19,26 @@ const routes = () => {
             return next(error);
         });
     });
-    router.all('/exec/raw', methods(['POST']), logger(), (req, res, next) => {
-        Execution.runRaw(req.body).then((jobId) => {
+    router.all('/exec/stored/pipeline', methods(['POST']), logger(), (req, res, next) => {
+        Internal.runStoredPipeline(req.body).then((jobId) => {
+            res.json({ jobId });
+            res.jobId = jobId;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.all('/exec/stored/subPipeline', methods(['POST']), logger(), (req, res, next) => {
+        Internal.runStoredSubPipeline(req.body).then((jobId) => {
+            res.json({ jobId });
+            res.jobId = jobId;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.all('/exec/raw/subPipeline', methods(['POST']), logger(), (req, res, next) => {
+        Internal.runRawSubPipeline(req.body).then((jobId) => {
             res.json({ jobId });
             res.jobId = jobId;
             next();

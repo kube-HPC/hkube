@@ -13,13 +13,6 @@ const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 
 class ExecutionService {
-    constructor() {
-        this._createJobIdMap = new Map();
-        this._createJobIdMap.set('cron', this._createCronJobID);
-        this._createJobIdMap.set('trigger', this._createTriggerJobID);
-        this._createJobIdMap.set('subPipeline', this._createSubPipelineJobID);
-    }
-
     /**
      * run algorithm flow
      * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
@@ -55,20 +48,6 @@ class ExecutionService {
     async runStored(options) {
         validator.validateRunStoredPipeline(options);
         return this._runStored(options);
-    }
-
-    async runStoredInternal(options) {
-        validator.validateStoredInternal(options);
-        const createJobId = this._createJobIdMap.get(options.type);
-        const jobId = createJobId(options, uuidv4());
-
-        if (options.jobId) {
-            const results = await stateManager.getJobResult({ jobId: options.jobId });
-            if (results && results.data) {
-                options.flowInput = results.data.map(r => r.result);
-            }
-        }
-        return this._runStored(options, jobId);
     }
 
     async _runStored(options, jobId) {
@@ -313,12 +292,8 @@ class ExecutionService {
         return ['cron', options.name, uuid].join(':');
     }
 
-    _createTriggerJobID(options) {
-        return [options.jobId, options.name].join('.');
-    }
-
     _createSubPipelineJobID(options) {
-        return [options.name, uuidv4()].join('.');
+        return [options.jobId, uuidv4()].join('.');
     }
 
     _createJobID(options) {

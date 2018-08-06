@@ -548,7 +548,6 @@ describe('Rest', () => {
                         };
                         const responseRun = await _request(optionsRun);
                         const jobId = responseRun.body.jobId;
-                        const taskId = responseRun.body.jobId;
                         const data = 500;
                         await workerStub.done({ jobId, data });
 
@@ -1070,10 +1069,9 @@ describe('Rest', () => {
                         const pipeline = 'flow1';
                         const optionsRun = {
                             method: 'POST',
-                            uri: `${baseUrl}/internal/v1/exec/stored`,
+                            uri: `${baseUrl}/internal/v1/exec/stored/cron`,
                             body: {
-                                name: pipeline,
-                                type: 'cron'
+                                name: pipeline
                             }
                         };
                         const data = [100, 200, 300];
@@ -1175,10 +1173,9 @@ describe('Rest', () => {
                         const pipeline = 'flow1';
                         const optionsRun = {
                             method: 'POST',
-                            uri: `${baseUrl}/internal/v1/exec/stored`,
+                            uri: `${baseUrl}/internal/v1/exec/stored/cron`,
                             body: {
-                                name: pipeline,
-                                type: 'cron'
+                                name: pipeline
                             }
                         };
                         const limit = 3;
@@ -2267,42 +2264,18 @@ describe('Rest', () => {
         it('should throw error when invalid pipeline name', async () => {
             const options = {
                 method: 'POST',
-                uri: `${restUrl}/exec/stored`
+                uri: `${restUrl}/exec/stored/pipeline`
             };
             const response = await _request(options);
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
-        it('should throw error when required type', async () => {
-            const options = {
-                method: 'POST',
-                uri: `${restUrl}/exec/stored`,
-                body: {
-                    name: 'flow1'
-                }
-            };
-            const response = await _request(options);
-            expect(response.body.error.message).to.equal(`data should have required property 'type'`);
-        });
-        it('should throw error when invalid type', async () => {
-            const options = {
-                method: 'POST',
-                uri: `${restUrl}/exec/stored`,
-                body: {
-                    name: 'flow1',
-                    type: 'no_such'
-                }
-            };
-            const response = await _request(options);
-            expect(response.body.error.message).to.equal(`data.type should be equal to one of the allowed values`);
-        });
         it('should succeed and return job id', async () => {
             const options = {
                 method: 'POST',
-                uri: `${restUrl}/exec/stored`,
+                uri: `${restUrl}/exec/stored/pipeline`,
                 body: {
                     name: 'flow1',
-                    type: 'trigger',
-                    jobId: uuidv4()
+                    parentJobId: uuidv4()
                 }
             };
             const response = await _request(options);
@@ -2315,11 +2288,10 @@ describe('Rest', () => {
             for (let i = 0; i < requests; i++) {
                 const options = {
                     method: 'POST',
-                    uri: `${restUrl}/exec/stored`,
+                    uri: `${restUrl}/exec/stored/pipeline`,
                     body: {
                         name: pipeline,
-                        jobId: uuidv4(),
-                        type: 'trigger'
+                        parentJobId: uuidv4()
                     }
                 };
                 promises.push(_request(options));
@@ -2386,11 +2358,10 @@ describe('Rest', () => {
                 const name = `${pipeline}-${(i + 1)}`;
                 const options = {
                     method: 'POST',
-                    uri: `${restUrl}/exec/stored`,
+                    uri: `${restUrl}/exec/stored/pipeline`,
                     body: {
                         name,
-                        jobId,
-                        type: 'trigger',
+                        parentJobId: jobId
                     }
                 };
                 const res = await _request(options);
@@ -2408,14 +2379,41 @@ describe('Rest', () => {
             expect(tree.body[0]).to.have.property('jobId');
             expect(tree.body[0]).to.have.property('name');
         });
-        it('should run subPipeline pipeline', async function () {
+        it('should run stored subPipeline', async function () {
             const pipeline = clone(pipelines[0]);
             const options = {
                 method: 'POST',
-                uri: `${restUrl}/exec/stored`,
+                uri: `${restUrl}/exec/stored/subPipeline`,
                 body: {
                     name: pipeline.name,
-                    type: 'subPipeline',
+                    jobId: `jobId-${uuidv4()}`,
+                    taskId: `taskId-${uuidv4()}`,
+                    flowInput: {
+                        bla: 'bla'
+                    }
+                }
+            };
+            const response = await _request(options);
+            expect(response.body).to.have.property('jobId');
+        });
+        it('should run raw subPipeline', async function () {
+            const pipeline = clone(pipelines[0]);
+            const options = {
+                method: 'POST',
+                uri: `${restUrl}/exec/raw/subPipeline`,
+                body: {
+                    name: pipeline.name,
+                    nodes: [
+                        {
+                            "nodeName": "green",
+                            "algorithmName": "green-alg",
+                            "input": [
+                                "@flowInput"
+                            ]
+                        }
+                    ],
+                    jobId: `jobId-${uuidv4()}`,
+                    taskId: `taskId-${uuidv4()}`,
                     flowInput: {
                         bla: 'bla'
                     }
@@ -2457,10 +2455,9 @@ describe('Rest', () => {
             for (let i = 0; i < requests; i++) {
                 const options = {
                     method: 'POST',
-                    uri: `${restUrl}/exec/stored`,
+                    uri: `${restUrl}/exec/stored/cron`,
                     body: {
-                        name: pipeline,
-                        type: 'cron'
+                        name: pipeline
                     }
                 };
                 const res = await _request(options);

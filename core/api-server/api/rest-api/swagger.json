@@ -2024,21 +2024,81 @@
                     "name"
                 ]
             },
-            "storedInternal": {
+            "pipeline": {
                 "type": "object",
                 "properties": {
                     "name": {
                         "type": "string"
                     },
-                    "type": {
+                    "options": {
+                        "$ref": "#/components/schemas/options",
+                        "default": {}
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/priority",
+                        "default": 3
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "rawSubPipeline": {
+                "type": "object",
+                "properties": {
+                    "name": {
                         "type": "string",
-                        "enum": [
-                            "cron",
-                            "trigger",
-                            "subPipeline"
-                        ]
+                        "minLength": 1,
+                        "format": "pipeline-name"
+                    },
+                    "nodes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/pipelineNode"
+                        }
+                    },
+                    "flowInput": {
+                        "type": "object",
+                        "description": "input object"
+                    },
+                    "webhooks": {
+                        "$ref": "#/components/schemas/webhooks"
+                    },
+                    "options": {
+                        "$ref": "#/components/schemas/options",
+                        "default": {}
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/priority",
+                        "default": 3
+                    },
+                    "triggers": {
+                        "$ref": "#/components/schemas/triggers"
                     },
                     "jobId": {
+                        "type": "string"
+                    },
+                    "taskId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "name",
+                    "nodes",
+                    "jobId",
+                    "taskId"
+                ]
+            },
+            "storedSubPipeline": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "jobId": {
+                        "type": "string"
+                    },
+                    "taskId": {
                         "type": "string"
                     },
                     "options": {
@@ -2052,7 +2112,8 @@
                 },
                 "required": [
                     "name",
-                    "type"
+                    "jobId",
+                    "taskId"
                 ]
             }
         }
