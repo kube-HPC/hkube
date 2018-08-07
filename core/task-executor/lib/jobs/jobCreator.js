@@ -1,16 +1,16 @@
 const uuidv4 = require('uuid/v4');
 const clonedeep = require('lodash.clonedeep');
-const Logger = require('@hkube/logger');
-const log = Logger.GetLogFromContainer();
+const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
 const component = require('../../common/consts/componentNames').K8S;
-const { jobTemplate } = require('./template.js');
+const { workerTemplate, pipelineDriverTemplate } = require('../templates');
+const CONTAINERS = require('../../common/consts/containers');
 
 const applyAlgorithmImage = (inputSpec, algorithmImage) => {
     const spec = clonedeep(inputSpec);
-    const algorithmContainer = spec.spec.template.spec.containers.find(c => c.name === 'algorunner');
+    const algorithmContainer = spec.spec.template.spec.containers.find(c => c.name === CONTAINERS.ALGORITHM);
     if (!algorithmContainer) {
-        const msg = 'Unable to create job spec. algorithm container not found';
+        const msg = `Unable to create job spec. ${CONTAINERS.ALGORITHM} container not found`;
         log.error(msg, { component });
         throw new Error(msg);
     }
@@ -18,51 +18,68 @@ const applyAlgorithmImage = (inputSpec, algorithmImage) => {
     return spec;
 };
 
-const applyResourceRequests = (inputSpec, resourceRequests) => {
+const applyResourceRequests = (inputSpec, resourceRequests, containerName) => {
     const spec = clonedeep(inputSpec);
     if (!resourceRequests) {
         return spec;
     }
-    const algorithmContainer = spec.spec.template.spec.containers.find(c => c.name === 'algorunner');
-    if (!algorithmContainer) {
-        const msg = 'Unable to create job spec. algorithm container not found';
-        log.error(msg, { component });
-        throw new Error(msg);
-    }
-    algorithmContainer.resources = { ...algorithmContainer.resources, ...resourceRequests };
-    return spec;
-};
-
-const applyWorkerImage = (inputSpec, workerImage) => {
-    const spec = clonedeep(inputSpec);
-    if (!workerImage) {
-        return spec;
-    }
-    const workerContainer = spec.spec.template.spec.containers.find(c => c.name === 'worker');
-    if (!workerContainer) {
-        const msg = 'Unable to create job spec. worker container not found';
-        log.error(msg, { component });
-        throw new Error(msg);
-    }
-    workerContainer.image = workerImage;
-    return spec;
-};
-const applyEnvToContainer = (inputSpec, containerName, workerEnv) => {
-    const spec = clonedeep(inputSpec);
-    if (!workerEnv) {
-        return spec;
-    }
-    const workerContainer = spec.spec.template.spec.containers.find(c => c.name === containerName);
-    if (!workerContainer) {
+    const container = spec.spec.template.spec.containers.find(c => c.name === containerName);
+    if (!container) {
         const msg = `Unable to create job spec. ${containerName} container not found`;
         log.error(msg, { component });
         throw new Error(msg);
     }
-    if (!workerContainer.env) {
-        workerContainer.env = [];
+    container.resources = { ...container.resources, ...resourceRequests };
+    return spec;
+};
+
+const applyAlgorithmResourceRequests = (inputSpec, resourceRequests) => {
+    return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.ALGORITHM);
+};
+
+const applyPipelineDriverResourceRequests = (inputSpec, resourceRequests) => {
+    return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.PIPELINE_DRIVER);
+};
+
+const applyImage = (inputSpec, image, containerName) => {
+    const spec = clonedeep(inputSpec);
+    if (!image) {
+        return spec;
     }
-    const { env } = workerContainer;
-    Object.entries(workerEnv).forEach(([key, value]) => {
+    const container = spec.spec.template.spec.containers.find(c => c.name === containerName);
+    if (!container) {
+        const msg = `Unable to create job spec. ${containerName} container not found`;
+        log.error(msg, { component });
+        throw new Error(msg);
+    }
+    container.image = image;
+    return spec;
+};
+
+const applyWorkerImage = (inputSpec, image) => {
+    return applyImage(inputSpec, image, CONTAINERS.WORKER);
+};
+
+const applyPipelineDriverImage = (inputSpec, image) => {
+    return applyImage(inputSpec, image, CONTAINERS.PIPELINE_DRIVER);
+};
+
+const applyEnvToContainer = (inputSpec, containerName, inputEnv) => {
+    const spec = clonedeep(inputSpec);
+    if (!inputEnv) {
+        return spec;
+    }
+    const container = spec.spec.template.spec.containers.find(c => c.name === containerName);
+    if (!container) {
+        const msg = `Unable to create job spec. ${containerName} container not found`;
+        log.error(msg, { component });
+        throw new Error(msg);
+    }
+    if (!container.env) {
+        container.env = [];
+    }
+    const { env } = container;
+    Object.entries(inputEnv).forEach(([key, value]) => {
         const index = env.findIndex(i => i.name === key);
         const valueString = `${value}`;
         if (index !== -1) {
@@ -79,12 +96,13 @@ const applyEnvToContainer = (inputSpec, containerName, workerEnv) => {
     });
     return spec;
 };
+
 const applyAlgorithmName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
     objectPath.set(spec, 'metadata.labels.algorithm-name', algorithmName);
     objectPath.set(spec, 'spec.template.metadata.labels.algorithm-name', algorithmName);
     spec.spec.template.metadata.labels['algorithm-name'] = algorithmName;
-    const workerContainer = spec.spec.template.spec.containers.find(c => c.name === 'worker');
+    const workerContainer = spec.spec.template.spec.containers.find(c => c.name === CONTAINERS.WORKER);
     if (!workerContainer) {
         const msg = 'Unable to create job spec. worker container not found';
         log.error(msg, { component });
@@ -100,6 +118,7 @@ const applyAlgorithmName = (inputSpec, algorithmName) => {
     }
     return spec;
 };
+
 const applyName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
     const name = `${algorithmName}-${uuidv4()}`;
@@ -118,25 +137,42 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
         log.error(msg, { component });
         throw new Error(msg);
     }
-    let spec = clonedeep(jobTemplate);
+    let spec = clonedeep(workerTemplate);
     spec = applyName(spec, algorithmName);
     spec = applyAlgorithmName(spec, algorithmName);
     spec = applyAlgorithmImage(spec, algorithmImage);
-    spec = applyEnvToContainer(spec, 'algorunner', algorithmEnv);
+    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, algorithmEnv);
     spec = applyWorkerImage(spec, workerImage);
-    spec = applyEnvToContainer(spec, 'worker', workerEnv);
-    spec = applyResourceRequests(spec, resourceRequests);
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
+    spec = applyAlgorithmResourceRequests(spec, resourceRequests);
+
+    return spec;
+};
+
+const createDriverJobSpec = ({ resourceRequests, image, inputEnv }) => {
+    if (!image) {
+        const msg = 'Unable to create job spec. image is required';
+        log.error(msg, { component });
+        throw new Error(msg);
+    }
+    let spec = clonedeep(pipelineDriverTemplate);
+    spec = applyName(spec, CONTAINERS.PIPELINE_DRIVER);
+    spec = applyPipelineDriverImage(spec, image);
+    spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
+    spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
 
     return spec;
 };
 
 module.exports = {
+    applyImage,
     createJobSpec,
+    createDriverJobSpec,
     applyAlgorithmName,
     applyAlgorithmImage,
     applyWorkerImage,
+    applyPipelineDriverImage,
     applyEnvToContainer,
-    applyResourceRequests
-
+    applyAlgorithmResourceRequests
 };
 

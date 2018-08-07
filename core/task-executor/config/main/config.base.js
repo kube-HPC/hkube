@@ -6,6 +6,7 @@ config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default'
 };
+
 config.etcd = {
     etcd: {
         protocol: 'http',
@@ -13,6 +14,12 @@ config.etcd = {
         port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
     },
     serviceName: config.serviceName
+};
+
+config.driversSetting = {
+    name: 'pipeline-driver',
+    minAmount: parseInt(process.env.PIPELINE_DRIVERS_AMOUNT || 30, 10),
+    scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.2, 10)
 };
 
 config.intervalMs = process.env.INTERVAL_MS || '3000';

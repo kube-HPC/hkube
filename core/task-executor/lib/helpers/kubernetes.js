@@ -3,6 +3,7 @@ const Logger = require('@hkube/logger');
 const kubernetesClient = require('kubernetes-client');
 const objectPath = require('object-path');
 const component = require('../../common/consts/componentNames').K8S;
+const CONTAINERS = require('../../common/consts/containers');
 let log;
 
 class KubernetesApi extends EventEmitter {
@@ -52,7 +53,12 @@ class KubernetesApi extends EventEmitter {
     }
 
     async getWorkerJobs() {
-        const jobsRaw = await this._client.apis.batch.v1.namespaces(this._namespace).jobs().get({ qs: { labelSelector: 'type=worker,group=hkube' } });
+        const jobsRaw = await this._client.apis.batch.v1.namespaces(this._namespace).jobs().get({ qs: { labelSelector: `type=${CONTAINERS.WORKER},group=hkube` } });
+        return jobsRaw;
+    }
+
+    async getPipelineDriversJobs() {
+        const jobsRaw = await this._client.apis.batch.v1.namespaces(this._namespace).jobs().get({ qs: { labelSelector: `type=${CONTAINERS.PIPELINE_DRIVER},group=hkube` } });
         return jobsRaw;
     }
 
@@ -80,7 +86,7 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
-    async getReourcesPerNode() {
+    async getResourcesPerNode() {
         const [pods, nodes] = await Promise.all([this._client.api.v1.pods.get(), this._client.api.v1.nodes.get()]);
         return { pods, nodes };
     }

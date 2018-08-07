@@ -4,14 +4,16 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha test --exit",
-    "test-travis": "./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha --colors --recursive --exit",
+    "lint": "./node_modules/eslint/bin/eslint.js .",
+    "test": "NODE_ENV=test node_modules/mocha/bin/mocha test --colors --recursive --exit",
+    "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha --colors --recursive --exit",
+    "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "build": "dockerfile/build.sh task-executor",
-    "start": "node app",
-    "lint": "./node_modules/eslint/bin/eslint.js ."
+    "start": "node app"
   },
   "pre-commit": {
     "run": [
+      "lint",
       "test"
     ]
   },
@@ -27,28 +29,28 @@
   },
   "homepage": "https://github.com/kube-HPC/task-executor#readme",
   "dependencies": {
-    "@hkube/config": "^2.0.5",
-    "@hkube/etcd": "^4.0.7",
+    "@hkube/config": "^2.0.7",
+    "@hkube/etcd": "^4.0.21",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.28",
-    "@hkube/rest-server": "^1.0.8",
-    "@hkube/units-converter": "^1.0.8",
+    "@hkube/rest-server": "^1.0.11",
+    "@hkube/units-converter": "^1.0.10",
     "express": "^4.16.3",
-    "kubernetes-client": "^5.3.0",
+    "kubernetes-client": "^5.4.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.groupby": "^4.6.0",
     "lodash.sumby": "^4.6.0",
     "object-path": "^0.11.4",
-    "uuid": "^3.2.1"
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "coveralls": "^3.0.1",
+    "coveralls": "^3.0.2",
     "decache": "^4.4.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-import": "^2.13.0",
     "mocha": "^5.2.0",
     "mockery": "^2.1.0",
     "nyc": "^11.9.0",

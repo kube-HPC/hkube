@@ -1,5 +1,5 @@
 module.exports = {
-    workerCommands: {
+    commands: {
         stopProcessing: 'stopProcessing',
         startProcessing: 'startProcessing'
     }

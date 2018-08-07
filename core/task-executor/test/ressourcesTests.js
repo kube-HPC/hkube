@@ -229,8 +229,8 @@ describe('utils', () => {
             ];
             const res = workers.slice().sort(_sortWorkers);
             expect(res).to.have.lengthOf(4);
-            expect(res[0].id).to.eql(2);
-            expect(res[1].id).to.eql(3);
+            expect(res[0].id).to.eql(3);
+            expect(res[1].id).to.eql(2);
             expect(res[2].id).to.eql(1);
             expect(res[3].id).to.eql(4);
         });

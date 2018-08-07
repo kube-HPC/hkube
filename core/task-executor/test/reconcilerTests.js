@@ -1,66 +1,64 @@
 const { expect } = require('chai');
 const mockery = require('mockery');
-const decache = require('decache');
-let reconciler;
-// const { mock, callCount } = (require('./mocks/kubernetes.mock')).kubernetes();
+const configIt = require('@hkube/config');
+const Logger = require('@hkube/logger');
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
 const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes()
-// const { log } = require('./mocks/log.mock');
 const etcd = require('../lib/helpers/etcd');
-const { templateStore } = require('./stub/templateStore');
+const { normalizeResources } = require('../lib/reconcile/normalize');
+const templateStore = require('./stub/templateStore');
+const driversTemplateStore = require('./stub/driversTemplateStore');
+const utils = require('../lib/utils/utils');
+const resources = require('./stub/resources');
+const normResources = normalizeResources(resources);
+const config = main;
+let reconciler, algorithmTemplates, driverTemplates;
 
-const { normalizeWorkers, normalizeRequests, mergeWorkers } = require('../lib/reconcile/normalize');
-
-const { workersStub, jobsStub } = require('./stub/normalizedStub');
-
-const { pods, nodes } = require('./stub/resources');
+const prepareDriversData = (options) => {
+    const { minAmount, scalePercent, name } = options.driversSetting;
+    const maxAmount = (minAmount * scalePercent) + minAmount;
+    return { minAmount, maxAmount, name };
+}
+const settings = prepareDriversData(config);
 
 describe('reconciler', () => {
     before(async () => {
         mockery.enable({
             warnOnReplace: false,
             warnOnUnregistered: false,
-            // useCleanCache: true
+            useCleanCache: false
         });
-
-        // mockery.registerMock('@hkube/logger', log);
-        mockery.deregisterMock('@hkube/logger');
         mockery.registerMock('../helpers/kubernetes', mock);
-        const bootstrap = require('../bootstrap');
+        reconciler = require('../lib/reconcile/reconciler');
 
-        await bootstrap.init();
+        await etcd.init(main);
+        await Promise.all(templateStore.map(d => etcd._etcd.algorithms.templatesStore.set({ name: d.name, data: d })));
+        await Promise.all(driversTemplateStore.map(d => etcd._etcd.pipelineDrivers.templatesStore.set({ name: d.name, data: d })));
 
-        reconciler = require('../lib/reconcile/reconciler')
-        // push to etcd
-        await Promise.all(Object.entries(templateStore).map(([name, data]) => {
-            return etcd._etcd.algorithms.templatesStore.set({ name, data });
-        }));
+        const algTemplates = await etcd.getAlgorithmTemplate();
+        algorithmTemplates = utils.arrayToMap(algTemplates);
 
+        const driTemplates = await etcd.getDriversTemplate();
+        driverTemplates = utils.arrayToMap(driTemplates);
     });
     after(() => {
         mockery.disable();
-        decache('../bootstrap');
-
     });
-
     beforeEach(() => {
         clearCount();
     });
-
-
-
-    describe('reconcile tests', () => {
-
+    describe('reconcile algorithms tests', () => {
         it('should work with no params', async () => {
-            const res = await reconciler.reconcile();
+            const res = await reconciler.reconcile({ normResources });
             expect(res).to.exist
             expect(res).to.be.empty
             expect(callCount('createJob')).to.be.undefined
-
         })
-
         it('should work with one algo', async () => {
             const res = await reconciler.reconcile({
-                resources: { pods, nodes },
+                normResources,
+                algorithmTemplates,
                 algorithmRequests: [{
                     name: 'green-alg',
                     data: {
@@ -82,16 +80,15 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
         it('should work with algorithm with not enough cpu', async () => {
-            await etcd._etcd.algorithms.templatesStore.set({
+            algorithmTemplates['hungry-alg'] = {
                 name: 'hungry-alg',
-                data: {
-                    algorithmImage: 'hkube/algorithm-example',
-                    cpu: 8,
-                    mem: '100'
-                }
-            });
+                algorithmImage: 'hkube/algorithm-example',
+                cpu: 8,
+                mem: 100
+            };
             const res = await reconciler.reconcile({
-                resources: { pods, nodes },
+                normResources,
+                algorithmTemplates,
                 algorithmRequests: [{
                     name: 'hungry-alg',
                     data: {
@@ -111,16 +108,15 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(2);
         });
         it('should only create 30 in one iteration', async () => {
-            await etcd._etcd.algorithms.templatesStore.set({
+            algorithmTemplates['hungry-alg'] = {
                 name: 'hungry-alg',
-                data: {
-                    algorithmImage: 'hkube/algorithm-example',
-                    cpu: 0.1,
-                    mem: '100'
-                }
-            });
+                algorithmImage: 'hkube/algorithm-example',
+                cpu: 0.1,
+                mem: 100
+            };
             const res = await reconciler.reconcile({
-                resources: { pods, nodes },
+                normResources,
+                algorithmTemplates,
                 algorithmRequests: [{
                     name: 'hungry-alg',
                     data: {
@@ -140,16 +136,15 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(30);
         });
         it('should work with algorithm with enough resources', async () => {
-            await etcd._etcd.algorithms.templatesStore.set({
+            algorithmTemplates['hungry-alg'] = {
                 name: 'hungry-alg',
-                data: {
-                    algorithmImage: 'hkube/algorithm-example',
-                    cpu: 4,
-                    mem: '100'
-                }
-            });
+                algorithmImage: 'hkube/algorithm-example',
+                cpu: 4,
+                mem: 100
+            };
             const res = await reconciler.reconcile({
-                resources: { pods, nodes },
+                normResources,
+                algorithmTemplates,
                 algorithmRequests: [{
                     name: 'hungry-alg',
                     data: {
@@ -169,16 +164,15 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(4);
         });
         it('should work with algorithm with not enough memory', async () => {
-            await etcd._etcd.algorithms.templatesStore.set({
+            algorithmTemplates['hungry-alg'] = {
                 name: 'hungry-alg',
-                data: {
-                    algorithmImage: 'hkube/algorithm-example',
-                    cpu: 4,
-                    mem: '40000'
-                }
-            });
+                algorithmImage: 'hkube/algorithm-example',
+                cpu: 4,
+                mem: 40000
+            };
             const res = await reconciler.reconcile({
-                resources: { pods, nodes },
+                normResources,
+                algorithmTemplates,
                 algorithmRequests: [{
                     name: 'hungry-alg',
                     data: {
@@ -198,15 +192,15 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(2);
         });
         it('should work with custom worker', async () => {
-            await etcd._etcd.algorithms.templatesStore.set({
-                name: 'green-alg',
-                data: {
-                    algorithmImage: 'hkube/algorithm-example',
-                    workerImage: 'myregistry:5000/stam/myworker:v2'
-                }
-            });
+            algorithmTemplates['green-alg'] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerImage: 'myregistry:5000/stam/myworker:v2',
+                cpu: 4,
+                mem: 40000
+            };
             const res = await reconciler.reconcile({
-                resources: { pods, nodes },
+                normResources,
+                algorithmTemplates,
                 algorithmRequests: [{
                     name: 'green-alg',
                     data: {
@@ -228,20 +222,18 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
         it('should work with env', async () => {
-            await etcd._etcd.algorithms.templatesStore.set({
-                name: 'green-alg',
-                data: {
-                    algorithmImage: 'hkube/algorithm-example',
-                    workerEnv: {
-                        myEnv: 'myValue'
-                    },
-                    algorithmEnv: {
-                        myAlgoEnv: 'myAlgoValue'
-                    }
+            algorithmTemplates['green-alg'] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerEnv: {
+                    myEnv: 'myValue'
+                },
+                algorithmEnv: {
+                    myAlgoEnv: 'myAlgoValue'
                 }
-            });
+            };
             const res = await reconciler.reconcile({
-                resources: { pods, nodes },
+                normResources,
+                algorithmTemplates,
                 algorithmRequests: [{
                     name: 'green-alg',
                     data: {
@@ -263,6 +255,152 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include({ name: 'myEnv', value: 'myValue' });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'myAlgoEnv', value: 'myAlgoValue' });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
+        });
+    });
+    describe('reconcile drivers tests', () => {
+        it('should create min amount of drivers with one request', async () => {
+            const count = config.driversSetting.minAmount;
+            const res = await reconciler.reconcileDrivers({
+                normResources,
+                settings,
+                driverTemplates,
+                driversRequests: [{
+                    name: settings.name,
+                    data: {
+                        pods: 1
+                    }
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [settings.name]: { idle: 0, required: count, paused: 0, pending: 0, created: count, skipped: 0 } });
+            expect(callCount('createJob').length).to.eql(count);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].name).to.eql(settings.name);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/pipeline-driver');
+        });
+        it('should create min amount of drivers not enough cpu', async () => {
+            const { maxAmount } = settings
+            const requiredPods = 30;
+            const created = 2;
+            const entry = Object.entries(driverTemplates)[0];
+            const newTemplate = {
+                ...entry[1],
+                cpu: 8,
+                mem: 500
+            };
+            const res = await reconciler.reconcileDrivers({
+                normResources,
+                settings,
+                driverTemplates: {
+                    [entry[0]]: newTemplate
+                },
+                driversRequests: [{
+                    name: settings.name,
+                    data: {
+                        pods: requiredPods
+                    }
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [settings.name]: { idle: 0, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
+            expect(callCount('createJob').length).to.eql(created);
+        });
+        it('should create min amount of drivers not enough memory', async () => {
+            const { maxAmount } = settings
+            const required = 30;
+            const created = 3;
+            const entry = Object.entries(driverTemplates)[0];
+            const newTemplate = {
+                ...entry[1],
+                cpu: 0.1,
+                mem: 28000
+            };
+
+            const res = await reconciler.reconcileDrivers({
+                normResources,
+                settings,
+                driverTemplates: {
+                    [entry[0]]: newTemplate
+                },
+                driversRequests: [{
+                    name: settings.name,
+                    data: {
+                        pods: required
+                    }
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [settings.name]: { idle: 0, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
+            expect(callCount('createJob').length).to.eql(created);
+        });
+        it('should only create 30 in one iteration - drivers', async () => {
+            const { maxAmount } = settings
+            const res = await reconciler.reconcileDrivers({
+                normResources,
+                settings,
+                driverTemplates,
+                driversRequests: [{
+                    name: settings.name,
+                    data: {
+                        pods: 40
+                    }
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [settings.name]: { idle: 0, required: maxAmount, paused: 0, pending: 0, created: maxAmount, skipped: 0 } });
+            expect(callCount('createJob').length).to.eql(maxAmount);
+        });
+        it('should scale to max amount of drivers', async () => {
+            const { minAmount, scalePercent } = config.driversSetting;
+            const required = minAmount;
+            const requiredPods = required * 100;
+            const scale = (minAmount * scalePercent) + minAmount;
+
+            const res = await reconciler.reconcileDrivers({
+                normResources,
+                settings,
+                driverTemplates,
+                driversRequests: [{
+                    name: settings.name,
+                    data: {
+                        pods: requiredPods
+                    }
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+
+            expect(res).to.exist;
+            expect(res).to.eql({ [settings.name]: { idle: 0, required: scale, paused: 0, pending: 0, created: scale, skipped: 0 } });
+            expect(callCount('createJob').length).to.eql(scale);
         });
     });
 });

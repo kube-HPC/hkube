@@ -52,6 +52,19 @@ const setAlgorithmImage = (template, versions) => {
     return createImageName(imageParsed);
 };
 
+const setPipelineDriverImage = (template, versions) => {
+    const imageName = template.image;
+    const imageParsed = parseImageName(imageName);
+    if (imageParsed.tag) {
+        return createImageName(imageParsed);
+    }
+    const version = versions && versions.versions.find(p => p.project === imageParsed.repository);
+    if (version && version.tag) {
+        imageParsed.tag = version.tag;
+    }
+    return createImageName(imageParsed);
+};
+
 const _createContainerResourceByFactor = ({ cpu, mem } = {}, factor = 1) => {
     const cpuFactored = (cpu || 0.1) * factor;
     const memory = `${(mem || 4) * factor}Mi`;
@@ -82,6 +95,7 @@ module.exports = {
     setWorkerImage,
     createContainerResource,
     setAlgorithmImage,
+    setPipelineDriverImage,
     createImageName,
     parseImageName
 };

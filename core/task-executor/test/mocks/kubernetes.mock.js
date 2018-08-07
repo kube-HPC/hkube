@@ -30,7 +30,9 @@ module.exports = {
                 }
             },
             callCount: (name) => { return callCount[name]; },
-            clearCount: () => { callCount = {} },
+            clearCount: () => {
+                callCount = {}
+            },
         }
     }
 };

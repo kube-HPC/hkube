@@ -37,16 +37,18 @@ const discoveryStub = {
     }
 };
 
-const templateStoreStub = {
-    '/algorithmTemplates/algo1': {
+const templateStoreStub = [
+    {
+        name: 'algo1',
         workerImage: 'worker1:latest',
         algorithmImage: 'algo1:v1.1'
     },
-    '/algorithmTemplates/algo2': {
+    {
+        name: 'algo2',
         workerImage: 'worker2:latest',
         algorithmImage: 'algo2:v1.2'
     }
-};
+];
 
 module.exports = {
     discoveryStub,

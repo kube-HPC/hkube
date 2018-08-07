@@ -51,6 +51,23 @@ const normalizeWorkers = (workers) => {
     return workersArray;
 };
 
+
+const normalizeDrivers = (drivers) => {
+    if (drivers == null) {
+        return [];
+    }
+    const workersArray = Object.entries(drivers).map(([k, v]) => {
+        const workerId = k.match(/([^/]*)\/*$/)[0];
+        return {
+            id: workerId,
+            status: v.status,
+            paused: !!v.paused,
+            podName: v.podName
+        };
+    });
+    return workersArray;
+};
+
 const normalizeResources = ({ pods, nodes } = {}) => {
     if (!pods || !nodes) {
         return {
@@ -117,7 +134,6 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             memory: resourcesPerNode[k].total.memory - resourcesPerNode[k].requests.memory,
         };
     });
-
     return resourcesPerNode;
 };
 
@@ -126,6 +142,13 @@ const normalizeRequests = (requests) => {
         return [];
     }
     return requests.map(r => ({ algorithmName: r.name, pods: r.data.pods }));
+};
+
+const normalizeDriversRequests = (requests) => {
+    if (requests == null) {
+        return [];
+    }
+    return requests.map(r => ({ name: r.name, pods: r.data.pods }));
 };
 
 const normalizeJobs = (jobsRaw, predicate = () => true) => {
@@ -137,6 +160,19 @@ const normalizeJobs = (jobsRaw, predicate = () => true) => {
         .map(j => ({
             name: j.metadata.name,
             algorithmName: j.metadata.labels['algorithm-name'],
+            active: j.status.active === 1
+        }));
+    return jobs;
+};
+
+const normalizeDriversJobs = (jobsRaw, predicate = () => true) => {
+    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
+        return [];
+    }
+    const jobs = jobsRaw.body.items
+        .filter(predicate)
+        .map(j => ({
+            name: j.metadata.name,
             active: j.status.active === 1
         }));
     return jobs;
@@ -158,10 +194,50 @@ const mergeWorkers = (workers, jobs) => {
     return { mergedWorkers, extraJobs };
 };
 
+const mergeDrivers = (drivers, jobs) => {
+    const foundJobs = [];
+    const mergedDrivers = drivers.map((w) => {
+        const jobForWorker = jobs.find(j => w.podName && w.podName.startsWith(j.name));
+        if (jobForWorker) {
+            foundJobs.push(jobForWorker.name);
+        }
+        return { ...w, job: jobForWorker ? { ...jobForWorker } : undefined };
+    });
+
+    const extraJobs = jobs.filter((job) => {
+        return !foundJobs.find(j => j === job.name);
+    });
+    return { mergedDrivers, extraJobs };
+};
+
+const normalizeDriversAmount = (jobs, requests, settings) => {
+    const { minAmount, maxAmount, name } = settings;
+    let amount = minAmount;
+    const jobRequests = [];
+    if (requests.length === 0) {
+        jobRequests.push({ name, pods: 0 });
+    }
+    else {
+        jobRequests.push(...requests);
+    }
+    return jobRequests.map((r) => {
+        if (r.pods > minAmount) {
+            amount = maxAmount;
+        }
+        const missingDrivers = amount - jobs.length;
+        return { name: r.name, pods: missingDrivers };
+    });
+};
+
 module.exports = {
     normalizeWorkers,
+    normalizeDrivers,
     normalizeRequests,
+    normalizeDriversRequests,
     normalizeJobs,
+    normalizeDriversJobs,
     mergeWorkers,
-    normalizeResources
+    mergeDrivers,
+    normalizeResources,
+    normalizeDriversAmount
 };

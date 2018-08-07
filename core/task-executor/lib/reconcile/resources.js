@@ -61,7 +61,7 @@ const _sortWorkers = (a, b) => {
     if (b.workerPaused > a.workerPaused) {
         return 1;
     }
-    if (b.status === 'ready') {
+    if (b.workerStatus === 'ready') {
         return 1;
     }
     return -1;

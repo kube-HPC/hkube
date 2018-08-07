@@ -1,27 +1,26 @@
-const templateStore = {
-    'eval-alg': {
+module.exports = [
+    {
+        name: 'eval-alg',
         algorithmImage: 'hkube/algorunner',
         cpu: 0.5,
-        mem: '256Mi'
+        mem: 256
     },
-    'green-alg': {
+    {
+        name: 'green-alg',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 7,
-        mem: '512Mi'
+        mem: 512
     },
-    'yellow-alg': {
+    {
+        name: 'yellow-alg',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
-        mem: '128Mi'
+        mem: 128
     },
-    'black-alg': {
+    {
+        name: 'black-alg',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 0.5,
-        mem: '128Mi'
+        mem: 128
     }
-};
-
-
-module.exports = {
-    templateStore
-};
+]

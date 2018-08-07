@@ -1,19 +1,23 @@
 const { expect } = require('chai');
 const mockery = require('mockery');
-
-const { log } = require('./mocks/log.mock');
+const configIt = require('@hkube/config');
+const Logger = require('@hkube/logger');
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
 const { callCount, mock, clearCount } = (require('./mocks/kubernetesClient.mock')).kubernetesClient();
-mockery.registerMock('@hkube/logger', log);
-mockery.registerMock('kubernetes-client', mock)
-mockery.enable({
-    warnOnReplace: false,
-    warnOnUnregistered: false,
-    // useCleanCache: true
-});
-const { KubernetesApi } = require('../lib/helpers/kubernetes');
+let KubernetesApi;
+
 describe('Kubernetes API', () => {
+    before(async () => {
+        mockery.enable({
+            warnOnReplace: false,
+            warnOnUnregistered: false,
+            useCleanCache: false
+        });
+        mockery.registerMock('kubernetes-client', mock);
+        KubernetesApi = require('../lib/helpers/kubernetes').KubernetesApi;
+    });
     after(() => {
-        mockery.deregisterMock('@hkube/logger', log);
         mockery.disable();
     });
     it('should create class without error', () => {
@@ -34,7 +38,6 @@ describe('Kubernetes API', () => {
         const instance = new KubernetesApi();
         const options = {
             kubernetes: {
-
             }
         };
         await instance.init(options);
@@ -53,10 +56,7 @@ describe('Kubernetes API', () => {
         instance._client.shouldThrow = true
         const res = await instance.createJob({ spec: { metadata: { name: 'mySpec' } } });
         expect(res).to.be.null;
-
     });
-
-
     it('should delete job', async () => {
         const instance = new KubernetesApi();
         const options = {
@@ -69,7 +69,6 @@ describe('Kubernetes API', () => {
         expect(res.deleted).to.eql('myJobName');
 
     });
-
     it('should return null if delete job fails', async () => {
         const instance = new KubernetesApi();
         const options = {
@@ -82,7 +81,6 @@ describe('Kubernetes API', () => {
         const res = await instance.deleteJob('myJobName');
         expect(res).to.be.null;
     });
-
     it('should get worker jobs', async () => {
         const instance = new KubernetesApi();
         const options = {
@@ -95,8 +93,6 @@ describe('Kubernetes API', () => {
         expect(res.get.qs.labelSelector).to.eql('type=worker,group=hkube');
 
     });
-
-
     it('should get worker for job', async () => {
         const instance = new KubernetesApi();
         const options = {
@@ -109,7 +105,6 @@ describe('Kubernetes API', () => {
         expect(res.getPod.qs.labelSelector).to.eql('myLabel=mySelector');
 
     });
-
     it('should fail to get worker for job if no selector', async () => {
         const instance = new KubernetesApi();
         const options = {
@@ -134,8 +129,6 @@ describe('Kubernetes API', () => {
         expect(res).to.be.empty
 
     });
-
-
     it('should get config map', async () => {
         const instance = new KubernetesApi();
         const options = {
@@ -160,7 +153,6 @@ describe('Kubernetes API', () => {
         const res = await instance.getVersionsConfigMap();
         expect(res).to.be.null
     });
-
     it('should get nodes and pods', async () => {
         const instance = new KubernetesApi();
         const options = {
@@ -169,7 +161,7 @@ describe('Kubernetes API', () => {
             }
         };
         await instance.init(options);
-        const res = await instance.getReourcesPerNode();
+        const res = await instance.getResourcesPerNode();
         expect(res).to.have.property('pods')
         expect(res).to.have.property('nodes')
     });

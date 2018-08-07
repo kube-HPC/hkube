@@ -1,97 +1,87 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources } = require('../lib/reconcile/normalize');
+const { normalizeDrivers, normalizeDriversRequests, normalizeDriversJobs, mergeWorkers, normalizeResources } = require('../lib/reconcile/normalize');
 const { twoCompleted } = require('./stub/jobsRaw');
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
 const { nodes, pods } = require('./stub/resources');
 
-describe('normalize', () => {
+describe('normalize pipeline driver', () => {
     describe('normalize jobs', () => {
         it('should work with no jobs', () => {
             const jobsRaw = {};
-            const res = normalizeJobs(jobsRaw);
+            const res = normalizeDriversJobs(jobsRaw);
             expect(res).to.be.empty;
         });
         it('should work with undefined', () => {
-            const res = normalizeJobs();
+            const res = normalizeDriversJobs();
             expect(res).to.be.empty;
         });
         it('should ignore completed jobs', () => {
-            const res = normalizeJobs(twoCompleted, j => !j.status.succeeded);
+            const res = normalizeDriversJobs(twoCompleted, j => !j.status.succeeded);
             expect(res).to.have.lengthOf(1);
         });
         it('should ignore active jobs', () => {
-            const res = normalizeJobs(twoCompleted, j => j.status.succeeded);
+            const res = normalizeDriversJobs(twoCompleted, j => j.status.succeeded);
             expect(res).to.have.lengthOf(2);
         });
         it('should return all jobs', () => {
-            const res = normalizeJobs(twoCompleted);
+            const res = normalizeDriversJobs(twoCompleted);
             expect(res).to.have.lengthOf(3);
         });
     });
-
     describe('normalize workers', () => {
         it('should work with empty worker array', () => {
             const workers = {};
-            const res = normalizeWorkers(workers);
+            const res = normalizeDrivers(workers);
             expect(res).to.be.empty;
         });
         it('should work with undefined worker array', () => {
-            const res = normalizeWorkers();
+            const res = normalizeDrivers();
             expect(res).to.be.empty;
         });
         it('should return object with ids', () => {
             const workers = {
-                '/discovery/workers/62eee6c4-6f35-4a2d-8660-fad6295ab334': {
-                    algorithmName: 'green-alg',
-                    workerStatus: 'ready',
-                    jobStatus: 'ready',
+                '/discovery/drivers/62eee6c4-6f35-4a2d-8660-fad6295ab334': {
+                    status: 'ready',
                     error: null
                 },
-                '/discovery/workers/id2': {
-                    algorithmName: 'green-alg',
-                    workerStatus: 'not-ready',
-                    jobStatus: 'ready',
+                '/discovery/drivers/id2': {
+                    status: 'not-ready',
                     error: null
                 },
-                '/discovery/workers/ae96e6ba-0352-43c4-8862-0e749d2f76c4': {
-                    algorithmName: 'red-alg',
-                    workerStatus: 'notready',
-                    jobStatus: 'ready',
+                '/discovery/drivers/ae96e6ba-0352-43c4-8862-0e749d2f76c4': {
+                    status: 'notready',
                     error: null
                 }
             };
-            const res = normalizeWorkers(workers);
+            const res = normalizeDrivers(workers);
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
                 id: '62eee6c4-6f35-4a2d-8660-fad6295ab334',
-                algorithmName: 'green-alg',
-                workerStatus: 'ready',
-                workerPaused: false,
+                status: 'ready',
+                paused: false,
                 podName: undefined
             });
             expect(res).to.deep.include({
                 id: 'id2',
-                algorithmName: 'green-alg',
-                workerStatus: 'not-ready',
-                workerPaused: false,
+                status: 'not-ready',
+                paused: false,
                 podName: undefined
             });
             expect(res).to.deep.include({
                 id: 'ae96e6ba-0352-43c4-8862-0e749d2f76c4',
-                algorithmName: 'red-alg',
-                workerStatus: 'notready',
-                workerPaused: false,
+                status: 'notready',
+                paused: false,
                 podName: undefined
             });
         });
     });
     describe('normalize requests', () => {
         it('should work with empty requests array', () => {
-            const res = normalizeRequests([]);
+            const res = normalizeDriversRequests([]);
             expect(res).to.be.empty;
         });
         it('should work with undefined requests array', () => {
-            const res = normalizeRequests();
+            const res = normalizeDriversRequests();
             expect(res).to.be.empty;
         });
         it('should return object with requests per algorithms', () => {
@@ -115,23 +105,22 @@ describe('normalize', () => {
                     }
                 }
             ];
-            const res = normalizeRequests(stub);
+            const res = normalizeDriversRequests(stub);
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
-                algorithmName: 'black-alg',
+                name: 'black-alg',
                 pods: 7
             });
             expect(res).to.deep.include({
-                algorithmName: 'green-alg',
+                name: 'green-alg',
                 pods: 1
             });
             expect(res).to.deep.include({
-                algorithmName: 'yellow-alg',
+                name: 'yellow-alg',
                 pods: 1
             });
         });
     });
-
     describe('normalize resources', () => {
         it('should work with empty resources array', () => {
             const res = normalizeResources({});

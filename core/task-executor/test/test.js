@@ -37,8 +37,11 @@ describe('bootstrap', () => {
         expect(workers).to.be.empty;
     });
     it('should get template store', async () => {
-        await Promise.all(Object.keys(templateStoreStub).map(path => etcd._etcd._client.put(path, templateStoreStub[path])));
-        const template = await etcd.getAlgorithmTemplate({ algorithmName: 'algo2' });
-        expect(template).to.eql(templateStoreStub['/algorithmTemplates/algo2']);
+        const algo = 'algo2';
+        await Promise.all(templateStoreStub.map(t => etcd._etcd._client.put(`/algorithmTemplates/${t.name}`, t)));
+        const templates = await etcd.getAlgorithmTemplate();
+        const alg1 = templates.find(t => t.name === algo);
+        const alg2 = templateStoreStub.find(t => t.name === algo);
+        expect(alg1).to.deep.eql(alg2);
     });
 });

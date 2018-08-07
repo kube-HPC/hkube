@@ -2,11 +2,12 @@ const clonedeep = require('lodash.clonedeep');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger); // eslint-disable-line
+const log = new Logger(main.serviceName, logger);
 
-const { expect } = require('chai'); // eslint-disable-line
+const { expect } = require('chai');
 const { applyAlgorithmImage, applyAlgorithmName, applyWorkerImage, createJobSpec, applyEnvToContainer } = require('../lib/jobs/jobCreator'); // eslint-disable-line object-curly-newline
 const { jobTemplate } = require('./stub/jobTemplates');
+
 describe('jobCreator', () => {
     describe('applyAlgorithmName', () => {
         it('should replace image name in spec', () => {
@@ -28,7 +29,7 @@ describe('jobCreator', () => {
         it('should throw if no algorithm container', () => {
             const missingAlgorunnerSpec = clonedeep(jobTemplate);
             missingAlgorunnerSpec.spec.template.spec.containers.splice(1, 1);
-            expect(() => applyAlgorithmImage(missingAlgorunnerSpec, 'registry:5000/myAlgo1Image:v2')).to.throw('Unable to create job spec. algorithm container not found');
+            expect(() => applyAlgorithmImage(missingAlgorunnerSpec, 'registry:5000/myAlgo1Image:v2')).to.throw('Unable to create job spec. algorunner container not found');
         });
     });
     describe('applyWorkerImageName', () => {

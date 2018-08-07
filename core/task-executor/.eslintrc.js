@@ -10,7 +10,7 @@ module.exports = {
     ],
     "parserOptions": {
         "sourceType": "module",
-        "ecmaVersion": 2017
+        "ecmaVersion": 2018
     },
     "rules": {
         "no-param-reassign": "off",
@@ -31,9 +31,9 @@ module.exports = {
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2,
-        "object-curly-newline": ["error",{
+        "object-curly-newline": ["error", {
             "ObjectExpression": { "minProperties": 4, "multiline": true, "consistent": true },
-            "ObjectPattern":"never",
+            "ObjectPattern": "never",
             "ImportDeclaration": "never"
         }]
     }
