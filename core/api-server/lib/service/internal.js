@@ -50,7 +50,7 @@ class InternalService {
     }
 
     _createSubPipelineJobID(options) {
-        return [options.jobId, options.taskId, uuidv4()].join('.');
+        return ['sub', options.jobId, options.taskId, uuidv4()].join('.');
     }
 
     _createJobID(options) {

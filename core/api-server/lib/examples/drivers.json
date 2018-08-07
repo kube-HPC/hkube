@@ -1,0 +1,8 @@
+[
+    {
+        "name": "pipeline-driver",
+        "image": "hkube/pipeline-driver",
+        "cpu": 0.1,
+        "mem": 128
+    }
+]
