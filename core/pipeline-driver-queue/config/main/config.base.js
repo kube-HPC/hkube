@@ -27,6 +27,10 @@ config.producer = {
     jobType: 'pipeline-job'
 };
 
+config.persistence = {
+    type: 'pipeline-driver'
+};
+
 config.queue = {
     updateInterval: 1000
 };

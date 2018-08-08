@@ -10,8 +10,8 @@ class Persistence extends EventEmitter {
     }
 
     async init({ options }) {
-        const { etcd, producer, serviceName } = options;
-        this.queueName = producer.jobType;
+        const { etcd, persistence, serviceName } = options;
+        this.queueName = persistence.type;
         this.etcd.init({ etcd, serviceName });
         await this.watchJobState();
         this.etcd.jobState.on('change', (data) => {
