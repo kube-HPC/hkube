@@ -1,0 +1,273 @@
+[
+    {
+        "name": "red-alg",
+        "data": [],
+        "pendingAmount": 0
+    },
+    {
+        "name": "white-alg",
+        "data": [],
+        "pendingAmount": 0
+    },
+    {
+        "name": "eval-alg",
+        "data": [],
+        "pendingAmount": 0
+    },
+    {
+        "name": "blue-alg",
+        "data": [],
+        "pendingAmount": 0
+    },
+    {
+        "name": "orange-alg",
+        "data": [],
+        "pendingAmount": 0
+    },
+    {
+        "name": "green-alg",
+        "data": [
+            {
+                "name": "green-alg",
+                "score": 0.6403933333333334
+            },
+            {
+                "name": "green-alg",
+                "score": 0.6297336842105264
+            },
+            {
+                "name": "green-alg",
+                "score": 0.6190740350877193
+            },
+            {
+                "name": "green-alg",
+                "score": 0.6084143859649124
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5977547368421053
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5870950877192983
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5764354385964913
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5657757894736843
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5551161403508773
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5444564912280703
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5337968421052632
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5231371929824562
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5124775438596492
+            },
+            {
+                "name": "green-alg",
+                "score": 0.5018178947368421
+            },
+            {
+                "name": "green-alg",
+                "score": 0.49115824561403515
+            },
+            {
+                "name": "green-alg",
+                "score": 0.48049859649122817
+            },
+            {
+                "name": "green-alg",
+                "score": 0.46983894736842113
+            },
+            {
+                "name": "green-alg",
+                "score": 0.4591792982456141
+            },
+            {
+                "name": "green-alg",
+                "score": 0.44851964912280706
+            }
+        ],
+        "pendingAmount": 1
+    },
+    {
+        "name": "black-alg",
+        "data": [
+            {
+                "name": "black-alg",
+                "score": 0.6403975000000001
+            },
+            {
+                "name": "black-alg",
+                "score": 0.629737850877193
+            },
+            {
+                "name": "black-alg",
+                "score": 0.619078201754386
+            },
+            {
+                "name": "black-alg",
+                "score": 0.608418552631579
+            },
+            {
+                "name": "black-alg",
+                "score": 0.597758903508772
+            },
+            {
+                "name": "black-alg",
+                "score": 0.587099254385965
+            },
+            {
+                "name": "black-alg",
+                "score": 0.576439605263158
+            },
+            {
+                "name": "black-alg",
+                "score": 0.5657799561403509
+            },
+            {
+                "name": "black-alg",
+                "score": 0.5551203070175439
+            },
+            {
+                "name": "black-alg",
+                "score": 0.5444606578947369
+            },
+            {
+                "name": "black-alg",
+                "score": 0.5338010087719298
+            },
+            {
+                "name": "black-alg",
+                "score": 0.5231413596491229
+            },
+            {
+                "name": "black-alg",
+                "score": 0.5124817105263159
+            },
+            {
+                "name": "black-alg",
+                "score": 0.5018220614035088
+            },
+            {
+                "name": "black-alg",
+                "score": 0.49116241228070184
+            },
+            {
+                "name": "black-alg",
+                "score": 0.4805027631578948
+            },
+            {
+                "name": "black-alg",
+                "score": 0.46984311403508777
+            },
+            {
+                "name": "black-alg",
+                "score": 0.45918346491228074
+            },
+            {
+                "name": "black-alg",
+                "score": 0.4485238157894737
+            }
+        ],
+        "pendingAmount": 1
+    },
+    {
+        "name": "yellow-alg",
+        "data": [
+            {
+                "name": "yellow-alg",
+                "score": 0.6403987777777778
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.6297391286549708
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.6190794795321638
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.6084198304093568
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5977601812865498
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5871005321637428
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5764408830409358
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5657812339181287
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5551215847953217
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5444619356725147
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5338022865497076
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5231426374269007
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5124829883040937
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.5018233391812866
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.4911636900584796
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.48050404093567256
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.4698443918128655
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.45918474269005854
+            },
+            {
+                "name": "yellow-alg",
+                "score": 0.4485250935672515
+            }
+        ],
+        "pendingAmount": 1
+    }
+]

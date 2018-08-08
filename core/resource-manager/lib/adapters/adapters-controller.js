@@ -1,31 +1,34 @@
 
 const adapterTypes = require('./index');
-const adapterSettings = require('./settings');
 const utils = require('../utils/utils');
 const logger = require('../utils/logger');
 
+// TODO: IGNORE DEBUG ALGORITHMS
+
 class AdapterController {
-    constructor() {
+    constructor(config, settings) {
         this._adapters = Object.create(null);
+        this._config = config;
+        this._settings = settings;
     }
 
-    async init(options) {
-        await Promise.all(Object.entries(adapterTypes).map(([k, v]) => this._initAdapters(k, v, options)));
+    async init() {
+        await Promise.all(Object.entries(adapterTypes).map(([k, v]) => this._initAdapters(k, v)));
     }
 
-    async _initAdapters(type, collection, options) {
+    async _initAdapters(type, collection) {
         const results = await Promise.all(Object.entries(collection)
-            .filter(([name]) => utils.filterEnable(adapterSettings, name, type))
-            .map(([name, adapter]) => this._initAdapter(type, name, adapter, options)));
+            .filter(([name]) => utils.filterEnable(this._settings, name, type))
+            .map(([name, adapter]) => this._initAdapter(type, name, adapter)));
         this._adapters[type] = utils.arrayToMap(results);
     }
 
-    async _initAdapter(type, name, Adapter, config) {
-        const setting = adapterSettings[type][name];
+    async _initAdapter(type, name, Adapter) {
+        const setting = this._settings[type][name];
         const options = {
             name,
             setting,
-            config
+            config: this._config
         };
         const adapter = new Adapter(options);
         await adapter.init();
@@ -68,4 +71,4 @@ class AdapterController {
     }
 }
 
-module.exports = new AdapterController();
+module.exports = AdapterController;

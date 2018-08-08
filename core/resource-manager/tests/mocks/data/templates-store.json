@@ -22,5 +22,29 @@
         "image": "hkube/algorithm-example",
         "cpu": 1,
         "mem": 0
+    },
+    {
+        "name": "blue-alg",
+        "image": "hkube/algorithm-example",
+        "cpu": 1,
+        "mem": 0
+    },
+    {
+        "name": "orange-alg",
+        "image": "hkube/algorithm-example",
+        "cpu": 1,
+        "mem": 0
+    },
+    {
+        "name": "white-alg",
+        "image": "hkube/algorithm-example",
+        "cpu": 1,
+        "mem": 0
+    },
+    {
+        "name": "red-alg",
+        "image": "hkube/algorithm-example",
+        "cpu": 1,
+        "mem": 0
     }
 ]

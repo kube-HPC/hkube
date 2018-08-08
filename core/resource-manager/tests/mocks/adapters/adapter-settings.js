@@ -3,14 +3,14 @@ module.exports = {
         k8s: {
             enable: true,
             mandatory: true,
-            cacheTTL: 30
+            cacheTTL: 1000 * 60 * 0.5
         }
     },
     algorithms: {
         prometheus: {
             enable: true,
             mandatory: false,
-            cacheTTL: 60
+            cacheTTL: 1000 * 60 * 1
         },
         queue: {
             enable: true,
@@ -25,14 +25,14 @@ module.exports = {
         templatesStore: {
             enable: true,
             mandatory: true,
-            cacheTTL: 300
+            cacheTTL: 1000 * 60 * 5
         }
     },
     pipelines: {
         prometheus: {
             enable: true,
             mandatory: false,
-            cacheTTL: 60
+            cacheTTL: 1000 * 60 * 1
         },
         queue: {
             enable: true,

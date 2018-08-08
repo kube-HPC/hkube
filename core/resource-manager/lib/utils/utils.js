@@ -27,7 +27,7 @@ const groupBy = (array, prop) => {
 
 
 const filterEnable = (settings, name, type) => {
-    const setting = settings[type][name];
+    const setting = settings[type] && settings[type][name];
     return setting && setting.enable;
 };
 

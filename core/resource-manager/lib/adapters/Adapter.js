@@ -1,18 +1,18 @@
 
-const MIN_CACHE = 1000;
+const MIN_CACHE = 1;
 
 class Adapter {
     constructor(options) {
         this.name = options.name;
-        this.mandatory = options.setting.mandatory;
-        this._cacheTTL = options.setting.cacheTTL;
+        this.mandatory = options.setting.mandatory || false;
+        this._cacheTTL = options.setting.cacheTTL || 0;
         this._cache = null;
         this._working = false;
     }
 
     async init() {
-        if (this._cacheTTL > 0 && this._cacheTTL < MIN_CACHE) {
-            throw new Error(`cache ttl must be at least ${MIN_CACHE / 1000} sec`);
+        if (this._cacheTTL < 0 || (this._cacheTTL > 0 && this._cacheTTL < MIN_CACHE)) {
+            throw new Error(`cache ttl must be at least ${MIN_CACHE} sec`);
         }
         if (this._cacheTTL) {
             await this.updateCache();
@@ -36,7 +36,7 @@ class Adapter {
             this._working = true;
             await this.updateCache();
             this._working = false;
-        }, this._cacheTTL);
+        }, this._cacheTTL * 1000);
     }
 
     async updateCache() {

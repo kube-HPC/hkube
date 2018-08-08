@@ -26,10 +26,6 @@ class StateManager extends EventEmitter {
         return Promise.all(resourceResults.map(a => this._etcd.algorithms.resourceRequirements.set(a)));
     }
 
-    getResourceRequirements(options) {
-        return this._etcd.algorithms.resourceRequirements.list(options);
-    }
-
     getPipelineDriverQueue(options) {
         return this._etcd.pipelineDrivers.queue.list(options);
     }
@@ -42,8 +38,8 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.templatesStore.list(options);
     }
 
-    watchStoreTemplates(options) {
-        return this._etcd.algorithms.templatesStore.watch(options);
+    watchStoreTemplates() {
+        return this._etcd.algorithms.templatesStore.watch();
     }
 }
 

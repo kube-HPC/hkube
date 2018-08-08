@@ -9,8 +9,6 @@ const modules = [
     './lib/state/state-manager',
     './lib/monitoring/metrics-provider',
     './lib/helpers/prometheus',
-    './lib/metrics/metrics-controller',
-    './lib/adapters/adapters-controller',
     './lib/runner/runner'
 ];
 
