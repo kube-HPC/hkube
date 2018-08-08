@@ -11,7 +11,7 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
 const PIPELINE_NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
-const ALGORITHM_NAME_REGEX = /^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/; // eslint-disable-line
+const ALGORITHM_NAME_REGEX = /^[a-z0-9][-a-zA-Z0-9\\.]*[a-z0-9]$/;
 const MIN_MEMORY = 4;
 
 class ApiValidator {
@@ -127,27 +127,29 @@ class ApiValidator {
                 throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name flowInput`);
             }
 
-            node.input.forEach((inp) => {
-                if (options.checkFlowInput) {
-                    try {
-                        parser.checkFlowInput({ flowInput: pipeline.flowInput, nodeInput: inp });
+            if (node.input) {
+                node.input.forEach((inp) => {
+                    if (options.checkFlowInput) {
+                        try {
+                            parser.checkFlowInput({ flowInput: pipeline.flowInput, nodeInput: inp });
+                        }
+                        catch (e) {
+                            throw new InvalidDataError(e.message);
+                        }
                     }
-                    catch (e) {
-                        throw new InvalidDataError(e.message);
-                    }
-                }
 
-                const nodesNames = parser.extractNodesFromInput(inp);
-                nodesNames.forEach((n) => {
-                    const nd = pipeline.nodes.find(f => f.nodeName === n.nodeName);
-                    if (nd) {
-                        links.push({ source: nd.nodeName, target: node.nodeName });
-                    }
-                    else {
-                        throw new InvalidDataError(`node ${node.nodeName} is depend on ${n.nodeName} which is not exists`);
-                    }
+                    const nodesNames = parser.extractNodesFromInput(inp);
+                    nodesNames.forEach((n) => {
+                        const nd = pipeline.nodes.find(f => f.nodeName === n.nodeName);
+                        if (nd) {
+                            links.push({ source: nd.nodeName, target: node.nodeName });
+                        }
+                        else {
+                            throw new InvalidDataError(`node ${node.nodeName} is depend on ${n.nodeName} which is not exists`);
+                        }
+                    });
                 });
-            });
+            }
             graph.setNode(node.nodeName, node);
         });
 

@@ -1463,20 +1463,70 @@ describe('Rest', () => {
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.message).to.equal('algorithm conflict already exists');
                     });
-                    it('should throw invalid algorithm name', async () => {
+                    const invalidChars = ['/', '_', '*', '#', '"', '%'];
+                    invalidChars.forEach((v) => {
+                        it(`should throw invalid algorithm name if include ${v}`, async () => {
+                            const options = {
+                                uri: restPath,
+                                method: 'POST',
+                                body: {
+                                    name: `not_valid${v}name`,
+                                    algorithmImage: "image"
+                                }
+                            };
+                            const response = await _request(options);
+                            expect(response.body).to.have.property('error');
+                            expect(response.response.statusCode).to.equal(400);
+                            expect(response.body.error.message).to.equal('algorithm name must contain only alphanumeric, dash or dot');
+                        });
+                    });
+                    const invalidStartAndEndChars = ['/', '_', '*', '#', '"', '%', '-', 'A'];
+                    invalidStartAndEndChars.forEach((v) => {
+                        it(`should throw invalid if algorithm name if start with ${v}`, async () => {
+                            const options = {
+                                uri: restPath,
+                                method: 'POST',
+                                body: {
+                                    name: `${v}notvalidname`,
+                                    algorithmImage: "image"
+                                }
+                            };
+                            const response = await _request(options);
+                            expect(response.body).to.have.property('error');
+                            expect(response.response.statusCode).to.equal(400);
+                            expect(response.body.error.message).to.equal('algorithm name must contain only alphanumeric, dash or dot');
+                        });
+                        it(`should throw invalid if algorithm name if end with ${v}`, async () => {
+                            const options = {
+                                uri: restPath,
+                                method: 'POST',
+                                body: {
+                                    name: `notvalidname${v}`,
+                                    algorithmImage: "image"
+                                }
+                            };
+                            const response = await _request(options);
+                            expect(response.body).to.have.property('error');
+                            expect(response.response.statusCode).to.equal(400);
+                            expect(response.body.error.message).to.equal('algorithm name must contain only alphanumeric, dash or dot');
+                        });
+                    });
+                    it('should succeed to store algorithm name (www.example.com)', async () => {
+                        const body = {
+                            name: '2-www.exam-ple.com' + uuidv4(),
+                            algorithmImage: "image",
+                            mem: "50Mi",
+                            cpu: 1
+                        }
                         const options = {
                             uri: restPath,
                             method: 'POST',
-                            body: {
-                                name: "not_valid/name",
-                                algorithmImage: "image"
-                            }
+                            body
                         };
-                        await _request(options);
                         const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.response.statusCode).to.equal(400);
-                        expect(response.body.error.message).to.equal('algorithm name must contain only alphanumeric, dash or dot');
+                        expect(response.response.statusCode).to.equal(201);
+                        body.mem = converter.getMemoryInMi(body.mem);
+                        expect(response.body).to.deep.equal(body);
                     });
                     it('should succeed to store algorithm', async () => {
                         const body = {
