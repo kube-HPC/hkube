@@ -3,6 +3,7 @@ const clone = require('clone');
 const algorithmQueue = require('../data/algorithm-queue.json');
 const pipelinesQueue = require('../data/pipelines-queue.json');
 const storeTemplates = require('../data/templates-store.json');
+const driversStore = require('../data/drivers-store.json');
 
 class StateManagerMock extends EventEmitter {
 
@@ -17,7 +18,11 @@ class StateManagerMock extends EventEmitter {
     setPipelineDriverRequirements() {
     }
 
-    getStoreTemplates(options) {
+    getPipelineDriverTemplateStore(options) {
+        return clone(driversStore);
+    }
+
+    getAlgorithmTemplateStore(options) {
         return clone(storeTemplates);
     }
 

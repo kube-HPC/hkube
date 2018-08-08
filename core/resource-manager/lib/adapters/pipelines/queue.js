@@ -9,7 +9,7 @@ class PipelineDriversQueueAdapter extends Adapter {
     async _getData() {
         const queue = await stateManager.getPipelineDriverQueue();
         queue.forEach(al => {
-            al.data = al.data.map(a => ({ name: 'pipeline-job', score: a.calculated.score }));
+            al.data = al.data.map(a => ({ name: al.name, score: a.calculated.score }));
         });
         return queue;
     }

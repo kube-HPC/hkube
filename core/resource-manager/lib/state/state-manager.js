@@ -30,11 +30,15 @@ class StateManager extends EventEmitter {
         return this._etcd.pipelineDrivers.queue.list(options);
     }
 
+    getPipelineDriverTemplateStore(options) {
+        return this._etcd.pipelineDrivers.templatesStore.list(options);
+    }
+
     setPipelineDriverRequirements(resourceResults) {
         return Promise.all(resourceResults.map(a => this._etcd.pipelineDrivers.resourceRequirements.set(a)));
     }
 
-    getStoreTemplates(options) {
+    getAlgorithmTemplateStore(options) {
         return this._etcd.algorithms.templatesStore.list(options);
     }
 

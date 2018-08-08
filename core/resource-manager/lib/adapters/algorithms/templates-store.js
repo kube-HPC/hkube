@@ -11,7 +11,7 @@ class TemplatesStoreAdapter extends Adapter {
     }
 
     async _getData() {
-        const store = await stateManager.getStoreTemplates();
+        const store = await stateManager.getAlgorithmTemplateStore();
         const data = Object.create(null);
         store.forEach(r => {
             data[r.name] = r;

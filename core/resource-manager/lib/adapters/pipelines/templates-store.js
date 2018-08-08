@@ -1,5 +1,6 @@
 
 const Adapter = require('../Adapter');
+const stateManager = require('../../state/state-manager');
 
 class TemplatesStoreAdapter extends Adapter {
     constructor(options) {
@@ -7,11 +8,11 @@ class TemplatesStoreAdapter extends Adapter {
     }
 
     async _getData() {
+        const store = await stateManager.getPipelineDriverTemplateStore();
         const data = Object.create(null);
-        data['pipeline-job'] = {
-            cpu: 0.01,
-            mem: 128
-        };
+        store.forEach(r => {
+            data[r.name] = r;
+        });
         return data;
     }
 }
