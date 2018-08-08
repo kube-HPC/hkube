@@ -16,7 +16,10 @@ class PipelinesUpdater {
         catch (error) { }// eslint-disable-line
 
         try {
-            await Promise.all(drivers.map(p => stateManager.setPipelineDriverTemplate(p)));
+            await Promise.all(drivers.map((d) => {
+                const { cpu, mem } = options.pipelineDriversResources;
+                return stateManager.setPipelineDriverTemplate({ ...d, cpu, mem });
+            }));
         }
         catch (error) { }// eslint-disable-line
 
