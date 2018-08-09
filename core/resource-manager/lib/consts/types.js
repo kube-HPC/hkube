@@ -1,6 +1,6 @@
 const Types = {
     ALGORITHMS: 'algorithms',
-    PIPELINES: 'pipelines',
+    DRIVERS: 'drivers',
     RESOURCES: 'resources',
 };
 

@@ -10,28 +10,40 @@ class RunTimeMetric extends Metric {
     }
 
     calc(options) {
-        let results = Object.create(null);
         const queue = queueUtils.order(options.algorithms.queue);
+
+        const resourceAllocator = new ResourceAllocator({
+            resourceThresholds: this.config.resourceThresholds.algorithms,
+            resources: options.resources.k8s,
+            templatesStore: options.algorithms.templatesStore
+        });
+
         if (queue.length > 0 && options.algorithms.prometheus) {
             const allocations = groupBy(queue, 'name');
             const keys = Object.keys(allocations);
-            const algorithms = options.algorithms.prometheus.filter(p => keys.includes(p.algorithmName)).map(p => ({ name: p.algorithmName, value: p.runTime }));
-            const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
-            const resourceAllocator = new ResourceAllocator({
-                resourceThresholds: this.config.resourceThresholds.algorithms,
-                resources: options.resources.k8s,
-                templatesStore: options.algorithms.templatesStore
-            });
+            const algorithms = options.algorithms.prometheus
+                .filter(p => keys.includes(p.algorithmName))
+                .map(p => ({ name: p.algorithmName, value: p.runTime }));
 
-            let algorithm = null;
-            const algorithmGen = algorithmRatios.generateRandom();
-            while (algorithm = algorithmGen.next().value) {
-                resourceAllocator.allocate(algorithm.name);
+            if (algorithms.length > 0) {
+                const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
+
+                let algorithm = null;
+                const algorithmGen = algorithmRatios.generateRandom();
+                while (algorithm = algorithmGen.next().value) {
+                    resourceAllocator.allocate(algorithm.name);
+                }
             }
-            results = resourceAllocator.results();
+            else {
+                queue.forEach(r => resourceAllocator.allocate(r.name));
+            }
         }
-        results = queueUtils.normalize(options.algorithms.queue, results);
-        return results;
+        else {
+            queue.forEach(r => resourceAllocator.allocate(r.name));
+        }
+        const results = resourceAllocator.results();
+        const result = queueUtils.normalize(options.algorithms.queue, results);
+        return result;
     }
 }
 

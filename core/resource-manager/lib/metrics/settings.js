@@ -21,7 +21,7 @@ module.exports = {
             weight: 0.1
         }
     },
-    pipelines: {
+    drivers: {
         queue: {
             enable: true,
             mandatory: true,

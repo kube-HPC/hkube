@@ -1,7 +1,5 @@
-const ResourceCounter = require('./resource-counter');
 
 /**
- * 
  * 
  * @class ResourceAllocator
  */
@@ -12,7 +10,8 @@ class ResourceAllocator {
         this._thresholdCpu = parseFloat(resourceThresholds.cpu);
         this._thresholdMem = parseFloat(resourceThresholds.mem);
         this._templatesStore = templatesStore;
-        this._resourceCounter = new ResourceCounter();
+        this._resourceCounter = Object.create(null);
+        this._enable = false;
         this._totalResources(resources);
     }
 
@@ -27,12 +26,24 @@ class ResourceAllocator {
      * @memberOf ResourceAllocator
      */
     allocate(resource) {
-        const { cpu, mem } = this._templatesStore[resource];
-        if (cpu <= this._totalCpu && mem <= this._totalMem) {
-            this._totalCpu -= cpu;
-            this._totalMem -= mem;
-            this._resourceCounter.inc(resource);
+        if (this._enable) {
+            const { cpu, mem } = this._templatesStore[resource];
+            if (cpu <= this._totalCpu && mem <= this._totalMem) {
+                this._totalCpu -= cpu;
+                this._totalMem -= mem;
+                this._count(resource);
+            }
         }
+        else {
+            this._count(resource);
+        }
+    }
+
+    _count(resource) {
+        if (!this._resourceCounter[resource]) {
+            this._resourceCounter[resource] = 0;
+        }
+        this._resourceCounter[resource] += 1;
     }
 
     /**
@@ -49,16 +60,20 @@ class ResourceAllocator {
      * @memberOf ResourceAllocator
      */
     results() {
-        return this._resourceCounter.results();
+        return this._resourceCounter;
     }
 
-    _totalResources(data) {
+    _totalResources(resources) {
+        if (!resources) {
+            return;
+        }
+        this._enable = false;
         let allocatableCpu = 0;
         let allocatableMemory = 0;
         let cpuRequests = 0;
         let memoryRequests = 0;
 
-        data.forEach(v => {
+        resources.forEach(v => {
             allocatableCpu += v.allocatableCpu;
             allocatableMemory += v.allocatableMemory;
             cpuRequests += v.cpuRequests;

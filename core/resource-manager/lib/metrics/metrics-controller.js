@@ -42,7 +42,7 @@ class MetricsController {
     run(adaptersResults) {
         const results = Object.create(null);
         Object.entries(this._metrics).forEach(([type, metrics]) => {
-            const metricsResults = metrics.map(m => ({ weight: m.weight, data: this._calc(m, type, adaptersResults) }));
+            const metricsResults = metrics.map(m => ({ name: m.name, weight: m.weight, data: this._calc(m, type, adaptersResults) }));
             const resourceResults = metricsReducer.reduce(metricsResults);
             results[type] = resourceResults;
         });

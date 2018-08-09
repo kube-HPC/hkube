@@ -1,4 +1,4 @@
-const prometheusPipelines = require('../data/prometheus-pipelines-progress.json');
+const prometheusPipelines = require('../data/prometheus-drivers-progress.json');
 const prometheusCpuUsage = require('../data/prometheus-cpu-usage.json');
 const prometheusRunTime = require('../data/prometheus-run-time.json');
 

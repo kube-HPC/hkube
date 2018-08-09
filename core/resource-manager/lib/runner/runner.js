@@ -56,7 +56,7 @@ class Runner {
     async _setMetrics(adaptersResults) {
         metricsProvider.setPodsRequests(adaptersResults.algorithms.queue);
         adaptersResults.algorithms.queue = adaptersResults.algorithms.queue.filter(q => adaptersResults.algorithms.templatesStore[q.name]);
-        adaptersResults.pipelines.queue = adaptersResults.pipelines.queue.filter(q => adaptersResults.pipelines.templatesStore[q.name]);
+        adaptersResults.drivers.queue = adaptersResults.drivers.queue.filter(q => adaptersResults.drivers.templatesStore[q.name]);
         const metricsResults = this._metricsController.run(adaptersResults);
         await this._adapterController.setData(metricsResults);
         metricsProvider.setPodsAllocations(metricsResults);

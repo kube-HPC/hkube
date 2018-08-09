@@ -28,7 +28,7 @@ module.exports = {
             cacheTTL: 1000 * 60 * 5
         }
     },
-    pipelines: {
+    drivers: {
         prometheus: {
             enable: true,
             mandatory: false,

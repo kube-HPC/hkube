@@ -1,7 +1,7 @@
 module.exports = {
     resources: {
         k8s: {
-            enable: true,
+            enable: false,
             mandatory: true,
             cacheTTL: 30
         }
@@ -28,7 +28,7 @@ module.exports = {
             cacheTTL: 300
         }
     },
-    pipelines: {
+    drivers: {
         prometheus: {
             enable: true,
             mandatory: false,

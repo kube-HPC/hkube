@@ -1,7 +1,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const Adapter = require('../Adapter');
 const stateManager = require('../../state/state-manager');
-const component = require('../../consts/components').PIPELINES_QUEUE;
+const component = require('../../consts/components').DRIVERS_QUEUE;
 
 class StoreAdapter extends Adapter {
     constructor(options) {

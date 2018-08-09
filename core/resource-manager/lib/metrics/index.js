@@ -1,7 +1,7 @@
 const algorithms = require('./algorithms');
-const pipelines = require('./pipelines');
+const drivers = require('./drivers');
 
 module.exports = {
     algorithms,
-    pipelines
+    drivers
 };

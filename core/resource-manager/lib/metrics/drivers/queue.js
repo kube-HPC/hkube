@@ -3,7 +3,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const Metric = require('../Metric');
 const queueUtils = require('../../utils/queue');
 const ResourceAllocator = require('../../resources/resource-allocator');
-const component = require('../../consts/components').PIPELINES_QUEUE;
+const component = require('../../consts/components').DRIVERS_QUEUE;
 
 class QueueMetric extends Metric {
     constructor(options) {
@@ -12,18 +12,18 @@ class QueueMetric extends Metric {
 
     calc(options) {
         let results = Object.create(null);
-        const queue = queueUtils.order(options.pipelines.queue);
-        this._log(options.pipelines.queue);
+        const queue = queueUtils.order(options.drivers.queue);
+        this._log(options.drivers.queue);
         if (queue.length > 0) {
             const resourceAllocator = new ResourceAllocator({
                 resourceThresholds: this.config.resourceThresholds.pipelineDrivers,
                 resources: options.resources.k8s,
-                templatesStore: options.pipelines.templatesStore
+                templatesStore: options.drivers.templatesStore
             });
             queue.forEach(r => resourceAllocator.allocate(r.name));
             results = resourceAllocator.results();
         }
-        results = queueUtils.normalize(options.pipelines.queue, results);
+        results = queueUtils.normalize(options.drivers.queue, results);
         return results;
     }
 
