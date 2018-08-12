@@ -1556,7 +1556,8 @@ describe('Rest', () => {
                             name: uuidv4(),
                             algorithmImage: "image",
                             mem: "50Mi",
-                            cpu: 1
+                            cpu: 1,
+
                         }
                         const options = {
                             uri: restPath,
@@ -1566,7 +1567,11 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(201);
                         body.mem = converter.getMemoryInMi(body.mem);
-                        expect(response.body).to.deep.equal(body);
+                        expect(response.body).to.deep.equal({
+                            ...body, options: {
+                                debug: false
+                            }
+                        });
                     });
                 });
                 describe('/store/algorithms PUT', () => {
@@ -1588,7 +1593,8 @@ describe('Rest', () => {
                         const options = {
                             uri: restPath,
                             method: 'PUT',
-                            body
+                            body,
+
                         };
                         const response = await _request(options);
                         body.mem = converter.getMemoryInMi(body.mem);

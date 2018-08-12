@@ -83,6 +83,14 @@ const routes = (options) => {
             return next(error);
         });
     });
+    router.post('/algorithms/debug', logger(), (req, res, next) => {
+        algorithmStore.insertAlgorithm({ ...req.body, options: { debug: true } }).then((response) => {
+            res.status(201).json(response);
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     router.put('/algorithms', logger(), (req, res, next) => {
         algorithmStore.updateAlgorithm(req.body).then((response) => {
             res.json(response);
@@ -92,6 +100,15 @@ const routes = (options) => {
         });
     });
     router.delete('/algorithms/:name', logger(), (req, res, next) => {
+        const { name } = req.params;
+        algorithmStore.deleteAlgorithm({ name }).then(() => {
+            res.json({ message: 'OK' });
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.delete('/algorithms/debug/:name', logger(), (req, res, next) => {
         const { name } = req.params;
         algorithmStore.deleteAlgorithm({ name }).then(() => {
             res.json({ message: 'OK' });

@@ -1738,6 +1738,17 @@
                     "mem": {
                         "type": "string",
                         "description": "algorithm memory"
+                    },
+                    "options": {
+                        "type": "object",
+                        "properties": {
+                            "debug": {
+                                "type": "boolean",
+                                "description": "debug algorithm localy",
+                                "default": false
+                            }
+                        },
+                        "default":{}
                     }
                 },
                 "required": [
