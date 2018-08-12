@@ -242,25 +242,48 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal('data.priority should be <= 5');
                     });
-                    it('should throw validation error pipeline name', async () => {
-                        const options = {
-                            method: 'POST',
-                            uri: restPath,
-                            body: {
-                                name: 'exec/raw',
-                                nodes: [
-                                    {
-                                        nodeName: 'string',
-                                        algorithmName: 'green-alg',
-                                        input: []
-                                    }
-                                ]
-                            }
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
+                    const invalidStartAndEndChars = ['/', '*', '#', '"', '%'];
+                    invalidStartAndEndChars.forEach((v) => {
+                        it(`should throw validation error pipeline name include ${v}`, async () => {
+                            const options = {
+                                method: 'POST',
+                                uri: restPath,
+                                body: {
+                                    name: `exec${v}raw`,
+                                    nodes: [
+                                        {
+                                            nodeName: 'string',
+                                            algorithmName: 'green-alg',
+                                            input: []
+                                        }
+                                    ]
+                                }
+                            };
+                            const response = await _request(options);
+                            expect(response.body).to.have.property('error');
+                            expect(response.body.error.code).to.equal(400);
+                            expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
+                        });
+                        it(`should throw validation error pipeline name start with ${v}`, async () => {
+                            const options = {
+                                method: 'POST',
+                                uri: restPath,
+                                body: {
+                                    name: `${v}xecraw`,
+                                    nodes: [
+                                        {
+                                            nodeName: 'string',
+                                            algorithmName: 'green-alg',
+                                            input: []
+                                        }
+                                    ]
+                                }
+                            };
+                            const response = await _request(options);
+                            expect(response.body).to.have.property('error');
+                            expect(response.body.error.code).to.equal(400);
+                            expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
+                        });
                     });
                     it('should succeed and return job id', async () => {
                         const options = {
@@ -1470,7 +1493,7 @@ describe('Rest', () => {
                                 uri: restPath,
                                 method: 'POST',
                                 body: {
-                                    name: `not_valid${v}name`,
+                                    name: `notvalid${v}name`,
                                     algorithmImage: "image"
                                 }
                             };
