@@ -5,11 +5,11 @@ class StateManager extends EventEmitter {
     async init({ serviceName, etcd }) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
-        this._subscribe();
+        await this._subscribe();
     }
 
-    _subscribe() {
-        this.watchStoreTemplates();
+    async _subscribe() {
+        await this.watchStoreTemplates();
         this._etcd.algorithms.templatesStore.on('change', (res) => {
             this.emit('templates-store-change', res);
         });
@@ -20,6 +20,14 @@ class StateManager extends EventEmitter {
 
     getAlgorithmQueue() {
         return this._etcd.algorithms.algorithmQueue.list();
+    }
+
+    getAlgorithmTemplateStore(options) {
+        return this._etcd.algorithms.templatesStore.list(options);
+    }
+
+    watchStoreTemplates() {
+        return this._etcd.algorithms.templatesStore.watch();
     }
 
     setAlgorithmsResourceRequirements(resourceResults) {
@@ -36,14 +44,6 @@ class StateManager extends EventEmitter {
 
     setPipelineDriverRequirements(resourceResults) {
         return Promise.all(resourceResults.map(a => this._etcd.pipelineDrivers.resourceRequirements.set(a)));
-    }
-
-    getAlgorithmTemplateStore(options) {
-        return this._etcd.algorithms.templatesStore.list(options);
-    }
-
-    watchStoreTemplates() {
-        return this._etcd.algorithms.templatesStore.watch();
     }
 }
 

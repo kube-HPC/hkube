@@ -12,7 +12,8 @@ const order = (queue) => {
 const normalize = (queue, results) => {
     const map = Object.create(null);
     queue.forEach(q => {
-        map[q.name] = results[q.name] || 0;
+        const length = q.data ? q.data.length + q.pendingAmount : 0;
+        map[q.name] = results[q.name] || length;
     });
     return utils.mapToArray(map, ['name', 'data']);
 };

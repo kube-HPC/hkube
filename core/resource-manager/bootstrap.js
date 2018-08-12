@@ -1,7 +1,6 @@
 
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const monitor = require('@hkube/redis-utils').Monitor;
 const component = require('./lib/consts/components').MAIN;
 let log;
 
@@ -21,13 +20,6 @@ class Bootstrap {
             log = new Logger(main.serviceName, logger);
             log.info('running application in ' + configIt.env() + ' environment', { component });
 
-            monitor.on('ready', (data) => {
-                log.info((data.message).green, { component });
-            });
-            monitor.on('close', (data) => {
-                log.error(data.error.message, { component });
-            });
-            monitor.check(main.redis);
             for (const m of modules) {       // eslint-disable-line
                 await require(m).init(main); // eslint-disable-line
             }

@@ -55,12 +55,43 @@ class Runner {
 
     async _setMetrics(adaptersResults) {
         metricsProvider.setPodsRequests(adaptersResults.algorithms.queue);
-        adaptersResults.algorithms.queue = adaptersResults.algorithms.queue.filter(q => adaptersResults.algorithms.templatesStore[q.name]);
-        adaptersResults.drivers.queue = adaptersResults.drivers.queue.filter(q => adaptersResults.drivers.templatesStore[q.name]);
-        const metricsResults = this._metricsController.run(adaptersResults);
+        const results = this._filterQueue(adaptersResults);
+        const metricsResults = this._metricsController.run(results);
         await this._adapterController.setData(metricsResults);
         metricsProvider.setPodsAllocations(metricsResults);
         return metricsResults;
+    }
+
+    _filterQueue(adaptersResults) {
+        const aq = adaptersResults.algorithms.queue;
+        const dq = adaptersResults.drivers.queue;
+
+        const aqf = aq.filter(q => this._filter(adaptersResults.algorithms.templatesStore, q.name));
+        const dqf = dq.filter(q => this._filter(adaptersResults.drivers.templatesStore, q.name));
+
+        const results = {
+            ...adaptersResults,
+            algorithms: {
+                ...adaptersResults.algorithms,
+                queue: aqf
+            },
+            drivers: {
+                ...adaptersResults.drivers,
+                queue: dqf
+            }
+        };
+        return results;
+    }
+
+    _filter(ts, name) {
+        const resource = ts[name];
+        if (resource) {
+            if (resource.options && resource.options.debug) {
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 }
 

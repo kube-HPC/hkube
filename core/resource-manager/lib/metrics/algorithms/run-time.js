@@ -27,7 +27,6 @@ class RunTimeMetric extends Metric {
 
             if (algorithms.length > 0) {
                 const algorithmRatios = new AlgorithmRatios({ algorithms, allocations });
-
                 let algorithm = null;
                 const algorithmGen = algorithmRatios.generateRandom();
                 while (algorithm = algorithmGen.next().value) {

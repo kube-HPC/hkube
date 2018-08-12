@@ -11,7 +11,7 @@ const { main, logger } = configIt.load();
 const config = main;
 const log = new Logger(config.serviceName, logger);
 const utils = require('../lib/utils/utils');
-const adapterSettings = require('../lib/adapters/settings');
+const adapterSettings = require('./mocks/adapters/adapter-settings');
 const metricsSettings = require('../lib/metrics/settings');
 const MetricsController = require('../lib/metrics/metrics-controller');
 const AlgorithmRatios = require('../lib/resources/ratios-allocator');
@@ -20,8 +20,8 @@ const metricsProvider = require('../lib/monitoring/metrics-provider');
 const algorithmQueueMock = require('./mocks/data/algorithm-queue-map.json');
 let intervalRunner;
 
-describe('Test', function() {
-    before(async function() {
+describe('Test', function () {
+    before(async function () {
         mockery.enable({
             useCleanCache: false,
             warnOnReplace: false,
@@ -38,9 +38,9 @@ describe('Test', function() {
         intervalRunner = require('../lib/runner/runner');
         await metricsProvider.init(config);
     })
-    describe('Adapters', function() {
-        describe('adapterController', function() {
-            it('should throw cache ttl invalid', function() {
+    describe('Adapters', function () {
+        describe('adapterController', function () {
+            it('should throw cache ttl invalid', function () {
                 const settings = {
                     algorithms: {
                         queue: {
@@ -53,7 +53,7 @@ describe('Test', function() {
                 const adapterController = new AdapterController(config, settings);
                 return expect(adapterController.init()).to.eventually.rejectedWith('cache ttl must be at least 1 sec');
             });
-            it('should filter enable adapters only', async function() {
+            it('should filter enable adapters only', async function () {
                 const settings = {
                     algorithms: {
                         queue: {
@@ -71,7 +71,7 @@ describe('Test', function() {
                 const adapterKeys = Object.keys(adapterController._adapters.algorithms);
                 expect(adapterKeys).to.have.lengthOf(1);
             });
-            it('should get adapters data with the right keys', async function() {
+            it('should get adapters data with the right keys', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const data = await adapterController.getData();
@@ -80,8 +80,8 @@ describe('Test', function() {
                 expect(dataKeys).to.deep.equal(adapterKeys);
             });
         });
-        describe('AlgorithmQueue', function() {
-            it('should get adapter algorithms.queue data', async function() {
+        describe('AlgorithmQueue', function () {
+            it('should get adapter algorithms.queue data', async function () {
                 const settings = {
                     algorithms: {
                         queue: {
@@ -110,7 +110,7 @@ describe('Test', function() {
                 expect(adapterKeys[0]).to.equal(adapterName);
                 expect(result.data).to.deep.equal(algorithmQueueMock);
             });
-            it('should get adapter algorithms.queue data with cache', async function() {
+            it('should get adapter algorithms.queue data with cache', async function () {
                 const settings = {
                     algorithms: {
                         queue: {
@@ -141,8 +141,8 @@ describe('Test', function() {
                 expect(adapter._cache.data).to.deep.equal(algorithmQueueMock);
             });
         });
-        describe('K8s', function() {
-            it('should get adapter resources.k8s data', async function() {
+        describe('K8s', function () {
+            it('should get adapter resources.k8s data', async function () {
                 const settings = {
                     resources: {
                         k8s: {
@@ -165,7 +165,7 @@ describe('Test', function() {
                 expect(adapterKeys[0]).to.equal(adapterName);
                 expect(result.data).to.be.an('Map');
             });
-            it('should get adapter resources.k8s data with cache', async function() {
+            it('should get adapter resources.k8s data with cache', async function () {
                 const settings = {
                     resources: {
                         k8s: {
@@ -190,8 +190,8 @@ describe('Test', function() {
                 expect(adapter._cache.data).to.be.an('Map');
             });
         });
-        describe('Prometheus', function() {
-            it('should get adapter algorithms.prometheus data', async function() {
+        describe('Prometheus', function () {
+            it('should get adapter algorithms.prometheus data', async function () {
                 const settings = {
                     algorithms: {
                         prometheus: {
@@ -223,7 +223,7 @@ describe('Test', function() {
                 expect(adapterKeys[0]).to.equal(adapterName);
                 expect(result.data).to.be.an('array');
             });
-            it('should get adapter algorithms.prometheus data with cache', async function() {
+            it('should get adapter algorithms.prometheus data with cache', async function () {
                 const settings = {
                     algorithms: {
                         prometheus: {
@@ -257,8 +257,8 @@ describe('Test', function() {
                 expect(adapter._cache.data).to.be.an('array');
             });
         });
-        describe('TemplatesStore', function() {
-            it('should get adapter algorithms.templatesStore data', async function() {
+        describe('TemplatesStore', function () {
+            it('should get adapter algorithms.templatesStore data', async function () {
                 const settings = {
                     algorithms: {
                         templatesStore: {
@@ -287,7 +287,7 @@ describe('Test', function() {
                 expect(adapterKeys[0]).to.equal(adapterName);
                 expect(result.data).to.be.an('object');
             });
-            it('should get adapter algorithms.templatesStore data with cache', async function() {
+            it('should get adapter algorithms.templatesStore data with cache', async function () {
                 const settings = {
                     algorithms: {
                         templatesStore: {
@@ -319,9 +319,9 @@ describe('Test', function() {
             });
         });
     });
-    describe('Metrics', function() {
-        describe('MetricsReducer', function() {
-            it('should reduce the metrics results', async function() {
+    describe('Metrics', function () {
+        describe('MetricsReducer', function () {
+            it('should reduce the metrics results', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
@@ -332,16 +332,16 @@ describe('Test', function() {
                 expect(metricsResults.drivers).to.be.an('array');
             });
         });
-        describe('MetricsRunner', async function() {
-            it('should calc the metrics weights', async function() {
+        describe('MetricsRunner', async function () {
+            it('should calc the metrics weights', async function () {
                 const metricsController = new MetricsController(config, metricsSettings);
                 await metricsController.init();
                 const weight = metricsController._metrics.algorithms.map(a => a.weight).reduce((a, b) => a + b, 0);
                 expect(weight).to.be.closeTo(1, 0.01);
             });
         });
-        describe('AlgorithmQueue', function() {
-            it('should calc metric and return results', async function() {
+        describe('AlgorithmQueue', function () {
+            it('should calc metric and return results', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
@@ -355,14 +355,14 @@ describe('Test', function() {
                 expect(map).to.deep.equal(algorithms);
             });
         });
-        describe('CpuUsage', function() {
-            it('should return weight same as config', async function() {
+        describe('CpuUsage', function () {
+            it('should return weight same as config', async function () {
                 const metricsController = new MetricsController(config, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'cpuUsage');
                 expect(metric.weight).to.greaterThan(0);
             });
-            it('should calc metric and return results', async function() {
+            it('should calc metric and return results', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
@@ -376,8 +376,8 @@ describe('Test', function() {
                 expect(map).to.deep.equal(algorithms);
             });
         });
-        describe('RunTime', function() {
-            it('should return weight same as config', async function() {
+        describe('RunTime', function () {
+            it('should return weight same as config', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const data = await adapterController.getData();
@@ -386,7 +386,7 @@ describe('Test', function() {
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'runTime');
                 expect(metric.weight).to.greaterThan(0);
             });
-            it('should calc metric and return results', async function() {
+            it('should calc metric and return results', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
@@ -400,8 +400,8 @@ describe('Test', function() {
                 expect(map).to.deep.equal(algorithms);
             });
         });
-        describe('TemplatesStore', function() {
-            it('should return weight same as config', async function() {
+        describe('TemplatesStore', function () {
+            it('should return weight same as config', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const data = await adapterController.getData();
@@ -410,7 +410,7 @@ describe('Test', function() {
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'templatesStore');
                 expect(metric.weight).to.greaterThan(0);
             });
-            it('should calc metric and return results', async function() {
+            it('should calc metric and return results', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
@@ -425,8 +425,8 @@ describe('Test', function() {
             });
         });
     });
-    describe('AlgorithmRatios', function() {
-        it('should generate random allocations', async function() {
+    describe('AlgorithmRatios', function () {
+        it('should generate random allocations', async function () {
             const adapterController = new AdapterController(config, adapterSettings);
             await adapterController.init();
             const adaptersResults = await adapterController.getData();
@@ -441,8 +441,8 @@ describe('Test', function() {
             expect(algorithmRatios._totalAllocations).to.equal(0);
         });
     });
-    describe('ResourceAllocator', function() {
-        it('should allocate successfully', async function() {
+    describe('ResourceAllocator', function () {
+        it('should allocate successfully', async function () {
             const adapterController = new AdapterController(config, adapterSettings);
             await adapterController.init();
             const adaptersResults = await adapterController.getData();
@@ -457,10 +457,10 @@ describe('Test', function() {
             expect(values).to.deep.equal(array);
         });
     });
-    describe('Monitoring', function() {
-        it('should run the metricsProvider', function() {
+    describe('Monitoring', function () {
+        it('should run the metricsProvider', function () {
             this.timeout(50000);
-            return new Promise(async function(resolve, reject) {
+            return new Promise(async function (resolve, reject) {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
@@ -477,16 +477,16 @@ describe('Test', function() {
 
         });
     });
-    describe('Interval', async function() {
-        before(async function() {
+    describe('Interval', async function () {
+        before(async function () {
             await intervalRunner.init(config);
         })
-        it('should execute doWork and return results', async function() {
+        it('should execute doWork and return results', async function () {
             const result = await intervalRunner._doWork();
             expect(result.algorithms).to.be.an('array');
             expect(result.drivers).to.be.an('array');
         });
-        it('should execute init and call _doWork once', async function() {
+        it('should execute init and call _doWork once', async function () {
             const clock = sinon.useFakeTimers();
             const spy = sinon.spy(intervalRunner, '_doWork');
             await intervalRunner.init({ ...config, interval: 200 });
@@ -494,7 +494,7 @@ describe('Test', function() {
             clock.restore();
             expect(spy.calledOnce).to.equal(true);
         });
-        it('should execute _doWork and call to _onError once', async function() {
+        it('should execute _doWork and call to _onError once', async function () {
             const clock = sinon.useFakeTimers();
             const spy = sinon.spy(intervalRunner, '_onError');
             intervalRunner._doWork = () => {
