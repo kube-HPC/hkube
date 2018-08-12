@@ -63,7 +63,7 @@ class ApiValidator {
     }
 
     validateUpdateAlgorithm(algorithm) {
-        this._validate(schemas.algorithm, algorithm, false);
+        this._validate(schemas.algorithm, algorithm, true);
         this._validateMemory(algorithm);
     }
 
