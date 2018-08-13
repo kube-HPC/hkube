@@ -18,7 +18,7 @@ class Runner {
         await this._adapterController.init();
         await this._metricsController.init();
 
-        log.info(`running with current interval of: ${options.interval / 1000} sec`, { component });
+        log.info(`running with ${options.recommendationMode} recommendation mode and interval of: ${options.interval / 1000} sec`, { component });
 
         setInterval(async () => {
             if (this._working) {

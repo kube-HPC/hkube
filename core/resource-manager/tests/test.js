@@ -20,6 +20,16 @@ const metricsProvider = require('../lib/monitoring/metrics-provider');
 const algorithmQueueMock = require('./mocks/data/algorithm-queue-map.json');
 let intervalRunner;
 
+const configFlat = {
+    ...config,
+    recommendationMode: 'flat'
+}
+
+const configMap = {
+    ...config,
+    recommendationMode: 'map'
+}
+
 describe('Test', function () {
     before(async function () {
         mockery.enable({
@@ -348,15 +358,15 @@ describe('Test', function () {
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'queue');
                 const metricResults = metric.calc(adaptersResults);
-                const map = metricResults.map(m => m.name).sort();
-                const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
+                const res = new Set(metricResults.map(m => m.name));
+                const ts = new Set(Object.keys(adaptersResults.algorithms.templatesStore));
                 expect(metricResults).to.be.an('array');
-                expect(map).to.deep.equal(algorithms);
+                expect(res).to.deep.equal(ts);
             });
         });
         describe('CpuUsage', function () {
             it('should return weight same as config', async function () {
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configFlat, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'cpuUsage');
                 expect(metric.weight).to.greaterThan(0);
@@ -365,14 +375,14 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configFlat, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'cpuUsage');
                 const metricResults = metric.calc(adaptersResults);
-                const map = metricResults.map(m => m.name).sort();
-                const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
+                const res = new Set(metricResults.map(m => m.name));
+                const ts = new Set(Object.keys(adaptersResults.algorithms.templatesStore));
                 expect(metricResults).to.be.an('array');
-                expect(map).to.deep.equal(algorithms);
+                expect(res).to.deep.equal(ts);
             });
         });
         describe('RunTime', function () {
@@ -380,7 +390,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const data = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configFlat, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'runTime');
                 expect(metric.weight).to.greaterThan(0);
@@ -389,14 +399,14 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configFlat, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'runTime');
                 const metricResults = metric.calc(adaptersResults);
-                const map = metricResults.map(m => m.name).sort();
-                const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
+                const res = new Set(metricResults.map(m => m.name));
+                const ts = new Set(Object.keys(adaptersResults.algorithms.templatesStore));
                 expect(metricResults).to.be.an('array');
-                expect(map).to.deep.equal(algorithms);
+                expect(res).to.deep.equal(ts);
             });
         });
         describe('TemplatesStore', function () {
@@ -404,7 +414,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const data = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configFlat, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'templatesStore');
                 expect(metric.weight).to.greaterThan(0);
@@ -413,14 +423,14 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configFlat, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'templatesStore');
                 const metricResults = metric.calc(adaptersResults);
-                const map = metricResults.map(m => m.name).sort();
-                const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
+                const res = new Set(metricResults.map(m => m.name));
+                const ts = new Set(Object.keys(adaptersResults.algorithms.templatesStore));
                 expect(metricResults).to.be.an('array');
-                expect(map).to.deep.equal(algorithms);
+                expect(res).to.deep.equal(ts);
             });
         });
     });
@@ -450,7 +460,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'queue');
                 const metricResults = metric.calc(adaptersResults);
@@ -462,7 +472,7 @@ describe('Test', function () {
         });
         describe('CpuUsage', function () {
             it('should return weight same as config', async function () {
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'cpuUsage');
                 expect(metric.weight).to.greaterThan(0);
@@ -471,7 +481,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'cpuUsage');
                 const metricResults = metric.calc(adaptersResults);
@@ -486,7 +496,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const data = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'runTime');
                 expect(metric.weight).to.greaterThan(0);
@@ -495,7 +505,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'runTime');
                 const metricResults = metric.calc(adaptersResults);
@@ -510,7 +520,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const data = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'templatesStore');
                 expect(metric.weight).to.greaterThan(0);
@@ -519,7 +529,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const metric = metricsController._metrics.algorithms.find(a => a.name === 'templatesStore');
                 const metricResults = metric.calc(adaptersResults);
