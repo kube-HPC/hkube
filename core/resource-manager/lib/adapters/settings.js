@@ -8,7 +8,7 @@ module.exports = {
     },
     algorithms: {
         prometheus: {
-            enable: true,
+            enable: false,
             mandatory: false,
             cacheTTL: 60
         },
