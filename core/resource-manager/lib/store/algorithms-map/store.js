@@ -5,9 +5,7 @@ const component = require('../../consts/components').ALGORITHM_QUEUE;
 class StoreAdapter {
     async setData(data) {
         this._log(data);
-        await stateManager.setAlgorithmsResourceRequirements({ name: 'data', data });
-        // const result = await stateManager.getAlgorithmsResourceRequirements({ name: 'data' });
-        return null;
+        await Promise.all(data.map(d => stateManager.setAlgorithmsResourceRequirements(d)));
     }
 
     _log(data) {
