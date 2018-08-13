@@ -334,7 +334,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configFlat, metricsSettings);
                 await metricsController.init();
                 const metricsResults = metricsController.run(adaptersResults);
                 expect(metricsResults.algorithms).to.be.an('array');
@@ -343,7 +343,7 @@ describe('Test', function () {
         });
         describe('MetricsRunner', async function () {
             it('should calc the metrics weights', async function () {
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configFlat, metricsSettings);
                 await metricsController.init();
                 const weight = metricsController._metrics.algorithms.map(a => a.weight).reduce((a, b) => a + b, 0);
                 expect(weight).to.be.closeTo(1, 0.01);
@@ -440,7 +440,7 @@ describe('Test', function () {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
                 const adaptersResults = await adapterController.getData();
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const metricsResults = metricsController.run(adaptersResults);
                 expect(metricsResults.algorithms).to.be.an('array');
@@ -449,7 +449,7 @@ describe('Test', function () {
         });
         describe('MetricsRunner', async function () {
             it('should calc the metrics weights', async function () {
-                const metricsController = new MetricsController(config, metricsSettings);
+                const metricsController = new MetricsController(configMap, metricsSettings);
                 await metricsController.init();
                 const weight = metricsController._metrics.algorithms.map(a => a.weight).reduce((a, b) => a + b, 0);
                 expect(weight).to.be.closeTo(1, 0.01);
@@ -591,9 +591,9 @@ describe('Test', function () {
 
         });
     });
-    describe('Interval', async function () {
+    describe('Interval-Flat', async function () {
         before(async function () {
-            await intervalRunner.init(config);
+            await intervalRunner.init(configFlat);
         })
         it('should execute doWork and return results', async function () {
             const result = await intervalRunner._doWork();
@@ -608,17 +608,15 @@ describe('Test', function () {
             clock.restore();
             expect(spy.calledOnce).to.equal(true);
         });
-        it('should execute _doWork and call to _onError once', async function () {
-            const clock = sinon.useFakeTimers();
-            const spy = sinon.spy(intervalRunner, '_onError');
-            intervalRunner._doWork = () => {
-                throw new Error('some error');
-            }
-            await intervalRunner.init({ ...config, interval: 200 });
-            clock.tick(300);
-            clock.restore();
-            expect(spy.calledOnce).to.equal(true);
-            expect(spy.args[0][0].message).to.equal('some error');
+    });
+    describe('Interval-Map', async function () {
+        before(async function () {
+            await intervalRunner.init(configMap);
+        })
+        it('should execute doWork and return results', async function () {
+            const result = await intervalRunner._doWork();
+            expect(result.algorithms).to.be.an('array');
+            expect(result.drivers).to.be.an('array');
         });
     });
 });

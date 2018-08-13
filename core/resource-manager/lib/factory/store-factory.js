@@ -1,15 +1,16 @@
 const algorithmsFlat = require('../store/algorithms-flat');
 const algorithmsMap = require('../store/algorithms-map');
-const drivers = require('../store/drivers');
+const driversFlat = require('../store/drivers-flat');
+const driversMap = require('../store/drivers-map');
 
 const storeTypes = {
     flat: {
         algorithms: algorithmsFlat,
-        drivers
+        drivers: driversFlat
     },
     map: {
         algorithms: algorithmsMap,
-        drivers
+        drivers: driversMap
     }
 };
 

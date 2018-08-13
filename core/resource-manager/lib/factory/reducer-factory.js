@@ -1,5 +1,5 @@
-const flatReducer = require('../metrics/metrics-reducer-flat');
-const mapReducer = require('../metrics/metrics-reducer-map');
+const flatReducer = require('../reducers/metrics-reducer-flat');
+const mapReducer = require('../reducers/metrics-reducer-map');
 
 const reducers = {
     flat: flatReducer,

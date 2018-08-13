@@ -1,15 +1,16 @@
 const algorithmsFlat = require('../metrics/algorithms-flat');
 const algorithmsMap = require('../metrics/algorithms-map');
-const drivers = require('../metrics/drivers');
+const driversFlat = require('../metrics/drivers-flat');
+const driversMap = require('../metrics/drivers-map');
 
 const metricTypes = {
     flat: {
         algorithms: algorithmsFlat,
-        drivers
+        drivers: driversFlat
     },
     map: {
         algorithms: algorithmsMap,
-        drivers
+        drivers: driversMap
     }
 };
 
