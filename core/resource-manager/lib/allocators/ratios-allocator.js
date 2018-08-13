@@ -15,7 +15,7 @@ class AlgorithmRatios {
 
     _calcRatios() {
         const ratioSum = this._algorithms.map(v => v.value).reduce((a, b) => a + b, 0);
-        this._algorithms = this._algorithms.map(v => ({ ...v, ratio: 1 - (v.value / ratioSum) + 0.001 }));
+        this._algorithms = this._algorithms.map(v => ({ ...v, ratio: 1 - (v.value / ratioSum) }));
         const newRatioSum = this._algorithms.map(v => v.ratio).reduce((a, b) => a + b, 0);
         this._algorithms = this._algorithms.map(v => ({ ...v, ratio: (v.ratio / newRatioSum) }));
         this._calcRange();
@@ -29,7 +29,7 @@ class AlgorithmRatios {
             this._ratio += r.ratio;
             r.allocations = r.allocations || allocations;
             r.range = {
-                from: i > 0 ? this._algorithms[i - 1].range.to + 0.000001 : 0,
+                from: i > 0 ? this._algorithms[i - 1].range.to : 0,
                 to: this._ratio
             };
             this._totalAllocations += r.allocations;
@@ -38,7 +38,7 @@ class AlgorithmRatios {
 
     * generateRandom() {
         while (this._totalAllocations > 0) {
-            const random = Math.random();
+            const random = parseFloat(Math.random().toFixed(4));
             let algorithm = this._findRange(random);
             if (algorithm.allocations === 0) {
                 this._reCalcRange(algorithm);

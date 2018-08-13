@@ -17,11 +17,6 @@ module.exports = {
             mandatory: true,
             cacheTTL: 0
         },
-        store: {
-            enable: true,
-            mandatory: true,
-            cacheTTL: 0
-        },
         templatesStore: {
             enable: true,
             mandatory: true,
@@ -30,16 +25,11 @@ module.exports = {
     },
     drivers: {
         prometheus: {
-            enable: true,
+            enable: false,
             mandatory: false,
             cacheTTL: 60
         },
         queue: {
-            enable: true,
-            mandatory: true,
-            cacheTTL: 0
-        },
-        store: {
             enable: true,
             mandatory: true,
             cacheTTL: 0

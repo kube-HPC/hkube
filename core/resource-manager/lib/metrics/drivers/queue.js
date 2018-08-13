@@ -2,7 +2,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const Metric = require('../Metric');
 const queueUtils = require('../../utils/queue');
-const ResourceAllocator = require('../../resources/resource-allocator');
+const ResourceAllocator = require('../../allocators/resource-allocator');
 const component = require('../../consts/components').DRIVERS_QUEUE;
 
 class QueueMetric extends Metric {

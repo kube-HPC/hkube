@@ -3,6 +3,8 @@ const config = module.exports = {};
 
 config.serviceName = packageJson.name;
 
+config.recommendationMode = 'map';  // flat, map
+
 config.etcd = {
     protocol: 'http',
     host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',

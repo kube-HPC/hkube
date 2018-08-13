@@ -1,4 +1,5 @@
 const { metrics } = require('@hkube/metrics');
+const { groupBy } = require('../utils/utils');
 const CONST = require('./const');
 
 class MetricsProvider {
@@ -25,7 +26,8 @@ class MetricsProvider {
     }
 
     setPodsAllocations(data) {
-        data.algorithms.forEach(d => {
+        const group = groupBy(data.algorithms, 'name');
+        group.forEach(d => {
             this._podsAllocationsMeasure.set({ value: d.data.pods, labelValues: { [CONST.ALGORITHM_NAME]: d.name } });
         });
     }

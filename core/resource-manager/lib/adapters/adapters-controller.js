@@ -3,8 +3,6 @@ const adapterTypes = require('./index');
 const utils = require('../utils/utils');
 const logger = require('../utils/logger');
 
-// TODO: IGNORE DEBUG ALGORITHMS
-
 class AdapterController {
     constructor(config, settings) {
         this._adapters = Object.create(null);
@@ -64,10 +62,6 @@ class AdapterController {
             }
         }
         return { key: adapter.name, value: result.data };
-    }
-
-    async setData(metricsResults) {
-        return Promise.all(Object.entries(this._adapters).map(([k, v]) => v.store && v.store.setData(metricsResults[k])));
     }
 }
 

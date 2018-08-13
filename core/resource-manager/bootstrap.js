@@ -5,7 +5,7 @@ const component = require('./lib/consts/components').MAIN;
 let log;
 
 const modules = [
-    './lib/state/state-manager',
+    './lib/store/store-manager',
     './lib/monitoring/metrics-provider',
     './lib/helpers/prometheus',
     './lib/runner/runner'

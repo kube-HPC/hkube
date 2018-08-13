@@ -4,7 +4,8 @@ const AdapterController = require('../adapters/adapters-controller');
 const MetricsController = require('../metrics/metrics-controller');
 const adapterSettings = require('../adapters/settings');
 const metricsSettings = require('../metrics/settings');
-const metricsProvider = require('../monitoring/metrics-provider');
+const StoreController = require('../store/store-controller');
+// const metricsProvider = require('../monitoring/metrics-provider');
 const logger = require('../utils/logger');
 const component = require('../consts/components').RUNNER;
 
@@ -12,6 +13,7 @@ class Runner {
     async init(options) {
         this._adapterController = new AdapterController(options, adapterSettings);
         this._metricsController = new MetricsController(options, metricsSettings);
+        this._storeController = new StoreController(options);
 
         await this._adapterController.init();
         await this._metricsController.init();
@@ -54,11 +56,11 @@ class Runner {
     }
 
     async _setMetrics(adaptersResults) {
-        metricsProvider.setPodsRequests(adaptersResults.algorithms.queue);
+        // metricsProvider.setPodsRequests(adaptersResults.algorithms.queue);
         const results = this._filterQueue(adaptersResults);
         const metricsResults = this._metricsController.run(results);
-        await this._adapterController.setData(metricsResults);
-        metricsProvider.setPodsAllocations(metricsResults);
+        await this._storeController.setData(metricsResults);
+        // metricsProvider.setPodsAllocations(metricsResults);
         return metricsResults;
     }
 

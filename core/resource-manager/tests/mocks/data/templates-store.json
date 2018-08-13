@@ -8,43 +8,43 @@
     {
         "name": "green-alg",
         "image": "hkube/algorithm-example",
-        "cpu": 1,
+        "cpu": 2,
         "mem": 0
     },
     {
         "name": "yellow-alg",
         "image": "hkube/algorithm-example",
-        "cpu": 1,
+        "cpu": 3,
         "mem": 0
     },
     {
         "name": "black-alg",
         "image": "hkube/algorithm-example",
-        "cpu": 1,
+        "cpu": 4,
         "mem": 0
     },
     {
         "name": "blue-alg",
         "image": "hkube/algorithm-example",
-        "cpu": 1,
+        "cpu": 5,
         "mem": 0
     },
     {
         "name": "orange-alg",
         "image": "hkube/algorithm-example",
-        "cpu": 1,
+        "cpu": 6,
         "mem": 0
     },
     {
         "name": "white-alg",
         "image": "hkube/algorithm-example",
-        "cpu": 1,
+        "cpu": 7,
         "mem": 0
     },
     {
         "name": "red-alg",
         "image": "hkube/algorithm-example",
-        "cpu": 1,
+        "cpu": 8,
         "mem": 0
     }
 ]

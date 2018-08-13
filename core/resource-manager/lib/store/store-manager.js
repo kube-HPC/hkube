@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 
-class StateManager extends EventEmitter {
+class StoreManager extends EventEmitter {
     async init({ serviceName, etcd }) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd, serviceName });
@@ -30,8 +30,12 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.templatesStore.watch();
     }
 
-    setAlgorithmsResourceRequirements(resourceResults) {
-        return Promise.all(resourceResults.map(a => this._etcd.algorithms.resourceRequirements.set(a)));
+    setAlgorithmsResourceRequirements(options) {
+        return this._etcd.algorithms.resourceRequirements.set(options);
+    }
+
+    getAlgorithmsResourceRequirements(options) {
+        return this._etcd.algorithms.resourceRequirements.list(options);
     }
 
     getPipelineDriverQueue(options) {
@@ -47,4 +51,4 @@ class StateManager extends EventEmitter {
     }
 }
 
-module.exports = new StateManager();
+module.exports = new StoreManager();

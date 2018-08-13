@@ -1,13 +1,8 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const Adapter = require('../Adapter');
-const stateManager = require('../../state/state-manager');
+const stateManager = require('../../store/store-manager');
 const component = require('../../consts/components').DRIVERS_QUEUE;
 
-class StoreAdapter extends Adapter {
-    constructor(options) {
-        super(options);
-    }
-
+class StoreAdapter {
     async _getData() {
         return [];
     }

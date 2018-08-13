@@ -1,7 +1,7 @@
-const metricTypes = require('./index');
 const utils = require('../utils/utils');
 const logger = require('../utils/logger');
-const metricsReducer = require('../metrics/metrics-reducer');
+const metricsFactory = require('../factory/metrics-factory');
+const reducerFactory = require('../factory/reducer-factory');
 const MAX_SCORE = 1;
 
 class MetricsController {
@@ -9,13 +9,15 @@ class MetricsController {
         this._metrics = {};
         this._config = config;
         this._settings = settings;
-        Object.keys(metricTypes).forEach((k) => {
+        this._reducer = reducerFactory.getReducer(config.recommendationMode);
+        this._metricTypes = metricsFactory.getMetrics(config.recommendationMode);
+        Object.keys(this._metricTypes).forEach((k) => {
             this._metrics[k] = [];
         });
     }
 
     async init() {
-        Object.entries(metricTypes).map(([k, v]) => this._initMetric(k, v));
+        Object.entries(this._metricTypes).map(([k, v]) => this._initMetric(k, v));
     }
 
     _initMetric(type, collection) {
@@ -43,7 +45,7 @@ class MetricsController {
         const results = Object.create(null);
         Object.entries(this._metrics).forEach(([type, metrics]) => {
             const metricsResults = metrics.map(m => ({ name: m.name, weight: m.weight, data: this._calc(m, type, adaptersResults) }));
-            const resourceResults = metricsReducer.reduce(metricsResults);
+            const resourceResults = this._reducer.reduce(metricsResults);
             results[type] = resourceResults;
         });
         return results;

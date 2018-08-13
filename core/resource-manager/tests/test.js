@@ -12,10 +12,10 @@ const config = main;
 const log = new Logger(config.serviceName, logger);
 const utils = require('../lib/utils/utils');
 const adapterSettings = require('./mocks/adapters/adapter-settings');
-const metricsSettings = require('../lib/metrics/settings');
+const metricsSettings = require('./mocks/adapters/metric-settings');
 const MetricsController = require('../lib/metrics/metrics-controller');
-const AlgorithmRatios = require('../lib/resources/ratios-allocator');
-const ResourceAllocator = require('../lib/resources/resource-allocator');
+const AlgorithmRatios = require('../lib/allocators/ratios-allocator');
+const ResourceAllocator = require('../lib/allocators/resource-allocator');
 const metricsProvider = require('../lib/monitoring/metrics-provider');
 const algorithmQueueMock = require('./mocks/data/algorithm-queue-map.json');
 let intervalRunner;
@@ -27,12 +27,11 @@ describe('Test', function () {
             warnOnReplace: false,
             warnOnUnregistered: false
         });
-        process.on('unhandledRejection', (error, promise) => {
-            console.error(error);
-        });
         mockery.registerSubstitute('@hkube/prometheus-client', `${process.cwd()}/tests/mocks/adapters/prometheus-client-mock.js`);
         mockery.registerSubstitute('kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
-        mockery.registerSubstitute('../../state/state-manager', `${process.cwd()}/tests/mocks/adapters/state-manager.js`);
+        mockery.registerSubstitute('../../store/store-manager', `${process.cwd()}/tests/mocks/adapters/store-manager.js`);
+        mockery.registerSubstitute('../adapters/settings', `${process.cwd()}/tests/mocks/adapters/adapter-settings.js`);
+        mockery.registerSubstitute('../metrics/settings', `${process.cwd()}/tests/mocks/adapters/metric-settings.js`);
 
         AdapterController = require('../lib/adapters/adapters-controller');
         intervalRunner = require('../lib/runner/runner');
@@ -319,7 +318,113 @@ describe('Test', function () {
             });
         });
     });
-    describe('Metrics', function () {
+    describe('Metrics-Flat', function () {
+        describe('MetricsReducer', function () {
+            it('should reduce the metrics results', async function () {
+                const adapterController = new AdapterController(config, adapterSettings);
+                await adapterController.init();
+                const adaptersResults = await adapterController.getData();
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const metricsResults = metricsController.run(adaptersResults);
+                expect(metricsResults.algorithms).to.be.an('array');
+                expect(metricsResults.drivers).to.be.an('array');
+            });
+        });
+        describe('MetricsRunner', async function () {
+            it('should calc the metrics weights', async function () {
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const weight = metricsController._metrics.algorithms.map(a => a.weight).reduce((a, b) => a + b, 0);
+                expect(weight).to.be.closeTo(1, 0.01);
+            });
+        });
+        describe('AlgorithmQueue', function () {
+            it('should calc metric and return results', async function () {
+                const adapterController = new AdapterController(config, adapterSettings);
+                await adapterController.init();
+                const adaptersResults = await adapterController.getData();
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const metric = metricsController._metrics.algorithms.find(a => a.name === 'queue');
+                const metricResults = metric.calc(adaptersResults);
+                const map = metricResults.map(m => m.name).sort();
+                const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
+                expect(metricResults).to.be.an('array');
+                expect(map).to.deep.equal(algorithms);
+            });
+        });
+        describe('CpuUsage', function () {
+            it('should return weight same as config', async function () {
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const metric = metricsController._metrics.algorithms.find(a => a.name === 'cpuUsage');
+                expect(metric.weight).to.greaterThan(0);
+            });
+            it('should calc metric and return results', async function () {
+                const adapterController = new AdapterController(config, adapterSettings);
+                await adapterController.init();
+                const adaptersResults = await adapterController.getData();
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const metric = metricsController._metrics.algorithms.find(a => a.name === 'cpuUsage');
+                const metricResults = metric.calc(adaptersResults);
+                const map = metricResults.map(m => m.name).sort();
+                const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
+                expect(metricResults).to.be.an('array');
+                expect(map).to.deep.equal(algorithms);
+            });
+        });
+        describe('RunTime', function () {
+            it('should return weight same as config', async function () {
+                const adapterController = new AdapterController(config, adapterSettings);
+                await adapterController.init();
+                const data = await adapterController.getData();
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const metric = metricsController._metrics.algorithms.find(a => a.name === 'runTime');
+                expect(metric.weight).to.greaterThan(0);
+            });
+            it('should calc metric and return results', async function () {
+                const adapterController = new AdapterController(config, adapterSettings);
+                await adapterController.init();
+                const adaptersResults = await adapterController.getData();
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const metric = metricsController._metrics.algorithms.find(a => a.name === 'runTime');
+                const metricResults = metric.calc(adaptersResults);
+                const map = metricResults.map(m => m.name).sort();
+                const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
+                expect(metricResults).to.be.an('array');
+                expect(map).to.deep.equal(algorithms);
+            });
+        });
+        describe('TemplatesStore', function () {
+            it('should return weight same as config', async function () {
+                const adapterController = new AdapterController(config, adapterSettings);
+                await adapterController.init();
+                const data = await adapterController.getData();
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const metric = metricsController._metrics.algorithms.find(a => a.name === 'templatesStore');
+                expect(metric.weight).to.greaterThan(0);
+            });
+            it('should calc metric and return results', async function () {
+                const adapterController = new AdapterController(config, adapterSettings);
+                await adapterController.init();
+                const adaptersResults = await adapterController.getData();
+                const metricsController = new MetricsController(config, metricsSettings);
+                await metricsController.init();
+                const metric = metricsController._metrics.algorithms.find(a => a.name === 'templatesStore');
+                const metricResults = metric.calc(adaptersResults);
+                const map = metricResults.map(m => m.name).sort();
+                const algorithms = Object.keys(adaptersResults.algorithms.templatesStore).sort();
+                expect(metricResults).to.be.an('array');
+                expect(map).to.deep.equal(algorithms);
+            });
+        });
+    });
+    describe('Metrics-Map', function () {
         describe('MetricsReducer', function () {
             it('should reduce the metrics results', async function () {
                 const adapterController = new AdapterController(config, adapterSettings);
@@ -457,9 +562,8 @@ describe('Test', function () {
             expect(values).to.deep.equal(array);
         });
     });
-    describe('Monitoring', function () {
+    xdescribe('Monitoring', function () {
         it('should run the metricsProvider', function () {
-            this.timeout(50000);
             return new Promise(async function (resolve, reject) {
                 const adapterController = new AdapterController(config, adapterSettings);
                 await adapterController.init();
