@@ -7,7 +7,7 @@ const mapToArray = (map, keyVal = ['key', 'value']) => {
 const arrayToMap = (array, keyVal = ['key', 'value']) => {
     const init = Object.create(null);
     return array.reduce((map, obj) => {
-        map[obj[keyVal[0]]] = obj[keyVal[1]] || obj;
+        map[obj[keyVal[0]]] = keyVal.length > 1 ? obj[keyVal[1]] : obj;
         return map;
     }, init);
 };

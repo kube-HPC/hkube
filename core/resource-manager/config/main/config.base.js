@@ -3,7 +3,7 @@ const config = module.exports = {};
 
 config.serviceName = packageJson.name;
 
-config.recommendationMode = 'map';  // flat, map
+config.recommendationMode = 'flat';  // flat, map
 
 config.etcd = {
     protocol: 'http',
