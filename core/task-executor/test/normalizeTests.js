@@ -97,37 +97,34 @@ describe('normalize', () => {
         it('should return object with requests per algorithms', () => {
             const stub = [
                 {
-                    name: 'black-alg',
-                    data: {
-                        pods: 7
-                    }
-                },
-                {
-                    name: 'green-alg',
-                    data: {
-                        pods: 1
-                    }
-                },
-                {
-                    name: 'yellow-alg',
-                    data: {
-                        pods: 1
-                    }
+                    data: [
+                        {
+                            name: 'black-alg',
+                        },
+                        {
+                            name: 'black-alg',
+                        },
+                        {
+                            name: 'yellow-alg',
+                        },
+                        {
+                            name: 'green-alg',
+                        }      
+        
+                    ]
                 }
             ];
             const res = normalizeRequests(stub);
-            expect(res).to.have.length(3);
+            expect(res).to.have.length(4);
             expect(res).to.deep.include({
                 algorithmName: 'black-alg',
-                pods: 7
             });
+            expect(res.filter(r=>r.algorithmName==='black-alg')).to.have.lengthOf(2);
             expect(res).to.deep.include({
                 algorithmName: 'green-alg',
-                pods: 1
             });
             expect(res).to.deep.include({
                 algorithmName: 'yellow-alg',
-                pods: 1
             });
         });
     });

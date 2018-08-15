@@ -87,37 +87,25 @@ describe('normalize pipeline driver', () => {
         it('should return object with requests per algorithms', () => {
             const stub = [
                 {
-                    name: 'black-alg',
-                    data: {
-                        pods: 7
-                    }
-                },
-                {
-                    name: 'green-alg',
-                    data: {
-                        pods: 1
-                    }
-                },
-                {
-                    name: 'yellow-alg',
-                    data: {
-                        pods: 1
-                    }
+                    data: [
+                        {
+                            name: 'pipeline-driver',
+                        },
+                        {
+                            name: 'pipeline-driver',
+                        },
+                        {
+                            name: 'pipeline-driver',
+                        }
+
+                    ]
                 }
             ];
             const res = normalizeDriversRequests(stub);
-            expect(res).to.have.length(3);
+            expect(res).to.have.length(1);
             expect(res).to.deep.include({
-                name: 'black-alg',
-                pods: 7
-            });
-            expect(res).to.deep.include({
-                name: 'green-alg',
-                pods: 1
-            });
-            expect(res).to.deep.include({
-                name: 'yellow-alg',
-                pods: 1
+                name: 'pipeline-driver',
+                pods: 3
             });
         });
     });

@@ -10,7 +10,6 @@ const executor = require('./lib/executor');
 const modules = [
     etcd,
     kubernetes,
-    executor
 ];
 
 class Bootstrap {
@@ -21,7 +20,7 @@ class Bootstrap {
             await metrics.init(main.metrics);
             await tracer.init(main.tracer);
             await Promise.all(modules.map(m => m.init(main)));
-
+            await executor.init(main);
             return main;
         }
         catch (error) {

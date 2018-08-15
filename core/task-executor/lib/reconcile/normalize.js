@@ -138,17 +138,34 @@ const normalizeResources = ({ pods, nodes } = {}) => {
 };
 
 const normalizeRequests = (requests) => {
-    if (requests == null) {
+    if (requests == null || requests.length === 0 || requests[0].data == null) {
         return [];
     }
-    return requests.map(r => ({ algorithmName: r.name, pods: r.data.pods }));
+
+    return requests[0].data.map(r => ({ algorithmName: r.name }));
 };
 
 const normalizeDriversRequests = (requests) => {
-    if (requests == null) {
+    if (requests == null || requests.length === 0 || requests[0].data == null) {
         return [];
     }
-    return requests.map(r => ({ name: r.name, pods: r.data.pods }));
+    return [{
+        name: 'pipeline-driver',
+        pods: requests[0].data.filter(r => r.name === 'pipeline-driver').length
+    }];
+};
+
+const _tryParseTime = (timeString) => {
+    if (!timeString) {
+        return null;
+    }
+    try {
+        const date = new Date(timeString);
+        return date.getTime();
+    } 
+    catch (error) {
+        return null;
+    }
 };
 
 const normalizeJobs = (jobsRaw, predicate = () => true) => {
@@ -160,7 +177,8 @@ const normalizeJobs = (jobsRaw, predicate = () => true) => {
         .map(j => ({
             name: j.metadata.name,
             algorithmName: j.metadata.labels['algorithm-name'],
-            active: j.status.active === 1
+            active: j.status.active === 1,
+            startTime: _tryParseTime(j.status.startTime)
         }));
     return jobs;
 };

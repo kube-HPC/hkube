@@ -15,6 +15,7 @@ class Logger {
             log = {
                 count: 0,
                 error: message,
+                errorObject: error,
                 component,
                 timestamp: Date.now()
             };
@@ -36,7 +37,7 @@ class Logger {
     }
 
     _log(log) {
-        logger.error(`${log.error}. (${log.count} occurrences)`, { component: log.component });
+        logger.error(`${log.error}. (${log.count} occurrences)`, { component: log.component }, log.errorObject);
     }
 }
 

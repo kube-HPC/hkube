@@ -41,11 +41,17 @@ class Etcd extends EventEmitter {
         return drivers;
     }
 
-    async getAlgorithmRequests(options = {}) {
+    async getAlgorithmRequests() {
+        const options = {
+            name: 'data'
+        };
         return this._etcd.algorithms.resourceRequirements.list(options);
     }
 
-    async getPipelineDriverRequests(options) {
+    async getPipelineDriverRequests() {
+        const options = {
+            name: 'data'
+        };
         return this._etcd.pipelineDrivers.resourceRequirements.list(options);
     }
 

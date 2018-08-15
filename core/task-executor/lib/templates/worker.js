@@ -45,7 +45,7 @@ const jobTemplate = {
                             },
                             {
                                 name: 'INACTIVE_PAUSED_WORKER_TIMEOUT_MS',
-                                value: '60000'
+                                value: '5000'
                             },
                             {
                                 name: 'POD_ID',

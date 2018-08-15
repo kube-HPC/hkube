@@ -9,7 +9,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     }
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
     const memoryRequests = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
-    if (availableResources.allNodes.free.cpu * CPU_RATIO_PRESURE < requestedCpu) {
+    if (availableResources.allNodes.free.cpu - (availableResources.allNodes.total.cpu * (1 - CPU_RATIO_PRESURE)) < requestedCpu) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
     if (availableResources.allNodes.free.memory * MEMORY_RATIO_PRESURE < memoryRequests) {
@@ -25,7 +25,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
 const shouldStopJob = (jobDetails, availableResources) => {
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
     const memoryRequests = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
-    const isCpuPresure = availableResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
+    const isCpuPresure = availableResources.allNodes.free.cpu < (availableResources.allNodes.total.cpu * (1 - CPU_RATIO_PRESURE));
     const isMemoryPresure = availableResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
     if (!isCpuPresure && !isMemoryPresure) {
         return { shouldStop: false, newResources: { ...availableResources } };
@@ -75,16 +75,20 @@ const _findWorkerToStop = (workers, algorithmName) => {
     return { workers };
 };
 
-const pauseAccordingToResources = (stopDetails, availableResources, workers) => {
+const pauseAccordingToResources = (stopDetails, availableResources, workers, resourcesToFree) => {
     const localDetails = clone(stopDetails);
     let localWorkers = workers;
     let addedThisTime = 0;
-
+    let localResources = clone(availableResources);
+    if (resourcesToFree) {
+        localResources.allNodes.free.cpu -= resourcesToFree.cpu;
+        localResources.allNodes.free.memory -= resourcesToFree.memory;
+    }
     const toStop = [];
     const skipped = [];
     const cb = (j) => {
         if (j.count > 0) {
-            const { shouldStop, newResources } = shouldStopJob(j.details, availableResources);
+            const { shouldStop, newResources } = shouldStopJob(j.details, localResources);
             if (shouldStop) {
                 const workerToStop = _findWorkerToStop(localWorkers, j.details.algorithmName);
                 localWorkers = workerToStop.workers;
@@ -97,7 +101,7 @@ const pauseAccordingToResources = (stopDetails, availableResources, workers) => 
             }
             j.count -= 1;
             addedThisTime += 1;
-            availableResources = newResources;
+            localResources = newResources;
         }
     };
 
@@ -120,7 +124,7 @@ const matchJobsToResources = (createDetails, availableResources) => {
         if (j.numberOfNewJobs > 0) {
             const { shouldAdd, newResources } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
             if (shouldAdd) {
-                created.push(j.jobDetails);
+                created.push({ ...j.jobDetails, createdTime: Date.now() });
             }
             else {
                 skipped.push(j.jobDetails);

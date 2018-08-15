@@ -77,6 +77,10 @@ describe('resources manager', () => {
                 free: {
                     cpu: 3,
                     memory: 32512
+                },
+                total: {
+                    cpu: 10,
+                    memory: 32512
                 }
             }
         };
@@ -105,6 +109,10 @@ describe('resources manager', () => {
                 free: {
                     cpu: 4,
                     memory: 32512
+                },
+                total: {
+                    cpu: 10,
+                    memory: 32512
                 }
             }
         };
@@ -131,7 +139,11 @@ describe('resources manager', () => {
         const availableResources = {
             allNodes: {
                 free: {
-                    cpu: 8,
+                    cpu: 12,
+                    memory: 32512
+                },
+                total: {
+                    cpu: 20,
                     memory: 32512
                 }
             }
@@ -158,17 +170,21 @@ describe('resources manager', () => {
         expect(res.shouldAdd).to.be.true;
         res = shouldAddJob(jobDetails, res.newResources);
         expect(res.shouldAdd).to.be.false;
-        expect(res.newResources.allNodes.free.cpu).to.eq(1);
+        expect(res.newResources.allNodes.free.cpu).to.eq(5);
         res = shouldAddJob(jobDetails, res.newResources);
         expect(res.shouldAdd).to.be.false;
-        expect(res.newResources.allNodes.free.cpu).to.eq(1);
+        expect(res.newResources.allNodes.free.cpu).to.eq(5);
     });
     it('should add until no more memory', () => {
         const availableResources = {
             allNodes: {
                 free: {
-                    cpu: 8,
+                    cpu: 12,
                     memory: 25000
+                },
+                total: {
+                    cpu: 20,
+                    memory: 32512
                 }
             }
         };
@@ -194,11 +210,11 @@ describe('resources manager', () => {
         expect(res.shouldAdd).to.be.true;
         res = shouldAddJob(jobDetails, res.newResources);
         expect(res.shouldAdd).to.be.false;
-        expect(res.newResources.allNodes.free.cpu).to.eq(6);
+        expect(res.newResources.allNodes.free.cpu).to.eq(10);
         expect(res.newResources.allNodes.free.memory).to.eq(5000);
         res = shouldAddJob(jobDetails, res.newResources);
         expect(res.shouldAdd).to.be.false;
-        expect(res.newResources.allNodes.free.cpu).to.eq(6);
+        expect(res.newResources.allNodes.free.cpu).to.eq(10);
         expect(res.newResources.allNodes.free.memory).to.eq(5000);
     });
 });

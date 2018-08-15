@@ -1,5 +1,7 @@
 const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
+const clonedeep = require('lodash.clonedeep');
+const parse = require('@hkube/units-converter');
 const { createJobSpec, createDriverJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
@@ -19,6 +21,9 @@ const { setWorkerImage, createContainerResource, setAlgorithmImage, setPipelineD
 const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
 const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = require('../../common/consts/consts');
 
+let createdJobsList = [];
+const CREATED_JOBS_TTL = 5 * 1000;
+const MIN_AGE_FOR_STOP = 10 * 1000;
 const _createJob = (jobDetails) => {
     const spec = createJobSpec(jobDetails);
     const jobCreateResult = kubernetes.createJob({ spec });
@@ -46,18 +51,19 @@ const _pendingDriverFilter = (job, algorithmName) => {
     return match;
 };
 
-const _pendingJobsFilter = (job, algorithmName) => {
-    const match = job.algorithmName === algorithmName;
-    return match;
-};
-
 const _idleWorkerFilter = (worker, algorithmName) => {
-    const match = worker.algorithmName === algorithmName && worker.workerStatus === 'ready' && !worker.paused;
+    let match = worker.workerStatus === 'ready' && !worker.paused;
+    if (algorithmName) {
+        match = match && worker.algorithmName === algorithmName;
+    }
     return match;
 };
 
 const _pausedWorkerFilter = (worker, algorithmName) => {
-    const match = worker.algorithmName === algorithmName && worker.workerStatus === 'ready' && worker.paused;
+    let match = worker.workerStatus === 'ready' && worker.paused;
+    if (algorithmName) {
+        match = match && worker.algorithmName === algorithmName;
+    }
     return match;
 };
 
@@ -78,91 +84,125 @@ const _stopDriver = (driver) => {
     return etcd.sendCommandToDriver({ driverId: driver.id, command: commands.stopProcessing });
 };
 
+const _clearCreatedJobsList = (now) => {
+    const newCreatedJobsList = createdJobsList.filter(j => (now || Date.now()) - j.createdTime < CREATED_JOBS_TTL);
+    log.debug(`removed ${createdJobsList.length - newCreatedJobsList.length} items from jobCreated list`);
+    createdJobsList = newCreatedJobsList;
+};
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources } = {}) => {
+    _clearCreatedJobsList();
     const normPods = normalizeWorkers(algorithmPods);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const merged = mergeWorkers(normPods, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
-    log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
+    // log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
     log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
-
-    // const isResourcePresure = isCpuPresure || isMemoryPresure;
     const createDetails = [];
-    const stopDetails = [];
     const createPromises = [];
     const reconcileResult = {};
-    for (let r of normRequests) { // eslint-disable-line
+
+    const idleWorkers = clonedeep(merged.mergedWorkers.filter(w => _idleWorkerFilter(w)));
+    const pausedWorkers = clonedeep(merged.mergedWorkers.filter(w => _pausedWorkerFilter(w)));
+    const pendingWorkers = clonedeep(merged.extraJobs);
+    const jobsCreated = clonedeep(createdJobsList);
+
+
+    for (let r of normRequests) {// eslint-disable-line
         const { algorithmName } = r;
-        // find workers currently for this algorithm
-        const workersForAlgorithm = merged.mergedWorkers.filter(w => _idleWorkerFilter(w, algorithmName));
-        const pausedWorkers = merged.mergedWorkers.filter(w => _pausedWorkerFilter(w, algorithmName));
-        const pendingWorkers = merged.extraJobs.filter(j => _pendingJobsFilter(j, algorithmName));
-        reconcileResult[algorithmName] = {
-            required: r.pods,
-            idle: workersForAlgorithm.length,
-            paused: pausedWorkers.length,
-            pending: pendingWorkers.length
-        };
-        let requiredCount = r.pods;
-        if (requiredCount > 0 && pausedWorkers.length > 0) {
-            const canWakeWorkersCount = requiredCount > pausedWorkers.length ? pausedWorkers.length : requiredCount;
-            if (canWakeWorkersCount > 0) {
-                log.debug(`waking up ${canWakeWorkersCount} pods for algorithm ${algorithmName}`, { component });
-                createPromises.push(_resumeWorkers(pausedWorkers, canWakeWorkersCount));
-                requiredCount -= canWakeWorkersCount;
+        const idleWorkerIndex = idleWorkers.findIndex(w => w.algorithmName === algorithmName);
+        if (idleWorkerIndex !== -1) {
+            // there is idle worker. don't do anything
+            idleWorkers.splice(idleWorkerIndex, 1);
+            continue; // eslint-disable-line
+        }
+        const pausedWorkerIndex = pausedWorkers.findIndex(w => w.algorithmName === algorithmName);
+        if (pausedWorkerIndex !== -1) {
+            // there is paused worker. wake it up
+            const workerId = pausedWorkers[pausedWorkerIndex].id;
+            createPromises.push(etcd.sendCommandToWorker({ workerId, command: commands.startProcessing }));
+            pausedWorkers.splice(pausedWorkerIndex, 1);
+            continue; // eslint-disable-line
+        }
+        const pendingWorkerIndex = pendingWorkers.findIndex(w => w.algorithmName === algorithmName);
+        if (pendingWorkerIndex !== -1) {
+            // there is a pending worker.
+            pendingWorkers.splice(pendingWorkerIndex, 1);
+            continue; // eslint-disable-line
+        }
+        const jobsCreatedIndex = jobsCreated.findIndex(w => w.algorithmName === algorithmName);
+        if (jobsCreatedIndex !== -1) {
+            // there is a pending worker.
+            jobsCreated.splice(jobsCreatedIndex, 1);
+            continue; // eslint-disable-line
+        }
+        const algorithmTemplate = algorithmTemplates[algorithmName];
+        const algorithmImage = setAlgorithmImage(algorithmTemplate, versions);
+        const workerImage = setWorkerImage(algorithmTemplate, versions);
+        const resourceRequests = createContainerResource(algorithmTemplate);
+        const { workerEnv, algorithmEnv, } = algorithmTemplate;
+        createDetails.push({
+            numberOfNewJobs: 1,
+            jobDetails: {
+                algorithmName,
+                algorithmImage,
+                workerImage,
+                workerEnv,
+                algorithmEnv,
+                resourceRequests
             }
+        });
+        if (!reconcileResult[algorithmName]) {
+            reconcileResult[algorithmName] = {
+                required: 1,
+                idle: 0,
+                paused: 0
+            };
         }
-        const podDiff = (workersForAlgorithm.length + pendingWorkers.length) - requiredCount;
-        const podDiffForDelete = workersForAlgorithm.length - requiredCount;
-        if (podDiffForDelete > 0) {
-            // need to stop some workers
-            // if (isResourcePresure) {
-            log.debug(`need to stop ${podDiffForDelete} pods for algorithm ${algorithmName}`);
-            // _stopWorkers(workersForAlgorithm, 1);
-            const algorithmTemplate = algorithmTemplates[algorithmName];
-            const resourceRequests = createContainerResource(algorithmTemplate);
-
-            stopDetails.push({
-                count: podDiffForDelete,
-                details: {
-                    algorithmName,
-                    resourceRequests
-                }
-            });
-            // }
-            // else {
-            //     log.debug(`resources ratio is: ${JSON.stringify(normResources.allNodes.ratio)}. no need to stop pods`);
-            // }
-        }
-        else if (podDiff < 0) {
-            // need to add workers
-            const numberOfNewJobs = -podDiff;
-
-            log.debug(`need to add ${numberOfNewJobs} pods for algorithm ${algorithmName}`, { component });
-
-            const algorithmTemplate = algorithmTemplates[algorithmName];
-            const algorithmImage = setAlgorithmImage(algorithmTemplate, versions);
-            const workerImage = setWorkerImage(algorithmTemplate, versions);
-            const resourceRequests = createContainerResource(algorithmTemplate);
-            const { workerEnv, algorithmEnv, } = algorithmTemplate;
-            createDetails.push({
-                numberOfNewJobs,
-                jobDetails: {
-                    algorithmName,
-                    algorithmImage,
-                    workerImage,
-                    workerEnv,
-                    algorithmEnv,
-                    resourceRequests
-                }
-            });
+        else {
+            reconcileResult[algorithmName].required += 1;
         }
     }
-    const { toStop } = pauseAccordingToResources(stopDetails, normResources, merged.mergedWorkers);
-    const stopPromises = toStop.map(r => _stopWorker(r));
     const { created, skipped } = matchJobsToResources(createDetails, normResources);
+    created.forEach((j) => {
+        createdJobsList.push(j);
+    });
+
+    // if couldn't create all, try to stop some workers
+    const stopDetails = [];
+    const resourcesToFree = skipped.reduce((prev, cur) => {
+        return {
+            cpu: prev.cpu + cur.resourceRequests.requests.cpu,
+            memory: prev.memory + parse.getMemoryInMi(cur.resourceRequests.requests.memory)
+        };
+    }, {
+        cpu: 0,
+        memory: 0
+    });
+    if (skipped.length > 0) {
+        idleWorkers.forEach((r) => {
+            const algorithmTemplate = algorithmTemplates[r.algorithmName];
+            const resourceRequests = createContainerResource(algorithmTemplate);
+            stopDetails.push({
+                count: 1,
+                details: {
+                    algorithmName: r.algorithmName,
+                    resourceRequests
+                }
+            });
+        });
+    }
+
+    const { toStop } = pauseAccordingToResources(
+        stopDetails,
+        normResources,
+        idleWorkers.filter(w => Date.now() - w.job.startTime > MIN_AGE_FOR_STOP),
+        resourcesToFree
+    );
+    const stopPromises = toStop.map(r => _stopWorker(r));
+
     createPromises.push(created.map(r => _createJob(r)));
     await Promise.all([...createPromises, ...stopPromises]);
     // add created and skipped info
@@ -173,6 +213,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
     });
     return reconcileResult;
 };
+
 
 /**
  * 
@@ -185,7 +226,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, driversPods,
     const normJobs = normalizeDriversJobs(jobs, j => !j.status.succeeded);
     const merged = mergeDrivers(normPods, normJobs);
     const normRequests = normalizeDriversRequests(driversRequests);
-    log.debug(`resources:\n${JSON.stringify(normResources, null, 2)}`);
+    // log.debug(`resources:\n${JSON.stringify(normResources, null, 2)}`);
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
     log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
@@ -276,5 +317,6 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, driversPods,
 
 module.exports = {
     reconcile,
-    reconcileDrivers
+    reconcileDrivers,
+    _clearCreatedJobsList
 };
