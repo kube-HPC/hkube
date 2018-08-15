@@ -10,7 +10,7 @@ class StoreAdapter {
 
     async setData(data) {
         this._log(data);
-        return stateManager.setPipelineDriverRequirements(data);
+        return stateManager.setPipelineDriverRequirements({ name: 'data', data });
     }
 
     _log(data) {

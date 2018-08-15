@@ -47,7 +47,7 @@ class StoreManager extends EventEmitter {
     }
 
     setPipelineDriverRequirements(resourceResults) {
-        return Promise.all(resourceResults.map(a => this._etcd.pipelineDrivers.resourceRequirements.set(a)));
+        return this._etcd.pipelineDrivers.resourceRequirements.set(resourceResults);
     }
 }
 
