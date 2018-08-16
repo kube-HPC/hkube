@@ -28,7 +28,7 @@ class Operator {
             name: metricsNames.ALGORITHM_QUEUE_REMOVED,
             labels: ['algorithmName']
         });
-       
+
         this._startInterval();
     }
 
@@ -38,16 +38,23 @@ class Operator {
 
     async _intervalCallback() {
         log.debug('Reconcile inteval.', { component });
-        
-        const versions = await kubernetes.getVersionsConfigMap() || this._versions;
-        const deployments = await kubernetes.getDeployments({labelSelector: 'metrics-group=algorithm-queue'});
-        const algorithms = await etcd.getAlgorithmTemplates();
-        await reconciler.reconcile({
-            deployments,
-            algorithms,
-            versions
-        });
-        setTimeout(this._intervalCallback.bind(this), this._intervalMs);
+
+        try {
+            const versions = await kubernetes.getVersionsConfigMap() || this._versions;
+            const deployments = await kubernetes.getDeployments({ labelSelector: 'metrics-group=algorithm-queue' });
+            const algorithms = await etcd.getAlgorithmTemplates();
+            await reconciler.reconcile({
+                deployments,
+                algorithms,
+                versions
+            });
+        }
+        catch (error) {
+            log.error(`Fail to Reconcile ${error}`, { component });
+        }
+        finally {
+            setTimeout(this._intervalCallback.bind(this), this._intervalMs);
+        }
     }
 }
 
