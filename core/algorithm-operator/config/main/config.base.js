@@ -15,7 +15,7 @@ config.etcd = {
     serviceName: config.serviceName
 };
 
-config.intervalMs = 30000;
+config.intervalMs = 10000;
 
 config.metrics = {
     collectDefault: true,

@@ -40,13 +40,14 @@ class Operator {
         log.debug('Reconcile inteval.', { component });
 
         try {
-            const versions = await kubernetes.getVersionsConfigMap() || this._versions;
+            const {versions, registry} = await kubernetes.getVersionsConfigMap();
             const deployments = await kubernetes.getDeployments({ labelSelector: 'metrics-group=algorithm-queue' });
             const algorithms = await etcd.getAlgorithmTemplates();
             await reconciler.reconcile({
                 deployments,
                 algorithms,
-                versions
+                versions,
+                registry
             });
         }
         catch (error) {
