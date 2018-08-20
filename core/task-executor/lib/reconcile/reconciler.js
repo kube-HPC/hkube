@@ -99,7 +99,7 @@ const _clearCreatedJobsList = (now) => {
 };
 
 const _processAllRequests = (
-    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests },
+    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry },
     { createPromises, createDetails, reconcileResult }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
@@ -131,8 +131,8 @@ const _processAllRequests = (
             continue; // eslint-disable-line
         }
         const algorithmTemplate = algorithmTemplates[algorithmName];
-        const algorithmImage = setAlgorithmImage(algorithmTemplate, versions);
-        const workerImage = setWorkerImage(algorithmTemplate, versions);
+        const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
+        const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
         const resourceRequests = createContainerResource(algorithmTemplate);
         const { workerEnv, algorithmEnv, } = algorithmTemplate;
         createDetails.push({
@@ -222,7 +222,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     });
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources } = {}) => {
+const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources, registry } = {}) => {
     _clearCreatedJobsList();
     const normPods = normalizeWorkers(algorithmPods);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
@@ -245,7 +245,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
 
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests
+            idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry
         },
         {
             createPromises, createDetails, reconcileResult
@@ -263,10 +263,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
             cpu: prev.cpu + cur.resourceRequests.requests.cpu,
             memory: prev.memory + parse.getMemoryInMi(cur.resourceRequests.requests.memory)
         };
-    }, {
-        cpu: 0,
-        memory: 0
-    });
+    }, { cpu: 0, memory: 0 });
     _findWorkersToStop({
         skipped, idleWorkers, activeWorkers, algorithmTemplates
     }, { stopDetails });
@@ -297,7 +294,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
  * 1) drivers requires large cpu, so resource manager don't allocate more than....
  * 
  */
-const reconcileDrivers = async ({ driverTemplates, driversRequests, driversPods, jobs, versions, normResources, settings } = {}) => {
+const reconcileDrivers = async ({ driverTemplates, driversRequests, driversPods, jobs, versions, normResources, settings, registry } = {}) => {
     const normPods = normalizeDrivers(driversPods);
     const normJobs = normalizeDriversJobs(jobs, j => !j.status.succeeded);
     const merged = mergeDrivers(normPods, normJobs);
@@ -365,7 +362,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, driversPods,
             log.debug(`need to add ${numberOfNewJobs} pods for type ${name}`, { component });
 
             const driverTemplate = driverTemplates[name];
-            const image = setPipelineDriverImage(driverTemplate, versions);
+            const image = setPipelineDriverImage(driverTemplate, versions, registry);
             const resourceRequests = createContainerResource(driverTemplate);
             createDetails.push({
                 numberOfNewJobs,

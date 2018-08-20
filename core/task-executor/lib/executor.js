@@ -37,13 +37,15 @@ class Executor {
 
     async _interval(options, driversData) {
         try {
-            const [versions, resources] = await Promise.all([
+            const [{ versions, registry }, resources] = await Promise.all([
                 kubernetes.getVersionsConfigMap(),
                 kubernetes.getResourcesPerNode()
             ]);
 
             const normResources = normalizeResources(resources);
-            const data = { versions, normResources, options };
+            const data = { 
+                versions, normResources, options, registry 
+            };
 
             await Promise.all([
                 this._algorithmsHandle(data),
@@ -64,7 +66,7 @@ class Executor {
         return { minAmount, maxAmount, name };
     }
 
-    async _algorithmsHandle({ versions, normResources }) {
+    async _algorithmsHandle({ versions, normResources, registry }) {
         const [templates, algorithmRequests, algorithmPods, jobs] = await Promise.all([
             etcd.getAlgorithmTemplate(),
             etcd.getAlgorithmRequests({}),
@@ -75,7 +77,7 @@ class Executor {
         const algorithmTemplates = utils.arrayToMap(templates);
 
         const reconcilerResults = await reconciler.reconcile({
-            algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources
+            algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources, registry
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
@@ -90,7 +92,7 @@ class Executor {
         });
     }
 
-    async _pipelineDriversHandle({ versions, normResources }, settings) {
+    async _pipelineDriversHandle({ versions, normResources, registry }, settings) {
         const [templates, driversRequests, driversPods, jobs] = await Promise.all([
             etcd.getDriversTemplate(),
             etcd.getPipelineDriverRequests(),
@@ -101,7 +103,7 @@ class Executor {
         const driverTemplates = utils.arrayToMap(templates, 'name');
 
         await reconciler.reconcileDrivers({
-            driverTemplates, driversRequests, driversPods, jobs, versions, normResources, settings
+            driverTemplates, driversRequests, driversPods, jobs, versions, normResources, settings, registry
         });
     }
 }

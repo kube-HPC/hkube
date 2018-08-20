@@ -39,9 +39,12 @@ const createImageName = ({ registry, namespace, repository, tag }, ignoreTag) =>
     return image;
 };
 
-const setAlgorithmImage = (template, versions) => {
+const setAlgorithmImage = (template, versions, registry) => {
     const imageName = template.algorithmImage;
     const imageParsed = parseImageName(imageName);
+    if (registry) {
+        imageParsed.registry = registry.registry;
+    }
     if (imageParsed.tag) {
         return createImageName(imageParsed);
     }
@@ -52,9 +55,12 @@ const setAlgorithmImage = (template, versions) => {
     return createImageName(imageParsed);
 };
 
-const setPipelineDriverImage = (template, versions) => {
+const setPipelineDriverImage = (template, versions, registry) => {
     const imageName = template.image;
     const imageParsed = parseImageName(imageName);
+    if (registry) {
+        imageParsed.registry = registry.registry;
+    }
     if (imageParsed.tag) {
         return createImageName(imageParsed);
     }
@@ -77,9 +83,12 @@ const createContainerResource = (template) => {
     return { requests, limits };
 };
 
-const setWorkerImage = (template, versions) => {
+const setWorkerImage = (template, versions, registry) => {
     const imageName = template.workerImage || 'hkube/worker';
     const imageParsed = parseImageName(imageName);
+    if (registry) {
+        imageParsed.registry = registry.registry;
+    }
     if (imageParsed.tag) {
         return createImageName(imageParsed);
     }

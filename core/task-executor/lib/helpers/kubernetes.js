@@ -78,11 +78,12 @@ class KubernetesApi extends EventEmitter {
         try {
             const configMap = await this._client.api.v1.namespaces(this._namespace).configmaps('hkube-versions').get();
             const versions = JSON.parse(configMap.body.data['versions.json']);
-            return versions;
+            const registry = configMap.body.data['registry.json'] && JSON.parse(configMap.body.data['registry.json']);
+            return { versions, registry };
         }
         catch (error) {
             log.error(`unable to get configmap. error: ${error.message}`, { component }, error);
-            return null;
+            return {};
         }
     }
 

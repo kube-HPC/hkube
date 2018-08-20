@@ -137,8 +137,8 @@ describe('Kubernetes API', () => {
             }
         };
         await instance.init(options);
-        const res = await instance.getVersionsConfigMap();
-        expect(res.name).to.eql('hkube-versions');
+        const {versions} = await instance.getVersionsConfigMap();
+        expect(versions.name).to.eql('hkube-versions');
 
     });
     it('should throw', async () => {
@@ -150,8 +150,8 @@ describe('Kubernetes API', () => {
         };
         await instance.init(options);
         instance._client.shouldThrow = true
-        const res = await instance.getVersionsConfigMap();
-        expect(res).to.be.null
+        const {versions} = await instance.getVersionsConfigMap();
+        expect(versions).to.be.undefined
     });
     it('should get nodes and pods', async () => {
         const instance = new KubernetesApi();
