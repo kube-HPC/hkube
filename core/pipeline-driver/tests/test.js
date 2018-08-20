@@ -420,7 +420,7 @@ describe('Test', function () {
             await taskRunner.start(job)
             expect(taskRunner._jobId).to.equal(jobId);
             expect(taskRunner._active).to.equal(true);
-            expect(taskRunner._pipelineName).to.equal(pipeline.name);
+            expect(taskRunner.pipeline.name).to.equal(pipeline.name);
         });
         it('should recover pipeline successfully', async function () {
 

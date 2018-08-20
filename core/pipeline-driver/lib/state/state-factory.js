@@ -19,7 +19,7 @@ class StateFactory extends EventEmitter {
         this._subscribe();
     }
 
-    getDiscovery() {
+    _getDiscovery() {
         const discovery = this._discoveryMethod();
         const data = {
             paused: false,
@@ -37,11 +37,11 @@ class StateFactory extends EventEmitter {
     }
 
     getState() {
-        return this.getDiscovery();
+        return this._getDiscovery();
     }
 
     setState(options) {
-        const discovery = this.getDiscovery();
+        const discovery = this._getDiscovery();
         const state = { ...discovery, ...options };
         this._state = state;
         return this._updateDiscovery(state);

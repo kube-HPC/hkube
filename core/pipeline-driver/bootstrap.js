@@ -11,8 +11,7 @@ const modules = [
     './lib/consumer/jobs-consumer',
     './lib/state/state-factory',
     './lib/datastore/storage-factory',
-    './lib/datastore/redis-storage-adapter',
-
+    './lib/datastore/redis-storage-adapter'
 ];
 
 class Bootstrap {

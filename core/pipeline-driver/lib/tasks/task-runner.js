@@ -32,17 +32,14 @@ class TaskRunner extends EventEmitter {
         super();
         this._job = null;
         this._jobId = null;
-        this._pipeline = null;
         this._nodes = null;
         this._active = false;
-        this._pipelineName = null;
-        this._pipelineStartTime = null;
-        this._pipelinePriority = null;
         this._stateManager = null;
         this._progress = null;
         this._driverStatus = null;
         this._jobStatus = null;
         this._error = null;
+        this.pipeline = null;
         this._getDiscoveryData = this._getDiscoveryData.bind(this);
         this._init(options);
     }
@@ -88,8 +85,8 @@ class TaskRunner extends EventEmitter {
         this._active = true;
         try {
             await this._startPipeline(job);
-            graphStore.start(job.data.jobId, this._nodes);
-            this.emit('started', this._getDiscoveryData());
+            await graphStore.start(job.data.jobId, this._nodes);
+            this.emit(DriverStates.ACTIVE, this._getDiscoveryData());
         }
         catch (error) {
             this.stop(error);
@@ -110,7 +107,6 @@ class TaskRunner extends EventEmitter {
         finally {
             await this._stateManager.deleteTasks({ jobId: this._jobId });
             await graphStore.deleteGraph({ jobId: this._jobId });
-            this.emit('completed', this._getDiscoveryData());
             await this._cleanJob(error);
         }
     }
@@ -121,10 +117,9 @@ class TaskRunner extends EventEmitter {
         this._jobStatus = DriverStates.ACTIVE;
         log.info(`pipeline started ${this._jobId}`, { component, jobId: this._jobId });
 
-        this._pipeline = await this._stateManager.getExecution({ jobId: this._jobId });
-        this._pipelineStartTime = (this._pipeline && this._pipeline.startTime) || Date.now();
+        this.pipeline = await this._stateManager.getExecution({ jobId: this._jobId });
 
-        if (!this._pipeline) {
+        if (!this.pipeline) {
             throw new Error(`unable to find pipeline for job ${this._jobId}`);
         }
 
@@ -135,9 +130,7 @@ class TaskRunner extends EventEmitter {
             return;
         }
 
-        this._pipelineName = this._pipeline.name;
-        this._pipelinePriority = this._pipeline.priority;
-        this._nodes = new NodesMap(this._pipeline);
+        this._nodes = new NodesMap(this.pipeline);
         this._nodes.on('node-ready', (node) => {
             log.debug(`new node ready to run: ${node.nodeName}`, { component });
             this._runNode(node.nodeName, node.parentOutput, node.index);
@@ -151,11 +144,11 @@ class TaskRunner extends EventEmitter {
             log.info(`starting recover process ${this._jobId}`, { component });
             this._driverStatus = DriverStates.RECOVERING;
             this._recoverPipeline(graph);
-            await this._progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status: DriverStates.RECOVERING });
+            await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.RECOVERING });
         }
         else {
             this._driverStatus = DriverStates.ACTIVE;
-            await this._progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status: DriverStates.ACTIVE });
+            await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
             const entryNodes = this._nodes.findEntryNodes();
 
             if (entryNodes.length === 0) {
@@ -170,10 +163,10 @@ class TaskRunner extends EventEmitter {
         let error;
         let data;
         if (err) {
-            this._error = err;
             error = err.message;
             status = DriverStates.FAILED;
-            log.error(`pipeline ${status} ${error}`, { component, jobId: this._jobId, pipelineName: this._pipelineName });
+            this._error = error;
+            log.error(`pipeline ${status} ${error}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
             await this._progressError({ status, error });
             if (err.batchTolerance) {
                 await this._stateManager.stopJob({ jobId: this._jobId });
@@ -181,17 +174,18 @@ class TaskRunner extends EventEmitter {
         }
         else if (reason) {
             status = DriverStates.STOPPED;
-            log.info(`pipeline ${status} ${this._jobId}. ${reason}`, { component, jobId: this._jobId, pipelineName: this._pipelineName });
+            log.info(`pipeline ${status} ${this._jobId}. ${reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
             await this._progressInfo({ status });
         }
         else {
             status = DriverStates.COMPLETED;
-            log.info(`pipeline ${status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this._pipelineName });
+            log.info(`pipeline ${status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
             await this._progressInfo({ status });
             data = this._nodes.pipelineResults();
         }
         this._jobStatus = status;
-        await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this._pipelineStartTime, pipeline: this._pipelineName, data, reason, error, status });
+        this.emit(status, this._getDiscoveryData());
+        await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data, reason, error, status });
         await this._stateManager.unWatchJobState({ jobId: this._jobId });
         await this._stateManager.unWatchTasks({ jobId: this._jobId });
         this._endMetrics(status);
@@ -199,26 +193,34 @@ class TaskRunner extends EventEmitter {
 
     async _progressError({ status, error }) {
         if (this._progress) {
-            await this._progress.error({ jobId: this._jobId, pipeline: this._pipelineName, status, error });
+            await this._progress.error({ jobId: this._jobId, pipeline: this.pipeline.name, status, error });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, startTime: this._pipelineStartTime, pipeline: this._pipelineName, status, error });
+            await this._stateManager.setJobStatus({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, status, error });
         }
     }
 
     async _progressInfo({ status }) {
         if (this._progress) {
-            await this._progress.info({ jobId: this._jobId, pipeline: this._pipelineName, status });
+            await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, startTime: this._pipelineStartTime, pipeline: this._pipelineName, status });
+            await this._stateManager.setJobStatus({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, status });
         }
+    }
+
+    get pipeline() {
+        return this._pipeline || { startTime: Date.now() };
+    }
+
+    set pipeline(pipeline) {
+        this._pipeline = pipeline;
     }
 
     _getDiscoveryData() {
         const discoveryInfo = {
             jobID: this._jobId,
-            pipelineName: this._pipelineName,
+            pipelineName: this.pipeline.name,
             driverStatus: this._driverStatus,
             jobStatus: this._jobStatus,
             error: this._error
@@ -228,9 +230,7 @@ class TaskRunner extends EventEmitter {
 
     async _cleanJob(error) {
         await graphStore.stop();
-        this._pipeline = null;
-        this._pipelineName = null;
-        this._pipelinePriority = null;
+        this.pipeline = null;
         this._nodes = null;
         this._job.done(error);
         this._job = null;
@@ -265,13 +265,13 @@ class TaskRunner extends EventEmitter {
     }
 
     _startMetrics() {
-        if (!this._jobId || !this._pipelineName) {
+        if (!this._jobId || !this.pipeline.name) {
             return;
         }
         metrics.get(metricsNames.pipelines_net).start({
             id: this._jobId,
             labelValues: {
-                pipeline_name: this._pipelineName
+                pipeline_name: this.pipeline.name
             }
         });
         tracer.startSpan({
@@ -282,7 +282,7 @@ class TaskRunner extends EventEmitter {
     }
 
     _endMetrics(status) {
-        if (!this._jobId || !this._pipelineName) {
+        if (!this._jobId || !this.pipeline.name) {
             return;
         }
         metrics.get(metricsNames.pipelines_net).end({
@@ -307,7 +307,7 @@ class TaskRunner extends EventEmitter {
             labelValues: {
                 status,
                 jobId: this._jobId,
-                pipeline_name: this._pipelineName
+                pipeline_name: this.pipeline.name
             }
         });
     }
@@ -315,7 +315,7 @@ class TaskRunner extends EventEmitter {
     _runNode(nodeName, parentOutput, index) {
         const node = this._nodes.getNode(nodeName);
         const parse = {
-            flowInput: this._pipeline.flowInput,
+            flowInput: this.pipeline.flowInput,
             nodeInput: node.input,
             parentOutput,
             index
@@ -423,7 +423,7 @@ class TaskRunner extends EventEmitter {
         let error;
         if (task.error) {
             if (task.batchIndex) {
-                const { batchTolerance } = this._pipeline.options;
+                const { batchTolerance } = this.pipeline.options;
                 const states = this._nodes.getNodeStates(task.nodeName);
                 const failed = states.filter(s => s === NodeStates.FAILED);
                 const percent = ((failed.length / states.length) * 100).toFixed(0);
@@ -446,12 +446,12 @@ class TaskRunner extends EventEmitter {
         }
         const task = this._nodes.updateTaskState(taskId, options);
         if (options.error) {
-            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, { component, jobId: this._jobId, pipelineName: this._pipelineName, taskId, algorithmName: task.algorithmName });
+            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId, algorithmName: task.algorithmName });
         }
         else {
-            log.debug(`task ${options.status} ${taskId}`, { component, jobId: this._jobId, pipelineName: this._pipelineName, taskId, algorithmName: task.algorithmName });
+            log.debug(`task ${options.status} ${taskId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId, algorithmName: task.algorithmName });
         }
-        this._progress.debug({ jobId: this._jobId, pipeline: this._pipelineName, status: DriverStates.ACTIVE });
+        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
         this._setProgressMetric(NodeStates.ACTIVE);
     }
 
@@ -469,8 +469,8 @@ class TaskRunner extends EventEmitter {
                 tasks,
                 jobID: this._jobId,
                 nodeName: options.node.nodeName,
-                pipelineName: this._pipelineName,
-                priority: this._pipelinePriority,
+                pipelineName: this.pipeline.name,
+                priority: this.pipeline.priority,
                 algorithmName: options.node.algorithmName,
                 info: {
                     extraData: options.node.extraData,

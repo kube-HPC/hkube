@@ -76,7 +76,7 @@ class NodesMap extends EventEmitter {
         const parentOutput = [];
         const parents = this._parents(target);
         parents.forEach((p) => {
-            const node = this._graph.node(p);
+            const node = this.getNode(p);
             const edges = this._graph.edge(p, target).map(e => e.type);
             if (this._isWaitNode(edges)) {
                 parentOutput.push({
@@ -208,7 +208,7 @@ class NodesMap extends EventEmitter {
 
     getNodeResults(nodeName) {
         let results = null;
-        const node = this._graph.node(nodeName);
+        const node = this.getNode(nodeName);
         if (!node) {
             throw new Error(`unable to find node ${nodeName}`);
         }
@@ -222,14 +222,14 @@ class NodesMap extends EventEmitter {
     }
 
     addBatch(batch) {
-        const node = this._graph.node(batch.nodeName);
+        const node = this.getNode(batch.nodeName);
         if (node) {
             node.batch.push(batch);
         }
     }
 
     setNode(node) {
-        const n = this._graph.node(node.nodeName);
+        const n = this.getNode(node.nodeName);
         if (n) {
             deepExtend(n, node);
         }
@@ -246,7 +246,7 @@ class NodesMap extends EventEmitter {
 
     getNodeStates(nodeName) {
         let states = [];
-        const node = this._graph.node(nodeName);
+        const node = this.getNode(nodeName);
         if (!node) {
             throw new Error(`unable to find node ${nodeName}`);
         }
@@ -267,7 +267,7 @@ class NodesMap extends EventEmitter {
 
     isNodeCompleted(nodeName) {
         let states = [];
-        const node = this._graph.node(nodeName);
+        const node = this.getNode(nodeName);
         if (!node) {
             throw new Error(`unable to find node ${nodeName}`);
         }
@@ -290,7 +290,7 @@ class NodesMap extends EventEmitter {
 
     getAllNodes() {
         const nodes = this._graph.nodes();
-        return nodes.map(n => this._graph.node(n));
+        return nodes.map(n => this.getNode(n));
     }
 
     isAllParentsFinished(node) {
@@ -304,13 +304,13 @@ class NodesMap extends EventEmitter {
 
     _parentNodes(node) {
         const parents = this._parents(node);
-        return parents.map(p => this._graph.node(p));
+        return parents.map(p => this.getNode(p));
     }
 
     isAllParentsFinishedIndex(nodeName, index) {
         const parents = this._parents(nodeName);
         const states = parents.map((p) => {
-            const node = this._graph.node(p);
+            const node = this.getNode(p);
             const batch = node.batch.find(b => b.batchIndex === index);
             return batch && batch.status;
         });
@@ -320,7 +320,7 @@ class NodesMap extends EventEmitter {
     getParentsResultsIndex(nodeName, index) {
         const parents = this._parents(nodeName);
         return parents.map((p) => {
-            const node = this._graph.node(p);
+            const node = this.getNode(p);
             const batch = node.batch.find(b => b.batchIndex === index);
             return { parent: p, result: batch.result };
         });

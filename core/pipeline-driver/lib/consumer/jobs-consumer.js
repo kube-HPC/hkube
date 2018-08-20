@@ -35,11 +35,17 @@ class JobConsumer {
         this._consumer.register(options);
         this._consumer.on('job', (job) => {
             const taskRunner = new TaskRunner(option);
-            taskRunner.on('started', (data) => {
+            taskRunner.on(DriverStates.ACTIVE, (data) => {
                 stateFactory.setState({ ...data, driverStatus: DriverStates.ACTIVE });
             });
-            taskRunner.on('completed', (data) => {
-                stateFactory.setState({ ...data, driverStatus: DriverStates.READY });
+            taskRunner.on(DriverStates.FAILED, (data) => {
+                stateFactory.setState({ ...data, driverStatus: DriverStates.FAILED });
+            });
+            taskRunner.on(DriverStates.STOPPED, (data) => {
+                stateFactory.setState({ ...data, driverStatus: DriverStates.STOPPED });
+            });
+            taskRunner.on(DriverStates.COMPLETED, (data) => {
+                stateFactory.setState({ ...data, driverStatus: DriverStates.COMPLETED });
             });
             taskRunner.start(job);
         });

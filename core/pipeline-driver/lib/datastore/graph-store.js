@@ -8,21 +8,24 @@ const INTERVAL = 4000;
 
 class GraphStore {
     constructor() {
+        this._interval = null;
         this._nodesMap = null;
         this._currentJobID = null;
-        this._interval = this._interval.bind(this);
     }
 
     async start(jobId, nodeMap) {
         this._currentJobID = jobId;
         this._nodesMap = nodeMap;
-        await this._interval();
+        await this._store();
+        this._storeInterval();
     }
 
     async stop() {
-        await this._interval();
-        this._currentJobID = null;
+        await this._updateGraph();
+        clearInterval(this._interval);
+        this._interval = null;
         this._nodesMap = null;
+        this._currentJobID = null;
     }
 
     getGraph(options) {
@@ -33,32 +36,44 @@ class GraphStore {
         return RedisStorage.deleteNodesGraph({ jobId: options.jobId });
     }
 
-    async _interval() {
-        try {
-            if (this._nodesMap) {
-                await this._store();
+    async _storeInterval() {
+        if (this._interval) {
+            return;
+        }
+        this._interval = setInterval(() => {
+            if (this._working) {
+                return;
             }
+            this._working = true;
+            this._store();
+            this._working = false;
+        }, INTERVAL);
+    }
+
+    async _store() {
+        try {
+            if (!this._nodesMap) {
+                throw new Error('nodeMap not referenced');
+            }
+            const graph = this._nodesMap.getJSONGraph();
+            await Promise.all([
+                this._updateGraph(graph),
+                this._updateNodesGraph(graph)
+            ]);
         }
         catch (error) {
             log.error(error, { component: components.GRAPH_STORE });
         }
-        finally {
-            if (this._nodesMap) {
-                setTimeout(this._interval, INTERVAL);
-            }
-        }
     }
 
-    _store() {
-        if (!this._nodesMap) {
-            throw new Error('nodeMap not referenced');
-        }
-        const graph = this._nodesMap.getJSONGraph();
-        const filterGraph = this._filterData(graph);
-        return Promise.all([
-            RedisStorage.updateGraph({ jobId: this._currentJobID, data: filterGraph }),
-            RedisStorage.updateNodesGraph({ jobId: this._currentJobID, data: graph })
-        ]);
+    _updateGraph(graph) {
+        const g = graph || this._nodesMap.getJSONGraph();
+        const filterGraph = this._filterData(g);
+        return RedisStorage.updateGraph({ jobId: this._currentJobID, data: filterGraph });
+    }
+
+    _updateNodesGraph(graph) {
+        return RedisStorage.updateNodesGraph({ jobId: this._currentJobID, data: graph });
     }
 
     _filterData(graph) {
