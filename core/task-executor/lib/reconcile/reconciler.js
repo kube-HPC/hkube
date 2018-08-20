@@ -59,6 +59,14 @@ const _idleWorkerFilter = (worker, algorithmName) => {
     return match;
 };
 
+const _activeWorkerFilter = (worker, algorithmName) => {
+    let match = worker.workerStatus !== 'ready' && !worker.paused;
+    if (algorithmName) {
+        match = match && worker.algorithmName === algorithmName;
+    }
+    return match;
+};
+
 const _pausedWorkerFilter = (worker, algorithmName) => {
     let match = worker.workerStatus === 'ready' && worker.paused;
     if (algorithmName) {
@@ -90,26 +98,10 @@ const _clearCreatedJobsList = (now) => {
     createdJobsList = newCreatedJobsList;
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources } = {}) => {
-    _clearCreatedJobsList();
-    const normPods = normalizeWorkers(algorithmPods);
-    const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
-    const merged = mergeWorkers(normPods, normJobs);
-    const normRequests = normalizeRequests(algorithmRequests);
-    // log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
-    const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
-    const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
-    log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
-    const createDetails = [];
-    const createPromises = [];
-    const reconcileResult = {};
-
-    const idleWorkers = clonedeep(merged.mergedWorkers.filter(w => _idleWorkerFilter(w)));
-    const pausedWorkers = clonedeep(merged.mergedWorkers.filter(w => _pausedWorkerFilter(w)));
-    const pendingWorkers = clonedeep(merged.extraJobs);
-    const jobsCreated = clonedeep(createdJobsList);
-
-
+const _processAllRequests = (
+    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests },
+    { createPromises, createDetails, reconcileResult }
+) => {
     for (let r of normRequests) {// eslint-disable-line
         const { algorithmName } = r;
         const idleWorkerIndex = idleWorkers.findIndex(w => w.algorithmName === algorithmName);
@@ -165,6 +157,100 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
             reconcileResult[algorithmName].required += 1;
         }
     }
+};
+
+const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemplates }, { stopDetails }) => {
+    let missingCount = skipped.length;
+    if (missingCount === 0) {
+        return;
+    }
+
+
+    idleWorkers.forEach((r) => {
+        const algorithmTemplate = algorithmTemplates[r.algorithmName];
+        const resourceRequests = createContainerResource(algorithmTemplate);
+        stopDetails.push({
+            count: 1,
+            details: {
+                algorithmName: r.algorithmName,
+                resourceRequests
+            }
+        });
+        missingCount -= missingCount;
+    });
+
+    const activeTypes = Object.entries(activeWorkers.reduce((prev, cur, index) => {
+        prev[cur.algorithmName] = (prev[cur.algorithmName] || 0) + ((index + 1) ** 0.7);
+        return prev;
+    }, {})).map(([k, v]) => ({ algorithmName: k, count: v }));
+    const skippedTypes = Object.entries(skipped.reduce((prev, cur) => {
+        prev[cur.algorithmName] = (prev[cur.algorithmName] || 0) + 1;
+        return prev;
+    }, {})).map(([k, v]) => ({ algorithmName: k, count: v }));
+    const notUsedAlgorithms = activeTypes.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
+
+
+    notUsedAlgorithms.forEach((r) => {
+        const algorithmTemplate = algorithmTemplates[r.algorithmName];
+        const resourceRequests = createContainerResource(algorithmTemplate);
+        stopDetails.push({
+            count: 1,
+            details: {
+                algorithmName: r.algorithmName,
+                resourceRequests
+            }
+        });
+        missingCount -= missingCount;
+    });
+
+    if (missingCount === 0) {
+        return;
+    }
+
+    const sortedActiveTypes = activeTypes.sort((a, b) => a.count - b.count);
+    sortedActiveTypes.forEach((r) => {
+        const algorithmTemplate = algorithmTemplates[r.algorithmName];
+        const resourceRequests = createContainerResource(algorithmTemplate);
+        stopDetails.push({
+            count: 1,
+            details: {
+                algorithmName: r.algorithmName,
+                resourceRequests
+            }
+        });
+        missingCount -= missingCount;
+    });
+};
+
+const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources } = {}) => {
+    _clearCreatedJobsList();
+    const normPods = normalizeWorkers(algorithmPods);
+    const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
+    const merged = mergeWorkers(normPods, normJobs);
+    const normRequests = normalizeRequests(algorithmRequests);
+    // log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
+    const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
+    const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
+    log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
+    const createDetails = [];
+    const createPromises = [];
+    const reconcileResult = {};
+
+    const idleWorkers = clonedeep(merged.mergedWorkers.filter(w => _idleWorkerFilter(w)));
+    const activeWorkers = clonedeep(merged.mergedWorkers.filter(w => _activeWorkerFilter(w)));
+    const pausedWorkers = clonedeep(merged.mergedWorkers.filter(w => _pausedWorkerFilter(w)));
+    const pendingWorkers = clonedeep(merged.extraJobs);
+    const jobsCreated = clonedeep(createdJobsList);
+
+
+    _processAllRequests(
+        {
+            idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests
+        },
+        {
+            createPromises, createDetails, reconcileResult
+        }
+    );
     const { created, skipped } = matchJobsToResources(createDetails, normResources);
     created.forEach((j) => {
         createdJobsList.push(j);
@@ -181,24 +267,14 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
         cpu: 0,
         memory: 0
     });
-    if (skipped.length > 0) {
-        idleWorkers.forEach((r) => {
-            const algorithmTemplate = algorithmTemplates[r.algorithmName];
-            const resourceRequests = createContainerResource(algorithmTemplate);
-            stopDetails.push({
-                count: 1,
-                details: {
-                    algorithmName: r.algorithmName,
-                    resourceRequests
-                }
-            });
-        });
-    }
+    _findWorkersToStop({
+        skipped, idleWorkers, activeWorkers, algorithmTemplates
+    }, { stopDetails });
 
     const { toStop } = pauseAccordingToResources(
         stopDetails,
         normResources,
-        idleWorkers.filter(w => Date.now() - w.job.startTime > MIN_AGE_FOR_STOP),
+        [...idleWorkers.filter(w => Date.now() - w.job.startTime > MIN_AGE_FOR_STOP), ...activeWorkers],
         resourcesToFree
     );
     const stopPromises = toStop.map(r => _stopWorker(r));
