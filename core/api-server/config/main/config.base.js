@@ -48,8 +48,8 @@ config.webhooks = {
 };
 
 config.pipelineDriversResources = {
-    cpu: parseFloat(process.env.PIPELINE_DRIVER_CPU || 0.001),
-    mem: parseFloat(process.env.PIPELINE_DRIVER_MEM || 128)
+    cpu: parseFloat(process.env.PIPELINE_DRIVER_CPU || 0.15),
+    mem: parseFloat(process.env.PIPELINE_DRIVER_MEM || 256)
 };
 
 config.metrics = {
