@@ -64,6 +64,7 @@
         "mockery": "^2.1.0",
         "pre-commit": "^1.2.2",
         "sinon": "^3.3.0",
-        "socket.io-client": "^2.1.1"
+        "socket.io-client": "^2.1.1",
+        "await-delay": "^1.0.0"
     }
 }

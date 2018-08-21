@@ -3,26 +3,24 @@ const Logger = require('@hkube/logger');
 
 const stateMachine = require('../lib/states/stateManager');
 const { stateEvents } = require('../common/consts/events');
-
+const delay = require('await-delay');
 const { workerStates } = require('../common/consts/states');
 const { expect } = require('chai');
 const sinon = require('sinon');
+const bootstrap = require('../bootstrap');
+const Etcd = require('@hkube/etcd');
+const jobConsumer = require('../lib/consumer/JobConsumer');
 let log;
+let etcd;
 
 describe('state machine', () => {
     before(async () => {
+        await bootstrap.init();
         const { main, logger } = await configIt.load();
         log = new Logger(main.serviceName, logger);
+        etcd = new Etcd();
+        etcd.init({ etcd: main.etcd, serviceName: main.serviceName });
         await stateMachine.init(main);
-        // await discovery.init(main)
-
-
-        // process.on('unhandledRejection', (error) => {
-        //     console.error('unhandledRejection: ' + error.message);
-        // });
-        // process.on('uncaughtException', (error) => {
-        //     console.error('uncaughtException: ' + error.message);
-        // });
     });
 
     beforeEach(() => {
@@ -76,6 +74,15 @@ describe('state machine', () => {
         stateMachine.cleanup();
         expect(spy.callCount).to.eql(4);
         expect(stateMachine.state).to.eql(workerStates.ready);
+    });
+    it('could not pause if algorithm not running', async () => {
+        stateMachine.bootstrap();
+        stateMachine.prepare();
+        stateMachine.start();
+        stateMachine.done();
+        etcd.workers.setState({ workerId: etcd.discovery._instanceId, status: { command: 'stopProcessing' } });
+        await delay(600);
+        expect(jobConsumer._consumerPaused).to.eql(false);
     });
     it('should fail to transition from ready to working', () => {
         expect(stateMachine.start).to.throw();

@@ -49,7 +49,7 @@ class Worker {
         });
 
         discovery.on(workerCommands.stopProcessing, () => {
-            if (!jobConsumer.isConsumerPaused) {
+            if (this._validateStateBeforePause() && !jobConsumer.isConsumerPaused) {
                 jobConsumer.pause();
                 jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
@@ -67,6 +67,17 @@ class Worker {
         });
     }
 
+    _validateStateBeforePause() {
+        switch (stateManager.state) {
+            case workerStates.init:
+            case workerStates.ready:
+            case workerStates.working:
+                return true;
+            default:
+                log.info(`could not pause because algorithm not running - state:${stateManager.state}`, { component });
+                return false;
+        }
+    }
 
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', () => {
