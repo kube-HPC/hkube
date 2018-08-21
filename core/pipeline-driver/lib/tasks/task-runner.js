@@ -105,7 +105,8 @@ class TaskRunner extends EventEmitter {
             log.critical(`unable to stop pipeline ${err.message}`, { component, jobId: this._jobId });
         }
         finally {
-            await this._stateManager.deleteTasks({ jobId: this._jobId });
+            await this._stateManager.deleteTasksList({ jobId: this._jobId });
+            await this._stateManager.deleteTasksState({ jobId: this._jobId });
             await graphStore.deleteGraph({ jobId: this._jobId });
             await this._cleanJob(error);
         }
@@ -117,11 +118,13 @@ class TaskRunner extends EventEmitter {
         this._jobStatus = DriverStates.ACTIVE;
         log.info(`pipeline started ${this._jobId}`, { component, jobId: this._jobId });
 
-        this.pipeline = await this._stateManager.getExecution({ jobId: this._jobId });
+        const pipeline = await this._stateManager.getExecution({ jobId: this._jobId });
 
-        if (!this.pipeline) {
+        if (!pipeline) {
             throw new Error(`unable to find pipeline for job ${this._jobId}`);
         }
+
+        this.pipeline = pipeline;
 
         await this._stateManager.watchTasks({ jobId: this._jobId });
         const watchState = await this._stateManager.watchJobState({ jobId: this._jobId });

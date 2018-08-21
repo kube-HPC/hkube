@@ -93,16 +93,25 @@ class NodesMap extends EventEmitter {
                 });
             }
             if (this._isWaitAny(edges)) {
-                node.batch.forEach((b) => {
-                    if (!index || index === b.batchIndex) {
-                        parentOutput.push({
-                            type: consts.relations.WAIT_ANY,
-                            node: b.nodeName,
-                            result: b.result,
-                            index: b.batchIndex
-                        });
-                    }
-                });
+                if (node.batch.length > 0) {
+                    node.batch.forEach((b) => {
+                        if (!index || index === b.batchIndex) {
+                            parentOutput.push({
+                                type: consts.relations.WAIT_ANY,
+                                node: b.nodeName,
+                                result: b.result,
+                                index: b.batchIndex
+                            });
+                        }
+                    });
+                }
+                else {
+                    parentOutput.push({
+                        type: consts.relations.WAIT_ANY,
+                        node: node.nodeName,
+                        result: node.result
+                    });
+                }
             }
         });
         if (parentOutput.length > 0) {
