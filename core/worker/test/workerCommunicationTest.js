@@ -13,7 +13,7 @@ const config = {
         }
 };
 describe('worker communication', () => {
-    beforeEach(async () => {
+    before(async () => {
         await bootstrap.init();
         await workerCommunication.init(config);
     });

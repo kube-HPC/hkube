@@ -1,5 +1,6 @@
 module.exports = {
-    incomming: {
+    outgoing: {
+        pong: 'pongMessage',
         initialized: 'initialized',
         started: 'started',
         stopped: 'stopped',
@@ -9,8 +10,10 @@ module.exports = {
         startStoredSubPipeline: 'startStoredSubPipeline',
         stopSubPipeline: 'stopSubPipeline',
         done: 'done'
+
     },
-    outgoing: {
+    incomming: {
+        ping: 'pingMessage',
         initialize: 'initialize',
         start: 'start',
         cleanup: 'cleanup',
@@ -21,4 +24,4 @@ module.exports = {
         subPipelineDone: 'subPipelineDone',
         subPipelineStopped: 'subPipelineStopped'
     }
-};
+}

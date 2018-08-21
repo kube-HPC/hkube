@@ -8,7 +8,7 @@ const etcd = require('../states/discovery');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const { metricsNames } = require('../../common/consts/metricsNames');
 const component = require('../../common/consts/componentNames').CONSUMER;
-const DatastoreFactory = require('../datastore/datastore-factory');
+const datastoreHelper = require('../helpers/datastoreHelper');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const { MetadataPlugin } = Logger;
@@ -37,7 +37,7 @@ class JobConsumer extends EventEmitter {
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
-        this._storageAdapter = DatastoreFactory.getAdapter();
+        this._storageAdapter = datastoreHelper.getAdapter();
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;
@@ -325,6 +325,14 @@ class JobConsumer extends EventEmitter {
 
     get isConsumerPaused() {
         return this._consumerPaused;
+    }
+
+    get jobId() {
+        return this._jobID;
+    }
+
+    get taskId() {
+        return this._taskID;
     }
 }
 

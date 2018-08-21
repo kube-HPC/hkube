@@ -7,7 +7,7 @@ const workerCommunication = require('../lib/algorunnerCommunication/workerCommun
 const worker = require('../lib/worker');
 const uuid = require('uuid/v4');
 const { workerStates } = require('../common/consts/states');
-const DatastoreFactory = require('../lib/datastore/datastore-factory');
+const datastoreHelper = require('../lib/helpers/datastoreHelper');
 
 
 let consumer, producer, storageAdapter;
@@ -58,7 +58,7 @@ describe('consumer tests', () => {
     beforeEach(async () => {
         await bootstrap.init();
         consumer = Consumer;
-        storageAdapter = DatastoreFactory.getAdapter();
+        storageAdapter = datastoreHelper.getAdapter();
     });
     it('store data and validate result from algorithm', (done) => {
         let config = getConfig();
@@ -82,7 +82,6 @@ describe('consumer tests', () => {
                     });
                     Object.keys(workerStates).forEach(element => {
                         stateManager.once('stateEntered' + element, (job) => {
-                            console.log('received stateEntered-' + element)
                             if (element === 'working') {
                                 workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
                             }
@@ -115,7 +114,6 @@ describe('consumer tests', () => {
                 });
                 Object.keys(workerStates).forEach(element => {
                     stateManager.once('stateEntered' + element, (job) => {
-                        console.log('received stateEntered-' + element)
                         if (element === 'working') {
                             workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
                         }
@@ -149,7 +147,6 @@ describe('consumer tests', () => {
                 });
                 Object.keys(workerStates).forEach(element => {
                     stateManager.once('stateEntered' + element, (job) => {
-                        console.log('received stateEntered-' + element)
                         if (element === 'working') {
                             workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
                         }
@@ -184,7 +181,6 @@ describe('consumer tests', () => {
                 });
                 Object.keys(workerStates).forEach(element => {
                     stateManager.once('stateEntered' + element, (job) => {
-                        console.log('received stateEntered-' + element)
                         if (element === 'results') {
                             expect(job.results.error.code).to.eql('NoSuchBucket');
                             done();
@@ -217,7 +213,6 @@ describe('consumer tests', () => {
                     });
                     Object.keys(workerStates).forEach(element => {
                         stateManager.once('stateEntered' + element, (job) => {
-                            console.log('received stateEntered-' + element)
                             if (element === 'working') {
                                 workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
                             }

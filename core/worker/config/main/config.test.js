@@ -4,7 +4,6 @@ config.workerCommunication = {
     config: {}
 };
 
-
 config.jobConsumer = {
     job: {
         type: 'test-type'

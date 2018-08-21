@@ -16,6 +16,13 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
+config.apiServer = {
+    protocol: 'http',
+    host: process.env.API_SERVER_SERVICE_HOST || 'localhost',
+    port: process.env.API_SERVER_SERVICE_PORT || 3000,
+    basePath: 'internal/v1/exec/'
+};
+
 config.workerCommunication = {
     adapterName: 'socket',
     config: {

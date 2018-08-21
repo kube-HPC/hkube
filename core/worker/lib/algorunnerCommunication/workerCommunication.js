@@ -7,7 +7,6 @@ const wsAdapter = require('./wsWorkerCommunication');
 const socketAdapter = require('./socketWorkerCommunication');
 const loopbackAdapter = require('./loopbackWorkerCommunication');
 const { adapters } = require('./consts');
-// const forwardEmitter = require('forward-emitter');
 const messages = require('./messages');
 const components = require('../../common/consts/componentNames');
 

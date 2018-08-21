@@ -2,15 +2,17 @@ const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorunnerCommunication/workerCommunication');
 const discovery = require('./states/discovery');
-const Logger = require('@hkube/logger');
-let log;
 const { stateEvents } = require('../common/consts/events');
 const { workerStates, workerCommands } = require('../common/consts/states');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorunnerCommunication/messages');
 const component = require('../common/consts/componentNames').WORKER;
+const { EventMessages } = require('./consts/index');
 
+const Logger = require('@hkube/logger');
+let log;
 const DEFAULT_STOP_TIMEOUT = 5000;
+
 class Worker {
     constructor() {
         this._stopTimeout = null;
@@ -41,8 +43,8 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on('stop', (res) => {
-            log.info(`got stop for ${res}`, { component });
+        discovery.on(EventMessages.STOP, (res) => {
+            log.info(`got stop: ${res.reason}`, { component });
             stateManager.stop();
         });
 
@@ -65,6 +67,7 @@ class Worker {
         });
     }
 
+
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', () => {
             if (stateManager.state === workerStates.exit) {
@@ -83,6 +86,9 @@ class Worker {
         });
     }
 
+    /**
+     * Register to algoRunner messages.
+     */
     _registerToCommunicationEvents() {
         algoRunnerCommunication.on(messages.incomming.initialized, () => {
             stateManager.start();
@@ -130,15 +136,15 @@ class Worker {
                 this._inactiveTimer = null;
             }
             if (this._inactiveTimeoutMs !== 0 && this._inactiveTimeoutMs !== '0') {
-                log.info('starting inactive timeout for worker');
+                log.info('starting inactive timeout for worker', { component });
                 this._inactiveTimer = setTimeout(() => {
-                    log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`);
+                    log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
                     stateManager.exit();
                 }, this._inactiveTimeoutMs);
             }
         }
         else if (this._inactiveTimer) {
-            log.info(`worker is active (${state}). Clearing inactive timeout`);
+            log.info(`worker is active (${state}). Clearing inactive timeout`, { component });
             clearTimeout(this._inactiveTimer);
             this._inactiveTimer = null;
         }

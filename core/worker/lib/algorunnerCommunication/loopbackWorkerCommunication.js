@@ -20,9 +20,11 @@ class LoopbackWorkerCommunication extends EventEmitter {
             throw new Error(validatadOptions.errorDescription);
         }
     }
+
     start() {
         this.emit('connection');
     }
+
     send(message) {
         switch (message.command) {
             case messages.outgoing.initialize:
@@ -41,6 +43,7 @@ class LoopbackWorkerCommunication extends EventEmitter {
             case messages.outgoing.ping:
                 this._simulateSend({ command: messages.incomming.pong, data: message.data });
                 break;
+   
             default:
         }
     }
@@ -48,11 +51,13 @@ class LoopbackWorkerCommunication extends EventEmitter {
     getLastInput() {
         return this._lastInput;
     }
+
     sendCommandWithDelay(message) {
         setTimeout(() => {
             this._simulateSend({ command: message.command, data: this._lastInput });
         }, 1000);
     }
+
     _simulateSend(message) {
         this.emit(message.command, message.data);
     }
