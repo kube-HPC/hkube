@@ -24,6 +24,7 @@ class NodesMap extends EventEmitter {
 
     _buildGraph(options) {
         const nodes = [];
+        options.nodes = options.nodes || [];
         options.nodes.forEach((n) => {
             n.input.forEach((i) => {
                 const results = parser.extractNodesFromInput(i);
@@ -353,8 +354,17 @@ class NodesMap extends EventEmitter {
     }
 
     calcProgress() {
-        const nodes = [];
+        const calc = {
+            progress: 0,
+            details: '',
+            states: {},
+            activeNodes: []
+        };
         const nodesList = this.getAllNodes();
+        if (nodesList.length === 0) {
+            return calc;
+        }
+        const nodes = [];
         nodesList.forEach((n) => {
             if (n.batch.length > 0) {
                 n.batch.forEach(b => nodes.push(b));
@@ -368,9 +378,9 @@ class NodesMap extends EventEmitter {
         const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
         const failed = groupedStates.failed ? groupedStates.failed.length : 0;
         const completed = succeed + failed;
-        const progress = parseFloat(((completed / nodes.length) * 100).toFixed(2));
+        calc.progress = parseFloat(((completed / nodes.length) * 100).toFixed(2));
         const statesText = groupBy.text();
-        const states = nodes.map(n => n.status).reduce((prev, cur) => {
+        calc.states = nodes.map(n => n.status).reduce((prev, cur) => {
             if (cur in prev) {
                 prev[cur] += 1;
             }
@@ -379,15 +389,14 @@ class NodesMap extends EventEmitter {
             }
             return prev;
         }, {});
-        const details = `${progress}% completed, ${statesText}`;
-        const activeNodes = [];
+        calc.details = `${calc.progress}% completed, ${statesText}`;
         nodesList.forEach((n) => {
             const node = {
                 nodeName: n.nodeName,
                 algorithmName: n.algorithmName
             };
             if (n.batch.length === 0 && n.status === States.ACTIVE) {
-                activeNodes.push(node);
+                calc.activeNodes.push(node);
             }
             else if (n.batch.length > 0) {
                 const batchStates = n.batch.map(b => b.status);
@@ -400,12 +409,12 @@ class NodesMap extends EventEmitter {
                             active: active.length,
                             total: n.batch.length
                         };
-                        activeNodes.push(node);
+                        calc.activeNodes.push(node);
                     }
                 }
             }
         });
-        return { progress, details, states, activeNodes };
+        return calc;
     }
 
     getNodeByTaskID(taskId) {

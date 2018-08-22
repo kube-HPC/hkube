@@ -88,8 +88,15 @@ class TaskRunner extends EventEmitter {
             await graphStore.start(job.data.jobId, this._nodes);
             this.emit(DriverStates.ACTIVE, this._getDiscoveryData());
         }
-        catch (error) {
-            this.stop(error);
+        catch (e) {
+            if (e.stalled) {
+                // in case we suspect this job is stalled, we will not fail the job, just clean it.
+                log.error(`unable to start pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
+                this._cleanJob(e);
+            }
+            else {
+                throw e;
+            }
         }
     }
 
@@ -101,8 +108,8 @@ class TaskRunner extends EventEmitter {
         try {
             await this._stopPipeline(error, reason);
         }
-        catch (err) {
-            log.critical(`unable to stop pipeline ${err.message}`, { component, jobId: this._jobId });
+        catch (e) {
+            log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
             await this._stateManager.deleteTasksList({ jobId: this._jobId });
@@ -118,10 +125,18 @@ class TaskRunner extends EventEmitter {
         this._jobStatus = DriverStates.ACTIVE;
         log.info(`pipeline started ${this._jobId}`, { component, jobId: this._jobId });
 
-        const pipeline = await this._stateManager.getExecution({ jobId: this._jobId });
+        const jobStatus = await this._stateManager.getJobStatus({ jobId: this._jobId });
+        if ((jobStatus) && (jobStatus.status === DriverStates.COMPLETED || jobStatus.status === DriverStates.FAILED)) {
+            const error = new Error(`pipeline already in ${jobStatus.status} status`);
+            error.stalled = true;
+            throw error;
+        }
 
+        const pipeline = await this._stateManager.getExecution({ jobId: this._jobId });
         if (!pipeline) {
-            throw new Error(`unable to find pipeline for job ${this._jobId}`);
+            const error = new Error(`unable to find pipeline for job ${this._jobId}`);
+            error.stalled = true;
+            throw error;
         }
 
         this.pipeline = pipeline;
@@ -138,7 +153,10 @@ class TaskRunner extends EventEmitter {
             log.debug(`new node ready to run: ${node.nodeName}`, { component });
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
-        this._progress = new Progress({ calcProgress: this._nodes.calcProgress, sendProgress: this._stateManager.setJobStatus });
+        this._progress = new Progress({
+            calcProgress: this._nodes.calcProgress,
+            sendProgress: this._stateManager.setJobStatus
+        });
 
         this._startMetrics();
 
@@ -146,7 +164,8 @@ class TaskRunner extends EventEmitter {
         if (graph) {
             log.info(`starting recover process ${this._jobId}`, { component });
             this._driverStatus = DriverStates.RECOVERING;
-            this._recoverPipeline(graph);
+            this._nodes.setJSONGraph(graph);
+            this._recoverPipeline();
             await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.RECOVERING });
         }
         else {
@@ -246,24 +265,24 @@ class TaskRunner extends EventEmitter {
         this._progress = null;
     }
 
-    async _recoverPipeline(graph) {
-        this._nodes.setJSONGraph(graph);
-        const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
-
+    async _recoverPipeline() {
         if (this._nodes.isAllNodesCompleted()) {
             this.stop();
         }
-        else if (tasks.size > 0) {
-            const tasksGraph = this._nodes._getNodesAsFlat();
-            tasksGraph.forEach((g) => {
-                const task = tasks.get(g.taskId);
-                if (task && task.status !== g.status) {
-                    g.result = task.result;
-                    g.status = task.status;
-                    g.error = task.error;
-                    this._handleTaskEvent(g);
-                }
-            });
+        else {
+            const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
+            if (tasks.size > 0) {
+                const tasksGraph = this._nodes._getNodesAsFlat();
+                tasksGraph.forEach((g) => {
+                    const task = tasks.get(g.taskId);
+                    if (task && task.status !== g.status) {
+                        g.result = task.result;
+                        g.status = task.status;
+                        g.error = task.error;
+                        this._handleTaskEvent(g);
+                    }
+                });
+            }
         }
     }
 

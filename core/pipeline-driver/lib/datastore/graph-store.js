@@ -66,14 +66,16 @@ class GraphStore {
         }
     }
 
-    _updateGraph(graph) {
-        const g = graph || this._nodesMap.getJSONGraph();
-        const filterGraph = this._filterData(g);
-        return RedisStorage.updateGraph({ jobId: this._currentJobID, data: filterGraph });
+    async _updateGraph(graph) {
+        const g = (graph) || (this._nodesMap && this._nodesMap.getJSONGraph());
+        if (g) {
+            const filterGraph = this._filterData(g);
+            await RedisStorage.updateGraph({ jobId: this._currentJobID, data: filterGraph });
+        }
     }
 
-    _updateNodesGraph(graph) {
-        return RedisStorage.updateNodesGraph({ jobId: this._currentJobID, data: graph });
+    async _updateNodesGraph(graph) {
+        await RedisStorage.updateNodesGraph({ jobId: this._currentJobID, data: graph });
     }
 
     _filterData(graph) {
