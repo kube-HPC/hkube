@@ -264,6 +264,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
             memory: prev.memory + parse.getMemoryInMi(cur.resourceRequests.requests.memory)
         };
     }, { cpu: 0, memory: 0 });
+    
     _findWorkersToStop({
         skipped, idleWorkers, activeWorkers, algorithmTemplates
     }, { stopDetails });
