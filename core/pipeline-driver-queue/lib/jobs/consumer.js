@@ -59,6 +59,7 @@ class JobConsumer {
             this._updateState();
             await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, level: 'info' });
             await persistence.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status });
+            await persistence.deleteTasksState({ jobId });
         }
     }
 

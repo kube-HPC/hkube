@@ -28,6 +28,10 @@ class Persistence extends EventEmitter {
         return this.etcd.pipelineDrivers.queue.get({ name: this.queueName });
     }
 
+    deleteTasksState(options) {
+        return this.etcd.jobState.delete(options);
+    }
+
     getExecution(options) {
         return this.etcd.execution.get(options);
     }

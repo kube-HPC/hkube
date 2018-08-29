@@ -30,7 +30,6 @@
     "@hkube/producer-consumer": "^1.0.36",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.11",
-    "aigle": "^1.12.0",
     "lodash": "^4.17.10"
   },
   "devDependencies": {
@@ -43,11 +42,10 @@
     "eslint-plugin-chai-friendly": "^0.4.1",
     "eslint-plugin-import": "^2.12.0",
     "istanbul": "^1.1.0-alpha.1",
-    "mocha": "^3.5.3",
+    "mocha": "^5.2.0",
     "mockery": "^2.1.0",
-    "mockery-partial": "^1.4.0",
     "pre-commit": "^1.2.2",
-    "sinon": "^3.3.0",
+    "sinon": "^6.1.5",
     "uuid": "^3.2.1"
   }
 }
