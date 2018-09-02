@@ -56,6 +56,8 @@ function getConfig() {
 
 describe('consumer tests', () => {
     beforeEach(async () => {
+        let config = getConfig();
+        await datastoreHelper.init(config, null, true);
         await bootstrap.init();
         consumer = Consumer;
         storageAdapter = datastoreHelper.getAdapter();
@@ -227,5 +229,5 @@ describe('consumer tests', () => {
                 workerCommunication.adapter.start();
             });
         });
-    });
+    }).timeout(5000);
 });
