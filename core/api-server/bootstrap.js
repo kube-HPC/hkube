@@ -29,7 +29,7 @@ class Bootstrap {
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
             });
-            monitor.check(main.redis);
+            await monitor.check(main.redis);
 
             await metrics.init(main.metrics);
             if (main.tracer) {

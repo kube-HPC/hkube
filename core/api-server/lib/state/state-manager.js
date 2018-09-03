@@ -11,7 +11,7 @@ class StateManager extends EventEmitter {
         this._etcd = new Etcd();
         this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
-        this._watchJobResults();
+        return this._watchJobResults();
     }
 
     isActiveState(state) {
