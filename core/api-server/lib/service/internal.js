@@ -19,26 +19,24 @@ class InternalService {
             if (results && results.data) {
                 options.flowInput = results.data.map(r => r.result);
             }
-            delete options.parentJobId;
         }
-        return execution._runStored(options, jobId);
+        const { parentJobId, ...option } = options;
+        return execution._runStored(option, jobId);
     }
 
     async runStoredSubPipeline(options) {
         validator.validateStoredSubPipeline(options);
-        const jobId = this._createSubPipelineJobID(options);
-        delete options.jobId;
-        delete options.taskId;
-        return execution._runStored(options, jobId);
+        const jobID = this._createSubPipelineJobID(options);
+        const { jobId, taskId, ...option } = options;
+        return execution._runStored(option, jobID);
     }
 
     async runRawSubPipeline(options) {
         validator.validateRawSubPipeline(options);
         options.name = `raw-${options.name}-${randString(10)}`;
-        const jobId = this._createSubPipelineJobID(options);
-        delete options.jobId;
-        delete options.taskId;
-        return execution._run(options, jobId);
+        const jobID = this._createSubPipelineJobID(options);
+        const { jobId, taskId, ...option } = options;
+        return execution._run(option, jobID);
     }
 
     _createCronJobID(options, uuid) {
