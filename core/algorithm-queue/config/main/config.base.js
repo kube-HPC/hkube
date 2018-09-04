@@ -17,17 +17,23 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
-config.algorithmType = process.env.ALGORITHM_TYPE || 'green-alg';
+config.algorithmType = process.env.ALGORITHM_TYPE;
+
+config.consumer = {
+    concurrency: 10000
+};
 
 config.queue = {
     updateInterval: 1000
 };
+
 config.heuristicsWeights = {
     [heuristicsNames.PRIORITY]: 0.4,
     [heuristicsNames.ENTRANCE_TIME]: 0.2,
     [heuristicsNames.BATCH]: 0.2,
     [heuristicsNames.CURRENT_BATCH_PLACE]: 0.2
 };
+
 config.metrics = {
     collectDefault: true,
     server: {

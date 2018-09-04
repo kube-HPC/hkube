@@ -3,7 +3,7 @@
 // module.exports = componentName.reduce((initial, component) => ({...initial, [component]: component}), {});
 
 module.exports = {
-    QUERIER: 'QUERIER', 
+    QUERIER: 'QUERIER',
     QUEUE: 'QUEUE',
     QUEUE_RUNNER: 'QUEUE_RUNNER',
     BOOTSTRAP: 'BOOTSTRAP',
@@ -12,6 +12,7 @@ module.exports = {
     REDIS_PERSISTENT: 'REDIS_PERSISTENT',
     ETCD_PERSISTENT: 'ETCD_PERSISTENT',
     JOBS_PRODUCER: 'JOBS_PRODUCER',
+    JOBS_CONSUMER: 'JOBS_CONSUMER',
     AGGREGATION_METRIC: 'AGGREGATION_METRIC'
 
 };

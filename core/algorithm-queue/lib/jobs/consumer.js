@@ -8,6 +8,7 @@ const { jobPrefix } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 // const../queue-runner { metricsNames } = require('../../common/consts/metricsNames');
 const log = require('@hkube/logger').GetLogFromContainer();
+const component = require('../consts/component-name').JOBS_CONSUMER;
 
 // const consumedObject = {
 //     jobID: 'jobID',
@@ -66,19 +67,11 @@ class JobConsumer extends EventEmitter {
             }
         });
         this._consumer.register({
-            job: { type: algorithmType }
+            job: { type: algorithmType, concurrency: options.consumer.concurrency }
         });
-        log.info(`registering for job ${JSON.stringify(options)}`);
-        this._consumer.on('job', async (job) => {
-            const data = await this.etcd.jobState.getState({ jobId: job.data.jobID });
-            if (data && data.state === 'stop') {
-                log.info(`Job arrived with state stop therefore will not added to queue : ${JSON.stringify(job.data.tasks.length)}`);
-                queueRunner.queue.removeJobId([job.data.jobID]);
-            }
-            else {
-                log.info(`Job arrived with inputs amount: ${JSON.stringify(job.data.tasks.length)}`);
-                this.queueTasksBuilder(job);
-            }
+        log.info(`registering for job ${options.algorithmType}`, { component });
+        this._consumer.on('job', (job) => {
+            this._handleJob(job);
         });
 
         this.etcd.jobState.on('change', (data) => {
@@ -86,6 +79,27 @@ class JobConsumer extends EventEmitter {
                 queueRunner.queue.removeJobId([data.jobId]);
             }
         });
+    }
+
+    async _handleJob(job) {
+        try {
+            const jobId = job.data.jobID;
+            const data = await this.etcd.jobState.getState({ jobId });
+            if (data && data.state === 'stop') {
+                log.warning(`job arrived with state stop therefore will not added to queue : ${jobId}`, { component });
+                queueRunner.queue.removeJobId([job.data.jobID]);
+            }
+            else {
+                log.info(`job arrived with inputs amount: ${job.data.tasks.length}`, { component });
+                this.queueTasksBuilder(job);
+            }
+        }
+        catch (error) {
+            job.done(error);
+        }
+        finally {
+            job.done();
+        }
     }
 
 
