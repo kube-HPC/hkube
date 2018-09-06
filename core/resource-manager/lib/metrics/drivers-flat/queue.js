@@ -16,7 +16,7 @@ class QueueMetric extends Metric {
     }
 
     _log(queue) {
-        const text = queue.map(q => `${q.data.length + q.pendingAmount} ${q.name}`).sort().join(', ');
+        const text = queue.map(q => `${q.data.length} ${q.name}`).sort().join(', ');
         if (text && text !== this._state) {
             log.debug(`requested queue: ${text}`, { component });
             this._state = text;
