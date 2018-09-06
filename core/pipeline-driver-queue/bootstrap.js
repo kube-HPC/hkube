@@ -7,10 +7,10 @@ const component = require('./lib/consts').componentName.MAIN;
 const { tracer } = require('@hkube/metrics');
 
 const modules = [
-    './lib/jobs/consumer',
-    './lib/jobs/producer',
-    './lib/queue-runner',
-    './lib/metrics/aggregation-metrics-factory'
+    require('./lib/queue-runner'),
+    require('./lib/jobs/consumer'),
+    require('./lib/jobs/producer'),
+    require('./lib/metrics/aggregation-metrics-factory')
 ];
 
 class Bootstrap {
@@ -28,7 +28,9 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
+            for (const m of modules) {
+                await m.init(main);
+            }
         }
         catch (error) {
             this._onInitFailed(new Error(`unable to start application. ${error.message}`));

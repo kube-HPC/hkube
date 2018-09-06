@@ -10,11 +10,7 @@ const stubTemplate = ({
             jobId: `${uuid}`,
             pipelineName: `${pipelineUuid}`,
             priority: priority,
-            entranceTime: entranceTime,
-            calculated: {
-                score: score,
-                latestScores: {}
-            }
+            entranceTime: entranceTime
         }
     );
 

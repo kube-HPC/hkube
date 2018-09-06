@@ -1,3 +1,4 @@
+const isEqual = require('lodash.isequal');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -8,65 +9,86 @@ const queueRunner = require('../queue-runner');
 
 class JobProducer {
     constructor() {
-        // in order to verify that the active is not some job that was in stalled before 
-        this._lastSentJob = null;
+        this._lastData = null;
+        this._pendingAmount = 0;
+        this._checkQueue = this._checkQueue.bind(this);
+        this._updateState = this._updateState.bind(this);
     }
 
     async init(options) {
         this._jobType = options.producer.jobType;
         this._producer = new Producer({ setting: { redis: options.redis, prefix: options.producer.prefix, tracer } });
-        this._bullQueue = this._producer._createQueue(this._jobType);
+        this._producer._createQueue(this._jobType);
+        this._checkQueueInterval = options.checkQueueInterval;
+        this._updateStateInterval = options.updateStateInterval;
+
         this._producerEventRegistry();
-        this._checkWorkingStatusInterval();
+        this._checkQueue();
+        this._updateState();
     }
 
-    get get() {
-        return this._producer;
-    }
-
-    // should handle cases where there is currently not any active job and new job added to queue 
-    _checkWorkingStatusInterval() {
-        setInterval(async () => {
-            const pendingAmount = await this.getWaitingCount();
-            if (pendingAmount === 0 && queueRunner.queue.get.length > 0) {
+    async _checkQueue() {
+        try {
+            if (this._pendingAmount === 0 && queueRunner.queue.get.length > 0) {
                 await this.createJob();
             }
-        }, 1000);
+        }
+        catch (error) {
+            log.error(error.message, { component });
+        }
+        finally {
+            setTimeout(this._checkQueue, this._checkQueueInterval);
+        }
     }
 
-    getWaitingCount() {
-        return this._bullQueue.getWaitingCount();
+    async _updateState() {
+        try {
+            const queue = [...queueRunner.queue.get];
+            if (!isEqual(queue, this._lastData)) {
+                await queueRunner.queue.persistenceStore(queue);
+                this._lastData = queue;
+            }
+        }
+        catch (error) {
+            log.error(error.message, { component });
+        }
+        finally {
+            setTimeout(this._updateState, this._updateStateInterval);
+        }
     }
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
+            this._pendingAmount++;
             log.info(`${Events.WAITING} ${data.jobID}`, { component, jobId: data.jobID, status: jobState.WAITING });
-        }).on(Events.ACTIVE, async (data) => {
+        }).on(Events.ACTIVE, (data) => {
+            this._pendingAmount--;
+            queueRunner.queue.dequeue();
             log.info(`${Events.ACTIVE} ${data.jobID}`, { component, jobId: data.jobID, status: jobState.ACTIVE });
-            // verify that not stalled job is the active one 
-            if (data.jobID === this._lastSentJob) {
-                await this.createJob();
-            }
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobID}`, { component, jobId: data.jobID, status: jobState.COMPLETED });
         }).on(Events.FAILED, (data) => {
-            log.error(`${Events.FAILED} ${data.jobID}, error: ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
+            log.error(`${Events.FAILED} ${data.jobID}, ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
         }).on(Events.STALLED, (data) => {
-            log.error(`${Events.STALLED} ${data.jobID}, error: ${data.error}`, { component, jobId: data.jobId, status: jobState.STALLED });
-        }).on(Events.CRASHED, async (event) => {
-            log.error(`${Events.CRASHED} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: jobState.FAILED });
-            persistence.setJobStatus({ jobId: event.options.data.jobId, pipeline: event.options.data.pipelineName, status: jobState.FAILED, error: event.error, level: 'error' });
+            this._pendingAmount++;
+            log.error(`${Events.STALLED} ${data.jobID}`, { component, jobId: data.jobId, status: jobState.STALLED });
+        }).on(Events.CRASHED, (data) => {
+            const { jobId, pipeline, error } = data.options;
+            const status = jobState.FAILED;
+            log.error(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
+            persistence.setJobStatus({ jobId, pipeline, status, error, level: 'error' });
+            persistence.setJobResults({ jobId, pipeline, status, error });
         });
     }
 
-    _taskToProducerJob(pipeline) {
+    _pipelineToJob(pipeline) {
         return {
             job: {
                 id: pipeline.jobId,
                 type: this._jobType,
                 data: {
                     jobId: pipeline.jobId,
-                    pipelineName: pipeline.pipelineName
+                    pipeline: pipeline.pipelineName
                 }
             },
             tracing: {
@@ -79,16 +101,10 @@ class JobProducer {
     }
 
     async createJob() {
-        const pipeline = queueRunner.queue.tryPop();
-        if (pipeline) {
-            log.debug(`pop new job ${pipeline.jobId}, calculated score: ${pipeline.calculated.score}`, { component });
-            this._lastSentJob = pipeline.jobId;
-            const job = this._taskToProducerJob(pipeline);
-            await this._producer.createJob(job);
-        }
-        else {
-            log.info('queue is empty', { component });
-        }
+        const pipeline = queueRunner.queue.peek();
+        log.debug(`creating new job ${pipeline.jobId}, calculated score: ${pipeline.score}`, { component });
+        const job = this._pipelineToJob(pipeline);
+        await this._producer.createJob(job);
     }
 }
 

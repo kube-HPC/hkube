@@ -1,15 +1,13 @@
 const Events = require('events');
 const _ = require('lodash');
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('./consts/component-name').QUEUE;
-const { queueEvents } = require('./consts');
+const { queueEvents, componentName } = require('./consts');
+const component = componentName.QUEUE;
 
 class Queue extends Events {
-    constructor({ scoreHeuristic = { run: null }, updateInterval = 1000, persistence = null } = {}) {
+    constructor({ scoreHeuristic = { run: null }, persistence = null } = {}) {
         super();
-        log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component });
         this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
-        this.updateInterval = updateInterval;
         this.queue = [];
         this.persistence = persistence;
         this.persistencyLoad();
@@ -19,17 +17,16 @@ class Queue extends Events {
         if (!this.persistence) {
             return;
         }
-        log.info('try to recover data from persistent storage', { component });
+        log.info('try to load data from persistent storage', { component });
         try {
             const queueItems = await this.persistence.get();
             if (queueItems && queueItems.data && queueItems.data.length > 0) {
-                queueItems.data.forEach(q => this.add(q));
-                log.info('persistent added successfully', { component });
+                queueItems.data.forEach(q => this.enqueue(q));
             }
-            await this.persistenceStore({ pendingAmount: 0 });
+            log.info('successfully load data from persistent storage', { component });
         }
         catch (e) {
-            log.error(`could not add data from persistency ${e.message}`, { component });
+            log.error(`failed to load data from persistent storage, ${e.message}`, { component });
         }
     }
 
@@ -37,31 +34,39 @@ class Queue extends Events {
         if (!this.persistence) {
             return;
         }
-        log.debug('try to store data to storage', { component });
+        log.debug('try to store data to persistent storage', { component });
         try {
-            await this.persistence.store({ data: this.queue, ...data });
-            log.debug('store data to storage succeed', { component });
+            await this.persistence.store(data);
+            log.debug('successfully store data to storage succeed', { component });
         }
         catch (e) {
-            log.error(`fail to store data ${e.message}`, { component });
+            log.error(`failed to store data to persistent storage, ${e.message}`, { component });
         }
     }
 
-    // todo:add merge on async 
     updateHeuristic(scoreHeuristic) {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
     }
 
-    add(job) {
+    enqueue(job) {
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
-        this.queue = _.orderBy(this.queue, j => j.calculated.score, 'desc');
+        this.queue = _.orderBy(this.queue, j => j.score, 'desc');
         this.emit(queueEvents.INSERT);
         log.info(`new job inserted to queue, queue size: ${this.queue.length}`, { component });
     }
 
-    tryPop() {
-        if (this.queue.length === 0) {
+    peek() {
+        if (this.size === 0) {
+            return null;
+        }
+        const job = this.queue[0];
+        this.emit(queueEvents.PEEK, job.jobId);
+        return job;
+    }
+
+    dequeue() {
+        if (this.size === 0) {
             return null;
         }
         const job = this.queue.shift();
@@ -77,6 +82,10 @@ class Queue extends Events {
             log.info(`job removed from queue, queue size: ${this.queue.length}`, { component });
         }
         return jobs;
+    }
+
+    get size() {
+        return this.queue.length;
     }
 
     get get() {

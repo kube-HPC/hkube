@@ -15,7 +15,7 @@ const setting = { prefix: 'pipeline-driver-queue' }
 const producer = new Producer({ setting });
 const Queue = require('../lib/queue');
 
-const heuristic = score => job => ({ ...job, entranceTime: Date.now(), ...{ calculated: { score, latestScore: {} } } });
+const heuristic = score => job => ({ ...job, entranceTime: Date.now(), ...{ score } });
 const heuristicBoilerPlate = (score, _heuristic) => ({
     run(job) {
         return _heuristic(score)(job);
@@ -32,36 +32,36 @@ describe('Test', () => {
     });
     let _semaphore = null;
     beforeEach(() => {
-        queue = new Queue({ updateInterval: QUEUE_INTERVAL });
+        queue = new Queue();
         _semaphore = new semaphore();
     });
     describe('algorithm queue', () => {
         describe('queue-tests', () => {
             describe('add', () => {
                 it('should added to queue', async () => {
-                    queue = new Queue({ updateInterval: QUEUE_INTERVAL });
+                    queue = new Queue();
                     queue.updateHeuristic(heuristicBoilerPlate(80, heuristic));
-                    queue.add(stubTemplate());
+                    queue.enqueue(stubTemplate());
                     const q = queue.get;
-                    expect(q[0].calculated.score).to.eql(80);
+                    expect(q[0].score).to.eql(80);
                 });
                 xit('should added to queue ordered', async () => {
-                    queue = new Queue({ updateInterval: 10000 });
+                    queue = new Queue();
                     queue.updateHeuristic({ run: heuristic(80) });
-                    queue.add(stubTemplate());
+                    queue.enqueue(stubTemplate());
                     queue.updateHeuristic({ run: heuristic(60) });
-                    queue.add(stubTemplate());
+                    queue.enqueue(stubTemplate());
                     queue.updateHeuristic({ run: heuristic(90) });
-                    queue.add(stubTemplate());
-                    expect(queue.get[0].calculated.score).to.eql(90);
-                    expect(queue.get[2].calculated.score).to.eql(60);
+                    queue.enqueue(stubTemplate());
+                    expect(queue.get[0].score).to.eql(90);
+                    expect(queue.get[2].score).to.eql(60);
                 });
             });
             describe('remove', () => {
                 it('should removed from queue', async () => {
                     queue.updateHeuristic({ run: heuristic(80) });
                     const stubJob = stubTemplate();
-                    queue.add(stubJob);
+                    queue.enqueue(stubJob);
                     queue.on(queueEvents.REMOVE, () => {
                         _semaphore.callDone();
                     });
@@ -74,7 +74,7 @@ describe('Test', () => {
                     let called = false;
                     queue.updateHeuristic({ run: heuristic(80) });
                     const stubJob = stubTemplate();
-                    queue.add(stubJob);
+                    queue.enqueue(stubJob);
                     queue.on(queueEvents.REMOVE, () => {
                         called = true;
                     });
@@ -87,11 +87,11 @@ describe('Test', () => {
                 it('should pop from queue', async () => {
                     queue.updateHeuristic({ run: heuristic(80) });
                     const stubJob = stubTemplate();
-                    queue.add(stubJob);
+                    queue.enqueue(stubJob);
                     queue.on(queueEvents.POP, () => {
                         _semaphore.callDone();
                     });
-                    const job = queue.tryPop();
+                    const job = queue.dequeue();
                     await _semaphore.done({ doneAmount: 1 });
                     const q = queue.get;
                     expect(job.jobId).to.be.eql(stubJob.jobId);
@@ -102,14 +102,14 @@ describe('Test', () => {
                 it('check events insert', async () => {
                     queue.on(queueEvents.INSERT, () => _semaphore.callDone());
                     queue.updateHeuristic({ run: heuristic(80) });
-                    queue.add(stubTemplate());
+                    queue.enqueue(stubTemplate());
                     await _semaphore.done();
                 });
                 it('check events remove', async () => {
                     queue.on(queueEvents.REMOVE, () => _semaphore.callDone());
                     queue.updateHeuristic({ run: heuristic(80) });
                     const stubJob = stubTemplate();
-                    queue.add(stubJob);
+                    queue.enqueue(stubJob);
                     await queue.remove(stubJob.jobId);
                     await _semaphore.done();
                 });
@@ -118,11 +118,9 @@ describe('Test', () => {
         describe('queue-runner', () => {
             it('check-that-heuristics-sets-to-latestScore', async () => {
                 const stubJob = stubTemplate();
-                queueRunner.queue.add(stubJob);
+                queueRunner.queue.enqueue(stubJob);
                 const q = queueRunner.queue.get;
-                expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
-                expect(q[0].calculated.latestScores).to.have.property('ENTRANCE_TIME');
-                expect(q[0].calculated.score).to.be.above(0);
+                expect(q[0].score).to.be.above(0);
             });
         });
     });
@@ -130,9 +128,7 @@ describe('Test', () => {
         it('persistent load', async () => {
             queueRunner.queue.queue = []
             const jobs = generateArr(100);
-            jobs.forEach(j => queueRunner.queue.add(j))
-            await queueRunner.queue.persistenceStore();
-            queueRunner.queue.queue = [];
+            await queueRunner.queue.persistenceStore(jobs);
             await queueRunner.queue.persistencyLoad();
             const q = queueRunner.queue.get;
             expect(q.length).to.be.greaterThan(98);
@@ -141,7 +137,7 @@ describe('Test', () => {
     describe('job-consume', () => {
         it('should consume job with params', async () => {
             const jobId = uuidv4();
-            await persistence.setExecution({ jobId, data: pipelines[0] });
+            await persistence.client.execution.set({ jobId, data: pipelines[0] });
             const options = {
                 job: {
                     type: 'pipeline-job',

@@ -19,7 +19,8 @@ config.etcd = {
 
 config.consumer = {
     prefix: 'pipeline-driver-queue',
-    jobType: 'pipeline-job'
+    jobType: 'pipeline-job',
+    concurrency: 10000
 };
 
 config.producer = {
@@ -31,9 +32,8 @@ config.persistence = {
     type: 'pipeline-driver'
 };
 
-config.queue = {
-    updateInterval: 1000
-};
+config.checkQueueInterval = 500;
+config.updateStateInterval = 1000;
 
 config.heuristicsWeights = {
     [heuristicsNames.PRIORITY]: 0.5,

@@ -26,6 +26,7 @@ module.exports = {
         "no-console": "error",
         "linebreake-style": "off",
         "no-var": "error",
+        "no-plusplus": "off",
         "object-curly-spacing": "off",
         "arrow-body-style": "off",
         "class-methods-use-this": "off",

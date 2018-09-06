@@ -2,8 +2,10 @@ const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
-const producer = require('../jobs/producer');
 const { jobState } = require('../consts');
+const log = require('@hkube/logger').GetLogFromContainer();
+const { componentName } = require('../consts');
+const component = componentName.JOBS_CONSUMER;
 
 class JobConsumer {
     constructor() {
@@ -18,7 +20,7 @@ class JobConsumer {
                 prefix: options.consumer.prefix
             }
         });
-        this._consumer.register({ job: { type: options.consumer.jobType } });
+        this._consumer.register({ job: { type: options.consumer.jobType, concurrency: options.consumer.concurrency } });
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
@@ -31,17 +33,18 @@ class JobConsumer {
 
     async _handleJob(job) {
         try {
-            const { jobId } = job.data;
+            const { jobId, spanId } = job.data;
             const pipeline = await persistence.getExecution({ jobId });
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
             }
             const watchState = await persistence.getJobState({ jobId });
             if (watchState && watchState.state === jobState.STOP) {
+                log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
                 await this._stopJob(jobId, pipeline, watchState.reason);
             }
             else {
-                await this._queueJob(pipeline, job);
+                await this._queueJob(pipeline, jobId, spanId);
             }
         }
         catch (error) {
@@ -56,34 +59,24 @@ class JobConsumer {
         const jobs = queueRunner.queue.remove(jobId);
         if (jobs.length > 0) {
             const status = jobState.STOPPED;
-            this._updateState();
             await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, level: 'info' });
             await persistence.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status });
             await persistence.deleteTasksState({ jobId });
         }
     }
 
-    async _queueJob(pipeline, job) {
-        const jobs = this._pipelineToQueueAdapter(pipeline, job);
-        queueRunner.queue.add(jobs);
-        this._updateState();
+    async _queueJob(pipeline, jobId, spanId) {
+        const job = this._pipelineToQueueAdapter(pipeline, jobId, spanId);
+        queueRunner.queue.enqueue(job);
     }
 
-    async _updateState() {
-        const pendingAmount = await producer.getWaitingCount();
-        await queueRunner.queue.persistenceStore({ pendingAmount });
-    }
-
-    _pipelineToQueueAdapter(pipeline, job) {
+    _pipelineToQueueAdapter(pipeline, jobId, spanId) {
         return {
-            jobId: job.data.jobId,
-            spanId: job.data.spanId,
+            jobId,
+            spanId,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
-            entranceTime: Date.now(),
-            calculated: {
-                latestScores: {}
-            }
+            entranceTime: Date.now()
         };
     }
 }

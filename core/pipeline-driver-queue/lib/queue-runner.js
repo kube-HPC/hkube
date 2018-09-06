@@ -1,9 +1,9 @@
-const { queueEvents } = require('./consts');
+// const { queueEvents } = require('./consts');
 const Queue = require('./queue');
 const HeuristicRunner = require('./heuristic-runner');
 const heuristic = require('./heuristic');
 const Persistence = require('../lib/persistency/persistence');
-const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory');
+// const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory');
 
 class QueueRunner {
     constructor() {
@@ -19,12 +19,10 @@ class QueueRunner {
         const persistence = await Persistence.init({ options: this.config });
         this.queue = new Queue({
             scoreHeuristic: this.heuristicRunner,
-            updateInterval: this.config.queue.updateInterval,
             persistence
         });
-        this.queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
+        // this.queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
     }
 }
-
 
 module.exports = new QueueRunner();
