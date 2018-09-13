@@ -407,17 +407,23 @@ class TaskRunner extends EventEmitter {
     }
 
     _runNodeBatch(options) {
-        options.input.forEach((inp, ind) => {
-            const batch = new Batch({
-                ...options.node,
-                batchIndex: (ind + 1),
-                input: inp.input,
-                storage: inp.storage
+        if (options.input.length === 0) {
+            const error = new Error(`unable to run an empty batch for node ${options.node.nodeName}`);
+            this.stop(error);
+        }
+        else {
+            options.input.forEach((inp, ind) => {
+                const batch = new Batch({
+                    ...options.node,
+                    batchIndex: (ind + 1),
+                    input: inp.input,
+                    storage: inp.storage
+                });
+                this._nodes.addBatch(batch);
+                this._setTaskState(batch.taskId, batch);
             });
-            this._nodes.addBatch(batch);
-            this._setTaskState(batch.taskId, batch);
-        });
-        this._createJob(options, options.node.batch);
+            this._createJob(options, options.node.batch);
+        }
     }
 
     _taskComplete(taskId) {
