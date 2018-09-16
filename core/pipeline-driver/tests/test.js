@@ -389,8 +389,8 @@ describe('Test', function () {
                 const options = {
                     type: 'test-job'
                 }
-                producer.createJob(options).then((jobID) => {
-                    expect(jobID).to.be.a('string');
+                producer.createJob(options).then((jobId) => {
+                    expect(jobId).to.be.a('string');
                     done();
                 });
             });
@@ -671,7 +671,7 @@ describe('Test', function () {
             expect(state.paused).to.equal(false);
             expect(state.driverStatus).to.equal('active');
             expect(state.jobStatus).to.equal('active');
-            expect(state.jobID).to.equal(jobId);
+            expect(state.jobId).to.equal(jobId);
             expect(state.pipelineName).to.equal('simple-flow');
         });
     });

@@ -241,7 +241,7 @@ class TaskRunner extends EventEmitter {
 
     _getDiscoveryData() {
         const discoveryInfo = {
-            jobID: this._jobId,
+            jobId: this._jobId,
             pipelineName: this.pipeline.name,
             driverStatus: this._driverStatus,
             jobStatus: this._jobStatus,
@@ -495,7 +495,7 @@ class TaskRunner extends EventEmitter {
             type: options.node.algorithmName,
             data: {
                 tasks,
-                jobID: this._jobId,
+                jobId: this._jobId,
                 nodeName: options.node.nodeName,
                 pipelineName: this.pipeline.name,
                 priority: this.pipeline.priority,

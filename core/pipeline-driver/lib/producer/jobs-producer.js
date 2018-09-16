@@ -21,15 +21,15 @@ class JobProducer extends EventEmitter {
         setting.tracer = tracer;
         this._producer = new Producer({ setting });
         this._producer.on(Events.WAITING, (data) => {
-            this.emit(TASKS.WAITING, data.jobID);
+            this.emit(TASKS.WAITING, data.jobId);
         }).on(Events.COMPLETED, (data) => {
-            this.emit(TASKS.SUCCEED, data.jobID);
+            this.emit(TASKS.SUCCEED, data.jobId);
         }).on(Events.ACTIVE, (data) => {
-            this.emit(TASKS.ACTIVE, data.jobID);
+            this.emit(TASKS.ACTIVE, data.jobId);
         }).on(Events.STALLED, (data) => {
-            this.emit(TASKS.STALLED, data.jobID);
+            this.emit(TASKS.STALLED, data.jobId);
         }).on(Events.CRASHED, (data) => {
-            this.emit(TASKS.CRASHED, { taskId: data.jobID, error: data.error });
+            this.emit(TASKS.CRASHED, { taskId: data.jobId, error: data.error });
         });
     }
 
@@ -40,8 +40,8 @@ class JobProducer extends EventEmitter {
                 data: options.data,
             }
         };
-        if (options.data && options.data.jobID) {
-            const topSpan = tracer.topSpan(options.data.jobID);
+        if (options.data && options.data.jobId) {
+            const topSpan = tracer.topSpan(options.data.jobId);
             if (topSpan) {
                 opt.tracing = {
                     parent: topSpan.context(),
