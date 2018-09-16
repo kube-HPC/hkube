@@ -88,7 +88,7 @@ describe('Test', () => {
                     queue.on(queueEvents.REMOVE, () => {
                         _semaphore.callDone();
                     });
-                    queue.remove([stubJob.jobID]);
+                    queue.remove([stubJob.jobId]);
                     //  await delay(QUEUE_INTERVAL + 500);
                     await _semaphore.done();
                     const q = queue.get;
@@ -106,7 +106,7 @@ describe('Test', () => {
                     await _semaphore.done();
                     const q = queue.get;
                     expect(q).to.have.length(1);
-                    expect(q[0].jobID).to.be.eql(stubJob.jobID);
+                    expect(q[0].jobId).to.be.eql(stubJob.jobId);
                 });
             });
 
@@ -132,7 +132,7 @@ describe('Test', () => {
                     //  await delay(QUEUE_INTERVAL + 500);
                     await _semaphore.done({ doneAmount: 2 });
                     const q = queue.get;
-                    expect(job.jobID).to.be.eql(stubJob.jobID);
+                    expect(job.jobId).to.be.eql(stubJob.jobId);
                     expect(q).to.have.length(0);
                 });
             });
@@ -179,7 +179,7 @@ describe('Test', () => {
                     queue.intervalRunningStatus = false;
                     const stubJob = stubTemplate();
                     await queue.add([stubJob]);
-                    await queue.remove([stubJob.jobID]);
+                    await queue.remove([stubJob.jobId]);
                     await _semaphore.done();
                     console.log('done '); //eslint-disable-line
                 });

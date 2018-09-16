@@ -11,7 +11,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
 // const consumedObject = {
-//     jobID: 'jobID',
+//     jobId: 'jobId',
 //     tasks: [
 //         {
 //             taskId: 'taskId',
@@ -27,7 +27,7 @@ const component = require('../consts/component-name').JOBS_CONSUMER;
 // };
 
 // const./consts/queue-events = {
-//     jobID: 'uuid',
+//     jobId: 'uuid',
 //     pipelineName: 'id',
 //     priority: '1-5',
 //     algorithmName: 'alg name',
@@ -83,11 +83,11 @@ class JobConsumer extends EventEmitter {
 
     async _handleJob(job) {
         try {
-            const jobId = job.data.jobID;
+            const jobId = job.data.jobId;
             const data = await this.etcd.jobState.getState({ jobId });
             if (data && data.state === 'stop') {
                 log.warning(`job arrived with state stop therefore will not added to queue : ${jobId}`, { component });
-                queueRunner.queue.removeJobId([job.data.jobID]);
+                queueRunner.queue.removeJobId([job.data.jobId]);
             }
             else {
                 log.info(`job arrived with inputs amount: ${job.data.tasks.length}`, { component });
@@ -103,9 +103,9 @@ class JobConsumer extends EventEmitter {
     }
 
 
-    pipelineToQueueAdapter({ jobID, pipelineName, priority, nodeName, algorithmName, info, spanId }, task, initialBatchLength) {
+    pipelineToQueueAdapter({ jobId, pipelineName, priority, nodeName, algorithmName, info, spanId }, task, initialBatchLength) {
         return {
-            jobID,
+            jobId,
             pipelineName,
             algorithmName,
             priority,
@@ -129,9 +129,9 @@ class JobConsumer extends EventEmitter {
     }
 
     queueTasksBuilder(job) {
-        const { jobID, pipelineName, priority, nodeName, algorithmName, info, spanId } = job.data;
+        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId } = job.data;
         const tasks = job.data.tasks.map(task => {
-            return this.pipelineToQueueAdapter({ jobID, pipelineName, priority, nodeName, algorithmName, info, spanId }, task, job.data.tasks.length);
+            return this.pipelineToQueueAdapter({ jobId, pipelineName, priority, nodeName, algorithmName, info, spanId }, task, job.data.tasks.length);
         });
         queueRunner.queue.add(tasks);
         job.done();

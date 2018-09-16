@@ -12,7 +12,7 @@ const Etcd = require('@hkube/etcd');
 //     id: node.taskId,
 //     type: node.algorithmName,
 //     data: {
-//         jobID: this._jobId,
+//         jobId: this._jobId,
 //         taskID: node.taskId,
 //         input: node.input,
 //         storage: node.storage,
@@ -24,7 +24,7 @@ const Etcd = require('@hkube/etcd');
 // }
 
 // const./consts/queue-events = {
-//     jobID: 'uuid',
+//     jobId: 'uuid',
 //     pipelineName: 'id',
 //     priority: '1-5',
 //     algorithmName: 'alg name',
@@ -74,30 +74,30 @@ class JobProducer {
     }
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            log.info(`${Events.WAITING} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.WAITING });
+            log.info(`${Events.WAITING} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.WAITING });
         });
         this._producer.on(Events.ACTIVE, async (data) => {
-            log.info(`${Events.ACTIVE} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.ACTIVE });
+            log.info(`${Events.ACTIVE} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.ACTIVE });
             // verify that not stalled job is the active one 
-            if (data.jobID === this._lastSentJob) {
+            if (data.jobId === this._lastSentJob) {
                 await this.createJob();
             }
         });
         this._producer.on(Events.COMPLETED, (data) => {
-            log.debug(`${Events.COMPLETED} ${data.jobID}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.COMPLETED });
+            log.debug(`${Events.COMPLETED} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
-            log.error(`${Events.FAILED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.FAILED });
+            log.error(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.FAILED });
         });
         this._producer.on(Events.STALLED, (data) => {
-            log.error(`${Events.STALLED} ${data.jobID}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobID: data.jobID, status: jobState.STALLED });
+            log.error(`${Events.STALLED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.STALLED });
         });
         this._producer.on(Events.CRASHED, async (job) => {
-            const { jobID, taskID } = job.options;
+            const { jobId, taskID } = job.options;
             const { error } = job;
             const status = taskStatus.CRASHED;
-            await this._etcd.tasks.setState({ jobId: jobID, taskId: taskID, status, error });
-            log.error(`${error} ${taskID}`, { component: componentName.JOBS_PRODUCER, jobID, status });
+            await this._etcd.tasks.setState({ jobId: jobId, taskId: taskID, status, error });
+            log.error(`${error} ${taskID}`, { component: componentName.JOBS_PRODUCER, jobId, status });
         });
     }
 
@@ -107,7 +107,7 @@ class JobProducer {
                 id: task.taskId,
                 type: task.algorithmName,
                 data: {
-                    jobID: task.jobID,
+                    jobId: task.jobId,
                     taskID: task.taskId,
                     input: task.taskData.input,
                     storage: task.storage,
@@ -121,7 +121,7 @@ class JobProducer {
             tracing: {
                 parent: task.spanId,
                 tags: {
-                    jobID: task.jobID,
+                    jobId: task.jobId,
                     taskID: task.taskId,
                 }
             }

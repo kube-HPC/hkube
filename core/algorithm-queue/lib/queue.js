@@ -6,7 +6,7 @@ const events = require('events');
 const queueEvents = require('./consts/queue-events');
 
 // const./consts/queue-events = {
-//     jobID: 'uuid',
+//     jobId: 'uuid',
 //     pipelineName: 'id',
 //     priority: '1-5',
 //     algorithmName: 'alg name',
@@ -155,8 +155,8 @@ class Queue extends events {
             return;
         }
         log.info(`${[...jobArr]} removed from queue  `, { component: components.QUEUE });
-        jobArr.forEach((jobID) => {
-            _.remove(this.queue, job => job.jobID === jobID);
+        jobArr.forEach((jobId) => {
+            _.remove(this.queue, job => job.jobId === jobId);
         });
         this.emit(queueEvents.REMOVE, jobArr);
     }
@@ -166,8 +166,8 @@ class Queue extends events {
             return;
         }
         log.info(`${[...taskArr]} removed from queue  `, { component: components.QUEUE });
-        taskArr.forEach((jobID) => {
-            _.remove(this.queue, job => job.jobID === jobID);
+        taskArr.forEach((jobId) => {
+            _.remove(this.queue, job => job.jobId === jobId);
         });
         this.emit(queueEvents.REMOVE, taskArr);
     }
