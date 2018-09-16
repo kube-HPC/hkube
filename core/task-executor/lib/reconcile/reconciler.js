@@ -52,7 +52,7 @@ const _pendingDriverFilter = (job, algorithmName) => {
 };
 
 const _idleWorkerFilter = (worker, algorithmName) => {
-    let match = worker.workerStatus === 'ready' && !worker.paused;
+    let match = worker.workerStatus === 'ready' && !worker.workerPaused;
     if (algorithmName) {
         match = match && worker.algorithmName === algorithmName;
     }
@@ -60,7 +60,7 @@ const _idleWorkerFilter = (worker, algorithmName) => {
 };
 
 const _activeWorkerFilter = (worker, algorithmName) => {
-    let match = worker.workerStatus !== 'ready' && !worker.paused;
+    let match = worker.workerStatus !== 'ready' && !worker.workerPaused;
     if (algorithmName) {
         match = match && worker.algorithmName === algorithmName;
     }
@@ -68,7 +68,7 @@ const _activeWorkerFilter = (worker, algorithmName) => {
 };
 
 const _pausedWorkerFilter = (worker, algorithmName) => {
-    let match = worker.workerStatus === 'ready' && worker.paused;
+    let match = worker.workerStatus === 'ready' && worker.workerPaused;
     if (algorithmName) {
         match = match && worker.algorithmName === algorithmName;
     }
@@ -76,7 +76,7 @@ const _pausedWorkerFilter = (worker, algorithmName) => {
 };
 
 const _resumeWorkers = (workers, count) => {
-    const sorted = workers.slice().sort((a, b) => (b.paused - a.paused));
+    const sorted = workers.slice().sort((a, b) => (b.workerPaused - a.workerPaused));
     const promises = sorted.slice(0, count).map((w) => {
         const workerId = w.id;
         return etcd.sendCommandToWorker({ workerId, command: commands.startProcessing });
@@ -94,7 +94,7 @@ const _stopDriver = (driver) => {
 
 const _clearCreatedJobsList = (now) => {
     const newCreatedJobsList = createdJobsList.filter(j => (now || Date.now()) - j.createdTime < CREATED_JOBS_TTL);
-    log.debug(`removed ${createdJobsList.length - newCreatedJobsList.length} items from jobCreated list`);
+    // log.debug(`removed ${createdJobsList.length - newCreatedJobsList.length} items from jobCreated list`);
     createdJobsList = newCreatedJobsList;
 };
 
@@ -231,7 +231,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
     // log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
-    log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
+    if (isCpuPresure || isMemoryPresure) {
+        log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
+    }
     const createDetails = [];
     const createPromises = [];
     const reconcileResult = {};
@@ -264,7 +266,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
             memory: prev.memory + parse.getMemoryInMi(cur.resourceRequests.requests.memory)
         };
     }, { cpu: 0, memory: 0 });
-    
+
     _findWorkersToStop({
         skipped, idleWorkers, activeWorkers, algorithmTemplates
     }, { stopDetails });
@@ -303,8 +305,9 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, driversPods,
     // log.debug(`resources:\n${JSON.stringify(normResources, null, 2)}`);
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
-    log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
-
+    if (isCpuPresure || isMemoryPresure) {
+        log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
+    }
     const driversAmount = normalizeDriversAmount(normJobs, normRequests, settings);
 
     // const isResourcePresure = isCpuPresure || isMemoryPresure;
