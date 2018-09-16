@@ -33,7 +33,7 @@ function EPHYMERAL_PORT(){
 
 export port=$(EPHYMERAL_PORT)
 echo using port $port
-export METRICS_PORT=$(EPHYMERAL_PORT)
+#export METRICS_PORT=$(EPHYMERAL_PORT)
 echo METRICS_PORT $METRICS_PORT
 
 #run_parallel "sleep 1" "sleep 2"

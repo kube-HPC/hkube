@@ -12,17 +12,17 @@ const datastoreHelper = require('../lib/helpers/datastoreHelper');
 
 let consumer, producer, storageAdapter;
 function getConfig() {
-    const jobID = 'jobId:' + uuid();
+    const jobId = 'jobId:' + uuid();
     const taskID = 'taskId:' + uuid();
     return {
         taskID,
-        jobID,
+        jobId,
         defaultStorage: 's3',
         jobConsumer: {
             job: {
                 type: 'test-job' + uuid(),
                 data: {
-                    jobID
+                    jobId
                 }
             },
             setting: {
@@ -64,7 +64,7 @@ describe('consumer tests', () => {
     });
     it('store data and validate result from algorithm', (done) => {
         let config = getConfig();
-        storageAdapter.put({ jobId: config.jobID, taskId: config.taskID, data: { data: { engine: 'deep' } } }).then((link) => {
+        storageAdapter.put({ jobId: config.jobId, taskId: config.taskID, data: { data: { engine: 'deep' } } }).then((link) => {
             consumer.init(config).then(() => {
                 storageAdapter
                 stateManager.once('stateEnteredready', async () => {
@@ -73,7 +73,7 @@ describe('consumer tests', () => {
                         job: {
                             type: config.jobConsumer.job.type,
                             data: {
-                                jobID: config.jobID,
+                                jobId: config.jobId,
                                 taskID: config.taskID,
                                 input: ['test-param', true, 12345, '$$guid-5'],
                                 storage: {
@@ -108,7 +108,7 @@ describe('consumer tests', () => {
                     job: {
                         type: config.jobConsumer.job.type,
                         data: {
-                            jobID: config.jobID,
+                            jobId: config.jobId,
                             taskID: config.taskID,
                             input: [null, 1, undefined]
                         },
@@ -141,7 +141,7 @@ describe('consumer tests', () => {
                     job: {
                         type: config.jobConsumer.job.type,
                         data: {
-                            jobID: config.jobID,
+                            jobId: config.jobId,
                             taskID: config.taskID,
                             input: []
                         },
@@ -172,7 +172,7 @@ describe('consumer tests', () => {
                     job: {
                         type: config.jobConsumer.job.type,
                         data: {
-                            jobID: config.jobID,
+                            jobId: config.jobId,
                             taskID: config.taskID,
                             input: ['$$guid-5'],
                             storage: {
@@ -196,7 +196,7 @@ describe('consumer tests', () => {
     });
     it('get input from storage and send to algorithm', (done) => {
         let config = getConfig();
-        storageAdapter.put({ jobId: config.jobID, taskId: config.taskID, data: 'test' }).then((link) => {
+        storageAdapter.put({ jobId: config.jobId, taskId: config.taskID, data: 'test' }).then((link) => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     producer = new Producer(config.jobConsumer);
@@ -204,7 +204,7 @@ describe('consumer tests', () => {
                         job: {
                             type: config.jobConsumer.job.type,
                             data: {
-                                jobID: config.jobID,
+                                jobId: config.jobId,
                                 taskID: config.taskID,
                                 input: ['$$guid-5'],
                                 storage: {

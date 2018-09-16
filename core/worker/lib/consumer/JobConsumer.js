@@ -21,7 +21,7 @@ class JobConsumer extends EventEmitter {
         this._options = null;
         this._job = null;
         this._storageAdapter = null;
-        this._jobID = undefined;
+        this._jobId = undefined;
         this._taskID = undefined;
         this._pipelineName = undefined;
         this._consumerPaused = false;
@@ -69,18 +69,18 @@ class JobConsumer extends EventEmitter {
             });
 
             this._job = job;
-            this._jobID = job.data.jobID;
+            this._jobId = job.data.jobId;
             this._taskID = job.data.taskID;
             this._pipelineName = job.data.pipelineName;
             this._jobData = { node: job.data.node, batchID: job.data.batchID };
-            const watchState = await etcd.watch({ jobId: this._jobID });
+            const watchState = await etcd.watch({ jobId: this._jobId });
 
             if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
                 this.finishJob();
                 return;
             }
             await etcd.update({
-                jobId: this._jobID, taskId: this._taskID, status: constants.JOB_STATUS.ACTIVE
+                jobId: this._jobId, taskId: this._taskID, status: constants.JOB_STATUS.ACTIVE
             });
 
             stateManager.setJob(job);
@@ -113,7 +113,7 @@ class JobConsumer extends EventEmitter {
     getDiscoveryData(data) {
         const { workerStatus, jobStatus, error } = this._getStatus(data);
         const discoveryInfo = {
-            jobID: this._jobID,
+            jobId: this._jobId,
             taskID: this._taskID,
             pipelineName: this._pipelineName,
             jobData: this._jobData,
@@ -197,7 +197,7 @@ class JobConsumer extends EventEmitter {
             name: 'storage-get',
             id: this._taskID,
             tags: {
-                jobID: this._jobID,
+                jobId: this._jobId,
                 taskID: this._taskID,
             }
         });
@@ -227,7 +227,7 @@ class JobConsumer extends EventEmitter {
             return;
         }
 
-        await etcd.unwatch({ jobId: this._jobID });
+        await etcd.unwatch({ jobId: this._jobId });
         let resultLink = null;
         let { resultData, jobStatus, error } = this._getStatus(data); // eslint-disable-line prefer-const
 
@@ -241,7 +241,7 @@ class JobConsumer extends EventEmitter {
         }
 
         await etcd.update({
-            jobId: this._jobID, taskId: this._taskID, status: jobStatus, result: resultLink, error
+            jobId: this._jobId, taskId: this._taskID, status: jobStatus, result: resultLink, error
         });
 
         metrics.get(metricsNames.algorithm_completed).inc({
@@ -267,7 +267,7 @@ class JobConsumer extends EventEmitter {
 
         this._job.done(error);
         this._job = null;
-        this._jobID = undefined;
+        this._jobId = undefined;
         this._taskID = undefined;
         this._pipelineName = undefined;
         this._jobData = undefined;
@@ -282,7 +282,7 @@ class JobConsumer extends EventEmitter {
                 name: 'storage-put',
                 id: this._taskID,
                 tags: {
-                    jobID: this._jobID,
+                    jobId: this._jobId,
                     taskID: this._taskID,
                 }
             });
@@ -290,7 +290,7 @@ class JobConsumer extends EventEmitter {
                 data = null;
             }
             const storageInfo = await this._storageAdapter.put({
-                jobId: this._job.data.jobID, taskId: this._job.data.taskID, data
+                jobId: this._job.data.jobId, taskId: this._job.data.taskID, data
             });
             const object = { [this._job.data.node]: data };
             storageLink = {
@@ -305,7 +305,7 @@ class JobConsumer extends EventEmitter {
             if (span) {
                 span.finish(err);
             }
-            log.error(`failed to store data job:${this._jobID} task:${this._taskID}`, { component }, err);
+            log.error(`failed to store data job:${this._jobId} task:${this._taskID}`, { component }, err);
             storageError = err.message;
         }
         return {
@@ -316,7 +316,7 @@ class JobConsumer extends EventEmitter {
 
     currentTaskInfo() {
         return {
-            jobId: this._jobID,
+            jobId: this._jobId,
             taskId: this._taskID,
             pipelineName: this._pipelineName,
             algorithmName: this._options.jobConsumer.job.type
@@ -328,7 +328,7 @@ class JobConsumer extends EventEmitter {
     }
 
     get jobId() {
-        return this._jobID;
+        return this._jobId;
     }
 
     get taskId() {

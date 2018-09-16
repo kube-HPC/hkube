@@ -63,7 +63,7 @@ class StateManager extends EventEmitter {
                     id: this._job.data.taskID,
                     parent: this._job.data.spanId,
                     tags: {
-                        jobID: this._job.data.jobID,
+                        jobId: this._job.data.jobId,
                         taskID: this._job.data.taskID,
                     }
                 });
