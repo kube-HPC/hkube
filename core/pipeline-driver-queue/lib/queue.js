@@ -9,10 +9,15 @@ class Queue extends Events {
         super();
         this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
         this.queue = [];
+        this.isIntervalRunning = true;
         this.persistence = persistence;
         this.persistencyLoad();
     }
 
+    flush() {
+        this.queue = [];
+    }
+    
     async persistencyLoad() {
         if (!this.persistence) {
             return;
@@ -52,7 +57,8 @@ class Queue extends Events {
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = _.orderBy(this.queue, j => j.score, 'desc');
-        this.emit(queueEvents.INSERT);
+        this.emit(queueEvents.INSERT, job);
+        this.emit(queueEvents.UPDATE_SCORE, job);
         log.info(`new job inserted to queue, queue size: ${this.queue.length}`, { component });
     }
 
@@ -70,7 +76,7 @@ class Queue extends Events {
             return null;
         }
         const job = this.queue.shift();
-        this.emit(queueEvents.POP, job.jobId);
+        this.emit(queueEvents.POP, job);
         log.info(`job pop from queue, queue size: ${this.queue.length}`, { component });
         return job;
     }
@@ -78,7 +84,7 @@ class Queue extends Events {
     remove(jobId) {
         const jobs = _.remove(this.queue, job => job.jobId === jobId);
         if (jobs.length > 0) {
-            this.emit(queueEvents.REMOVE, jobId);
+            this.emit(queueEvents.REMOVE, jobs[0]);
             log.info(`job removed from queue, queue size: ${this.queue.length}`, { component });
         }
         return jobs;
@@ -90,6 +96,10 @@ class Queue extends Events {
 
     get get() {
         return this.queue;
+    }
+
+    set intervalRunningStatus(status) {
+        this.isIntervalRunning = status;
     }
 }
 

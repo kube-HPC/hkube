@@ -77,7 +77,10 @@ class JobConsumer {
             spanId,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
-            entranceTime: Date.now()
+            entranceTime: Date.now(),
+            calculated: {
+                latestScores: {}
+            }
         };
     }
 }

@@ -24,10 +24,11 @@ class heuristicRunner {
         log.debug(`running heuristic for ${job.pipelineName}`, { component });
         const score = this.heuristicMap.reduce((result, algorithm) => {
             const heuristicScore = algorithm.heuristic(job);
+            job.calculated.latestScores[algorithm.name] = heuristicScore;
             return result + heuristicScore;
         }, 0);
         log.debug(`finish heuristic for ${job.pipelineName} - score:${score}`, { component });
-        return { ...job, score };
+        return { ...job, calculated: { ...job.calculated, score } };
     }
 }
 

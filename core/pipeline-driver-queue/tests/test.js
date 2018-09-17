@@ -15,7 +15,8 @@ const setting = { prefix: 'pipeline-driver-queue' }
 const producer = new Producer({ setting });
 const Queue = require('../lib/queue');
 
-const heuristic = score => job => ({ ...job, entranceTime: Date.now(), ...{ score } });
+const heuristic = score => job => ({ ...job, entranceTime: Date.now(), score, ...{ calculated: { latestScore: {} } } })
+const heuristicStub = score => job => ({ ...job })
 const heuristicBoilerPlate = (score, _heuristic) => ({
     run(job) {
         return _heuristic(score)(job);
@@ -23,7 +24,6 @@ const heuristicBoilerPlate = (score, _heuristic) => ({
 });
 
 let queue = null;
-const QUEUE_INTERVAL = 500;
 
 describe('Test', () => {
     before(async () => {
@@ -45,15 +45,14 @@ describe('Test', () => {
                     const q = queue.get;
                     expect(q[0].score).to.eql(80);
                 });
-                xit('should added to queue ordered', async () => {
+                it('should added to queue ordered', async () => {
                     queue = new Queue();
-                    queue.updateHeuristic({ run: heuristic(80) });
-                    queue.enqueue(stubTemplate());
-                    queue.updateHeuristic({ run: heuristic(60) });
-                    queue.enqueue(stubTemplate());
-                    queue.updateHeuristic({ run: heuristic(90) });
-                    queue.enqueue(stubTemplate());
+                    queue.updateHeuristic({ run: heuristicStub() });
+                    queue.enqueue(stubTemplate({ score: 80 }));
+                    queue.enqueue(stubTemplate({ score: 60 }));
+                    queue.enqueue(stubTemplate({ score: 90 }));
                     expect(queue.get[0].score).to.eql(90);
+                    expect(queue.get[1].score).to.eql(80);
                     expect(queue.get[2].score).to.eql(60);
                 });
             });
@@ -121,6 +120,8 @@ describe('Test', () => {
                 queueRunner.queue.enqueue(stubJob);
                 const q = queueRunner.queue.get;
                 expect(q[0].score).to.be.above(0);
+                expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
+                expect(q[0].calculated.latestScores).to.have.property('ENTRANCE_TIME');
             });
         });
     });
@@ -160,4 +161,3 @@ describe('Test', () => {
         queueRunner.queue.queue = [];
     });
 });
-

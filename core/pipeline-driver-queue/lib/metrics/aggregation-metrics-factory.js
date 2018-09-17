@@ -21,47 +21,53 @@ class AggregationMetricsFactory {
     _register() {
         this.timeInQueue = metrics.addTimeMeasure({
             name: metricsName.TIME_IN_QUEUE,
+            description: 'Histogram of job time spent in queue',
             labels: ['pipeline_name'],
             buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
         });
         this.totalScore = metrics.addTimeMeasure({
             name: metricsName.TOTAL_SCORE,
+            description: 'Histogram of queued jobs total score',
             labels: ['pipeline_name'],
             buckets: [...Array(100).keys()]
         });
         this.timeScore = metrics.addTimeMeasure({
             name: metricsName.TIME_SCORE,
+            description: 'Histogram of queued jobs time score',
             labels: ['pipeline_name'],
             buckets: [...Array(100).keys()]
         });
         this.priorityScore = metrics.addTimeMeasure({
             name: metricsName.PRIORITY_SCORE,
+            description: 'Histogram of queued jobs priority score',
             labels: ['pipeline_name'],
             buckets: [...Array(100).keys()]
         });
         this.queueAmount = metrics.addGaugeMeasure({
             name: metricsName.QUEUE_AMOUNT,
+            description: 'Jobs queue size',
             labels: ['pipeline_name'],
         });
         this.queueCounter = metrics.addCounterMeasure({
             name: metricsName.QUEUE_COUNTER,
+            description: 'Total number of jobs pushed to queue',
             labels: ['pipeline_name'],
         });
         this._metrics = {
             score: {
                 instance: [this.totalScore, this.priorityScore, this.timeScore],
                 type: metricsTypes.HISTOGRAM_OPERATION,
-                method: (task, metricOperation) => this._scoreHistogram('score', task, metricOperation)
+                method: (job, metricOperation) => this._scoreHistogram('score', job, metricOperation)
             },
             [metricsName.TOTAL_SCORE]: {
-                instance: [this.timeScore],
+                instance: [this.totalScore],
                 type: metricsTypes.HISTOGRAM_OPERATION,
                 method: (task, metricOperation) => this._histogram(metricsName.TOTAL_SCORE, task, metricOperation)
             },
             [metricsName.TIME_IN_QUEUE]: {
-                instance: [this.totalScore],
+                instance: [this.timeInQueue],
                 type: metricsTypes.HISTOGRAM_OPERATION,
-                method: (task, metricOperation) => this._histogram(metricsName.TIME_IN_QUEUE, task, metricOperation)
+                method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.PRIORITY_SCORE]: {
                 instance: [this.priorityScore],
@@ -73,10 +79,16 @@ class AggregationMetricsFactory {
                 type: metricsTypes.HISTOGRAM_OPERATION,
                 method: (task, metricOperation) => this._histogram(metricsName.TIME_SCORE, task, metricOperation)
             },
-            [metricsName.QUEUE_AMOUNT]: { instance: this.queueAmount, type: metricsTypes.GAUGE },
-            [metricsName.QUEUE_COUNTER]: { instance: this.queueCounter, type: metricsTypes.COUNTER }
-
-
+            [metricsName.QUEUE_AMOUNT]: { 
+                instance: [this.queueAmount], 
+                type: metricsTypes.GAUGE,
+                method: (metric, job, metricOperation) => this._gauge(metric, job, metricOperation)
+            },
+            [metricsName.QUEUE_COUNTER]: { 
+                instance: [this.queueCounter], 
+                type: metricsTypes.COUNTER,
+                method: (metric, job, metricOperation) => this._counter(metric, job, metricOperation)
+            }
         };
     }
 
@@ -85,32 +97,36 @@ class AggregationMetricsFactory {
     }
 
     getMetric(type) {
-        return (task, metricOperation) => this._metrics[type].method(this._metrics[type].instance, task, metricOperation);
+        return (job, metricOperation) => this._metrics[type].method(this._metrics[type].instance[0], job, metricOperation);
     }
 
     scoreHistogram(queue) {
         if (queue.length === 0) {
             return;
         }
-        queue.forEach(task => this._scoreTask(task));
+        queue.forEach(job => this.updateScoreMetrics(job));
     }
 
-    _scoreTask(task) {
+    /**
+     * set score metrics for given job
+     * @param {Object} job 
+     */
+    updateScoreMetrics(job) {
         try {
             const labelValues = {
-                pipeline_name: task.name
+                pipeline_name: job.pipelineName
             };
             this._metrics[metricsName.PRIORITY_SCORE].instance[0].retroactive({
                 labelValues,
-                time: task.calculated.latestScores[heuristicsName.PRIORITY]
+                time: job.calculated.latestScores[heuristicsName.PRIORITY]
             });
             this._metrics[metricsName.TIME_SCORE].instance[0].retroactive({
                 labelValues,
-                time: task.calculated.score
+                time: job.calculated.latestScores[heuristicsName.ENTRANCE_TIME]
             });
             this._metrics[metricsName.TOTAL_SCORE].instance[0].retroactive({
                 labelValues,
-                time: task.calculated.latestScores[heuristicsName.ENTRANCE_TIME]
+                time: job.calculated.score
             });
         }
         catch (error) {
@@ -118,11 +134,17 @@ class AggregationMetricsFactory {
         }
     }
 
-    _histogram(metric, task, metricOperation) {
+    /**
+     * Apply operation on histogram metric
+     * @param {Object} metric 
+     * @param {Object} task 
+     * @param {string} metricOperation 
+     */
+    _histogram(metric, job, metricOperation) {
         const metricData = {
-            id: task.data.taskID,
+            id: job.jobId,
             labelValues: {
-                pipeline_name: task.data.pipeline_name
+                pipeline_name: job.pipelineName
             }
         };
         if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.start) {
@@ -134,6 +156,45 @@ class AggregationMetricsFactory {
 
         else if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.retroActive) {
             metric.retroactive({ labelValues: metricData.labelValues });
+        }
+    }
+
+    /**
+     * Apply operation on gauge metric
+     * @param {Object} metric 
+     * @param {Object} task 
+     * @param {string} metricOperation 
+     */
+    _gauge(metric, job, metricOperation) {
+        const metricData = {
+            id: job.jobId,
+            labelValues: {
+                pipeline_name: job.pipelineName
+            }
+        };
+        if (metricOperation === metricsTypes.GAUGE_OPERATION.increase) {
+            metric.inc(metricData);
+        }
+        else if (metricOperation === metricsTypes.GAUGE_OPERATION.decrease) {
+            metric.dec(metricData);
+        }
+    }
+
+    /**
+     * Apply operation on counter metric
+     * @param {Object} metric 
+     * @param {Object} task 
+     * @param {string} metricOperation 
+     */
+    _counter(metric, job, metricOperation) {
+        const metricData = {
+            id: job.jobId,
+            labelValues: {
+                pipeline_name: job.pipelineName
+            }
+        };
+        if (metricOperation === metricsTypes.COUNTER_OPERATION.increase) {
+            metric.inc(metricData);
         }
     }
 }
