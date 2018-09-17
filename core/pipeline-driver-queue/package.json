@@ -24,7 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.5",
-    "@hkube/etcd": "^4.0.23",
+    "@hkube/etcd": "^4.0.24",
     "@hkube/logger": "^1.0.12",
     "@hkube/metrics": "^1.0.28",
     "@hkube/producer-consumer": "^1.0.37",
@@ -46,7 +46,7 @@
     "mocha": "^5.2.0",
     "mockery": "^2.1.0",
     "pre-commit": "^1.2.2",
-    "sinon": "^6.1.5",
+    "sinon": "^6.2.0",
     "uuid": "^3.2.1"
   }
 }

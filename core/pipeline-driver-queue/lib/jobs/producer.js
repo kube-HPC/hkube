@@ -9,7 +9,7 @@ const queueRunner = require('../queue-runner');
 
 class JobProducer {
     constructor() {
-        this._lastData = null;
+        this._lastData = [];
         this._pendingAmount = 0;
         this._checkQueue = this._checkQueue.bind(this);
         this._updateState = this._updateState.bind(this);
@@ -60,24 +60,25 @@ class JobProducer {
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
             this._pendingAmount++;
-            log.info(`${Events.WAITING} ${data.jobID}`, { component, jobId: data.jobID, status: jobState.WAITING });
+            log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.WAITING });
         }).on(Events.ACTIVE, (data) => {
             this._pendingAmount--;
             queueRunner.queue.dequeue();
-            log.info(`${Events.ACTIVE} ${data.jobID}`, { component, jobId: data.jobID, status: jobState.ACTIVE });
+            log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.ACTIVE });
         }).on(Events.COMPLETED, (data) => {
-            log.info(`${Events.COMPLETED} ${data.jobID}`, { component, jobId: data.jobID, status: jobState.COMPLETED });
+            log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.COMPLETED });
         }).on(Events.FAILED, (data) => {
-            log.error(`${Events.FAILED} ${data.jobID}, ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
+            log.error(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
         }).on(Events.STALLED, (data) => {
             this._pendingAmount++;
-            log.error(`${Events.STALLED} ${data.jobID}`, { component, jobId: data.jobId, status: jobState.STALLED });
-        }).on(Events.CRASHED, (data) => {
-            const { jobId, pipeline, error } = data.options;
+            log.error(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.STALLED });
+        }).on(Events.CRASHED, async (data) => {
+            const { jobId, error } = data;
             const status = jobState.FAILED;
             log.error(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
-            persistence.setJobStatus({ jobId, pipeline, status, error, level: 'error' });
-            persistence.setJobResults({ jobId, pipeline, status, error });
+            const pipeline = await persistence.getExecution({ jobId });
+            persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
+            persistence.setJobResults({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
         });
     }
 
@@ -94,7 +95,7 @@ class JobProducer {
             tracing: {
                 parent: pipeline.spanId,
                 tags: {
-                    jobID: pipeline.jobId,
+                    jobId: pipeline.jobId,
                 }
             }
         };

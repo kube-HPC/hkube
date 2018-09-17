@@ -17,7 +17,8 @@ class JobConsumer {
             setting: {
                 redis: options.redis,
                 tracer,
-                prefix: options.consumer.prefix
+                prefix: options.consumer.prefix,
+                settings: { ...options.consumer.stalled }
             }
         });
         this._consumer.register({ job: { type: options.consumer.jobType, concurrency: options.consumer.concurrency } });
