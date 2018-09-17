@@ -269,7 +269,7 @@ class ExecutionService {
     async getTree(options) {
         validator.validateJobID(options);
         const jobs = await stateManager.getExecutionsTree({ jobId: options.jobId });
-        if (jobs == null) {
+        if (jobs == null || jobs.length === 0) {
             throw new ResourceNotFoundError('jobs', options.jobId);
         }
         return jobs;

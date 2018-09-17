@@ -1226,19 +1226,19 @@ describe('Rest', () => {
                     it('pipeline call stack by trigger', async () => {
                         let prefix = '57ec5c39-122b-4d7c-bc8f-580ba30df511';
                         await Promise.all([
-                            stateManager.setExecution({ jobId: prefix + '.a', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.e', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.e.f', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.g', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.i', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.l', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.o', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.c.d.h.j.k.p', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.b.m', data: { startTime: Date.now() } }),
-                            stateManager.setExecution({ jobId: prefix + '.a.n', data: { startTime: Date.now() } })
+                            stateManager.setJobStatus({ jobId: prefix + '.a', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d.e', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d.e.f', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d.g', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d.h', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d.i', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d.h.j.k.l', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d.h.j.k.o', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.c.d.h.j.k.p', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.b.m', data: { startTime: Date.now() } }),
+                            stateManager.setJobStatus({ jobId: prefix + '.a.n', data: { startTime: Date.now() } })
                         ]);
 
                         const options = {

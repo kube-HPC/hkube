@@ -44,7 +44,7 @@ class StateManager extends EventEmitter {
     }
 
     getExecutionsTree(options) {
-        return this._etcd.execution.getExecutionsTree(options);
+        return this._etcd.jobStatus.getExecutionsTree(options);
     }
 
     setAlgorithm(options) {

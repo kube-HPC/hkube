@@ -51,7 +51,10 @@
         "build": "./dockerfile/build.sh api-server"
     },
     "pre-commit": {
-        "run": []
+        "run": [
+            "lint",
+            "test"
+        ]
     },
     "author": "Hkube",
     "license": "MIT"
