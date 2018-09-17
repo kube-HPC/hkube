@@ -26,12 +26,16 @@ class StateManager extends EventEmitter {
         return this._etcd.execution.set(options);
     }
 
+    setCurrentExecution(options) {
+        return this._etcd.currentExecutions.set(options);
+    }
+
     getExecution(options) {
         return this._etcd.execution.get(options);
     }
 
     deleteExecution(options) {
-        return this._etcd.execution.delete(options);
+        return this._etcd.currentExecutions.delete(options);
     }
 
     async getExecutions(options, filter = () => true) {

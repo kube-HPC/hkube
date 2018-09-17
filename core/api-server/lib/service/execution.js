@@ -91,6 +91,7 @@ class ExecutionService {
         }
         await this._setWebhooks(jobId, pipeline.webhooks);
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
+        await stateManager.setCurrentExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.info.name });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
