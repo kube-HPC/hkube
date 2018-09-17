@@ -28,7 +28,7 @@ class heuristicRunner {
             return result + heuristicScore;
         }, 0);
         log.debug(`finish heuristic for ${job.pipelineName} - score:${score}`, { component });
-        return { ...job, calculated: { ...job.calculated, score } };
+        return { ...job, score };
     }
 }
 

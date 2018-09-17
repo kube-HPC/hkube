@@ -79,13 +79,13 @@ class AggregationMetricsFactory {
                 type: metricsTypes.HISTOGRAM_OPERATION,
                 method: (task, metricOperation) => this._histogram(metricsName.TIME_SCORE, task, metricOperation)
             },
-            [metricsName.QUEUE_AMOUNT]: { 
-                instance: [this.queueAmount], 
+            [metricsName.QUEUE_AMOUNT]: {
+                instance: [this.queueAmount],
                 type: metricsTypes.GAUGE,
                 method: (metric, job, metricOperation) => this._gauge(metric, job, metricOperation)
             },
-            [metricsName.QUEUE_COUNTER]: { 
-                instance: [this.queueCounter], 
+            [metricsName.QUEUE_COUNTER]: {
+                instance: [this.queueCounter],
                 type: metricsTypes.COUNTER,
                 method: (metric, job, metricOperation) => this._counter(metric, job, metricOperation)
             }
@@ -126,7 +126,7 @@ class AggregationMetricsFactory {
             });
             this._metrics[metricsName.TOTAL_SCORE].instance[0].retroactive({
                 labelValues,
-                time: job.calculated.score
+                time: job.score
             });
         }
         catch (error) {

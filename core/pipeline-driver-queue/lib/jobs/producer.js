@@ -29,7 +29,7 @@ class JobProducer {
 
     async _checkQueue() {
         try {
-            if (this._pendingAmount === 0 && queueRunner.queue.get.length > 0) {
+            if (this._pendingAmount <= 0 && queueRunner.queue.get.length > 0) {
                 await this.createJob();
             }
         }

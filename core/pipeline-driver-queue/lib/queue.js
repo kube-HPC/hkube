@@ -17,7 +17,7 @@ class Queue extends Events {
     flush() {
         this.queue = [];
     }
-    
+
     async persistencyLoad() {
         if (!this.persistence) {
             return;
@@ -57,8 +57,9 @@ class Queue extends Events {
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
         this.queue = _.orderBy(this.queue, j => j.score, 'desc');
-        this.emit(queueEvents.INSERT, job);
-        this.emit(queueEvents.UPDATE_SCORE, job);
+        const jobQ = this.queue.find(j => j.jobId === job.jobId);
+        this.emit(queueEvents.INSERT, jobQ);
+        this.emit(queueEvents.UPDATE_SCORE, jobQ);
         log.info(`new job inserted to queue, queue size: ${this.queue.length}`, { component });
     }
 
