@@ -25,6 +25,8 @@ class JobConsumer extends EventEmitter {
         this._taskID = undefined;
         this._pipelineName = undefined;
         this._consumerPaused = false;
+        this.workerStartingTime = new Date();
+        this.jobCurrentTime = null;
     }
 
     async init(options) {
@@ -111,7 +113,9 @@ class JobConsumer extends EventEmitter {
     }
 
     getDiscoveryData(data) {
-        const { workerStatus, jobStatus, error } = this._getStatus(data);
+        const {
+            workerStatus, jobStatus, error
+        } = this._getStatus(data);
         const discoveryInfo = {
             jobId: this._jobId,
             taskID: this._taskID,
@@ -121,6 +125,8 @@ class JobConsumer extends EventEmitter {
             podName: this._options.kubernetes.pod_name,
             workerStatus,
             jobStatus,
+            workerStartingTime: this.workerStartingTime,
+            jobCurrentTime: this.jobCurrentTime,
             workerPaused: this.isConsumerPaused,
             error
         };
@@ -193,6 +199,7 @@ class JobConsumer extends EventEmitter {
     }
 
     async extractData(jobInfo) {
+        this.jobCurrentTime = new Date();
         const span = tracer.startSpan({
             name: 'storage-get',
             id: this._taskID,

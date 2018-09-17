@@ -141,7 +141,7 @@ class Worker {
     }
 
     _handleTimeout(state) {
-        if (state === workerStates.ready) {
+        if (state === workerStates.ready || state === workerStates.exit) {
             if (this._inactiveTimer) {
                 clearTimeout(this._inactiveTimer);
                 this._inactiveTimer = null;
