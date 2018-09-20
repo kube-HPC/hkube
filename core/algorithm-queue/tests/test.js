@@ -60,7 +60,7 @@ describe('Test', () => {
                     await delay(QUEUE_INTERVAL + 500);
                     const q = queue.get;
                     expect(q[0].calculated.score).to.eql(80);
-                });
+                }).timeout(5000);
                 it('should added to queue ordered', async () => {
                     queue.updateHeuristic({ run: heuristic(80) });
                     await queue.add([stubTemplate()]);
