@@ -78,7 +78,7 @@ class JobConsumer extends EventEmitter {
             const watchState = await etcd.watch({ jobId: this._jobId });
 
             if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
-                this.finishJob();
+                await this.finishJob();
                 return;
             }
             await etcd.update({

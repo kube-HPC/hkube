@@ -76,7 +76,7 @@ describe('state machine', () => {
         expect(spy.callCount).to.eql(4);
         expect(stateMachine.state).to.eql(workerStates.ready);
     });
-    it('could not pause if algorithm not running', async () => {
+    xit('could not pause if algorithm not running', async () => {
         stateMachine.bootstrap();
         stateMachine.prepare();
         stateMachine.start();

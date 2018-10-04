@@ -81,6 +81,7 @@ class Bootstrap {
         process.on('unhandledRejection', (error) => {
             log.error('unhandledRejection: ' + error.message, { component: componentName.MAIN }, error);
             log.error(error);
+            worker.handleExit(1);
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);

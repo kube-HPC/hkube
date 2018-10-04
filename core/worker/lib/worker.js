@@ -49,7 +49,7 @@ class Worker {
         });
 
         discovery.on(workerCommands.stopProcessing, () => {
-            if (this._validateStateBeforePause() && !jobConsumer.isConsumerPaused) {
+            if (!jobConsumer.isConsumerPaused) {
                 jobConsumer.pause();
                 jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
@@ -65,18 +65,6 @@ class Worker {
                 this._setInactiveTimeout();
             }
         });
-    }
-
-    _validateStateBeforePause() {
-        switch (stateManager.state) {
-            case workerStates.init:
-            case workerStates.ready:
-            case workerStates.working:
-                return true;
-            default:
-                log.info(`could not pause because algorithm not running - state:${stateManager.state}`, { component });
-                return false;
-        }
     }
 
     _registerToConnectionEvents() {
@@ -124,19 +112,25 @@ class Worker {
         });
     }
 
-    async _handleExit(code) {
-        algoRunnerCommunication.send({
-            command: messages.outgoing.exit
-        });
-        const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, 'algorunner');
-        if (terminated) {
-            log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
-            process.exit(code);
+    async handleExit(code) {
+        try {
+            algoRunnerCommunication.send({
+                command: messages.outgoing.exit
+            });
+            const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, 'algorunner');
+            if (terminated) {
+                log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
+                process.exit(code);
+            }
+            // if not terminated, kill job
+            const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
+            if (jobName) {
+                await kubernetes.deleteJob(jobName);
+            }
         }
-        // if not terminated, kill job
-        const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
-        if (jobName) {
-            await kubernetes.deleteJob(jobName);
+        catch (error) {
+            log.error(`failed to handle exit: ${error}`, { component });
+            process.exit(1);
         }
     }
 
@@ -169,7 +163,7 @@ class Worker {
             this._handleTimeout(state);
             switch (state) {
                 case workerStates.exit:
-                    this._handleExit(0);
+                    this.handleExit(0);
                     break;
                 case workerStates.results:
                     await jobConsumer.finishJob(result);
@@ -200,7 +194,7 @@ class Worker {
                     this._stopTimeout = setTimeout(() => {
                         log.error('Timeout exceeded trying to stop algorithm.', { component });
                         stateManager.done('Timeout exceeded trying to stop algorithm');
-                        this._handleExit(0);
+                        this.handleExit(0);
                     }, this._stopTimeoutMs);
                     algoRunnerCommunication.send({
                         command: messages.outgoing.stop
