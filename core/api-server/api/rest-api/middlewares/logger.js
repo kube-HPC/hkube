@@ -1,5 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContanier();
-const components = require('../../../common/consts/componentNames');
+const components = require('../../../lib/consts/componentNames');
 
 const logger = () => (req, res, next) => {
     const route = req.baseUrl + req.route.path;

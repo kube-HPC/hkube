@@ -1,26 +1,25 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
-const component = require('./common/consts/componentNames').MAIN;
+const component = require('./lib/consts/componentNames').MAIN;
 const { tracer, metrics } = require('@hkube/metrics');
-let log;
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
 
 const modules = [
-    './lib/datastore/storage-factory',
-    './lib/state/state-manager',
-    './lib/producer/jobs-producer',
-    './lib/examples/pipelines-updater',
-    './lib/webhook/webhooks-handler'
+    require('./api/rest-api/app-server'),
+    require('./lib/datastore/storage-factory'),
+    require('./lib/state/state-manager'),
+    require('./lib/producer/jobs-producer'),
+    require('./lib/examples/pipelines-updater'),
+    require('./lib/webhook/webhooks-handler')
 ];
 
 class Bootstrap {
     async init() {
         let config = null;
         try {
-            const { main, logger } = configIt.load();
             this._handleErrors();
-
-            log = new Logger(main.serviceName, logger);
             log.info('running application in ' + configIt.env() + ' environment', { component });
 
             monitor.on('ready', (data) => {
@@ -35,16 +34,11 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            const appServer = require('./api/rest-api/app-server'); // eslint-disable-line
-            const dataRest = await appServer.init(main);
-            log.info(dataRest.message, { component });
-
-            await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
-
+            await Promise.all(modules.map(m => m.init(main)));
             config = main;
         }
         catch (error) {
-            this._onInitFailed(new Error(`unable to start application. ${error.message}`));
+            this._onInitFailed(error);
         }
         return config;
     }

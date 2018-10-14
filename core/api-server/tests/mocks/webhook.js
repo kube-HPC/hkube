@@ -24,7 +24,7 @@ class WebhookStub extends EventEmitter {
             });
 
             app.listen(3002, () => {
-                console.log('webhook stub listening on port 3002'); // eslint-disable-line
+                console.log('webhook stub listening on port 3002');
                 return resolve();
             });
         });

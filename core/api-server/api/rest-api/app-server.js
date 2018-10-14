@@ -6,7 +6,7 @@ const swagger = require('./swagger');
 const Logger = require('@hkube/logger');
 const internal = require('./internal/index');
 const log = Logger.GetLogFromContanier();
-const componentName = require('../../common/consts/componentNames');
+const component = require('../../lib/consts/componentNames').REST_API;
 const { metrics } = require('@hkube/metrics');
 const afterRequest = require('./middlewares/after-request');
 
@@ -15,7 +15,7 @@ class AppServer {
         return new Promise((resolve, reject) => {
             rest.on('error', (data) => {
                 const { route, jobId, pipelineName } = data.res._internalMetadata || {};
-                log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component: componentName.REST_API, route, jobId, pipelineName });
+                log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component, route, jobId, pipelineName });
             });
 
             swagger.info.version = options.version;
@@ -51,10 +51,8 @@ class AppServer {
                 afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest(routeLogBlacklist)]
             };
             rest.start(opt).then((data) => {
-                resolve({
-                    message: data.message,
-                    server: data.server
-                });
+                log.info(data.message, { component });
+                resolve();
             }).catch((error) => {
                 reject(error);
             });

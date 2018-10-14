@@ -1,5 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContanier();
-const componentName = require('../../../common/consts/componentNames');
+const componentName = require('../../../lib/consts/componentNames');
 
 const logger = (filter = []) => (req, res, next) => {
     if (filter.some(f => req.url.startsWith(f))) {
