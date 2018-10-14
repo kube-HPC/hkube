@@ -89,19 +89,12 @@ class ExecutionService {
             const storageInfo = await storageFactory.adapter.put({ jobId, taskId: jobId, data: pipeline.flowInput });
             pipeline.flowInput = { metadata, storageInfo };
         }
-        await this._setWebhooks(jobId, pipeline.webhooks);
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
-        await stateManager.setRunningPipelines({ jobId, data: { ...pipeline, startTime: Date.now() } });
+        await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.info.name });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
         return jobId;
-    }
-
-    async _setWebhooks(jobId, webhooks) {
-        if (webhooks) {
-            await Promise.all(Object.entries(webhooks).map(([k, v]) => stateManager.setWebhook({ jobId, type: k, data: { url: v, status: States.PENDING } })));
-        }
     }
 
     async _createStorage(jobId, pipeline) {
@@ -279,6 +272,7 @@ class ExecutionService {
         const { jobId } = options;
         await stateManager.stopJob({ jobId: options.jobId, reason: 'clean job' });
         await Promise.all([
+            stateManager.deleteRunningPipeline({ jobId }),
             stateManager.deleteExecution({ jobId }),
             stateManager.deleteJobResults({ jobId }),
             stateManager.deleteJobStatus({ jobId }),

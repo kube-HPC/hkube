@@ -1572,7 +1572,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pipelineResult"
+                                    "$ref": "#/components/schemas/webhookResult"
                                 }
                             }
                         }
@@ -1634,7 +1634,69 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pipelineResult"
+                                    "$ref": "#/components/schemas/webhookResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "jobId Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/webhooks/{jobId}": {
+            "get": {
+                "tags": [
+                    "Webhooks"
+                ],
+                "summary": "Webhook list",
+                "description": "Returns all webhooks for specific pipeline",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Unique identifier representing pipeline execution",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "pipeline result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/webhookResult"
                                 }
                             }
                         }
@@ -1748,7 +1810,7 @@
                                 "default": false
                             }
                         },
-                        "default":{}
+                        "default": {}
                     }
                 },
                 "required": [
@@ -1982,6 +2044,37 @@
                         "type": "number"
                     },
                     "storageModule": {
+                        "type": "string"
+                    }
+                }
+            },
+            "webhookResult": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "pipelineStatus": {
+                        "type": "string"
+                    },
+                    "responseStatus": {
+                        "type": "string"
+                    },
+                    "httpResponse": {
+                        "type": "object",
+                        "properties": {
+                            "statusCode": {
+                                "type": "string"
+                            },
+                            "statusMessage": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "status": {
                         "type": "string"
                     }
                 }

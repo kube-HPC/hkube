@@ -17,29 +17,16 @@ class WebhooksHandler {
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
-        this._recovery();
         this._watch();
     }
 
     _watch() {
         stateManager.on('job-result', (response) => {
             this._requestResults(response);
-            this._deleteExecution({ jobId: response.jobId });
+            this._deleteRunningPipeline({ jobId: response.jobId });
         });
         stateManager.on('job-status', (response) => {
             this._requestStatus(response);
-        });
-    }
-
-    async _recovery() {
-        const webhooks = await stateManager.getWebhooks({ order: 'mod', sort: 'desc' });
-        webhooks.forEach(async (w) => {
-            if (w.result && w.result.status === States.PENDING) {
-                const results = await stateManager.getJobResultMetadata({ jobId: w.jobId });
-                if (results) {
-                    this._requestResults({ jobId: w.jobId, ...results });
-                }
-            }
         });
     }
 
@@ -81,11 +68,8 @@ class WebhooksHandler {
         await stateManager.releaseJobResultsLock({ jobId });
     }
 
-    // let anyone time to use this execution before deleting it
-    _deleteExecution(options) {
-        setTimeout(() => {
-            stateManager.deleteExecution(options);
-        }, 3000);
+    _deleteRunningPipeline(options) {
+        stateManager.deleteRunningPipeline(options);
     }
 
     _request(url, body, type, pipelineStatus, jobId) {

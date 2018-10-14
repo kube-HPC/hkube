@@ -26,15 +26,19 @@ class StateManager extends EventEmitter {
         return this._etcd.execution.set(options);
     }
 
-    setRunningPipelines(options) {
-        return this._etcd.runningPipelines.set(options);
-    }
-
     getExecution(options) {
         return this._etcd.execution.get(options);
     }
 
     deleteExecution(options) {
+        return this._etcd.execution.delete(options);
+    }
+
+    setRunningPipeline(options) {
+        return this._etcd.runningPipelines.set(options);
+    }
+
+    deleteRunningPipeline(options) {
         return this._etcd.runningPipelines.delete(options);
     }
 
@@ -105,10 +109,6 @@ class StateManager extends EventEmitter {
 
     releaseJobStatusLock(options) {
         return this._etcd.jobStatus.releaseChangeLock(options.jobId);
-    }
-
-    async getJobResultMetadata(options) {
-        return this._etcd.jobResults.get(options);
     }
 
     async getJobResult(options) {

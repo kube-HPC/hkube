@@ -27,6 +27,15 @@ const routes = (options) => {
             return next(error);
         });
     });
+    router.all('/:jobId?', methods(['GET']), logger(), (req, res, next) => {
+        const { jobId } = req.params;
+        WebhooksService.getWebhooks({ jobId }).then((response) => {
+            res.json(response);
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     return router;
 };
 
