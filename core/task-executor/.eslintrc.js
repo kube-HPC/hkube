@@ -35,6 +35,7 @@ module.exports = {
             "ObjectExpression": { "minProperties": 4, "multiline": true, "consistent": true },
             "ObjectPattern": "never",
             "ImportDeclaration": "never"
-        }]
+        }],
+        "no-continue": "off"
     }
 };

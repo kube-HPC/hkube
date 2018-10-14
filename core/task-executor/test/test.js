@@ -40,7 +40,7 @@ describe('bootstrap', () => {
         const algo = 'algo2';
         await Promise.all(templateStoreStub.map(t => etcd._etcd._client.put(`/algorithmTemplates/${t.name}`, t)));
         const templates = await etcd.getAlgorithmTemplate();
-        const alg1 = templates.find(t => t.name === algo);
+        const alg1 = templates[algo];
         const alg2 = templateStoreStub.find(t => t.name === algo);
         expect(alg1).to.deep.eql(alg2);
     });

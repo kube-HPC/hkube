@@ -22,8 +22,9 @@ const { matchJobsToResources, pauseAccordingToResources } = require('./resources
 const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = require('../../common/consts/consts');
 
 let createdJobsList = [];
-const CREATED_JOBS_TTL = 5 * 1000;
+const CREATED_JOBS_TTL = 15 * 1000;
 const MIN_AGE_FOR_STOP = 10 * 1000;
+
 const _createJob = (jobDetails) => {
     const spec = createJobSpec(jobDetails);
     const jobCreateResult = kubernetes.createJob({ spec });
@@ -94,7 +95,10 @@ const _stopDriver = (driver) => {
 
 const _clearCreatedJobsList = (now) => {
     const newCreatedJobsList = createdJobsList.filter(j => (now || Date.now()) - j.createdTime < CREATED_JOBS_TTL);
-    // log.debug(`removed ${createdJobsList.length - newCreatedJobsList.length} items from jobCreated list`);
+    const items = createdJobsList.length - newCreatedJobsList.length;
+    if (items > 0) {
+        log.debug(`removed ${items} items from jobCreated list`);
+    }
     createdJobsList = newCreatedJobsList;
 };
 
@@ -108,7 +112,7 @@ const _processAllRequests = (
         if (idleWorkerIndex !== -1) {
             // there is idle worker. don't do anything
             idleWorkers.splice(idleWorkerIndex, 1);
-            continue; // eslint-disable-line
+            continue;
         }
         const pausedWorkerIndex = pausedWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (pausedWorkerIndex !== -1) {
@@ -116,19 +120,19 @@ const _processAllRequests = (
             const workerId = pausedWorkers[pausedWorkerIndex].id;
             createPromises.push(etcd.sendCommandToWorker({ workerId, command: commands.startProcessing }));
             pausedWorkers.splice(pausedWorkerIndex, 1);
-            continue; // eslint-disable-line
+            continue;
         }
         const pendingWorkerIndex = pendingWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (pendingWorkerIndex !== -1) {
             // there is a pending worker.
             pendingWorkers.splice(pendingWorkerIndex, 1);
-            continue; // eslint-disable-line
+            continue;
         }
         const jobsCreatedIndex = jobsCreated.findIndex(w => w.algorithmName === algorithmName);
         if (jobsCreatedIndex !== -1) {
             // there is a pending worker.
             jobsCreated.splice(jobsCreatedIndex, 1);
-            continue; // eslint-disable-line
+            continue;
         }
         const algorithmTemplate = algorithmTemplates[algorithmName];
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
@@ -222,12 +226,14 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     });
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources, registry } = {}) => {
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry } = {}) => {
     _clearCreatedJobsList();
-    const normPods = normalizeWorkers(algorithmPods);
+    const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
-    const merged = mergeWorkers(normPods, normJobs);
+    const merged = mergeWorkers(normWorkers, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
+    // log.debug(`algorithm requests ${normRequests.length}`);
+
     // log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
@@ -244,10 +250,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
     const pendingWorkers = clonedeep(merged.extraJobs);
     const jobsCreated = clonedeep(createdJobsList);
 
-
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry
+            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests, registry
         },
         {
             createPromises, createDetails, reconcileResult
@@ -274,12 +279,16 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
     const { toStop } = pauseAccordingToResources(
         stopDetails,
         normResources,
-        [...idleWorkers.filter(w => Date.now() - w.job.startTime > MIN_AGE_FOR_STOP), ...activeWorkers],
+        [...idleWorkers.filter(w => w.job && Date.now() - w.job.startTime > MIN_AGE_FOR_STOP), ...activeWorkers],
         resourcesToFree
     );
-    const stopPromises = toStop.map(r => _stopWorker(r));
 
+    if (created.length > 0) {
+        log.debug(`creating ${created.length} algorithms....`);
+    }
+    const stopPromises = toStop.map(r => _stopWorker(r));
     createPromises.push(created.map(r => _createJob(r)));
+
     await Promise.all([...createPromises, ...stopPromises]);
     // add created and skipped info
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
@@ -290,17 +299,10 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, algorithmPods,
     return reconcileResult;
 };
 
-
-/**
- * 
- * Known Issues:
- * 1) drivers requires large cpu, so resource manager don't allocate more than....
- * 
- */
-const reconcileDrivers = async ({ driverTemplates, driversRequests, driversPods, jobs, versions, normResources, settings, registry } = {}) => {
-    const normPods = normalizeDrivers(driversPods);
+const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry } = {}) => {
+    const normDrivers = normalizeDrivers(drivers);
     const normJobs = normalizeDriversJobs(jobs, j => !j.status.succeeded);
-    const merged = mergeDrivers(normPods, normJobs);
+    const merged = mergeDrivers(normDrivers, normJobs);
     const normRequests = normalizeDriversRequests(driversRequests);
     // log.debug(`resources:\n${JSON.stringify(normResources, null, 2)}`);
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;

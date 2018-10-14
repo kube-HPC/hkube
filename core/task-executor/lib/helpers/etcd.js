@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
+const utils = require('../utils/utils');
 const component = require('../../common/consts/componentNames').ETCD;
 const CONTAINERS = require('../../common/consts/containers');
 let log;
@@ -56,11 +57,13 @@ class Etcd extends EventEmitter {
     }
 
     async getAlgorithmTemplate() {
-        return this._etcd.algorithms.templatesStore.list();
+        const templates = await this._etcd.algorithms.templatesStore.list();
+        return utils.arrayToMap(templates);
     }
 
     async getDriversTemplate() {
-        return this._etcd.pipelineDrivers.templatesStore.list();
+        const templates = await this._etcd.pipelineDrivers.templatesStore.list();
+        return utils.arrayToMap(templates);
     }
 }
 

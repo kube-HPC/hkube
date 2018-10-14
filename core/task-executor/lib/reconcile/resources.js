@@ -1,25 +1,30 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
+
 const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE, MAX_JOBS_PER_TICK } = require('../../common/consts/consts');
 
+const findNodeForSchedule = (node, requestedCpu, requestedMemory) => {
+    const freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESURE));
+    const freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESURE));
+    return requestedCpu < freeCpu && requestedMemory < freeMemory;
+};
 
 const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
-    const memoryRequests = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
-    if (availableResources.allNodes.free.cpu - (availableResources.allNodes.total.cpu * (1 - CPU_RATIO_PRESURE)) < requestedCpu) {
+    const requestedMemory = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
+    const nodeForSchedule = availableResources.nodeList.find(r => findNodeForSchedule(r, requestedCpu, requestedMemory));
+
+    if (!nodeForSchedule) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
-    if (availableResources.allNodes.free.memory * MEMORY_RATIO_PRESURE < memoryRequests) {
-        return { shouldAdd: false, newResources: { ...availableResources } };
-    }
-    const nowFree = {
-        cpu: availableResources.allNodes.free.cpu - requestedCpu,
-        memory: availableResources.allNodes.free.memory - memoryRequests
-    };
-    return { shouldAdd: true, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes, free: nowFree } } };
+
+    nodeForSchedule.free.cpu -= requestedCpu;
+    nodeForSchedule.free.memory -= requestedMemory;
+
+    return { shouldAdd: true, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes } } };
 };
 
 const shouldStopJob = (jobDetails, availableResources) => {

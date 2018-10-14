@@ -3,7 +3,6 @@ const { metrics } = require('@hkube/metrics');
 const component = require('../common/consts/componentNames').EXECUTOR;
 const { metricsNames } = require('../common/consts/metricsNames');
 const etcd = require('./helpers/etcd');
-const utils = require('./utils/utils');
 const logger = require('./utils/logger');
 const kubernetes = require('./helpers/kubernetes');
 const reconciler = require('./reconcile/reconciler');
@@ -43,8 +42,8 @@ class Executor {
             ]);
 
             const normResources = normalizeResources(resources);
-            const data = { 
-                versions, normResources, options, registry 
+            const data = {
+                versions, normResources, options, registry
             };
 
             await Promise.all([
@@ -67,17 +66,15 @@ class Executor {
     }
 
     async _algorithmsHandle({ versions, normResources, registry }) {
-        const [templates, algorithmRequests, algorithmPods, jobs] = await Promise.all([
+        const [algorithmTemplates, algorithmRequests, workers, jobs] = await Promise.all([
             etcd.getAlgorithmTemplate(),
             etcd.getAlgorithmRequests({}),
             etcd.getWorkers({}),
             kubernetes.getWorkerJobs()
         ]);
 
-        const algorithmTemplates = utils.arrayToMap(templates);
-
         const reconcilerResults = await reconciler.reconcile({
-            algorithmTemplates, algorithmRequests, algorithmPods, jobs, versions, normResources, registry
+            algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
@@ -93,17 +90,15 @@ class Executor {
     }
 
     async _pipelineDriversHandle({ versions, normResources, registry }, settings) {
-        const [templates, driversRequests, driversPods, jobs] = await Promise.all([
+        const [driverTemplates, driversRequests, drivers, jobs] = await Promise.all([
             etcd.getDriversTemplate(),
             etcd.getPipelineDriverRequests(),
             etcd.getPipelineDrivers(),
             kubernetes.getPipelineDriversJobs()
         ]);
 
-        const driverTemplates = utils.arrayToMap(templates, 'name');
-
         await reconciler.reconcileDrivers({
-            driverTemplates, driversRequests, driversPods, jobs, versions, normResources, settings, registry
+            driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry
         });
     }
 }

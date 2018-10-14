@@ -9,11 +9,9 @@ const etcd = require('../lib/helpers/etcd');
 const { normalizeResources } = require('../lib/reconcile/normalize');
 const templateStore = require('./stub/templateStore');
 const driversTemplateStore = require('./stub/driversTemplateStore');
-const utils = require('../lib/utils/utils');
 const resources = require('./stub/resources');
-const normResources = normalizeResources(resources);
 const config = main;
-let reconciler, algorithmTemplates, driverTemplates;
+let normResources, reconciler, algorithmTemplates, driverTemplates;
 
 const prepareDriversData = (options) => {
     const { minAmount, scalePercent, name } = options.driversSetting;
@@ -36,18 +34,16 @@ describe('reconciler', () => {
         await Promise.all(templateStore.map(d => etcd._etcd.algorithms.templatesStore.set({ name: d.name, data: d })));
         await Promise.all(driversTemplateStore.map(d => etcd._etcd.pipelineDrivers.templatesStore.set({ name: d.name, data: d })));
 
-        const algTemplates = await etcd.getAlgorithmTemplate();
-        algorithmTemplates = utils.arrayToMap(algTemplates);
-
-        const driTemplates = await etcd.getDriversTemplate();
-        driverTemplates = utils.arrayToMap(driTemplates);
+        algorithmTemplates = await etcd.getAlgorithmTemplate();
+        driverTemplates = await etcd.getDriversTemplate();
     });
     after(() => {
         mockery.disable();
     });
     beforeEach(() => {
         clearCount();
-        reconciler._clearCreatedJobsList(Date.now()+100000);
+        reconciler._clearCreatedJobsList(Date.now() + 100000);
+        normResources = normalizeResources(resources);
     });
     describe('reconcile algorithms tests', () => {
         it('should work with no params', async () => {
@@ -57,13 +53,14 @@ describe('reconciler', () => {
             expect(callCount('createJob')).to.be.undefined
         })
         it('should work with one algo', async () => {
+            const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [
                     {
                         data: [{
-                            name: 'green-alg',
+                            name: algorithm,
                         }]
                     }
                 ],
@@ -76,14 +73,15 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
         it('should work with algorithm with not enough cpu', async () => {
-            algorithmTemplates['hungry-alg'] = {
-                name: 'hungry-alg',
+            const algorithm = 'hungry-alg';
+            algorithmTemplates[algorithm] = {
+                name: algorithm,
                 algorithmImage: 'hkube/algorithm-example',
                 cpu: 8,
                 mem: 100
@@ -95,16 +93,16 @@ describe('reconciler', () => {
                     {
                         data: [
                             {
-                                name: 'hungry-alg',
+                                name: algorithm,
                             },
                             {
-                                name: 'hungry-alg',
+                                name: algorithm,
                             },
                             {
-                                name: 'hungry-alg',
+                                name: algorithm,
                             },
                             {
-                                name: 'hungry-alg',
+                                name: algorithm,
                             }
                         ]
                     }
@@ -118,10 +116,10 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'hungry-alg': { idle: 0, required: 4, paused: 0, created: 2, skipped: 2 } });
-            expect(callCount('createJob').length).to.eql(2);
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 0, skipped: 4 } });
         });
-        it('should only create 30 in one iteration', async () => {
+        it('should only create 40 in one iteration', async () => {
+            const size = 40;
             algorithmTemplates['hungry-alg'] = {
                 name: 'hungry-alg',
                 algorithmImage: 'hkube/algorithm-example',
@@ -132,7 +130,7 @@ describe('reconciler', () => {
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [{
-                    data: Array.from(Array(40).keys()).map(a => ({
+                    data: Array.from(Array(size).keys()).map(a => ({
                         name: 'hungry-alg',
                     }))
                 }],
@@ -145,14 +143,15 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'hungry-alg': { idle: 0, required: 40, paused: 0, created: 30, skipped: 10 } });
-            expect(callCount('createJob').length).to.eql(30);
+            expect(res).to.eql({ 'hungry-alg': { idle: 0, required: size, paused: 0, created: size, skipped: 0 } });
+            expect(callCount('createJob').length).to.eql(size);
         });
         it('should work with algorithm with enough resources', async () => {
-            algorithmTemplates['hungry-alg'] = {
-                name: 'hungry-alg',
+            const algorithm = 'hungry-alg';
+            algorithmTemplates[algorithm] = {
+                name: algorithm,
                 algorithmImage: 'hkube/algorithm-example',
-                cpu: 4,
+                cpu: 2,
                 mem: 100
             };
             const res = await reconciler.reconcile({
@@ -160,7 +159,7 @@ describe('reconciler', () => {
                 algorithmTemplates,
                 algorithmRequests: [{
                     data: Array.from(Array(4).keys()).map(a => ({
-                        name: 'hungry-alg',
+                        name: algorithm,
                     }))
                 }],
                 jobs: {
@@ -172,12 +171,13 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'hungry-alg': { idle: 0, required: 4, paused: 0, created: 4, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 4, skipped: 0 } });
             expect(callCount('createJob').length).to.eql(4);
         });
         it('should work with algorithm with not enough memory', async () => {
-            algorithmTemplates['hungry-alg'] = {
-                name: 'hungry-alg',
+            const algorithm = 'hungry-alg';
+            algorithmTemplates[algorithm] = {
+                name: algorithm,
                 algorithmImage: 'hkube/algorithm-example',
                 cpu: 4,
                 mem: 40000
@@ -187,7 +187,7 @@ describe('reconciler', () => {
                 algorithmTemplates,
                 algorithmRequests: [{
                     data: Array.from(Array(4).keys()).map(a => ({
-                        name: 'hungry-alg',
+                        name: algorithm,
                     }))
                 }],
                 jobs: {
@@ -199,15 +199,15 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'hungry-alg': { idle: 0, required: 4, paused: 0, created: 2, skipped: 2 } });
-            expect(callCount('createJob').length).to.eql(2);
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 0, skipped: 4 } });
         });
         it('should work with custom worker', async () => {
-            algorithmTemplates['green-alg'] = {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
                 workerImage: 'myregistry:5000/stam/myworker:v2',
-                cpu: 4,
-                mem: 40000
+                cpu: 2,
+                mem: 400
             };
             const res = await reconciler.reconcile({
                 normResources,
@@ -215,7 +215,7 @@ describe('reconciler', () => {
                 algorithmRequests: [{
                     data: [
                         {
-                            name: 'green-alg'
+                            name: algorithm
                         }
                     ]
                 }],
@@ -228,13 +228,14 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('myregistry:5000/stam/myworker:v2');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
         it('should work with env', async () => {
-            algorithmTemplates['green-alg'] = {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
                 workerEnv: {
                     myEnv: 'myValue'
@@ -249,7 +250,7 @@ describe('reconciler', () => {
                 algorithmRequests: [{
                     data: [
                         {
-                            name: 'green-alg'
+                            name: algorithm
                         }
                     ]
                 }],
@@ -262,7 +263,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'green-alg': { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include({ name: 'myEnv', value: 'myValue' });
@@ -300,12 +301,11 @@ describe('reconciler', () => {
         it('should create min amount of drivers not enough cpu', async () => {
             const { maxAmount } = settings
             const requiredPods = 30;
-            const created = 2;
+            const created = 0;
             const entry = Object.entries(driverTemplates)[0];
             const newTemplate = {
                 ...entry[1],
-                cpu: 8,
-                mem: 500
+                cpu: 8
             };
             const res = await reconciler.reconcileDrivers({
                 normResources,
@@ -328,16 +328,14 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(res).to.eql({ [settings.name]: { idle: 0, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
-            expect(callCount('createJob').length).to.eql(created);
         });
         it('should create min amount of drivers not enough memory', async () => {
             const { maxAmount } = settings
             const required = 30;
-            const created = 3;
+            const created = 0;
             const entry = Object.entries(driverTemplates)[0];
             const newTemplate = {
                 ...entry[1],
-                cpu: 0.1,
                 mem: 28000
             };
 
@@ -362,7 +360,6 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(res).to.eql({ [settings.name]: { idle: 0, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
-            expect(callCount('createJob').length).to.eql(created);
         });
         it('should only create 30 in one iteration - drivers', async () => {
             const { maxAmount } = settings
@@ -372,7 +369,7 @@ describe('reconciler', () => {
                 driverTemplates,
                 driversRequests: [{
                     name: settings.name,
-                   data: Array.from(Array(40).keys()).map(a => ({
+                    data: Array.from(Array(40).keys()).map(a => ({
                         name: 'pipeline-driver',
                     }))
                 }],

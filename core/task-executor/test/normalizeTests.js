@@ -109,8 +109,8 @@ describe('normalize', () => {
                         },
                         {
                             name: 'green-alg',
-                        }      
-        
+                        }
+
                     ]
                 }
             ];
@@ -119,7 +119,7 @@ describe('normalize', () => {
             expect(res).to.deep.include({
                 algorithmName: 'black-alg',
             });
-            expect(res.filter(r=>r.algorithmName==='black-alg')).to.have.lengthOf(2);
+            expect(res.filter(r => r.algorithmName === 'black-alg')).to.have.lengthOf(2);
             expect(res).to.deep.include({
                 algorithmName: 'green-alg',
             });
@@ -144,21 +144,18 @@ describe('normalize', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.total.cpu).to.eq(23.4);
             expect(res.allNodes.total.memory).to.eq(98304);
-            expect(res).to.have.property('node1');
-            expect(res).to.have.property('node2');
-            expect(res).to.have.property('node3');
-            expect(res.node1.requests.cpu).to.eq(0.2);
-            expect(res.node2.requests.cpu).to.eq(0.25);
-            expect(res.node3.requests.cpu).to.eq(0);
+            expect(res.nodeList[0].requests.cpu).to.eq(0.2);
+            expect(res.nodeList[1].requests.cpu).to.eq(0.25);
+            expect(res.nodeList[2].requests.cpu).to.eq(0);
         });
 
         it('should return resources free resources by node', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.free.cpu).to.eq(22.95);
             expect(res.allNodes.free.memory).to.eq(97664);
-            expect(res.node1.free.cpu).to.eq(7.6);
-            expect(res.node2.free.cpu).to.eq(7.55);
-            expect(res.node3.free.cpu).to.eq(7.8);
+            expect(res.nodeList[0].free.cpu).to.eq(7.6);
+            expect(res.nodeList[1].free.cpu).to.eq(7.55);
+            expect(res.nodeList[2].free.cpu).to.eq(7.8);
         });
     });
     describe('merge workers', () => {

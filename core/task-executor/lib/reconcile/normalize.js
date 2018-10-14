@@ -68,6 +68,17 @@ const normalizeDrivers = (drivers) => {
     return workersArray;
 };
 
+const calcRatioFree = (node) => {
+    node.ratio = {
+        cpu: node.requests.cpu / node.total.cpu,
+        memory: node.requests.memory / node.total.memory,
+    };
+    node.free = {
+        cpu: node.total.cpu - node.requests.cpu,
+        memory: node.total.memory - node.requests.memory,
+    };
+};
+
 const normalizeResources = ({ pods, nodes } = {}) => {
     if (!pods || !nodes) {
         return {
@@ -94,7 +105,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         };
         return acc;
     }, {});
-    initial.allNodes = {
+    const allNodes = {
         requests: { cpu: 0, memory: 0 },
         limits: { cpu: 0, memory: 0 },
         total: {
@@ -115,26 +126,22 @@ const normalizeResources = ({ pods, nodes } = {}) => {
 
         accumulator[nodeName].requests.cpu += requestCpu;
         accumulator[nodeName].requests.memory += requestMem;
-        accumulator.allNodes.requests.cpu += requestCpu;
-        accumulator.allNodes.requests.memory += requestMem;
-
         accumulator[nodeName].limits.cpu += limitsCpu;
         accumulator[nodeName].limits.memory += limitsMem;
-        accumulator.allNodes.limits.cpu += limitsCpu;
-        accumulator.allNodes.limits.memory += limitsMem;
         return accumulator;
     }, initial);
-    Object.keys(resourcesPerNode).forEach((k) => {
-        resourcesPerNode[k].ratio = {
-            cpu: resourcesPerNode[k].requests.cpu / resourcesPerNode[k].total.cpu,
-            memory: resourcesPerNode[k].requests.memory / resourcesPerNode[k].total.memory,
-        };
-        resourcesPerNode[k].free = {
-            cpu: resourcesPerNode[k].total.cpu - resourcesPerNode[k].requests.cpu,
-            memory: resourcesPerNode[k].total.memory - resourcesPerNode[k].requests.memory,
-        };
+
+    const nodeList = [];
+    Object.entries(resourcesPerNode).forEach(([k, v]) => {
+        calcRatioFree(v);
+        allNodes.requests.cpu += v.requests.cpu;
+        allNodes.requests.memory += v.requests.memory;
+        allNodes.limits.cpu += v.limits.cpu;
+        allNodes.limits.memory += v.limits.memory;
+        nodeList.push({ name: k, ...v });
     });
-    return resourcesPerNode;
+    calcRatioFree(allNodes);
+    return { allNodes, nodeList };
 };
 
 const normalizeRequests = (requests) => {
@@ -162,7 +169,7 @@ const _tryParseTime = (timeString) => {
     try {
         const date = new Date(timeString);
         return date.getTime();
-    } 
+    }
     catch (error) {
         return null;
     }
