@@ -26,8 +26,8 @@ class StateManager extends EventEmitter {
         return this._etcd.execution.set(options);
     }
 
-    setCurrentExecution(options) {
-        return this._etcd.currentExecutions.set(options);
+    setRunningPipelines(options) {
+        return this._etcd.runningPipelines.set(options);
     }
 
     getExecution(options) {
@@ -35,7 +35,7 @@ class StateManager extends EventEmitter {
     }
 
     deleteExecution(options) {
-        return this._etcd.currentExecutions.delete(options);
+        return this._etcd.runningPipelines.delete(options);
     }
 
     async getExecutions(options, filter = () => true) {
