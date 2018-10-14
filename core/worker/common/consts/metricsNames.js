@@ -1,9 +1,9 @@
 module.exports = {
     metricsNames: {
-        algorithm_net: 'algorithm_net',
-        algorithm_failed: 'algorithm_failed',
-        algorithm_completed: 'algorithm_completed',
-        algorithm_started: 'algorithm_started',
-        algorithm_runtime: 'algorithm_runtime'
+        worker_net: 'worker_net',
+        worker_failed: 'worker_failed',
+        worker_succeeded: 'worker_succeeded',
+        worker_started: 'worker_started',
+        worker_runtime: 'worker_runtime'
     }
 };

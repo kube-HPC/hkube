@@ -14,6 +14,17 @@ const constants = require('./consts');
 const { MetadataPlugin } = Logger;
 let log;
 
+/**
+ * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
+ * @param {string} pipelineName 
+ */
+function formatPipelineName(pipelineName) {
+    if (pipelineName.startsWith('raw-')) {
+        return 'raw';
+    }
+    return pipelineName;
+}
+
 class JobConsumer extends EventEmitter {
     constructor() {
         super();
@@ -49,24 +60,25 @@ class JobConsumer extends EventEmitter {
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.on('job', async (job) => {
             log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`, { component });
-            metrics.get(metricsNames.algorithm_started).inc({
+            const pipelineName = formatPipelineName(job.data.pipelineName);
+            metrics.get(metricsNames.worker_started).inc({
                 labelValues: {
-                    pipelineName: job.data.pipelineName,
-                    algorithmName: this._options.jobConsumer.job.type
+                    pipeline_name: pipelineName,
+                    algorithm_name: this._options.jobConsumer.job.type
                 }
             });
-            metrics.get(metricsNames.algorithm_net).start({
+            metrics.get(metricsNames.worker_net).start({
                 id: job.data.taskID,
                 labelValues: {
-                    pipelineName: job.data.pipelineName,
-                    algorithmName: this._options.jobConsumer.job.type
+                    pipeline_name: pipelineName,
+                    algorithm_name: this._options.jobConsumer.job.type
                 }
             });
-            metrics.get(metricsNames.algorithm_runtime).start({
+            metrics.get(metricsNames.worker_runtime).start({
                 id: job.data.taskID,
                 labelValues: {
-                    pipelineName: job.data.pipelineName,
-                    algorithmName: this._options.jobConsumer.job.type
+                    pipeline_name: pipelineName,
+                    algorithm_name: this._options.jobConsumer.job.type
                 }
             });
 
@@ -134,33 +146,38 @@ class JobConsumer extends EventEmitter {
     }
 
     _registerMetrics() {
-        metrics.removeMeasure(metricsNames.algorithm_net);
+        metrics.removeMeasure(metricsNames.worker_net);
         metrics.addTimeMeasure({
-            name: metricsNames.algorithm_net,
-            labels: ['pipelineName', 'algorithmName', 'status'],
+            name: metricsNames.worker_net,
+            labels: ['pipeline_name', 'algorithm_name', 'status'],
+            description: 'Algorithm runtime histogram',
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
-        metrics.removeMeasure(metricsNames.algorithm_completed);
+        metrics.removeMeasure(metricsNames.worker_succeeded);
         metrics.addCounterMeasure({
-            name: metricsNames.algorithm_completed,
-            labels: ['pipelineName', 'algorithmName'],
+            name: metricsNames.worker_succeeded,
+            description: 'Number of times the algorithm has completed',
+            labels: ['pipeline_name', 'algorithm_name'],
         });
-        metrics.removeMeasure(metricsNames.algorithm_runtime);
+        metrics.removeMeasure(metricsNames.worker_runtime);
         metrics.addSummary({
-            name: metricsNames.algorithm_runtime,
-            labels: ['pipelineName', 'algorithmName', 'status'],
+            name: metricsNames.worker_runtime,
+            description: 'Algorithm runtime summary',
+            labels: ['pipeline_name', 'algorithm_name', 'status'],
             percentiles: [0.5]
         });
-        metrics.removeMeasure(metricsNames.algorithm_started);
+        metrics.removeMeasure(metricsNames.worker_started);
         metrics.addCounterMeasure({
-            name: metricsNames.algorithm_started,
-            labels: ['pipelineName', 'algorithmName'],
+            name: metricsNames.worker_started,
+            description: 'Number of times the algorithm has started',
+            labels: ['pipeline_name', 'algorithm_name'],
         });
-        metrics.removeMeasure(metricsNames.algorithm_failed);
+        metrics.removeMeasure(metricsNames.worker_failed);
         metrics.addCounterMeasure({
-            name: metricsNames.algorithm_failed,
-            labels: ['pipelineName', 'algorithmName'],
+            name: metricsNames.worker_failed,
+            description: 'Number of times the algorithm has failed',
+            labels: ['pipeline_name', 'algorithm_name'],
         });
     }
 
@@ -251,19 +268,30 @@ class JobConsumer extends EventEmitter {
             jobId: this._jobId, taskId: this._taskID, status: jobStatus, result: resultLink, error
         });
 
-        metrics.get(metricsNames.algorithm_completed).inc({
-            labelValues: {
-                pipelineName: this._pipelineName,
-                algorithmName: this._options.jobConsumer.job.type
-            }
-        });
-        metrics.get(metricsNames.algorithm_net).end({
+        const pipelineName = formatPipelineName(this._pipelineName);
+        if (jobStatus === constants.JOB_STATUS.FAILED) {
+            metrics.get(metricsNames.worker_failed).inc({
+                labelValues: {
+                    pipeline_name: pipelineName,
+                    algorithm_name: this._options.jobConsumer.job.type
+                }
+            });
+        }
+        else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
+            metrics.get(metricsNames.worker_succeeded).inc({
+                labelValues: {
+                    pipeline_name: pipelineName,
+                    algorithm_name: this._options.jobConsumer.job.type
+                }
+            });
+        }
+        metrics.get(metricsNames.worker_net).end({
             id: this._taskID,
             labelValues: {
                 status: jobStatus
             }
         });
-        metrics.get(metricsNames.algorithm_runtime).end({
+        metrics.get(metricsNames.worker_runtime).end({
             id: this._taskID,
             labelValues: {
                 status: jobStatus

@@ -66,7 +66,6 @@ describe('consumer tests', () => {
         let config = getConfig();
         storageAdapter.put({ jobId: config.jobId, taskId: config.taskID, data: { data: { engine: 'deep' } } }).then((link) => {
             consumer.init(config).then(() => {
-                storageAdapter
                 stateManager.once('stateEnteredready', async () => {
                     producer = new Producer(config.jobConsumer);
                     let x = await producer.createJob({
@@ -78,7 +77,8 @@ describe('consumer tests', () => {
                                 input: ['test-param', true, 12345, '$$guid-5'],
                                 storage: {
                                     'guid-5': { storageInfo: link, path: 'data.engine' }
-                                }
+                                },
+                                pipelineName: 'xxx'
                             },
                         }
                     });
@@ -110,8 +110,9 @@ describe('consumer tests', () => {
                         data: {
                             jobId: config.jobId,
                             taskID: config.taskID,
-                            input: [null, 1, undefined]
-                        },
+                            input: [null, 1, undefined],
+                            pipelineName: 'xxx'
+                        }
                     }
                 });
                 Object.keys(workerStates).forEach(element => {
@@ -143,8 +144,10 @@ describe('consumer tests', () => {
                         data: {
                             jobId: config.jobId,
                             taskID: config.taskID,
-                            input: []
+                            input: [],
+                            pipelineName: 'xxx'
                         },
+                       
                     }
                 });
                 Object.keys(workerStates).forEach(element => {
@@ -177,7 +180,8 @@ describe('consumer tests', () => {
                             input: ['$$guid-5'],
                             storage: {
                                 'guid-5': { storageInfo: { Bucket: 'bucket-not-exists', Key: config.taskID }, path: 'data.engine.inputs.raw' }
-                            }
+                            },
+                            pipelineName: 'xxx'
                         },
                     }
                 });
@@ -209,7 +213,8 @@ describe('consumer tests', () => {
                                 input: ['$$guid-5'],
                                 storage: {
                                     'guid-5': { storageInfo: link }
-                                }
+                                },
+                                pipelineName: 'xxx'
                             },
                         }
                     });
