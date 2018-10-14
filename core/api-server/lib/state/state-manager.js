@@ -42,9 +42,9 @@ class StateManager extends EventEmitter {
         return this._etcd.runningPipelines.delete(options);
     }
 
-    async getExecutions(options, filter = () => true) {
-        const executions = await this._etcd.execution.list(options);
-        return executions.filter(filter);
+    async getRunningPipelines(options, filter = () => true) {
+        const runningPipelines = await this._etcd.runningPipelines.list(options);
+        return runningPipelines.filter(filter);
     }
 
     getExecutionsTree(options) {

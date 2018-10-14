@@ -52,7 +52,7 @@ class AlgorithmStore {
         const limit = 1000;
         const [pipelines, executions] = await Promise.all([
             stateManager.getPipelines({ limit }, this._findAlgorithm(algorithmName)),
-            stateManager.getExecutions({ limit }, this._findAlgorithm(algorithmName))
+            stateManager.getRunningPipelines({ limit }, this._findAlgorithm(algorithmName))
         ]);
         return { pipelines, executions };
     }
