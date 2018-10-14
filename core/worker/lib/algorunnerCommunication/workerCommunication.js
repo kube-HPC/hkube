@@ -62,8 +62,8 @@ class WorkerCommunication extends EventEmitter {
      * @param {object} message.data the data for the command
      * @memberof WorkerCommunication
      */
-    async send(message) {
-        return this.adapter.send(message);
+    send(message) {
+        this.adapter.send(message);
     }
 }
 
