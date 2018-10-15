@@ -1,6 +1,6 @@
 module.exports = {
     metricsNames: {
-        pipelines_net: 'pipelines_net',
-        pipelines_progress: 'pipelines_progress'
+        pipelines_net: 'pipeline_driver_pipelines_net',
+        pipelines_progress: 'pipeline_driver_pipelines_progress'
     }
 };

@@ -17,6 +17,7 @@ const graphStore = require('../datastore/graph-store');
 
 metrics.addTimeMeasure({
     name: metricsNames.pipelines_net,
+    description: 'pipelines runtime histogram',
     labels: ['pipeline_name', 'status'],
     buckets: utils.arithmatcSequence(30, 0, 2)
         .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
@@ -24,8 +25,20 @@ metrics.addTimeMeasure({
 
 metrics.addGaugeMeasure({
     name: metricsNames.pipelines_progress,
+    description: 'pipelines progress',
     labels: ['pipeline_name', 'jobId', 'status'],
 });
+
+/**
+ * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
+ * @param {string} pipelineName 
+ */
+function formatPipelineName(pipelineName) {
+    if (pipelineName.startsWith('raw-')) {
+        return 'raw';
+    }
+    return pipelineName;
+}
 
 class TaskRunner extends EventEmitter {
     constructor(options) {
@@ -293,7 +306,7 @@ class TaskRunner extends EventEmitter {
         metrics.get(metricsNames.pipelines_net).start({
             id: this._jobId,
             labelValues: {
-                pipeline_name: this.pipeline.name
+                pipeline_name: formatPipelineName(this.pipeline.name)
             }
         });
         tracer.startSpan({
@@ -310,6 +323,7 @@ class TaskRunner extends EventEmitter {
         metrics.get(metricsNames.pipelines_net).end({
             id: this._jobId,
             labelValues: {
+                pipeline_name: formatPipelineName(this.pipeline.name),
                 status
             }
         });
@@ -329,7 +343,7 @@ class TaskRunner extends EventEmitter {
             labelValues: {
                 status,
                 jobId: this._jobId,
-                pipeline_name: this.pipeline.name
+                pipeline_name: formatPipelineName(this.pipeline.name)
             }
         });
     }
