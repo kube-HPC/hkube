@@ -3,7 +3,7 @@ const States = require('../state/NodeStates');
 const RedisStorage = require('./redis-storage-adapter');
 const { groupTypes } = require('../consts/graph-storage-types');
 const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('../../common/consts/componentNames');
+const components = require('../consts/componentNames');
 const INTERVAL = 4000;
 
 class GraphStore {

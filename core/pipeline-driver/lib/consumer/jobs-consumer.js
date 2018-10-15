@@ -6,7 +6,7 @@ const { tracer } = require('@hkube/metrics');
 const stateFactory = require('../state/state-factory');
 const DriverStates = require('../state/DriverStates');
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../common/consts/componentNames').JOBS_CONSUMER;
+const component = require('../consts/componentNames').JOBS_CONSUMER;
 
 class JobConsumer {
     constructor() {

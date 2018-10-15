@@ -1,7 +1,7 @@
 const { Factory } = require('@hkube/redis-utils');
 const pathLib = require('path');
 const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('../../common/consts/componentNames');
+const components = require('../consts/componentNames');
 const PREFIX_GRAPH_PATH = 'pipeline-driver/graph';
 const PREFIX_NODES_GRAPH_PATH = 'pipeline-driver/nodes-graph';
 

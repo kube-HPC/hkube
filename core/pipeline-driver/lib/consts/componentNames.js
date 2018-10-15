@@ -6,7 +6,6 @@ const Components = {
     TASK_RUNNER: 'Task-Runner',
     REDIS_PERSISTENT: 'Redis-Persistent',
     GRAPH_STORE: 'Graph-Store'
-
 };
 
 module.exports = Components;

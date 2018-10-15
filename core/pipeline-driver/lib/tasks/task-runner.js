@@ -10,7 +10,7 @@ const { parser } = require('@hkube/parsers');
 const Batch = require('../nodes/node-batch');
 const Node = require('../nodes/node');
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../common/consts/componentNames').TASK_RUNNER;
+const component = require('../consts/componentNames').TASK_RUNNER;
 const { metricsNames } = require('../consts/metricsNames');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const graphStore = require('../datastore/graph-store');
@@ -486,10 +486,10 @@ class TaskRunner extends EventEmitter {
     _createJob(options, batch) {
         let tasks = [];
         if (batch) {
-            tasks = batch.map(b => ({ taskID: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
+            tasks = batch.map(b => ({ taskId: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
         }
         else {
-            tasks.push({ taskID: options.node.taskId, input: options.node.input, storage: options.storage });
+            tasks.push({ taskId: options.node.taskId, input: options.node.input, storage: options.storage });
         }
         const jobOptions = {
             type: options.node.algorithmName,

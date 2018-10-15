@@ -37,7 +37,7 @@ class JobProducer extends EventEmitter {
         const opt = {
             job: {
                 type: options.type,
-                data: options.data,
+                data: options.data
             }
         };
         if (options.data && options.data.jobId) {
@@ -46,7 +46,7 @@ class JobProducer extends EventEmitter {
                 opt.tracing = {
                     parent: topSpan.context(),
                     tags: {
-                        taskID: opt.job.taskID
+                        jobId: options.data.jobId
                     }
                 };
             }
