@@ -60,11 +60,11 @@ class StateManager extends EventEmitter {
             if (this._job && this._job.data) {
                 tracer.startSpan({
                     name: state.to,
-                    id: this._job.data.taskID,
+                    id: this._job.data.taskId,
                     parent: this._job.data.spanId,
                     tags: {
                         jobId: this._job.data.jobId,
-                        taskID: this._job.data.taskID,
+                        taskId: this._job.data.taskId,
                     }
                 });
             }
@@ -72,7 +72,7 @@ class StateManager extends EventEmitter {
 
         this._stateMachine.observe('onLeaveState', (transition) => {
             if (this._job && this._job.data) {
-                const topSpan = tracer.topSpan(this._job.data.taskID);
+                const topSpan = tracer.topSpan(this._job.data.taskId);
                 if (topSpan && topSpan.name === transition.from) {
                     topSpan.finish();
                 }

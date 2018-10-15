@@ -33,7 +33,7 @@ class JobConsumer extends EventEmitter {
         this._job = null;
         this._storageAdapter = null;
         this._jobId = undefined;
-        this._taskID = undefined;
+        this._taskId = undefined;
         this._pipelineName = undefined;
         this._consumerPaused = false;
         this.workerStartingTime = new Date();
@@ -68,14 +68,14 @@ class JobConsumer extends EventEmitter {
                 }
             });
             metrics.get(metricsNames.worker_net).start({
-                id: job.data.taskID,
+                id: job.data.taskId,
                 labelValues: {
                     pipeline_name: pipelineName,
                     algorithm_name: this._options.jobConsumer.job.type
                 }
             });
             metrics.get(metricsNames.worker_runtime).start({
-                id: job.data.taskID,
+                id: job.data.taskId,
                 labelValues: {
                     pipeline_name: pipelineName,
                     algorithm_name: this._options.jobConsumer.job.type
@@ -84,7 +84,7 @@ class JobConsumer extends EventEmitter {
 
             this._job = job;
             this._jobId = job.data.jobId;
-            this._taskID = job.data.taskID;
+            this._taskId = job.data.taskId;
             this._pipelineName = job.data.pipelineName;
             this._jobData = { node: job.data.node, batchID: job.data.batchID };
             const watchState = await etcd.watch({ jobId: this._jobId });
@@ -94,7 +94,7 @@ class JobConsumer extends EventEmitter {
                 return;
             }
             await etcd.update({
-                jobId: this._jobId, taskId: this._taskID, status: constants.JOB_STATUS.ACTIVE
+                jobId: this._jobId, taskId: this._taskId, status: constants.JOB_STATUS.ACTIVE
             });
 
             stateManager.setJob(job);
@@ -130,7 +130,7 @@ class JobConsumer extends EventEmitter {
         } = this._getStatus(data);
         const discoveryInfo = {
             jobId: this._jobId,
-            taskID: this._taskID,
+            taskId: this._taskId,
             pipelineName: this._pipelineName,
             jobData: this._jobData,
             algorithmName: this._options.jobConsumer.job.type,
@@ -219,10 +219,10 @@ class JobConsumer extends EventEmitter {
         this.jobCurrentTime = new Date();
         const span = tracer.startSpan({
             name: 'storage-get',
-            id: this._taskID,
+            id: this._taskId,
             tags: {
                 jobId: this._jobId,
-                taskID: this._taskID,
+                taskId: this._taskId,
             }
         });
         const { error, data } = await this._tryExtractDataFromStorage(jobInfo);
@@ -265,7 +265,7 @@ class JobConsumer extends EventEmitter {
         }
 
         await etcd.update({
-            jobId: this._jobId, taskId: this._taskID, status: jobStatus, result: resultLink, error
+            jobId: this._jobId, taskId: this._taskId, status: jobStatus, result: resultLink, error
         });
 
         const pipelineName = formatPipelineName(this._pipelineName);
@@ -286,13 +286,13 @@ class JobConsumer extends EventEmitter {
             });
         }
         metrics.get(metricsNames.worker_net).end({
-            id: this._taskID,
+            id: this._taskId,
             labelValues: {
                 status: jobStatus
             }
         });
         metrics.get(metricsNames.worker_runtime).end({
-            id: this._taskID,
+            id: this._taskId,
             labelValues: {
                 status: jobStatus
             }
@@ -303,7 +303,7 @@ class JobConsumer extends EventEmitter {
         this._job.done(error);
         this._job = null;
         this._jobId = undefined;
-        this._taskID = undefined;
+        this._taskId = undefined;
         this._pipelineName = undefined;
         this._jobData = undefined;
     }
@@ -315,17 +315,17 @@ class JobConsumer extends EventEmitter {
         try {
             span = tracer.startSpan({
                 name: 'storage-put',
-                id: this._taskID,
+                id: this._taskId,
                 tags: {
                     jobId: this._jobId,
-                    taskID: this._taskID,
+                    taskId: this._taskId,
                 }
             });
             if (data === undefined) {
                 data = null;
             }
             const storageInfo = await this._storageAdapter.put({
-                jobId: this._job.data.jobId, taskId: this._job.data.taskID, data
+                jobId: this._job.data.jobId, taskId: this._job.data.taskId, data
             });
             const object = { [this._job.data.node]: data };
             storageLink = {
@@ -340,7 +340,7 @@ class JobConsumer extends EventEmitter {
             if (span) {
                 span.finish(err);
             }
-            log.error(`failed to store data job:${this._jobId} task:${this._taskID}`, { component }, err);
+            log.error(`failed to store data job:${this._jobId} task:${this._taskId}`, { component }, err);
             storageError = err.message;
         }
         return {
@@ -352,7 +352,7 @@ class JobConsumer extends EventEmitter {
     currentTaskInfo() {
         return {
             jobId: this._jobId,
-            taskId: this._taskID,
+            taskId: this._taskId,
             pipelineName: this._pipelineName,
             algorithmName: this._options.jobConsumer.job.type
         };
@@ -367,7 +367,7 @@ class JobConsumer extends EventEmitter {
     }
 
     get taskId() {
-        return this._taskID;
+        return this._taskId;
     }
 }
 

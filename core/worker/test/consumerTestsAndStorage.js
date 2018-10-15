@@ -13,9 +13,9 @@ const datastoreHelper = require('../lib/helpers/datastoreHelper');
 let consumer, producer, storageAdapter;
 function getConfig() {
     const jobId = 'jobId:' + uuid();
-    const taskID = 'taskId:' + uuid();
+    const taskId = 'taskId:' + uuid();
     return {
-        taskID,
+        taskId,
         jobId,
         defaultStorage: 's3',
         jobConsumer: {
@@ -64,7 +64,7 @@ describe('consumer tests', () => {
     });
     it('store data and validate result from algorithm', (done) => {
         let config = getConfig();
-        storageAdapter.put({ jobId: config.jobId, taskId: config.taskID, data: { data: { engine: 'deep' } } }).then((link) => {
+        storageAdapter.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then((link) => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     producer = new Producer(config.jobConsumer);
@@ -73,7 +73,7 @@ describe('consumer tests', () => {
                             type: config.jobConsumer.job.type,
                             data: {
                                 jobId: config.jobId,
-                                taskID: config.taskID,
+                                taskId: config.taskId,
                                 input: ['test-param', true, 12345, '$$guid-5'],
                                 storage: {
                                     'guid-5': { storageInfo: link, path: 'data.engine' }
@@ -109,7 +109,7 @@ describe('consumer tests', () => {
                         type: config.jobConsumer.job.type,
                         data: {
                             jobId: config.jobId,
-                            taskID: config.taskID,
+                            taskId: config.taskId,
                             input: [null, 1, undefined],
                             pipelineName: 'xxx'
                         }
@@ -143,11 +143,11 @@ describe('consumer tests', () => {
                         type: config.jobConsumer.job.type,
                         data: {
                             jobId: config.jobId,
-                            taskID: config.taskID,
+                            taskId: config.taskId,
                             input: [],
                             pipelineName: 'xxx'
                         },
-                       
+
                     }
                 });
                 Object.keys(workerStates).forEach(element => {
@@ -176,10 +176,10 @@ describe('consumer tests', () => {
                         type: config.jobConsumer.job.type,
                         data: {
                             jobId: config.jobId,
-                            taskID: config.taskID,
+                            taskId: config.taskId,
                             input: ['$$guid-5'],
                             storage: {
-                                'guid-5': { storageInfo: { Bucket: 'bucket-not-exists', Key: config.taskID }, path: 'data.engine.inputs.raw' }
+                                'guid-5': { storageInfo: { Bucket: 'bucket-not-exists', Key: config.taskId }, path: 'data.engine.inputs.raw' }
                             },
                             pipelineName: 'xxx'
                         },
@@ -200,7 +200,7 @@ describe('consumer tests', () => {
     });
     it('get input from storage and send to algorithm', (done) => {
         let config = getConfig();
-        storageAdapter.put({ jobId: config.jobId, taskId: config.taskID, data: 'test' }).then((link) => {
+        storageAdapter.put({ jobId: config.jobId, taskId: config.taskId, data: 'test' }).then((link) => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     producer = new Producer(config.jobConsumer);
@@ -209,7 +209,7 @@ describe('consumer tests', () => {
                             type: config.jobConsumer.job.type,
                             data: {
                                 jobId: config.jobId,
-                                taskID: config.taskID,
+                                taskId: config.taskId,
                                 input: ['$$guid-5'],
                                 storage: {
                                     'guid-5': { storageInfo: link }
