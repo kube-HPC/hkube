@@ -10,8 +10,11 @@ const queueEvents = require('../lib/consts/queue-events');
 const { callDone, done, semaphore } = require('await-done');
 const { mockConsumer } = require('./mock/index');
 let bootstrap = require('../bootstrap'); //eslint-disable-line
+const queueRunner = require('../lib/queue-runner');
+const EnrichmentRunner = require('../lib/enrichment-runner');
+
 let Queue = null;
-const queueRunner = require('../lib/queue-runner'); //eslint-disable-line
+
 const heuristic = score => job => (Promise.resolve({ ...job, ...{ calculated: { score, entranceTime: Date.now(), latestScore: {} } } }));
 const heuristicBoilerPlate = (score, _heuristic) => ({
     run(job) {
@@ -42,6 +45,7 @@ const logMock = {
     warn: (data, object) => console.log(data, object),//eslint-disable-line
 
 };
+
 describe('Test', () => {
     before(async () => {
         await bootstrap.init();
@@ -52,7 +56,7 @@ describe('Test', () => {
             describe('add', () => {
                 beforeEach(() => {
                     Queue = require('../lib/queue'); //eslint-disable-line
-                    queue = new Queue({ updateInterval: QUEUE_INTERVAL });
+                    queue = new Queue({ updateInterval: QUEUE_INTERVAL, enrichmentRunner: new EnrichmentRunner() });
                 });
                 it('should added to queue', async () => {
                     queue.updateHeuristic(heuristicBoilerPlate(80, heuristic));
@@ -78,7 +82,7 @@ describe('Test', () => {
                 let _semaphore = null;
                 beforeEach(() => {
                     Queue = require('../lib/queue'); //eslint-disable-line
-                    queue = new Queue({ updateInterval: QUEUE_INTERVAL });
+                    queue = new Queue({ updateInterval: QUEUE_INTERVAL, enrichmentRunner: new EnrichmentRunner() });
                     _semaphore = new semaphore();
                 });
                 it('should removed from queue', async () => {
@@ -88,22 +92,21 @@ describe('Test', () => {
                     queue.on(queueEvents.REMOVE, () => {
                         _semaphore.callDone();
                     });
-                    queue.remove([stubJob.jobId]);
-                    //  await delay(QUEUE_INTERVAL + 500);
+                    queue.removeJobId([stubJob.jobId]);
                     await _semaphore.done();
                     const q = queue.get;
                     expect(q).to.have.length(0);
-                });
+                }).timeout(50000);
                 it('should not removed from queue when there is no matched id', async () => {
+                    let called = false;
                     queue.updateHeuristic({ run: heuristic(80) });
                     const stubJob = stubTemplate();
                     await queue.add([stubJob]);
                     queue.on(queueEvents.REMOVE, () => {
-                        _semaphore.callDone();
+                        called = true;
                     });
-                    queue.remove(['111222333']);
-                    //  await delay(QUEUE_INTERVAL + 500);
-                    await _semaphore.done();
+                    queue.removeJobId(['111222333']);
+                    expect(called).to.equal(false);
                     const q = queue.get;
                     expect(q).to.have.length(1);
                     expect(q[0].jobId).to.be.eql(stubJob.jobId);
@@ -115,7 +118,7 @@ describe('Test', () => {
                 let _semaphore = null;
                 beforeEach(() => {
                     Queue = require('../lib/queue'); //eslint-disable-line
-                    queue = new Queue({ updateInterval: QUEUE_INTERVAL });
+                    queue = new Queue({ updateInterval: QUEUE_INTERVAL, enrichmentRunner: new EnrichmentRunner() });
                     _semaphore = new semaphore();
                 });
                 it('should pop from queue', async () => {
@@ -125,12 +128,8 @@ describe('Test', () => {
                     queue.on(queueEvents.POP, () => {
                         _semaphore.callDone();
                     });
-                    queue.on(queueEvents.REMOVE, () => {
-                        _semaphore.callDone();
-                    });
                     const job = queue.tryPop();
-                    //  await delay(QUEUE_INTERVAL + 500);
-                    await _semaphore.done({ doneAmount: 2 });
+                    await _semaphore.done({ doneAmount: 1 });
                     const q = queue.get;
                     expect(job.jobId).to.be.eql(stubJob.jobId);
                     expect(q).to.have.length(0);
@@ -162,7 +161,7 @@ describe('Test', () => {
                 let _semaphore = null;
                 beforeEach(() => {
                     Queue = require('../lib/queue'); //eslint-disable-line
-                    queue = new Queue({ updateInterval: QUEUE_INTERVAL });
+                    queue = new Queue({ updateInterval: QUEUE_INTERVAL, enrichmentRunner: new EnrichmentRunner() });
                     _semaphore = new semaphore();
                 });
                 it('check events insert', async () => {
@@ -179,7 +178,7 @@ describe('Test', () => {
                     queue.intervalRunningStatus = false;
                     const stubJob = stubTemplate();
                     await queue.add([stubJob]);
-                    await queue.remove([stubJob.jobId]);
+                    await queue.removeJobId([stubJob.jobId]);
                     await _semaphore.done();
                     console.log('done '); //eslint-disable-line
                 });
@@ -187,6 +186,7 @@ describe('Test', () => {
                     queue.intervalRunningStatus = false;
                 });
                 after(() => {
+                    queue.flush();
                     try {
                         clearCache(['../lib/queue']);
                     }

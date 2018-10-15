@@ -2,6 +2,17 @@ const { metrics } = require('@hkube/metrics');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, metricsName, metricsTypes, heuristicsName } = require('../consts/index');
 
+/**
+ * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
+ * @param {string} pipelineName 
+ */
+function formatPipelineName(pipelineName) {
+    if (pipelineName.startsWith('raw-')) {
+        return 'raw';
+    }
+    return pipelineName;
+}
+
 class AggregationMetricsFactory {
     constructor() {
         this.timeInQueue = null;
@@ -22,73 +33,88 @@ class AggregationMetricsFactory {
     _register() {
         this.timeInQueue = metrics.addTimeMeasure({
             name: metricsName.TIME_IN_QUEUE,
+            description: 'Histogram of task time spent in queue',
             labels: ['pipeline_name', 'algorithm_name', 'node_name'],
             buckets: [1, 2, 4, 8, 16, 32, 64, 128, 256].map(t => t * 1000)
         });
         this.totalScore = metrics.addTimeMeasure({
             name: metricsName.TOTAL_SCORE,
+            description: 'Histogram of queued tasks total score',
             labels: ['pipeline_name', 'algorithm_name', 'node_name'],
             buckets: [...Array(100).keys()]
         });
         this.batchScore = metrics.addTimeMeasure({
             name: metricsName.BATCH_SCORE,
+            description: 'Histogram of queued tasks batch score',
             labels: ['pipeline_name', 'algorithm_name', 'node_name'],
             buckets: [...Array(100).keys()]
         });
         this.timeScore = metrics.addTimeMeasure({
             name: metricsName.TIME_SCORE,
+            description: 'Histogram of queued tasks time score',
             labels: ['pipeline_name', 'algorithm_name', 'node_name'],
             buckets: [...Array(100).keys()]
         });
         this.priorityScore = metrics.addTimeMeasure({
             name: metricsName.PRIORITY_SCORE,
+            description: 'Histogram of queued tasks priority score',
             labels: ['pipeline_name', 'algorithm_name', 'node_name'],
             buckets: [...Array(100).keys()]
         });
 
         this.queueAmount = metrics.addGaugeMeasure({
             name: metricsName.QUEUE_AMOUNT,
+            description: 'Tasks queue size',
             labels: ['pipeline_name', 'algorithm_name', 'node_name'],
         });
         this.queueCounter = metrics.addCounterMeasure({
             name: metricsName.QUEUE_COUNTER,
+            description: 'Total number of tasks pushed to queue',
             labels: ['pipeline_name', 'algorithm_name', 'nodeName'],
         });
         this._metrics = {
             score: {
                 instance: [this.totalScore, this.batchScore, this.priorityScore, this.timeScore],
-                type: metricsTypes.HISTOGRAM_OPERATION,
-                method: (task, metricOperation) => this._scoreHistogram('score', task, metricOperation)
+                type: metricsTypes.HISTOGRAM_OPERATION, 
+                method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.TOTAL_SCORE]: {
-                instance: [this.timeScore],
-                type: metricsTypes.HISTOGRAM_OPERATION,
-                method: (task, metricOperation) => this._histogram(metricsName.TOTAL_SCORE, task, metricOperation)
+                instance: [this.totalScore],
+                type: metricsTypes.HISTOGRAM_OPERATION, 
+                method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.TIME_IN_QUEUE]: {
-                instance: [this.totalScore],
-                type: metricsTypes.HISTOGRAM_OPERATION,
-                method: (task, metricOperation) => this._histogram(metricsName.TIME_IN_QUEUE, task, metricOperation)
+                instance: [this.timeInQueue],
+                type: metricsTypes.HISTOGRAM_OPERATION, 
+                method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.BATCH_SCORE]: {
                 instance: [this.batchScore],
                 type: metricsTypes.HISTOGRAM_OPERATION,
-                method: (task, metricOperation) => this._histogram(metricsName.BATCH_SCORE, task, metricOperation)
+                method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.PRIORITY_SCORE]: {
                 instance: [this.priorityScore],
                 type: metricsTypes.HISTOGRAM_OPERATION,
-                method: (task, metricOperation) => this._histogram(metricsName.PRIORITY_SCORE, task, metricOperation)
+                method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.TIME_SCORE]: {
                 instance: [this.timeScore],
-                type: metricsTypes.HISTOGRAM_OPERATION,
-                method: (task, metricOperation) => this._histogram(metricsName.TIME_SCORE, task, metricOperation)
+                type: metricsTypes.HISTOGRAM_OPERATION, 
+                method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
-            [metricsName.QUEUE_AMOUNT]: { instance: this.queueAmount, type: metricsTypes.GAUGE },
-            [metricsName.QUEUE_COUNTER]: { instance: this.queueCounter, type: metricsTypes.COUNTER }
-
-
+            [metricsName.QUEUE_AMOUNT]: {
+                instance: [this.queueAmount], 
+                type: metricsTypes.GAUGE,
+                method: (metric, task, metricOperation) => this._gauge(metric, task, metricOperation)
+            },
+            [metricsName.QUEUE_COUNTER]: {
+                instance: [this.queueCounter], 
+                type: metricsTypes.COUNTER,
+                method: (metric, task, metricOperation) => this._counter(metric, task, metricOperation)
+            } 
+         
+            
         };
     }
 
@@ -96,7 +122,7 @@ class AggregationMetricsFactory {
         return this._metrics;
     }
     getMetric(type) {
-        return (task, metricOperation) => this._metrics[type].method(this._metrics[type].instance, task, metricOperation);
+        return (task, metricOperation) => this._metrics[type].method(this._metrics[type].instance[0], task, metricOperation);
     }
 
     scoreHistogram(queue) {
@@ -108,7 +134,7 @@ class AggregationMetricsFactory {
     _scoreTask(task) {
         try {
             const labelValues = {
-                pipeline_name: task.pipelineName,
+                pipeline_name: formatPipelineName(task.pipelineName),
                 algorithm_name: task.algorithmName,
                 node_name: task.nodeName
             };
@@ -122,25 +148,34 @@ class AggregationMetricsFactory {
             });
             this._metrics[metricsName.TIME_SCORE].instance[0].retroactive({
                 labelValues,
-                time: task.calculated.score
+                time: task.calculated.latestScores[heuristicsName.ENTRANCE_TIME]
             });
             this._metrics[metricsName.TOTAL_SCORE].instance[0].retroactive({
                 labelValues,
-                time: task.calculated.latestScores[heuristicsName.ENTRANCE_TIME]
+                time: task.calculated.score
             });
         }
         catch (error) {
             log.error(`cant init metrics ${error}`, { component: componentName.AGGREGATION_METRIC });
         }
     }
-    _histogram(metric, task, metricOperation) {
+
+    /**
+     * Apply operation on histogram metric
+     * @param {Object} metric 
+     * @param {Object} task 
+     * @param {string} metricOperation 
+     */
+    _histogram(metric, task, metricOperation) {  
         const metricData = {
-            id: task.data.taskId,
+            id: task.taskId,
             labelValues: {
-                pipeline_name: task.data.pipeline_name,
-                algorithm_name: this._options.jobConsumer.job.type
+                pipeline_name: formatPipelineName(task.pipelineName),
+                algorithm_name: task.algorithmName,
+                node_name: task.nodeName
             }
-        };
+        }; 
+
         if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.start) {
             metric.start(metricData);
         }
@@ -150,6 +185,49 @@ class AggregationMetricsFactory {
 
         else if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.retroActive) {
             metric.retroactive({ labelValues: metricData.labelValues });
+        }
+    }
+
+    /**
+     * Apply operation on gauge metric
+     * @param {Object} metric 
+     * @param {Object} task 
+     * @param {string} metricOperation 
+     */
+    _gauge(metric, task, metricOperation) {
+        const metricData = {
+            id: task.taskId,
+            labelValues: {
+                pipeline_name: formatPipelineName(task.pipelineName),
+                algorithm_name: task.algorithmName,
+                node_name: task.nodeName
+            }
+        };
+        if (metricOperation === metricsTypes.GAUGE_OPERATION.increase) {
+            metric.inc(metricData);
+        }
+        else if (metricOperation === metricsTypes.GAUGE_OPERATION.decrease) {
+            metric.dec(metricData);
+        }
+    }
+
+    /**
+     * Apply operation on counter metric
+     * @param {Object} metric 
+     * @param {Object} task 
+     * @param {string} metricOperation 
+     */
+    _counter(metric, task, metricOperation) {
+        const metricData = {
+            id: task.taskId,
+            labelValues: {
+                pipeline_name: formatPipelineName(task.pipelineName),
+                algorithm_name: task.algorithmName,
+                node_name: task.nodeName
+            }
+        };
+        if (metricOperation === metricsTypes.COUNTER_OPERATION.increase) {
+            metric.inc(metricData);
         }
     }
 }

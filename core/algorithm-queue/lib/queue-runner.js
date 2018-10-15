@@ -1,5 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const {componentName, queueEvents} = require('./consts/index');
+const {componentName, queueEvents, metricsName, metricsTypes} = require('./consts/index');
 const Queue = require('./queue');
 const HeuristicRunner = require('./heuristic-runner');
 const EnrichmentRunner = require('./enrichment-runner');
@@ -32,6 +32,29 @@ class QueueRunner {
             enrichmentRunner: this.enrichmentRunner});
             
         this.queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
+
+        this.queue.on(queueEvents.INSERT, (taskArr) => {
+            taskArr.forEach(task => this._taskAdded(task));
+        });
+
+        this.queue.on(queueEvents.POP, (task) => {
+            this._taskRemoved(task);
+        });
+
+        this.queue.on(queueEvents.REMOVE, (taskArr) => {
+            taskArr.forEach(task => this._taskRemoved(task));
+        });
+    }
+
+    _taskRemoved(task) {
+        aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(task, metricsTypes.HISTOGRAM_OPERATION.end);
+        aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)(task, metricsTypes.GAUGE_OPERATION.decrease);
+    }
+
+    _taskAdded(task) {
+        aggregationMetricFactory.getMetric(metricsName.TIME_IN_QUEUE)(task, metricsTypes.HISTOGRAM_OPERATION.start);
+        aggregationMetricFactory.getMetric(metricsName.QUEUE_AMOUNT)(task, metricsTypes.GAUGE_OPERATION.increase);
+        aggregationMetricFactory.getMetric(metricsName.QUEUE_COUNTER)(task, metricsTypes.COUNTER_OPERATION.increase);
     }
 }
 

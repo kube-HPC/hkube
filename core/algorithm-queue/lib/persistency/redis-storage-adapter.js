@@ -62,6 +62,17 @@ class RedisAdapter {
         }
         return parsed;
     }
+
+    _delete() {
+        return new Promise((resolve, reject) => {
+            client.del(this.path, (err) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve();
+            });
+        });
+    }
 }
 
 module.exports = new RedisAdapter();

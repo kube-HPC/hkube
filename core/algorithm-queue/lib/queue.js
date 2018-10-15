@@ -37,8 +37,8 @@ class Queue extends events {
         this.updateInterval = updateInterval;
         this.queue = [];
         this.isScoreDuringUpdate = false;
-        this.tempInsertQueue = [];
-        this.tempRemoveQueue = [];
+        this.tempInsertTasksQueue = [];
+        this.tempRemoveJobIDsQueue = [];
         this.isIntervalRunning = true;
         this.persistence = persistence;
         this.persistencyLoad();
@@ -46,8 +46,8 @@ class Queue extends events {
     }
     flush() {
         this.queue = [];
-        this.tempInsertQueue = [];
-        this.tempRemoveQueue = [];
+        this.tempInsertTasksQueue = [];
+        this.tempRemoveJobIDsQueue = [];
     }
     async persistencyLoad() {
         log.info('try to recover data from persistent storage', { component: components.QUEUE });
@@ -85,46 +85,51 @@ class Queue extends events {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
         //   this.scoreHeuristic = heuristic.run.bind(heuristic);
     }
-    async add(jobs) {
+
+    /**
+     * Add tasks (algorithms) to queue
+     * @param {Array} tasks 
+     */
+    async add(tasks) {
         if (this.scoreHeuristic) {
-            const calculatedJobs = await aigle.map(jobs, job => this.scoreHeuristic(job));
+            const calculatedTasks = await aigle.map(tasks, task => this.scoreHeuristic(task));
             if (this.isScoreDuringUpdate) {
                 log.debug('add -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
-                this.tempInsertQueue = this.tempInsertQueue.concat(calculatedJobs);
+                this.tempInsertTasksQueue = this.tempInsertTasksQueue.concat(calculatedTasks);
                 return;
             }
-            this._insert(calculatedJobs);
+            this._insert(calculatedTasks);
         }
         else {
             log.warning('score heuristic is not defined', { component: components.QUEUE });
         }
     }
+
+    /**
+     * Pop a task from queue
+     */
     tryPop() {
         if (this.queue.length === 0) {
             return null;
         }
-        const job = this.queue.shift();
-        this.remove([job.taskId]);
-        this.emit(queueEvents.POP, { taskId: job.taskId });
-        return job;
+        const task = this.queue.shift();
+        this.emit(queueEvents.POP, task);
+        return task;
     }
+
+    /**
+     * Remove all tasks of given job IDs from queue
+     * @param {Array} jobsId 
+     */
     removeJobId(jobsId) {
         if (this.isScoreDuringUpdate) {
             log.debug('remove -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
-            this.tempRemoveQueue = this.tempRemoveQueue.concat(jobsId);
+            this.tempRemoveJobIDsQueue = this.tempRemoveJobIDsQueue.concat(jobsId);
             return;
         }
         this._removeJobID(jobsId);
     }
 
-    remove(taskId) {
-        if (this.isScoreDuringUpdate) {
-            log.debug('remove -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
-            this.tempRemoveQueue = this.tempRemoveQueue.concat(taskId);
-            return;
-        }
-        this._remove(taskId);
-    }
     async updateScore() {
         this.queue = await aigle.map(this.queue, job => this.scoreHeuristic(job));
         this.emit(queueEvents.UPDATE_SCORE, this.queue);
@@ -134,52 +139,51 @@ class Queue extends events {
     get get() {
         return this.queue;
     }
+
     set intervalRunningStatus(status) {
         this.isIntervalRunning = status;
     }
-    _insert(jobArr) {
-        if (jobArr.length === 0) {
+
+    _insert(taskArr) {
+        if (taskArr.length === 0) {
             log.debug('there is no new inserted jobs', { component: components.QUEUE });
             return;
         }
-        this.queue = _.orderBy([...this.queue, ...jobArr], j => j.calculated.score, 'desc');
-        this.emit(queueEvents.INSERT);
-        log.info('new jobs inserted to queue jobs', { component: components.QUEUE });
+        this.queue = _.orderBy([...this.queue, ...taskArr], j => j.calculated.score, 'desc');
+        this.emit(queueEvents.INSERT, taskArr);
+        log.info(`${taskArr} new jobs inserted to queue jobs`, { component: components.QUEUE });
     }
+
     _orderQueue() {
         this.queue = _.orderBy([...this.queue], j => j.calculated.score, 'desc');
     }
+
     _removeJobID(jobArr) {
         if (jobArr.length === 0) {
             log.debug('there is no deleted jobs', { component: components.QUEUE });
             return;
         }
         log.info(`${[...jobArr]} removed from queue  `, { component: components.QUEUE });
+        let removedTasksArr = [];
         jobArr.forEach((jobId) => {
-            _.remove(this.queue, job => job.jobId === jobId);
+            // collect removed tasks to send in REMOVE event
+            removedTasksArr = [].concat(removedTasksArr, _.remove(this.queue, task => task.jobId === jobId));
         });
-        this.emit(queueEvents.REMOVE, jobArr);
-    }
-    _remove(taskArr) {
-        if (taskArr.length === 0) {
-            log.debug('there is no deleted jobs', { component: components.QUEUE });
+        if (removedTasksArr.length === 0) {
+            log.warning(`no task in queue is matching job IDs: ${jobArr.join('.')}`);
             return;
         }
-        log.info(`${[...taskArr]} removed from queue  `, { component: components.QUEUE });
-        taskArr.forEach((jobId) => {
-            _.remove(this.queue, job => job.jobId === jobId);
-        });
-        this.emit(queueEvents.REMOVE, taskArr);
+        this.emit(queueEvents.REMOVE, removedTasksArr);
     }
-
 
     // should be merged after each interval cycle
     _mergeTemp() {
-        this._insert(this.tempInsertQueue);
-        this._remove(this.tempRemoveQueue);
-        this.tempInsertQueue = [];
-        this.tempRemoveQueue = [];
+        this._insert(this.tempInsertTasksQueue);
+        this._removeJobID(this.tempRemoveJobIDsQueue);
+        this.tempInsertTasksQueue = [];
+        this.tempRemoveJobIDsQueue = [];
     }
+
     // the interval logic should be as follows :
     // 1.if updateScore is running every new change entered to temp queue
     // 2. after each cycle merge with temp proceeded 

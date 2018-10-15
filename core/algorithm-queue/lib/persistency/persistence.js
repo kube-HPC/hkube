@@ -35,6 +35,10 @@ class Persistence {
         return redisStorage.get();
         //  return this.etcd.algorithms.algorithmQueue.get({ name: this.queueName });
     }
+
+    _delete() {
+        return redisStorage._delete();
+    }
 }
 
 
