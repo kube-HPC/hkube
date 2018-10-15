@@ -93,11 +93,11 @@ class JobProducer {
             log.error(`${Events.STALLED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.STALLED });
         });
         this._producer.on(Events.CRASHED, async (job) => {
-            const { jobId, taskID } = job.options;
+            const { jobId, taskId } = job.options;
             const { error } = job;
             const status = taskStatus.CRASHED;
-            await this._etcd.tasks.setState({ jobId: jobId, taskId: taskID, status, error });
-            log.error(`${error} ${taskID}`, { component: componentName.JOBS_PRODUCER, jobId, status });
+            await this._etcd.tasks.setState({ jobId, taskId, status, error });
+            log.error(`${error} ${taskId}`, { component: componentName.JOBS_PRODUCER, jobId, status });
         });
     }
 
@@ -108,7 +108,7 @@ class JobProducer {
                 type: task.algorithmName,
                 data: {
                     jobId: task.jobId,
-                    taskID: task.taskId,
+                    taskId: task.taskId,
                     input: task.taskData.input,
                     storage: task.storage,
                     info: task.info,
@@ -122,7 +122,7 @@ class JobProducer {
                 parent: task.spanId,
                 tags: {
                     jobId: task.jobId,
-                    taskID: task.taskId,
+                    taskId: task.taskId,
                 }
             }
         };

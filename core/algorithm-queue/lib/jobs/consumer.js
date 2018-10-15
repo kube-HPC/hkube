@@ -115,7 +115,7 @@ class JobConsumer extends EventEmitter {
             nodeName,
             initialBatchLength,
             batchPlace: task.batchIndex || 1,
-            taskId: task.taskID,
+            taskId: task.taskId,
             taskData: {
                 input: task.input
             },
