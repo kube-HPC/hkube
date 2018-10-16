@@ -11,9 +11,7 @@ const stubTemplate = ({
             jobId: `${uuid}`,
             taskId: `task-${uuid}`,
             pipelineName: `${pipelineUuid}`,
-            taskData: {
-                input: 'data'
-            },
+            input: 'data',
             nodeName: `nodeName-${uuidv4()}`,
             priority: `${priority}`,
             algorithmName: `${algorithmName}`,

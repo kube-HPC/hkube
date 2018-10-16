@@ -5,25 +5,6 @@ const aigle = require('aigle');
 const events = require('events');
 const queueEvents = require('./consts/queue-events');
 
-// const./consts/queue-events = {
-//     jobId: 'uuid',
-//     pipelineName: 'id',
-//     priority: '1-5',
-//     algorithmName: 'alg name',
-//     taskId:'uuid'
-//     batchPlace: '0-n',
-//     options:{}
-// taskData: {
-//     input: task.input
-// },
-//     calculated: {
-//         score: '1-100',
-//         latestScores: {},
-//         entranceTime: 'date',
-//     }// const./consts/queue-events = {
-// } };
-
-
 class Queue extends events {
     constructor({ scoreHeuristic = { run: null }, updateInterval = 1000, persistence = null, enrichmentRunner = { run: null } } = {}) {
         super();

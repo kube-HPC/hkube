@@ -1,45 +1,11 @@
 const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
-
 const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
-const metrics = require('@hkube/metrics');
 const { jobPrefix } = require('../consts/index');
 const queueRunner = require('../queue-runner');
-// const../queue-runner { metricsNames } = require('../../common/consts/metricsNames');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/component-name').JOBS_CONSUMER;
-
-// const consumedObject = {
-//     jobId: 'jobId',
-//     tasks: [
-//         {
-//             taskId: 'taskId',
-//             input: 'input',
-//             batchIndex: 'batchIndex' // number in the batch 
-//         }
-//     ],
-//     pipelineName: 'pipelineName',
-//     nodeName: 'nodeName',
-//     priority: 'priority',
-//     algorithmName: 'algorithmName'
-//     options:{} 
-// };
-
-// const./consts/queue-events = {
-//     jobId: 'uuid',
-//     pipelineName: 'id',
-//     priority: '1-5',
-//     algorithmName: 'alg name',
-//     nodeName: 'nodeName',
-//     batchPlace: '0-n',
-//     calculated: {
-//         score: '1-100',
-//         entranceTime: 'date',
-//     }// const./consts/queue-events = {
-
-// };
-
 
 class JobConsumer extends EventEmitter {
     constructor() {
@@ -102,7 +68,6 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-
     pipelineToQueueAdapter({ jobId, pipelineName, priority, nodeName, algorithmName, info, spanId }, task, initialBatchLength) {
         return {
             jobId,
@@ -116,9 +81,7 @@ class JobConsumer extends EventEmitter {
             initialBatchLength,
             batchPlace: task.batchIndex || 1,
             taskId: task.taskId,
-            taskData: {
-                input: task.input
-            },
+            input: task.input,
             calculated: {
                 latestScores: {},
                 //  score: '1-100',
