@@ -6,7 +6,7 @@ const { expect } = require('chai');
 const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
 const worker = require('../lib/worker');
 const uuid = require('uuid/v4');
-const { workerStates } = require('../common/consts/states');
+const { workerStates } = require('../lib/consts/states');
 const datastoreHelper = require('../lib/helpers/datastoreHelper');
 
 

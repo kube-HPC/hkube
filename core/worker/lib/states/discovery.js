@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const { EventMessages } = require('../consts/index');
-const component = require('../../common/consts/componentNames').ETCD;
+const component = require('../consts/componentNames').ETCD;
 
 let log;
 
@@ -40,7 +40,7 @@ class EtcdDiscovery extends EventEmitter {
                     this.emit('change', res);
             }
         });
-        this._etcd.jobResults.on('change', (result) => {  
+        this._etcd.jobResults.on('change', (result) => {
             // send job-result-completed, job-result-failed or job-result-stopped accordingly       
             this.emit(`${EventMessages.JOB_RESULT}-${result.status}`, result);
         });

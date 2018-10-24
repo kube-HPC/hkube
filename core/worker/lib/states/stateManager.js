@@ -1,10 +1,10 @@
 const EventEmitter = require('events');
 const StateMachine = require('javascript-state-machine');
-const { workerStates } = require('../../common/consts/states');
-const { stateEvents } = require('../../common/consts/events');
+const { workerStates } = require('../consts/states');
+const { stateEvents } = require('../consts/events');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const component = require('../../common/consts/componentNames').STATE_MANAGER;
+const component = require('../consts/componentNames').STATE_MANAGER;
 let log;
 
 /**

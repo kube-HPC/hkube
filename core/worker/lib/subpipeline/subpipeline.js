@@ -3,13 +3,13 @@ const discovery = require('../states/discovery');
 const Logger = require('@hkube/logger');
 const storageFactory = require('../helpers/datastoreHelper');
 const messages = require('../algorunnerCommunication/messages');
-const component = require('../../common/consts/componentNames').WORKER;
+const component = require('../../lib/consts/componentNames').WORKER;
 const { Status, EventMessages, ApiServerPostTypes } = require('../consts/index');
 const apiServerClient = require('../helpers/api-server-client');
 const jobConsumer = require('../consumer/JobConsumer');
 const stateManager = require('../states/stateManager');
-const { workerStates } = require('../../common/consts/states');
-const { stateEvents } = require('../../common/consts/events');
+const { workerStates } = require('../../lib/consts/states');
+const { stateEvents } = require('../../lib/consts/events');
 
 let log;
 

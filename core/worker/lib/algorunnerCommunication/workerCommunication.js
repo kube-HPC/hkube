@@ -8,7 +8,7 @@ const socketAdapter = require('./socketWorkerCommunication');
 const loopbackAdapter = require('./loopbackWorkerCommunication');
 const { adapters } = require('./consts');
 const messages = require('./messages');
-const components = require('../../common/consts/componentNames');
+const components = require('../../lib/consts/componentNames');
 
 
 class WorkerCommunication extends EventEmitter {

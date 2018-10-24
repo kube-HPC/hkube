@@ -5,7 +5,7 @@ const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunic
 const socketio = require('socket.io');
 const messages = require('./messages');
 const http = require('http');
-const components = require('../../common/consts/componentNames');
+const components = require('../../lib/consts/componentNames');
 let log;
 class SocketWorkerCommunication extends EventEmitter {
     constructor() {

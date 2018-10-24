@@ -3,11 +3,11 @@ const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
-const { stateEvents } = require('../../common/consts/events');
+const { stateEvents } = require('../consts/events');
 const etcd = require('../states/discovery');
 const { tracer, metrics, utils } = require('@hkube/metrics');
-const { metricsNames } = require('../../common/consts/metricsNames');
-const component = require('../../common/consts/componentNames').CONSUMER;
+const { metricsNames } = require('../consts/metricsNames');
+const component = require('../consts/componentNames').CONSUMER;
 const datastoreHelper = require('../helpers/datastoreHelper');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
@@ -86,7 +86,7 @@ class JobConsumer extends EventEmitter {
             this._jobId = job.data.jobId;
             this._taskId = job.data.taskId;
             this._pipelineName = job.data.pipelineName;
-            this._jobData = { node: job.data.node, batchID: job.data.batchID };
+            this._jobData = { nodeName: job.data.nodeName, batchID: job.data.batchID };
             const watchState = await etcd.watch({ jobId: this._jobId });
 
             if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
@@ -327,7 +327,7 @@ class JobConsumer extends EventEmitter {
             const storageInfo = await this._storageAdapter.put({
                 jobId: this._job.data.jobId, taskId: this._job.data.taskId, data
             });
-            const object = { [this._job.data.node]: data };
+            const object = { [this._job.data.nodeName]: data };
             storageLink = {
                 metadata: parser.objectToMetadata(object, this._job.data.info.savePaths),
                 storageInfo

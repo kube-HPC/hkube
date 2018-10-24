@@ -9,8 +9,8 @@ log = new Logger(main.serviceName, logger);
 const messages = require('../lib/algorunnerCommunication/messages');
 const datastoreHelper = require('../lib/helpers/datastoreHelper');
 const jobConsumer = require('../lib/consumer/JobConsumer');
-const { workerStates } = require('../common/consts/states');
-const { stateEvents } = require('../common/consts/events');
+const { workerStates } = require('../lib/consts/states');
+const { stateEvents } = require('../lib/consts/events');
 const { EventMessages } = require('../lib/consts/index');
 
 let workerCommunication;
@@ -135,7 +135,7 @@ describe('worker SubPipeline test', () => {
         mockery.registerSubstitute('./states/stateManager', process.cwd() + '/test/mocks/stateManager.js');
         mockery.registerSubstitute('../states/stateManager', process.cwd() + '/test/mocks/stateManager.js'); // from subpipeline.js
 
-        
+
         const bootstrap = require('../bootstrap');
         workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
         stateManager = require('./mocks/stateManager');
@@ -263,7 +263,7 @@ describe('worker SubPipeline test', () => {
         let algData = createAlgDataWithConditionalSubPipelines(input, doubleCode, gt10CondCode, longCode, squareCode);
         adapter.send({ command: messages.outgoing.initialize, data: algData });
         setTimeout(() => {
-            adapter.send({command: messages.outgoing.subPipelineStopped, subPipelineId: adapter.getStartedSubPipelineId()});
+            adapter.send({ command: messages.outgoing.subPipelineStopped, subPipelineId: adapter.getStartedSubPipelineId() });
         }, 2000);
     });
     it('subPipeline stop from alg should stop the subPipeline', function (done) {
@@ -324,7 +324,7 @@ describe('worker SubPipeline test', () => {
             // stop pipeline
             const discovery = require('../lib/states/discovery');
             const subPipelineJobId = subPipelineHandler.getSubPipelineJobId('trueSubPipeline');
-            discovery.emit(EventMessages.STOP, { jobId: jobConsumer.jobId, reason: 'test'});
+            discovery.emit(EventMessages.STOP, { jobId: jobConsumer.jobId, reason: 'test' });
             // ensure subPipeline was stopped
             expect(apiServerMock.isStopped(subPipelineJobId));
             done();
@@ -335,17 +335,17 @@ describe('worker SubPipeline test', () => {
         // simule 2 subPipelines
         subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        stateManager.emit(stateEvents.stateEntered, {state: workerStates.results}) ;
+        stateManager.emit(stateEvents.stateEntered, { state: workerStates.results });
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0);
 
         subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        stateManager.emit(stateEvents.stateEntered, {state: workerStates.error}) ;
+        stateManager.emit(stateEvents.stateEntered, { state: workerStates.error });
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0);
 
         subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        stateManager.emit(stateEvents.stateEntered, {state: workerStates.init, job: {data: 1}}) ;
+        stateManager.emit(stateEvents.stateEntered, { state: workerStates.init, job: { data: 1 } });
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0);
         done();
     });

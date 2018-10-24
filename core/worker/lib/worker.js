@@ -2,11 +2,11 @@ const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorunnerCommunication/workerCommunication');
 const discovery = require('./states/discovery');
-const { stateEvents } = require('../common/consts/events');
-const { workerStates, workerCommands } = require('../common/consts/states');
+const { stateEvents } = require('../lib/consts/events');
+const { workerStates, workerCommands } = require('../lib/consts/states');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorunnerCommunication/messages');
-const component = require('../common/consts/componentNames').WORKER;
+const component = require('../lib/consts/componentNames').WORKER;
 const { EventMessages } = require('./consts/index');
 
 const Logger = require('@hkube/logger');

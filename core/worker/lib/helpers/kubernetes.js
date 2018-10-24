@@ -3,7 +3,7 @@ const Logger = require('@hkube/logger');
 const kubernetesClient = require('kubernetes-client');
 const objectPath = require('object-path');
 const delay = require('delay');
-const component = require('../../common/consts/componentNames').K8S;
+const component = require('../../lib/consts/componentNames').K8S;
 let log;
 
 class KubernetesApi extends EventEmitter {

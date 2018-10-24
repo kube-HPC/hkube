@@ -1,5 +1,5 @@
 const Logger = require('@hkube/logger');
-const component = require('../../common/consts/componentNames.js').ALGORUNNER;
+const component = require('../../lib/consts/componentNames.js').ALGORUNNER;
 const path = require('path');
 const fs = require('fs');
 const { Tail } = require('tail');

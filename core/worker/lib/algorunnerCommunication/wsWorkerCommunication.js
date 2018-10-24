@@ -4,7 +4,7 @@ const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
 const WebSocket = require('ws');
 const http = require('http');
-const component = require('../../common/consts/componentNames').COMMUNICATIONS;
+const component = require('../../lib/consts/componentNames').COMMUNICATIONS;
 let log;
 
 class WsWorkerCommunication extends EventEmitter {
