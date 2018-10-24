@@ -21,7 +21,7 @@ class LoggingProxy {
         }
         this._algorunnerLogFilePath = path.join(baseLogsPath, algorunnerLogFileName);
         log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
-
+        this._startWatch = this._startWatch.bind(this);
         this._startWatch();
     }
 
@@ -30,11 +30,8 @@ class LoggingProxy {
             return;
         }
         if (!fs.existsSync(this._algorunnerLogFilePath)) {
-            log.warning(
-                `log file ${this._algorunnerLogFilePath} does not exist. Trying again in ${DELAY} seconds.`,
-                { component }
-            );
-            setTimeout(this._startWatch.bind(this), DELAY * 1000);
+            log.throttle.warning(`log file ${this._algorunnerLogFilePath} does not exist. Trying again in ${DELAY} seconds.`, { component });
+            setTimeout(this._startWatch, DELAY * 1000);
             return;
         }
         try {
@@ -53,7 +50,7 @@ class LoggingProxy {
                     }
                 }
                 catch (error) {
-                    log.info(line, { component });
+                    log.throttle.error(error.message, { component });
                 }
             });
             this._tail.on('error', (error) => {
@@ -61,8 +58,8 @@ class LoggingProxy {
             });
         }
         catch (error) {
-            log.warning(`Algorunner loggin proxy error: ${error}. Trying again in ${DELAY} seconds.`, { component });
-            setTimeout(this._startWatch.bind(this), DELAY * 1000);
+            log.throttle.warning(`Algorunner loggin proxy error: ${error}. Trying again in ${DELAY} seconds.`, { component });
+            setTimeout(this._startWatch, DELAY * 1000);
         }
     }
 }
