@@ -11,12 +11,12 @@ class LoggingProxy {
         log = Logger.GetLogFromContainer();
         const loggingOptions = (options && options.algorunnerLogging);
         if (!loggingOptions) {
-            log.warning('Algorunner loggin proxy not started.', { component });
+            log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
         const { algorunnerLogFileName, baseLogsPath } = options.algorunnerLogging;
         if (!algorunnerLogFileName || !baseLogsPath) {
-            log.warning('Algorunner loggin proxy not started.', { component });
+            log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
         this._algorunnerLogFilePath = path.join(baseLogsPath, algorunnerLogFileName);
@@ -39,9 +39,9 @@ class LoggingProxy {
             this._tail.on('line', (line) => {
                 try {
                     const logParsed = JSON.parse(line);
-
                     const logMessage = logParsed.log;
                     const { stream } = logParsed;
+
                     if (stream === 'stderr') {
                         log.error(logMessage, { component });
                     }
@@ -50,15 +50,15 @@ class LoggingProxy {
                     }
                 }
                 catch (error) {
-                    log.throttle.error(error.message, { component });
+                    log.info(line, { component });
                 }
             });
             this._tail.on('error', (error) => {
-                log.error(error, { component });
+                log.throttle.error(error.message, { component });
             });
         }
         catch (error) {
-            log.throttle.warning(`Algorunner loggin proxy error: ${error}. Trying again in ${DELAY} seconds.`, { component });
+            log.throttle.warning(`Algorunner logging proxy error: ${error.message}. Trying again in ${DELAY} seconds.`, { component });
             setTimeout(this._startWatch, DELAY * 1000);
         }
     }
