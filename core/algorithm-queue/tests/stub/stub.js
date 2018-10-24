@@ -2,7 +2,7 @@ const uuidv4 = require('uuid/v4');
 const stubTemplate = ({
     uuid = uuidv4(), pipelineUuid = `pipeline-${uuidv4()}`,
     algorithmName = 'alg name',
-    batchPlace = Math.floor((Math.random() * 1000)),
+    batchIndex = Math.floor((Math.random() * 1000)),
     priority = Math.floor((Math.random() * 5)),
     score = Math.floor((Math.random() * 100))
     , entranceTime = Date.now()
@@ -15,7 +15,7 @@ const stubTemplate = ({
             nodeName: `nodeName-${uuidv4()}`,
             priority: `${priority}`,
             algorithmName: `${algorithmName}`,
-            batchPlace: `${batchPlace}`,
+            batchIndex: `${batchIndex}`,
             calculated: {
                 score: `${score}`,
                 entranceTime: `${entranceTime}`,
@@ -31,7 +31,6 @@ const stubTask = (batchIndex) => ({
     taskId: `taskId-${uuidv4()}`,
     batchIndex,
     input: `input-${uuidv4()}`
-
 });
 
 const generateConsumedArray = (number = 100) => ({
@@ -52,19 +51,3 @@ module.exports = {
     generateConsumedArray
 
 };
-
-
-// const consumedObject = {
-//     jobId: 'jobId',
-//     pipelineName: 'pipelineName',
-//     nodeName: 'nodeName',
-//     priority: 'priority',
-//     algorithmName: 'algorithmName'
-//     tasks: [
-//         {
-//             taskId: 'taskId',
-//             input: 'input',
-//             batchIndex: 'batchIndex' // number in the batch 
-//         }
-//     ],
-// };

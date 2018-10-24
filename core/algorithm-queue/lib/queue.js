@@ -132,7 +132,7 @@ class Queue extends events {
         }
         this.queue = _.orderBy([...this.queue, ...taskArr], j => j.calculated.score, 'desc');
         this.emit(queueEvents.INSERT, taskArr);
-        log.info(`${taskArr} new jobs inserted to queue jobs`, { component: components.QUEUE });
+        log.info(`${taskArr.length} new jobs inserted to queue jobs`, { component: components.QUEUE });
     }
 
     _orderQueue() {
@@ -180,16 +180,17 @@ class Queue extends events {
                 this._orderQueue();
                 await this.persistenceStore();
                 this.isScoreDuringUpdate = false;
+            }
+            catch (error) {
+                log.throttle.error(`fail on queue interval ${error}`, { component: components.QUEUE });
+            }
+            finally {
                 if (this.isIntervalRunning) {
                     this._queueInterval();
                 }
             }
-            catch (error) {
-                log.error(`fail on queue interval ${error}`, { component: components.QUEUE });
-            }
         }, this.updateInterval);
     }
 }
-
 
 module.exports = Queue;

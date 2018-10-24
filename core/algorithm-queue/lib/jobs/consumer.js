@@ -17,7 +17,6 @@ class JobConsumer extends EventEmitter {
         this.etcd = new Etcd();
     }
 
-
     async init(options) {
         const { etcd, serviceName, algorithmType } = options;
         this._options = options;
@@ -49,7 +48,7 @@ class JobConsumer extends EventEmitter {
 
     async _handleJob(job) {
         try {
-            const jobId = job.data.jobId;
+            const { jobId } = job.data;
             const data = await this.etcd.jobState.getState({ jobId });
             if (data && data.state === 'stop') {
                 log.warning(`job arrived with state stop therefore will not added to queue : ${jobId}`, { component });
@@ -68,7 +67,9 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    pipelineToQueueAdapter({ jobId, pipelineName, priority, nodeName, algorithmName, info, spanId }, task, initialBatchLength) {
+    pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
+        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId } = jobData;
+        taskData.batchIndex = taskData.batchIndex || 1;
         return {
             jobId,
             pipelineName,
@@ -76,27 +77,22 @@ class JobConsumer extends EventEmitter {
             priority,
             info,
             spanId,
-            storage: task.storage,
             nodeName,
             initialBatchLength,
-            batchPlace: task.batchIndex || 1,
-            taskId: task.taskId,
-            input: task.input,
             calculated: {
                 latestScores: {},
                 //  score: '1-100',
                 entranceTime: Date.now(),
                 enrichment: {}
-            }
+            },
+            ...taskData
         };
     }
 
     queueTasksBuilder(job) {
-        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId } = job.data;
-        const tasks = job.data.tasks.map(task => {
-            return this.pipelineToQueueAdapter({ jobId, pipelineName, priority, nodeName, algorithmName, info, spanId }, task, job.data.tasks.length);
-        });
-        queueRunner.queue.add(tasks);
+        const { tasks } = job.data;
+        const taskList = tasks.map(task => this.pipelineToQueueAdapter(job.data, task, tasks.length));
+        queueRunner.queue.add(taskList);
         job.done();
     }
 }

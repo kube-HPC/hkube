@@ -11,31 +11,30 @@ class JobProducer {
         this._lastSentJob = null;
         this._etcd = new Etcd();
     }
+
     async init(options) {
         const { etcd, serviceName } = options;
         await this._etcd.init({ etcd, serviceName });
-
-        //  const setting = Object.assign({}, { redis: options.redis });
-        // setting.tracer = tracer;
         this._producer = producerSingleton.get;
         this.bullQueue = this._producer._createQueue(options.algorithmType);
-        //   this.bullQueue.getWaitingCount();
         this._producerEventRegistry();
         this._checkWorkingStatusInterval();
     }
+
     // should handle cases where there is currently not any active job and new job added to queue 
     _checkWorkingStatusInterval() {
         setInterval(async () => {
             const waitingCount = await this.bullQueue.getWaitingCount();
-            //    const activeCount = await this.bullQueue.getActiveCount();
             if (waitingCount === 0 && queueRunner.queue.get.length > 0) {
                 await this.createJob();
             }
         }, 1000);
     }
+
     getPendingAmount() {
         return this.bullQueue.getWaitingCount();
     }
+
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
             log.info(`${Events.WAITING} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.WAITING });
@@ -82,7 +81,6 @@ class JobProducer {
             }
         };
     }
-
 
     async createJob() {
         const task = queueRunner.queue.tryPop();
