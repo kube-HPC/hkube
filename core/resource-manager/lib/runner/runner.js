@@ -6,7 +6,6 @@ const adapterSettings = require('../adapters/settings');
 const metricsSettings = require('../metrics/settings');
 const StoreController = require('../store/store-controller');
 // const metricsProvider = require('../monitoring/metrics-provider');
-const logger = require('../utils/logger');
 const component = require('../consts/components').RUNNER;
 
 class Runner {
@@ -38,7 +37,7 @@ class Runner {
     }
 
     _onError(error) {
-        logger.log(error, component);
+        log.throttle.error(error.message, { component });
     }
 
     /**

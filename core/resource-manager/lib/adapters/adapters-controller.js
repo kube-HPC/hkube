@@ -1,7 +1,7 @@
 
+const log = require('@hkube/logger').GetLogFromContainer();
 const adapterTypes = require('./index');
 const utils = require('../utils/utils');
-const logger = require('../utils/logger');
 
 class AdapterController {
     constructor(config, settings) {
@@ -58,7 +58,7 @@ class AdapterController {
                 throw new Error(`unable to get data for ${adapter.name} adapter in ${type}, ${result.error.message}`);
             }
             else {
-                logger.log(result.error, adapter.name);
+                log.throttle.error(result.error.message, { component: adapter.name });
             }
         }
         return { key: adapter.name, value: result.data };

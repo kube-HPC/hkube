@@ -1,5 +1,5 @@
+const log = require('@hkube/logger').GetLogFromContainer();
 const utils = require('../utils/utils');
-const logger = require('../utils/logger');
 const metricsFactory = require('../factory/metrics-factory');
 const reducerFactory = require('../factory/reducer-factory');
 const MAX_SCORE = 1;
@@ -61,7 +61,7 @@ class MetricsController {
                 throw new Error(`unable to calc metric ${metric.name} in ${type}, ${error.message}`);
             }
             else {
-                logger.log(error, metric.name);
+                log.throttle.error(error.message, { component: metric.name });
             }
         }
         return result;
