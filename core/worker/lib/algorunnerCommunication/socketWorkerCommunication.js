@@ -56,9 +56,6 @@ class SocketWorkerCommunication extends EventEmitter {
                 this.emit(topic, message);
             });
         });
-        // socket.on('commandMessage',(message)=>{
-        //     this.emit('commandMessage',message);
-        // });
         socket.on('disconnect', () => {
             log.debug('socket disconnected', { component: components.COMMUNICATIONS });
             this._socket = null;
@@ -77,7 +74,7 @@ class SocketWorkerCommunication extends EventEmitter {
     send(message) {
         if (!this._socket) {
             const error = new Error('trying to send without a connected socket');
-            log.error(`Error sending message to algorithm. error: ${error.message}`, { component: components.COMMUNICATIONS }, error);
+            log.error(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component: components.COMMUNICATIONS }, error);
             throw error;
         }
         this._socket.emit(message.command, message);

@@ -20,10 +20,13 @@ class StateManager extends EventEmitter {
         this._stateMachine = null;
         this._job = null;
         this._results = null;
+        this._inactiveTimer = null;
     }
-    async init() {
+    async init(config) {
+        this._config = config;
         log = Logger.GetLogFromContainer();
         this._initStateMachine();
+        this._startInactiveTimer();
     }
 
     _initStateMachine() {
@@ -67,6 +70,13 @@ class StateManager extends EventEmitter {
                         taskId: this._job.data.taskId,
                     }
                 });
+            }
+            if (state.to === workerStates.bootstrap) {
+                this._startInactiveTimer();
+            }
+            else {
+                clearTimeout(this._inactiveTimer);
+                this._inactiveTimer = null;
             }
         });
 
@@ -208,6 +218,14 @@ class StateManager extends EventEmitter {
     }
     get results() {
         return this._results;
+    }
+
+    _startInactiveTimer() {
+        log.info('starting inactive timeout for algorunner (bootstrap)', { component });
+        this._inactiveTimer = setTimeout(() => {
+            log.info(`algorunner is offline for more than ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
+            this.exit();
+        }, this._config.timeouts.algorithmDisconnected);
     }
 }
 

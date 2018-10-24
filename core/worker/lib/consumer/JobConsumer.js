@@ -3,7 +3,6 @@ const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
-const { stateEvents } = require('../consts/events');
 const etcd = require('../states/discovery');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const { metricsNames } = require('../consts/metricsNames');
@@ -11,19 +10,10 @@ const component = require('../consts/componentNames').CONSUMER;
 const datastoreHelper = require('../helpers/datastoreHelper');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
+const JobProvider = require('./job-provider');
+const formatter = require('../helpers/formatters');
 const { MetadataPlugin } = Logger;
 let log;
-
-/**
- * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
- * @param {string} pipelineName 
- */
-function formatPipelineName(pipelineName) {
-    if (pipelineName.startsWith('raw-')) {
-        return 'raw';
-    }
-    return pipelineName;
-}
 
 class JobConsumer extends EventEmitter {
     constructor() {
@@ -58,30 +48,14 @@ class JobConsumer extends EventEmitter {
         }
         this._registerMetrics();
         this._consumer = new Consumer(this._options.jobConsumer);
-        this._consumer.on('job', async (job) => {
-            log.info(`Job arrived with inputs: ${JSON.stringify(job.data.input)}`, { component });
-            const pipelineName = formatPipelineName(job.data.pipelineName);
-            metrics.get(metricsNames.worker_started).inc({
-                labelValues: {
-                    pipeline_name: pipelineName,
-                    algorithm_name: this._options.jobConsumer.job.type
-                }
-            });
-            metrics.get(metricsNames.worker_net).start({
-                id: job.data.taskId,
-                labelValues: {
-                    pipeline_name: pipelineName,
-                    algorithm_name: this._options.jobConsumer.job.type
-                }
-            });
-            metrics.get(metricsNames.worker_runtime).start({
-                id: job.data.taskId,
-                labelValues: {
-                    pipeline_name: pipelineName,
-                    algorithm_name: this._options.jobConsumer.job.type
-                }
-            });
+        this._jobProvider = new JobProvider(options);
+        this._jobProvider.init(this._consumer);
+        this._consumer.register(this._options.jobConsumer);
+        log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
+        this._jobProvider.on('job', async (job) => {
+            log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
+            this._initMetrics(job);
             this._job = job;
             this._jobId = job.data.jobId;
             this._taskId = job.data.taskId;
@@ -100,25 +74,56 @@ class JobConsumer extends EventEmitter {
             stateManager.setJob(job);
             stateManager.prepare();
         });
+    }
 
-        // this._unRegister();
-        log.info('waiting for ready state', { component });
-        stateManager.once(stateEvents.stateEntered, () => {
-            log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
-            this._consumer.register(this._options.jobConsumer);
+    _initMetrics(job) {
+        const pipelineName = formatter.formatPipelineName(job.data.pipelineName);
+        metrics.get(metricsNames.worker_started).inc({
+            labelValues: {
+                pipeline_name: pipelineName,
+                algorithm_name: this._options.jobConsumer.job.type
+            }
+        });
+        metrics.get(metricsNames.worker_net).start({
+            id: job.data.taskId,
+            labelValues: {
+                pipeline_name: pipelineName,
+                algorithm_name: this._options.jobConsumer.job.type
+            }
+        });
+        metrics.get(metricsNames.worker_runtime).start({
+            id: job.data.taskId,
+            labelValues: {
+                pipeline_name: pipelineName,
+                algorithm_name: this._options.jobConsumer.job.type
+            }
         });
     }
 
-    pause() {
-        log.info('Job consumer paused', { component });
-        this._consumerPaused = true;
-        return this._consumer.pause({ type: this._options.jobConsumer.job.type });
+    async pause() {
+        try {
+            this._consumerPaused = true;
+            await this._consumer.pause({ type: this._options.jobConsumer.job.type });
+            log.info('Job consumer paused', { component });
+        }
+        catch (err) {
+            this._consumerPaused = false;
+            log.error(`Failed to pause consumer. Error:${err.message}`, { component });
+        }
     }
-    resume() {
-        log.info('Job consumer resumed', { component });
-        this._consumerPaused = false;
-        return this._consumer.resume({ type: this._options.jobConsumer.job.type });
+
+    async resume() {
+        try {
+            this._consumerPaused = false;
+            await this._consumer.resume({ type: this._options.jobConsumer.job.type });
+            log.info('Job consumer resumed', { component });
+        }
+        catch (err) {
+            this._consumerPaused = true;
+            log.error(`Failed to resume consumer. Error:${err.message}`, { component });
+        }
     }
+
     async updateDiscovery(data) {
         const discoveryInfo = this.getDiscoveryData(data);
         await etcd.updateDiscovery(discoveryInfo);
@@ -178,20 +183,6 @@ class JobConsumer extends EventEmitter {
             name: metricsNames.worker_failed,
             description: 'Number of times the algorithm has failed',
             labels: ['pipeline_name', 'algorithm_name'],
-        });
-    }
-
-    _register() {
-        this._consumer.register(this._options.jobConsumer);
-        // stateManager.once(stateEvents.stateEntered,({state})=>{
-        //     this._unRegister();
-        // })
-    }
-
-    _unRegister() {
-        // this._consumer.unregister()
-        stateManager.once(stateEvents.stateEntered, () => {
-            this._register();
         });
     }
 
@@ -268,7 +259,20 @@ class JobConsumer extends EventEmitter {
             jobId: this._jobId, taskId: this._taskId, status: jobStatus, result: resultLink, error
         });
 
-        const pipelineName = formatPipelineName(this._pipelineName);
+        this._summarizeMetrics(jobStatus);
+        log.debug(`result: ${JSON.stringify(resultLink)}`, { component });
+        log.debug(`status: ${jobStatus}, error: ${error}`, { component });
+
+        this._job.done(error);
+        this._job = null;
+        this._jobId = undefined;
+        this._taskId = undefined;
+        this._pipelineName = undefined;
+        this._jobData = undefined;
+    }
+
+    _summarizeMetrics(jobStatus) {
+        const pipelineName = formatter.formatPipelineName(this._pipelineName);
         if (jobStatus === constants.JOB_STATUS.FAILED) {
             metrics.get(metricsNames.worker_failed).inc({
                 labelValues: {
@@ -297,15 +301,6 @@ class JobConsumer extends EventEmitter {
                 status: jobStatus
             }
         });
-        log.debug(`result: ${JSON.stringify(resultLink)}`, { component });
-        log.debug(`status: ${jobStatus}, error: ${error}`, { component });
-
-        this._job.done(error);
-        this._job = null;
-        this._jobId = undefined;
-        this._taskId = undefined;
-        this._pipelineName = undefined;
-        this._jobData = undefined;
     }
 
     async _putResult(data) {

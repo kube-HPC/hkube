@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "1.1.44",
+    "version": "1.1.46",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -24,22 +24,22 @@
     "license": "ISC",
     "dependencies": {
         "@hkube/config": "^2.0.7",
-        "@hkube/etcd": "^4.0.22",
+        "@hkube/etcd": "^4.0.25",
         "@hkube/etcd-adapter": "^1.0.4",
         "@hkube/logger": "^1.0.12",
         "@hkube/metrics": "^1.0.27",
-        "@hkube/parsers": "^1.0.16",
-        "@hkube/producer-consumer": "^1.0.39",
+        "@hkube/parsers": "^1.0.18",
+        "@hkube/producer-consumer": "^1.0.40",
         "@hkube/redis-storage-adapter": "^1.0.1",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.11",
-        "@hkube/s3-adapter": "^1.0.31",
+        "@hkube/s3-adapter": "^1.0.34",
         "chalk": "^2.4.1",
         "clone": "^2.1.2",
         "deep-get-set": "^1.1.0",
         "delay": "^3.1.0",
         "djsv": "^1.4.2",
-        "express": "^4.16.3",
+        "express": "^4.16.4",
         "flat": "^4.1.0",
         "forward-emitter": "^0.1.1",
         "javascript-state-machine": "^3.1.0",
@@ -48,12 +48,13 @@
         "request": "^2.88.0",
         "request-promise": "^4.2.2",
         "socket.io": "^1.7.2",
-        "tail": "^1.3.0",
+        "tail": "^1.4.0",
         "uuid": "^3.3.2",
         "ws": "^5.2.1"
     },
     "devDependencies": {
-        "chai": "^4.1.2",
+        "await-delay": "^1.0.0",
+        "chai": "^4.2.0",
         "coveralls": "^3.0.2",
         "eslint": "^4.19.1",
         "eslint-config-airbnb-base": "^12.1.0",
@@ -64,7 +65,6 @@
         "mockery": "^2.1.0",
         "pre-commit": "^1.2.2",
         "sinon": "^3.3.0",
-        "socket.io-client": "^2.1.1",
-        "await-delay": "^1.0.0"
+        "socket.io-client": "^2.1.1"
     }
 }

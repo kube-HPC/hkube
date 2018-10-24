@@ -9,7 +9,9 @@ const Components = {
     STATE_MANAGER: 'StateManager',
     ALGORUNNER: 'Algorunner',
     ETCD: 'Etcd',
-    WORKER: 'Worker'
+    WORKER: 'Worker',
+    SUB_PIPELINE: 'SubPipeline',
+    JOB_PROVIDER: 'JobProvider'
 };
 
 module.exports = Components;

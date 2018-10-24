@@ -15,7 +15,7 @@ let log;
 
 class SubPipelineHandler {
     init() {
-        log = Logger.GetLogFromContainer();  
+        log = Logger.GetLogFromContainer();
         // subpipeline IDs mapping: jobId => internal alg subpipeline Id       
         this._jobId2InternalIdMap = new Map();
 
@@ -42,7 +42,7 @@ class SubPipelineHandler {
             const subPipelineId = this._getAndCleanAlgSubPipelineId(result);
             if (!this._validateWorkingState(subPipelineId, 'send subPipelineError', false)) {
                 return;
-            }    
+            }
             const err = (result.error || 'subpipeline job failed');
             this._handleJobError(err, subPipelineId);
         });
@@ -74,7 +74,7 @@ class SubPipelineHandler {
     }
 
     _registerToStateEvents() {
-        stateManager.on(stateEvents.stateEntered, ({state}) => {
+        stateManager.on(stateEvents.stateEntered, ({ state }) => {
             switch (state) {
                 case workerStates.init:
                 case workerStates.results:
@@ -110,7 +110,7 @@ class SubPipelineHandler {
         this._jobId2InternalIdMap.delete(result.jobId);
         // unwatch subPipeline job results
         this.unwatchJobResults(result.jobId);
-        
+
         return subPipelineId;
     }
 
@@ -192,7 +192,7 @@ class SubPipelineHandler {
             }
         });
     }
-    
+
     /**
      * Handle subPipeline job error
      * @param {string} error error message
@@ -261,7 +261,7 @@ class SubPipelineHandler {
         });
         // post subPipeline
         try {
-            const {jobId, taskId} = jobConsumer;
+            const { jobId, taskId } = jobConsumer;
             const subPipelineToPost = { ...subPipeline, jobId, taskId }; // add jobId, taskId
             const response = await apiServerClient.postSubPipeline(subPipelineToPost, subPipelineType);
             if (response) {
@@ -272,7 +272,7 @@ class SubPipelineHandler {
                 const result = await discovery.watchJobResults({ jobId: subPipelineJobId });
                 if (result) {
                     log.debug(`got immediate results, status=${result.status}, jobId: ${subPipelineJobId}`, { component });
-                    const algSubPipelineId = this._getAndCleanAlgSubPipelineId({...result, jobId: subPipelineJobId});
+                    const algSubPipelineId = this._getAndCleanAlgSubPipelineId({ ...result, jobId: subPipelineJobId });
                     if (result.status === Status.COMPLETED) {
                         this._handleSubPipelineCompleted(result, algSubPipelineId);
                     }

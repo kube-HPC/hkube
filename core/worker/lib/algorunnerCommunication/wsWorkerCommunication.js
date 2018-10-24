@@ -80,7 +80,7 @@ class WsWorkerCommunication extends EventEmitter {
     send(message) {
         if (!this._socket) {
             const error = new Error('trying to send without a connected socket');
-            log.error(`Error sending message to algorithm. error: ${error.message}`, { component }, error);
+            log.error(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
         this._socket.send(JSON.stringify(message));

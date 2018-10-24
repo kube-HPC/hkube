@@ -24,6 +24,7 @@ class Worker {
     }
 
     async init(options) {
+        this._inTerminationMode = false;
         this._options = options;
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
@@ -48,20 +49,20 @@ class Worker {
             stateManager.stop();
         });
 
-        discovery.on(workerCommands.stopProcessing, () => {
+        discovery.on(workerCommands.stopProcessing, async () => {
             if (!jobConsumer.isConsumerPaused) {
-                jobConsumer.pause();
-                jobConsumer.updateDiscovery({ state: stateManager.state });
+                await jobConsumer.pause();
+                await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
             }
         });
-        discovery.on(workerCommands.startProcessing, () => {
+        discovery.on(workerCommands.startProcessing, async () => {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
             if (jobConsumer.isConsumerPaused) {
-                jobConsumer.resume();
-                jobConsumer.updateDiscovery({ state: stateManager.state });
+                await jobConsumer.resume();
+                await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
             }
         });
@@ -107,30 +108,46 @@ class Worker {
             }
         });
         algoRunnerCommunication.on(messages.incomming.error, (message) => {
-            log.error(`got error from algorithm. Error: ${message.error}`, { component });
+            log.error('got error from algorithm. Error: ' + JSON.stringify(message, 2, null), { component });
             stateManager.done(message);
         });
     }
 
     async handleExit(code) {
-        try {
-            algoRunnerCommunication.send({
-                command: messages.outgoing.exit
-            });
-            const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, 'algorunner');
-            if (terminated) {
-                log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
+        if (!this._inTerminationMode) {
+            this._inTerminationMode = true;
+            try {
+                log.info(`starting termination mode. Exiting with code ${code}`, { component });
+                this._tryToSendCommand({ command: messages.outgoing.exit });
+                const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, 'algorunner');
+                if (terminated) {
+                    log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
+                }
+                else { // if not terminated, kill job
+                    const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
+                    if (jobName) {
+                        await kubernetes.deleteJob(jobName);
+                        log.info(`deleted job ${jobName}`, { component });
+                    }
+                }
+            }
+            catch (error) {
+                log.error(`failed to handle exit: ${error}`, { component });
+            }
+            finally {
+                this._inTerminationMode = false;
                 process.exit(code);
             }
-            // if not terminated, kill job
-            const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
-            if (jobName) {
-                await kubernetes.deleteJob(jobName);
-            }
         }
-        catch (error) {
-            log.error(`failed to handle exit: ${error}`, { component });
-            process.exit(1);
+    }
+
+    _tryToSendCommand(message) {
+        try {
+            return algoRunnerCommunication.send(message);
+        }
+        catch (err) {
+            log.error(`Failed to send command ${message.command}`, { component });
+            return err;
         }
     }
 
@@ -140,11 +157,13 @@ class Worker {
                 clearTimeout(this._inactiveTimer);
                 this._inactiveTimer = null;
             }
-            if (this._inactiveTimeoutMs !== 0 && this._inactiveTimeoutMs !== '0') {
+            if (this._inactiveTimeoutMs !== 0) {
                 log.info('starting inactive timeout for worker', { component });
                 this._inactiveTimer = setTimeout(() => {
-                    log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
-                    stateManager.exit();
+                    if (!this._inTerminationMode) {
+                        log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
+                        stateManager.exit();
+                    }
                 }, this._inactiveTimeoutMs);
             }
         }

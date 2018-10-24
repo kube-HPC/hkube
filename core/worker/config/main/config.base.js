@@ -54,10 +54,10 @@ config.jobConsumer = {
     }
 };
 
+config.pollingInterval = process.env.POLLING_INTERVAL || 100; // The polling interval is the period of time between jobs in ms.
+
 config.timeouts = {
-    stop: 10000, // timeout to stop the algorithm in ms
-    // inactive: process.env.INACTIVE_WORKER_TIMEOUT_MS || (60 * 1000),
-    // inactivePaused: process.env.INACTIVE_PAUSED_WORKER_TIMEOUT_MS || (5 * 1000)
+    stop: 10000 // timeout to stop the algorithm in ms
 };
 
 config.metrics = {
