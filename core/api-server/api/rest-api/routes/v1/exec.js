@@ -142,6 +142,14 @@ const routes = (options) => {
             return next(error);
         });
     });
+    router.all('/pipelines/list', methods(['GET']), logger(), (req, res, next) => {
+        Execution.getRunningPipelines().then((response) => {
+            res.json(response);
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     return router;
 };
 

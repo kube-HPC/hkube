@@ -7,7 +7,7 @@ const validator = require('../validation/api-validator');
 const storageFactory = require('../datastore/storage-factory');
 const States = require('../state/States');
 const WebhookTypes = require('../webhook/States').Types;
-const levels = require('../progress/progressLevels');
+const levels = require('@hkube/logger').Levels;
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
@@ -91,7 +91,7 @@ class ExecutionService {
         }
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now() } });
-        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.info.name });
+        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.INFO.name });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
         return jobId;
@@ -235,6 +235,10 @@ class ExecutionService {
         return response;
     }
 
+    async getRunningPipelines() {
+        return stateManager.getRunningPipelines();
+    }
+
     /**
      * stop pipeline execution
      * call to stop the flow execution 
@@ -255,7 +259,7 @@ class ExecutionService {
         if (!stateManager.isActiveState(jobStatus.status)) {
             throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, status: States.STOPPING, level: levels.info.name });
+        await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, status: States.STOPPING, level: levels.INFO.name });
         await stateManager.stopJob({ jobId: options.jobId, reason: options.reason });
     }
 
