@@ -55,7 +55,7 @@ class KubernetesApi extends EventEmitter {
             }));
         }
         catch (error) {
-            log.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
+            log.throttle.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
             return null;
         }
     }
@@ -66,7 +66,7 @@ class KubernetesApi extends EventEmitter {
         do {
             const status = await this.getPodContainerStatus(podName); // eslint-disable-line no-await-in-loop
             const containerStatus = status && status.find(s => s.name === containerName);
-            log.debug(`waitForTerminatedState for pod ${podName}, container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
+            log.throttle.debug(`waitForTerminatedState for pod ${podName}, container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
             if (containerStatus && containerStatus.terminated) {
                 return true;
             }
