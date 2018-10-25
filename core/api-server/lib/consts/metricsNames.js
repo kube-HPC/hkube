@@ -1,5 +1,5 @@
 module.exports = {
     metricsNames: {
-        pipelines_gross: 'pipelines_gross',
+        pipelines_gross: 'api_server_pipelines_gross',
     }
 };

@@ -54,6 +54,9 @@ config.pipelineDriversResources = {
 
 config.metrics = {
     collectDefault: true,
+    server: {
+        port: process.env.METRICS_PORT
+    }
 };
 
 config.tracer = {

@@ -8,11 +8,23 @@ const { metrics, utils } = require('@hkube/metrics');
 const levels = require('@hkube/logger').Levels;
 const { metricsNames } = require('../../lib/consts/metricsNames');
 
+/**
+ * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
+ * @param {string} pipelineName 
+ */
+function formatPipelineName(pipelineName) {
+    if (pipelineName.startsWith('raw-')) {
+        return 'raw';
+    }
+    return pipelineName;
+}
+
 class WebhooksHandler {
     init(options) {
         this._options = options;
         metrics.addTimeMeasure({
             name: metricsNames.pipelines_gross,
+            description: 'Histogram of pipeline gross',
             labels: ['pipeline_name', 'status'],
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
@@ -58,7 +70,7 @@ class WebhooksHandler {
         metrics.get(metricsNames.pipelines_gross).retroactive({
             time,
             labelValues: {
-                pipeline_name: pipeline.name,
+                pipeline_name: formatPipelineName(pipeline.name),
                 status: payload.status
             }
         });
