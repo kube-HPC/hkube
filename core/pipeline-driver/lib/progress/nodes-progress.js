@@ -1,14 +1,6 @@
 const async = require('async');
 const throttle = require('lodash.throttle');
-
-const levels = {
-    silly: 'silly',
-    debug: 'debug',
-    info: 'info',
-    warning: 'warning',
-    error: 'error',
-    critical: 'critical'
-};
+const levels = require('@hkube/logger').Levels;
 
 class ProgressManager {
     constructor(options) {
@@ -38,28 +30,32 @@ class ProgressManager {
         return null;
     }
 
+    trace(data) {
+        return this._progress(levels.TRACE.name, data);
+    }
+
     silly(data) {
-        return this._progress(levels.silly, data);
+        return this._progress(levels.SILLY.name, data);
     }
 
     debug(data) {
-        return this._progress(levels.debug, data);
+        return this._progress(levels.DEBUG.name, data);
     }
 
     info(data) {
-        return this._progress(levels.info, data);
+        return this._progress(levels.INFO.name, data);
     }
 
     warning(data) {
-        return this._progress(levels.warning, data);
+        return this._progress(levels.WARN.name, data);
     }
 
     error(data) {
-        return this._progress(levels.error, data);
+        return this._progress(levels.ERROR.name, data);
     }
 
     critical(data) {
-        return this._progress(levels.critical, data);
+        return this._progress(levels.CRITICAL.name, data);
     }
 
     _progress(level, options) {
