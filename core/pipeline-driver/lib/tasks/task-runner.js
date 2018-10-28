@@ -178,7 +178,7 @@ class TaskRunner extends EventEmitter {
             log.info(`starting recover process ${this._jobId}`, { component });
             this._driverStatus = DriverStates.RECOVERING;
             this._nodes.setJSONGraph(graph);
-            this._recoverPipeline();
+            this._recoverPipeline({ jobId: this._jobId });
             await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.RECOVERING });
         }
         else {
@@ -278,12 +278,12 @@ class TaskRunner extends EventEmitter {
         this._progress = null;
     }
 
-    async _recoverPipeline() {
+    async _recoverPipeline(options) {
         if (this._nodes.isAllNodesCompleted()) {
             this.stop();
         }
         else {
-            const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
+            const tasks = await this._stateManager.tasksList({ jobId: options.jobId });
             if (tasks.size > 0) {
                 const tasksGraph = this._nodes._getNodesAsFlat();
                 tasksGraph.forEach((g) => {
@@ -349,34 +349,39 @@ class TaskRunner extends EventEmitter {
     }
 
     _runNode(nodeName, parentOutput, index) {
-        const node = this._nodes.getNode(nodeName);
-        const parse = {
-            flowInput: this.pipeline.flowInput,
-            nodeInput: node.input,
-            parentOutput,
-            index
-        };
-        const result = parser.parse(parse);
-        const paths = this._nodes.extractPaths(nodeName);
+        try {
+            const node = this._nodes.getNode(nodeName);
+            const parse = {
+                flowInput: this.pipeline.flowInput,
+                nodeInput: node.input,
+                parentOutput,
+                index
+            };
+            const result = parser.parse(parse);
+            const paths = this._nodes.extractPaths(nodeName);
 
-        const options = {
-            node,
-            index,
-            paths,
-            input: result.input,
-            storage: result.storage
-        };
-        if (index && result.batch) {
-            this._runWaitAnyBatch(options);
+            const options = {
+                node,
+                index,
+                paths,
+                input: result.input,
+                storage: result.storage
+            };
+            if (index && result.batch) {
+                this._runWaitAnyBatch(options);
+            }
+            else if (index) {
+                this._runWaitAny(options);
+            }
+            else if (result.batch) {
+                this._runNodeBatch(options);
+            }
+            else {
+                this._runNodeSimple(options);
+            }
         }
-        else if (index) {
-            this._runWaitAny(options);
-        }
-        else if (result.batch) {
-            this._runNodeBatch(options);
-        }
-        else {
-            this._runNodeSimple(options);
+        catch (error) {
+            this.stop(error);
         }
     }
 
@@ -422,8 +427,7 @@ class TaskRunner extends EventEmitter {
 
     _runNodeBatch(options) {
         if (options.input.length === 0) {
-            const error = new Error(`unable to run an empty batch for node ${options.node.nodeName}`);
-            this.stop(error);
+            throw new Error(`unable to run an empty batch for node ${options.node.nodeName}`);
         }
         else {
             options.input.forEach((inp, ind) => {
