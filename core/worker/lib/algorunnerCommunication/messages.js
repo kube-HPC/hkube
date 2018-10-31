@@ -16,7 +16,7 @@ module.exports = {
         cleanup: 'cleanup',
         stop: 'stop',
         exit: 'exit',
-        subPiplineStarted: 'subPiplineStarted',
+        subPipelineStarted: 'subPipelineStarted',
         subPipelineError: 'subPipelineError',
         subPipelineDone: 'subPipelineDone',
         subPipelineStopped: 'subPipelineStopped'

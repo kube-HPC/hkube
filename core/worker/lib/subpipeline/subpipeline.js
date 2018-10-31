@@ -96,9 +96,9 @@ class SubPipelineHandler {
     }
 
     /**
-     * Delete jobId/subPipelineId mapping and unwatch subpipline job results.
+     * Delete jobId/subPipelineId mapping and unwatch subpipeline job results.
      * @param {object} result 
-     * @returns {string} alg subPiplineId (correlates to result.jobId)
+     * @returns {string} alg subPipelineId (correlates to result.jobId)
      */
     _getAndCleanAlgSubPipelineId(result) {
         // clean subPipeline Id mapping
@@ -252,9 +252,9 @@ class SubPipelineHandler {
             return;
         }
 
-        // send subPiplineStarted to alg
+        // send subPipelineStarted to alg
         algoRunnerCommunication.send({
-            command: messages.outgoing.subPiplineStarted,
+            command: messages.outgoing.subPipelineStarted,
             data: {
                 subPipelineId
             }

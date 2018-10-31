@@ -41,7 +41,7 @@ export alg=$1
 export ALGO_COMMAND=${2:-"node ../algorunner/app"}
 echo "Running ${ALGO_COMMAND}"
 export ALGORITHM_LOG_FILE_NAME=algorunner_${port}.log
-echo worker for algorithm ${alg}
+echo "worker for algorithm ${alg}"
 
 export ALGORITHM_TYPE=${alg}
 export WORKER_SOCKET_PORT=${port}

@@ -177,7 +177,7 @@ class Worker {
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
             let pendingTransition = null;
-            log.info(`Entering state: ${state}`);
+            log.info(`Entering state: ${state}`, { component });
             const result = { state, results };
             this._handleTimeout(state);
             switch (state) {

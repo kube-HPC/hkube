@@ -10,7 +10,6 @@ let log;
 /**
  * Handles states of the system
  * @event stateEntered when a new state is entered
- * @event stateEnteredSTATEXX when the STATEXX state is entered
  * @class StateManager
  * @extends {EventEmitter}
  */

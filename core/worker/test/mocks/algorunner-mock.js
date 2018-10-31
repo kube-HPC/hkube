@@ -32,7 +32,7 @@ class AlgorunnerMock extends EventEmitter {
             case messages.incomming.start:
                 this._start(message.data);
                 break;
-            case messages.incomming.subPiplineStarted:
+            case messages.incomming.subPipelineStarted:
                 this._subPipelineStarted(message.data);
                 break;
             case messages.incomming.subPipelineDone:
@@ -61,7 +61,7 @@ class AlgorunnerMock extends EventEmitter {
      * @param {string} reason 
      */
     simulateStopSubPipeline(subPipelineId, reason) {
-        log.info(`sending stopSubPipeline ${subPipelineId}...`, {component});
+        log.info(`sending stopSubPipeline ${subPipelineId}...`, { component });
         this._simulateSend({
             command: messages.outgoing.stopSubPipeline,
             data: {
@@ -76,7 +76,7 @@ class AlgorunnerMock extends EventEmitter {
      * @param {*} result 
      */
     simulateDone(result) {
-        log.info(`sending done...`, {component});
+        log.info(`sending done...`, { component });
         this._simulateSend({
             command: messages.outgoing.done,
             data: result
@@ -84,7 +84,7 @@ class AlgorunnerMock extends EventEmitter {
     }
 
     getStartedSubPipelineId() {
-        return this._startedSubPiplineId;
+        return this._startedSubPipelineId;
     }
 
     _simulateSend(message) {
@@ -99,7 +99,7 @@ class AlgorunnerMock extends EventEmitter {
                 return resolve(STOP_MARK);
             })
             const userFunctionPromise = Promise.resolve(vm.runInThisContext(`(${code})`)(input));
-            
+
             userFunctionPromise.then((result) => {
                 this._stopEmitter.removeAllListeners();
                 if (!stopped) {
@@ -117,7 +117,7 @@ class AlgorunnerMock extends EventEmitter {
      * @param {object} error 
      */
     _sendError(error) {
-        log.error(error.message, {component});
+        log.error(error.message, { component });
         this._simulateSend({
             command: messages.outgoing.error,
             error: {
@@ -138,7 +138,7 @@ class AlgorunnerMock extends EventEmitter {
      * @param {string} subPipelineId 
      */
     _startSubPipeline(subPipeline, subPipelineId) {
-        log.debug(`send startRawSubPipeline id=${subPipeline} with input=${this._input}`, {component});
+        log.debug(`send startRawSubPipeline id=${subPipeline} with input=${this._input}`, { component });
         subPipeline.flowInput = {
             data: this._input
         };
@@ -169,7 +169,7 @@ class AlgorunnerMock extends EventEmitter {
         this._trueSubPipeline = extraData.trueSubPipeline;
         this._falseSubPipeline = extraData.falseSubPipeline;
         this._simulateSend({ command: messages.outgoing.initialized });
-        log.debug(`got 'initialize' command with data: ${JSON.stringify(data)}`, {component});
+        log.debug(`got 'initialize' command with data: ${JSON.stringify(data)}`, { component });
     }
 
 
@@ -184,7 +184,7 @@ class AlgorunnerMock extends EventEmitter {
             log.debug(`start eval code...`);
             try {
                 this._input = await this._codeResolver(this._code, this._input);
-                log.debug(`end eval code, result: ${this._input}`, {component});
+                log.debug(`end eval code, result: ${this._input}`, { component });
             }
             catch (error) {
                 this._sendError(new Error(`failed to eval code: ${error.message}`));
@@ -197,11 +197,11 @@ class AlgorunnerMock extends EventEmitter {
 
         if (this._condition) {
             // eval condition
-            log.debug(`start eval condition...`, {component});
+            log.debug(`start eval condition...`, { component });
             // const conditionResult = this.evalCode(this._condition, _currentResult);
             try {
                 this._conditionResult = await this._codeResolver(this._condition, [this._input]);
-                log.debug(`end eval condition, result: ${this._conditionResult}`, {component});
+                log.debug(`end eval condition, result: ${this._conditionResult}`, { component });
             }
             catch (error) {
                 this._sendError(new Error(`failed to eval condition: ${error.message}`));
@@ -213,7 +213,7 @@ class AlgorunnerMock extends EventEmitter {
                     return;
                 }
                 else {
-                    log.warn(`condition is true but no trueSubPipeline`, {component});
+                    log.warn(`condition is true but no trueSubPipeline`, { component });
                 }
             }
             else {
@@ -222,7 +222,7 @@ class AlgorunnerMock extends EventEmitter {
                     return;
                 }
                 else {
-                    log.warning(`condition is false but no falseSubPipeline`, {component});
+                    log.warning(`condition is false but no falseSubPipeline`, { component });
                 }
             }
         }
@@ -238,9 +238,9 @@ class AlgorunnerMock extends EventEmitter {
      * @param {object} data 
      */
     _subPipelineStarted(data) {
-        const subPiplineId = data && data.subPipelineId;
-        log.debug(`subpipeline ${subPiplineId} started`, {component});
-        this._startedSubPiplineId = subPiplineId;
+        const subPipelineId = data && data.subPipelineId;
+        log.debug(`subpipeline ${subPipelineId} started`, { component });
+        this._startedSubPipelineId = subPipelineId;
     }
 
     /**
@@ -264,7 +264,7 @@ class AlgorunnerMock extends EventEmitter {
             }, 1000);
         }
         else {
-            log.debug(`got subpipeline done error command, sending error`, {component})
+            log.debug(`got subpipeline done error command, sending error`, { component })
             this._sendError(new Error(`SubPipelineError - got invalid subPipelineDone, subPipelineId=${subPipelineId}`));
         }
     }
@@ -286,7 +286,7 @@ class AlgorunnerMock extends EventEmitter {
     _subPipelineError(data) {
         let error = data && data.error;
         let subPipelineId = data && data.subPipelineId;
-        log.debug(`got subpipeline ${subPipelineId} error command, sending error`, {component});
+        log.debug(`got subpipeline ${subPipelineId} error command, sending error`, { component });
         this._sendError(new Error(`SubPipelineError - subPipelineId=${subPipelineId}: ${error}`));
     }
 
@@ -310,7 +310,7 @@ class AlgorunnerMock extends EventEmitter {
      */
     _exit(data) {
         const code = (data && data.exitCode) | 0;
-        log.info(`got exit command. Exiting with code ${code}`, {component});
+        log.info(`got exit command. Exiting with code ${code}`, { component });
     }
 }
 

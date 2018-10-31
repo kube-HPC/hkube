@@ -22,7 +22,7 @@ class EtcdDiscovery extends EventEmitter {
             podName: options.kubernetes.pod_name,
         };
         await this._etcd.discovery.register({ data: discoveryInfo });
-        log.info(`registering worker discovery for id ${this._etcd.discovery._instanceId}`);
+        log.info(`registering worker discovery for id ${this._etcd.discovery._instanceId}`, { component });
 
         await this.watchWorkerStates();
         this._etcd.workers.on('change', (res) => {
@@ -63,7 +63,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async updateDiscovery(options) {
-        log.info(`update worker discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`);
+        log.info(`update worker discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
         await this._etcd.discovery.updateRegisteredData(options);
     }
 

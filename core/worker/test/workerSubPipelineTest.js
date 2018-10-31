@@ -305,7 +305,7 @@ describe('worker SubPipeline test', () => {
         let algData = createAlgDataWithConditionalSubPipelines(input, doubleCode, gt10CondCode, longCode, squareCode);
         adapter.send({ command: messages.outgoing.initialize, data: algData });
         setTimeout(() => {
-            adapter.simulateStopSubPipeline('invalidSubPiplineId', 'simulate stop unknown subPipelien by test');
+            adapter.simulateStopSubPipeline('invalidSubPipelineId', 'simulate stop unknown subPipelien by test');
         }, 2000);
     });
     it('stopping algorithm should stop subPipeline', function (done) {
