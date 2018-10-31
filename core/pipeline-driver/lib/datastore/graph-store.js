@@ -150,6 +150,9 @@ class GraphStore {
 
     _singleStatus(s) {
         const { STATUS } = groupTypes;
+        if (s === States.SKIPPED) {
+            return States.SKIPPED;
+        }
         if (s === States.SUCCEED || s === States.FAILED) {
             return STATUS.COMPLETED;
         }

@@ -411,7 +411,7 @@ class TaskRunner extends EventEmitter {
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch.taskId, batch);
-            this._createJob(batch, options.storage);
+            this._createJob(batch);
         });
     }
 
@@ -427,7 +427,14 @@ class TaskRunner extends EventEmitter {
 
     _runNodeBatch(options) {
         if (options.input.length === 0) {
-            throw new Error(`unable to run an empty batch for node ${options.node.nodeName}`);
+            const node = new Node({
+                ...options.node,
+                status: NodeStates.SKIPPED,
+                result: []
+            });
+            this._nodes.setNode(node);
+            this._setTaskState(node.taskId, node);
+            this._taskComplete(node.taskId);
         }
         else {
             options.input.forEach((inp, ind) => {

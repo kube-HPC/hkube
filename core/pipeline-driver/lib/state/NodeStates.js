@@ -5,5 +5,6 @@ module.exports = {
     ACTIVE: 'active',
     COMPLETED: 'completed',
     SUCCEED: 'succeed',
-    FAILED: 'failed'
+    FAILED: 'failed',
+    SKIPPED: 'skipped'
 };

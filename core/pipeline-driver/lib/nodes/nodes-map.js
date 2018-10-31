@@ -167,7 +167,7 @@ class NodesMap extends EventEmitter {
     }
 
     _isCompleted(status) {
-        return status === States.SUCCEED || status === States.FAILED;
+        return status === States.SUCCEED || status === States.FAILED || status === States.SKIPPED;
     }
 
     _isIdle(status) {
@@ -377,7 +377,8 @@ class NodesMap extends EventEmitter {
         const groupedStates = groupBy.group();
         const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
         const failed = groupedStates.failed ? groupedStates.failed.length : 0;
-        const completed = succeed + failed;
+        const skipped = groupedStates.skipped ? groupedStates.skipped.length : 0;
+        const completed = succeed + failed + skipped;
         calc.progress = parseFloat(((completed / nodes.length) * 100).toFixed(2));
         const statesText = groupBy.text();
         calc.states = nodes.map(n => n.status).reduce((prev, cur) => {
