@@ -222,7 +222,10 @@ class NodesMap extends EventEmitter {
         if (!node) {
             throw new Error(`unable to find node ${nodeName}`);
         }
-        if (node.batch.length > 0) {
+        if (node.status === States.SKIPPED) {
+            results = [];
+        }
+        else if (node.batch.length > 0) {
             results = node.batch.map(n => n.result);
         }
         else {

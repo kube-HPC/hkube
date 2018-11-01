@@ -386,16 +386,21 @@ class TaskRunner extends EventEmitter {
     }
 
     _runWaitAny(options) {
-        const waitAny = new Batch({
-            ...options.node,
-            batchIndex: options.index,
-            input: options.input,
-            storage: options.storage
-        });
-        const batch = [waitAny];
-        this._nodes.addBatch(waitAny);
-        this._setTaskState(waitAny.taskId, waitAny);
-        this._createJob(options, batch);
+        if (options.index === -1) {
+            this._skipBatchNode(options);
+        }
+        else {
+            const waitAny = new Batch({
+                ...options.node,
+                batchIndex: options.index,
+                input: options.input,
+                storage: options.storage
+            });
+            const batch = [waitAny];
+            this._nodes.addBatch(waitAny);
+            this._setTaskState(waitAny.taskId, waitAny);
+            this._createJob(options, batch);
+        }
     }
 
     // TODO: CHECK THIS
@@ -427,14 +432,7 @@ class TaskRunner extends EventEmitter {
 
     _runNodeBatch(options) {
         if (options.input.length === 0) {
-            const node = new Node({
-                ...options.node,
-                status: NodeStates.SKIPPED,
-                result: []
-            });
-            this._nodes.setNode(node);
-            this._setTaskState(node.taskId, node);
-            this._taskComplete(node.taskId);
+            this._skipBatchNode(options);
         }
         else {
             options.input.forEach((inp, ind) => {
@@ -449,6 +447,18 @@ class TaskRunner extends EventEmitter {
             });
             this._createJob(options, options.node.batch);
         }
+    }
+
+    _skipBatchNode(options) {
+        const node = new Batch({
+            ...options.node,
+            status: NodeStates.SKIPPED,
+            batchIndex: -1,
+        });
+        this._nodes.addBatch(node);
+        this._nodes.setNode({ nodeName: node.nodeName, result: [], status: NodeStates.SKIPPED });
+        this._setTaskState(node.taskId, node);
+        this._taskComplete(node.taskId);
     }
 
     _taskComplete(taskId) {
