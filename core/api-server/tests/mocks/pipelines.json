@@ -138,7 +138,9 @@
             "progress": "http://webhook-stub-ui:3002/webhook/progress",
             "result": "http://webhook-stub-ui:3002/webhook/result"
         },
+        "priority": 5,
         "options": {
+            "ttl": 3600,
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
         }

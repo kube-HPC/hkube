@@ -1799,6 +1799,10 @@
                         "minLength": 1,
                         "format": "pipeline-name"
                     },
+                    "description": {
+                        "type": "string",
+                        "description": "pipeline description"
+                    },
                     "nodes": {
                         "type": "array",
                         "description": "Array of nodes",

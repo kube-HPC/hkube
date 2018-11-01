@@ -2006,29 +2006,30 @@ describe('Rest', () => {
                         expect(response.body.options.progressVerbosityLevel).to.equal('info');
                     });
                     it('should succeed to store pipeline', async () => {
-                        const pipeline = clone(pipelines[0]);
+                        const pipeline = clone(pipelines[2]);
                         pipeline.name = uuidv4();
-                        const body = pipeline;
+                        pipeline.description = 'my description';
                         const options = {
                             uri: restPath,
                             method: 'POST',
-                            body
+                            body: pipeline
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(201);
-                        expect(response.body).to.deep.equal(body);
+                        expect(response.body).to.deep.equal(pipeline);
                     });
                 });
                 describe('/store/pipelines PUT', () => {
                     it('should succeed to update pipeline', async () => {
-                        const body = pipelines[0];
+                        const pipeline = clone(pipelines[2]);
+                        pipeline.description = 'my description';
                         const options = {
                             uri: restPath,
                             method: 'PUT',
-                            body
+                            body: pipeline
                         };
                         const response = await _request(options);
-                        expect(response.body).to.deep.equal(body);
+                        expect(response.body).to.deep.equal(pipeline);
                     });
                     it('should throw validation error if algorithmName not exists', async () => {
                         const pipeline = clone(pipelines[0]);
