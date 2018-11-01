@@ -220,7 +220,7 @@ class StateManager extends EventEmitter {
     }
 
     _startInactiveTimer() {
-        log.info('starting inactive timeout for algorunner (bootstrap)', { component });
+        log.info(`starting inactive timeout for algorunner (bootstrap) ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
         this._inactiveTimer = setTimeout(() => {
             log.info(`algorunner is offline for more than ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
             this.exit();

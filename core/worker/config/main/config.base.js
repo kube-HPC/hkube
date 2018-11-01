@@ -1,6 +1,7 @@
+const packageJson = require(process.cwd() + '/package.json');
 const config = {};
 
-config.serviceName = 'workers';
+config.serviceName = packageJson.name;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
