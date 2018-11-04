@@ -1,8 +1,8 @@
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
+const { tracer } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
 const { componentName } = require('./lib/consts/index');
-const { tracer } = require('@hkube/metrics');
 let log;
 
 const modules = [

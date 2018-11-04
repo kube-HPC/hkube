@@ -10,4 +10,3 @@ const Triggers = {
 };
 
 module.exports = { Events, Triggers };
-

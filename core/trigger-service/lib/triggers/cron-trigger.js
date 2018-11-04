@@ -1,7 +1,7 @@
 const { CronJob } = require('cron');
+const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, Events, Triggers } = require('../consts/index');
 const component = componentName.CRON_TRIGGER;
-const log = require('@hkube/logger').GetLogFromContainer();
 const triggerQueue = require('../queue/trigger-queue');
 const storedPipelineListener = require('../pipelines/stored-pipelines-listener');
 

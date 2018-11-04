@@ -1,7 +1,7 @@
 const { queue } = require('async');
+const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName } = require('../consts/index');
 const pipelineProducer = require('../pipelines/pipeline-producer');
-const log = require('@hkube/logger').GetLogFromContainer();
 
 class TriggerQueue {
     async init() {

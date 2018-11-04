@@ -10,7 +10,7 @@ module.exports = {
     ],
     "parserOptions": {
         "sourceType": "module",
-        "ecmaVersion": 2017
+        "ecmaVersion": 2018
     },
     "rules": {
         "no-param-reassign": "off",
@@ -34,7 +34,5 @@ module.exports = {
         "linebreak-style": 0,
         "arrow-parens": 0,
         'object-curly-newline': 0
-
-
     }
 };
