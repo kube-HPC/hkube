@@ -1,13 +1,13 @@
-const RestServer = require('@hkube/rest-server');
-const rest = new RestServer();
 const fs = require('fs');
 const path = require('path');
-const swagger = require('./swagger');
+const RestServer = require('@hkube/rest-server');
 const Logger = require('@hkube/logger');
+const { metrics } = require('@hkube/metrics');
+const rest = new RestServer();
+const swagger = require('./swagger');
 const internal = require('./internal/index');
 const log = Logger.GetLogFromContanier();
 const component = require('../../lib/consts/componentNames').REST_API;
-const { metrics } = require('@hkube/metrics');
 const afterRequest = require('./middlewares/after-request');
 
 class AppServer {

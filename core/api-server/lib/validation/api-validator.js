@@ -1,9 +1,9 @@
-const stateManager = require('../state/state-manager');
-const converter = require('@hkube/units-converter');
-const { parser } = require('@hkube/parsers');
-const { Graph, alg } = require('graphlib');
-const { CronJob } = require('cron');
 const Validator = require('ajv');
+const converter = require('@hkube/units-converter');
+const { CronJob } = require('cron');
+const { Graph, alg } = require('graphlib');
+const { parser } = require('@hkube/parsers');
+const stateManager = require('../state/state-manager');
 const validator = new Validator({ useDefaults: false, coerceTypes: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
 const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
@@ -172,6 +172,7 @@ class ApiValidator {
         }
         return true;
     }
+
     _validateAlgorithmName(name) {
         if (!ALGORITHM_NAME_REGEX.test(name)) {
             throw new InvalidDataError('algorithm name must contain only alphanumeric, dash or dot');

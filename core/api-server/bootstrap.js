@@ -1,8 +1,8 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
+const { tracer, metrics } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
 const component = require('./lib/consts/componentNames').MAIN;
-const { tracer, metrics } = require('@hkube/metrics');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
@@ -78,4 +78,3 @@ class Bootstrap {
 }
 
 module.exports = new Bootstrap();
-

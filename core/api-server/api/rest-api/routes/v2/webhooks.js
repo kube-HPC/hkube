@@ -40,4 +40,3 @@ const routes = (options) => {
 };
 
 module.exports = routes;
-

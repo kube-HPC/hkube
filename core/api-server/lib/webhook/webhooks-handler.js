@@ -1,11 +1,11 @@
 const request = require('requestretry');
-const stateManager = require('../state/state-manager');
-const storageFactory = require('../datastore/storage-factory');
-const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../lib/consts/componentNames').WEBHOOK_HANDLER;
-const { States, Types } = require('./States');
 const { metrics, utils } = require('@hkube/metrics');
 const levels = require('@hkube/logger').Levels;
+const log = require('@hkube/logger').GetLogFromContainer();
+const stateManager = require('../state/state-manager');
+const storageFactory = require('../datastore/storage-factory');
+const component = require('../../lib/consts/componentNames').WEBHOOK_HANDLER;
+const { States, Types } = require('./States');
 const { metricsNames } = require('../../lib/consts/metricsNames');
 
 /**
