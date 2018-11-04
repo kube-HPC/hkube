@@ -1,13 +1,13 @@
 const request = require('request-promise');
-const { ApiServerPostTypes } = require('../consts/index');
 const Logger = require('@hkube/logger');
+const { ApiServerPostTypes } = require('../consts/index');
 let log;
 
 const HTTP_POST = 'POST';
 
 class ApiServerClient {
     async init(options = {}) {
-        log = Logger.GetLogFromContainer(); 
+        log = Logger.GetLogFromContainer();
         this._options = options;
         const {
             protocol, host, port, basePath
@@ -33,7 +33,7 @@ class ApiServerClient {
      */
     postStopSubPipeline(jobId, reason) {
         log.debug(`send stop request to subPipeline ${jobId}`);
-        const body = {jobId, reason};
+        const body = { jobId, reason };
         const apiUrl = `${this._apiBaseUrl}${ApiServerPostTypes.STOP}`;
         return this._postRequest(body, apiUrl);
     }
@@ -56,4 +56,3 @@ class ApiServerClient {
 }
 
 module.exports = new ApiServerClient();
-

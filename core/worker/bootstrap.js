@@ -2,9 +2,9 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { VerbosityPlugin } = require('@hkube/logger');
+const { tracer, metrics } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
 const componentName = require('./lib/consts/componentNames');
-const { tracer, metrics } = require('@hkube/metrics');
 let log;
 const worker = require('./lib/worker');
 
@@ -40,8 +40,8 @@ class Bootstrap {
             await metrics.init(main.metrics);
             await tracer.init(main.tracer);
             worker.preInit();
-            for (const m of modules) {// eslint-disable-line
-                await require(m).init(main, log);// eslint-disable-line
+            for (const m of modules) {             // eslint-disable-line
+                await require(m).init(main, log);  // eslint-disable-line
             }
 
             await worker.init(main);
@@ -92,4 +92,3 @@ class Bootstrap {
 }
 
 module.exports = new Bootstrap();
-

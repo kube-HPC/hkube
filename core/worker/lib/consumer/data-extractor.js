@@ -13,9 +13,9 @@ class DataExtractor {
                 const link = storage[key];
                 let data = null;
                 if (Array.isArray(link.storageInfo)) {
-                    data = await Promise.all(link.storageInfo.map(a => a && dataProvider.get(a)));
+                    const storageResult = await Promise.all(link.storageInfo.map(a => a && dataProvider.get(a)));
                     if (link.path) {
-                        data = data.map(d => deep(d, link.path));
+                        data = storageResult.map(d => deep(d, link.path));
                     }
                 }
                 else {

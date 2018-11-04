@@ -1,9 +1,9 @@
 const EventEmitter = require('events');
+const http = require('http');
+const WebSocket = require('ws');
 const Logger = require('@hkube/logger');
 const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
-const WebSocket = require('ws');
-const http = require('http');
 const component = require('../../lib/consts/componentNames').COMMUNICATIONS;
 let log;
 

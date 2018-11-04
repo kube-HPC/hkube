@@ -9,6 +9,7 @@ class LoopbackWorkerCommunication extends EventEmitter {
         this._options = null;
         this.LastInput = null;
     }
+
     async init(options) {
         options = options || {};
         const validator = djsv(schema);
@@ -43,7 +44,7 @@ class LoopbackWorkerCommunication extends EventEmitter {
             case messages.outgoing.ping:
                 this._simulateSend({ command: messages.incomming.pong, data: message.data });
                 break;
-   
+
             default:
         }
     }

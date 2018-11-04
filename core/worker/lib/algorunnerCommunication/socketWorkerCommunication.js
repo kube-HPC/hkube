@@ -1,12 +1,13 @@
 const EventEmitter = require('events');
+const http = require('http');
+const socketio = require('socket.io');
 const Logger = require('@hkube/logger');
 const djsv = require('djsv');
 const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
-const socketio = require('socket.io');
 const messages = require('./messages');
-const http = require('http');
 const components = require('../../lib/consts/componentNames');
 let log;
+
 class SocketWorkerCommunication extends EventEmitter {
     constructor() {
         super();
@@ -14,6 +15,7 @@ class SocketWorkerCommunication extends EventEmitter {
         this._socketServer = null;
         this._socket = null;
     }
+
     init(options) {
         log = Logger.GetLogFromContainer();
         return new Promise((resolve, reject) => { // eslint-disable-line consistent-return
@@ -52,7 +54,7 @@ class SocketWorkerCommunication extends EventEmitter {
             log.debug(`registering for topic ${topic}`, { component: components.COMMUNICATIONS });
 
             socket.on(topic, (message) => {
-                log.debug(`got message on topic ${topic}, data: ${JSON.stringify(message)}`, { component: components.COMMUNICATIONS });
+                log.debug(`got message on topic ${topic}, command: ${message && message.command}`, { component: components.COMMUNICATIONS });
                 this.emit(topic, message);
             });
         });
@@ -63,6 +65,7 @@ class SocketWorkerCommunication extends EventEmitter {
         });
         log.debug('finish _registerSocketMessages', { component: components.COMMUNICATIONS });
     }
+
     /**
      * 
      * 

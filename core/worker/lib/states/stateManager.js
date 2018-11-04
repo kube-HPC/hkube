@@ -1,9 +1,9 @@
 const EventEmitter = require('events');
 const StateMachine = require('javascript-state-machine');
-const { workerStates } = require('../consts/states');
-const { stateEvents } = require('../consts/events');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
+const { workerStates } = require('../consts/states');
+const { stateEvents } = require('../consts/events');
 const component = require('../consts/componentNames').STATE_MANAGER;
 let log;
 
@@ -21,6 +21,7 @@ class StateManager extends EventEmitter {
         this._results = null;
         this._inactiveTimer = null;
     }
+
     async init(config) {
         this._config = config;
         log = Logger.GetLogFromContainer();
@@ -115,6 +116,7 @@ class StateManager extends EventEmitter {
     reset() {
         this._stateMachine.reset();
     }
+
     /**
      * transitions from bootstrap to ready
      * Should happen after all local init (including connecting to socket)
@@ -124,6 +126,7 @@ class StateManager extends EventEmitter {
     bootstrap() {
         this._stateMachine.bootstrap();
     }
+
     /**
      * transitions from ready to init
      * Performs init of the data via adapters.
@@ -168,6 +171,7 @@ class StateManager extends EventEmitter {
             log.error(error, { component });
         }
     }
+
     /**
      * transitions from working to results
      * finishes the processing, and get the results
@@ -209,12 +213,15 @@ class StateManager extends EventEmitter {
     error() {
         this._stateMachine.error();
     }
+
     setJob(job) {
         this._job = job;
     }
+
     get job() {
         return this._job;
     }
+
     get results() {
         return this._results;
     }

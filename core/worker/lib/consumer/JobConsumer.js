@@ -1,10 +1,10 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
+const { tracer, metrics, utils } = require('@hkube/metrics');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { tracer, metrics, utils } = require('@hkube/metrics');
 const { metricsNames } = require('../consts/metricsNames');
 const component = require('../consts/componentNames').CONSUMER;
 const datastoreHelper = require('../helpers/datastoreHelper');

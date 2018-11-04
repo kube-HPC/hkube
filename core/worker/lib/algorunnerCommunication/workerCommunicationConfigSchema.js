@@ -1,4 +1,4 @@
-const {adapters} = require('./consts');
+const { adapters } = require('./consts');
 const loopbackWorkerCommunicationSchema = {
     type: 'object',
     properties: {
@@ -24,7 +24,7 @@ const socketWorkerCommunicationSchema = {
                 protocol: {
                     type: 'string',
                     default: 'ws'
-                }        
+                }
             }
         },
         pingTimeout: {
@@ -41,10 +41,12 @@ const workerCommunicationSchema = {
             default: adapters.socket
         },
         config: {
-            type: 'object',
-            required: 'true'
+            type: 'object'
         }
-    }
+    },
+    required: [
+        'config'
+    ]
 };
 module.exports = {
     socketWorkerCommunicationSchema,

@@ -1,8 +1,8 @@
-const Logger = require('@hkube/logger');
-const component = require('../../lib/consts/componentNames.js').ALGORUNNER;
 const path = require('path');
 const fs = require('fs');
+const Logger = require('@hkube/logger');
 const { Tail } = require('tail');
+const component = require('../../lib/consts/componentNames.js').ALGORUNNER;
 const DELAY = 2;
 let log;
 

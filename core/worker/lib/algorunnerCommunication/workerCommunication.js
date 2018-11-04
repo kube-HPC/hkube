@@ -10,7 +10,6 @@ const { adapters } = require('./consts');
 const messages = require('./messages');
 const components = require('../../lib/consts/componentNames');
 
-
 class WorkerCommunication extends EventEmitter {
     constructor() {
         super();
@@ -21,6 +20,7 @@ class WorkerCommunication extends EventEmitter {
         this._adapters[adapters.loopback] = loopbackAdapter;
         this.adapter = null;
     }
+
     async init(options) {
         if (this.adapter) {
             this.adapter.removeAllListeners();
@@ -47,7 +47,7 @@ class WorkerCommunication extends EventEmitter {
         Object.entries({ ...messages.incomming, connection: 'connection', disconnect: 'disconnect' }).forEach(([name, topic]) => {
             log.debug(`workerCommunication registering for topic (${name})=>${topic}`, { component: components.COMMUNICATIONS });
             this.adapter.on(topic, (message) => {
-                log.debug(`workerCommunication got message on topic (${name})=>${topic}, data: ${JSON.stringify(message)}`, { component: components.COMMUNICATIONS });
+                log.debug(`workerCommunication got message on topic (${name})=>${topic}, command: ${message && message.command}`, { component: components.COMMUNICATIONS });
                 this.emit(topic, message);
             });
         });

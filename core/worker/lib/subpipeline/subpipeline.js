@@ -1,6 +1,6 @@
+const Logger = require('@hkube/logger');
 const algoRunnerCommunication = require('../algorunnerCommunication/workerCommunication');
 const discovery = require('../states/discovery');
-const Logger = require('@hkube/logger');
 const storageFactory = require('../helpers/datastoreHelper');
 const messages = require('../algorunnerCommunication/messages');
 const component = require('../../lib/consts/componentNames').WORKER;

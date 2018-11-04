@@ -1,3 +1,4 @@
+const Logger = require('@hkube/logger');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorunnerCommunication/workerCommunication');
@@ -9,7 +10,6 @@ const messages = require('./algorunnerCommunication/messages');
 const component = require('../lib/consts/componentNames').WORKER;
 const { EventMessages } = require('./consts/index');
 
-const Logger = require('@hkube/logger');
 let log;
 const DEFAULT_STOP_TIMEOUT = 5000;
 
