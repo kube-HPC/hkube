@@ -1,8 +1,8 @@
 
+const log = require('@hkube/logger').GetLogFromContainer();
 const States = require('../state/NodeStates');
 const RedisStorage = require('./redis-storage-adapter');
 const { groupTypes } = require('../consts/graph-storage-types');
-const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../consts/componentNames');
 const INTERVAL = 4000;
 
@@ -156,7 +156,7 @@ class GraphStore {
         if (s === States.SUCCEED || s === States.FAILED) {
             return STATUS.COMPLETED;
         }
-        else if (s === States.CREATING || s === States.PENDING) {
+        if (s === States.CREATING || s === States.PENDING) {
             return STATUS.NOT_STARTED;
         }
         return STATUS.RUNNING;

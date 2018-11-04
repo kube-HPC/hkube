@@ -1,11 +1,11 @@
 const EventEmitter = require('events');
 const graphlib = require('graphlib');
 const deepExtend = require('deep-extend');
+const { parser, consts } = require('@hkube/parsers');
 const GroupBy = require('../helpers/group-by');
 const GraphNode = require('./graph-node');
 const NodeResult = require('./node-result');
 const States = require('../state/NodeStates');
-const { parser, consts } = require('@hkube/parsers');
 
 /**
  * This class responsible for handling the 

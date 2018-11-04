@@ -593,43 +593,49 @@ describe('Test', function () {
             const response = await stateManager.getExecution({ jobId });
             expect(response).to.deep.equal(data);
         });
-        it('unWatchTasks', async function (done) {
-            const jobId = `jobid-${uuidv4()}`;
-            const taskId = `taskId-${uuidv4()}`;
-            const data = { error: 'some different error', status: 'failed' }
-            await stateManager.watchTasks({ jobId });
-            stateManager.on(Events.TASKS.FAILED, (response) => {
-                throw new Error('failed');
+        it('unWatchTasks', function () {
+            return new Promise(async (resolve, reject) => {
+                const jobId = `jobid-${uuidv4()}`;
+                const taskId = `taskId-${uuidv4()}`;
+                const data = { error: 'some different error', status: 'failed' }
+                await stateManager.watchTasks({ jobId });
+                stateManager.on(Events.TASKS.FAILED, (response) => {
+                    throw new Error('failed');
+                });
+                await stateManager.unWatchTasks({ jobId });
+                await stateManager._etcd.tasks.setState({ jobId, taskId, error: data.error, status: data.status });
+                setTimeout(() => {
+                    resolve();
+                }, 1000)
             });
-            const res = await stateManager.unWatchTasks({ jobId });
-            await stateManager._etcd.tasks.setState({ jobId, taskId, error: data.error, status: data.status });
-            setTimeout(() => {
-                done();
-            }, 1000)
         });
-        it('watchJobState', async function (done) {
-            const jobId = `jobid-${uuidv4()}`;
-            await stateManager.watchJobState({ jobId });
-            stateManager.on(Events.JOBS.STOP, (response) => {
-                if (response.jobId === jobId) {
-                    expect(response.jobId).to.equal(jobId);
-                    expect(response.state).to.equal('stop');
-                    done();
-                }
+        it('watchJobState', function () {
+            return new Promise(async (resolve, reject) => {
+                const jobId = `jobid-${uuidv4()}`;
+                await stateManager.watchJobState({ jobId });
+                stateManager.on(Events.JOBS.STOP, (response) => {
+                    if (response.jobId === jobId) {
+                        expect(response.jobId).to.equal(jobId);
+                        expect(response.state).to.equal('stop');
+                        resolve();
+                    }
+                });
+                await stateManager._etcd.jobState.stop({ jobId });
             });
-            await stateManager._etcd.jobState.stop({ jobId });
         });
-        it('unWatchJobState', async function (done) {
-            const jobId = `jobid-${uuidv4()}`;
-            await stateManager.watchJobState({ jobId });
-            stateManager.on(Events.JOBS.STOP, (response) => {
-                throw new Error('failed');
+        it('unWatchJobState', function () {
+            return new Promise(async (resolve, reject) => {
+                const jobId = `jobid-${uuidv4()}`;
+                await stateManager.watchJobState({ jobId });
+                stateManager.on(Events.JOBS.STOP, (response) => {
+                    throw new Error('failed');
+                });
+                await stateManager.unWatchJobState({ jobId });
+                await stateManager._etcd.jobState.stop({ jobId });
+                setTimeout(() => {
+                    resolve();
+                }, 1000)
             });
-            const response = await stateManager.unWatchJobState({ jobId });
-            await stateManager._etcd.jobState.stop({ jobId });
-            setTimeout(() => {
-                done();
-            }, 1000)
         });
     });
     describe('Consumer', function () {

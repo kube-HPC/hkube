@@ -1,17 +1,18 @@
 const validate = require('djsv');
 const { Consumer } = require('@hkube/producer-consumer');
+const { tracer } = require('@hkube/metrics');
+const log = require('@hkube/logger').GetLogFromContainer();
 const schema = require('./schema');
 const TaskRunner = require('../tasks/task-runner');
-const { tracer } = require('@hkube/metrics');
 const stateFactory = require('../state/state-factory');
 const DriverStates = require('../state/DriverStates');
-const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/componentNames').JOBS_CONSUMER;
 
 class JobConsumer {
     constructor() {
         this._inactiveTimer = null;
     }
+
     /**
      * Init the consumer and register for jobs
      * @param {*} options

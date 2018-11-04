@@ -1,4 +1,7 @@
 const EventEmitter = require('events');
+const { parser } = require('@hkube/parsers');
+const log = require('@hkube/logger').GetLogFromContainer();
+const { tracer, metrics, utils } = require('@hkube/metrics');
 const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
 const Progress = require('../progress/nodes-progress');
@@ -6,13 +9,10 @@ const NodesMap = require('../nodes/nodes-map');
 const NodeStates = require('../state/NodeStates');
 const DriverStates = require('../state/DriverStates');
 const Events = require('../consts/Events');
-const { parser } = require('@hkube/parsers');
 const Batch = require('../nodes/node-batch');
 const Node = require('../nodes/node');
-const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../consts/componentNames').TASK_RUNNER;
 const { metricsNames } = require('../consts/metricsNames');
-const { tracer, metrics, utils } = require('@hkube/metrics');
 const graphStore = require('../datastore/graph-store');
 
 metrics.addTimeMeasure({
