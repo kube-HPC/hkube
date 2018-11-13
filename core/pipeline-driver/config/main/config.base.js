@@ -54,6 +54,10 @@ config.kubernetes = {
     pod_name: process.env.POD_NAME
 };
 
+config.fs = {
+    baseDirectory: process.env.FS_DIRECTORY || '/var/tmp/fs/storage'
+}
+
 config.storageAdapters = {
     s3: {
         connection: config.s3,
@@ -66,5 +70,9 @@ config.storageAdapters = {
     redis: {
         connection: config.redis,
         moduleName: process.env.STORAGE_MODULE || '@hkube/redis-storage-adapter'
+    },
+    fs: {
+        connection: config.fs,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
