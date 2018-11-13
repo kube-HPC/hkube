@@ -10,11 +10,11 @@
   "dependencies": {
     "@hkube/config": "^2.0.7",
     "@hkube/etcd": "^4.0.25",
-    "@hkube/logger": "^1.0.13",
+    "@hkube/logger": "^1.0.15",
     "@hkube/metrics": "^1.0.28",
     "@hkube/prometheus-client": "^1.0.0",
     "@hkube/rest-server": "^1.0.11",
-    "@hkube/units-converter": "^1.0.10",
+    "@hkube/units-converter": "^1.0.11",
     "kubernetes-client": "^5.4.0",
     "lodash.groupby": "^4.6.0",
     "lodash.orderby": "^4.6.0",
