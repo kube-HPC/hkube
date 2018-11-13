@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
-const log = require('@hkube/logger').GetLogFromContainer();
-const { tracer, metrics, utils } = require('@hkube/metrics');
+const logger = require('@hkube/logger');
+const pipelineMetrics = require('../metrics/pipeline-metrics');
 const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
 const Progress = require('../progress/nodes-progress');
@@ -12,33 +12,8 @@ const Events = require('../consts/Events');
 const Batch = require('../nodes/node-batch');
 const Node = require('../nodes/node');
 const component = require('../consts/componentNames').TASK_RUNNER;
-const { metricsNames } = require('../consts/metricsNames');
 const graphStore = require('../datastore/graph-store');
-
-metrics.addTimeMeasure({
-    name: metricsNames.pipelines_net,
-    description: 'pipelines runtime histogram',
-    labels: ['pipeline_name', 'status'],
-    buckets: utils.arithmatcSequence(30, 0, 2)
-        .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
-});
-
-metrics.addGaugeMeasure({
-    name: metricsNames.pipelines_progress,
-    description: 'pipelines progress',
-    labels: ['pipeline_name', 'jobId', 'status'],
-});
-
-/**
- * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
- * @param {string} pipelineName 
- */
-function formatPipelineName(pipelineName) {
-    if (pipelineName.startsWith('raw-')) {
-        return 'raw';
-    }
-    return pipelineName;
-}
+let log;
 
 class TaskRunner extends EventEmitter {
     constructor(options) {
@@ -58,6 +33,9 @@ class TaskRunner extends EventEmitter {
     }
 
     _init() {
+        if (!log) {
+            log = logger.GetLogFromContainer();
+        }
         this._stateManager = new StateManager({ discoveryMethod: this._getDiscoveryData });
         this._stateManager.on(Events.JOBS.STOP, (data) => {
             this.stop(null, data.reason);
@@ -171,7 +149,7 @@ class TaskRunner extends EventEmitter {
             sendProgress: this._stateManager.setJobStatus
         });
 
-        this._startMetrics();
+        pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
 
         const graph = await graphStore.getGraph({ jobId: this._jobId });
         if (graph) {
@@ -223,7 +201,7 @@ class TaskRunner extends EventEmitter {
         await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data, reason, error, status });
         await this._stateManager.unWatchJobState({ jobId: this._jobId });
         await this._stateManager.unWatchTasks({ jobId: this._jobId });
-        this._endMetrics(status);
+        pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status });
     }
 
     async _progressError({ status, error }) {
@@ -299,62 +277,13 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _startMetrics() {
-        if (!this._jobId || !this.pipeline.name) {
-            return;
-        }
-        metrics.get(metricsNames.pipelines_net).start({
-            id: this._jobId,
-            labelValues: {
-                pipeline_name: formatPipelineName(this.pipeline.name)
-            }
-        });
-        tracer.startSpan({
-            name: 'startPipeline',
-            id: this._jobId,
-            parent: this._job.data && this._job.data.spanId
-        });
-    }
-
-    _endMetrics(status) {
-        if (!this._jobId || !this.pipeline.name) {
-            return;
-        }
-        metrics.get(metricsNames.pipelines_net).end({
-            id: this._jobId,
-            labelValues: {
-                pipeline_name: formatPipelineName(this.pipeline.name),
-                status
-            }
-        });
-
-        this._setProgressMetric(status);
-
-        const topSpan = tracer.topSpan(this._jobId);
-        if (topSpan) {
-            topSpan.addTag({ status });
-            topSpan.finish();
-        }
-    }
-
-    _setProgressMetric(status) {
-        metrics.get(metricsNames.pipelines_progress).set({
-            value: this._progress.currentProgress,
-            labelValues: {
-                status,
-                jobId: this._jobId,
-                pipeline_name: formatPipelineName(this.pipeline.name)
-            }
-        });
-    }
-
     _runNode(nodeName, parentOutput, index) {
         try {
             const node = this._nodes.getNode(nodeName);
             const parse = {
                 flowInput: this.pipeline.flowInput,
                 nodeInput: node.input,
-                parentOutput,
+                parentOutput: node.parentOutput || parentOutput,
                 index
             };
             const result = parser.parse(parse);
@@ -515,7 +444,7 @@ class TaskRunner extends EventEmitter {
             log.debug(`task ${options.status} ${taskId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId, algorithmName: task.algorithmName });
         }
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
-        this._setProgressMetric(NodeStates.ACTIVE);
+        pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: NodeStates.ACTIVE });
     }
 
     _createJob(options, batch) {

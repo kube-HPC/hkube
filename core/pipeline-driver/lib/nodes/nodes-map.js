@@ -43,7 +43,10 @@ class NodesMap extends EventEmitter {
         });
 
         nodes.forEach((n) => {
-            this._graph.setEdge(n.source, n.target, n.edges);
+            const source = options.nodes.find(f => f.nodeName === n.source);
+            if (source) {
+                this._graph.setEdge(n.source, n.target, n.edges);
+            }
         });
     }
 

@@ -1,16 +1,23 @@
 
-const log = require('@hkube/logger').GetLogFromContainer();
+const logger = require('@hkube/logger');
 const States = require('../state/NodeStates');
 const RedisStorage = require('./redis-storage-adapter');
 const { groupTypes } = require('../consts/graph-storage-types');
 const components = require('../consts/componentNames');
 const INTERVAL = 4000;
+let log;
 
 class GraphStore {
     constructor() {
         this._interval = null;
         this._nodesMap = null;
         this._currentJobID = null;
+    }
+
+    _init() {
+        if (!log) {
+            log = logger.GetLogFromContainer();
+        }
     }
 
     async start(jobId, nodeMap) {

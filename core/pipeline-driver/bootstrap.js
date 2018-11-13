@@ -7,11 +7,12 @@ const component = require('./lib/consts/componentNames').MAIN;
 let log;
 
 const modules = [
-    './lib/producer/jobs-producer',
-    './lib/consumer/jobs-consumer',
-    './lib/state/state-factory',
-    './lib/datastore/storage-factory',
-    './lib/datastore/redis-storage-adapter'
+    require('./lib/producer/jobs-producer'),
+    require('./lib/consumer/jobs-consumer'),
+    require('./lib/state/state-factory'),
+    require('./lib/datastore/storage-factory'),
+    require('./lib/datastore/redis-storage-adapter'),
+    require('./lib/metrics/pipeline-metrics')
 ];
 
 class Bootstrap {
@@ -35,11 +36,10 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            await Promise.all(modules.map(m => require(m).init(main))); // eslint-disable-line
+            await Promise.all(modules.map(m => m.init(main)));
         }
         catch (error) {
-            log.error(error);
-            this._onInitFailed(new Error(`unable to start application. ${error.message}`));
+            this._onInitFailed(error);
         }
     }
 
@@ -49,30 +49,30 @@ class Bootstrap {
             log.error(error);
         }
         else {
-            console.error(error.message); // eslint-disable-line
-            console.error(error); // eslint-disable-line
+            console.error(error.message);
+            console.error(error);
         }
         process.exit(1);
     }
 
     _handleErrors() {
         process.on('exit', (code) => {
-            log.info('exit' + (code ? ' code ' + code : ''), { component });
+            log.info(`exit code ${code}`, { component });
         });
         process.on('SIGINT', () => {
             log.info('SIGINT', { component });
-            process.exit(1);
+            process.exit(0);
         });
         process.on('SIGTERM', () => {
             log.info('SIGTERM', { component });
-            process.exit(1);
+            process.exit(0);
         });
         process.on('unhandledRejection', (error) => {
-            log.error('unhandledRejection: ' + error, { component }, error);
+            log.error(`unhandledRejection: ${error.message}`, { component }, error);
             process.exit(1);
         });
         process.on('uncaughtException', (error) => {
-            log.error('uncaughtException: ' + error.message, { component }, error);
+            log.error(`uncaughtException: ${error.message}`, { component }, error);
             log.error(error);
             process.exit(1);
         });

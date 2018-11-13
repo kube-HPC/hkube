@@ -7,6 +7,7 @@ class GraphNode {
         this.extraData = options.extraData;
         this.input = options.input;
         this.status = States.CREATING;
+        this.parentOutput = options.parentOutput;
         this.batch = [];
     }
 }

@@ -1,12 +1,13 @@
 const validate = require('djsv');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const log = require('@hkube/logger').GetLogFromContainer();
+const logger = require('@hkube/logger');
 const schema = require('./schema');
 const TaskRunner = require('../tasks/task-runner');
 const stateFactory = require('../state/state-factory');
 const DriverStates = require('../state/DriverStates');
 const component = require('../consts/componentNames').JOBS_CONSUMER;
+let log;
 
 class JobConsumer {
     constructor() {
@@ -18,6 +19,7 @@ class JobConsumer {
      * @param {*} options
      */
     init(option) {
+        log = logger.GetLogFromContainer();
         option = option || {};
         const options = {
             setting: {
