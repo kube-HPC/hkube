@@ -6,6 +6,4 @@ const ApiServerPostTypes = {
     STOP: 'stop'
 };
 
-module.exports = {
-    ApiServerPostTypes
-};
+module.exports = ApiServerPostTypes;

@@ -2,9 +2,9 @@ const EventEmitter = require('events');
 const StateMachine = require('javascript-state-machine');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { workerStates } = require('../consts/states');
-const { stateEvents } = require('../consts/events');
-const component = require('../consts/componentNames').STATE_MANAGER;
+const { workerStates, stateEvents, Components } = require('../consts');
+
+const component = Components.STATE_MANAGER;
 let log;
 
 /**
@@ -130,7 +130,7 @@ class StateManager extends EventEmitter {
     /**
      * transitions from ready to init
      * Performs init of the data via adapters.
-     * 
+     *
      * @memberof StateManager
      */
     prepare() {
@@ -140,7 +140,7 @@ class StateManager extends EventEmitter {
     /**
      * transitions from init to ready
      * starts the algorithm
-     * 
+     *
      * @memberof StateManager
      */
     start() {
@@ -175,7 +175,7 @@ class StateManager extends EventEmitter {
     /**
      * transitions from working to results
      * finishes the processing, and get the results
-     * 
+     *
      * @param {object} results
      * @memberof StateManager
      */
@@ -192,7 +192,7 @@ class StateManager extends EventEmitter {
     /**
      * transitions from results to ready
      * finishes the processing, and ready for a new job
-     * 
+     *
      * @memberof StateManager
      */
     cleanup() {
@@ -207,7 +207,7 @@ class StateManager extends EventEmitter {
     /**
      * transitions from working to error
      * reports the error, cleanup the job and prepare for a new job
-     * 
+     *
      * @memberof StateManager
      */
     error() {

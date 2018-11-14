@@ -4,7 +4,4 @@ const Status = {
     STOPPED: 'stopped'
 };
 
-
-module.exports = {
-    Status
-};
+module.exports = Status;

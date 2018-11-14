@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const { workerStates } = require('../../lib/consts/states');
+const { workerStates } = require('../../lib/consts');
 
 class StateManagerMock extends EventEmitter {
     constructor() {

@@ -7,11 +7,9 @@ const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
 const { main, logger } = configIt.load();
 log = new Logger(main.serviceName, logger);
-const messages = require('../lib/algorunnerCommunication/messages');
+const messages = require('../lib/algorithm-communication/messages');
 const jobConsumer = require('../lib/consumer/JobConsumer');
-const { workerStates } = require('../lib/consts/states');
-const { stateEvents } = require('../lib/consts/events');
-const { EventMessages } = require('../lib/consts/index');
+const { workerStates, stateEvents, EventMessages } = require('../lib/consts');
 
 let workerCommunication;
 let stateManager;
@@ -130,14 +128,14 @@ describe('worker SubPipeline test', () => {
             warnOnUnregistered: false,
             useCleanCache: true
         });
-        mockery.registerSubstitute('./loopbackWorkerCommunication', process.cwd() + '/test/mocks/algorunner-mock.js');
+        mockery.registerSubstitute('./loopback', process.cwd() + '/test/mocks/algorunner-mock.js');
         mockery.registerSubstitute('../helpers/api-server-client', process.cwd() + '/test/mocks/api-server-mock.js');
         mockery.registerSubstitute('./states/stateManager', process.cwd() + '/test/mocks/stateManager.js');
         mockery.registerSubstitute('../states/stateManager', process.cwd() + '/test/mocks/stateManager.js'); // from subpipeline.js
 
 
         const bootstrap = require('../bootstrap');
-        workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
+        workerCommunication = require('../lib/algorithm-communication/workerCommunication');
         stateManager = require('./mocks/stateManager');
         await storageManager.init(main, true);
         await bootstrap.init();

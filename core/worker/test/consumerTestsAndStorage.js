@@ -3,14 +3,14 @@ const Consumer = require('../lib/consumer/JobConsumer');
 const { Producer } = require('@hkube/producer-consumer');
 const stateManager = require('../lib/states/stateManager.js');
 const { expect } = require('chai');
-const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
+const workerCommunication = require('../lib/algorithm-communication/workerCommunication');
 const worker = require('../lib/worker');
 const uuid = require('uuid/v4');
-const { workerStates } = require('../lib/consts/states');
+const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
 
-
 let consumer, producer;
+
 function getConfig() {
     const jobId = 'jobId:' + uuid();
     const taskId = 'taskId:' + uuid();

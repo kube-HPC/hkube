@@ -11,7 +11,8 @@ const Components = {
     ETCD: 'Etcd',
     WORKER: 'Worker',
     SUB_PIPELINE: 'SubPipeline',
-    JOB_PROVIDER: 'JobProvider'
+    JOB_PROVIDER: 'JobProvider',
+    K8S: 'k8s'
 };
 
 module.exports = Components;

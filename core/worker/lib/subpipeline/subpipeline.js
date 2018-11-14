@@ -1,22 +1,20 @@
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
-const algoRunnerCommunication = require('../algorunnerCommunication/workerCommunication');
+const algoRunnerCommunication = require('../algorithm-communication/workerCommunication');
 const discovery = require('../states/discovery');
-const messages = require('../algorunnerCommunication/messages');
-const component = require('../../lib/consts/componentNames').WORKER;
-const { Status, EventMessages, ApiServerPostTypes } = require('../consts/index');
+const messages = require('../algorithm-communication/messages');
+const { Status, EventMessages, ApiServerPostTypes, workerStates, stateEvents, Components } = require('../consts');
 const apiServerClient = require('../helpers/api-server-client');
 const jobConsumer = require('../consumer/JobConsumer');
 const stateManager = require('../states/stateManager');
-const { workerStates } = require('../../lib/consts/states');
-const { stateEvents } = require('../../lib/consts/events');
 
+const component = Components.WORKER;
 let log;
 
 class SubPipelineHandler {
     init() {
         log = Logger.GetLogFromContainer();
-        // subpipeline IDs mapping: jobId => internal alg subpipeline Id       
+        // subpipeline IDs mapping: jobId => internal alg subpipeline Id
         this._jobId2InternalIdMap = new Map();
 
         this._registerToEtcdEvents();
@@ -97,7 +95,7 @@ class SubPipelineHandler {
 
     /**
      * Delete jobId/subPipelineId mapping and unwatch subpipeline job results.
-     * @param {object} result 
+     * @param {object} result
      * @returns {string} alg subPipelineId (correlates to result.jobId)
      */
     _getAndCleanAlgSubPipelineId(result) {
@@ -116,7 +114,7 @@ class SubPipelineHandler {
 
     /**
      * Unwatch subPipeline job results
-     * @param {string} subPipelineJobId 
+     * @param {string} subPipelineJobId
      */
     async unwatchJobResults(subPipelineJobId) {
         try {
@@ -129,7 +127,7 @@ class SubPipelineHandler {
 
     /**
      * Ensure worker is in 'working' state
-     * @param {string} subPipelineId 
+     * @param {string} subPipelineId
      * @param {string} operation operation for which this validation is requested
      * @param {boolean} doSendSubPipelineError if true send subPipelineError to alg
      * @returns true if in 'working' state, else false
@@ -148,8 +146,8 @@ class SubPipelineHandler {
 
     /**
      * Handle subPipeline completed
-     * @param {object} result 
-     * @param {string} subPipelineId 
+     * @param {object} result
+     * @param {string} subPipelineId
      */
     async _handleSubPipelineCompleted(result, subPipelineId) {
         if (!this._validateWorkingState(subPipelineId, 'send subPipelineDone', false)) {
@@ -177,8 +175,8 @@ class SubPipelineHandler {
 
     /**
      * Handle subPipeline stopped
-     * @param {object} result 
-     * @param {string} subPipelineId 
+     * @param {object} result
+     * @param {string} subPipelineId
      */
     _handleSubPipelineStopped(result, subPipelineId) {
         log.warning(`SubPipeline alg ${subPipelineId} stopped, send subPipelineStopped to alg`, { component });
@@ -211,7 +209,7 @@ class SubPipelineHandler {
 
     /**
      * Handle algorithm request to stop a sub pipeline.
-     * @param {object} message 
+     * @param {object} message
      */
     _handleStopSubPipeline(message) {
         const data = message && message.data;
@@ -296,8 +294,8 @@ class SubPipelineHandler {
 
     /**
      * Stop a single subPipeline
-     * @param {string} subPipelineJobId 
-     * @param {string} reason 
+     * @param {string} subPipelineJobId
+     * @param {string} reason
      */
     async _stopSubPipeline(subPipelineJobId, reason) {
         try {
@@ -325,7 +323,7 @@ class SubPipelineHandler {
 
     /**
      * Get subPipeline jobId by alg subPipelineId
-     * @param {*} algSubPipelineId 
+     * @param {*} algSubPipelineId
      */
     getSubPipelineJobId(algSubPipelineId) {
         const jobId = ([...this._jobId2InternalIdMap].find(([, v]) => v === algSubPipelineId) || [])[0];

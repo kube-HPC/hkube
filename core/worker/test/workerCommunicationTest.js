@@ -1,16 +1,16 @@
 const bootstrap = require('../bootstrap');
 const stateManager = require('../lib/states/stateManager');
 global.stateManager = stateManager;
-const messages = require('../lib/algorunnerCommunication/messages');
+const messages = require('../lib/algorithm-communication/messages');
 const { expect } = require('chai');
 const sinon = require('sinon');
-const workerCommunication = require('../lib/algorunnerCommunication/workerCommunication');
+const workerCommunication = require('../lib/algorithm-communication/workerCommunication');
 const config = {
     workerCommunication:
-        {
-            adapterName: 'loopback',
-            config: {}
-        }
+    {
+        adapterName: 'loopback',
+        config: {}
+    }
 };
 describe('worker communication', () => {
     before(async () => {
@@ -19,7 +19,7 @@ describe('worker communication', () => {
     });
     it('should create loopback adapter', async () => {
         await workerCommunication.init(config);
-        expect(workerCommunication.adapter.constructor.name).to.equal('LoopbackWorkerCommunication');
+        expect(workerCommunication.adapter.constructor.name).to.equal('Loopback');
     });
     it('should pass events', async () => {
         const spy = sinon.spy();

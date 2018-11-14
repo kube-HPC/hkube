@@ -1,14 +1,15 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
-let log;
 const djsv = require('djsv');
-const schema = require('./workerCommunicationConfigSchema').workerCommunicationSchema;
-const wsAdapter = require('./wsWorkerCommunication');
-const socketAdapter = require('./socketWorkerCommunication');
-const loopbackAdapter = require('./loopbackWorkerCommunication');
+const schema = require('./schema').workerCommunicationSchema;
+const wsAdapter = require('./ws');
+const socketAdapter = require('./socket-io');
+const loopbackAdapter = require('./loopback');
 const { adapters } = require('./consts');
 const messages = require('./messages');
-const components = require('../../lib/consts/componentNames');
+const component = require('../../lib/consts').Components.COMMUNICATIONS;
+
+let log;
 
 class WorkerCommunication extends EventEmitter {
     constructor() {
@@ -21,14 +22,14 @@ class WorkerCommunication extends EventEmitter {
         this.adapter = null;
     }
 
-    async init(options) {
+    async init(option) {
         if (this.adapter) {
             this.adapter.removeAllListeners();
             this.adapter = null;
             this.removeAllListeners();
         }
         log = Logger.GetLogFromContainer();
-        options = options || {};
+        const options = option || {};
         const validator = djsv(schema);
         const validatedOptions = validator(options.workerCommunication);
         if (validatedOptions.valid) {
@@ -41,13 +42,13 @@ class WorkerCommunication extends EventEmitter {
         if (!AdapterClass) {
             throw new Error(`Invalid worker communication adapter ${this._options.adapterName}`);
         }
-        log.info(`Creating communication object of type: ${this._options.adapterName}`, { component: components.COMMUNICATIONS });
+        log.info(`Creating communication object of type: ${this._options.adapterName}`, { component });
         this.adapter = new AdapterClass();
         // forwardEmitter(this.adapter, this);
         Object.entries({ ...messages.incomming, connection: 'connection', disconnect: 'disconnect' }).forEach(([name, topic]) => {
-            log.debug(`workerCommunication registering for topic (${name})=>${topic}`, { component: components.COMMUNICATIONS });
+            log.debug(`workerCommunication registering for topic (${name})=>${topic}`, { component });
             this.adapter.on(topic, (message) => {
-                log.debug(`workerCommunication got message on topic (${name})=>${topic}, command: ${message && message.command}`, { component: components.COMMUNICATIONS });
+                log.debug(`workerCommunication got message on topic (${name})=>${topic}, command: ${message && message.command}`, { component });
                 this.emit(topic, message);
             });
         });
@@ -55,8 +56,7 @@ class WorkerCommunication extends EventEmitter {
     }
 
     /**
-     * 
-     * 
+     *
      * @param {any} message the message to send to the algoRunner.
      * @param {string} message.command the command for the runner. one of messages.outgoing
      * @param {object} message.data the data for the command

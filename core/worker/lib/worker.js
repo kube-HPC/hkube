@@ -1,17 +1,15 @@
 const Logger = require('@hkube/logger');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
-const algoRunnerCommunication = require('./algorunnerCommunication/workerCommunication');
+const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
-const { stateEvents } = require('../lib/consts/events');
-const { workerStates, workerCommands } = require('../lib/consts/states');
+const { stateEvents, EventMessages, workerStates, workerCommands, Components } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
-const messages = require('./algorunnerCommunication/messages');
-const component = require('../lib/consts/componentNames').WORKER;
-const { EventMessages } = require('./consts/index');
+const messages = require('./algorithm-communication/messages');
 
-let log;
+const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
+let log;
 
 class Worker {
     constructor() {
@@ -108,7 +106,7 @@ class Worker {
             }
         });
         algoRunnerCommunication.on(messages.incomming.error, (message) => {
-            log.error('got error from algorithm. Error: ' + JSON.stringify(message, 2, null), { component });
+            log.error(`got error from algorithm. Error: ${JSON.stringify(message, 2, null)}`, { component });
             stateManager.done(message);
         });
     }

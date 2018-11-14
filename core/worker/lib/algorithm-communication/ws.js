@@ -1,14 +1,14 @@
 const EventEmitter = require('events');
 const http = require('http');
-const socketio = require('socket.io');
+const WebSocket = require('ws');
 const Logger = require('@hkube/logger');
 const djsv = require('djsv');
-const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
-const messages = require('./messages');
-const components = require('../../lib/consts/componentNames');
+const schema = require('./schema').socketWorkerCommunicationSchema;
+const component = require('../consts').Components.COMMUNICATIONS;
+
 let log;
 
-class SocketWorkerCommunication extends EventEmitter {
+class WsWorkerCommunication extends EventEmitter {
     constructor() {
         super();
         this._options = null;
@@ -16,11 +16,11 @@ class SocketWorkerCommunication extends EventEmitter {
         this._socket = null;
     }
 
-    init(options) {
+    init(option) {
         log = Logger.GetLogFromContainer();
         return new Promise((resolve, reject) => { // eslint-disable-line consistent-return
             try {
-                options = options || {};
+                const options = option || {};
                 const validator = djsv(schema);
                 const validatedOptions = validator(options);
                 if (validatedOptions.valid) {
@@ -30,11 +30,18 @@ class SocketWorkerCommunication extends EventEmitter {
                     return reject(new Error(validatedOptions.errors[0]));
                 }
                 const server = this._options.httpServer || http.createServer();
-                this._socketServer = socketio.listen(server, { pingTimeout: this._options.pingTimeout });
+                this._socketServer = new WebSocket.Server({ server });
+
                 this._socketServer.on('connection', (socket) => {
-                    log.info('Connected!!!', { component: components.COMMUNICATIONS });
+                    log.info('Connected!!!', { component });
                     this._registerSocketMessages(socket);
                     this.emit('connection');
+                });
+                this._socketServer.on('error', (error) => {
+                    log.error(`error ${error}`, { component });
+                });
+                this._socketServer.on('listening', () => {
+                    log.debug('listening', { component });
                 });
                 if (!this._options.httpServer) {
                     server.listen(this._options.connection.port, () => {
@@ -50,25 +57,21 @@ class SocketWorkerCommunication extends EventEmitter {
 
     _registerSocketMessages(socket) {
         this._socket = socket;
-        Object.values(messages.incomming).forEach((topic) => {
-            log.debug(`registering for topic ${topic}`, { component: components.COMMUNICATIONS });
-
-            socket.on(topic, (message) => {
-                log.debug(`got message on topic ${topic}, command: ${message && message.command}`, { component: components.COMMUNICATIONS });
-                this.emit(topic, message);
-            });
+        socket.on('message', (data) => {
+            const payload = JSON.parse(data);
+            log.debug(`got message ${payload.command}`, { component });
+            this.emit(payload.command, payload);
         });
         socket.on('disconnect', () => {
-            log.debug('socket disconnected', { component: components.COMMUNICATIONS });
+            log.debug('socket disconnected', { component });
             this._socket = null;
             this.emit('disconnect');
         });
-        log.debug('finish _registerSocketMessages', { component: components.COMMUNICATIONS });
+        log.debug('finish _registerSocketMessages', { component });
     }
 
     /**
-     * 
-     * 
+     *
      * @param {any} message the message to send to the algoRunner.
      * @param {string} message.command the command for the runner. one of messages.outgoing
      * @param {object} message.data the data for the command
@@ -77,11 +80,11 @@ class SocketWorkerCommunication extends EventEmitter {
     send(message) {
         if (!this._socket) {
             const error = new Error('trying to send without a connected socket');
-            log.error(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component: components.COMMUNICATIONS }, error);
+            log.error(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
-        this._socket.emit(message.command, message);
+        this._socket.send(JSON.stringify(message));
     }
 }
 
-module.exports = SocketWorkerCommunication;
+module.exports = WsWorkerCommunication;

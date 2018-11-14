@@ -4,7 +4,4 @@ const EventMessages = {
     STOP: 'stop'
 };
 
-
-module.exports = {
-    EventMessages
-};
+module.exports = EventMessages;

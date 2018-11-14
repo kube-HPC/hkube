@@ -1,17 +1,17 @@
 const EventEmitter = require('events');
 const djsv = require('djsv');
-const schema = require('./workerCommunicationConfigSchema').socketWorkerCommunicationSchema;
+const schema = require('./schema').socketWorkerCommunicationSchema;
 const messages = require('./messages');
 
-class LoopbackWorkerCommunication extends EventEmitter {
+class Loopback extends EventEmitter {
     constructor() {
         super();
         this._options = null;
         this.LastInput = null;
     }
 
-    async init(options) {
-        options = options || {};
+    async init(option) {
+        const options = option || {};
         const validator = djsv(schema);
         const validatadOptions = validator(options);
         if (validatadOptions.valid) {
@@ -64,4 +64,4 @@ class LoopbackWorkerCommunication extends EventEmitter {
     }
 }
 
-module.exports = LoopbackWorkerCommunication;
+module.exports = Loopback;

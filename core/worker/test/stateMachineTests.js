@@ -2,15 +2,13 @@ const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
 const stateMachine = require('../lib/states/stateManager');
-const { stateEvents } = require('../lib/consts/events');
+const { stateEvents, workerStates } = require('../lib/consts');
 const delay = require('await-delay');
-const { workerStates } = require('../lib/consts/states');
 const { expect } = require('chai');
 const sinon = require('sinon');
 const bootstrap = require('../bootstrap');
 const Etcd = require('@hkube/etcd');
 const jobConsumer = require('../lib/consumer/JobConsumer');
-let log;
 let etcd;
 
 describe('state machine', () => {

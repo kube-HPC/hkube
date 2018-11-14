@@ -3,7 +3,7 @@ const vm = require('vm');
 const { JobResult } = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const discovery = require('../../lib/states/discovery');
-const { Status, ApiServerPostTypes } = require('../../lib/consts/index');
+const { Status, ApiServerPostTypes } = require('../../lib/consts');
 const EventEmitter = require('events');
 
 class ApiServerClientMock extends EventEmitter {

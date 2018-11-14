@@ -1,8 +1,8 @@
 const request = require('request-promise');
 const Logger = require('@hkube/logger');
-const { ApiServerPostTypes } = require('../consts/index');
-let log;
+const { ApiServerPostTypes } = require('../consts');
 
+let log;
 const HTTP_POST = 'POST';
 
 class ApiServerClient {
@@ -28,7 +28,7 @@ class ApiServerClient {
 
     /**
      * Post stop request for subpipeline jobId in ApiServer
-     * @param {string} jobId 
+     * @param {string} jobId
      * @param {string} reason
      */
     postStopSubPipeline(jobId, reason) {
@@ -40,8 +40,8 @@ class ApiServerClient {
 
     /**
      * Send a post request to ApiServer
-     * @param {object} body 
-     * @param {string} apiUrl 
+     * @param {object} body
+     * @param {string} apiUrl
      * @throws {object} error
      */
     async _postRequest(body, apiUrl) {

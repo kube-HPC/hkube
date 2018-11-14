@@ -1,4 +1,5 @@
 const { adapters } = require('./consts');
+
 const loopbackWorkerCommunicationSchema = {
     type: 'object',
     properties: {

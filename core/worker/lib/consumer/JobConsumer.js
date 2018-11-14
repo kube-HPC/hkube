@@ -6,13 +6,14 @@ const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames } = require('../consts/metricsNames');
-const component = require('../consts/componentNames').CONSUMER;
+const { metricsNames, Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
 const formatter = require('../helpers/formatters');
+
 const { MetadataPlugin } = Logger;
+const component = Components.CONSUMER;
 let log;
 
 class JobConsumer extends EventEmitter {
@@ -301,7 +302,8 @@ class JobConsumer extends EventEmitter {
         });
     }
 
-    async _putResult(data) {
+    async _putResult(result) {
+        let data = result;
         let storageLink = null;
         let storageError = null;
         let span;
