@@ -75,6 +75,10 @@ config.s3 = {
     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
 };
 
+config.fs = {
+    baseDirectory: process.env.FS_DIRECTORY || '/var/tmp/fs/storage'
+};
+
 config.storageAdapters = {
     s3: {
         connection: config.s3,
@@ -87,6 +91,10 @@ config.storageAdapters = {
     redis: {
         connection: config.redis,
         moduleName: process.env.STORAGE_MODULE || '@hkube/redis-storage-adapter'
+    },
+    fs: {
+        connection: config.fs,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
 

@@ -145,7 +145,7 @@ class ApiValidator {
                             links.push({ source: nd.nodeName, target: node.nodeName });
                         }
                         else {
-                            // throw new InvalidDataError(`node ${node.nodeName} is depend on ${n.nodeName} which is not exists`);
+                            throw new InvalidDataError(`node ${node.nodeName} is depend on ${n.nodeName} which is not exists`);
                         }
                     });
                 });

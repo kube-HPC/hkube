@@ -1,11 +1,11 @@
 const { expect } = require('chai');
 const uuidv4 = require('uuid/v4');
 const request = require('request');
+const storageManager = require('@hkube/storage-manager');
 const querystring = require('querystring');
 const clone = require('clone');
 const bootstrap = require('../bootstrap');
 const stateManager = require('../lib/state/state-manager');
-const storageFactory = require('../lib/datastore/storage-factory');
 const { algorithms, pipelines, triggersTree, webhookStub, workerStub } = require('./mocks');
 const converter = require('@hkube/units-converter');
 let config;
@@ -2082,7 +2082,7 @@ describe('Rest', () => {
                                 data: [{ res1: 400 }, { res2: 500 }]
                             }
                             await stateManager.setJobStatus(results);
-                            let link = await storageFactory.adapter.putResults({ jobId, data: results.data })
+                            let link = await storageManager.putResults({ jobId, data: results.data })
                             results.data = {};
                             results.data.storageInfo = link;
                             await stateManager.setJobResults(results);
@@ -2170,7 +2170,7 @@ describe('Rest', () => {
                             data: [{ res1: 400 }, { res2: 500 }]
                         }
                         await stateManager.setJobStatus(results);
-                        let link = await storageFactory.adapter.putResults({ jobId, data: results.data })
+                        let link = await storageManager.putResults({ jobId, data: results.data })
                         results.data = {};
                         results.data.storageInfo = link;
                         await stateManager.setJobResults(results);
@@ -2197,7 +2197,6 @@ describe('Rest', () => {
                         let jobId = null;
                         webhookStub.on('progress', async (request) => {
                             if (request.body.jobId === jobId) {
-                                expect(request.body).to.have.property('data');
                                 expect(request.body).to.have.property('jobId');
                                 expect(request.body).to.have.property('status');
                                 expect(request.body).to.have.property('timestamp');

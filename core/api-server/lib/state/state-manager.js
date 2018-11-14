@@ -1,8 +1,8 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
+const storageManager = require('@hkube/storage-manager');
 const { JobStatus, JobResult, Webhook } = require('@hkube/etcd');
 const States = require('./States');
-const storageFactory = require('../datastore/storage-factory');
 
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
 const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
@@ -114,12 +114,12 @@ class StateManager extends EventEmitter {
 
     async getJobResult(options) {
         const result = await this._etcd.jobResults.get(options);
-        return storageFactory.getResults(result);
+        return storageManager.get(result);
     }
 
     async getJobResults(options) {
         const list = await this._etcd.jobResults.list(options);
-        return Promise.all(list.map(r => storageFactory.getResults(r)));
+        return Promise.all(list.map(r => storageManager.get(r)));
     }
 
     setJobResults(options) {

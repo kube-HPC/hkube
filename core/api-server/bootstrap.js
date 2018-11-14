@@ -2,13 +2,13 @@ const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { tracer, metrics } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
+const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts/componentNames').MAIN;
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
 const modules = [
     require('./api/rest-api/app-server'),
-    require('./lib/datastore/storage-factory'),
     require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
     require('./lib/examples/pipelines-updater'),
@@ -28,7 +28,7 @@ class Bootstrap {
                 log.error(data.error.message, { component });
             });
             await monitor.check(main.redis);
-
+            await storageManager.init(main, true);
             await metrics.init(main.metrics);
             if (main.tracer) {
                 await tracer.init(main.tracer);

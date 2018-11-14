@@ -1,5 +1,5 @@
 const stateManager = require('../../lib/state/state-manager');
-const storageFactory = require('../../lib/datastore/storage-factory');
+const storageManager = require('@hkube/storage-manager');
 
 class WorkerStub {
 
@@ -12,7 +12,7 @@ class WorkerStub {
         }
         await stateManager.setJobStatus(results);
         results.data = {};
-        results.data.storageInfo = await storageFactory.adapter.putResults({ jobId: results.jobId, data });
+        results.data.storageInfo = await storageManager.putResults({ jobId: results.jobId, data });
         await stateManager.setJobResults(results);
     }
 }

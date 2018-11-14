@@ -2,8 +2,8 @@ const request = require('requestretry');
 const { metrics, utils } = require('@hkube/metrics');
 const levels = require('@hkube/logger').Levels;
 const log = require('@hkube/logger').GetLogFromContainer();
+const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
-const storageFactory = require('../datastore/storage-factory');
 const component = require('../../lib/consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
 const { metricsNames } = require('../../lib/consts/metricsNames');
@@ -46,7 +46,7 @@ class WebhooksHandler {
         const { jobId } = payload;
         const pipeline = await stateManager.getExecution({ jobId });
 
-        if (pipeline.webhooks && pipeline.webhooks.progress) {
+        if (pipeline && pipeline.webhooks && pipeline.webhooks.progress) {
             const progressLevel = pipeline.options.progressVerbosityLevel.toUpperCase();
             const payloadLevel = payload.level.toUpperCase();
             const clientLevel = levels[progressLevel].level;
@@ -75,7 +75,7 @@ class WebhooksHandler {
             }
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
-            const payloadData = await storageFactory.getResults(payload);
+            const payloadData = await storageManager.get(payload);
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.setWebhook({ jobId, type: Types.RESULT, data: result });
         }
