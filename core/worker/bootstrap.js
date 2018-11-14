@@ -4,12 +4,12 @@ const Logger = require('@hkube/logger');
 const { VerbosityPlugin } = require('@hkube/logger');
 const { tracer, metrics } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
+const storageManager = require('@hkube/storage-manager');
 const componentName = require('./lib/consts/componentNames');
 let log;
 const worker = require('./lib/worker');
 
 const modules = [
-    './lib/helpers/datastoreHelper.js',
     './lib/states/stateManager.js',
     './lib/states/discovery.js',
     './lib/algorunnerCommunication/workerCommunication.js',
@@ -39,6 +39,7 @@ class Bootstrap {
             await monitor.check(main.redis);
             await metrics.init(main.metrics);
             await tracer.init(main.tracer);
+            await storageManager.init(main);
             worker.preInit();
             for (const m of modules) {             // eslint-disable-line
                 await require(m).init(main, log);  // eslint-disable-line

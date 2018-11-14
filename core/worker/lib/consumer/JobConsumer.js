@@ -2,12 +2,12 @@ const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
+const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
 const { metricsNames } = require('../consts/metricsNames');
 const component = require('../consts/componentNames').CONSUMER;
-const datastoreHelper = require('../helpers/datastoreHelper');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
@@ -21,7 +21,6 @@ class JobConsumer extends EventEmitter {
         this._consumer = null;
         this._options = null;
         this._job = null;
-        this._storageAdapter = null;
         this._jobId = undefined;
         this._taskId = undefined;
         this._pipelineName = undefined;
@@ -40,7 +39,6 @@ class JobConsumer extends EventEmitter {
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
-        this._storageAdapter = datastoreHelper.getAdapter();
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;
@@ -229,7 +227,7 @@ class JobConsumer extends EventEmitter {
 
     async _tryExtractDataFromStorage(jobInfo) {
         try {
-            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, this._storageAdapter);
+            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage);
             return { data: { ...jobInfo, input } };
         }
         catch (error) {
@@ -319,7 +317,7 @@ class JobConsumer extends EventEmitter {
             if (data === undefined) {
                 data = null;
             }
-            const storageInfo = await this._storageAdapter.put({
+            const storageInfo = await storageManager.put({
                 jobId: this._job.data.jobId, taskId: this._job.data.taskId, data
             });
             const object = { [this._job.data.nodeName]: data };

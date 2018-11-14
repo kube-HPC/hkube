@@ -1,6 +1,6 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const datastoreFactory = require('../lib/helpers/datastoreHelper');
+const storageManager = require('@hkube/storage-manager');
 const stateMachine = require('../lib/states/stateManager');
 const { stateEvents } = require('../lib/consts/events');
 const delay = require('await-delay');
@@ -16,7 +16,7 @@ let etcd;
 describe('state machine', () => {
     before(async () => {
         const { main, logger } = await configIt.load();
-        await datastoreFactory.init(main, null, true);
+        await storageManager.init(main, true);
         await bootstrap.init();
         log = new Logger(main.serviceName, logger);
         etcd = new Etcd();

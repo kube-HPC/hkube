@@ -1,11 +1,11 @@
 const configIt = require('@hkube/config');
 const bootstrap = require('../bootstrap');
 const config = configIt.load().main;
-const datastoreFactory = require('../lib/helpers/datastoreHelper');
+const storageManager = require('@hkube/storage-manager');
 
 describe('bootstrap', () => {
     it('should init without error', async () => {
-        await datastoreFactory.init(config, null, true);
+        await storageManager.init(config, true);
         await bootstrap.init();
     }).timeout(5000);
 });

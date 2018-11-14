@@ -1,7 +1,7 @@
 const Logger = require('@hkube/logger');
+const storageManager = require('@hkube/storage-manager');
 const algoRunnerCommunication = require('../algorunnerCommunication/workerCommunication');
 const discovery = require('../states/discovery');
-const storageFactory = require('../helpers/datastoreHelper');
 const messages = require('../algorunnerCommunication/messages');
 const component = require('../../lib/consts/componentNames').WORKER;
 const { Status, EventMessages, ApiServerPostTypes } = require('../consts/index');
@@ -156,7 +156,7 @@ class SubPipelineHandler {
             return;
         }
         // get subpipeline results from storage
-        const { data, error } = await storageFactory.getResults(result);
+        const { data, error } = await storageManager.get(result);
         if (error) {
             this._handleJobError(error.message, subPipelineId);
             return;

@@ -1,7 +1,7 @@
 const uuidv4 = require('uuid/v4');
 const vm = require('vm');
 const { JobResult } = require('@hkube/etcd');
-const storageFactory = require('../../lib/helpers/datastoreHelper');
+const storageManager = require('@hkube/storage-manager');
 const discovery = require('../../lib/states/discovery');
 const { Status, ApiServerPostTypes } = require('../../lib/consts/index');
 const EventEmitter = require('events');
@@ -75,7 +75,7 @@ class ApiServerClientMock extends EventEmitter {
 
     async _storeDone(jobId, output) {
         const results = [{ result: output }];
-        const storageInfo = await storageFactory.getAdapter().putResults({ jobId, data: results });
+        const storageInfo = await storageManager.putResults({ jobId, data: results });
         const options = {
             jobId,
             data: { storageInfo },

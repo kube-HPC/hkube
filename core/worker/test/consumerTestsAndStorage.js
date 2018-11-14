@@ -7,10 +7,10 @@ const workerCommunication = require('../lib/algorunnerCommunication/workerCommun
 const worker = require('../lib/worker');
 const uuid = require('uuid/v4');
 const { workerStates } = require('../lib/consts/states');
-const datastoreHelper = require('../lib/helpers/datastoreHelper');
+const storageManager = require('@hkube/storage-manager');
 
 
-let consumer, producer, storageAdapter;
+let consumer, producer;
 function getConfig() {
     const jobId = 'jobId:' + uuid();
     const taskId = 'taskId:' + uuid();
@@ -57,14 +57,13 @@ function getConfig() {
 describe('consumer tests', () => {
     beforeEach(async () => {
         let config = getConfig();
-        await datastoreHelper.init(config, null, true);
+        await storageManager.init(config, true);
         await bootstrap.init();
         consumer = Consumer;
-        storageAdapter = datastoreHelper.getAdapter();
     });
     it('store data and validate result from algorithm', (done) => {
         let config = getConfig();
-        storageAdapter.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then((link) => {
+        storageManager.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then((link) => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     producer = new Producer(config.jobConsumer);
@@ -98,7 +97,7 @@ describe('consumer tests', () => {
                 workerCommunication.adapter.start();
             })
         });
-    });
+    }).timeout(5000);
     it('received array with null from algorithm', (done) => {
         let config = getConfig();
         consumer.init(config).then(() => {
@@ -200,7 +199,7 @@ describe('consumer tests', () => {
     });
     it('get input from storage and send to algorithm', (done) => {
         let config = getConfig();
-        storageAdapter.put({ jobId: config.jobId, taskId: config.taskId, data: 'test' }).then((link) => {
+        storageManager.put({ jobId: config.jobId, taskId: config.taskId, data: 'test' }).then((link) => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     producer = new Producer(config.jobConsumer);
