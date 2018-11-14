@@ -3,6 +3,7 @@ const Etcd = require('@hkube/etcd');
 const { JobStatus, JobResult, Webhook } = require('@hkube/etcd');
 const States = require('./States');
 const storageFactory = require('../datastore/storage-factory');
+
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
 const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
 

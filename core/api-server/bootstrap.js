@@ -48,30 +48,31 @@ class Bootstrap {
             log.error(error);
         }
         else {
-            console.error(error.message); // eslint-disable-line
-            console.error(error); // eslint-disable-line
+            console.error(error.message);
+            console.error(error);
         }
         process.exit(1);
     }
 
     _handleErrors() {
         process.on('exit', (code) => {
-            log.info('exit' + (code ? ' code ' + code : ''), { component });
+            log.info(`exit code ${code}`, { component });
         });
         process.on('SIGINT', () => {
             log.info('SIGINT', { component });
-            process.exit(1);
+            process.exit(0);
         });
         process.on('SIGTERM', () => {
             log.info('SIGTERM', { component });
-            process.exit(1);
+            process.exit(0);
         });
         process.on('unhandledRejection', (error) => {
-            log.error('unhandledRejection: ' + error.message, { component }, error);
-            log.error(error, { component });
+            log.error(`unhandledRejection: ${error.message}`, { component }, error);
+            process.exit(1);
         });
         process.on('uncaughtException', (error) => {
-            log.error('uncaughtException: ' + error.message, { component }, error);
+            log.error(`uncaughtException: ${error.message}`, { component }, error);
+            log.error(error);
             process.exit(1);
         });
     }

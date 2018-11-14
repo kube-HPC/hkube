@@ -4,11 +4,11 @@ const { CronJob } = require('cron');
 const { Graph, alg } = require('graphlib');
 const { parser } = require('@hkube/parsers');
 const stateManager = require('../state/state-manager');
-const validator = new Validator({ useDefaults: false, coerceTypes: true });
-const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
 const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
+const validator = new Validator({ useDefaults: false, coerceTypes: true });
+const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
 const PIPELINE_NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
 const ALGORITHM_NAME_REGEX = /^[a-z0-9][-a-zA-Z0-9\\.]*[a-z0-9]$/;
@@ -98,8 +98,8 @@ class ApiValidator {
         }
     }
 
-    _validateInner(validatorInstance, schema, object, options) {
-        object = object || {};
+    _validateInner(validatorInstance, schema, obj, options) {
+        const object = obj || {};
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
             const error = validatorInstance.errorsText(validatorInstance.errors);
@@ -114,8 +114,8 @@ class ApiValidator {
         defaulter.validate(schema, object);
     }
 
-    _validateNodes(pipeline, options) {
-        options = options || {};
+    _validateNodes(pipeline, opt) {
+        const options = opt || {};
         const graph = new Graph();
         const links = [];
 
@@ -145,7 +145,7 @@ class ApiValidator {
                             links.push({ source: nd.nodeName, target: node.nodeName });
                         }
                         else {
-                            throw new InvalidDataError(`node ${node.nodeName} is depend on ${n.nodeName} which is not exists`);
+                            // throw new InvalidDataError(`node ${node.nodeName} is depend on ${n.nodeName} which is not exists`);
                         }
                     });
                 });
@@ -181,19 +181,22 @@ class ApiValidator {
     }
 
     _validateMemory(algorithm) {
-        if (!algorithm.mem) {
-            algorithm.mem = 4;
-            return;
+        let memory = algorithm.mem;
+        if (!memory) {
+            memory = 4;
         }
-        try {
-            algorithm.mem = converter.getMemoryInMi(algorithm.mem);
+        else {
+            try {
+                memory = converter.getMemoryInMi(memory);
+                if (memory < MIN_MEMORY) {
+                    throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
+                }
+            }
+            catch (ex) {
+                throw new InvalidDataError(ex.message);
+            }
         }
-        catch (ex) {
-            throw new InvalidDataError(ex.message);
-        }
-        if (algorithm.mem < MIN_MEMORY) {
-            throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
-        }
+        algorithm.mem = memory;  // eslint-disable-line
     }
 
     _validateCron(cron) {

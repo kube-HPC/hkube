@@ -28,11 +28,14 @@ class PipelinesUpdater {
             const port = process.env.WEBHOOK_STUB_UI_SERVICE_PORT || 3003;
 
             await Promise.all(pipelines.map((p) => {
-                p.webhooks = {
-                    progress: `http://${host}:${port}/webhook/progress`,
-                    result: `http://${host}:${port}/webhook/result`
+                const pipe = {
+                    ...p,
+                    webhooks: {
+                        progress: `http://${host}:${port}/webhook/progress`,
+                        result: `http://${host}:${port}/webhook/result`
+                    }
                 };
-                return pipelineStore.insertPipeline(p);
+                return pipelineStore.insertPipeline(pipe);
             }));
         }
         catch (error) { }// eslint-disable-line

@@ -1,4 +1,4 @@
-const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line
+const packageJson = require(process.cwd() + '/package.json');
 const config = {};
 config.serviceName = packageJson.name;
 

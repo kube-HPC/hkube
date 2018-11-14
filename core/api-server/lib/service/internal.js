@@ -1,5 +1,4 @@
 const uuidv4 = require('uuid/v4');
-const randString = require('crypto-random-string');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const execution = require('./execution');
@@ -12,15 +11,19 @@ class InternalService {
     }
 
     async runStoredPipeline(options) {
-        validator.validateStoredInternal(options);
-        const jobId = this._createPipelineJobID(options);
-        if (options.parentJobId) {
-            const results = await stateManager.getJobResult({ jobId: options.parentJobId });
+        let pipeline = options;
+        validator.validateStoredInternal(pipeline);
+        const jobId = this._createPipelineJobID(pipeline);
+        if (pipeline.parentJobId) {
+            const results = await stateManager.getJobResult({ jobId: pipeline.parentJobId });
             if (results && results.data) {
-                options.flowInput = results.data.map(r => r.result);
+                pipeline = {
+                    ...pipeline,
+                    flowInput: results.data.map(r => r.result)
+                };
             }
         }
-        const { parentJobId, ...option } = options;
+        const { parentJobId, ...option } = pipeline;
         return execution._runStored(option, jobId);
     }
 
@@ -33,9 +36,12 @@ class InternalService {
 
     async runRawSubPipeline(options) {
         validator.validateRawSubPipeline(options);
-        options.name = `raw-${options.name}-${randString(10)}`;
-        const jobID = this._createSubPipelineJobID(options);
-        const { jobId, taskId, ...option } = options;
+        const pipeline = {
+            ...options,
+            name: execution.createRawName(options)
+        };
+        const jobID = this._createSubPipelineJobID(pipeline);
+        const { jobId, taskId, ...option } = pipeline;
         return execution._run(option, jobID);
     }
 

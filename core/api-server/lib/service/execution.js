@@ -16,34 +16,36 @@ const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 class ExecutionService {
     /**
      * run algorithm flow
-     * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
+     * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline.
      * ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.
-   
      * pipelineRunData RunRequest an object representing all information needed for pipeline execution
      * returns pipelineExecutionStatus
-     * 
-     * @param {any} options 
-     * @returns 
-     * 
+     *
+     * @param {any} options
+     * @returns
+     *
      * @memberOf ExecutionService
      */
     async runRaw(options) {
         validator.validateRunRawPipeline(options);
-        options.name = `raw-${options.name}-${randString(10)}`;
-        return this._run(options);
+        const pipeline = {
+            ...options,
+            name: this.createRawName(options)
+        };
+        return this._run(pipeline);
     }
 
     /**
      * run algorithm flow
-     * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline. 
+     * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline.
      * ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.
      *
      * pipeline RunStoredRequest an object representing all information needed for stored pipeline execution
      * returns pipelineExecutionStatus
-     * 
-     * @param {any} options 
-     * @returns 
-     * 
+     *
+     * @param {any} options
+     * @returns
+     *
      * @memberOf ExecutionService
      */
     async runStored(options) {
@@ -61,14 +63,15 @@ class ExecutionService {
     }
 
     /**
-     * 
-     * 
-     * @param {any} pipeline 
-     * @returns 
-     * 
+     *
+     * @param {any} pipeline
+     * @returns
+     *
      * @memberOf ExecutionService
      */
-    async _run(pipeline, jobId) {
+    async _run(pipeLine, jobID) {
+        let pipeline = pipeLine;
+        let jobId = jobID;
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name });
         }
@@ -83,12 +86,15 @@ class ExecutionService {
 
         validator.addPipelineDefaults(pipeline);
         await validator.validateAlgorithmName(pipeline);
-        await this._createStorage(jobId, pipeline.name);
 
         if (pipeline.flowInput) {
             const metadata = parser.replaceFlowInput(pipeline);
             const storageInfo = await storageFactory.adapter.put({ jobId, taskId: jobId, data: pipeline.flowInput });
-            pipeline.flowInput = { metadata, storageInfo };
+            pipeline = {
+                ...pipeline,
+                flowInput: { metadata, storageInfo },
+                flowInputOrig: pipeline.flowInput
+            };
         }
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now() } });
@@ -128,10 +134,10 @@ class ExecutionService {
      *
      * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method . (optional)
      * returns List
-     * 
-     * @param {any} options 
-     * @returns 
-     * 
+     *
+     * @param {any} options
+     * @returns
+     *
      * @memberOf ExecutionService
      */
     async getJobStatus(options) {
@@ -154,14 +160,14 @@ class ExecutionService {
 
     /**
      * get run result
-     * returns result (json) for the execution of a specific pipeline run. 
+     * returns result (json) for the execution of a specific pipeline run.
      * if called before result is determined - returns error.
      * jobId String jobId to getresults for
      * returns pipelineExecutionResult
-     * 
-     * @param {any} options 
-     * @returns 
-     * 
+     *
+     * @param {any} options
+     * @returns
+     *
      * @memberOf ExecutionService
     */
     async getJobResult(options) {
@@ -242,13 +248,13 @@ class ExecutionService {
 
     /**
      * stop pipeline execution
-     * call to stop the flow execution 
+     * call to stop the flow execution
      *
      * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method .
      * reason String reason for stopping. (optional)
      * returns String
-     * @param {any} options 
-     * 
+     * @param {any} options
+     *
      * @memberOf ExecutionService
     */
     async stopJob(options) {
@@ -286,6 +292,10 @@ class ExecutionService {
             // storageFactory.adapter.delete({ jobId }),
             producer.stopJob({ jobId })
         ]);
+    }
+
+    createRawName(options) {
+        return `raw-${options.name}-${randString(10)}`;
     }
 
     _createCronJobID(options, uuid) {

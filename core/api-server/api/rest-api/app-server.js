@@ -3,19 +3,20 @@ const path = require('path');
 const RestServer = require('@hkube/rest-server');
 const Logger = require('@hkube/logger');
 const { metrics } = require('@hkube/metrics');
-const rest = new RestServer();
 const swagger = require('./swagger');
 const internal = require('./internal/index');
-const log = Logger.GetLogFromContanier();
 const component = require('../../lib/consts/componentNames').REST_API;
 const afterRequest = require('./middlewares/after-request');
+
+const log = Logger.GetLogFromContanier();
+const rest = new RestServer();
 
 class AppServer {
     init(options) {
         return new Promise((resolve, reject) => {
             rest.on('error', (data) => {
                 const { route, jobId, pipelineName } = data.res._internalMetadata || {};
-                log.error('Error response, status=' + data.status + ', message=' + data.error.message, { component, route, jobId, pipelineName });
+                log.error(`Error response, status=${data.status}, message=${data.error.message}`, { component, route, jobId, pipelineName });
             });
 
             swagger.info.version = options.version;

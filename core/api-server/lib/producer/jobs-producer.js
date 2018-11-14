@@ -2,12 +2,13 @@ const Validator = require('ajv');
 const log = require('@hkube/logger').GetLogFromContainer();
 const levels = require('@hkube/logger').Levels;
 const { tracer } = require('@hkube/metrics');
-const validator = new Validator({ useDefaults: true, coerceTypes: true });
 const { Producer, Events } = require('@hkube/producer-consumer');
 const schema = require('../../lib/producer/schema');
 const stateManager = require('../state/state-manager');
 const component = require('../../lib/consts/componentNames').JOBS_PRODUCER;
 const States = require('../state/States');
+
+const validator = new Validator({ useDefaults: true, coerceTypes: true });
 const JOB_TYPE = 'pipeline-job';
 
 class JobProducer {
