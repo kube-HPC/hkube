@@ -4,9 +4,9 @@ const stateFactory = require('./state-factory');
 const StorageFactory = require('../datastore/storage-factory');
 
 class StateManager extends EventEmitter {
-    constructor(options) {
+    constructor(option) {
         super();
-        options = options || {};
+        const options = option || {};
         this._handleEvent = this._handleEvent.bind(this);
         this.setJobStatus = this.setJobStatus.bind(this);
         this._etcd = stateFactory.getClient();

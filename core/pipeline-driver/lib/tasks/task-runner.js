@@ -13,6 +13,7 @@ const Batch = require('../nodes/node-batch');
 const Node = require('../nodes/node');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
+
 let log;
 
 class TaskRunner extends EventEmitter {
@@ -267,10 +268,13 @@ class TaskRunner extends EventEmitter {
                 tasksGraph.forEach((g) => {
                     const task = tasks.get(g.taskId);
                     if (task && task.status !== g.status) {
-                        g.result = task.result;
-                        g.status = task.status;
-                        g.error = task.error;
-                        this._handleTaskEvent(g);
+                        const t = {
+                            ...g,
+                            result: task.result,
+                            status: task.status,
+                            error: task.error
+                        };
+                        this._handleTaskEvent(t);
                     }
                 });
             }
@@ -288,6 +292,8 @@ class TaskRunner extends EventEmitter {
             };
             const result = parser.parse(parse);
             const paths = this._nodes.extractPaths(nodeName);
+
+            // console.log(JSON.stringify(parentOutput, null, 2));
 
             const options = {
                 node,

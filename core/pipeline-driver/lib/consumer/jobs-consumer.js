@@ -7,6 +7,7 @@ const TaskRunner = require('../tasks/task-runner');
 const stateFactory = require('../state/state-factory');
 const DriverStates = require('../state/DriverStates');
 const component = require('../consts/componentNames').JOBS_CONSUMER;
+
 let log;
 
 class JobConsumer {
@@ -18,9 +19,9 @@ class JobConsumer {
      * Init the consumer and register for jobs
      * @param {*} options
      */
-    init(option) {
+    init(opt) {
         log = logger.GetLogFromContainer();
-        option = option || {};
+        const option = opt || {};
         const options = {
             setting: {
                 redis: option.redis,

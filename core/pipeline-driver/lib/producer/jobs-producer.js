@@ -11,8 +11,8 @@ class JobProducer extends EventEmitter {
         this._producer = null;
     }
 
-    async init(options) {
-        options = options || {};
+    async init(option) {
+        const options = option || {};
         const setting = Object.assign({}, { redis: options.redis });
         const res = validate(schema.properties.setting, setting);
         if (!res.valid) {

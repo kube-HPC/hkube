@@ -4,6 +4,7 @@ const States = require('../state/NodeStates');
 const RedisStorage = require('./redis-storage-adapter');
 const { groupTypes } = require('../consts/graph-storage-types');
 const components = require('../consts/componentNames');
+
 const INTERVAL = 4000;
 let log;
 

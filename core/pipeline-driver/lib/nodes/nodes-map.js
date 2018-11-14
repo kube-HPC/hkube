@@ -8,9 +8,9 @@ const NodeResult = require('./node-result');
 const States = require('../state/NodeStates');
 
 /**
- * This class responsible for handling the 
+ * This class responsible for handling the
  * entire pipeline nodes data structure
- * 
+ *
  * @class NodesMap
  * @extends {EventEmitter}
  */
@@ -23,16 +23,16 @@ class NodesMap extends EventEmitter {
     }
 
     _buildGraph(options) {
-        const nodes = [];
-        options.nodes = options.nodes || [];
-        options.nodes.forEach((n) => {
+        const nodeList = [];
+        const nodes = options.nodes || [];
+        nodes.forEach((n) => {
             n.input.forEach((i) => {
                 const results = parser.extractNodesFromInput(i);
                 results.forEach((r) => {
-                    let node = nodes.find(f => f.source === r.nodeName && f.target === n.nodeName);
+                    let node = nodeList.find(f => f.source === r.nodeName && f.target === n.nodeName);
                     if (!node) {
                         node = { source: r.nodeName, target: n.nodeName, edges: [{ type: r.type }] };
-                        nodes.push(node);
+                        nodeList.push(node);
                     }
                     else {
                         node.edges.push({ type: r.type });
@@ -42,17 +42,18 @@ class NodesMap extends EventEmitter {
             this._graph.setNode(n.nodeName, new GraphNode(n));
         });
 
-        nodes.forEach((n) => {
-            const source = options.nodes.find(f => f.nodeName === n.source);
+        nodeList.forEach((n) => {
+            const source = nodes.find(f => f.nodeName === n.source);
             if (source) {
                 this._graph.setEdge(n.source, n.target, n.edges);
             }
         });
     }
 
-    _checkChildNode(source, target, index) {
+    _checkChildNode(source, target, ind) {
         let nodeResults = [];
         let completed = false;
+        let index = ind;
         const edges = this._graph.edge(source, target).map(e => e.type);
 
         if ((this._isWaitAny(edges)) && (this._isWaitNode(edges) || this._isWaitBatch(edges))) {
@@ -388,13 +389,14 @@ class NodesMap extends EventEmitter {
         calc.progress = parseFloat(((completed / nodes.length) * 100).toFixed(2));
         const statesText = groupBy.text();
         calc.states = nodes.map(n => n.status).reduce((prev, cur) => {
+            const map = prev;
             if (cur in prev) {
-                prev[cur] += 1;
+                map[cur] += 1;
             }
             else {
-                prev[cur] = 1;
+                map[cur] = 1;
             }
-            return prev;
+            return map;
         }, {});
         calc.details = `${calc.progress}% completed, ${statesText}`;
         nodesList.forEach((n) => {

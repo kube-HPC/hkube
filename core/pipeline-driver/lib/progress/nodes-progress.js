@@ -3,8 +3,8 @@ const throttle = require('lodash.throttle');
 const levels = require('@hkube/logger').Levels;
 
 class ProgressManager {
-    constructor(options) {
-        options = options || {};
+    constructor(option) {
+        const options = option || {};
         this._currentProgress = 0;
         this._calcProgress = options.calcProgress || this._defaultCalcProgress;
         this._sendProgress = options.sendProgress || this._defaultSendProgress;
