@@ -6,7 +6,8 @@
     "scripts": {
         "lint": "./node_modules/eslint/bin/eslint.js .",
         "test": "NODE_ENV=test node_modules/mocha/bin/mocha test --colors --recursive --exit",
-        "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec test --colors --recursive --exit",
+        "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha tests --colors --recursive --exit",
+        "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
         "start": "node app",
         "build": "dockerfile/build.sh worker"
     },
@@ -57,9 +58,9 @@
         "eslint-config-airbnb-base": "^13.1.0",
         "eslint-plugin-chai-friendly": "^0.4.1",
         "eslint-plugin-import": "^2.14.0",
-        "istanbul": "^0.4.5",
         "mocha": "^5.2.0",
         "mockery": "^2.1.0",
+        "nyc": "^13.1.0",
         "pre-commit": "^1.2.2",
         "sinon": "^7.1.1",
         "socket.io-client": "^2.1.1"
