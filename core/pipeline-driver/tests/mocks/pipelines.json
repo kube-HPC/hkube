@@ -547,5 +547,17 @@
             "batchTolerance": 60,
             "progressVerbosityLevel": "debug"
         }
+    },
+    {
+        "name": "one-node",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput.files.link"
+                ]
+            }
+        ]
     }
 ]

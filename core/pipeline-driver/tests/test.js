@@ -18,6 +18,7 @@ const StateManager = require('../lib/state/state-manager');
 const Progress = require('../lib/progress/nodes-progress');
 const NodesMap = require('../lib/nodes/nodes-map');
 const datastoreFactory = require('../lib/datastore/storage-factory');
+const WorkerStub = require('./mocks/worker.js');
 
 let progress, storageAdapter, taskRunner, TaskRunner, stateManager, consumer;
 const config = configIt.load().main;
@@ -373,16 +374,6 @@ describe('Test', function () {
             it('should not throw validation error', function () {
                 producer.init(null);
             });
-            xit('should throw validation error job.type should be string', function (done) {
-                const options = {
-                    taskId: null,
-                    type: null
-                }
-                producer.createJob(options).catch((error) => {
-                    expect(error.message).to.equal('data.job.type should be string');
-                    done();
-                });
-            });
         });
         describe('CreateJob', function () {
             it('should create job and return job id', function (done) {
@@ -393,6 +384,27 @@ describe('Test', function () {
                     expect(jobId).to.be.a('string');
                     done();
                 });
+            });
+            it('should create job and return job id', async function () {
+                const jobId = `jobid-${uuidv4()}`;
+                const job = {
+                    data: { jobId },
+                    done: () => { }
+                }
+                const pipeline = pipelines.find(p => p.name === 'one-node');
+                const options = {
+                    type: 'test-job'
+                }
+                const workerStub = new WorkerStub(options);
+                const taskRunner = new TaskRunner(config);
+                await stateManager.setExecution({ jobId, data: pipeline });
+                await taskRunner.start(job)
+
+                await delay(500);
+
+                const node = taskRunner._nodes.getNode('green');
+                workerStub.done(jobId, node.taskId, 'bla');
+                expect(jobId).to.be.a('string');
             });
         });
     });
@@ -423,7 +435,6 @@ describe('Test', function () {
             expect(taskRunner.pipeline.name).to.equal(pipeline.name);
         });
         it('should recover pipeline successfully', async function () {
-
         });
         it('should throw when check batch tolerance', async function () {
             const jobId = `jobid-${uuidv4()}`;

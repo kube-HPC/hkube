@@ -33,7 +33,7 @@ class StateFactory extends EventEmitter {
     }
 
     methods(options) {
-        this._discoveryMethod = options.discoveryMethod;
+        this._discoveryMethod = options.discoveryMethod || function noop() { };
     }
 
     getState() {

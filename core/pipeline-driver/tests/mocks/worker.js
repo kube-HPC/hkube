@@ -10,35 +10,32 @@ const etcdOptions = {
 const serviceName = 'worker-stub';
 
 class WorkerStub {
-
     constructor(options) {
         const setting = {
             job: {
                 type: options.type
             },
             setting: {
-                prefix: 'jobs-workers'
+                prefix: 'algorithm-queue'
             }
         };
-        this._jobId = options.jobId;
         const consumer = new Consumer(setting);
         consumer.on('job', (job) => {
             this._job = job;
         });
-
         consumer.register(setting);
-
         this._etcd = new Etcd();
         this._etcd.init({ etcd: etcdOptions, serviceName });
     }
 
-    async done(result, error) {
+    async done(jobId, taskId, result, error) {
+        await this._etcd.tasks.setState({ jobId, taskId, result: result, status: 'active' });
         if (!error) {
-            await this._etcd.tasks.setState({ jobId: this._jobId, taskId: this._job.id, result: result, status: 'completed' });
+            await this._etcd.tasks.setState({ jobId, taskId, result: result, status: 'succeed' });
             this._job.done();
         }
         else {
-            await this._etcd.tasks.setState({ jobId: this._jobId, taskId: this._job.id, error: error.message, status: 'failed' });
+            await this._etcd.tasks.setState({ jobId, taskId, error: error.message, status: 'failed' });
             this._job.done(error);
         }
     }
