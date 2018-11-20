@@ -114,12 +114,12 @@ class StateManager extends EventEmitter {
 
     async getJobResult(options) {
         const result = await this._etcd.jobResults.get(options);
-        return storageManager.get(result);
+        return this.getResultFromStorage(result);
     }
 
     async getJobResults(options) {
         const list = await this._etcd.jobResults.list(options);
-        return Promise.all(list.map(r => storageManager.get(r)));
+        return Promise.all(list.map(r => this.getResultFromStorage(r)));
     }
 
     setJobResults(options) {
@@ -164,6 +164,19 @@ class StateManager extends EventEmitter {
 
     stopJob(options) {
         return this._etcd.jobState.stop(options);
+    }
+
+    async getResultFromStorage(options) {
+        if (options && options.data && options.data.storageInfo) {
+            try {
+                const data = await storageManager.get(options.data.storageInfo);
+                return { ...options, data, storageModule: storageManager.moduleName };
+            }
+            catch (error) {
+                return { error: new Error(`failed to get from storage: ${error.message}`) };
+            }
+        }
+        return options;
     }
 }
 

@@ -8,7 +8,7 @@
     {
         "name": "green-alg",
         "algorithmImage": "hkube/algorithm-example",
-        "cpu": 2,
+        "cpu": 0.1,
         "mem": "1024Mi"
     },
     {

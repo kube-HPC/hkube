@@ -96,6 +96,7 @@ class ExecutionService {
                 flowInputOrig: pipeline.flowInput
             };
         }
+        await storageManager.putExecution({ jobId, data: pipeline, date: Date.now() });
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.INFO.name });

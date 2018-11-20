@@ -2,7 +2,6 @@ const request = require('requestretry');
 const { metrics, utils } = require('@hkube/metrics');
 const levels = require('@hkube/logger').Levels;
 const log = require('@hkube/logger').GetLogFromContainer();
-const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
 const component = require('../../lib/consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
@@ -75,7 +74,7 @@ class WebhooksHandler {
             }
         });
         if (pipeline.webhooks && pipeline.webhooks.result) {
-            const payloadData = await storageManager.get(payload);
+            const payloadData = await stateManager.getResultFromStorage(payload);
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
             await stateManager.setWebhook({ jobId, type: Types.RESULT, data: result });
         }

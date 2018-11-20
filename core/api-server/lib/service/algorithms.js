@@ -1,4 +1,5 @@
 
+const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed } = require('../errors');
@@ -90,6 +91,7 @@ class AlgorithmStore {
         if (algorithm) {
             throw new ResourceExistsError('algorithm', options.name);
         }
+        await storageManager.putStore({ type: 'algorithm', name: options.name, data: options });
         await stateManager.setAlgorithm(options);
         return options;
     }
