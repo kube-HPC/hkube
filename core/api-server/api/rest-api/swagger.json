@@ -54,13 +54,24 @@
                 ],
                 "summary": "Run raw pipeline",
                 "description": "Start pipeline execution with raw input, returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/entities/pipeline"
+                            }
+                        }
+                    },
+                    "description": "an object representing all information needed for pipeline execution",
+                    "required": true
+                },
                 "responses": {
                     "200": {
                         "description": "pipeline execution data",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/jobId"
+                                    "$ref": "#/components/schemas/responses/jobId"
                                 }
                             }
                         }
@@ -70,7 +81,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -80,22 +91,11 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
                     }
-                },
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/pipeline"
-                            }
-                        }
-                    },
-                    "description": "an object representing all information needed for pipeline execution",
-                    "required": true
                 }
             }
         },
@@ -112,7 +112,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/jobId"
+                                    "$ref": "#/components/schemas/responses/jobId"
                                 }
                             }
                         }
@@ -122,7 +122,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -132,7 +132,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -142,7 +142,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -152,7 +152,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/storedPipeline"
+                                "$ref": "#/components/schemas/entities/storedPipeline"
                             }
                         }
                     },
@@ -174,7 +174,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -184,7 +184,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -194,7 +194,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -204,7 +204,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -214,7 +214,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/stopRequest"
+                                "$ref": "#/components/schemas/requests/stopRequest"
                             }
                         }
                     },
@@ -246,7 +246,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pipeline"
+                                    "$ref": "#/components/schemas/entities/pipeline"
                                 }
                             }
                         }
@@ -256,7 +256,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -266,7 +266,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -276,7 +276,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -297,21 +297,15 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "items": {
-                                        "$ref": "#/components/schemas/pipeline"
-                                    }
+                                    "$ref": "#/components/schemas/entities/pipeline"
                                 }
                             }
                         }
                     },
                     "400": {
                         "description": "bad request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
+                        "schema": {
+                            "$ref": "#/components/schemas/responses/Error"
                         }
                     },
                     "404": {
@@ -319,7 +313,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -329,7 +323,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -361,7 +355,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pipelineResult"
+                                    "$ref": "#/components/schemas/responses/pipelineResult"
                                 }
                             }
                         }
@@ -371,7 +365,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -381,7 +375,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -391,7 +385,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -423,7 +417,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/pipelineResult"
+                                    "$ref": "#/components/schemas/responses/pipelineResult"
                                 }
                             }
                         }
@@ -433,7 +427,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -443,7 +437,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -453,7 +447,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -485,7 +479,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/execTreeResult"
+                                    "$ref": "#/components/schemas/responses/execTreeResult"
                                 }
                             }
                         }
@@ -495,7 +489,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -505,7 +499,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -515,7 +509,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -572,9 +566,8 @@
                             "application/json": {
                                 "schema": {
                                     "type": "array",
-                                    "description": "Array of nodes",
                                     "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
+                                        "$ref": "#/components/schemas/responses/pipelineResult"
                                     }
                                 }
                             }
@@ -585,7 +578,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -595,7 +588,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -605,7 +598,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -662,9 +655,8 @@
                             "application/json": {
                                 "schema": {
                                     "type": "array",
-                                    "description": "Array of nodes",
                                     "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
+                                        "$ref": "#/components/schemas/responses/pipelineResult"
                                     }
                                 }
                             }
@@ -675,7 +667,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -685,7 +677,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -695,7 +687,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -752,9 +744,8 @@
                             "application/json": {
                                 "schema": {
                                     "type": "array",
-                                    "description": "Array of nodes",
                                     "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
+                                        "$ref": "#/components/schemas/responses/pipelineResult"
                                     }
                                 }
                             }
@@ -765,7 +756,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -775,7 +766,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -785,7 +776,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -842,9 +833,8 @@
                             "application/json": {
                                 "schema": {
                                     "type": "array",
-                                    "description": "Array of nodes",
                                     "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
+                                        "$ref": "#/components/schemas/responses/pipelineResult"
                                     }
                                 }
                             }
@@ -855,7 +845,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -865,7 +855,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -875,7 +865,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -932,9 +922,8 @@
                             "application/json": {
                                 "schema": {
                                     "type": "array",
-                                    "description": "Array of nodes",
                                     "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
+                                        "$ref": "#/components/schemas/responses/pipelineResult"
                                     }
                                 }
                             }
@@ -945,7 +934,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -955,7 +944,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -965,7 +954,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1022,9 +1011,8 @@
                             "application/json": {
                                 "schema": {
                                     "type": "array",
-                                    "description": "Array of nodes",
                                     "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
+                                        "$ref": "#/components/schemas/responses/pipelineResult"
                                     }
                                 }
                             }
@@ -1035,7 +1023,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1045,7 +1033,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1055,7 +1043,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1103,9 +1091,8 @@
                             "application/json": {
                                 "schema": {
                                     "type": "array",
-                                    "description": "Array of nodes",
                                     "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
+                                        "$ref": "#/components/schemas/responses/pipelineResult"
                                     }
                                 }
                             }
@@ -1116,7 +1103,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1126,7 +1113,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1136,7 +1123,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1155,7 +1142,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/startCronRequest"
+                                "$ref": "#/components/schemas/requests/startCronRequest"
                             }
                         }
                     },
@@ -1167,11 +1154,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "description": "Array of nodes",
-                                    "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
-                                    }
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1181,7 +1164,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1191,7 +1174,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1201,7 +1184,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1220,7 +1203,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/stopCronRequest"
+                                "$ref": "#/components/schemas/requests/stopCronRequest"
                             }
                         }
                     },
@@ -1232,11 +1215,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "description": "Array of nodes",
-                                    "items": {
-                                        "$ref": "#/components/schemas/pipelineResult"
-                                    }
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1246,7 +1225,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1256,7 +1235,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1266,7 +1245,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1298,7 +1277,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/entities/algorithm"
                                 }
                             }
                         }
@@ -1308,7 +1287,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1318,7 +1297,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1328,7 +1307,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1358,7 +1337,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1368,7 +1347,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1378,7 +1357,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1388,7 +1367,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1419,7 +1398,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1429,7 +1408,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1448,7 +1427,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1458,7 +1437,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1468,7 +1447,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1478,7 +1457,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1488,7 +1467,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/algorithm"
+                                "$ref": "#/components/schemas/entities/algorithm"
                             }
                         }
                     },
@@ -1508,7 +1487,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1518,7 +1497,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1528,7 +1507,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1538,7 +1517,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/algorithm"
+                                "$ref": "#/components/schemas/entities/algorithm"
                             }
                         }
                     },
@@ -1571,7 +1550,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1581,7 +1560,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1591,7 +1570,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1601,7 +1580,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1631,7 +1610,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1641,7 +1620,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1651,7 +1630,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1661,7 +1640,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1692,7 +1671,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1702,7 +1681,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1721,7 +1700,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1731,7 +1710,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1741,7 +1720,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1751,7 +1730,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1761,7 +1740,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/pipeline"
+                                "$ref": "#/components/schemas/entities/pipeline"
                             }
                         }
                     },
@@ -1781,7 +1760,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
                                 }
                             }
                         }
@@ -1791,7 +1770,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1801,7 +1780,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1811,7 +1790,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/pipeline"
+                                "$ref": "#/components/schemas/entities/pipeline"
                             }
                         }
                     },
@@ -1844,7 +1823,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/webhookResult"
+                                    "$ref": "#/components/schemas/responses/webhookResult"
                                 }
                             }
                         }
@@ -1854,7 +1833,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1864,7 +1843,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1874,7 +1853,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1906,7 +1885,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/webhookResult"
+                                    "$ref": "#/components/schemas/responses/webhookResult"
                                 }
                             }
                         }
@@ -1916,7 +1895,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1926,7 +1905,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1936,7 +1915,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1968,7 +1947,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/webhookResult"
+                                    "$ref": "#/components/schemas/responses/webhookResult"
                                 }
                             }
                         }
@@ -1978,7 +1957,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1988,7 +1967,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1998,7 +1977,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Error"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -2009,381 +1988,387 @@
     },
     "components": {
         "schemas": {
-            "pipeline": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "$ref": "#/components/schemas/pipelineName"
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "pipeline description"
-                    },
-                    "nodes": {
-                        "type": "array",
-                        "description": "Array of nodes",
-                        "items": {
-                            "$ref": "#/components/schemas/pipelineNode"
+            "requests": {
+                "stopRequest": {
+                    "type": "object",
+                    "properties": {
+                        "jobId": {
+                            "type": "string",
+                            "description": "Unique identifier representing pipeline execution"
+                        },
+                        "reason": {
+                            "type": "string",
+                            "default": "requested by user",
+                            "description": "reason for stop pipeline"
                         }
                     },
-                    "flowInput": {
-                        "type": "object",
-                        "description": "input object"
+                    "required": [
+                        "jobId"
+                    ]
+                },
+                "startCronRequest": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "$ref": "#/components/schemas/entities/pipelineName"
+                        }
                     },
-                    "webhooks": {
-                        "$ref": "#/components/schemas/webhooks"
+                    "required": [
+                        "name"
+                    ]
+                },
+                "stopCronRequest": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "$ref": "#/components/schemas/entities/pipelineName"
+                        }
                     },
-                    "options": {
-                        "$ref": "#/components/schemas/options",
-                        "default": {}
-                    },
-                    "priority": {
-                        "$ref": "#/components/schemas/priority",
-                        "default": 3
-                    },
-                    "triggers": {
-                        "$ref": "#/components/schemas/triggers"
+                    "required": [
+                        "name"
+                    ]
+                }
+            },
+            "responses": {
+                "Error": {
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "type": "integer",
+                            "format": "int32"
+                        },
+                        "message": {
+                            "type": "string"
+                        }
                     }
                 },
-                "additionalProperties": false,
-                "required": [
-                    "name",
-                    "nodes"
-                ]
-            },
-            "algorithm": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific algorithm",
-                        "minLength": 1,
-                        "format": "algorithm-name"
+                "jobId": {
+                    "type": "object",
+                    "properties": {
+                        "jobId": {
+                            "type": "string",
+                            "description": "Unique identifier representing pipeline execution"
+                        }
                     },
-                    "algorithmImage": {
-                        "type": "string",
-                        "description": "image name as in the docker registry",
-                        "minLength": 1
-                    },
-                    "cpu": {
-                        "type": "number",
-                        "minimum": 0,
-                        "description": "algorithm cpu"
-                    },
-                    "mem": {
-                        "type": "string",
-                        "description": "algorithm memory"
-                    },
-                    "options": {
-                        "type": "object",
-                        "properties": {
-                            "debug": {
-                                "type": "boolean",
-                                "description": "debug algorithm locally",
-                                "default": false
+                    "required": [
+                        "jobId"
+                    ]
+                },
+                "defaultResponse": {
+                    "type": "object",
+                    "properties": {
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "execTreeResult": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/entities/execTreeNode"
+                    }
+                },
+                "pipelineResult": {
+                    "type": "object",
+                    "properties": {
+                        "jobId": {
+                            "type": "string"
+                        },
+                        "timestamp": {
+                            "type": "string"
+                        },
+                        "pipeline": {
+                            "type": "string"
+                        },
+                        "data": {
+                            "type": "array",
+                            "items": {}
+                        },
+                        "status": {
+                            "type": "string"
+                        },
+                        "timeTook": {
+                            "type": "number"
+                        },
+                        "storageModule": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "webhookResult": {
+                    "type": "object",
+                    "properties": {
+                        "timestamp": {
+                            "type": "string"
+                        },
+                        "url": {
+                            "type": "string"
+                        },
+                        "pipelineStatus": {
+                            "type": "string"
+                        },
+                        "responseStatus": {
+                            "type": "string"
+                        },
+                        "httpResponse": {
+                            "type": "object",
+                            "properties": {
+                                "statusCode": {
+                                    "type": "string"
+                                },
+                                "statusMessage": {
+                                    "type": "string"
+                                }
                             }
                         },
-                        "default": {}
+                        "status": {
+                            "type": "string"
+                        }
                     }
-                },
-                "required": [
-                    "name",
-                    "algorithmImage"
-                ]
+                }
             },
-            "storedPipeline": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "$ref": "#/components/schemas/pipelineName"
-                    },
-                    "flowInput": {
-                        "type": "object",
-                        "description": "input object"
-                    },
-                    "webhooks": {
-                        "$ref": "#/components/schemas/webhooks"
-                    },
-                    "options": {
-                        "$ref": "#/components/schemas/options",
-                        "default": {}
-                    },
-                    "priority": {
-                        "$ref": "#/components/schemas/priority",
-                        "default": 3
-                    },
-                    "triggers": {
-                        "$ref": "#/components/schemas/triggers"
-                    }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "name"
-                ]
-            },
-            "pipelineNode": {
-                "type": "object",
-                "properties": {
-                    "nodeName": {
-                        "type": "string",
-                        "description": "Unique node identifier",
-                        "minLength": 1
-                    },
-                    "algorithmName": {
-                        "type": "string",
-                        "description": "The name of the algorithm",
-                        "format": "algorithm-name",
-                        "minLength": 1
-                    },
-                    "input": {
-                        "type": "array",
-                        "description": "The input for the algorithm",
-                        "items": {},
-                        "default": []
-                    }
-                },
-                "required": [
-                    "nodeName",
-                    "algorithmName"
-                ]
-            },
-            "webhooks": {
-                "type": "object",
-                "properties": {
-                    "progress": {
-                        "type": "string",
-                        "format": "url",
-                        "description": "url to activate upon progress"
-                    },
-                    "result": {
-                        "type": "string",
-                        "format": "url",
-                        "description": "url to activate upon result"
-                    }
-                },
-                "additionalProperties": false
-            },
-            "triggers": {
-                "type": "object",
-                "properties": {
-                    "pipelines": {
-                        "type": "array",
-                        "description": "pipelines to activate upon result",
-                        "items": {
+            "entities": {
+                "pipeline": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "$ref": "#/components/schemas/entities/pipelineName"
+                        },
+                        "description": {
                             "type": "string",
+                            "description": "pipeline description"
+                        },
+                        "nodes": {
+                            "type": "array",
+                            "description": "Array of nodes",
+                            "items": {
+                                "$ref": "#/components/schemas/entities/pipelineNode"
+                            }
+                        },
+                        "flowInput": {
+                            "type": "object",
+                            "description": "input object"
+                        },
+                        "webhooks": {
+                            "$ref": "#/components/schemas/entities/webhooks"
+                        },
+                        "options": {
+                            "$ref": "#/components/schemas/entities/options",
+                            "default": {}
+                        },
+                        "priority": {
+                            "$ref": "#/components/schemas/entities/priority",
+                            "default": 3
+                        },
+                        "triggers": {
+                            "$ref": "#/components/schemas/entities/triggers"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "name",
+                        "nodes"
+                    ]
+                },
+                "algorithm": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific algorithm",
+                            "minLength": 1,
+                            "format": "algorithm-name"
+                        },
+                        "algorithmImage": {
+                            "type": "string",
+                            "description": "image name as in the docker registry",
                             "minLength": 1
+                        },
+                        "cpu": {
+                            "type": "number",
+                            "minimum": 0,
+                            "description": "algorithm cpu"
+                        },
+                        "mem": {
+                            "type": "string",
+                            "description": "algorithm memory"
+                        },
+                        "options": {
+                            "type": "object",
+                            "properties": {
+                                "debug": {
+                                    "type": "boolean",
+                                    "description": "debug algorithm locally",
+                                    "default": false
+                                }
+                            },
+                            "default": {}
                         }
                     },
-                    "cron": {
-                        "type": "object",
-                        "properties": {
-                            "pattern": {
+                    "required": [
+                        "name",
+                        "algorithmImage"
+                    ]
+                },
+                "storedPipeline": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "$ref": "#/components/schemas/entities/pipelineName"
+                        },
+                        "flowInput": {
+                            "type": "object",
+                            "description": "input object"
+                        },
+                        "webhooks": {
+                            "$ref": "#/components/schemas/entities/webhooks"
+                        },
+                        "options": {
+                            "$ref": "#/components/schemas/entities/options",
+                            "default": {}
+                        },
+                        "priority": {
+                            "$ref": "#/components/schemas/entities/priority",
+                            "default": 3
+                        },
+                        "triggers": {
+                            "$ref": "#/components/schemas/entities/triggers"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "name"
+                    ]
+                },
+                "pipelineNode": {
+                    "type": "object",
+                    "properties": {
+                        "nodeName": {
+                            "type": "string",
+                            "description": "Unique node identifier",
+                            "minLength": 1
+                        },
+                        "algorithmName": {
+                            "type": "string",
+                            "description": "The name of the algorithm",
+                            "format": "algorithm-name",
+                            "minLength": 1
+                        },
+                        "input": {
+                            "type": "array",
+                            "description": "The input for the algorithm",
+                            "items": {},
+                            "default": []
+                        }
+                    },
+                    "required": [
+                        "nodeName",
+                        "algorithmName"
+                    ]
+                },
+                "webhooks": {
+                    "type": "object",
+                    "properties": {
+                        "progress": {
+                            "type": "string",
+                            "format": "url",
+                            "description": "url to activate upon progress"
+                        },
+                        "result": {
+                            "type": "string",
+                            "format": "url",
+                            "description": "url to activate upon result"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "triggers": {
+                    "type": "object",
+                    "properties": {
+                        "pipelines": {
+                            "type": "array",
+                            "description": "pipelines to activate upon result",
+                            "items": {
                                 "type": "string",
-                                "description": "cron job",
-                                "minLength": 1,
-                                "format": "cron"
-                            },
-                            "enabled": {
-                                "type": "boolean",
-                                "description": "enable or disable cron job",
-                                "default": false
+                                "minLength": 1
                             }
-                        }
-                    }
-                },
-                "additionalProperties": false
-            },
-            "priority": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 5
-            },
-            "options": {
-                "type": "object",
-                "properties": {
-                    "ttl": {
-                        "type": "integer",
-                        "description": "pipeline time to live in seconds",
-                        "minimum": 1,
-                        "default": 3600
-                    },
-                    "batchTolerance": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 100,
-                        "default": 80
-                    },
-                    "progressVerbosityLevel": {
-                        "type": "string",
-                        "default": "info",
-                        "enum": [
-                            "trace",
-                            "debug",
-                            "info",
-                            "warn",
-                            "error",
-                            "critical"
-                        ]
-                    }
-                },
-                "description": "optional properties"
-            },
-            "stopRequest": {
-                "type": "object",
-                "properties": {
-                    "jobId": {
-                        "type": "string",
-                        "description": "Unique identifier representing pipeline execution"
-                    },
-                    "reason": {
-                        "type": "string",
-                        "default": "requested by user",
-                        "description": "reason for stop pipeline"
-                    }
-                },
-                "required": [
-                    "jobId"
-                ]
-            },
-            "startCronRequest": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "$ref": "#/components/schemas/pipelineName"
-                    }
-                },
-                "required": [
-                    "name"
-                ]
-            },
-            "stopCronRequest": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "$ref": "#/components/schemas/pipelineName"
-                    }
-                },
-                "required": [
-                    "name"
-                ]
-            },
-            "defaultResponse": {
-                "type": "object",
-                "properties": {
-                    "message": {
-                        "type": "string"
-                    }
-                }
-            },
-            "pipelineName": {
-                "type": "string",
-                "description": "Unique identifier representing a specific pipeline",
-                "minLength": 1,
-                "format": "pipeline-name"
-            },
-            "Error": {
-                "type": "object",
-                "properties": {
-                    "code": {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "message": {
-                        "type": "string"
-                    }
-                }
-            },
-            "jobId": {
-                "type": "object",
-                "properties": {
-                    "jobId": {
-                        "type": "string",
-                        "description": "Unique identifier representing pipeline execution"
-                    }
-                },
-                "required": [
-                    "jobId"
-                ]
-            },
-            "execTreeResult": {
-                "type": "array",
-                "items": {
-                    "$ref": "#/components/schemas/execTreeNode"
-                }
-            },
-            "execTreeNode": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "description": "Pipeline name"
-                    },
-                    "jobId": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific pipeline"
-                    },
-                    "children": {
-                        "items": {
-                            "$ref": "#/components/schemas/execTreeNode"
-                        }
-                    }
-                }
-            },
-            "pipelineResult": {
-                "type": "object",
-                "properties": {
-                    "jobId": {
-                        "type": "string"
-                    },
-                    "timestamp": {
-                        "type": "string"
-                    },
-                    "pipeline": {
-                        "type": "string"
-                    },
-                    "data": {
-                        "type": "array",
-                        "items": {}
-                    },
-                    "status": {
-                        "type": "string"
-                    },
-                    "timeTook": {
-                        "type": "number"
-                    },
-                    "storageModule": {
-                        "type": "string"
-                    }
-                }
-            },
-            "webhookResult": {
-                "type": "object",
-                "properties": {
-                    "timestamp": {
-                        "type": "string"
-                    },
-                    "url": {
-                        "type": "string"
-                    },
-                    "pipelineStatus": {
-                        "type": "string"
-                    },
-                    "responseStatus": {
-                        "type": "string"
-                    },
-                    "httpResponse": {
-                        "type": "object",
-                        "properties": {
-                            "statusCode": {
-                                "type": "string"
-                            },
-                            "statusMessage": {
-                                "type": "string"
+                        },
+                        "cron": {
+                            "type": "object",
+                            "properties": {
+                                "pattern": {
+                                    "type": "string",
+                                    "description": "cron job",
+                                    "minLength": 1,
+                                    "format": "cron"
+                                },
+                                "enabled": {
+                                    "type": "boolean",
+                                    "description": "enable or disable cron job",
+                                    "default": false
+                                }
                             }
                         }
                     },
-                    "status": {
-                        "type": "string"
+                    "additionalProperties": false
+                },
+                "priority": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                },
+                "options": {
+                    "type": "object",
+                    "properties": {
+                        "ttl": {
+                            "type": "integer",
+                            "description": "pipeline time to live in seconds",
+                            "minimum": 1,
+                            "default": 3600
+                        },
+                        "batchTolerance": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 100,
+                            "default": 80
+                        },
+                        "progressVerbosityLevel": {
+                            "type": "string",
+                            "default": "info",
+                            "enum": [
+                                "trace",
+                                "debug",
+                                "info",
+                                "warn",
+                                "error",
+                                "critical"
+                            ]
+                        }
+                    },
+                    "description": "optional properties"
+                },
+                "pipelineName": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                },
+                "execTreeNode": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "Pipeline name"
+                        },
+                        "jobId": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific pipeline"
+                        },
+                        "children": {
+                            "items": {
+                                "$ref": "#/components/schemas/entities/execTreeNode"
+                            }
+                        }
                     }
                 }
             }
@@ -2443,11 +2428,11 @@
                         "type": "string"
                     },
                     "options": {
-                        "$ref": "#/components/schemas/options",
+                        "$ref": "#/components/schemas/entities/options",
                         "default": {}
                     },
                     "priority": {
-                        "$ref": "#/components/schemas/priority",
+                        "$ref": "#/components/schemas/entities/priority",
                         "default": 3
                     }
                 },
@@ -2459,12 +2444,12 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "$ref": "#/components/schemas/pipelineName"
+                        "$ref": "#/components/schemas/entities/pipelineName"
                     },
                     "nodes": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/pipelineNode"
+                            "$ref": "#/components/schemas/entities/pipelineNode"
                         }
                     },
                     "flowInput": {
@@ -2472,18 +2457,18 @@
                         "description": "input object"
                     },
                     "webhooks": {
-                        "$ref": "#/components/schemas/webhooks"
+                        "$ref": "#/components/schemas/entities/webhooks"
                     },
                     "options": {
-                        "$ref": "#/components/schemas/options",
+                        "$ref": "#/components/schemas/entities/options",
                         "default": {}
                     },
                     "priority": {
-                        "$ref": "#/components/schemas/priority",
+                        "$ref": "#/components/schemas/entities/priority",
                         "default": 3
                     },
                     "triggers": {
-                        "$ref": "#/components/schemas/triggers"
+                        "$ref": "#/components/schemas/entities/triggers"
                     },
                     "jobId": {
                         "type": "string"
@@ -2512,11 +2497,11 @@
                         "type": "string"
                     },
                     "options": {
-                        "$ref": "#/components/schemas/options",
+                        "$ref": "#/components/schemas/entities/options",
                         "default": {}
                     },
                     "priority": {
-                        "$ref": "#/components/schemas/priority",
+                        "$ref": "#/components/schemas/entities/priority",
                         "default": 3
                     }
                 },

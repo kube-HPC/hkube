@@ -31,10 +31,19 @@ const routes = (options) => {
             return next(error);
         });
     });
+    router.all('/list/:name?', methods(['GET']), logger(), (req, res, next) => {
+        const { sort, order, limit } = req.query;
+        Cron.getCronList({ sort, order, limit }).then((response) => {
+            res.json(response);
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     router.all('/start', methods(['POST']), logger(), (req, res, next) => {
         const { name } = req.body;
-        Cron.startCronJob({ name }).then((response) => {
-            res.json(response);
+        Cron.startCronJob({ name }).then(() => {
+            res.json({ message: 'OK' });
             res.name = name;
             next();
         }).catch((error) => {
@@ -43,8 +52,8 @@ const routes = (options) => {
     });
     router.all('/stop', methods(['POST']), logger(), (req, res, next) => {
         const { name } = req.body;
-        Cron.stopCronJob({ name }).then((response) => {
-            res.json(response);
+        Cron.stopCronJob({ name }).then(() => {
+            res.json({ message: 'OK' });
             res.name = name;
             next();
         }).catch((error) => {

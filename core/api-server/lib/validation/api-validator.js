@@ -25,13 +25,15 @@ class ApiValidator {
         validatorInstance.addFormat('cron', this._validateCron);
         validatorInstance.addFormat('pipeline-name', this._validatePipelineName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
-        Object.entries(schemas).forEach(([k, v]) => {
-            validatorInstance.addSchema(v, `#/components/schemas/${k}`);
+        Object.entries(schemas).forEach(([k1]) => {
+            Object.entries(schemas[k1]).forEach(([k2, v2]) => {
+                validatorInstance.addSchema(v2, `#/components/schemas/${k1}/${k2}`);
+            });
         });
     }
 
     addPipelineDefaults(pipeline) {
-        this._addDefaults(schemas.pipeline, pipeline);
+        this._addDefaults(schemas.entities.pipeline, pipeline);
     }
 
     validateStoredInternal(pipeline) {
@@ -47,23 +49,23 @@ class ApiValidator {
     }
 
     validateRunRawPipeline(pipeline) {
-        this._validate(schemas.pipeline, pipeline, false, { checkFlowInput: true });
+        this._validate(schemas.entities.pipeline, pipeline, false, { checkFlowInput: true });
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(schemas.storedPipeline, pipeline, false, { checkFlowInput: false });
+        this._validate(schemas.entities.storedPipeline, pipeline, false, { checkFlowInput: false });
     }
 
     validateStopPipeline(pipeline) {
-        this._validate(schemas.stopRequest, pipeline, true);
+        this._validate(schemas.requests.stopRequest, pipeline, true);
     }
 
     validateUpdatePipeline(pipeline) {
-        this._validate(schemas.pipeline, pipeline, true);
+        this._validate(schemas.entities.pipeline, pipeline, true);
     }
 
     validateUpdateAlgorithm(algorithm) {
-        this._validate(schemas.algorithm, algorithm, true);
+        this._validate(schemas.entities.algorithm, algorithm, true);
         this._validateMemory(algorithm);
     }
 
@@ -72,7 +74,7 @@ class ApiValidator {
     }
 
     validatePipelineName(name) {
-        this._validate(schemas.pipelineName, name, false);
+        this._validate(schemas.entities.pipelineName, name, false);
     }
 
     validateResultList(pipeline) {
@@ -80,7 +82,7 @@ class ApiValidator {
     }
 
     validateJobID(pipeline) {
-        this._validate(schemas.jobId, pipeline, false);
+        this._validate(schemas.responses.jobId, pipeline, false);
     }
 
     async validateAlgorithmName(pipeline) {

@@ -1390,14 +1390,20 @@ describe('Rest', () => {
                     });
                     it('should success to start cron', async () => {
                         const pipeline = pipelines.find(p => p.name === 'trigger-cron-disabled');
-                        const options = {
+                        const options1 = {
                             uri: restPath,
                             method,
-                            body: pipeline
+                            body: { name: pipeline.name }
                         };
-                        const response = await _request(options);
-                        expect(response.body.triggers.cron.enabled).to.equal(true);
-                        expect(response.body.triggers.cron.pattern).to.equal(pipeline.triggers.cron.pattern);
+                        const options2 = {
+                            uri: `${restUrl}/store/pipelines/${pipeline.name}`,
+                            method: 'GET'
+                        };
+                        const response1 = await _request(options1);
+                        const response2 = await _request(options2);
+                        expect(response1.body.message).to.equal('OK');
+                        expect(response2.body.triggers.cron.enabled).to.equal(true);
+                        expect(response2.body.triggers.cron.pattern).to.equal(pipeline.triggers.cron.pattern);
                     });
                 });
                 describe('/cron/stop', () => {
@@ -1453,14 +1459,20 @@ describe('Rest', () => {
                     });
                     it('should success to stop cron', async () => {
                         const pipeline = pipelines.find(p => p.name === 'trigger-cron-enabled');
-                        const options = {
+                        const options1 = {
                             uri: restPath,
                             method,
-                            body: pipeline
+                            body: { name: pipeline.name }
                         };
-                        const response = await _request(options);
-                        expect(response.body.triggers.cron.enabled).to.equal(false);
-                        expect(response.body.triggers.cron.pattern).to.equal(pipeline.triggers.cron.pattern);
+                        const options2 = {
+                            uri: `${restUrl}/store/pipelines/${pipeline.name}`,
+                            method: 'GET'
+                        };
+                        const response1 = await _request(options1);
+                        const response2 = await _request(options2);
+                        expect(response1.body.message).to.equal('OK');
+                        expect(response2.body.triggers.cron.enabled).to.equal(false);
+                        expect(response2.body.triggers.cron.pattern).to.equal(pipeline.triggers.cron.pattern);
                     });
                 });
             });
