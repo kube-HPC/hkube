@@ -1,0 +1,29 @@
+{
+  "name": "cashing-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hkube/config": "^2.0.7",
+    "@hkube/logger": "^1.0.15",
+    "@hkube/parsers": "^1.0.19",
+    "@hkube/rest-server": "^1.0.11",
+    "@hkube/storage-manager": "^1.0.21",
+    "express": "^4.16.4",
+    "graphlib": "^2.1.5",
+    "lodash.clonedeep": "^4.5.0",
+    "lodash.clonedeepwith": "^4.5.0",
+    "request": "^2.88.0",
+    "requestretry": "^3.0.2"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "sinon": "^7.1.0"
+  }
+}
