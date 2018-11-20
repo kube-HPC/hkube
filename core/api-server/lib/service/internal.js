@@ -4,12 +4,6 @@ const validator = require('../validation/api-validator');
 const execution = require('./execution');
 
 class InternalService {
-    async runStoredCron(options) {
-        validator.validateStoredInternal(options);
-        const jobId = this._createCronJobID(options, uuidv4());
-        return execution._runStored(options, jobId);
-    }
-
     async runStoredPipeline(options) {
         let pipeline = options;
         validator.validateStoredInternal(pipeline);

@@ -71,6 +71,10 @@ class ApiValidator {
         this._validate(_schemas.name, pipeline, false);
     }
 
+    validatePipelineName(name) {
+        this._validate(schemas.pipelineName, name, false);
+    }
+
     validateResultList(pipeline) {
         this._validate(_schemas.list, pipeline, true);
     }

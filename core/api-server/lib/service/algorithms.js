@@ -5,9 +5,6 @@ const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed } = require('../errors');
 
 class AlgorithmStore {
-    /**
-     * update algorithm
-     * */
     async updateAlgorithm(options) {
         validator.validateUpdateAlgorithm(options);
         const algorithm = await stateManager.getAlgorithm(options);
@@ -18,9 +15,6 @@ class AlgorithmStore {
         return options;
     }
 
-    /**
-     * delete stored algorithm
-     * */
     async deleteAlgorithm(options) {
         validator.validateName(options);
         const algorithm = await stateManager.getAlgorithm(options);
@@ -62,11 +56,6 @@ class AlgorithmStore {
         return (l => l.nodes && l.nodes.some(n => n.algorithmName === algorithmName));
     }
 
-    /**
-     * get algorithms data from store
-     * returns stored algorithm
-     *
-     * */
     async getAlgorithm(options) {
         validator.validateName(options);
         const algorithm = await stateManager.getAlgorithm(options);
@@ -80,11 +69,6 @@ class AlgorithmStore {
         return stateManager.getAlgorithms();
     }
 
-    /**
-     * add an algorithm
-     * adds the given algorithm to the store.
-     *
-     * */
     async insertAlgorithm(options) {
         validator.validateUpdateAlgorithm(options);
         const algorithm = await stateManager.getAlgorithm(options);
@@ -96,9 +80,6 @@ class AlgorithmStore {
         return options;
     }
 
-    /**
-     * get current algorithms queue from etcd
-     */
     async getAlgorithmsQueueList() {
         return stateManager.getAlgorithmsQueueList();
     }

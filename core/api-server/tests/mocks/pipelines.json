@@ -222,5 +222,41 @@
                 ]
             }
         ]
+    },
+    {
+        "name": "trigger-cron-enabled",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "flowInput"
+                ]
+            }
+        ],
+        "triggers": {
+            "cron": {
+                "pattern": "20,40 * * * * 0,1,2",
+                "enabled": true
+            }
+        }
+    },
+    {
+        "name": "trigger-cron-disabled",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "flowInput"
+                ]
+            }
+        ],
+        "triggers": {
+            "cron": {
+                "pattern": "20,40 * * * * 0,1,2",
+                "enabled": false
+            }
+        }
     }
 ]

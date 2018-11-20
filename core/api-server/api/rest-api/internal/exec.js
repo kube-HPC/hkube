@@ -1,5 +1,6 @@
 const express = require('express');
 const Execution = require('../../../lib/service/execution');
+const Cron = require('../../../lib/service/cron');
 const Internal = require('../../../lib/service/internal');
 const methods = require('../middlewares/methods');
 const logger = require('../middlewares/logger');
@@ -11,7 +12,7 @@ const routes = () => {
         next();
     });
     router.all('/exec/stored/cron', methods(['POST']), logger(), (req, res, next) => {
-        Internal.runStoredCron(req.body).then((jobId) => {
+        Cron.runStoredCron(req.body).then((jobId) => {
             res.json({ jobId });
             res.jobId = jobId;
             next();

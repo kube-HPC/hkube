@@ -1337,6 +1337,132 @@ describe('Rest', () => {
                         expect(response.body[0]).to.have.property('timestamp');
                     })
                 });
+                describe('/cron/start', () => {
+                    let restPath = null;
+                    let method = 'POST';
+                    before(() => {
+                        restPath = `${restUrl}/cron/start`;
+                    });
+                    it('should throw Method Not Allowed', async () => {
+                        const options = {
+                            method: 'GET',
+                            uri: restPath,
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(405);
+                        expect(response.body.error.message).to.equal('Method Not Allowed');
+                    });
+                    it('should throw status Not Found with params', async () => {
+                        const options = {
+                            uri: restPath,
+                            method,
+                            body: {
+                                name: 'no_such_name'
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal('pipeline no_such_name Not Found');
+                    });
+                    it('should throw validation error of required property name', async () => {
+                        const options = {
+                            uri: restPath,
+                            method
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("data should be string");
+                    });
+                    it('should throw validation error of not have any cron trigger', async () => {
+                        const qs = querystring.stringify({ limit: "y" });
+                        const options = {
+                            uri: restPath,
+                            method,
+                            body: {
+                                name: 'simple'
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("pipeline simple does not have any cron trigger");
+                    });
+                    it('should success to start cron', async () => {
+                        const pipeline = pipelines.find(p => p.name === 'trigger-cron-disabled');
+                        const options = {
+                            uri: restPath,
+                            method,
+                            body: pipeline
+                        };
+                        const response = await _request(options);
+                        expect(response.body.triggers.cron.enabled).to.equal(true);
+                        expect(response.body.triggers.cron.pattern).to.equal(pipeline.triggers.cron.pattern);
+                    });
+                });
+                describe('/cron/stop', () => {
+                    let restPath = null;
+                    let method = 'POST';
+                    before(() => {
+                        restPath = `${restUrl}/cron/stop`;
+                    });
+                    it('should throw Method Not Allowed', async () => {
+                        const options = {
+                            method: 'GET',
+                            uri: restPath,
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('error');
+                        expect(response.body.error.code).to.equal(405);
+                        expect(response.body.error.message).to.equal('Method Not Allowed');
+                    });
+                    it('should throw status Not Found with params', async () => {
+                        const options = {
+                            uri: restPath,
+                            method,
+                            body: {
+                                name: 'no_such_name'
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.message).to.equal('pipeline no_such_name Not Found');
+                    });
+                    it('should throw validation error of required property name', async () => {
+                        const options = {
+                            uri: restPath,
+                            method
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("data should be string");
+                    });
+                    it('should throw validation error of not have any cron trigger', async () => {
+                        const qs = querystring.stringify({ limit: "y" });
+                        const options = {
+                            uri: restPath,
+                            method,
+                            body: {
+                                name: 'simple'
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.message).to.equal("pipeline simple does not have any cron trigger");
+                    });
+                    it('should success to stop cron', async () => {
+                        const pipeline = pipelines.find(p => p.name === 'trigger-cron-enabled');
+                        const options = {
+                            uri: restPath,
+                            method,
+                            body: pipeline
+                        };
+                        const response = await _request(options);
+                        expect(response.body.triggers.cron.enabled).to.equal(false);
+                        expect(response.body.triggers.cron.pattern).to.equal(pipeline.triggers.cron.pattern);
+                    });
+                });
             });
             describe('Store/Algorithms', () => {
                 let restPath = null;
@@ -1751,7 +1877,9 @@ describe('Rest', () => {
                     it('should throw validation error of cron trigger', async () => {
                         const pipeline = clone(pipelines[0]);
                         pipeline.triggers = {
-                            cron: "bla"
+                            cron: {
+                                pattern: "bla"
+                            }
                         }
                         const options = {
                             method: 'POST',
@@ -1761,7 +1889,7 @@ describe('Rest', () => {
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal('data.triggers.cron should match format "cron"');
+                        expect(response.body.error.message).to.equal('data.triggers.cron.pattern should match format "cron"');
                     });
                     it('should throw validation error of pipelines trigger should be array', async () => {
                         const pipeline = clone(pipelines[0]);

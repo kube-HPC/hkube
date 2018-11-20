@@ -1063,6 +1063,217 @@
                 }
             }
         },
+        "/cron/list": {
+            "get": {
+                "tags": [
+                    "Cron"
+                ],
+                "summary": "Get cron list",
+                "description": "return cron list of all stored pipeline",
+                "parameters": [
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "sort by asc or desc",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "description": "order by",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "limit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "description": "Array of nodes",
+                                    "items": {
+                                        "$ref": "#/components/schemas/pipelineResult"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "jobId Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/start": {
+            "post": {
+                "tags": [
+                    "Cron"
+                ],
+                "summary": "Start cron",
+                "description": "Start cron by given pipeline name",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/startCronRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "description": "Array of nodes",
+                                    "items": {
+                                        "$ref": "#/components/schemas/pipelineResult"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "jobId Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cron/stop": {
+            "post": {
+                "tags": [
+                    "Cron"
+                ],
+                "summary": "Stop cron",
+                "description": "Stop cron by given pipeline name",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/stopCronRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "description": "Array of nodes",
+                                    "items": {
+                                        "$ref": "#/components/schemas/pipelineResult"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "jobId Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/store/algorithms/{name}": {
             "get": {
                 "tags": [
@@ -1802,10 +2013,7 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific pipeline",
-                        "minLength": 1,
-                        "format": "pipeline-name"
+                        "$ref": "#/components/schemas/pipelineName"
                     },
                     "description": {
                         "type": "string",
@@ -1871,7 +2079,7 @@
                         "properties": {
                             "debug": {
                                 "type": "boolean",
-                                "description": "debug algorithm localy",
+                                "description": "debug algorithm locally",
                                 "default": false
                             }
                         },
@@ -1887,10 +2095,7 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific pipeline",
-                        "minLength": 1,
-                        "format": "pipeline-name"
+                        "$ref": "#/components/schemas/pipelineName"
                     },
                     "flowInput": {
                         "type": "object",
@@ -1970,10 +2175,20 @@
                         }
                     },
                     "cron": {
-                        "type": "string",
-                        "description": "cron job",
-                        "minLength": 1,
-                        "format": "cron"
+                        "type": "object",
+                        "properties": {
+                            "pattern": {
+                                "type": "string",
+                                "description": "cron job",
+                                "minLength": 1,
+                                "format": "cron"
+                            },
+                            "enabled": {
+                                "type": "boolean",
+                                "description": "enable or disable cron job",
+                                "default": false
+                            }
+                        }
                     }
                 },
                 "additionalProperties": false
@@ -2030,6 +2245,28 @@
                     "jobId"
                 ]
             },
+            "startCronRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/components/schemas/pipelineName"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
+            "stopCronRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "$ref": "#/components/schemas/pipelineName"
+                    }
+                },
+                "required": [
+                    "name"
+                ]
+            },
             "defaultResponse": {
                 "type": "object",
                 "properties": {
@@ -2037,6 +2274,12 @@
                         "type": "string"
                     }
                 }
+            },
+            "pipelineName": {
+                "type": "string",
+                "description": "Unique identifier representing a specific pipeline",
+                "minLength": 1,
+                "format": "pipeline-name"
             },
             "Error": {
                 "type": "object",
@@ -2216,9 +2459,7 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string",
-                        "minLength": 1,
-                        "format": "pipeline-name"
+                        "$ref": "#/components/schemas/pipelineName"
                     },
                     "nodes": {
                         "type": "array",

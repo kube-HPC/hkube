@@ -1,5 +1,5 @@
 const express = require('express');
-const Execution = require('../../../../lib/service/execution');
+const Cron = require('../../../../lib/service/cron');
 const methods = require('../../middlewares/methods');
 const logger = require('../../middlewares/logger');
 
@@ -12,7 +12,7 @@ const routes = (options) => {
     router.all('/results/:name?', methods(['GET']), logger(), (req, res, next) => {
         const { name } = req.params;
         const { sort, order, limit } = req.query;
-        Execution.getCronResult({ name, sort, order, limit }).then((response) => {
+        Cron.getCronResult({ name, sort, order, limit }).then((response) => {
             res.json(response);
             res.name = name;
             next();
@@ -23,7 +23,27 @@ const routes = (options) => {
     router.all('/status/:name?', methods(['GET']), logger(), (req, res, next) => {
         const { name } = req.params;
         const { sort, order, limit } = req.query;
-        Execution.getCronStatus({ name, sort, order, limit }).then((response) => {
+        Cron.getCronStatus({ name, sort, order, limit }).then((response) => {
+            res.json(response);
+            res.name = name;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.all('/start', methods(['POST']), logger(), (req, res, next) => {
+        const { name } = req.body;
+        Cron.startCronJob({ name }).then((response) => {
+            res.json(response);
+            res.name = name;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.all('/stop', methods(['POST']), logger(), (req, res, next) => {
+        const { name } = req.body;
+        Cron.stopCronJob({ name }).then((response) => {
             res.json(response);
             res.name = name;
             next();

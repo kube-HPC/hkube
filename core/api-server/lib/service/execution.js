@@ -14,18 +14,6 @@ const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 
 
 class ExecutionService {
-    /**
-     * run algorithm flow
-     * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline.
-     * ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.
-     * pipelineRunData RunRequest an object representing all information needed for pipeline execution
-     * returns pipelineExecutionStatus
-     *
-     * @param {any} options
-     * @returns
-     *
-     * @memberOf ExecutionService
-     */
     async runRaw(options) {
         validator.validateRunRawPipeline(options);
         const pipeline = {
@@ -35,19 +23,6 @@ class ExecutionService {
         return this._run(pipeline);
     }
 
-    /**
-     * run algorithm flow
-     * The run endpoint initiates an algorithm flow with the input recieved and returns the ID of the running pipeline.
-     * ID returned can be used as a reference for the flow run to retrieve run status, stop it, etc.
-     *
-     * pipeline RunStoredRequest an object representing all information needed for stored pipeline execution
-     * returns pipelineExecutionStatus
-     *
-     * @param {any} options
-     * @returns
-     *
-     * @memberOf ExecutionService
-     */
     async runStored(options) {
         validator.validateRunStoredPipeline(options);
         return this._runStored(options);
@@ -62,13 +37,6 @@ class ExecutionService {
         return this._run(pipe, jobId);
     }
 
-    /**
-     *
-     * @param {any} pipeline
-     * @returns
-     *
-     * @memberOf ExecutionService
-     */
     async _run(pipeLine, jobID) {
         let pipeline = pipeLine;
         let jobId = jobID;
@@ -105,18 +73,6 @@ class ExecutionService {
         return jobId;
     }
 
-    /**
-     * workflow execution status
-     * returns a status for the current pipeline.
-     *
-     * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method . (optional)
-     * returns List
-     *
-     * @param {any} options
-     * @returns
-     *
-     * @memberOf ExecutionService
-     */
     async getJobStatus(options) {
         validator.validateJobID(options);
         const status = await stateManager.getJobStatus({ jobId: options.jobId });
@@ -135,18 +91,6 @@ class ExecutionService {
         return pipeline;
     }
 
-    /**
-     * get run result
-     * returns result (json) for the execution of a specific pipeline run.
-     * if called before result is determined - returns error.
-     * jobId String jobId to getresults for
-     * returns pipelineExecutionResult
-     *
-     * @param {any} options
-     * @returns
-     *
-     * @memberOf ExecutionService
-    */
     async getJobResult(options) {
         validator.validateJobID(options);
         const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
@@ -199,41 +143,10 @@ class ExecutionService {
         return response;
     }
 
-    async getCronResult(options) {
-        validator.validateResultList(options);
-        const jobId = this._createCronJobID(options);
-        const response = await stateManager.getJobResults({ ...options, jobId });
-        if (response.length === 0) {
-            throw new ResourceNotFoundError('cron results', options.name);
-        }
-        return response;
-    }
-
-    async getCronStatus(options) {
-        validator.validateResultList(options);
-        const jobId = this._createCronJobID(options);
-        const response = await stateManager.getJobStatuses({ ...options, jobId });
-        if (response.length === 0) {
-            throw new ResourceNotFoundError('cron status', options.name);
-        }
-        return response;
-    }
-
     async getRunningPipelines() {
         return stateManager.getRunningPipelines();
     }
 
-    /**
-     * stop pipeline execution
-     * call to stop the flow execution
-     *
-     * jobId UUID Unique identifier representing workflow execution - is given in response to calling pipeline run method .
-     * reason String reason for stopping. (optional)
-     * returns String
-     * @param {any} options
-     *
-     * @memberOf ExecutionService
-    */
     async stopJob(options) {
         validator.validateStopPipeline(options);
         const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
@@ -273,10 +186,6 @@ class ExecutionService {
 
     createRawName(options) {
         return `raw-${options.name}-${randString(10)}`;
-    }
-
-    _createCronJobID(options, uuid) {
-        return ['cron', options.name, uuid].join(':');
     }
 
     _createSubPipelineJobID(options) {
