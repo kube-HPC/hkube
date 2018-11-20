@@ -318,7 +318,42 @@
         }
     },
     {
-        "name": "trigger1",
+        "name": "trigger-1",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "link": "links-1"
+            }
+        },
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug"
+        }
+    },
+    {
+        "name": "trigger-2",
         "nodes": [
             {
                 "nodeName": "green",
@@ -349,7 +384,7 @@
         },
         "triggers": {
             "pipelines": [
-                "trigger2"
+                "trigger-1"
             ]
         },
         "options": {
@@ -358,7 +393,7 @@
         }
     },
     {
-        "name": "trigger2",
+        "name": "trigger-3",
         "nodes": [
             {
                 "nodeName": "green",
@@ -389,7 +424,7 @@
         },
         "triggers": {
             "pipelines": [
-                "trigger3"
+                "trigger-2"
             ]
         },
         "options": {
@@ -398,7 +433,7 @@
         }
     },
     {
-        "name": "trigger3",
+        "name": "trigger-4",
         "nodes": [
             {
                 "nodeName": "green",
@@ -429,46 +464,8 @@
         },
         "triggers": {
             "pipelines": [
-                "trigger4"
+                "trigger-3"
             ]
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "trigger4",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "@flowInput"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
-            }
-        ],
-        "flowInput": {
-            "files": {
-                "link": "links-1"
-            }
-        },
-        "triggers": {
-            "pipelines": []
         },
         "options": {
             "batchTolerance": 100,

@@ -22,15 +22,23 @@
     "tags": [
         {
             "name": "Execution",
-            "description": "Execution pipelines as raw or stored, get pipelines status and result"
-        },
-        {
-            "name": "Algorithms",
-            "description": "Store new algorithms, update, get and delete"
+            "description": "Execution pipelines as raw or stored"
         },
         {
             "name": "Pipelines",
+            "description": "Get pipelines status and result"
+        },
+        {
+            "name": "StoreAlgorithms",
+            "description": "Store new algorithms, update, get and delete"
+        },
+        {
+            "name": "StorePipelines",
             "description": "Store new pipelines, update, get and delete"
+        },
+        {
+            "name": "Cron",
+            "description": "Get pipelines cron result and status"
         },
         {
             "name": "Webhooks",
@@ -453,10 +461,72 @@
                 }
             }
         },
-        "/exec/pipelines/results/raw/{name}": {
+        "/exec/tree/{jobId}": {
             "get": {
                 "tags": [
                     "Execution"
+                ],
+                "summary": "Pipeline execution tree",
+                "description": "Returns a tree of pipelines, usually a triggered pipelines",
+                "parameters": [
+                    {
+                        "name": "jobId",
+                        "in": "path",
+                        "description": "Unique identifier representing pipeline execution",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "pipeline tree",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/execTreeResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "jobId Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/pipelines/results/raw/{name}": {
+            "get": {
+                "tags": [
+                    "Pipelines"
                 ],
                 "summary": "Get raw pipeline results",
                 "description": "return results of raw pipelines by given pipeline name",
@@ -543,10 +613,10 @@
                 }
             }
         },
-        "/exec/pipelines/results/stored/{name}": {
+        "/pipelines/results/stored/{name}": {
             "get": {
                 "tags": [
-                    "Execution"
+                    "Pipelines"
                 ],
                 "summary": "Get stored pipeline results",
                 "description": "return results of stored pipelines by given pipeline name",
@@ -633,10 +703,10 @@
                 }
             }
         },
-        "/exec/pipelines/status/raw/{name}": {
+        "/pipelines/status/raw/{name}": {
             "get": {
                 "tags": [
-                    "Execution"
+                    "Pipelines"
                 ],
                 "summary": "Get raw pipeline status",
                 "description": "return status of raw pipelines by given pipeline name",
@@ -723,10 +793,10 @@
                 }
             }
         },
-        "/exec/pipelines/status/stored/{name}": {
+        "/pipelines/status/stored/{name}": {
             "get": {
                 "tags": [
-                    "Execution"
+                    "Pipelines"
                 ],
                 "summary": "Get stored pipeline status",
                 "description": "return status of stored pipelines by given pipeline name",
@@ -813,10 +883,10 @@
                 }
             }
         },
-        "/exec/cron/results/{name}": {
+        "/cron/results/{name}": {
             "get": {
                 "tags": [
-                    "Execution"
+                    "Cron"
                 ],
                 "summary": "Get pipeline cron result",
                 "description": "return cron results by given pipeline name",
@@ -903,10 +973,10 @@
                 }
             }
         },
-        "/exec/cron/status/{name}": {
+        "/cron/status/{name}": {
             "get": {
                 "tags": [
-                    "Execution"
+                    "Cron"
                 ],
                 "summary": "Get pipeline cron status",
                 "description": "return cron status by given pipeline name",
@@ -993,72 +1063,10 @@
                 }
             }
         },
-        "/exec/tree/{jobId}": {
-            "get": {
-                "tags": [
-                    "Execution"
-                ],
-                "summary": "Pipeline execution tree",
-                "description": "Returns a tree of pipelines, usually a triggered pipelines",
-                "parameters": [
-                    {
-                        "name": "jobId",
-                        "in": "path",
-                        "description": "Unique identifier representing pipeline execution",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "pipeline tree",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/execTreeResult"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "bad request",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "jobId Not Found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "description": "Unexpected error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Error"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/store/algorithms/{name}": {
             "get": {
                 "tags": [
-                    "Algorithms"
+                    "StoreAlgorithms"
                 ],
                 "summary": "Get algorithm",
                 "description": "get specific algorithm from store",
@@ -1118,7 +1126,7 @@
             },
             "delete": {
                 "tags": [
-                    "Algorithms"
+                    "StoreAlgorithms"
                 ],
                 "summary": "Delete algorithm",
                 "description": "Delete existing algorithm from store",
@@ -1180,7 +1188,7 @@
         "/store/algorithms": {
             "get": {
                 "tags": [
-                    "Algorithms"
+                    "StoreAlgorithms"
                 ],
                 "summary": "Get all algorithms",
                 "description": "Get all available algorithms from store",
@@ -1219,7 +1227,7 @@
             },
             "post": {
                 "tags": [
-                    "Algorithms"
+                    "StoreAlgorithms"
                 ],
                 "summary": "Insert algorithm",
                 "description": "Insert new algorithm to store if not exists",
@@ -1279,7 +1287,7 @@
             },
             "put": {
                 "tags": [
-                    "Algorithms"
+                    "StoreAlgorithms"
                 ],
                 "summary": "Update algorithm",
                 "description": "Update existing algorithm",
@@ -1331,7 +1339,7 @@
         "/store/pipelines/{name}": {
             "get": {
                 "tags": [
-                    "Pipelines"
+                    "StorePipelines"
                 ],
                 "summary": "Get pipeline",
                 "description": "Get specific pipeline from store",
@@ -1391,7 +1399,7 @@
             },
             "delete": {
                 "tags": [
-                    "Pipelines"
+                    "StorePipelines"
                 ],
                 "summary": "Delete pipeline",
                 "description": "Delete existing pipeline from store",
@@ -1453,7 +1461,7 @@
         "/store/pipelines": {
             "get": {
                 "tags": [
-                    "Pipelines"
+                    "StorePipelines"
                 ],
                 "summary": "Get all pipelines",
                 "description": "Get all pipelines from store",
@@ -1492,7 +1500,7 @@
             },
             "post": {
                 "tags": [
-                    "Pipelines"
+                    "StorePipelines"
                 ],
                 "summary": "Insert pipeline",
                 "description": "Insert new pipeline to store if not exist",
@@ -1552,7 +1560,7 @@
             },
             "put": {
                 "tags": [
-                    "Pipelines"
+                    "StorePipelines"
                 ],
                 "summary": "Update pipeline",
                 "description": "Update existing pipeline",
