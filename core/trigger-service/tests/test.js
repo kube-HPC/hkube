@@ -45,7 +45,7 @@ describe('test', () => {
             const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
             cronTrigger._updateTrigger(new Trigger(pipeline));
             const cron = cronTrigger._crons.get(pipeline.name);
-            expect(cron.cronTime.source).to.equal(pipeline.triggers.cron);
+            expect(cron.cronTime.source).to.equal(pipeline.triggers.cron.pattern);
         });
         it('should get array of pipelines by cron type', async () => {
             const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');

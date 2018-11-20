@@ -8,13 +8,19 @@
     {
         "name": "simple_cron_trigger",
         "triggers": {
-            "cron": "*/1 * * * * *"
+            "cron": {
+                "pattern": "*/1 * * * * *",
+                "enabled": true
+            }
         }
     },
     {
         "name": "invalid_cron_trigger",
         "triggers": {
-            "cron": "Im invalid cron"
+            "cron": {
+                "pattern": "Im invalid cron",
+                "enabled": true
+            }
         }
     },
     {
