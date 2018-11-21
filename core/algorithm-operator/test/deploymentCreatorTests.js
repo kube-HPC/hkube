@@ -5,9 +5,9 @@ const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger); // eslint-disable-line
 
 const { expect } = require('chai'); // eslint-disable-line
-const { createDeploymentSpec, applyImage, applyAlgorithmName, applyName  } = require('../lib/deployments/deploymentCreator'); // eslint-disable-line object-curly-newline
+const { createDeploymentSpec, applyImage, applyAlgorithmName, applyName, applyNodeSelector } = require('../lib/deployments/deploymentCreator'); // eslint-disable-line object-curly-newline
 const { createImageName, parseImageName, isValidDeploymentName } = require('../lib/helpers/images'); // eslint-disable-line object-curly-newline
-const { algorithmQueueTemplate} = require('./stub/jobTemplates');
+const { algorithmQueueTemplate } = require('./stub/jobTemplates');
 describe('jobCreator', () => {
     describe('applyAlgorithmName', () => {
         it('should replace image name in spec', () => {
@@ -31,7 +31,20 @@ describe('jobCreator', () => {
             expect(() => applyImage(missingAlgorunnerSpec, 'registry:5000/myAlgo1Image:v2')).to.throw('Unable to create deployment spec. algorithm-queue container not found');
         });
     });
-  
+    describe('useNodeSelector', () => {
+        it('should remove node selector in spec', () => {
+            const res = applyNodeSelector(algorithmQueueTemplate, {useNodeSelector: false});
+            expect(res.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+        it('should remove node selector in spec 2', () => {
+            const res = applyNodeSelector(algorithmQueueTemplate);
+            expect(res.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+        it('should not remove node selector in spec', () => {
+            const res = applyNodeSelector(algorithmQueueTemplate, {useNodeSelector: true});
+            expect(res.spec.template.spec.nodeSelector).to.exist;
+        });
+    });
     it('should throw if no algorithm name', () => {
         expect(() => createDeploymentSpec({ algorithmImage: 'myImage1' })).to.throw('Unable to create deployment spec. algorithmName is required');
     });
@@ -48,5 +61,5 @@ describe('jobCreator', () => {
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/algorithm-queue' });
         expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myAlgoStam' });
     });
-   
+
 });

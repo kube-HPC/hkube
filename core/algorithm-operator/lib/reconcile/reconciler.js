@@ -21,7 +21,7 @@ const _updateDeployment = async (deployment, options) => {
     return deploymentCreateResult;
 };
 
-const reconcile = async ({ deployments, algorithms, versions, registry } = {}) => {
+const reconcile = async ({ deployments, algorithms, versions, registry, clusterOptions } = {}) => {
     const version = findVersion({ versions, repositoryName: DOCKER_REPOSITORY });
     const normDeployments = normalizeDeployments(deployments);
     const normAlgorithms = normalizeAlgorithms(algorithms);
@@ -32,13 +32,13 @@ const reconcile = async ({ deployments, algorithms, versions, registry } = {}) =
     const createPromises = [];
     const reconcileResult = {};
     for (let algorithm of added) { // eslint-disable-line
-        createPromises.push(_createDeployment(algorithm.name, { version, registry }));
+        createPromises.push(_createDeployment(algorithm.name, { version, registry, clusterOptions }));
     }
     for (let algorithm of removed) { // eslint-disable-line
         createPromises.push(kubernetes.deleteDeployment(algorithm.name));
     }
     for (let deployment of updated) { // eslint-disable-line
-        createPromises.push(_updateDeployment(deployment, { version, registry }));
+        createPromises.push(_updateDeployment(deployment, { version, registry, clusterOptions }));
     }
 
     await Promise.all(createPromises);
@@ -46,5 +46,5 @@ const reconcile = async ({ deployments, algorithms, versions, registry } = {}) =
 };
 
 module.exports = {
-    reconcile,
+    reconcile
 };

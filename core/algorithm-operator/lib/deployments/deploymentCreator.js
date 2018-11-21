@@ -37,6 +37,15 @@ const applyAlgorithmName = (inputSpec, algorithmName) => {
     }
     return spec;
 };
+
+const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
+    const spec = clonedeep(inputSpec);
+    if (!clusterOptions.useNodeSelector) {
+        delete spec.spec.template.spec.nodeSelector;
+    }
+    return spec;
+};
+
 const applyName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
     const validName = decamelize(algorithmName, '-');
@@ -66,7 +75,7 @@ const _setAlgorithmImage = (version, registry) => {
     return createImageName(imageParsed);
 };
 
-const createDeploymentSpec = ({ algorithmName, version, registry }) => {
+const createDeploymentSpec = ({ algorithmName, version, registry, clusterOptions }) => {
     if (!algorithmName) {
         const msg = 'Unable to create deployment spec. algorithmName is required';
         log.error(msg, { component });
@@ -79,6 +88,7 @@ const createDeploymentSpec = ({ algorithmName, version, registry }) => {
     spec = applyName(spec, algorithmName);
     spec = applyAlgorithmName(spec, algorithmName);
     spec = applyImage(spec, image);
+    spec = applyNodeSelector(spec, clusterOptions);
     return spec;
 };
 
@@ -86,6 +96,7 @@ module.exports = {
     createDeploymentSpec,
     applyImage,
     applyAlgorithmName,
-    applyName
+    applyName,
+    applyNodeSelector
 };
 
