@@ -1,4 +1,4 @@
-const request = require('requestretry');
+
 const uuidv4 = require('uuid/v4');
 const log = require('@hkube/logger').GetLogFromContainer();
 const storageManager = require('@hkube/storage-manager')
@@ -8,8 +8,8 @@ const { splitInputToNodes } = require('./input-parser')
 const NodesMap = require('../lib/create-graph')
 const { protocol, host, port, base_path } = main.apiServer;
 const cloneDeep = require('lodash.clonedeep');
-const baseUri = `${protocol}://${host}:${port}/${base_path}`;
-//const {splitInputToNodes,aggregateInput} = require('./input-parser');
+
+
 class Runner {
     constructor() {
 
@@ -33,6 +33,7 @@ class Runner {
         } catch (error) {
             log.error(`fail to parse ${jobId} pipeline for caching on nodeName ${nodeName}
              errorMessage: ${error.message}, stack: ${error.stack}`, { component: componentName.RUNNER })
+            throw new Error(`part of the data is missing or incorrect error:${error.message} `)
         }
     }
 
@@ -48,7 +49,7 @@ class Runner {
                         n.parentOutput.push(...metadata.metadata);
                     }
                     else {
-                        log.error(`couldent find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
+                        log.error(`couldn't find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
                     }
                 })
             }
@@ -58,7 +59,6 @@ class Runner {
     _createSubPipeline(flattenSuccessors, pipeline, jobId) {
 
         const uuidSuffix = uuidv4().split('-')[0]
-        //   const flattenSuccessors = this._flattenSuccessors(parentSuccessors);
         const deepPipelineExecution = cloneDeep(pipeline);
         deepPipelineExecution.name = `${pipeline.name}:${uuidSuffix}`
         deepPipelineExecution.nodes = [];
@@ -81,7 +81,6 @@ class Runner {
                 }
             }))
         }
-
         return [...flatten];
     }
 
@@ -99,14 +98,14 @@ class Runner {
         return [...flatten];
     }
     async _getStoredExecution(jobId) {
-        try {
-            const path = await storageManager.listExecution({ jobId });
-            return await storageManager.get(path[0])
 
-        } catch (error) {
-            log.error(`fail to get description from custom resource ${error}`, { component: componentName.RUNNER })
+        const path = await storageManager.listExecution({ jobId });
+        if (path.length == 0) {
+            log.error(`cant find execution for jobId ${jobId}`, { component: componentName.RUNNER });
+            throw new Error(`cant find execution for jobId ${jobId}`);
+
         }
-
+        return await storageManager.get(path[0])
     }
 
     _createGraphAndFindRelevantSuccessorsAndPredecessors(pipeline, nodeName) {
@@ -148,21 +147,6 @@ class Runner {
         } catch (error) {
             log.error(`fail to get metadata from custom resource ${error}`, { component: componentName.RUNNER })
         }
-        // const stub = [{
-        //     node: nodeName,
-        //     type: 'WAIT_NODE',
-        //     result: {
-        //         "metadata": {
-        //             "yellow": { type: "array", size: 5 }
-        //         },
-        //         "storageInfo": {
-        //             "Key": "yellow:yellow-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
-        //             "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227",
-        //             "path": 'link_to_data'
-        //         }
-        //     }
-        // }]
-        // return stub;
     }
 }
 
