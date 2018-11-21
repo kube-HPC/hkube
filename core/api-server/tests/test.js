@@ -1,16 +1,14 @@
 const { expect } = require('chai');
 const uuidv4 = require('uuid/v4');
 const request = require('request');
-const storageManager = require('@hkube/storage-manager');
 const querystring = require('querystring');
 const clone = require('clone');
 const bootstrap = require('../bootstrap');
+const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../lib/state/state-manager');
 const { algorithms, pipelines, triggersTree, webhookStub, workerStub } = require('./mocks');
 const converter = require('@hkube/units-converter');
-let config;
-let baseUrl;
-
+let config, baseUrl;
 const delay = d => new Promise(r => setTimeout(r, d));
 
 const _request = (options) => {
@@ -2226,7 +2224,7 @@ describe('Rest', () => {
                                 data: [{ res1: 400 }, { res2: 500 }]
                             }
                             await stateManager.setJobStatus(results);
-                            let link = await storageManager.putResults({ jobId, data: results.data })
+                            let link = await storageManager.hkubeResults.put({ jobId, data: results.data })
                             results.data = {};
                             results.data.storageInfo = link;
                             await stateManager.setJobResults(results);
@@ -2314,7 +2312,7 @@ describe('Rest', () => {
                             data: [{ res1: 400 }, { res2: 500 }]
                         }
                         await stateManager.setJobStatus(results);
-                        let link = await storageManager.putResults({ jobId, data: results.data })
+                        let link = await storageManager.hkubeResults.put({ jobId, data: results.data })
                         results.data = {};
                         results.data.storageInfo = link;
                         await stateManager.setJobResults(results);

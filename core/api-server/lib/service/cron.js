@@ -57,7 +57,7 @@ class ExecutionService {
             throw new InvalidDataError(`pipeline ${pipeline.name} does not have any cron trigger`);
         }
         objectPath.set(pipeline, 'triggers.cron.enabled', toggle);
-        await storageManager.putStore({ type: 'pipeline', name: pipeline.name, data: pipeline });
+        await storageManager.hkubeStore.put({ type: 'pipeline', name: pipeline.name, data: pipeline });
         await stateManager.setPipeline(pipeline);
         return pipeline;
     }

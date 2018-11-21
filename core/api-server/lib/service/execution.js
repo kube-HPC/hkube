@@ -86,14 +86,15 @@ class ExecutionService {
 
         if (pipeline.flowInput && !alreadyExecuted) {
             const metadata = parser.replaceFlowInput(pipeline);
-            const storageInfo = await storageManager.put({ jobId, taskId: jobId, data: pipeline.flowInput });
+            const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput });
             pipeline = {
                 ...pipeline,
                 flowInput: { metadata, storageInfo },
                 flowInputOrig: pipeline.flowInput
             };
         }
-        await storageManager.putExecution({ jobId, data: pipeline, date: Date.now() });
+        await storageManager.hkubeIndex.put({ jobId });
+        await storageManager.hkubeExecutions.put({ jobId, data: pipeline });
         await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now() } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.INFO.name });

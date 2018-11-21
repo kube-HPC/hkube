@@ -11,7 +11,7 @@ class PipelineStore {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
         await validator.validateAlgorithmName(options);
-        await storageManager.putStore({ type: 'pipeline', name: options.name, data: options });
+        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: options });
         await stateManager.setPipeline(options);
         return options;
     }
@@ -45,7 +45,7 @@ class PipelineStore {
             throw new ResourceExistsError('pipeline', options.name);
         }
         await validator.validateAlgorithmName(options);
-        await storageManager.putStore({ type: 'pipeline', name: options.name, data: options });
+        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: options });
         await stateManager.setPipeline(options);
         return options;
     }

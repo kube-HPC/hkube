@@ -12,7 +12,7 @@ class WorkerStub {
         }
         await stateManager.setJobStatus(results);
         results.data = {};
-        results.data.storageInfo = await storageManager.putResults({ jobId: results.jobId, data });
+        results.data.storageInfo = await storageManager.hkubeResults.put({ jobId: results.jobId, data });
         await stateManager.setJobResults(results);
     }
 }
