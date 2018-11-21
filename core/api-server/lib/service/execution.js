@@ -35,7 +35,7 @@ class ExecutionService {
     async runCaching({ jobId, nodeName }) {
         validator.validateCaching({ jobId, nodeName });
         const retryStrategy = {
-            maxAttempts: 3,
+            maxAttempts: 0,
             retryDelay: 5000
         };
         const { protocol, host, port, prefix } = main.cachingServer;
@@ -49,6 +49,9 @@ class ExecutionService {
             retryDelay: retryStrategy.retryDelay,
             retryStrategy: request.RetryStrategies.HTTPOrNetworkError
         });
+        if (response.statusCode !== 200) {
+            throw new Error(`error:${response.body.error.message}`);
+        }
         log.debug(` get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
         const cacheJobId = this._createJobIdForCaching(jobId);
         return this._run(response.body, cacheJobId, true);
