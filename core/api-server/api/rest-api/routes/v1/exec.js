@@ -27,6 +27,15 @@ const routes = (options) => {
             return next(error);
         });
     });
+    router.all('/caching', methods(['POST']), logger(), (req, res, next) => {
+        Execution.runCaching(req.body).then((jobId, nodeName) => {
+            res.json({ jobId, nodeName });
+            res.jobId = jobId;
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
     router.all('/stop', methods(['POST']), logger(), (req, res, next) => {
         const { jobId, reason } = req.body;
         Execution.stopJob({ jobId, reason }).then(() => {

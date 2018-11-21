@@ -1,14 +1,18 @@
 const uuidv4 = require('uuid/v4');
 const merge = require('lodash.merge');
+const request = require('requestretry');
+const log = require('@hkube/logger').GetLogFromContainer();
 const randString = require('crypto-random-string');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
+const { main } = require('@hkube/config').load();
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const States = require('../state/States');
+const component = require('../../lib/consts/componentNames').EXECUTION_SERVICE;
 const WebhookTypes = require('../webhook/States').Types;
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 
@@ -28,6 +32,28 @@ class ExecutionService {
         return this._runStored(options);
     }
 
+    async runCaching({ jobId, nodeName }) {
+        validator.validateCaching({ jobId, nodeName });
+        const retryStrategy = {
+            maxAttempts: 3,
+            retryDelay: 5000
+        };
+        const { protocol, host, port, prefix } = main.cachingServer;
+        const uri = `${protocol}://${host}:${port}/${prefix}?jobId=${jobId}&&nodeName=${nodeName}`;
+
+        const response = await request({
+            method: 'GET',
+            uri,
+            json: true,
+            maxAttempts: retryStrategy.maxAttempts,
+            retryDelay: retryStrategy.retryDelay,
+            retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+        });
+        log.debug(` get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
+        const cacheJobId = this._createJobIdForCaching(jobId);
+        return this._run(response.body, cacheJobId, true);
+    }
+
     async _runStored(options, jobId) {
         const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
@@ -37,7 +63,7 @@ class ExecutionService {
         return this._run(pipe, jobId);
     }
 
-    async _run(pipeLine, jobID) {
+    async _run(pipeLine, jobID, alreadyExecuted = false) {
         let pipeline = pipeLine;
         let jobId = jobID;
         if (!jobId) {
@@ -55,7 +81,7 @@ class ExecutionService {
         validator.addPipelineDefaults(pipeline);
         await validator.validateAlgorithmName(pipeline);
 
-        if (pipeline.flowInput) {
+        if (pipeline.flowInput && !alreadyExecuted) {
             const metadata = parser.replaceFlowInput(pipeline);
             const storageInfo = await storageManager.put({ jobId, taskId: jobId, data: pipeline.flowInput });
             pipeline = {
@@ -190,6 +216,10 @@ class ExecutionService {
 
     _createSubPipelineJobID(options) {
         return [options.jobId, uuidv4()].join('.');
+    }
+
+    _createJobIdForCaching(jobId) {
+        return `caching:${jobId}:${randString(4)}`;
     }
 
     _createJobID(options) {

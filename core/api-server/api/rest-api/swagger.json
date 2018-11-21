@@ -161,6 +161,68 @@
                 }
             }
         },
+        "/exec/caching": {
+            "post": {
+                "tags": [
+                    "Execution"
+                ],
+                "summary": "Run job from a specific node",
+                "description": "the api allows you to run job from current node and getting the data of the predecessors from caching of the previous run ",
+                "responses": {
+                    "200": {
+                        "description": "pipeline execution data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/jobId"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/entities/caching"
+                            }
+                        }
+                    },
+                    "description": "an object representing all information needed for stored pipeline execution",
+                    "required": true
+                }
+            }
+        },
         "/exec/stop": {
             "post": {
                 "tags": [
@@ -2238,6 +2300,26 @@
                     "additionalProperties": false,
                     "required": [
                         "name"
+                    ]
+                },
+                "caching": {
+                    "type": "object",
+                    "properties": {
+                        "jobId": {
+                            "type": "string",
+                            "description": "Unique job identifier",
+                            "minLength": 1
+                        },
+                        "nodeName": {
+                            "type": "string",
+                            "description": "Unique node identifier",
+                            "minLength": 1
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "jobId",
+                        "nodeName"
                     ]
                 },
                 "pipelineNode": {

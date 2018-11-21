@@ -56,6 +56,10 @@ class ApiValidator {
         this._validate(schemas.entities.storedPipeline, pipeline, false, { checkFlowInput: false });
     }
 
+    validateCaching(request) {
+        this._validate(schemas.entities.caching, request, false);
+    }
+
     validateStopPipeline(pipeline) {
         this._validate(schemas.requests.stopRequest, pipeline, true);
     }
