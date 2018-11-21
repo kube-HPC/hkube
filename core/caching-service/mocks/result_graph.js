@@ -1,3 +1,4 @@
+/* eslint-disable */
 const pipeline = {
     "name": "resultBatch",
     "nodes": [
@@ -8,9 +9,9 @@ const pipeline = {
                 "#@yellow.data",
                 512
             ],
-            caching:[{
+            caching: [{
                 node: 'yellow',
-                type: consts.relations.WAIT_NODE,//waitNode
+                type: 'waitNode',//waitNode
                 result: {
                     "metadata": {
                         "yellow": { type: "array", size: 5 }

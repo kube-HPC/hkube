@@ -1,24 +1,23 @@
 const graphlib = require('graphlib');
-const { alg } = require('graphlib')
-const { parser, consts } = require('@hkube/parsers');
-const { aggregateInput } = require('./input-parser')
-const nodeTemplate = (nodeName, algorithmName, input) => ({
-    nodeName,
-    algorithmName,
-    input
-})
+const { parser } = require('@hkube/parsers');
+const { aggregateInput } = require('./input-parser');
+
+// const nodeTemplate = (nodeName, algorithmName, input) => ({
+//     nodeName,
+//     algorithmName,
+//     input
+// });
 
 class NodesMap {
     constructor(_nodes) {
         this._graph = new graphlib.Graph({ directed: true });
         this.nodes = _nodes;
         this._buildGraph(this.nodes);
-
     }
 
-    _buildGraph(_nodes) {
+    _buildGraph(_nodesData) {
         const nodes = [];
-        _nodes = _nodes || [];
+        const _nodes = _nodesData || [];
         _nodes.forEach((n) => {
             n.input.forEach((i) => {
                 const results = parser.extractNodesFromInput(i);
@@ -42,60 +41,58 @@ class NodesMap {
     }
 
     findDependentNodes(nodeId) {
-        const predecessors = this._graph.predecessors(nodeId);
-        const getAllPredecessors = this.getAllPredecessors("A", this._graph)
-        const getAllSuccessors = this.getAllSuccessors("A", this._graph)
-        console.log("predecessors", predecessors);
+        const predecessors = this._graph.predecessors(nodeId); //eslint-disable-line
+        const getAllPredecessors = this.getAllPredecessors('A', this._graph);//eslint-disable-line
+        const getAllSuccessors = this.getAllSuccessors('A', this._graph);//eslint-disable-line
+        //  console.log('predecessors', predecessors);
         // console.log("postOrder", postOrder);
-        console.log("getAllPredecessors", getAllPredecessors);
-        console.log("getAllSuccessors", getAllSuccessors);
+        //  console.log('getAllPredecessors', getAllPredecessors);
+        //    console.log('getAllSuccessors', getAllSuccessors);
     }
 
 
     getAllPredecessors(nodeId, graph = this._graph, res = []) {
         const predecessors = graph.predecessors(nodeId);
         if (!predecessors) {
-            throw new Error(`cant find predecessors for ${nodeId}`)
+            throw new Error(`cant find predecessors for ${nodeId}`);
         }
-        if (predecessors.length == 0) {
+        if (predecessors.length === 0) {
             return;
         }
         res.push({ id: nodeId, predecessors });
-        predecessors.forEach(p => this.getAllPredecessors(p, graph, res))
-        return res;
+        predecessors.forEach(p => this.getAllPredecessors(p, graph, res));
+        return res; //eslint-disable-line
     }
 
     getAllSuccessors(nodeId, graph = this._graph, res = []) {
         const successors = graph.successors(nodeId);
         if (!successors) {
-            throw new Error(`cant find successors for ${nodeId}`)
+            throw new Error(`cant find successors for ${nodeId}`);
         }
-        if (successors.length == 0) {
+        if (successors.length === 0) {
             return;
         }
         res.push({ id: nodeId, successors });
-        successors.forEach(p => this.getAllSuccessors(p, graph, res))
-        return res;
+        successors.forEach(p => this.getAllSuccessors(p, graph, res));
+        return res; //eslint-disable-line
     }
 
     getDependentNodes(nodeId) {
-
-        const data = [];
-        const successors = this.getAllSuccessors(nodeId, this._graph)
-        aggregateInput(this.nodes, successors)
+        const successors = this.getAllSuccessors(nodeId, this._graph);
+        aggregateInput(this.nodes, successors);
         // successesors.forEach(s => {
 
         // const pred = this._graph.predecessors(s.id);
         // const nodeData = this.nodes.find(n=>n.nodeName==s.id)
-        //const input = nodeData.input()
-        //})
+        // const input = nodeData.input()
+        // })
     }
     // getDependentData(successesors, nodePredaccessor) {
-    //     const pred = 
+    //     const pred =
     //     nodePredaccessor.forEach(np => {
     //        if(successesors.filter(s => s.id == np)){
 
-    //        } 
+    //        }
     //     })
 
     // }

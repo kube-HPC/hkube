@@ -1,3 +1,4 @@
+/* eslint-disable */
 const graph = {
     "name": "DAG",
     "nodes": [

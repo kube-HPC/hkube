@@ -1,5 +1,6 @@
+/* eslint-disable */
 const express = require('express');
-const runner = require('../runner')
+const runner = require('../runner');
 
 const routes = (options) => {
     const router = express.Router();
@@ -13,11 +14,12 @@ const routes = (options) => {
             const response = await runner.parse(jobId, nodeName);
             res.json(response);
             next();
-        } catch (error) {
-             return next(error);
         }
-    })
-    return router
-}
+        catch (error) {
+            return next(error);
+        }
+    });
+    return router;
+};
 
-module.exports = routes
+module.exports = routes;

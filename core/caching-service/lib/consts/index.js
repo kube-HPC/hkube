@@ -1,6 +1,4 @@
-const componentName = require('./component-name')
+const componentName = require('./component-name');
 
 
-
-
-module.exports = { componentName }
+module.exports = { componentName };
