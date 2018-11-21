@@ -4,7 +4,7 @@ const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const { expect } = require('chai');
-const { applyPipelineDriverImage, createDriverJobSpec, applyEnvToContainer } = require('../lib/jobs/jobCreator');
+const { applyPipelineDriverImage, createDriverJobSpec, applyEnvToContainer, applyNodeSelector } = require('../lib/jobs/jobCreator');
 const template = require('../lib/templates').pipelineDriverTemplate;
 const CONTAINERS = require('../common/consts/containers');
 
@@ -20,6 +20,22 @@ describe('PipelineDriverJobCreator', () => {
             expect(() => applyPipelineDriverImage(missingAlgorunnerSpec, 'registry:5000/myAlgo1Image:v2')).to.throw('Unable to create job spec. pipeline-driver container not found');
         });
     });
+
+    describe('useNodeSelector', () => {
+        it('should remove node selector in spec', () => {
+            const res = applyNodeSelector(template, {useNodeSelector: false});
+            expect(res.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+        it('should remove node selector in spec 2', () => {
+            const res = applyNodeSelector(template);
+            expect(res.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+        it('should not remove node selector in spec', () => {
+            const res = applyNodeSelector(template, {useNodeSelector: true});
+            expect(res.spec.template.spec.nodeSelector).to.exist;
+        });
+    });
+
     describe('applyEnvToContainer', () => {
         it('should add env to spec', () => {
             const envLength = template.spec.template.spec.containers[0].env.length;

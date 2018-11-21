@@ -5,7 +5,7 @@ const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
 const { expect } = require('chai');
-const { applyAlgorithmImage, applyAlgorithmName, applyWorkerImage, createJobSpec, applyEnvToContainer } = require('../lib/jobs/jobCreator'); // eslint-disable-line object-curly-newline
+const { applyAlgorithmImage, applyAlgorithmName, applyWorkerImage, createJobSpec, applyEnvToContainer, applyNodeSelector } = require('../lib/jobs/jobCreator'); // eslint-disable-line object-curly-newline
 const { jobTemplate } = require('./stub/jobTemplates');
 
 describe('jobCreator', () => {
@@ -43,6 +43,22 @@ describe('jobCreator', () => {
             expect(() => applyWorkerImage(missingWorkerSpec, 'workerImage:v2')).to.throw('Unable to create job spec. worker container not found');
         });
     });
+
+    describe('useNodeSelector', () => {
+        it('should remove node selector in spec', () => {
+            const res = applyNodeSelector(jobTemplate, {useNodeSelector: false});
+            expect(res.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+        it('should remove node selector in spec 2', () => {
+            const res = applyNodeSelector(jobTemplate);
+            expect(res.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+        it('should not remove node selector in spec', () => {
+            const res = applyNodeSelector(jobTemplate, {useNodeSelector: true});
+            expect(res.spec.template.spec.nodeSelector).to.exist;
+        });
+    });
+
     describe('applyEnvToContainer', () => {
         it('should add env to spec', () => {
             const res = applyEnvToContainer(jobTemplate, 'worker', { env1: 'value1' });

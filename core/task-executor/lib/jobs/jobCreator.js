@@ -126,7 +126,15 @@ const applyName = (inputSpec, algorithmName) => {
     return spec;
 };
 
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv }) => {
+const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
+    const spec = clonedeep(inputSpec);
+    if (!clusterOptions.useNodeSelector) {
+        delete spec.spec.template.spec.nodeSelector;
+    }
+    return spec;
+};
+
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, clusterOptions}) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -145,11 +153,12 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyWorkerImage(spec, workerImage);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
+    spec = applyNodeSelector(spec, clusterOptions);
 
     return spec;
 };
 
-const createDriverJobSpec = ({ resourceRequests, image, inputEnv }) => {
+const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions }) => {
     if (!image) {
         const msg = 'Unable to create job spec. image is required';
         log.error(msg, { component });
@@ -160,6 +169,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv }) => {
     spec = applyPipelineDriverImage(spec, image);
     spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
     spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
+    spec = applyNodeSelector(spec, clusterOptions);
 
     return spec;
 };
@@ -173,6 +183,7 @@ module.exports = {
     applyWorkerImage,
     applyPipelineDriverImage,
     applyEnvToContainer,
-    applyAlgorithmResourceRequests
+    applyAlgorithmResourceRequests,
+    applyNodeSelector
 };
 

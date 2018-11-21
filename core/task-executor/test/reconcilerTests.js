@@ -78,6 +78,111 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+
+        it('should keep node selector', async () => {
+            const algorithm = 'black-alg';
+            const res = await reconciler.reconcile({
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [
+                    {
+                        data: [{
+                            name: algorithm,
+                        }]
+                    }
+                ],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                },
+                clusterOptions: {
+                    useNodeSelector: true
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.exist;
+        });
+        it('should remove node selector', async () => {
+            const algorithm = 'black-alg';
+            const res = await reconciler.reconcile({
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [
+                    {
+                        data: [{
+                            name: algorithm,
+                        }]
+                    }
+                ],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                },
+                clusterOptions: {
+                    useNodeSelector: false
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+
+        it('should remove node selector 2', async () => {
+            const algorithm = 'black-alg';
+            const res = await reconciler.reconcile({
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [
+                    {
+                        data: [{
+                            name: algorithm,
+                        }]
+                    }
+                ],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+
+
+        it('should keep node selector', async () => {
+            const algorithm = 'black-alg';
+            const res = await reconciler.reconcile({
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [
+                    {
+                        data: [{
+                            name: algorithm,
+                        }]
+                    }
+                ],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                },
+                clusterOptions: {
+                    useNodeSelector: true
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.exist;
+        });
         it('should work with algorithm with not enough cpu', async () => {
             const algorithm = 'hungry-alg';
             algorithmTemplates[algorithm] = {
@@ -297,6 +402,55 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(count);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].name).to.eql(settings.name);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/pipeline-driver');
+        });
+        it('should remove node selector', async () => {
+            const count = config.driversSetting.minAmount;
+            const res = await reconciler.reconcileDrivers({
+                normResources,
+                settings,
+                driverTemplates,
+                driversRequests: [{
+                    data: [
+                        {
+                            name: 'pipeline-driver'
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.be.undefined;
+        });
+        it('should keep node selector', async () => {
+            const count = config.driversSetting.minAmount;
+            const res = await reconciler.reconcileDrivers({
+                normResources,
+                settings,
+                driverTemplates,
+                driversRequests: [{
+                    data: [
+                        {
+                            name: 'pipeline-driver'
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                },
+                clusterOptions: {
+                    useNodeSelector: true
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.exist;
         });
         it('should create min amount of drivers not enough cpu', async () => {
             const { maxAmount } = settings

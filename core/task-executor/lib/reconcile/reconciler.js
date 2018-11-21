@@ -103,7 +103,7 @@ const _clearCreatedJobsList = (now) => {
 };
 
 const _processAllRequests = (
-    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry },
+    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions },
     { createPromises, createDetails, reconcileResult }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
@@ -147,7 +147,8 @@ const _processAllRequests = (
                 workerImage,
                 workerEnv,
                 algorithmEnv,
-                resourceRequests
+                resourceRequests,
+                clusterOptions
             }
         });
         if (!reconcileResult[algorithmName]) {
@@ -226,7 +227,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     });
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry } = {}) => {
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, clusterOptions } = {}) => {
     _clearCreatedJobsList();
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
@@ -252,7 +253,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests, registry
+            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions
         },
         {
             createPromises, createDetails, reconcileResult
@@ -299,7 +300,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     return reconcileResult;
 };
 
-const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry } = {}) => {
+const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, clusterOptions } = {}) => {
     const normDrivers = normalizeDrivers(drivers);
     const normJobs = normalizeDriversJobs(jobs, j => !j.status.succeeded);
     const merged = mergeDrivers(normDrivers, normJobs);
@@ -375,7 +376,8 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
                 jobDetails: {
                     name,
                     image,
-                    resourceRequests
+                    resourceRequests, 
+                    clusterOptions
                 }
             });
         }

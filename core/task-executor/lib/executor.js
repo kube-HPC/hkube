@@ -36,14 +36,14 @@ class Executor {
 
     async _interval(options, driversData) {
         try {
-            const [{ versions, registry }, resources] = await Promise.all([
+            const [{ versions, registry, clusterOptions }, resources] = await Promise.all([
                 kubernetes.getVersionsConfigMap(),
                 kubernetes.getResourcesPerNode()
             ]);
 
             const normResources = normalizeResources(resources);
             const data = {
-                versions, normResources, options, registry
+                versions, normResources, options, registry, clusterOptions
             };
 
             await Promise.all([
@@ -65,7 +65,7 @@ class Executor {
         return { minAmount, maxAmount, name };
     }
 
-    async _algorithmsHandle({ versions, normResources, registry }) {
+    async _algorithmsHandle({ versions, normResources, registry, clusterOptions }) {
         const [algorithmTemplates, algorithmRequests, workers, jobs] = await Promise.all([
             etcd.getAlgorithmTemplate(),
             etcd.getAlgorithmRequests({}),
@@ -74,7 +74,7 @@ class Executor {
         ]);
 
         const reconcilerResults = await reconciler.reconcile({
-            algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry
+            algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, clusterOptions
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
@@ -89,7 +89,7 @@ class Executor {
         });
     }
 
-    async _pipelineDriversHandle({ versions, normResources, registry }, settings) {
+    async _pipelineDriversHandle({ versions, normResources, registry, clusterOptions }, settings) {
         const [driverTemplates, driversRequests, drivers, jobs] = await Promise.all([
             etcd.getDriversTemplate(),
             etcd.getPipelineDriverRequests(),
@@ -98,7 +98,7 @@ class Executor {
         ]);
 
         await reconciler.reconcileDrivers({
-            driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry
+            driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, clusterOptions
         });
     }
 }
