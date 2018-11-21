@@ -1,4 +1,5 @@
 const request = require('requestretry');
+const uuidv4 = require('uuid/v4');
 const log = require('@hkube/logger').GetLogFromContainer();
 const storageManager = require('@hkube/storage-manager')
 const { componentName } = require('./consts/index')
@@ -21,10 +22,10 @@ class Runner {
         try {
             const pipeline = await this._getStoredExecution(jobId);
             const { successors, predecessors } = this._createGraphAndFindRelevantSuccessorsAndPredecessors(pipeline.data, nodeName);
-            const flattenSuccessors = this._flattenSuccessors(successors);
+            const flattenSuccessors = this._flattenSuccessors(successors, nodeName);
             const flattenPredecessors = this._flattenPredecessors(predecessors, nodeName);
-            const subPipeline = this._createSubPipeline(flattenSuccessors, pipeline.data);
-            const metadataFromPredecessors = await this._collectMetaDataFromPredecessors(jobId, flattenPredecessors);
+            const subPipeline = this._createSubPipeline(flattenSuccessors, pipeline.data, jobId);
+            const metadataFromPredecessors = await this._collectMetaDataFromPredecessors(jobId, flattenPredecessors, pipeline.date);
             const mergedPipeline = this._mergeSubPipelineWithMetadata(subPipeline, flattenPredecessors, metadataFromPredecessors);
             log.debug(`new pipeline sent for running: ${JSON.stringify(mergedPipeline)} `)
             return mergedPipeline;
@@ -40,11 +41,11 @@ class Runner {
             const dependentNodes = splitInputToNodes(n.input, flattenPredecessors);
             //finish adding caching
             if (dependentNodes) {
-                n.caching = [];
+                n.parentOutput = [];
                 dependentNodes.forEach(dn => {
                     const metadata = metadataFromSuccessors.find(ms => ms.id === dn);
                     if (metadata) {
-                        n.caching.push(metadata.metadata);
+                        n.parentOutput.push(...metadata.metadata);
                     }
                     else {
                         log.error(`couldent find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
@@ -54,9 +55,12 @@ class Runner {
         })
         return subPipeline;
     }
-    _createSubPipeline(flattenSuccessors, pipeline) {
+    _createSubPipeline(flattenSuccessors, pipeline, jobId) {
+
+        const uuidSuffix = uuidv4().split('-')[0]
         //   const flattenSuccessors = this._flattenSuccessors(parentSuccessors);
         const deepPipelineExecution = cloneDeep(pipeline);
+        deepPipelineExecution.name = `${pipeline.name}:${uuidSuffix}`
         deepPipelineExecution.nodes = [];
         flattenSuccessors.forEach(s => {
             const node = pipeline.nodes.find(n => n.nodeName === s);
@@ -67,13 +71,16 @@ class Runner {
         return deepPipelineExecution;
     }
 
-    _flattenSuccessors(parentSuccessors) {
+    _flattenSuccessors(parentSuccessors, nodeName) {
         const flatten = new Set();
-        parentSuccessors.forEach(s => s.successors.forEach(childSuccessor => {
-            if (!flatten.has(childSuccessor)) {
-                flatten.add(childSuccessor);
-            }
-        }))
+        flatten.add(nodeName)
+        if (parentSuccessors) {
+            parentSuccessors.forEach(s => s.successors.forEach(childSuccessor => {
+                if (!flatten.has(childSuccessor)) {
+                    flatten.add(childSuccessor);
+                }
+            }))
+        }
 
         return [...flatten];
     }
@@ -81,11 +88,13 @@ class Runner {
     _flattenPredecessors(parentPredecessors, nodeName) {
         const flatten = new Set();
         flatten.add(nodeName)
-        parentPredecessors.forEach(p => p.predecessors.forEach(childPredecessor => {
-            if (!flatten.has(childPredecessor)) {
-                flatten.add(childPredecessor);
-            }
-        }))
+        if (parentPredecessors) {
+            parentPredecessors.forEach(p => p.predecessors.forEach(childPredecessor => {
+                if (!flatten.has(childPredecessor)) {
+                    flatten.add(childPredecessor);
+                }
+            }))
+        }
 
         return [...flatten];
     }
@@ -108,12 +117,12 @@ class Runner {
         };
     }
 
-    async  _collectMetaDataFromPredecessors(jobId, flattenPredecessors) {
+    async  _collectMetaDataFromPredecessors(jobId, flattenPredecessors, date) {
         let metadata = null;
         try {
             metadata = await Promise.all(flattenPredecessors.map(async p => ({
                 id: p,
-                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(jobId, p)
+                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(jobId, p, date)
             })))
 
 
@@ -123,9 +132,9 @@ class Runner {
         return metadata;
     }
 
-    async _getMetaDataFromStorageAndCreateDescriptior(jobId, nodeName) {
+    async _getMetaDataFromStorageAndCreateDescriptior(jobId, nodeName, date) {
         try {
-            const metadataPathList = await storageManager.listMetadata({ date: Date.now(), jobId, nodeName });
+            const metadataPathList = await storageManager.listMetadata({ date, jobId, nodeName });
             const metadataList = await Promise.all(metadataPathList.map(async path => {
                 const metadata = await storageManager.get(path);
                 return {

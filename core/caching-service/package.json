@@ -20,7 +20,8 @@
     "lodash.clonedeep": "^4.5.0",
     "lodash.clonedeepwith": "^4.5.0",
     "request": "^2.88.0",
-    "requestretry": "^3.0.2"
+    "requestretry": "^3.0.2",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
