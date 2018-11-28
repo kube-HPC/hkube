@@ -35,6 +35,7 @@ config.heuristicsWeights = {
 };
 
 config.metrics = {
+    prefix: 'hkube_',
     collectDefault: true,
     server: {
 
