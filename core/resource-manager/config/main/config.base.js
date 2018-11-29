@@ -33,6 +33,7 @@ config.resourceThresholds = {
 };
 
 config.metricsMeasure = {
+    prefix: 'hkube_',
     collectDefault: true,
     server: {
         port: process.env.METRICS_PORT
