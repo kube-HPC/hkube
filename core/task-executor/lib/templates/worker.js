@@ -93,7 +93,12 @@ const jobTemplate = {
                             },
                             {
                                 name: 'DEFAULT_STORAGE',
-                                value: 's3'
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DEFAULT_STORAGE'
+                                    }
+                                }
                             },
                             {
                                 name: 'JAEGER_AGENT_SERVICE_HOST',
