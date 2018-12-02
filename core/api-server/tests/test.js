@@ -1626,7 +1626,7 @@ describe('Rest', () => {
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.message).to.equal('algorithm conflict already exists');
                     });
-                    const invalidChars = ['/', '_', '*', '#', '"', '%'];
+                    const invalidChars = ['/', '_', '*', '#', '"', '%', 'A'];
                     invalidChars.forEach((v) => {
                         it(`should throw invalid algorithm name if include ${v}`, async () => {
                             const options = {
@@ -1640,7 +1640,7 @@ describe('Rest', () => {
                             const response = await _request(options);
                             expect(response.body).to.have.property('error');
                             expect(response.response.statusCode).to.equal(400);
-                            expect(response.body.error.message).to.equal('algorithm name must contain only alphanumeric, dash or dot');
+                            expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
                         });
                     });
                     const invalidStartAndEndChars = ['/', '_', '*', '#', '"', '%', '-', 'A'];
@@ -1657,7 +1657,7 @@ describe('Rest', () => {
                             const response = await _request(options);
                             expect(response.body).to.have.property('error');
                             expect(response.response.statusCode).to.equal(400);
-                            expect(response.body.error.message).to.equal('algorithm name must contain only alphanumeric, dash or dot');
+                            expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
                         });
                         it(`should throw invalid if algorithm name if end with ${v}`, async () => {
                             const options = {
@@ -1671,7 +1671,7 @@ describe('Rest', () => {
                             const response = await _request(options);
                             expect(response.body).to.have.property('error');
                             expect(response.response.statusCode).to.equal(400);
-                            expect(response.body.error.message).to.equal('algorithm name must contain only alphanumeric, dash or dot');
+                            expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
                         });
                     });
                     it('should succeed to store algorithm name (www.example.com)', async () => {

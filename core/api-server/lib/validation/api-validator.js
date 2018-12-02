@@ -11,7 +11,7 @@ const validator = new Validator({ useDefaults: false, coerceTypes: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
 const URL_REGEX = /^(f|ht)tps?:\/\//i;
 const PIPELINE_NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
-const ALGORITHM_NAME_REGEX = /^[a-z0-9][-a-zA-Z0-9\\.]*[a-z0-9]$/;
+const ALGORITHM_NAME_REGEX = /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/;
 const MIN_MEMORY = 4;
 
 class ApiValidator {
@@ -185,7 +185,7 @@ class ApiValidator {
 
     _validateAlgorithmName(name) {
         if (!ALGORITHM_NAME_REGEX.test(name)) {
-            throw new InvalidDataError('algorithm name must contain only alphanumeric, dash or dot');
+            throw new InvalidDataError('algorithm name must contain only lower-case alphanumeric, dash or dot');
         }
         return true;
     }
