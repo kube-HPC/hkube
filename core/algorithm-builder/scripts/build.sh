@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 ENV=$1
-BUILD=../environments/${ENV}/builder
+DIR=$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)
+BUILD=$DIR/../environments/${ENV}/builder
 
 echo "starting build for environment: ${ENV}"
 
