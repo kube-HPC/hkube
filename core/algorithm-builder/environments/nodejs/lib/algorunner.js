@@ -8,8 +8,8 @@ class Algorunner {
     }
 
     async init(options) {
-        await this._connectToWorker(options);
         await this._loadAlgorithm(options);
+        await this._connectToWorker(options);
     }
 
     async _connectToWorker(options) {
@@ -43,8 +43,15 @@ class Algorunner {
             this._algorithm = algorithm;
         }
         catch (e) {
-            console.error(`unable to load algorithm code from path: ${options.algorithm.codePath} error: ${e}`);
-            return e;
+            const error = `unable to load algorithm code from path: ${options.algorithm.codePath} error: ${e}`);
+            console.error(error);
+            workerCommunication.send({
+                command: messages.outgoing.error,
+                error: {
+                    code: 'Failed',
+                    message: error
+                }
+            });
         }
     }
 

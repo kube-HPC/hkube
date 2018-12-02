@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
-  "scripts": {},
+  "scripts": {
+    "start": "node app",
+    "build": "./builder/build.sh algorithm-runner-nodejs"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {

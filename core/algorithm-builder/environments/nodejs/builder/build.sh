@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 REPO_NAME=$1
 if [ -v PRIVATE_REGISTRY ]
 then
@@ -17,7 +18,7 @@ if [ -v BASE_PRIVATE_REGISTRY ]
 then
   BASE_PRIVATE_REGISTRY="${BASE_PRIVATE_REGISTRY}/"
 fi
-docker build -t ${TAG_VER} --build-arg BASE_PRIVATE_REGISTRY="${BASE_PRIVATE_REGISTRY}" -f ./dockerfile/Dockerfile .
+docker build -t ${TAG_VER} --build-arg BASE_PRIVATE_REGISTRY="${BASE_PRIVATE_REGISTRY}" -f ./builder/Dockerfile .
 if [ "${TRAVIS_PULL_REQUEST:-"false"}" == "false" ] || [ -z "${TRAVIS_PULL_REQUEST}" ]; then
   TAG_CUR="${IMAGE_NAME}:latest"
   docker tag ${TAG_VER} "${TAG_CUR}"
