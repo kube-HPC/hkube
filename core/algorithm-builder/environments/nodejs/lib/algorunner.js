@@ -43,7 +43,7 @@ class Algorunner {
             this._algorithm = algorithm;
         }
         catch (e) {
-            const error = `unable to load algorithm code from path: ${options.algorithm.codePath} error: ${e}`);
+            const error = `unable to load algorithm code from path: ${options.algorithm.codePath} error: ${e}`;
             console.error(error);
             workerCommunication.send({
                 command: messages.outgoing.error,

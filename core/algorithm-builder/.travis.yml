@@ -24,11 +24,7 @@ after_success:
 deploy:
   skip_cleanup: true
   provider: script
-  script: 
-    - PRIVATE_REGISTRY=docker.io/hkube
-    - ./build.sh nodejs
-    - ./build.sh go
-    - ./build.sh python
+  script: bash scripts/deploy.sh
   on:
     branch: master
 after_deploy:
