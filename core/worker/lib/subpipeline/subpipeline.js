@@ -154,20 +154,17 @@ class SubPipelineHandler {
             return;
         }
         // get subpipeline results from storage
-        const { data, error } = await storageManager.get(result);
-        if (error) {
-            this._handleJobError(error.message, subPipelineId);
+        const res = await storageManager.get(result.data.storageInfo);
+        if (res.error) {
+            this._handleJobError(res.error.message, subPipelineId);
             return;
         }
-        if (!data) {
-            this._handleJobError(`got invalid result from storage for ${result.jobId}`, subPipelineId);
-            return;
-        }
+
         // send subPipelineDone to alg
         algoRunnerCommunication.send({
             command: messages.outgoing.subPipelineDone,
             data: {
-                response: data,
+                response: res,
                 subPipelineId
             }
         });

@@ -7,7 +7,7 @@ config.algorunnerLogging = {
 
 config.timeouts = {
     stop: 10000, // timeout to stop the algorithm in ms
-    inactive: process.env.INACTIVE_WORKER_TIMEOUT_MS || (360 * 1000),
+    inactive: process.env.INACTIVE_WORKER_TIMEOUT_MS || (36000 * 1000),
     inactivePaused: process.env.INACTIVE_PAUSED_WORKER_TIMEOUT_MS || (120 * 1000),
     algorithmDisconnected: process.env.ALGORITHM_DISCONNECTED_TIMEOUT_MS || (120 * 1000)
 };

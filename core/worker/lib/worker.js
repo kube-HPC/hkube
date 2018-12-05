@@ -155,7 +155,7 @@ class Worker {
                 clearTimeout(this._inactiveTimer);
                 this._inactiveTimer = null;
             }
-            if (this._inactiveTimeoutMs !== 0) {
+            if (this._inactiveTimeoutMs != 0) { // eslint-disable-line
                 log.info(`starting inactive timeout for worker ${this._inactiveTimeoutMs / 1000} seconds`, { component });
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {

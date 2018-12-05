@@ -167,7 +167,7 @@ describe('worker SubPipeline test', () => {
         let algData = createAlgDataWithConditionalSubPipelines(input, doubleCode)
         adapter.send({ command: messages.outgoing.initialize, data: algData });
     });
-    xit('alg with true condition should run trueSubPipeline', function (done) {
+    it('alg with true condition should run trueSubPipeline', function (done) {
         this.timeout(8000);
         const { adapter } = workerCommunication;
         const input = [10];
@@ -187,7 +187,7 @@ describe('worker SubPipeline test', () => {
         let algData = createAlgDataWithConditionalSubPipelines(input, doubleCode, gt10CondCode, incCode, squareCode);
         adapter.send({ command: messages.outgoing.initialize, data: algData });
     });
-    xit('alg with false condition should run falseSubPipeline', function (done) {
+    it('alg with false condition should run falseSubPipeline', function (done) {
         this.timeout(8000);
         const { adapter } = workerCommunication;
         const input = [4];
@@ -225,7 +225,7 @@ describe('worker SubPipeline test', () => {
         let algData = createAlgDataWithConditionalSubPipelines(input, doubleCode, buggyCondCode, incCode, squareCode);
         adapter.send({ command: messages.outgoing.initialize, data: algData });
     });
-    xit('alg with buggy subpipeline should fail', function (done) {
+    it('alg with buggy subpipeline should fail', function (done) {
         this.timeout(5000);
         const { adapter } = workerCommunication;
         const input = [4];

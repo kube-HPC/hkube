@@ -26,6 +26,30 @@ class LoggingProxy {
         this._startWatch();
     }
 
+    _getLogMessage(rawLine) {
+        try {
+            const logParsed = JSON.parse(rawLine);
+            if (logParsed.log) {
+                try {
+                    const internalLog = JSON.parse(logParsed.log);
+                    const { log: logMessage, stream, ...parsedLogWithoutLogMessage } = internalLog;
+                    return { logMessage, stream, parsedLogWithoutLogMessage };
+                }
+                catch (error) {
+                    const { log: logMessage, stream, ...parsedLogWithoutLogMessage } = logParsed;
+                    return { logMessage, stream, parsedLogWithoutLogMessage };
+                }
+            }
+            else {
+                const { log: logMessage, stream, ...parsedLogWithoutLogMessage } = logParsed;
+                return { logMessage, stream, parsedLogWithoutLogMessage };
+            }
+        }
+        catch (error) {
+            return { logMessage: rawLine };
+        }
+    }
+
     _startWatch() {
         if (!this._algorunnerLogFilePath) {
             return;
@@ -38,20 +62,12 @@ class LoggingProxy {
         try {
             this._tail = new Tail(this._algorunnerLogFilePath, { fromBeginning: true });
             this._tail.on('line', (line) => {
-                try {
-                    const logParsed = JSON.parse(line);
-                    const logMessage = logParsed.log;
-                    const { stream } = logParsed;
-
-                    if (stream === 'stderr') {
-                        log.error(logMessage, { component });
-                    }
-                    else {
-                        log.info(logMessage, { component });
-                    }
+                const { logMessage, stream, parsedLogWithoutLogMessage } = this._getLogMessage(line);
+                if (stream === 'stderr') {
+                    log.error(logMessage, { component, ...parsedLogWithoutLogMessage });
                 }
-                catch (error) {
-                    log.info(line, { component });
+                else {
+                    log.info(logMessage, { component, ...parsedLogWithoutLogMessage });
                 }
             });
             this._tail.on('error', (error) => {

@@ -254,10 +254,16 @@ class JobConsumer extends EventEmitter {
             resultLink = storageLink;
         }
 
-        await etcd.update({
-            jobId: this._jobId, taskId: this._taskId, status: jobStatus, result: resultLink, error
-        });
+        const resData = {
+            jobId: this._jobId,
+            taskId: this._taskId,
+            status: jobStatus,
+            result: resultLink,
+            error
+        };
 
+        await etcd.update(resData);
+        await storageManager.hkubeMetadata.put({ jobId: this._jobId, taskId: this._taskId, data: resData });
         this._summarizeMetrics(jobStatus);
         log.debug(`result: ${JSON.stringify(resultLink)}`, { component });
         log.debug(`status: ${jobStatus}, error: ${error}`, { component });
@@ -319,7 +325,7 @@ class JobConsumer extends EventEmitter {
             if (data === undefined) {
                 data = null;
             }
-            const storageInfo = await storageManager.put({
+            const storageInfo = await storageManager.hkube.put({
                 jobId: this._job.data.jobId, taskId: this._job.data.taskId, data
             });
             const object = { [this._job.data.nodeName]: data };

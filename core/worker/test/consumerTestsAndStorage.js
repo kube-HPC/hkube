@@ -63,7 +63,7 @@ describe('consumer tests', () => {
     });
     it('store data and validate result from algorithm', (done) => {
         let config = getConfig();
-        storageManager.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then((link) => {
+        storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then((link) => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     producer = new Producer(config.jobConsumer);
@@ -199,7 +199,7 @@ describe('consumer tests', () => {
     });
     it('get input from storage and send to algorithm', (done) => {
         let config = getConfig();
-        storageManager.put({ jobId: config.jobId, taskId: config.taskId, data: 'test' }).then((link) => {
+        storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: 'test' }).then((link) => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     producer = new Producer(config.jobConsumer);

@@ -75,7 +75,7 @@ class ApiServerClientMock extends EventEmitter {
 
     async _storeDone(jobId, output) {
         const results = [{ result: output }];
-        const storageInfo = await storageManager.putResults({ jobId, data: results });
+        const storageInfo = await storageManager.hkubeResults.put({ jobId, data: results });
         const options = {
             jobId,
             data: { storageInfo },
