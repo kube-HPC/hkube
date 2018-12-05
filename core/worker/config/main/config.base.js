@@ -1,4 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
+const formatter = require(process.cwd() + '/lib/helpers/formatters');
 const config = {};
 
 config.serviceName = packageJson.name;
@@ -16,6 +17,8 @@ config.etcd = {
     host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
+
+config.debugMode = formatter.parseBool(process.env.DEBUG_MODE || false);
 
 config.apiServer = {
     protocol: 'http',
@@ -79,12 +82,12 @@ config.tracer = {
     }
 };
 
-
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
     pod_name: process.env.POD_NAME
 };
+
 config.s3 = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',

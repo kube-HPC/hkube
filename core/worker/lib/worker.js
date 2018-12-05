@@ -24,6 +24,7 @@ class Worker {
     async init(options) {
         this._inTerminationMode = false;
         this._options = options;
+        this._debugMode = options.debugMode;
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
@@ -80,7 +81,16 @@ class Worker {
                 return;
             }
             log.warning('algorithm runner has disconnected', { component });
-            stateManager.reset();
+            if (!this._debugMode) {
+                const message = {
+                    command: 'errorMessage',
+                    error: {
+                        code: 'Failed',
+                        message: 'algorithm has disconnected'
+                    }
+                };
+                stateManager.done(message);
+            }
         });
     }
 

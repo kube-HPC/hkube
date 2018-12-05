@@ -1,12 +1,17 @@
 module.exports = {
-    /**
-     * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
-     * @param {string} pipelineName
-     */
     formatPipelineName(pipelineName) {
         if (pipelineName.startsWith('raw-')) {
             return 'raw';
         }
         return pipelineName;
+    },
+    parseBool(value) {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string' && value.toLowerCase() === 'true') {
+            return true;
+        }
+        return false;
     }
 };
