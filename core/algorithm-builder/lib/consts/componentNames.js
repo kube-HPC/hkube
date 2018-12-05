@@ -1,6 +1,7 @@
-var Components = {
+
+const Components = {
     MAIN: 'Main',
-    SOCKET: 'Socket'
+    REST_API: 'Rest-API'
 };
 
 module.exports = Components;
