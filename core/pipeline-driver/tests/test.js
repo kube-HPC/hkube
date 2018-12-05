@@ -17,17 +17,15 @@ const producer = require('../lib/producer/jobs-producer');
 const StateManager = require('../lib/state/state-manager');
 const Progress = require('../lib/progress/nodes-progress');
 const NodesMap = require('../lib/nodes/nodes-map');
-const datastoreFactory = require('../lib/datastore/storage-factory');
-const WorkerStub = require('./mocks/worker.js');
+const storageManager = require('@hkube/storage-manager');
 
-let progress, storageAdapter, taskRunner, TaskRunner, stateManager, consumer;
+let progress, taskRunner, TaskRunner, stateManager, consumer;
 const config = configIt.load().main;
 const delay = d => new Promise(r => setTimeout(r, d));
 
 describe('Test', function () {
     before(async () => {
-        await datastoreFactory.init(config, true);
-        storageAdapter = datastoreFactory.getAdapter();
+        await storageManager.init(config, true);
         await bootstrap.init();
         TaskRunner = require('../lib/tasks/task-runner');
         stateManager = new StateManager(config);
@@ -536,12 +534,12 @@ describe('Test', function () {
                 jobId,
                 data
             };
-            const storageInfo = await storageAdapter.put({ jobId, taskId, data });
+            const storageInfo = await storageManager.put({ jobId, taskId, data });
             let result = { storageInfo };
             results.data = [{ result }];
             await stateManager.setJobResults(results);
             const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
-            const res = await storageAdapter.get(etcdResult.data.storageInfo);
+            const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
         });
         it('setJobResults with null', async function () {
@@ -552,12 +550,12 @@ describe('Test', function () {
                 jobId,
                 data
             };
-            const storageInfo = await storageAdapter.put({ jobId, taskId, data });
+            const storageInfo = await storageManager.put({ jobId, taskId, data });
             let result = { storageInfo };
             results.data = [{ result }];
             await stateManager.setJobResults(results);
             const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
-            const res = await storageAdapter.get(etcdResult.data.storageInfo);
+            const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
         });
         it('setJobResults with error', async function () {
@@ -582,12 +580,12 @@ describe('Test', function () {
                 jobId,
                 data
             };
-            const storageInfo = await storageAdapter.put({ jobId, taskId, data });
+            const storageInfo = await storageManager.put({ jobId, taskId, data });
             let result = { storageInfo };
             results.data = [{ result }];
             await stateManager.setJobResults(results);
             const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
-            const res = await storageAdapter.get(etcdResult.data.storageInfo);
+            const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
         });
         it('setJobStatus', async function () {

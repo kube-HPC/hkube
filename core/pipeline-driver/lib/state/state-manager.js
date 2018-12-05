@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const { JobResult, JobStatus } = require('@hkube/etcd');
+const storageManager = require('@hkube/storage-manager');
 const stateFactory = require('./state-factory');
-const StorageFactory = require('../datastore/storage-factory');
 
 class StateManager extends EventEmitter {
     constructor(option) {
@@ -10,7 +10,6 @@ class StateManager extends EventEmitter {
         this._handleEvent = this._handleEvent.bind(this);
         this.setJobStatus = this.setJobStatus.bind(this);
         this._etcd = stateFactory.getClient();
-        this._storageAdapter = StorageFactory.getAdapter();
         stateFactory.methods({ discoveryMethod: options.discoveryMethod });
         stateFactory.on('event', this._handleEvent);
     }
@@ -28,12 +27,12 @@ class StateManager extends EventEmitter {
         if (options.data) {
             const data = await Promise.all(options.data.map(async (a) => {
                 if (a.result && a.result.storageInfo) {
-                    const result = await this._storageAdapter.get(a.result.storageInfo);
+                    const result = await storageManager.get(a.result.storageInfo);
                     return { ...a, result };
                 }
                 return a;
             }));
-            const storageInfo = await this._storageAdapter.putResults({ jobId: options.jobId, data });
+            const storageInfo = await storageManager.putResults({ jobId: options.jobId, data });
             results = { storageInfo };
         }
         return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult({ ...options, data: results }) });
