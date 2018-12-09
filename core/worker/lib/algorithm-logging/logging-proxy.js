@@ -15,8 +15,8 @@ class LoggingProxy {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
-        const { algorunnerLogFileName, baseLogsPath } = options.algorunnerLogging;
-        if (!algorunnerLogFileName || !baseLogsPath) {
+        const { algorunnerLogFileName, baseLogsPath, disable } = options.algorunnerLogging;
+        if (disable || !algorunnerLogFileName || !baseLogsPath) {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }

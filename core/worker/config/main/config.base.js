@@ -1,5 +1,5 @@
-const packageJson = require(process.cwd() + '/package.json');
-const formatter = require(process.cwd() + '/lib/helpers/formatters');
+const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line
+const formatter = require(process.cwd() + '/lib/helpers/formatters'); // eslint-disable-line
 const config = {};
 
 config.serviceName = packageJson.name;
@@ -116,5 +116,6 @@ config.storageAdapters = {
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
+
 
 module.exports = config;
