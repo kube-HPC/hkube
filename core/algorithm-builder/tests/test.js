@@ -1,10 +1,21 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const mockery = require('mockery');
+const request = require('request-promise');
 const fse = require('fs-extra');
 const uuid = require('uuid/v4');
 const bootstrap = require('../bootstrap');
 const builder = require('../lib/builder');
+
+
+const postFile = async ({ uri, formData }) => {
+    const result = await request({
+        method: 'POST',
+        uri,
+        formData
+    });
+    return result;
+}
 
 describe('Test', function () {
     before(async () => {
@@ -16,18 +27,23 @@ describe('Test', function () {
         mockery.registerSubstitute('../algorithm', `${process.cwd()}/tests/mocks/code/nodejs`);
         await bootstrap.init();
     });
-    xdescribe('Docker', function () {
+    describe('Docker', function () {
         it('should build docker', async function () {
             this.timeout(30000);
-            const options = {
-                payload: JSON.stringify({
-                    name: 'codeless',
-                    env: 'nodejs'
-                }),
-                file: 'uploads/zipped/6976fc4e63d427705650b8c4ab77fd85'
+            const body = {
+                name: 'codeless',
+                env: 'nodejs'
             }
-            const result = await builder.build(options);
-            expect(result).to.equal();
+            const file = `${process.cwd()}/tests/mocks/zipped/a63d8da3237ed7a2232bc61ca4cd2d81`;
+            const formData = {
+                payload: JSON.stringify(body),
+                code: fse.createReadStream(file)
+            };
+            const result = await postFile({
+                uri: 'http://localhost:3003/api/algorithms/create',
+                formData
+            });
+            expect(result).to.be.a('function');
         });
     });
     describe('Environments', function () {
@@ -47,7 +63,7 @@ describe('Test', function () {
                     },
                     metadata: {
                         "mapping": {
-                            "init": "module.lib.init4",
+                            "init": "module.lib.init",
                             "start": "module.lib.start",
                             "stop": "module.lib.stop"
                         }

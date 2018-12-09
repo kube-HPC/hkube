@@ -1,7 +1,8 @@
 const express = require('express');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/zipped/' });
 const builder = require('../../lib/builder');
+
+const upload = multer({ dest: 'uploads/zipped/' });
 
 const routes = (options) => {
     const router = express.Router();

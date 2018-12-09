@@ -1,0 +1,13 @@
+{
+  "name": "algorithm-node-codeless",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/algorithm.js",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash.orderby": "^4.5.1"
+  },
+  "devDependencies": {}
+}

@@ -1,12 +1,14 @@
 const Zip = require('adm-zip');
 const fse = require('fs-extra');
 const uuid = require('uuid/v4');
-const exec = require('child_process').exec;
+const { exec } = require('child_process');
+const log = require('@hkube/logger').GetLogFromContainer();
 
 class Builder {
-
     async build(options) {
         let buildPath;
+        let error;
+        let result;
         try {
             const payload = JSON.parse(options.payload);
             const zip = new Zip(options.file);
@@ -20,15 +22,16 @@ class Builder {
             await fse.copy(env, buildPath);
             await fse.move(code, `${buildPath}/algorithm`);
 
-            const result = await this._runBash(`${buildPath}/builder/build.sh ${alg} ${buildPath}`);
-            return result;
+            result = await this._runBash(`${buildPath}/builder/build.sh ${alg} ${buildPath}`);
         }
         catch (e) {
-            console.error(e)
+            log.error(e);
+            error = e;
         }
         finally {
             this._removeFile(buildPath);
         }
+        return { error, result };
     }
 
     _runBash(command) {
@@ -43,13 +46,10 @@ class Builder {
     }
 
     _removeFile(file) {
-        fse.remove(file).then(() => {
-            console.log('success!')
-        }).catch(err => {
-            console.error(err)
-        })
+        fse.remove(file).catch((err) => {
+            log.error(err);
+        });
     }
 }
 
 module.exports = new Builder();
-

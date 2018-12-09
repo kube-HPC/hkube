@@ -1,0 +1,17 @@
+{
+  "name": "algorithm-runner-nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hkube/config": "^2.0.7",
+    "object-path": "^0.11.4",
+    "socket.io-client": "^2.0.4"
+  },
+  "devDependencies": {}
+}
