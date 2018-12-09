@@ -3,15 +3,15 @@ const socketio = require('socket.io-client');
 const messages = require('../consts/messages');
 
 class AlgorithmSocket extends EventEmitter {
-    constructor() {
+    constructor(options) {
         super();
         this._socket = null;
-        this._url = null;
+        this._url = options.url;
+        this._connect();
     }
 
-    async init(url) {
-        this._url = url;
-        this._socket = socketio(url);
+    _connect() {
+        this._socket = socketio(this._url);
         this._registerSocketMessages(this._socket);
     }
 

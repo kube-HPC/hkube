@@ -2,15 +2,11 @@ const EventEmitter = require('events');
 const WebSocket = require('ws');
 
 class AlgorithmWS extends EventEmitter {
-    constructor() {
+    constructor(options) {
         super();
         this._socket = null;
-        this._url = null;
+        this._url = options.url;
         this._reconnectInterval = 5000;
-    }
-
-    async init(url) {
-        this._url = url;
         this._connect();
     }
 

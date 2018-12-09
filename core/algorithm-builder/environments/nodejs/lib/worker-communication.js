@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
-const AlgorithmSocket = require('./adapters/algorithm-socketio');
-const AlgorithmWS = require('./adapters/algorithm-ws');
-const adapters = require('./consts/consts').adapters;
+const AlgorithmSocket = require('./adapters/socketio');
+const AlgorithmWS = require('./adapters/ws');
+const adapters = require('./consts/adapters');
 const messages = require('./consts/messages');
 
 class WorkerCommunication extends EventEmitter {
@@ -16,20 +16,13 @@ class WorkerCommunication extends EventEmitter {
     }
 
     async init(options) {
-        if (this.adapter) {
-            this.adapter.removeAllListeners();
-            this.adapter = null;
-            this.removeAllListeners();
-
-        }
-        options = options || {};
         const adapterClass = this._adapters[options.adapter];
         if (!adapterClass) {
             throw new Error(`Invalid worker communication adapter ${options.adapter}`);
         }
         console.info(`Creating communication object of type: ${options.adapter}`);
-        this.adapter = new adapterClass();
-        await this.adapter.init(options.url);
+        this.adapter = new adapterClass({ url: options.url });
+        console.debug(`connecting to ${options.url}`);
         Object.values(messages.incoming).forEach((topic) => {
             console.debug(`registering for topic ${topic}`);
             this.adapter.on(topic, (message) => {
@@ -37,15 +30,12 @@ class WorkerCommunication extends EventEmitter {
                 this.emit(topic, message);
             });
         });
-
         this.adapter.on('connection', (message) => {
             this.connected = true;
-            console.debug(`got message on topic connection`);
             this.emit('connection', message);
         });
         this.adapter.on('disconnect', (message) => {
             this.connected = false;
-            console.debug(`got message on topic disconnect`);
             this.emit('disconnect', message);
         });
     }

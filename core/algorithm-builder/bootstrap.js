@@ -1,30 +1,24 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts/componentNames').MAIN;
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
+let log;
 
 const modules = [
-    require('./api/rest-api/app-server')
+    require('./api/app-server')
 ];
 
 class Bootstrap {
     async init() {
-        let config = null;
         try {
             this._handleErrors();
+            const { main, logger } = configIt.load();
+            log = new Logger(main.serviceName, logger);
             log.info('running application in ' + configIt.env() + ' environment', { component });
-
-            await storageManager.init(main, true);
-
             await Promise.all(modules.map(m => m.init(main)));
-            config = main;
         }
         catch (error) {
             this._onInitFailed(error);
         }
-        return config;
     }
 
     _onInitFailed(error) {

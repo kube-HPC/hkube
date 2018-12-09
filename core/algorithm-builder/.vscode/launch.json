@@ -11,8 +11,7 @@
                 "<node_internals>/**"
             ],
             "env": {
-                "WORKER_SOCKET_PORT": "9876",
-                "ALGORITHM_CODE_PATH": "/home/harelh/dev/hkube/algorithm-node-codeless"
+                "WORKER_SOCKET_PORT": "9876"
             }
         },
         {

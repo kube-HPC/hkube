@@ -1,5 +1,5 @@
 const Zip = require('adm-zip');
-const fse = require('fs-extra')
+const fse = require('fs-extra');
 const uuid = require('uuid/v4');
 const exec = require('child_process').exec;
 
@@ -20,7 +20,7 @@ class Builder {
             await fse.copy(env, buildPath);
             await fse.move(code, `${buildPath}/algorithm`);
 
-            const result = await this._runBash(`cd ${buildPath} && ./builder/build.sh ${alg}`);
+            const result = await this._runBash(`${buildPath}/builder/build.sh ${alg} ${buildPath}`);
             return result;
         }
         catch (e) {
@@ -29,7 +29,6 @@ class Builder {
         finally {
             this._removeFile(buildPath);
         }
-
     }
 
     _runBash(command) {

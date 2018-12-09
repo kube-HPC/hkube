@@ -1,18 +1,18 @@
 
 const RestServer = require('@hkube/rest-server');
 const Logger = require('@hkube/logger');
-const component = require('../../lib/consts/componentNames').REST_API;
+const component = require('../lib/consts/componentNames').REST_API;
 const router = require('./routes/algorithm');
 
-const log = Logger.GetLogFromContanier();
+let log;
 const rest = new RestServer();
 
 class AppServer {
     init(options) {
         return new Promise((resolve, reject) => {
+            log = Logger.GetLogFromContanier();
             rest.on('error', (data) => {
-                const { route, jobId, pipelineName } = data.res._internalMetadata || {};
-                log.error(`Error response, status=${data.status}, message=${data.error.message}`, { component, route, jobId, pipelineName });
+                log.error(`Error response, status=${data.status}, message=${data.error.message}`, { component });
             });
             const { prefix, port, rateLimit, poweredBy } = options.rest;
             const opt = {
