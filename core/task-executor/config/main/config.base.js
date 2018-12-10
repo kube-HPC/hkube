@@ -32,7 +32,7 @@ config.metrics = {
     }
 };
 
-config.defaultStorage = process.env.DEFAULT_STORAGE || 'fs';
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
 config.tracer = {
     tracerConfig: {
