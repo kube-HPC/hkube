@@ -2,8 +2,9 @@ const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const kubernetesClient = require('kubernetes-client');
 const objectPath = require('object-path');
-const component = require('../../common/consts/componentNames').K8S;
-const CONTAINERS = require('../../common/consts/containers');
+const { components, containers } = require('../consts');
+const component = components.K8S;
+const CONTAINERS = containers;
 let log;
 
 class KubernetesApi extends EventEmitter {
@@ -29,7 +30,7 @@ class KubernetesApi extends EventEmitter {
     }
 
     async createJob({ spec }) {
-        log.debug(`Creating job ${spec.metadata.name}`, { component });
+        log.info(`Creating job ${spec.metadata.name}`, { component });
         try {
             const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs.post({ body: spec });
             return res;
@@ -41,7 +42,7 @@ class KubernetesApi extends EventEmitter {
     }
 
     async deleteJob(jobName) {
-        log.debug(`Deleting job ${jobName}`, { component });
+        log.info(`Deleting job ${jobName}`, { component });
         try {
             const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs(jobName).delete();
             return res;

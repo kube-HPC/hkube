@@ -2,9 +2,10 @@ const uuidv4 = require('uuid/v4');
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
-const component = require('../../common/consts/componentNames').K8S;
+const { components, containers } = require('../consts');
+const component = components.K8S;
 const { workerTemplate, pipelineDriverTemplate } = require('../templates');
-const CONTAINERS = require('../../common/consts/containers');
+const CONTAINERS = containers;
 
 const applyAlgorithmImage = (inputSpec, algorithmImage) => {
     const spec = clonedeep(inputSpec);
@@ -208,7 +209,7 @@ const applyVolumeMounts = (inputSpec, containerName, vm) => {
 };
 
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv,
-    clusterOptions, config, awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl, fsBaseDirectory, fsVolumes, fsVolumeMounts }) => {
+    clusterOptions, options, awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl, fsBaseDirectory, fsVolumes, fsVolumeMounts }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -229,12 +230,12 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
     spec = applyNodeSelector(spec, clusterOptions);
 
-    if (config.defaultStorage === 's3') {
+    if (options.defaultStorage === 's3') {
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.WORKER, awsAccessKeyId);
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.WORKER, awsSecretAccessKey);
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.WORKER, s3EndpointUrl);
     }
-    else if (config.defaultStorage === 'fs') {
+    else if (options.defaultStorage === 'fs') {
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.WORKER, fsBaseDirectory);
         spec = applyVolumes(spec, fsVolumes);
         spec = applyVolumeMounts(spec, CONTAINERS.WORKER, fsVolumeMounts);
@@ -242,7 +243,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     return spec;
 };
 
-const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions, config, awsAccessKeyId, awsSecretAccessKey,
+const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions, options, awsAccessKeyId, awsSecretAccessKey,
     s3EndpointUrl, fsBaseDirectory, fsVolumes, fsVolumeMounts }) => {
     if (!image) {
         const msg = 'Unable to create job spec. image is required';
@@ -255,12 +256,12 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
     spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
     spec = applyNodeSelector(spec, clusterOptions);
-    if (config.defaultStorage === 's3') {
+    if (options.defaultStorage === 's3') {
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.PIPELINE_DRIVER, awsAccessKeyId);
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.PIPELINE_DRIVER, awsSecretAccessKey);
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.PIPELINE_DRIVER, s3EndpointUrl);
     }
-    else if (config.defaultStorage === 'fs') {
+    else if (options.defaultStorage === 'fs') {
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.PIPELINE_DRIVER, fsBaseDirectory);
         spec = applyVolumes(spec, fsVolumes);
         spec = applyVolumeMounts(spec, CONTAINERS.PIPELINE_DRIVER, fsVolumeMounts);
@@ -283,4 +284,3 @@ module.exports = {
     applyVolumes,
     applyVolumeMounts
 };
-

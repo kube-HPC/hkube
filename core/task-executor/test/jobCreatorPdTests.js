@@ -2,15 +2,14 @@ const clonedeep = require('lodash.clonedeep');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
-const config = main;
+const options = main;
 const log = new Logger(main.serviceName, logger);
 const { expect } = require('chai');
 const { applyPipelineDriverImage, createDriverJobSpec, applyEnvToContainer, applyNodeSelector,
     applyEnvToContainerFromSecretOrConfigMap, applyVolumes, applyVolumeMounts } = require('../lib/jobs/jobCreator');
 const template = require('../lib/templates').pipelineDriverTemplate;
 const templateWorker = require('../lib/templates').workerTemplate;
-
-const CONTAINERS = require('../common/consts/containers');
+const CONTAINERS = require('../lib/consts/containers');
 
 describe('PipelineDriverJobCreator', () => {
     describe('applyImageName', () => {
@@ -169,21 +168,21 @@ describe('PipelineDriverJobCreator', () => {
 
     describe('createDriverJobSpec', () => {
         it('should throw if no image name', () => {
-            expect(() => createDriverJobSpec({ config })).to.throw('Unable to create job spec. image is required');
+            expect(() => createDriverJobSpec({ options })).to.throw('Unable to create job spec. image is required');
         });
         it('should apply all required properties', () => {
-            const res = createDriverJobSpec({ ...{ config }, image: 'myImage1' });
+            const res = createDriverJobSpec({ ...{ options }, image: 'myImage1' });
             expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'myImage1' });
             expect(res.metadata.name).to.include(CONTAINERS.PIPELINE_DRIVER);
         });
         it('should apply with worker', () => {
-            const res = createDriverJobSpec({ ...{ config }, image: 'myImage1' });
+            const res = createDriverJobSpec({ ...{ options }, image: 'myImage1' });
             expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'myImage1' });
             expect(res.metadata.name).to.include(CONTAINERS.PIPELINE_DRIVER);
         });
         it('should apply with worker and resources', () => {
             const res = createDriverJobSpec({
-                ...{ config },
+                ...{ options },
                 image: 'myImage1',
                 resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } }
             });

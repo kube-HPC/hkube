@@ -124,4 +124,3 @@ const jobTemplate = {
 };
 
 module.exports = jobTemplate;
-

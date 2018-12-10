@@ -1,7 +1,7 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
-
-const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE, MAX_JOBS_PER_TICK } = require('../../common/consts/consts');
+const { consts } = require('../../lib/consts');
+const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE, MAX_JOBS_PER_TICK } = consts;
 
 const findNodeForSchedule = (node, requestedCpu, requestedMemory) => {
     const freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESURE));
@@ -81,6 +81,8 @@ const _findWorkerToStop = (workers, algorithmName) => {
 };
 
 const pauseAccordingToResources = (stopDetails, availableResources, workers, resourcesToFree) => {
+    // filter out debug workers
+    
     const localDetails = clone(stopDetails);
     let localWorkers = workers;
     let addedThisTime = 0;

@@ -5,10 +5,10 @@ const parse = require('@hkube/units-converter');
 const { createJobSpec, createDriverJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
-const { commands } = require('../../common/consts/states');
-const component = require('../../common/consts/componentNames').RECONCILER;
 const { awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl } = require('../templates/s3-template');
 const { fsBaseDirectory, fsVolumeMounts, fsVolumes } = require('../templates/fs-template');
+const { commands, components, consts } = require('../../lib/consts');
+const component = components.RECONCILER;
 
 const { normalizeWorkers,
     normalizeDrivers,
@@ -22,20 +22,19 @@ const { normalizeWorkers,
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage, setPipelineDriverImage } = require('./createOptions');
 const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
-const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = require('../../common/consts/consts');
+const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = consts;
 
 let createdJobsList = [];
-const CREATED_JOBS_TTL = 15 * 1000;
 const MIN_AGE_FOR_STOP = 10 * 1000;
 
-const _createJob = (jobDetails, config) => {
-    const spec = createJobSpec({ ...jobDetails, config });
+const _createJob = (jobDetails, options) => {
+    const spec = createJobSpec({ ...jobDetails, options });
     const jobCreateResult = kubernetes.createJob({ spec });
     return jobCreateResult;
 };
 
-const _createDriverJob = (jobDetails, config) => {
-    const spec = createDriverJobSpec({ ...jobDetails, config });
+const _createDriverJob = (jobDetails, options) => {
+    const spec = createDriverJobSpec({ ...jobDetails, options });
     const jobCreateResult = kubernetes.createJob({ spec });
     return jobCreateResult;
 };
@@ -89,15 +88,17 @@ const _resumeWorkers = (workers, count) => {
 };
 
 const _stopWorker = (worker) => {
-    return etcd.sendCommandToWorker({ workerId: worker.id, command: commands.stopProcessing });
+    return etcd.sendCommandToWorker({
+        workerId: worker.id, command: commands.stopProcessing, algorithmName: worker.algorithmName, podName: worker.podName
+    });
 };
 
 const _stopDriver = (driver) => {
     return etcd.sendCommandToDriver({ driverId: driver.id, command: commands.stopProcessing });
 };
 
-const _clearCreatedJobsList = (now) => {
-    const newCreatedJobsList = createdJobsList.filter(j => (now || Date.now()) - j.createdTime < CREATED_JOBS_TTL);
+const _clearCreatedJobsList = (now, options) => {
+    const newCreatedJobsList = createdJobsList.filter(j => (now || Date.now()) - j.createdTime < options.createdJobsTTL);
     const items = createdJobsList.length - newCreatedJobsList.length;
     if (items > 0) {
         log.debug(`removed ${items} items from jobCreated list`);
@@ -182,6 +183,9 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
 
     idleWorkers.forEach((r) => {
         const algorithmTemplate = algorithmTemplates[r.algorithmName];
+        if (algorithmTemplate.options && algorithmTemplate.options.debug) {
+            return;
+        }
         const resourceRequests = createContainerResource(algorithmTemplate);
         stopDetails.push({
             count: 1,
@@ -190,7 +194,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
                 resourceRequests
             }
         });
-        missingCount -= missingCount;
+        missingCount -= 1;
     });
 
     const activeTypes = Object.entries(activeWorkers.reduce((prev, cur, index) => {
@@ -206,6 +210,9 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
 
     notUsedAlgorithms.forEach((r) => {
         const algorithmTemplate = algorithmTemplates[r.algorithmName];
+        if (algorithmTemplate.options && algorithmTemplate.options.debug) {
+            return;
+        }
         const resourceRequests = createContainerResource(algorithmTemplate);
         stopDetails.push({
             count: 1,
@@ -214,7 +221,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
                 resourceRequests
             }
         });
-        missingCount -= missingCount;
+        missingCount -= 1;
     });
 
     if (missingCount === 0) {
@@ -224,6 +231,9 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     const sortedActiveTypes = activeTypes.sort((a, b) => a.count - b.count);
     sortedActiveTypes.forEach((r) => {
         const algorithmTemplate = algorithmTemplates[r.algorithmName];
+        if (algorithmTemplate.options && algorithmTemplate.options.debug) {
+            return;
+        }
         const resourceRequests = createContainerResource(algorithmTemplate);
         stopDetails.push({
             count: 1,
@@ -232,12 +242,12 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
                 resourceRequests
             }
         });
-        missingCount -= missingCount;
+        missingCount -= 1;
     });
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, clusterOptions, config } = {}) => {
-    _clearCreatedJobsList();
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, options, clusterOptions } = {}) => {
+    _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const merged = mergeWorkers(normWorkers, normJobs);
@@ -297,7 +307,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         log.debug(`creating ${created.length} algorithms....`);
     }
     const stopPromises = toStop.map(r => _stopWorker(r));
-    createPromises.push(created.map(r => _createJob(r, config)));
+    createPromises.push(created.map(r => _createJob(r, options)));
 
     await Promise.all([...createPromises, ...stopPromises]);
     // add created and skipped info
@@ -309,7 +319,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     return reconcileResult;
 };
 
-const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, clusterOptions, config } = {}) => {
+const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, options, clusterOptions } = {}) => {
     const normDrivers = normalizeDrivers(drivers);
     const normJobs = normalizeDriversJobs(jobs, j => !j.status.succeeded);
     const merged = mergeDrivers(normDrivers, normJobs);
@@ -400,7 +410,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
     const { toStop } = pauseAccordingToResources(stopDetails, normResources, merged.mergedDrivers);
     const stopPromises = toStop.map(r => _stopDriver(r));
     const { created, skipped } = matchJobsToResources(createDetails, normResources);
-    createPromises.push(created.map(r => _createDriverJob(r, config)));
+    createPromises.push(created.map(r => _createDriverJob(r, options)));
     await Promise.all([...createPromises, ...stopPromises]);
     // add created and skipped info
     Object.entries(reconcileResult).forEach(([name, res]) => {

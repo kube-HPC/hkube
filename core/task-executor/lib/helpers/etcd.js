@@ -2,8 +2,9 @@ const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const utils = require('../utils/utils');
-const component = require('../../common/consts/componentNames').ETCD;
-const CONTAINERS = require('../../common/consts/containers');
+const { components, containers } = require('../consts');
+const component = components.ETCD;
+const CONTAINERS = containers;
 let log;
 
 class Etcd extends EventEmitter {
@@ -22,11 +23,15 @@ class Etcd extends EventEmitter {
         this._pipelineDriverServiceName = options.workerServiceName || CONTAINERS.PIPELINE_DRIVER;
     }
 
-    sendCommandToWorker({ workerId, command }) {
+    sendCommandToWorker({ workerId, command, algorithmName, podName }) {
+        log.info(`worker for algorithm ${algorithmName} command: ${command}`, {
+            component, command, workerId, podName, algorithmName
+        });
         return this._etcd.workers.setState({ workerId, status: { command } });
     }
 
     sendCommandToDriver({ instanceId, command }) {
+        log.info(`driver command: ${command}`, { component, command, instanceId });
         return this._etcd.discovery.set({ instanceId, serviceName: this._pipelineDriverServiceName, data: { status: { command } } });
     }
 

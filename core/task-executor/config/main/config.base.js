@@ -23,6 +23,7 @@ config.driversSetting = {
 };
 
 config.intervalMs = process.env.INTERVAL_MS || '3000';
+config.createdJobsTTL = process.env.CREATED_JOBS_TTL || 15 * 1000;
 
 config.metrics = {
     collectDefault: true,

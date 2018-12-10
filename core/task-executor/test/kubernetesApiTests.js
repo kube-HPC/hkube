@@ -4,7 +4,7 @@ const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
-const { callCount, mock, clearCount } = (require('./mocks/kubernetesClient.mock')).kubernetesClient();
+const { mock } = (require('./mocks/kubernetesClient.mock')).kubernetesClient();
 let KubernetesApi;
 
 describe('Kubernetes API', () => {
@@ -137,7 +137,7 @@ describe('Kubernetes API', () => {
             }
         };
         await instance.init(options);
-        const {versions} = await instance.getVersionsConfigMap();
+        const { versions } = await instance.getVersionsConfigMap();
         expect(versions.name).to.eql('hkube-versions');
 
     });
@@ -150,7 +150,7 @@ describe('Kubernetes API', () => {
         };
         await instance.init(options);
         instance._client.shouldThrow = true
-        const {versions} = await instance.getVersionsConfigMap();
+        const { versions } = await instance.getVersionsConfigMap();
         expect(versions).to.be.undefined
     });
     it('should get nodes and pods', async () => {

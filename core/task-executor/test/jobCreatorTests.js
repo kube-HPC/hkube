@@ -3,7 +3,7 @@ const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
-const config = main;
+const options = main;
 const { expect } = require('chai');
 const { applyAlgorithmImage, applyAlgorithmName, applyWorkerImage, createJobSpec, applyEnvToContainer, applyNodeSelector } = require('../lib/jobs/jobCreator'); // eslint-disable-line object-curly-newline
 const { jobTemplate } = require('./stub/jobTemplates');
@@ -96,13 +96,13 @@ describe('jobCreator', () => {
         });
     });
     it('should throw if no image name', () => {
-        expect(() => createJobSpec({ algorithmName: 'myalgo1', config })).to.throw('Unable to create job spec. algorithmImage is required');
+        expect(() => createJobSpec({ algorithmName: 'myalgo1', options })).to.throw('Unable to create job spec. algorithmImage is required');
     });
     it('should throw if no algorithm name', () => {
-        expect(() => createJobSpec({ algorithmImage: 'myImage1', config })).to.throw('Unable to create job spec. algorithmName is required');
+        expect(() => createJobSpec({ algorithmImage: 'myImage1', options })).to.throw('Unable to create job spec. algorithmName is required');
     });
     it('should apply all required properties', () => {
-        const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', config });
+        const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options });
         expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'myImage1' });
         expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:latest' });
@@ -111,7 +111,7 @@ describe('jobCreator', () => {
     });
 
     it('should apply with worker', () => {
-        const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', config });
+        const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'workerImage2' });
         expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'myImage1' });
         expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
@@ -123,7 +123,7 @@ describe('jobCreator', () => {
             algorithmImage: 'myImage1',
             algorithmName: 'myalgo1',
             workerImage: 'workerImage2',
-            config,
+            options,
             resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } }
         });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'workerImage2' });
@@ -137,7 +137,7 @@ describe('jobCreator', () => {
     it('create job with volume', () => {
         const res = createJobSpec({
             algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2',
-            fsBaseDirectory, fsVolumeMounts, fsVolumes, config: { defaultStorage: 'fs' }
+            fsBaseDirectory, fsVolumeMounts, fsVolumes, options: { defaultStorage: 'fs' }
         });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'workerImage2' });
         expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'myImage1' });
