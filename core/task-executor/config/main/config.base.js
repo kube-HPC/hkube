@@ -31,6 +31,8 @@ config.metrics = {
     }
 };
 
+config.defaultStorage = process.env.DEFAULT_STORAGE || 'fs';
+
 config.tracer = {
     tracerConfig: {
         serviceName: config.serviceName,

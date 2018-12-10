@@ -47,8 +47,8 @@ class Executor {
             };
 
             await Promise.all([
-                this._algorithmsHandle(data),
-                this._pipelineDriversHandle(data, driversData)
+                this._algorithmsHandle(data, options),
+                this._pipelineDriversHandle(data, driversData, options)
             ]);
         }
         catch (e) {
@@ -65,7 +65,7 @@ class Executor {
         return { minAmount, maxAmount, name };
     }
 
-    async _algorithmsHandle({ versions, normResources, registry, clusterOptions }) {
+    async _algorithmsHandle({ versions, normResources, registry, clusterOptions, config }) {
         const [algorithmTemplates, algorithmRequests, workers, jobs] = await Promise.all([
             etcd.getAlgorithmTemplate(),
             etcd.getAlgorithmRequests({}),
@@ -74,7 +74,7 @@ class Executor {
         ]);
 
         const reconcilerResults = await reconciler.reconcile({
-            algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, clusterOptions
+            algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, clusterOptions, config
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
@@ -89,7 +89,7 @@ class Executor {
         });
     }
 
-    async _pipelineDriversHandle({ versions, normResources, registry, clusterOptions }, settings) {
+    async _pipelineDriversHandle({ versions, normResources, registry, clusterOptions, config }, settings) {
         const [driverTemplates, driversRequests, drivers, jobs] = await Promise.all([
             etcd.getDriversTemplate(),
             etcd.getPipelineDriverRequests(),
@@ -98,7 +98,7 @@ class Executor {
         ]);
 
         await reconciler.reconcileDrivers({
-            driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, clusterOptions
+            driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, clusterOptions, config
         });
     }
 }

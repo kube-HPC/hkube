@@ -57,33 +57,6 @@ const template = {
                                 }
                             },
                             {
-                                name: 'AWS_ACCESS_KEY_ID',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 's3-secret',
-                                        key: 'awsKey'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'AWS_SECRET_ACCESS_KEY',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 's3-secret',
-                                        key: 'awsSecret'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'S3_ENDPOINT_URL',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 's3-secret',
-                                        key: 'awsEndpointUrl'
-                                    }
-                                }
-                            },
-                            {
                                 name: 'DEFAULT_STORAGE',
                                 valueFrom: {
                                     configMapKeyRef: {

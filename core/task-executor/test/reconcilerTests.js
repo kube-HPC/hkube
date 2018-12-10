@@ -9,6 +9,12 @@ const etcd = require('../lib/helpers/etcd');
 const { normalizeResources } = require('../lib/reconcile/normalize');
 const templateStore = require('./stub/templateStore');
 const driversTemplateStore = require('./stub/driversTemplateStore');
+const awsAccessKeyId = { name: 'AWS_ACCESS_KEY_ID', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsKey' } } };
+const awsSecretAccessKey = { name: 'AWS_SECRET_ACCESS_KEY', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsSecret' } } };
+const s3EndpointUrl = { name: 'S3_ENDPOINT_URL', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsEndpointUrl' } } };
+
+
+const { fsBaseDirectory, fsVolumeMounts, fsVolumes } = require('../lib/templates/fs-template');
 const resources = require('./stub/resources');
 const config = main;
 let normResources, reconciler, algorithmTemplates, driverTemplates;
@@ -47,7 +53,7 @@ describe('reconciler', () => {
     });
     describe('reconcile algorithms tests', () => {
         it('should work with no params', async () => {
-            const res = await reconciler.reconcile({ normResources });
+            const res = await reconciler.reconcile({ normResources, config });
             expect(res).to.exist
             expect(res).to.be.empty
             expect(callCount('createJob')).to.be.undefined
@@ -55,6 +61,7 @@ describe('reconciler', () => {
         it('should work with one algo', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [
@@ -82,6 +89,7 @@ describe('reconciler', () => {
         it('should keep node selector', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [
@@ -108,6 +116,7 @@ describe('reconciler', () => {
         it('should remove node selector', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [
@@ -135,6 +144,7 @@ describe('reconciler', () => {
         it('should remove node selector 2', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [
@@ -160,6 +170,7 @@ describe('reconciler', () => {
         it('should keep node selector', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [
@@ -192,6 +203,7 @@ describe('reconciler', () => {
                 mem: 100
             };
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [
@@ -232,6 +244,7 @@ describe('reconciler', () => {
                 mem: 100
             };
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [{
@@ -260,6 +273,7 @@ describe('reconciler', () => {
                 mem: 100
             };
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [{
@@ -288,6 +302,7 @@ describe('reconciler', () => {
                 mem: 40000
             };
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [{
@@ -315,6 +330,7 @@ describe('reconciler', () => {
                 mem: 400
             };
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [{
@@ -350,6 +366,7 @@ describe('reconciler', () => {
                 }
             };
             const res = await reconciler.reconcile({
+                config,
                 normResources,
                 algorithmTemplates,
                 algorithmRequests: [{
@@ -375,11 +392,88 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'myAlgoEnv', value: 'myAlgoValue' });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+        it('should add env param, volume, volumeMount if fs is defaultStorage', async () => {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerEnv: {
+                    myEnv: 'myValue'
+                },
+                algorithmEnv: {
+                    myAlgoEnv: 'myAlgoValue'
+                }
+            };
+
+            const config = { defaultStorage: 'fs' };
+            const res = await reconciler.reconcile({
+                config,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(fsVolumeMounts);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(fsVolumes);
+        });
+        it('should add env param if s3 is defaultStorage', async () => {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerEnv: {
+                    myEnv: 'myValue'
+                },
+                algorithmEnv: {
+                    myAlgoEnv: 'myAlgoValue'
+                }
+            };
+
+            const config = { defaultStorage: 's3' };
+            const res = await reconciler.reconcile({
+                config,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include(awsAccessKeyId);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include(awsSecretAccessKey);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include(s3EndpointUrl);
+        });
     });
     describe('reconcile drivers tests', () => {
         it('should create min amount of drivers with one request', async () => {
             const count = config.driversSetting.minAmount;
             const res = await reconciler.reconcileDrivers({
+                config,
                 normResources,
                 settings,
                 driverTemplates,
@@ -406,6 +500,7 @@ describe('reconciler', () => {
         it('should remove node selector', async () => {
             const count = config.driversSetting.minAmount;
             const res = await reconciler.reconcileDrivers({
+                config,
                 normResources,
                 settings,
                 driverTemplates,
@@ -429,6 +524,7 @@ describe('reconciler', () => {
         it('should keep node selector', async () => {
             const count = config.driversSetting.minAmount;
             const res = await reconciler.reconcileDrivers({
+                config,
                 normResources,
                 settings,
                 driverTemplates,
@@ -462,6 +558,7 @@ describe('reconciler', () => {
                 cpu: 8
             };
             const res = await reconciler.reconcileDrivers({
+                config,
                 normResources,
                 settings,
                 driverTemplates: {
@@ -494,6 +591,7 @@ describe('reconciler', () => {
             };
 
             const res = await reconciler.reconcileDrivers({
+                config,
                 normResources,
                 settings,
                 driverTemplates: {
@@ -518,6 +616,7 @@ describe('reconciler', () => {
         it('should only create 30 in one iteration - drivers', async () => {
             const { maxAmount } = settings
             const res = await reconciler.reconcileDrivers({
+                config,
                 normResources,
                 settings,
                 driverTemplates,
@@ -546,6 +645,7 @@ describe('reconciler', () => {
             const scale = (minAmount * scalePercent) + minAmount;
 
             const res = await reconciler.reconcileDrivers({
+                config,
                 normResources,
                 settings,
                 driverTemplates,

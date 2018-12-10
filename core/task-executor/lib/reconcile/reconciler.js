@@ -7,6 +7,9 @@ const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
 const { commands } = require('../../common/consts/states');
 const component = require('../../common/consts/componentNames').RECONCILER;
+const { awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl } = require('../templates/s3-template');
+const { fsBaseDirectory, fsVolumeMounts, fsVolumes } = require('../templates/fs-template');
+
 const { normalizeWorkers,
     normalizeDrivers,
     normalizeRequests,
@@ -25,14 +28,14 @@ let createdJobsList = [];
 const CREATED_JOBS_TTL = 15 * 1000;
 const MIN_AGE_FOR_STOP = 10 * 1000;
 
-const _createJob = (jobDetails) => {
-    const spec = createJobSpec(jobDetails);
+const _createJob = (jobDetails, config) => {
+    const spec = createJobSpec({ ...jobDetails, config });
     const jobCreateResult = kubernetes.createJob({ spec });
     return jobCreateResult;
 };
 
-const _createDriverJob = (jobDetails) => {
-    const spec = createDriverJobSpec(jobDetails);
+const _createDriverJob = (jobDetails, config) => {
+    const spec = createDriverJobSpec({ ...jobDetails, config });
     const jobCreateResult = kubernetes.createJob({ spec });
     return jobCreateResult;
 };
@@ -148,7 +151,13 @@ const _processAllRequests = (
                 workerEnv,
                 algorithmEnv,
                 resourceRequests,
-                clusterOptions
+                clusterOptions,
+                awsAccessKeyId,
+                awsSecretAccessKey,
+                s3EndpointUrl,
+                fsBaseDirectory,
+                fsVolumeMounts,
+                fsVolumes
             }
         });
         if (!reconcileResult[algorithmName]) {
@@ -227,7 +236,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     });
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, clusterOptions } = {}) => {
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, clusterOptions, config } = {}) => {
     _clearCreatedJobsList();
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
@@ -288,7 +297,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         log.debug(`creating ${created.length} algorithms....`);
     }
     const stopPromises = toStop.map(r => _stopWorker(r));
-    createPromises.push(created.map(r => _createJob(r)));
+    createPromises.push(created.map(r => _createJob(r, config)));
 
     await Promise.all([...createPromises, ...stopPromises]);
     // add created and skipped info
@@ -300,7 +309,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     return reconcileResult;
 };
 
-const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, clusterOptions } = {}) => {
+const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, clusterOptions, config } = {}) => {
     const normDrivers = normalizeDrivers(drivers);
     const normJobs = normalizeDriversJobs(jobs, j => !j.status.succeeded);
     const merged = mergeDrivers(normDrivers, normJobs);
@@ -376,8 +385,14 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
                 jobDetails: {
                     name,
                     image,
-                    resourceRequests, 
-                    clusterOptions
+                    resourceRequests,
+                    clusterOptions,
+                    awsAccessKeyId,
+                    awsSecretAccessKey,
+                    s3EndpointUrl,
+                    fsBaseDirectory,
+                    fsVolumeMounts,
+                    fsVolumes
                 }
             });
         }
@@ -385,7 +400,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
     const { toStop } = pauseAccordingToResources(stopDetails, normResources, merged.mergedDrivers);
     const stopPromises = toStop.map(r => _stopDriver(r));
     const { created, skipped } = matchJobsToResources(createDetails, normResources);
-    createPromises.push(created.map(r => _createDriverJob(r)));
+    createPromises.push(created.map(r => _createDriverJob(r, config)));
     await Promise.all([...createPromises, ...stopPromises]);
     // add created and skipped info
     Object.entries(reconcileResult).forEach(([name, res]) => {
