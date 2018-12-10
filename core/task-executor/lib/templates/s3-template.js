@@ -1,14 +1,13 @@
 
-const awsAccessKeyId =
-    {
-        AWS_ACCESS_KEY_ID:
-            {
-                secretKeyRef: {
-                    name: 's3-secret',
-                    key: 'awsKey'
-                }
+const awsAccessKeyId = {
+    AWS_ACCESS_KEY_ID:
+        {
+            secretKeyRef: {
+                name: 's3-secret',
+                key: 'awsKey'
             }
-    };
+        }
+};
 const awsSecretAccessKey = {
     AWS_SECRET_ACCESS_KEY:
         {
