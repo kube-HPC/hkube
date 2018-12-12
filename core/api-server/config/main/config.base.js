@@ -22,14 +22,7 @@ config.cachingServer = {
     protocol: 'http',
     host: process.env.CACHING_SERVER_REST_HOST || 'localhost',
     port: process.env.CACHING_SERVER_REST_PORT || 9005,
-    prefix: 'cache',
-    poweredBy: 'HKube Server',
-    rateLimit: {
-        route: '/cache',
-        ms: process.env.CACHING_SERVER_RATE_LIMIT_MS || 1000,
-        max: process.env.CACHING_SERVER_RATE_LIMIT_MAX || 5,
-        delay: process.env.CACHING_SERVER_RATE_LIMIT_DELAY || 0
-    }
+    prefix: 'cache'
 };
 
 config.addDefaultAlgorithms = process.env.ADD_DEFAULT_ALGORITHMS || true;
