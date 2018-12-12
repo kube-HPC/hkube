@@ -3,6 +3,6 @@
         "name": "pipeline-driver",
         "image": "hkube/pipeline-driver",
         "cpu": 0.15,
-        "mem": 256
+        "mem": 2048
     }
 ]
