@@ -8,6 +8,7 @@ class ProgressManager {
         this._currentProgress = 0;
         this._calcProgress = options.calcProgress || this._defaultCalcProgress;
         this._sendProgress = options.sendProgress || this._defaultSendProgress;
+        this._discoveryMethod = options.discoveryMethod || function noop() { };
         this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
         this._queue = async.queue((task, callback) => {
             this._sendProgress(task).then(response => callback(null, response)).catch(error => callback(error));
@@ -60,8 +61,9 @@ class ProgressManager {
 
     _progress(level, options) {
         const data = this._calcProgress();
+        const discovery = this._discoveryMethod();
         this._currentProgress = data.progress;
-        return this._throttleProgress({ ...options, data, level });
+        return this._throttleProgress({ ...options, discovery, data, level });
     }
 
     _queueProgress(options) {

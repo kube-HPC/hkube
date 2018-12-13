@@ -16,6 +16,7 @@ config.timeouts = {
 };
 
 config.metrics = {
+    prefix: 'hkube_',
     collectDefault: true,
     server: {
         port: process.env.METRICS_PORT
@@ -51,12 +52,12 @@ config.etcd = {
 };
 
 config.kubernetes = {
-    pod_name: process.env.POD_NAME
+    podName: process.env.POD_NAME
 };
 
 config.fs = {
-    baseDirectory: process.env.FS_DIRECTORY || '/var/tmp/fs/storage'
-}
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
+};
 
 config.storageAdapters = {
     s3: {

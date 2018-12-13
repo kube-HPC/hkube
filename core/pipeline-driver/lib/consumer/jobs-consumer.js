@@ -39,36 +39,7 @@ class JobConsumer {
         this._consumer.register(options);
         this._consumer.on('job', (job) => {
             const taskRunner = new TaskRunner(option);
-            taskRunner.on(DriverStates.ACTIVE, (data) => {
-                stateFactory.setState({ ...data, driverStatus: DriverStates.ACTIVE });
-            });
-            taskRunner.on(DriverStates.FAILED, (data) => {
-                stateFactory.setState({ ...data, driverStatus: DriverStates.FAILED });
-            });
-            taskRunner.on(DriverStates.STOPPED, (data) => {
-                stateFactory.setState({ ...data, driverStatus: DriverStates.STOPPED });
-            });
-            taskRunner.on(DriverStates.COMPLETED, (data) => {
-                stateFactory.setState({ ...data, driverStatus: DriverStates.COMPLETED });
-            });
             taskRunner.start(job);
-        });
-
-        stateFactory.on('discovery-stopProcessing', () => {
-            log.info('got pause event', { component });
-            if (!this._consumerPaused) {
-                this._pause();
-                stateFactory.setState({ driverStatus: DriverStates.PAUSED, paused: true });
-                this._handleTimeout();
-            }
-        });
-        stateFactory.on('discovery-startProcessing', () => {
-            log.info('got resume event', { component });
-            if (this._consumerPaused) {
-                this._resume();
-                stateFactory.setState({ driverStatus: DriverStates.RESUMED, paused: false });
-                this._handleTimeout();
-            }
         });
     }
 
