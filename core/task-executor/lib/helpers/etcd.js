@@ -32,6 +32,7 @@ class Etcd extends EventEmitter {
         log.debug(`update discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
         await this._etcd.discovery.updateRegisteredData(options);
     }
+    
     sendCommandToWorker({ workerId, command, algorithmName, podName }) {
         log.info(`worker for algorithm ${algorithmName} command: ${command}`, {
             component, command, workerId, podName, algorithmName
