@@ -183,7 +183,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
 
     idleWorkers.forEach((r) => {
         const algorithmTemplate = algorithmTemplates[r.algorithmName];
-        if (algorithmTemplate.options && algorithmTemplate.options.debug) {
+        if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
             return;
         }
         const resourceRequests = createContainerResource(algorithmTemplate);
@@ -210,7 +210,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
 
     notUsedAlgorithms.forEach((r) => {
         const algorithmTemplate = algorithmTemplates[r.algorithmName];
-        if (algorithmTemplate.options && algorithmTemplate.options.debug) {
+        if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
             return;
         }
         const resourceRequests = createContainerResource(algorithmTemplate);
@@ -231,7 +231,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     const sortedActiveTypes = activeTypes.sort((a, b) => a.count - b.count);
     sortedActiveTypes.forEach((r) => {
         const algorithmTemplate = algorithmTemplates[r.algorithmName];
-        if (algorithmTemplate.options && algorithmTemplate.options.debug) {
+        if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
             return;
         }
         const resourceRequests = createContainerResource(algorithmTemplate);
@@ -244,6 +244,21 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
         });
         missingCount -= 1;
     });
+};
+const _calaStats = (data) => {
+    const stats = Object.values(data.reduce((acc, cur) => {
+        if (!acc[cur.algorithmName]) {
+            acc[cur.algorithmName] = {
+                algorithmName: cur.algorithmName,
+            };
+        }
+        acc[cur.algorithmName].count = (acc[cur.algorithmName].count || 0) + 1;
+
+        acc[cur.algorithmName][cur.workerStatus] = (acc[cur.algorithmName][cur.workerStatus] || 0) + 1;
+        return acc;
+    }, {}));
+
+    return stats;
 };
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, options, clusterOptions } = {}) => {
@@ -315,6 +330,10 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         res.created = created.filter(c => c.algorithmName === algorithmName).length;
         res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
+    });
+    await etcd.updateDiscovery({
+        reconcileResult,
+        actual: _calaStats(normWorkers)
     });
     return reconcileResult;
 };
