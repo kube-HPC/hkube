@@ -22,7 +22,7 @@ class Builder {
             await fse.copy(env, buildPath);
             await fse.move(code, `${buildPath}/algorithm`);
 
-            result = await this._runBash(`${buildPath}/builder/build.sh ${alg} ${buildPath}`);
+            result = await this._runBash(`${process.cwd()}/lib/build.sh ${alg} ${buildPath}`);
         }
         catch (e) {
             log.error(e);

@@ -20,11 +20,7 @@ const stop = async () => {
 }
 
 module.exports = {
-    module: {
-        lib: {
-            init,
-            start,
-            stop
-        }
-    }
+    init,
+    start,
+    stop
 }

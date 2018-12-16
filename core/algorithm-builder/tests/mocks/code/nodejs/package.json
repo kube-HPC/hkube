@@ -2,7 +2,6 @@
   "name": "algorithm-node-codeless",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/algorithm.js",
   "scripts": {},
   "author": "",
   "license": "ISC",

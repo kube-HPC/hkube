@@ -3,10 +3,6 @@ const Logger = require('@hkube/logger');
 const component = require('./lib/consts/componentNames').MAIN;
 let log;
 
-const modules = [
-    require('./api/app-server')
-];
-
 class Bootstrap {
     async init() {
         try {
@@ -14,7 +10,6 @@ class Bootstrap {
             const { main, logger } = configIt.load();
             log = new Logger(main.serviceName, logger);
             log.info('running application in ' + configIt.env() + ' environment', { component });
-            await Promise.all(modules.map(m => m.init(main)));
         }
         catch (error) {
             this._onInitFailed(error);

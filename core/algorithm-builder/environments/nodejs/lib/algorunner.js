@@ -1,7 +1,6 @@
 const workerCommunication = require('./worker-communication');
 const messages = require('./consts/messages');
 const methods = require('./consts/methods');
-const objectPath = require('object-path');
 
 class Algorunner {
     constructor() {
@@ -39,13 +38,12 @@ class Algorunner {
 
     async _loadAlgorithm(options) {
         try {
-            const algorithm = require('../algorithm');
+            const entryPoint = options.algorithmData.entryPoint || '';
+            const algorithm = require(`${options.algorithmPath}/${entryPoint}`);
             console.debug(`algorithm code loaded`);
 
-            const mappings = (options.metadata && options.metadata.mapping) || methods;
-            Object.keys(methods).forEach(m => {
-                const mapping = mappings[m];
-                const method = objectPath.get(algorithm, mapping);
+            Object.keys(methods).forEach((m) => {
+                const method = algorithm[m];
                 if (method && typeof method === 'function') {
                     this._algorithm[m] = method;
                 }

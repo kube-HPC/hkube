@@ -10,4 +10,6 @@ config.socket = {
     protocol: process.env.WORKER_SOCKET_PROTOCOL || 'ws'
 };
 
-config.metadata = helper.tryParseJSON(process.env.ALGORITHM_METADATA);
+config.algorithmPath = '../algorithm/';
+
+config.algorithmData = helper.tryParseJSON(process.env.ALGORITHM_DATA);
