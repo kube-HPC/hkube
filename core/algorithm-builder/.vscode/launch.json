@@ -11,7 +11,7 @@
                 "<node_internals>/**"
             ],
             "env": {
-                "WORKER_SOCKET_PORT": "9876"
+                "BUILD_ID": "build:green-alg:c0265c86-e18b-4d56-bdbd-8982cda3679c"
             }
         },
         {

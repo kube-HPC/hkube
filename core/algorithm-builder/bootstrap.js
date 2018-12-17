@@ -1,7 +1,14 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const component = require('./lib/consts/componentNames').MAIN;
+const component = require('./lib/consts/components').MAIN;
 let log;
+
+const modules = [
+    require('@hkube/storage-manager'),
+    require('./lib/helpers/etcd'),
+    require('./lib/builds/builder'),
+    require('./lib/operator')
+];
 
 class Bootstrap {
     async init() {
@@ -10,6 +17,10 @@ class Bootstrap {
             const { main, logger } = configIt.load();
             log = new Logger(main.serviceName, logger);
             log.info('running application in ' + configIt.env() + ' environment', { component });
+
+            for (const m of modules) {
+                await m.init(main);
+            }
         }
         catch (error) {
             this._onInitFailed(error);

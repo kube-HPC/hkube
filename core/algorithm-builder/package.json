@@ -20,8 +20,10 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.7",
+    "@hkube/etcd": "^4.0.25",
     "@hkube/logger": "^1.0.15",
     "@hkube/rest-server": "^1.0.11",
+    "@hkube/storage-manager": "^1.0.27",
     "adm-zip": "^0.4.13",
     "express": "^4.16.4",
     "fs-extra": "^7.0.1",

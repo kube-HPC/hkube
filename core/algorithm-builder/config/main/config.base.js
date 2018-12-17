@@ -7,7 +7,8 @@ config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
 config.version = packageJson.version;
 
-config.algorithmName = process.env.ALGORITHM_NAME;
+config.algorithmType = process.env.ALGORITHM_TYPE;
+config.buildId = process.env.BUILD_ID;
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
