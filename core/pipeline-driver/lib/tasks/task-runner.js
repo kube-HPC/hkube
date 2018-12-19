@@ -230,7 +230,6 @@ class TaskRunner extends EventEmitter {
         try {
             await Promise.all([
                 this._stateManager.deleteTasksList({ jobId: this._jobId }),
-                this._stateManager.deleteTasksState({ jobId: this._jobId }),
                 graphStore.deleteGraph({ jobId: this._jobId })
             ]);
         }
