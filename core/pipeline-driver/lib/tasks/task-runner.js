@@ -511,7 +511,8 @@ class TaskRunner extends EventEmitter {
                 algorithmName: options.node.algorithmName,
                 info: {
                     extraData: options.node.extraData,
-                    savePaths: options.paths
+                    savePaths: options.paths,
+                    lastRunResult: options.node.lastRunResult
                 }
             }
         };

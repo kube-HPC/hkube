@@ -5,6 +5,7 @@ class GraphNode {
         this.nodeName = options.nodeName;
         this.algorithmName = options.algorithmName;
         this.extraData = options.extraData;
+        this.lastRunResult = options.lastRunResult;
         this.input = options.input;
         this.status = States.CREATING;
         this.parentOutput = options.parentOutput;
