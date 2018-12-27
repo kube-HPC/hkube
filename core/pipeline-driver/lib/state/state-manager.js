@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
+const Etcd = require('@hkube/etcd');
 const { JobResult, JobStatus } = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
-const stateFactory = require('./state-factory');
 const DriverStates = require('./DriverStates');
 
 class StateManager extends EventEmitter {
@@ -10,10 +10,24 @@ class StateManager extends EventEmitter {
         const options = option || {};
         this._handleEvent = this._handleEvent.bind(this);
         this.setJobStatus = this.setJobStatus.bind(this);
-        this._etcd = stateFactory.getClient();
+        this._etcd = new Etcd();
+        this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
         this._podName = options.podName;
         this._etcd.discovery.register({ data: this._getDiscovery() });
-        stateFactory.on('event', this._handleEvent);
+        this._subscribe();
+    }
+
+    close() {
+        this._etcd._client.client.close();
+    }
+
+    _subscribe() {
+        this._etcd.tasks.on('change', (data) => {
+            this.emit(`task-${data.status}`, data);
+        });
+        this._etcd.jobState.on('change', (data) => {
+            this.emit(`job-${data.state}`, data);
+        });
     }
 
     _getDiscovery(discovery) {
@@ -34,10 +48,6 @@ class StateManager extends EventEmitter {
 
     _handleEvent(event) {
         this.emit(event.name, event.data);
-    }
-
-    clean() {
-        stateFactory.removeListener('event', this._handleEvent);
     }
 
     async setJobResults(options) {

@@ -28,16 +28,9 @@ class WorkerStub {
         this._etcd.init({ etcd: etcdOptions, serviceName });
     }
 
-    async done(jobId, taskId, result, error) {
-        await this._etcd.tasks.setState({ jobId, taskId, result: result, status: 'active' });
-        if (!error) {
-            await this._etcd.tasks.setState({ jobId, taskId, result: result, status: 'succeed' });
-            this._job.done();
-        }
-        else {
-            await this._etcd.tasks.setState({ jobId, taskId, error: error.message, status: 'failed' });
-            this._job.done(error);
-        }
+    async done({ jobId, taskId, result, error, status }) {
+        await this._etcd.tasks.setState({ jobId, taskId, result, error, status });
+        this._job && this._job.done(error);
     }
 }
 

@@ -9,9 +9,9 @@ let log;
 const modules = [
     require('./lib/producer/jobs-producer'),
     require('./lib/consumer/jobs-consumer'),
-    require('./lib/state/state-factory'),
     require('./lib/datastore/redis-storage-adapter'),
     require('./lib/metrics/pipeline-metrics'),
+    require('./lib/datastore/graph-store'),
     require('@hkube/storage-manager')
 ];
 
@@ -74,6 +74,7 @@ class Bootstrap {
         process.on('uncaughtException', (error) => {
             log.error(`uncaughtException: ${error.message}`, { component }, error);
             log.error(error);
+            console.error(error);
             process.exit(1);
         });
     }

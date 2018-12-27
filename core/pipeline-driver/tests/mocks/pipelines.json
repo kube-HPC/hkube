@@ -559,5 +559,24 @@
                 ]
             }
         ]
+    },
+    {
+        "name": "two-nodes",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "files.link"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "green-alg",
+                "input": [
+                    "files.link"
+                ]
+            }
+        ]
     }
 ]

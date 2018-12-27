@@ -15,8 +15,9 @@ const States = require('../state/NodeStates');
  * @extends {EventEmitter}
  */
 class NodesMap extends EventEmitter {
-    constructor(options) {
+    constructor(options, jobId) {
         super();
+        this._jobId = jobId;
         this.calcProgress = this.calcProgress.bind(this);
         this._graph = new graphlib.Graph({ directed: true });
         this._buildGraph(options);

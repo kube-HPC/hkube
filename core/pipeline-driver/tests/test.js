@@ -13,12 +13,11 @@ const Batch = require('../lib/nodes/node-batch');
 const Node = require('../lib/nodes/node');
 const bootstrap = require('../bootstrap');
 const pipelines = require('./mocks/pipelines');
-const stateFactory = require('../lib/state/state-factory');
 const producer = require('../lib/producer/jobs-producer');
 const StateManager = require('../lib/state/state-manager');
 const Progress = require('../lib/progress/nodes-progress');
 const NodesMap = require('../lib/nodes/nodes-map');
-
+const graphStore = require('../lib/datastore/graph-store');
 let progress, taskRunner, TaskRunner, stateManager, consumer;
 const { main, logger } = configIt.load();
 let log = new Logger(main.serviceName, logger);
@@ -387,26 +386,158 @@ describe('Test', function () {
                     done();
                 });
             });
-            it('should create job and return job id', async function () {
-                const jobId = `jobid-${uuidv4()}`;
+            it('should create job and handle active status', async function () {
+                const jobId = `jobid-active-event-${uuidv4()}`;
                 const job = {
                     data: { jobId },
                     done: () => { }
                 }
-                const pipeline = pipelines.find(p => p.name === 'one-node');
+                const pipeline = pipelines.find(p => p.name === 'two-nodes');
                 const options = {
                     type: 'test-job'
                 }
+                const status = 'active';
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
                 await stateManager.setExecution({ jobId, data: pipeline });
                 await taskRunner.start(job)
-
                 await delay(500);
-
                 const node = taskRunner._nodes.getNode('green');
-                workerStub.done(jobId, node.taskId, 'bla');
-                expect(jobId).to.be.a('string');
+                await workerStub.done({ jobId, taskId: node.taskId, status });
+                await delay(500);
+                expect(node.status).to.eql(status);
+            });
+            it('should create job and handle success status', async function () {
+                const jobId = `jobid-success-event-${uuidv4()}`;
+                const job = {
+                    data: { jobId },
+                    done: () => { }
+                }
+                const pipeline = pipelines.find(p => p.name === 'two-nodes');
+                const options = {
+                    type: 'test-job'
+                }
+                const status = 'succeed';
+                const result = 'test-result';
+                const workerStub = new WorkerStub(options);
+                const taskRunner = new TaskRunner(config);
+                await stateManager.setExecution({ jobId, data: pipeline });
+                await taskRunner.start(job)
+                await delay(500);
+                const node = taskRunner._nodes.getNode('green');
+                await workerStub.done({ jobId, taskId: node.taskId, status, result });
+                await delay(500);
+                expect(node.status).to.eql(status);
+                expect(node.result).to.eql(result);
+            });
+            it('should create job and handle failed status', async function () {
+                const jobId = `jobid-failed-event-${uuidv4()}`;
+                const job = {
+                    data: { jobId },
+                    done: () => { }
+                }
+                const pipeline = pipelines.find(p => p.name === 'two-nodes');
+                const options = {
+                    type: 'test-job'
+                }
+                const status = 'failed';
+                const error = 'test-error';
+                const workerStub = new WorkerStub(options);
+                const taskRunner = new TaskRunner(config);
+                await stateManager.setExecution({ jobId, data: pipeline });
+                await taskRunner.start(job)
+                await delay(500);
+                const node = taskRunner._nodes.getNode('green');
+                await workerStub.done({ jobId, taskId: jobId, taskId: node.taskId, status, error });
+                await delay(500);
+                expect(node.status).to.eql(status);
+                expect(node.error).to.eql(error);
+            });
+            it('should create job and handle stalled status', async function () {
+                const jobId = `jobid-stalled-event-${uuidv4()}`;
+                const job = {
+                    data: { jobId },
+                    done: () => { }
+                }
+                const pipeline = pipelines.find(p => p.name === 'two-nodes');
+                const options = {
+                    type: 'test-job'
+                }
+                const status = 'stalled';
+                const error = 'test-stalled';
+                const workerStub = new WorkerStub(options);
+                const taskRunner = new TaskRunner(config);
+                await stateManager.setExecution({ jobId, data: pipeline });
+                await taskRunner.start(job)
+                await delay(500);
+                const node = taskRunner._nodes.getNode('green');
+                await workerStub.done({ jobId, taskId: jobId, taskId: node.taskId, status, error });
+                await delay(500);
+                expect(node.status).to.eql(status);
+                expect(node.error).to.eql(error);
+            });
+            it('should create job and handle crashed status', async function () {
+                const jobId = `jobid-crashed-event-${uuidv4()}`;
+                const job = {
+                    data: { jobId },
+                    done: () => { }
+                }
+                const pipeline = pipelines.find(p => p.name === 'two-nodes');
+                const options = {
+                    type: 'test-job'
+                }
+                const failed = 'failed';
+                const status = 'crashed';
+                const error = 'test-crashed';
+                const workerStub = new WorkerStub(options);
+                const taskRunner = new TaskRunner(config);
+                await stateManager.setExecution({ jobId, data: pipeline });
+                await taskRunner.start(job)
+                await delay(500);
+                const node = taskRunner._nodes.getNode('green');
+                await workerStub.done({ jobId, taskId: jobId, taskId: node.taskId, status, error });
+                await delay(500);
+                expect(node.status).to.eql(failed);
+                expect(node.error).to.eql(error);
+            });
+            it('should create job and handle invalid status', async function () {
+                const jobId = `jobid-invalid-event-${uuidv4()}`;
+                const job = {
+                    data: { jobId },
+                    done: () => { }
+                }
+                const pipeline = pipelines.find(p => p.name === 'two-nodes');
+                const options = {
+                    type: 'test-job'
+                }
+                const status = 'invalid';
+                const taskRunner = new TaskRunner(config);
+                await stateManager.setExecution({ jobId, data: pipeline });
+                await taskRunner.start(job)
+                await delay(200);
+                const node = taskRunner._nodes.getNode('green');
+                taskRunner._handleTaskEvent({ jobId, taskId: jobId, taskId: node.taskId, status });
+            });
+        });
+        describe('CreateJobErrors', function () {
+            it('should create job and handle stalled error', async function () {
+                const jobId = `jobid-stalled-error-${uuidv4()}`;
+                const job = {
+                    data: { jobId },
+                    done: () => { }
+                }
+                const status = 'completed';
+                const error = `pipeline already in ${status} status`;
+
+                const taskRunner = new TaskRunner(config);
+                const spy = sinon.spy(taskRunner, "_cleanJob");
+
+                await stateManager.setJobStatus({ jobId, status });
+                await taskRunner.start(job);
+
+                const call = spy.getCalls()[0];
+                expect(spy.calledOnce).to.equal(true);
+                expect(call.args[0].message).to.equal(error);
             });
         });
     });
@@ -414,14 +545,32 @@ describe('Test', function () {
         beforeEach(function () {
             taskRunner = new TaskRunner(main);
         });
-        xit('should throw exception and stop pipeline', function () {
+        it('should throw exception and stop pipeline', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const job = {
                 data: { jobId },
                 done: () => { }
             }
-            const error = new Error(`unable to find pipeline ${jobId}`)
-            return expect(taskRunner.start(job)).to.eventually.rejectedWith(error.message);
+            const error = `unable to find pipeline for job ${jobId}`;
+            const spy = sinon.spy(taskRunner, "stop");
+            await taskRunner.start(job)
+            const call = spy.getCalls()[0];
+            expect(spy.calledOnce).to.equal(true);
+            expect(call.args[0].message).to.equal(error);
+        });
+        it('should start only one pipeline', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines.find(p => p.name === 'two-nodes');
+            await stateManager.setExecution({ jobId, data: pipeline });
+            const res1 = await taskRunner.start(job);
+            const res2 = await taskRunner.start(job);
+
+            expect(res1.name).to.equal('two-nodes');
+            expect(res2).to.be.null;
         });
         it('should start pipeline successfully', async function () {
             const jobId = `jobid-${uuidv4()}`;
@@ -456,6 +605,30 @@ describe('Test', function () {
             }
             const result = taskRunner._checkBatchTolerance(tasks[0]);
             expect(result.message).to.equal("4/5 (80%) failed tasks, batch tolerance is 60%, error: oooohh noooo");
+        });
+        it('should recover existing pipeline', async function () {
+            const jobId = `jobid-active-event-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines.find(p => p.name === 'two-nodes');
+            const node1 = new Node({ nodeName: 'green', status: 'creating' });
+            const node2 = new Node({ nodeName: 'yellow', status: 'creating' });
+            const taskRunner = new TaskRunner(config);
+            const nodesMap = new NodesMap(pipeline);
+            nodesMap.setNode(node1);
+            nodesMap.setNode(node2);
+            await stateManager.setExecution({ jobId, data: pipeline });
+            await stateManager._etcd.tasks.setState({ jobId, taskId: node1.taskId, status: 'succeed' });
+            await stateManager._etcd.tasks.setState({ jobId, taskId: node2.taskId, status: 'succeed' });
+
+            const spy = sinon.spy(taskRunner, "_recoverPipeline");
+
+            await graphStore.start(job.data.jobId, nodesMap);
+            await taskRunner.start(job)
+
+            expect(spy.calledOnce).to.equal(true);
         });
     });
     describe('Progress', function () {

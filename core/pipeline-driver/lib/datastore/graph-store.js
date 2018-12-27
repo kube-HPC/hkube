@@ -15,10 +15,8 @@ class GraphStore {
         this._currentJobID = null;
     }
 
-    _init() {
-        if (!log) {
-            log = logger.GetLogFromContainer();
-        }
+    init() {
+        log = logger.GetLogFromContainer();
     }
 
     async start(jobId, nodeMap) {
