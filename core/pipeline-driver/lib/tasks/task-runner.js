@@ -512,7 +512,7 @@ class TaskRunner extends EventEmitter {
                 info: {
                     extraData: options.node.extraData,
                     savePaths: options.paths,
-                    lastRunResult: options.node.lastRunResult
+                    lastRunResult: this.pipeline.lastRunResult
                 }
             }
         };

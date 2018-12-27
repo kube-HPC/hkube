@@ -40,7 +40,7 @@ class NodesMap extends EventEmitter {
                     }
                 });
             });
-            this._graph.setNode(n.nodeName, new GraphNode({ ...n, lastRunResult: options.lastRunResult }));
+            this._graph.setNode(n.nodeName, new GraphNode(n));
         });
 
         nodeList.forEach((n) => {
