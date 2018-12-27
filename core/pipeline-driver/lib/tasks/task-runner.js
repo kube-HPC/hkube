@@ -49,6 +49,9 @@ class TaskRunner extends EventEmitter {
         this._stateManager.on(Events.TASKS.FAILED, (task) => {
             this._handleTaskEvent(task);
         });
+        this._stateManager.on(Events.TASKS.STALLED, (task) => {
+            this._handleTaskEvent(task);
+        });
         this._stateManager.on(Events.TASKS.CRASHED, (task) => {
             const data = { ...task, status: NodeStates.FAILED };
             this._handleTaskEvent(data);
@@ -57,6 +60,9 @@ class TaskRunner extends EventEmitter {
 
     _handleTaskEvent(task) {
         switch (task.status) {
+            case NodeStates.STALLED:
+                this._setTaskState(task.taskId, { status: NodeStates.STALLED });
+                break;
             case NodeStates.ACTIVE:
                 this._setTaskState(task.taskId, { status: NodeStates.ACTIVE });
                 break;
@@ -190,7 +196,7 @@ class TaskRunner extends EventEmitter {
         const resultError = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data, reason, error: errorMsg, status });
 
         if (errorMsg || resultError) {
-            const error = `${errorMsg || ''}, ${resultError || ''}`;
+            const error = resultError || errorMsg;
             await this._progressError({ status, error });
             if (err.batchTolerance) {
                 await this._stateManager.stopJob({ jobId: this._jobId });
