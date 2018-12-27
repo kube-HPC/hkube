@@ -1,11 +1,12 @@
 const uuidv4 = require('uuid/v4');
 const stubTemplate = ({
-    uuid = uuidv4(), pipelineUuid = `pipeline-${uuidv4()}`,
+    uuid = uuidv4(), 
+    pipelineUuid = `pipeline-${uuidv4()}`,
     algorithmName = 'alg name',
     batchIndex = Math.floor((Math.random() * 1000)),
     priority = Math.floor((Math.random() * 5)),
-    score = Math.floor((Math.random() * 100))
-    , entranceTime = Date.now()
+    score = Math.floor((Math.random() * 100)),
+    entranceTime = Date.now()
 } = {}) => (
         {
             jobId: `${uuid}`,
@@ -13,6 +14,8 @@ const stubTemplate = ({
             pipelineName: `${pipelineUuid}`,
             input: 'data',
             nodeName: `nodeName-${uuidv4()}`,
+            entranceTime, 
+            attempts: 1,
             priority: `${priority}`,
             algorithmName: `${algorithmName}`,
             batchIndex: `${batchIndex}`,

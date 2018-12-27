@@ -25,7 +25,7 @@
     "@hkube/etcd": "^4.0.25",
     "@hkube/logger": "^1.0.13",
     "@hkube/metrics": "^1.0.31",
-    "@hkube/producer-consumer": "^1.0.40",
+    "@hkube/producer-consumer": "^1.0.42",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.11",
     "aigle": "^1.12.0",

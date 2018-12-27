@@ -22,28 +22,18 @@ class JobConsumer extends EventEmitter {
         this._options = options;
         this.etcd.init({ etcd, serviceName });
         await this.etcd.jobState.watch();
-
-        // this._registerMetrics();
-        this._consumer = new Consumer({
-            setting: {
-                redis: options.redis,
-                tracer,
-                prefix: jobPrefix.JOB_PREFIX
-            }
-        });
-        this._consumer.register({
-            job: { type: algorithmType, concurrency: options.consumer.concurrency }
-        });
         log.info(`registering for job ${options.algorithmType}`, { component });
+
+        this._consumer = new Consumer({ setting: { redis: options.redis, tracer, prefix: jobPrefix.JOB_PREFIX } });
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-
         this.etcd.jobState.on('change', (data) => {
             if (data && data.state === 'stop') {
                 queueRunner.queue.removeJobId([data.jobId]);
             }
         });
+        this._consumer.register({ job: { type: algorithmType, concurrency: options.consumer.concurrency } });
     }
 
     async _handleJob(job) {
@@ -70,6 +60,7 @@ class JobConsumer extends EventEmitter {
     pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
         const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId } = jobData;
         taskData.batchIndex = taskData.batchIndex || 1;
+        const entranceTime = Date.now();
         return {
             jobId,
             pipelineName,
@@ -78,11 +69,13 @@ class JobConsumer extends EventEmitter {
             info,
             spanId,
             nodeName,
+            entranceTime,
+            attempts: 0,
             initialBatchLength,
             calculated: {
                 latestScores: {},
                 //  score: '1-100',
-                entranceTime: Date.now(),
+                entranceTime,
                 enrichment: {}
             },
             ...taskData

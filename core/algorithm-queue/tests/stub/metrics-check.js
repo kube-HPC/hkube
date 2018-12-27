@@ -22,7 +22,7 @@ async function init() {
  */
 async function insertPopTasks(algname, qSecDurationArr) {
     for (let i = 0; i < qSecDurationArr.length; i++) {
-        const tiq = qSecDurationArr[i]*1000 - 8;
+        const tiq = qSecDurationArr[i] * 1000 - 8;
         let task = stubTemplate();
         task.algorithmName = algname;
         queueRunner.queue.emit(queueEvents.INSERT, [task]);
@@ -30,7 +30,7 @@ async function insertPopTasks(algname, qSecDurationArr) {
         queueRunner.queue.emit(queueEvents.POP, task);
         log.info(`"ADDED" ${algname} TASK to Q for ${tiq} ms...`);
         await sleep(60000 - tiq);
-    };    
+    };
 }
 
 async function check() {

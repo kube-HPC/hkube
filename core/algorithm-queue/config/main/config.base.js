@@ -19,6 +19,11 @@ config.etcd = {
 
 config.algorithmType = process.env.ALGORITHM_TYPE;
 
+config.producer = {
+    checkStalledJobsInterval: 15000,
+    prefix: 'jobs-workers'
+};
+
 config.consumer = {
     concurrency: 10000
 };
@@ -28,17 +33,17 @@ config.queue = {
 };
 
 config.heuristicsWeights = {
+    [heuristicsNames.ATTEMPTS]: 0.2,
     [heuristicsNames.PRIORITY]: 0.4,
     [heuristicsNames.ENTRANCE_TIME]: 0.2,
-    [heuristicsNames.BATCH]: 0.2,
-    [heuristicsNames.CURRENT_BATCH_PLACE]: 0.2
+    [heuristicsNames.BATCH]: 0.1,
+    [heuristicsNames.CURRENT_BATCH_PLACE]: 0.1
 };
 
 config.metrics = {
     prefix: 'hkube_',
     collectDefault: true,
     server: {
-
         port: process.env.METRICS_PORT
     }
 };

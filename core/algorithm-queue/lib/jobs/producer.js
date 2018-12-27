@@ -4,11 +4,10 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, jobState, taskStatus } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const Etcd = require('@hkube/etcd');
+const MAX_JOB_ATTEMPTS = 3;
 
 class JobProducer {
     constructor() {
-        // in order to verify that the active is not some job that was in stalled before 
-        this._lastSentJob = null;
         this._etcd = new Etcd();
     }
 
@@ -41,10 +40,7 @@ class JobProducer {
         });
         this._producer.on(Events.ACTIVE, async (data) => {
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.ACTIVE });
-            // verify that not stalled job is the active one 
-            if (data.jobId === this._lastSentJob) {
-                await this.createJob();
-            }
+            await this.createJob();
         });
         this._producer.on(Events.COMPLETED, (data) => {
             log.debug(`${Events.COMPLETED} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.COMPLETED });
@@ -52,20 +48,44 @@ class JobProducer {
         this._producer.on(Events.FAILED, (data) => {
             log.error(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.FAILED });
         });
-        this._producer.on(Events.STALLED, (data) => {
-            log.error(`${Events.STALLED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.STALLED });
-        });
-        this._producer.on(Events.CRASHED, async (job) => {
-            const { jobId, taskId } = job.options;
-            const { error } = job;
-            const status = taskStatus.CRASHED;
-            log.error(`${error} ${taskId}`, { component: componentName.JOBS_PRODUCER, jobId, status });
+        this._producer.on(Events.STUCK, async (job) => {
+            const { jobId, taskId, nodeName } = job.options;
+            let err;
+            let status;
+            const task = this._pipelineToQueueAdapter(job.options);
+            let { attempts } = task;
+
+            if (attempts > MAX_JOB_ATTEMPTS) {
+                attempts = MAX_JOB_ATTEMPTS;
+                err = 'CrashLoopBackOff';
+                status = taskStatus.CRASHED;
+            }
+            else {
+                err = 'StalledState';
+                status = taskStatus.STALLED;
+                queueRunner.queue.add([task]);
+            }
+            const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${MAX_JOB_ATTEMPTS}`;
+            log.error(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
             await this._etcd.tasks.setState({ jobId, taskId, status, error });
         });
     }
 
+    _pipelineToQueueAdapter(taskData) {
+        return {
+            initialBatchLength: 1,
+            calculated: {
+                latestScores: {},
+                entranceTime: taskData.entranceTime,
+                enrichment: {}
+            },
+            ...taskData,
+            attempts: taskData.attempts + 1
+        };
+    }
+
     _taskToProducerJob(task) {
-        const { calculated, initialBatchLength, spanId, ...taskData } = task;
+        const { calculated, initialBatchLength, ...taskData } = task;
         return {
             job: {
                 id: task.taskId,
@@ -73,7 +93,7 @@ class JobProducer {
                 data: taskData
             },
             tracing: {
-                parent: spanId,
+                parent: taskData.spanId,
                 tags: {
                     jobId: task.jobId,
                     taskId: task.taskId
@@ -85,9 +105,7 @@ class JobProducer {
     async createJob() {
         const task = queueRunner.queue.tryPop();
         if (task) {
-            log.info(`pop new task with taskId: ${task.taskId}`, { component: componentName.JOBS_PRODUCER });
-            log.info(`calculated score: ${task.calculated.score}`, { component: componentName.JOBS_PRODUCER });
-            this._lastSentJob = task.taskId;
+            log.info(`pop new task with taskId: ${task.taskId}, score: ${task.calculated.score}`, { component: componentName.JOBS_PRODUCER });
             const job = this._taskToProducerJob(task);
             return this._producer.createJob(job);
         }
