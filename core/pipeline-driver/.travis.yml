@@ -15,7 +15,7 @@ before_install:
   --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:4001
   --listen-client-urls http://0.0.0.0:4001     --initial-cluster-state new
 install:
-- npm install
+- npm ci
 - npm install -g snyk
 - snyk test || true
 #cache:
@@ -32,7 +32,7 @@ after_success:
     git remote set-url --push origin "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git"
     git remote -v
     git checkout -f -b version-branch
-    npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
+    npm version patch --commit-hooks=false -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
     git push origin version-branch:master --follow-tags
     docker login --username yehiyam --password ${DOCKER_HUB_PASS}
   else
