@@ -9,7 +9,8 @@
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "test": "NODE_ENV=test mocha tests --colors  --exit",
-    "test-travis": "NODE_ENV=test ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- -R spec tests --exit",
+    "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha test --colors --recursive --exit",
+    "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
     "build": "./dockerfile/build.sh algorithm-queue"
   },
@@ -25,25 +26,23 @@
     "@hkube/etcd": "^4.0.25",
     "@hkube/logger": "^1.0.13",
     "@hkube/metrics": "^1.0.31",
-    "@hkube/producer-consumer": "^1.0.42",
+    "@hkube/producer-consumer": "^1.0.43",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.11",
     "aigle": "^1.12.0",
-    "await-delay": "^1.0.0",
-    "await-done": "^1.0.10",
-    "lodash": "^4.17.11",
-    "mockery": "^2.1.0",
-    "mockery-partial": "^1.4.0"
+    "lodash": "^4.17.11"
   },
   "devDependencies": {
+    "await-delay": "^1.0.0",
+    "await-done": "^1.0.10",
     "chai": "^4.2.0",
-    "decache": "^4.4.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
     "eslint-plugin-import": "^2.14.0",
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^3.5.3",
+    "mockery": "^2.1.0",
     "pre-commit": "^1.2.2",
     "sinon": "^3.3.0",
     "uuid": "^3.3.2"
