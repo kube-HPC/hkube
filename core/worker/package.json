@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "1.1.77",
+    "version": "1.1.79",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -29,10 +29,10 @@
         "@hkube/logger": "^1.0.15",
         "@hkube/metrics": "^1.0.31",
         "@hkube/parsers": "^1.0.20",
-        "@hkube/producer-consumer": "^1.0.40",
+        "@hkube/producer-consumer": "^1.0.43",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.11",
-        "@hkube/storage-manager": "^1.0.26",
+        "@hkube/storage-manager": "^1.0.27",
         "clone": "^2.1.2",
         "deep-get-set": "^1.1.0",
         "delay": "^4.1.0",
@@ -41,12 +41,12 @@
         "flat": "^4.1.0",
         "forward-emitter": "^0.1.1",
         "javascript-state-machine": "^3.1.0",
-        "kubernetes-client": "^6.4.0",
+        "kubernetes-client": "^6.6.1",
         "object-path": "^0.11.4",
         "request": "^2.88.0",
         "request-promise": "^4.2.2",
         "socket.io": "^1.7.4",
-        "tail": "^2.0.1",
+        "tail": "^2.0.2",
         "uuid": "^3.3.2",
         "ws": "^6.1.2"
     },
@@ -54,7 +54,7 @@
         "await-delay": "^1.0.0",
         "chai": "^4.2.0",
         "coveralls": "^3.0.2",
-        "eslint": "^5.9.0",
+        "eslint": "^5.11.1",
         "eslint-config-airbnb-base": "^13.1.0",
         "eslint-plugin-chai-friendly": "^0.4.1",
         "eslint-plugin-import": "^2.14.0",
@@ -62,7 +62,7 @@
         "mockery": "^2.1.0",
         "nyc": "^13.1.0",
         "pre-commit": "^1.2.2",
-        "sinon": "^7.1.1",
-        "socket.io-client": "^2.1.1"
+        "sinon": "^7.2.2",
+        "socket.io-client": "^2.2.0"
     }
 }

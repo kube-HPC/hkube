@@ -63,7 +63,7 @@ class WsWorkerCommunication extends EventEmitter {
             this.emit(payload.command, payload);
         });
         socket.on('disconnect', () => {
-            log.debug('socket disconnected', { component });
+            log.info('socket disconnected', { component });
             this._socket = null;
             this.emit('disconnect');
         });

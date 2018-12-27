@@ -3,7 +3,7 @@ const storageManager = require('@hkube/storage-manager');
 const algoRunnerCommunication = require('../algorithm-communication/workerCommunication');
 const discovery = require('../states/discovery');
 const messages = require('../algorithm-communication/messages');
-const { Status, EventMessages, ApiServerPostTypes, workerStates, stateEvents, Components } = require('../consts');
+const { Status, EventMessages, ApiServerPostTypes, workerStates, Components } = require('../consts');
 const apiServerClient = require('../helpers/api-server-client');
 const jobConsumer = require('../consumer/JobConsumer');
 const stateManager = require('../states/stateManager');
@@ -19,7 +19,6 @@ class SubPipelineHandler {
 
         this._registerToEtcdEvents();
         this._registerToAlgEvents();
-        this._registerToStateEvents();
     }
 
     _registerToEtcdEvents() {
@@ -44,14 +43,6 @@ class SubPipelineHandler {
             const err = (result.error || 'subpipeline job failed');
             this._handleJobError(err, subPipelineId);
         });
-
-        // handle parent pipeline stop request
-        discovery.on(EventMessages.STOP, (res) => {
-            log.info(`got stop: ${res.reason}`, { component });
-            // stop all subPipelines
-            const reason = `parent pipeline stopped: ${res.reason}`;
-            this.stopAllSubPipelines(reason);
-        });
     }
 
     _registerToAlgEvents() {
@@ -71,28 +62,6 @@ class SubPipelineHandler {
         });
     }
 
-    _registerToStateEvents() {
-        stateManager.on(stateEvents.stateEntered, ({ state }) => {
-            switch (state) {
-                case workerStates.init:
-                case workerStates.results:
-                case workerStates.error: {
-                    // clear all subPipelines
-                    const keys = Array.from(this._jobId2InternalIdMap.keys());
-                    if (keys.length > 0) {
-                        const keysStr = keys.reduce((result, item) => {
-                            return `${result} ${item}`;
-                        }, '');
-                        log.warning(`by entering state ${state} there are still ${keys.length} active subPipelines: ${keysStr} - Delete them...`);
-                        this._jobId2InternalIdMap.clear();
-                    }
-                    break;
-                }
-                default:
-            }
-        });
-    }
-
     /**
      * Delete jobId/subPipelineId mapping and unwatch subpipeline job results.
      * @param {object} result
@@ -101,7 +70,7 @@ class SubPipelineHandler {
     _getAndCleanAlgSubPipelineId(result) {
         // clean subPipeline Id mapping
         const subPipelineId = this._jobId2InternalIdMap.get(result.jobId);
-        log.debug(`got result, status=${result.status}, jobId: ${result.jobId}, alg subPipelineId: ${subPipelineId}`, { component });
+        log.info(`got subPipeline result, status=${result.status}, jobId: ${result.jobId}, alg subPipelineId: ${subPipelineId}`, { component });
         if (!subPipelineId) {
             log.warning(`got result with unknown jobId: ${result.jobId}`, { component });
         }
@@ -150,6 +119,7 @@ class SubPipelineHandler {
      * @param {string} subPipelineId
      */
     async _handleSubPipelineCompleted(result, subPipelineId) {
+        log.info(`SubPipeline job completed, alg subPipelineId: ${subPipelineId}`, { component });
         if (!this._validateWorkingState(subPipelineId, 'send subPipelineDone', false)) {
             return;
         }
@@ -176,7 +146,7 @@ class SubPipelineHandler {
      * @param {string} subPipelineId
      */
     _handleSubPipelineStopped(result, subPipelineId) {
-        log.warning(`SubPipeline alg ${subPipelineId} stopped, send subPipelineStopped to alg`, { component });
+        log.warning(`SubPipeline job stopped - send subPipelineStopped to alg, alg subPipelineId: ${subPipelineId} `, { component });
         if (!this._validateWorkingState(subPipelineId, 'send subPipelineStopped', false)) {
             return;
         }
@@ -194,7 +164,7 @@ class SubPipelineHandler {
      * @param {string} subPipelineId internal algorothm subpipeline Id
      */
     async _handleJobError(error, subPipelineId) {
-        log.error(`SubPipeline ${subPipelineId} job error: ${error}`, { component });
+        log.error(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
         algoRunnerCommunication.send({
             command: messages.outgoing.subPipelineError,
             data: {
@@ -212,7 +182,7 @@ class SubPipelineHandler {
         const data = message && message.data;
         const subPipelineId = data && data.subPipelineId;
         const subPipelineJobId = this.getSubPipelineJobId(subPipelineId);
-        log.debug(`got stopSubPipeline for alg subPipelineId ${subPipelineId} - subPipeline jobId: ${subPipelineJobId}`, { component });
+        log.info(`got stopSubPipeline for alg subPipelineId ${subPipelineId} - subPipeline jobId: ${subPipelineJobId}`, { component });
         if (!this._validateWorkingState(subPipelineId, 'stop subPipeline', false)) {
             return;
         }
@@ -234,7 +204,7 @@ class SubPipelineHandler {
         const data = message && message.data;
         const subPipeline = data && data.subPipeline;
         const subPipelineId = data && data.subPipelineId;
-        log.debug(`got startSubPipeline ${subPipeline.name} from algorithm`, { component });
+        log.info(`got startSubPipeline ${subPipeline.name} from algorithm`, { component });
         if (!this._validateWorkingState(subPipelineId, 'start subPipeline', false)) {
             return;
         }
@@ -263,10 +233,10 @@ class SubPipelineHandler {
                 const subPipelineJobId = response.jobId;
                 // map jobId/subPipelineId
                 this._jobId2InternalIdMap.set(subPipelineJobId, subPipelineId);
-                log.debug(`SubPipeline posted, alg subPipelineId=${subPipelineId}, jobId=${subPipelineJobId}`, { component });
+                log.info(`SubPipeline posted, alg subPipelineId=${subPipelineId}, jobId=${subPipelineJobId}`, { component });
                 const result = await discovery.watchJobResults({ jobId: subPipelineJobId });
                 if (result) {
-                    log.debug(`got immediate results, status=${result.status}, jobId: ${subPipelineJobId}`, { component });
+                    log.info(`got immediate results, status=${result.status}, jobId: ${subPipelineJobId}`, { component });
                     const algSubPipelineId = this._getAndCleanAlgSubPipelineId({ ...result, jobId: subPipelineJobId });
                     if (result.status === Status.COMPLETED) {
                         this._handleSubPipelineCompleted(result, algSubPipelineId);
@@ -295,6 +265,7 @@ class SubPipelineHandler {
      * @param {string} reason
      */
     async _stopSubPipeline(subPipelineJobId, reason) {
+        log.info(`stopping subPipeline  ${subPipelineJobId} - reason: ${reason} ...`);
         try {
             this.unwatchJobResults(subPipelineJobId);
             await apiServerClient.postStopSubPipeline(subPipelineJobId, reason);
@@ -309,8 +280,12 @@ class SubPipelineHandler {
      * @param reason
      */
     stopAllSubPipelines(reason) {
+        if (this._jobId2InternalIdMap.size === 0) {
+            log.info('no registered subPipelines to stop', { component });
+            return;
+        }
         // stop all subPipelines
-        log.debug('stopping all subPipelines...', { component });
+        log.info(`stopping ${this._jobId2InternalIdMap.size} registered subPipelines, reason: ${reason} ...`, { component });
         this._jobId2InternalIdMap.forEach((subPipelineId, subPipelineJobId) => {
             this._stopSubPipeline(subPipelineJobId, reason);
         });

@@ -60,10 +60,10 @@ class SocketWorkerCommunication extends EventEmitter {
                 this.emit(topic, message);
             });
         });
-        socket.on('disconnect', () => {
+        socket.on('disconnect', (reason) => {
             log.debug('socket disconnected', { component });
             this._socket = null;
-            this.emit('disconnect');
+            this.emit('disconnect', reason);
         });
         log.debug('finish _registerSocketMessages', { component });
     }

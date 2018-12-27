@@ -328,23 +328,23 @@ describe('worker SubPipeline test', () => {
             done();
         }, 2000);
     });
-    it('enter results/error/init state should clear subPipelines data', function (done) {
+    it('enter ready state should clear subPipelines data', function (done) {
         const subPipelineHandler = require('../lib/subpipeline/subpipeline');
         // simule 2 subPipelines
         subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        stateManager.emit(stateEvents.stateEntered, { state: workerStates.results });
-        expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0);
+        stateManager.emit(stateEvents.stateEntered, { state: workerStates.ready });
+        expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after state ready');
 
-        subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
-        expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        stateManager.emit(stateEvents.stateEntered, { state: workerStates.error });
-        expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0);
+        // subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
+        // expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
+        // stateManager.emit(stateEvents.stateEntered, { state: workerStates.error });
+        // expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after error');
 
-        subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
-        expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        stateManager.emit(stateEvents.stateEntered, { state: workerStates.init, job: { data: 1 } });
-        expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0);
+        // subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
+        // expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
+        // stateManager.emit(stateEvents.stateEntered, { state: workerStates.init, job: { data: 1 } });
+        // expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after init');
         done();
     });
 });

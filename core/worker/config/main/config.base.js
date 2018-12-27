@@ -28,7 +28,7 @@ config.apiServer = {
 };
 
 config.workerCommunication = {
-    adapterName: 'socket',
+    adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || 'socket',
     config: {
         connection: {
             port: process.env.WORKER_SOCKET_PORT || 3000
@@ -53,7 +53,7 @@ config.jobConsumer = {
     setting: {
         prefix: 'jobs-workers',
         settings: {
-            maxStalledCount: 3
+            stalledCheck: false
         }
     }
 };

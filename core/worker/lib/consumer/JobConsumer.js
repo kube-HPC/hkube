@@ -137,7 +137,7 @@ class JobConsumer extends EventEmitter {
             taskId: this._taskId,
             pipelineName: this._pipelineName,
             jobData: this._jobData,
-            algorithmName: this._options.jobConsumer.job.type,
+            algorithmName: this.getAlgorithmType(),
             podName: this._options.kubernetes.pod_name,
             workerStatus,
             jobStatus,
@@ -266,7 +266,7 @@ class JobConsumer extends EventEmitter {
         await storageManager.hkubeMetadata.put({ jobId: this._jobId, taskId: this._taskId, data: resData });
         this._summarizeMetrics(jobStatus);
         log.debug(`result: ${JSON.stringify(resultLink)}`, { component });
-        log.debug(`status: ${jobStatus}, error: ${error}`, { component });
+        log.info(`finishJob - status: ${jobStatus}, error: ${error}`, { component });
 
         this._job.done(error);
         this._job = null;
@@ -282,7 +282,7 @@ class JobConsumer extends EventEmitter {
             metrics.get(metricsNames.worker_failed).inc({
                 labelValues: {
                     pipeline_name: pipelineName,
-                    algorithm_name: this._options.jobConsumer.job.type
+                    algorithm_name: this.getAlgorithmType()
                 }
             });
         }
@@ -290,7 +290,7 @@ class JobConsumer extends EventEmitter {
             metrics.get(metricsNames.worker_succeeded).inc({
                 labelValues: {
                     pipeline_name: pipelineName,
-                    algorithm_name: this._options.jobConsumer.job.type
+                    algorithm_name: this.getAlgorithmType()
                 }
             });
         }
@@ -355,7 +355,7 @@ class JobConsumer extends EventEmitter {
             jobId: this._jobId,
             taskId: this._taskId,
             pipelineName: this._pipelineName,
-            algorithmName: this._options.jobConsumer.job.type
+            algorithmName: this.getAlgorithmType()
         };
     }
 
@@ -369,6 +369,10 @@ class JobConsumer extends EventEmitter {
 
     get taskId() {
         return this._taskId;
+    }
+
+    getAlgorithmType() {
+        return this._options.jobConsumer.job.type;
     }
 }
 

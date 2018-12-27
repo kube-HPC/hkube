@@ -22,7 +22,7 @@ class ApiServerClient {
      */
     postSubPipeline(subPipeline, type) {
         const apiUrl = `${this._apiBaseUrl}${type}`;
-        log.debug(`send post ${type} request to subPipeline ${subPipeline.jobId}`);
+        log.info(`send post ${type} request to subPipeline ${subPipeline.jobId}`);
         return this._postRequest(subPipeline, apiUrl);
     }
 
@@ -32,7 +32,7 @@ class ApiServerClient {
      * @param {string} reason
      */
     postStopSubPipeline(jobId, reason) {
-        log.debug(`send stop request to subPipeline ${jobId}`);
+        log.info(`send stop request to subPipeline ${jobId}`);
         const body = { jobId, reason };
         const apiUrl = `${this._apiBaseUrl}${ApiServerPostTypes.STOP}`;
         return this._postRequest(body, apiUrl);

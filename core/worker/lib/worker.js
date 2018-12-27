@@ -6,6 +6,7 @@ const discovery = require('./states/discovery');
 const { stateEvents, EventMessages, workerStates, workerCommands, Components } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
+const subpieline = require('./subpipeline/subpipeline');
 
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -45,6 +46,10 @@ class Worker {
     _registerToEtcdEvents() {
         discovery.on(EventMessages.STOP, (res) => {
             log.info(`got stop: ${res.reason}`, { component });
+            // stop registered subpipelines first
+            const reason = `parent pipeline stopped: ${res.reason}`;
+            subpieline.stopAllSubPipelines(reason);
+            // then stop worker
             stateManager.stop();
         });
 
@@ -76,17 +81,18 @@ class Worker {
             stateManager.bootstrap();
             log.info('finished bootstrap state', { component });
         });
-        algoRunnerCommunication.on('disconnect', () => {
+        algoRunnerCommunication.on('disconnect', (reason) => {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
-            log.warning('algorithm runner has disconnected', { component });
+            log.warning(`algorithm runner has disconnected, reason: ${reason}`, { component });
             if (!this._debugMode) {
+                const type = jobConsumer.getAlgorithmType();
                 const message = {
                     command: 'errorMessage',
                     error: {
                         code: 'Failed',
-                        message: 'algorithm has disconnected'
+                        message: `algorithm ${type} has disconnected, reason: ${reason}`
                     }
                 };
                 stateManager.done(message);
@@ -138,6 +144,10 @@ class Worker {
                         log.info(`deleted job ${jobName}`, { component });
                     }
                 }
+
+                // clean all registered subPiplines, if exist
+                const reason = 'parent pipeline exit';
+                subpieline.stopAllSubPipelines(reason);
             }
             catch (error) {
                 log.error(`failed to handle exit: ${error}`, { component });
@@ -185,6 +195,7 @@ class Worker {
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
             let pendingTransition = null;
+            let reason = null;
             log.info(`Entering state: ${state}`, { component });
             const result = { state, results };
             this._handleTimeout(state);
@@ -193,12 +204,17 @@ class Worker {
                     this.handleExit(0);
                     break;
                 case workerStates.results:
+                    // finish job
                     await jobConsumer.finishJob(result);
                     pendingTransition = stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
+                    // clean all registered subPiplines, if exist
+                    reason = `parent pipeline entered state ${state}`;
+                    subpieline.stopAllSubPipelines(reason);
                     break;
                 case workerStates.init: {
+                    // start init
                     const { error, data } = await jobConsumer.extractData(job.data);
                     if (!error) {
                         algoRunnerCommunication.send({
