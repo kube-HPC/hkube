@@ -2,13 +2,13 @@ const { Factory } = require('@hkube/redis-utils');
 const pathLib = require('path');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../consts/component-name');
+
 let client;
 
 class RedisAdapter {
     constructor() {
         this._isInit = false;
         this.queueName = '';
-    //    this.path = pathLib.join('/', 'algorithemQueue', this.queueName);
     }
 
     async init(options, queueName) {
@@ -51,14 +51,13 @@ class RedisAdapter {
         });
     }
 
-
     _tryParseJSON(json) {
         let parsed = json;
         try {
             parsed = JSON.parse(json);
         }
         catch (e) {
-            log.warn(`fail to parse json ${json} `, { component: components.REDIS_PERSISTENT});
+            log.warn(`fail to parse json ${json} `, { component: components.REDIS_PERSISTENT });
         }
         return parsed;
     }

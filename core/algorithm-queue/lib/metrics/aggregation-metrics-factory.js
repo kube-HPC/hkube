@@ -4,7 +4,7 @@ const { componentName, metricsName, metricsTypes, heuristicsName } = require('..
 
 /**
  * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
- * @param {string} pipelineName 
+ * @param {string} pipelineName
  */
 function formatPipelineName(pipelineName) {
     if (pipelineName.startsWith('raw-')) {
@@ -25,11 +25,13 @@ class AggregationMetricsFactory {
         this.metricsMaps = {};
         this._options = null;
     }
+
     async init(options) {
         this._options = options;
         await metrics.init(this._options.metrics);
         this._register();
     }
+
     _register() {
         this.timeInQueue = metrics.addTimeMeasure({
             name: metricsName.TIME_IN_QUEUE,
@@ -75,17 +77,17 @@ class AggregationMetricsFactory {
         this._metrics = {
             score: {
                 instance: [this.totalScore, this.batchScore, this.priorityScore, this.timeScore],
-                type: metricsTypes.HISTOGRAM_OPERATION, 
+                type: metricsTypes.HISTOGRAM_OPERATION,
                 method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.TOTAL_SCORE]: {
                 instance: [this.totalScore],
-                type: metricsTypes.HISTOGRAM_OPERATION, 
+                type: metricsTypes.HISTOGRAM_OPERATION,
                 method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.TIME_IN_QUEUE]: {
                 instance: [this.timeInQueue],
-                type: metricsTypes.HISTOGRAM_OPERATION, 
+                type: metricsTypes.HISTOGRAM_OPERATION,
                 method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.BATCH_SCORE]: {
@@ -100,27 +102,26 @@ class AggregationMetricsFactory {
             },
             [metricsName.TIME_SCORE]: {
                 instance: [this.timeScore],
-                type: metricsTypes.HISTOGRAM_OPERATION, 
+                type: metricsTypes.HISTOGRAM_OPERATION,
                 method: (metric, task, metricOperation) => this._histogram(metric, task, metricOperation)
             },
             [metricsName.QUEUE_AMOUNT]: {
-                instance: [this.queueAmount], 
+                instance: [this.queueAmount],
                 type: metricsTypes.GAUGE,
                 method: (metric, task, metricOperation) => this._gauge(metric, task, metricOperation)
             },
             [metricsName.QUEUE_COUNTER]: {
-                instance: [this.queueCounter], 
+                instance: [this.queueCounter],
                 type: metricsTypes.COUNTER,
                 method: (metric, task, metricOperation) => this._counter(metric, task, metricOperation)
-            } 
-         
-            
+            }
         };
     }
 
     get get() {
         return this._metrics;
     }
+
     getMetric(type) {
         return (task, metricOperation) => this._metrics[type].method(this._metrics[type].instance[0], task, metricOperation);
     }
@@ -131,6 +132,7 @@ class AggregationMetricsFactory {
         }
         queue.forEach(task => this._scoreTask(task));
     }
+
     _scoreTask(task) {
         try {
             const labelValues = {
@@ -162,11 +164,11 @@ class AggregationMetricsFactory {
 
     /**
      * Apply operation on histogram metric
-     * @param {Object} metric 
-     * @param {Object} task 
-     * @param {string} metricOperation 
+     * @param {Object} metric
+     * @param {Object} task
+     * @param {string} metricOperation
      */
-    _histogram(metric, task, metricOperation) {  
+    _histogram(metric, task, metricOperation) {
         const metricData = {
             id: task.taskId,
             labelValues: {
@@ -174,7 +176,7 @@ class AggregationMetricsFactory {
                 algorithm_name: task.algorithmName,
                 node_name: task.nodeName
             }
-        }; 
+        };
 
         if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.start) {
             metric.start(metricData);
@@ -190,9 +192,9 @@ class AggregationMetricsFactory {
 
     /**
      * Apply operation on gauge metric
-     * @param {Object} metric 
-     * @param {Object} task 
-     * @param {string} metricOperation 
+     * @param {Object} metric
+     * @param {Object} task
+     * @param {string} metricOperation
      */
     _gauge(metric, task, metricOperation) {
         const metricData = {
@@ -213,9 +215,9 @@ class AggregationMetricsFactory {
 
     /**
      * Apply operation on counter metric
-     * @param {Object} metric 
-     * @param {Object} task 
-     * @param {string} metricOperation 
+     * @param {Object} metric
+     * @param {Object} task
+     * @param {string} metricOperation
      */
     _counter(metric, task, metricOperation) {
         const metricData = {
@@ -232,5 +234,4 @@ class AggregationMetricsFactory {
     }
 }
 
-// 'Aggregation'
 module.exports = new AggregationMetricsFactory();

@@ -1,5 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const {componentName, queueEvents, metricsName, metricsTypes} = require('./consts/index');
+const { componentName, queueEvents, metricsName, metricsTypes } = require('./consts/index');
 const Queue = require('./queue');
 const HeuristicRunner = require('./heuristic-runner');
 const EnrichmentRunner = require('./enrichment-runner');
@@ -15,22 +15,23 @@ class QueueRunner {
         this.heuristicRunner = new HeuristicRunner();
         this.enrichmentRunner = new EnrichmentRunner();
     }
-        
+
     async init(config) {
-        log.info('queue runner started', { component: componentName.QUEUE_RUNNER});
+        log.info('queue runner started', { component: componentName.QUEUE_RUNNER });
         this.config = config;
-        log.debug('start filling heuristics', { component: componentName.QUEUE_RUNNER});
+        log.debug('start filling heuristics', { component: componentName.QUEUE_RUNNER });
         this.heuristicRunner.init(this.config.heuristicsWeights);
         Object.values(heuristic).map(v => this.heuristicRunner.addHeuristicToQueue(v));
         Object.values(enrichments).map(v => this.enrichmentRunner.addEnrichments(v));
-        log.debug('calling to queue', { component: componentName.QUEUE_RUNNER});
-        const persistence = await Persistence.init({options: this.config});
-        this.queue = new Queue({ 
+        log.debug('calling to queue', { component: componentName.QUEUE_RUNNER });
+        const persistence = await Persistence.init({ options: this.config });
+        this.queue = new Queue({
             scoreHeuristic: this.heuristicRunner,
             updateInterval: this.config.queue.updateInterval,
-            persistence, 
-            enrichmentRunner: this.enrichmentRunner});
-            
+            persistence,
+            enrichmentRunner: this.enrichmentRunner
+        });
+
         this.queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
 
         this.queue.on(queueEvents.INSERT, (taskArr) => {

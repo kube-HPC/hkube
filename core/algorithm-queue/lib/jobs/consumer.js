@@ -59,7 +59,7 @@ class JobConsumer extends EventEmitter {
 
     pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
         const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId } = jobData;
-        taskData.batchIndex = taskData.batchIndex || 1;
+        const batchIndex = taskData.batchIndex || 1;
         const entranceTime = Date.now();
         return {
             jobId,
@@ -78,7 +78,8 @@ class JobConsumer extends EventEmitter {
                 entranceTime,
                 enrichment: {}
             },
-            ...taskData
+            ...taskData,
+            batchIndex
         };
     }
 

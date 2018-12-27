@@ -1,5 +1,3 @@
-process.env.NODE_PATH = __dirname; // eslint-disable-line
-require('module').Module._initPaths();
 
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
@@ -9,17 +7,15 @@ const { VerbosityPlugin } = Logger;
 log.plugins.use(new VerbosityPlugin(main.redis));
 const monitor = require('@hkube/redis-utils').Monitor;
 const { componentName } = require('./lib/consts/index');
-// const metrics = require('@hkube/metrics');
-// const consumer = require('./lib/jobs/consumer');
 const { tracer } = require('@hkube/metrics');
-const modules = [
-    './lib/jobs/consumer',
-    './lib/jobs/producer-singleton',
-    './lib/jobs/producer',
-    './lib/queue-runner',
-    './lib/metrics/aggregation-metrics-factory'
-];
 
+const modules = [
+    require('./lib/jobs/consumer'),
+    require('./lib/jobs/producer-singleton'),
+    require('./lib/jobs/producer'),
+    require('./lib/queue-runner'),
+    require('./lib/metrics/aggregation-metrics-factory')
+];
 
 class Bootstrap {
     async init() {
@@ -33,12 +29,10 @@ class Bootstrap {
                 log.error(data.error.message, { component: componentName.MAIN });
             });
             monitor.check(main.redis);
-            //   await metrics.init(main.metrics);
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            //       consumer.init(main);
-            await Promise.all(modules.map(m => require(m).init(main)));// eslint-disable-line global-require, import/no-dynamic-require
+            await Promise.all(modules.map(m => m.init(main)));
 
             return main;
         }
@@ -55,8 +49,8 @@ class Bootstrap {
             log.error(error);
         }
         else {
-            console.error(error.message);// eslint-disable-line 
-            console.error(error);// eslint-disable-line
+            console.error(error.message);
+            console.error(error);
         }
         process.exit(1);
     }

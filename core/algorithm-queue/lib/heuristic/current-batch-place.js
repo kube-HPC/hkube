@@ -1,3 +1,4 @@
+/* eslint-disable */
 const heuristicsNames = require('../consts/heuristics-name');
 
 // take batchPlace or max in order to normalize it to one 

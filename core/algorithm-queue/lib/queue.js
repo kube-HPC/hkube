@@ -10,11 +10,8 @@ class Queue extends events {
         super();
         log.info(`new queue created with the following params updateInterval: ${updateInterval}`, { component: components.QUEUE });
         aigle.mixin(_);
-        //  this._heuristicRunner = scoreHeuristic;
-        // handle empty heuristic on constructor
         this.scoreHeuristic = scoreHeuristic.run ? scoreHeuristic.run.bind(scoreHeuristic) : scoreHeuristic.run;
         this.enrichmentRunner = enrichmentRunner.run ? enrichmentRunner.run.bind(enrichmentRunner) : enrichmentRunner.run;
-        //    this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
         this.updateInterval = updateInterval;
         this.queue = [];
         this.isScoreDuringUpdate = false;
@@ -25,11 +22,13 @@ class Queue extends events {
         this.persistencyLoad();
         this._queueInterval();
     }
+
     flush() {
         this.queue = [];
         this.tempInsertTasksQueue = [];
         this.tempRemoveJobIDsQueue = [];
     }
+
     async persistencyLoad() {
         log.info('try to recover data from persistent storage', { component: components.QUEUE });
         if (this.persistence) {
@@ -46,6 +45,7 @@ class Queue extends events {
             log.warning('persistency storage was not set ', { component: components.QUEUE });
         }
     }
+
     async persistenceStore() {
         log.debug('try to store data to  storage', { component: components.QUEUE });
         if (this.persistence) {
@@ -61,7 +61,8 @@ class Queue extends events {
             log.warning('persistent storage not set', { component: components.QUEUE });
         }
     }
-    // todo:add merge on async 
+
+    // todo:add merge on async
     updateHeuristic(scoreHeuristic) {
         this.scoreHeuristic = scoreHeuristic.run.bind(scoreHeuristic);
         //   this.scoreHeuristic = heuristic.run.bind(heuristic);
@@ -69,7 +70,7 @@ class Queue extends events {
 
     /**
      * Add tasks (algorithms) to queue
-     * @param {Array} tasks 
+     * @param {Array} tasks
      */
     async add(tasks) {
         if (this.scoreHeuristic) {
@@ -100,7 +101,7 @@ class Queue extends events {
 
     /**
      * Remove all tasks of given job IDs from queue
-     * @param {Array} jobsId 
+     * @param {Array} jobsId
      */
     removeJobId(jobsId) {
         if (this.isScoreDuringUpdate) {
@@ -115,7 +116,6 @@ class Queue extends events {
         this.queue = await aigle.map(this.queue, job => this.scoreHeuristic(job));
         this.emit(queueEvents.UPDATE_SCORE, this.queue);
     }
-
 
     get get() {
         return this.queue;
@@ -167,7 +167,7 @@ class Queue extends events {
 
     // the interval logic should be as follows :
     // 1.if updateScore is running every new change entered to temp queue
-    // 2. after each cycle merge with temp proceeded 
+    // 2. after each cycle merge with temp proceeded
     // 3. in case something is add when there is no running cycle each job inserted/ removed directly to the queue
     _queueInterval() {
         setTimeout(async () => {

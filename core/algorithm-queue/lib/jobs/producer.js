@@ -4,6 +4,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, jobState, taskStatus } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const Etcd = require('@hkube/etcd');
+
 const MAX_JOB_ATTEMPTS = 3;
 
 class JobProducer {
@@ -20,7 +21,7 @@ class JobProducer {
         this._checkWorkingStatusInterval();
     }
 
-    // should handle cases where there is currently not any active job and new job added to queue 
+    // should handle cases where there is currently not any active job and new job added to queue
     _checkWorkingStatusInterval() {
         setInterval(async () => {
             const waitingCount = await this.bullQueue.getWaitingCount();
@@ -110,6 +111,7 @@ class JobProducer {
             return this._producer.createJob(job);
         }
         log.info('queue is empty ', { component: componentName.JOBS_PRODUCER });
+        return null;
     }
 }
 
