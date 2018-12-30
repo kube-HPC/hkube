@@ -13,6 +13,7 @@ const Batch = require('../nodes/node-batch');
 const Node = require('../nodes/node');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
+const { PipelineReprocess, PipelineNotFound } = require('../errors');
 
 let log;
 
@@ -87,6 +88,7 @@ class TaskRunner extends EventEmitter {
             result = await this._startPipeline(job);
         }
         catch (e) {
+            log.error(e.message, { component, jobId: this._jobId }, e);
             await this.stop(e);
         }
         return result;
@@ -117,13 +119,13 @@ class TaskRunner extends EventEmitter {
         log.info(`pipeline started ${this._jobId}`, { component, jobId: this._jobId });
 
         const jobStatus = await this._stateManager.getJobStatus({ jobId: this._jobId });
-        if (this._isCompletedState(jobStatus)) {
-            throw new Error(`pipeline already in ${jobStatus.status} status`);
+        if (this._stateManager.isCompletedState(jobStatus)) {
+            throw new PipelineReprocess(jobStatus.status);
         }
 
         const pipeline = await this._stateManager.getExecution({ jobId: this._jobId });
         if (!pipeline) {
-            throw new Error(`unable to find pipeline for job ${this._jobId}`);
+            throw new PipelineNotFound(this._jobId);
         }
 
         await this._watchJobState();
@@ -170,6 +172,9 @@ class TaskRunner extends EventEmitter {
         let status;
         let errorMsg;
         let data;
+        if (err.status) {
+            return;
+        }
         if (err) {
             errorMsg = err.message;
             status = DriverStates.FAILED;
@@ -201,10 +206,6 @@ class TaskRunner extends EventEmitter {
         }
 
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
-    }
-
-    _isCompletedState(jobStatus) {
-        return (jobStatus) && (jobStatus.status === DriverStates.COMPLETED || jobStatus.status === DriverStates.FAILED || jobStatus.status === DriverStates.STOPPED);
     }
 
     get _currentProgress() {

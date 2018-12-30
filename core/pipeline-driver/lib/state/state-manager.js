@@ -4,11 +4,12 @@ const { JobResult, JobStatus } = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
 
+const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED];
+
 class StateManager extends EventEmitter {
     constructor(option) {
         super();
         const options = option || {};
-        this._handleEvent = this._handleEvent.bind(this);
         this.setJobStatus = this.setJobStatus.bind(this);
         this._etcd = new Etcd();
         this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
@@ -46,8 +47,8 @@ class StateManager extends EventEmitter {
         return this._etcd.discovery.updateRegisteredData(data);
     }
 
-    _handleEvent(event) {
-        this.emit(event.name, event.data);
+    isCompletedState(job) {
+        return job && CompletedState.includes(job.status);
     }
 
     async setJobResults(options) {
