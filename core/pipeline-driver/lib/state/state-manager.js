@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const equal = require('deep-equal');
 const Etcd = require('@hkube/etcd');
 const { JobResult, JobStatus } = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
@@ -14,6 +15,7 @@ class StateManager extends EventEmitter {
         this._etcd = new Etcd();
         this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
         this._podName = options.podName;
+        this._lastDiscovery = null;
         this._etcd.discovery.register({ data: this._getDiscovery() });
         this._subscribe();
     }
@@ -44,7 +46,11 @@ class StateManager extends EventEmitter {
 
     _updateDiscovery(discovery) {
         const data = this._getDiscovery(discovery);
-        return this._etcd.discovery.updateRegisteredData(data);
+        if (!equal(this._lastDiscovery, data)) {
+            this._lastDiscovery = data;
+            return this._etcd.discovery.updateRegisteredData(data);
+        }
+        return null;
     }
 
     isCompletedState(job) {

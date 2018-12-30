@@ -19,6 +19,7 @@
     "@hkube/storage-manager": "^1.0.26",
     "async": "^2.6.1",
     "clone": "^2.1.2",
+    "deep-equal": "^1.0.1",
     "deep-extend": "^0.6.0",
     "djsv": "^3.0.3",
     "graphlib": "^2.1.2",

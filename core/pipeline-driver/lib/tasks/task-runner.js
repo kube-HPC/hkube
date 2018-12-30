@@ -172,10 +172,10 @@ class TaskRunner extends EventEmitter {
         let status;
         let errorMsg;
         let data;
-        if (err.status) {
-            return;
-        }
         if (err) {
+            if (err.status) {
+                return;
+            }
             errorMsg = err.message;
             status = DriverStates.FAILED;
             this._error = errorMsg;
