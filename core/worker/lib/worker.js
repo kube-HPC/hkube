@@ -1,4 +1,5 @@
 const Logger = require('@hkube/logger');
+const { tracer } = require('@hkube/metrics');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
@@ -122,9 +123,85 @@ class Worker {
             }
         });
         algoRunnerCommunication.on(messages.incomming.error, (message) => {
-            log.error(`got error from algorithm. Error: ${JSON.stringify(message, 2, null)}`, { component });
+            const errText = message.error && message.error.message;
+            log.error(`got error from algorithm: ${errText}`, { component });
+            // clean remind subPipelines
+            const reason = `parent algorithm failed: ${errText}`;
+            subpieline.stopAllSubPipelines(reason);
+            // finish (with error)
             stateManager.done(message);
         });
+        algoRunnerCommunication.on(messages.incomming.startSpan, (message) => {
+            this._startAlgorithmSpan(message);
+        });
+        algoRunnerCommunication.on(messages.incomming.finishSpan, (message) => {
+            this._finishAlgorithmSpan(message);
+        });
+    }
+
+    /**
+     * Ensure worker is in 'working' state
+     * @param {string} operation operation for which this validation is requested
+     * @returns true if in 'working' state, else false
+     */
+    _validateWorkingState(operation) {
+        if (stateManager.state === workerStates.working) {
+            return true;
+        }
+        log.warning(`cannot ${operation} if not in working state`, { component });
+        return false;
+    }
+
+    /**
+     * Start new algorithm span
+     * @param message startSpan message
+     * @param message.data.name span name
+     * @param message.data.tags tags object to be added to span (optional)
+     */
+    _startAlgorithmSpan(message) {
+        if (!this._validateWorkingState('startSpan for algorithm')) {
+            return;
+        }
+        const { data } = message;
+        if (!data || !data.name) {
+            log.error(`invalid startSpan message: ${JSON.stringify(message, 2, null)}`);
+            return;
+        }
+        const name = `${jobConsumer.getAlgorithmType()}: ${data.name}`;
+        tracer.startSpan({
+            name,
+            id: jobConsumer.taskId,
+            tags: {
+                ...data.tags,
+                jobId: jobConsumer.jobId,
+                taskId: jobConsumer.taskId,
+            }
+        });
+    }
+
+    /**
+     * Finish algorithm span
+     * @param message finishSpan message
+     * @param message.data.error error message (optional)
+     * @param message.data.tags tags object to be added to span (optional)
+     */
+    _finishAlgorithmSpan(message) {
+        if (!this._validateWorkingState('finishSpan for algorithm')) {
+            return;
+        }
+        const { data } = message;
+        if (!data) {
+            log.error(`invalid finishSpan message: ${JSON.stringify(message, 2, null)}`);
+            return;
+        }
+        // const topSpan = tracer.topSpan(data.spanId);
+        const topSpan = tracer.topSpan(jobConsumer.taskId);
+        if (topSpan) {
+            if (data.tags) {
+                topSpan.addTag(data.tags);
+            }
+            topSpan.finish(data.error);
+        }
     }
 
     async handleExit(code) {
@@ -210,7 +287,7 @@ class Worker {
                     break;
                 case workerStates.ready:
                     // clean all registered subPiplines, if exist
-                    reason = `parent pipeline entered state ${state}`;
+                    reason = `parent algorithm entered state ${state}`;
                     subpieline.stopAllSubPipelines(reason);
                     break;
                 case workerStates.init: {

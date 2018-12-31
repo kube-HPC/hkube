@@ -8,6 +8,8 @@ module.exports = {
         startRawSubPipeline: 'startRawSubPipeline',
         startStoredSubPipeline: 'startStoredSubPipeline',
         stopSubPipeline: 'stopSubPipeline',
+        startSpan: 'startSpan',
+        finishSpan: 'finishSpan',
         done: 'done'
     },
     outgoing: {

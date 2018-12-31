@@ -330,7 +330,7 @@ describe('worker SubPipeline test', () => {
     });
     it('enter ready state should clear subPipelines data', function (done) {
         const subPipelineHandler = require('../lib/subpipeline/subpipeline');
-        // simule 2 subPipelines
+        // simulate 2 subPipelines
         subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
         stateManager.emit(stateEvents.stateEntered, { state: workerStates.ready });
