@@ -43,7 +43,7 @@ after_success:
     docker login --username yehiyam --password ${DOCKER_HUB_PASS}
     PRIVATE_REGISTRY=docker.io/hkube npm run build
   fi
-- snyk monitor 
+# - snyk monitor 
 # deploy:
 #   skip_cleanup: true
 #   provider: script
