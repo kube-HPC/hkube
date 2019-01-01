@@ -10,6 +10,7 @@ class EtcdDiscovery extends EventEmitter {
     constructor() {
         super();
         this._etcd = null;
+        this.previousTaskIds = [];
     }
 
     async init(options) {
@@ -62,8 +63,11 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async updateDiscovery(options) {
+        if (options.taskId && !this.previousTaskIds.find(taskId => taskId === options.taskId)) {
+            this.previousTaskIds.push(options.taskId);
+        }
         log.info(`update worker discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
-        await this._etcd.discovery.updateRegisteredData(options);
+        await this._etcd.discovery.updateRegisteredData({ ...options, previousTaskIds: this.previousTaskIds });
     }
 
     async update(options) {
