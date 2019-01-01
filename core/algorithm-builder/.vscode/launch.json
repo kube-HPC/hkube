@@ -11,8 +11,9 @@
                 "<node_internals>/**"
             ],
             "env": {
-                "BUILD_ID": "build:green-alg:c0265c86-e18b-4d56-bdbd-8982cda3679c"
-            }
+                "BUILD_ID": "build:sort-alg:5b160ff8-2888-424d-9347-100203276d65"
+            },
+            "envFile": "${env:HOME}/dev/hkube/.env"
         },
         {
             "name": "Run mocha",

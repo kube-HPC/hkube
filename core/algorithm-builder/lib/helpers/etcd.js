@@ -1,4 +1,3 @@
-const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const component = require('../../lib/consts/components').ETCD;
@@ -17,9 +16,13 @@ class Etcd {
         await this._etcd.jobState.watch({ jobId: 'hookWatch' });
     }
 
-    async getBuild(buildId) {
-        const build = await this._etcd._client.get(`/builds/${buildId}`, { isPrefix: false });
-        return build;
+    async getBuild(options) {
+        const build = await this._etcd._client.get(`/buildStatus/${options.buildId}`, { isPrefix: false });
+        return build && build.data;
+    }
+
+    async setBuild(buildId, options) {
+        await this._etcd._client.put(`/buildStatus/${buildId}`, options);
     }
 }
 

@@ -1,5 +1,3 @@
-
-const helper = require('../../lib/helper/json.js');
 const config = module.exports = {};
 
 config.adapter = process.env.WORKER_ALGORITHM_PROTOCOL || 'socket';
@@ -10,6 +8,7 @@ config.socket = {
     protocol: process.env.WORKER_SOCKET_PROTOCOL || 'ws'
 };
 
-config.algorithmPath = '../algorithm/';
-
-config.algorithmData = helper.tryParseJSON(process.env.ALGORITHM_DATA);
+config.algorithm = {
+    path: '../algorithm',
+    entryPoint: process.env.ALGORITHM_ENTRY_POINT || ''
+};

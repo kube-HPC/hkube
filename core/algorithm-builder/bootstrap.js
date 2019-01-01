@@ -16,7 +16,7 @@ class Bootstrap {
             this._handleErrors();
             const { main, logger } = configIt.load();
             log = new Logger(main.serviceName, logger);
-            log.info('running application in ' + configIt.env() + ' environment', { component });
+            log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             for (const m of modules) {
                 await m.init(main);

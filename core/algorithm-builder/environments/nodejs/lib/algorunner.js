@@ -38,8 +38,8 @@ class Algorunner {
 
     async _loadAlgorithm(options) {
         try {
-            const entryPoint = options.algorithmData.entryPoint || '';
-            const algorithm = require(`${options.algorithmPath}/${entryPoint}`);
+            const { path, entryPoint } = options.algorithm;
+            const algorithm = require(`${path}/${entryPoint}`);
             console.debug(`algorithm code loaded`);
 
             Object.keys(methods).forEach((m) => {

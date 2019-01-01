@@ -12,36 +12,49 @@ let log;
 class Operator {
     async init(options) {
         log = Logger.GetLogFromContainer();
+        const { buildId } = options;
+        let error;
+        let result;
+        let build;
         try {
-            log.debug(`starting build ${options}`, { component });
-            const { buildId } = options;
-            const build = await etcd.getBuild(buildId);
-            const readStream = await storageManager.storage._adapter.getStream({ path: `hkube/${buildId}` });
-            const zip = await this._writeStream(readStream, build);
-            const { error, result } = await builder.build({ payload: build, file: zip });
-            if (result) {
-                await etcd.setBuild(buildId, result);
+            log.info(`starting build -> ${buildId}`, { component });
+            build = await etcd.getBuild({ buildId });
+            if (!build) {
+                throw new Error(`unable to find build -> ${buildId}`);
             }
+            await etcd.setBuild(buildId, { timestamp: new Date(), status: 'active', data: build });
+            const readStream = await storageManager.storage._adapter.getStream({ path: `hkube/${buildId}` });
+            const zipFile = `${process.cwd()}/uploads/zipped/${build.name}`;
+            await this._writeStream(readStream, zipFile);
+            const response = await builder.build({ payload: build, file: zipFile });
+            error = response.errorMsg;
+            result = response.resultData;
         }
         catch (e) {
+            error = e.message;
             log.error(e.message, { component });
         }
         finally {
-            // process.exit(0);
+            const status = error ? 'failed' : 'completed';
+            log.info(`build ${status} -> ${buildId}. ${error}`, { component });
+            await etcd.setBuild(buildId, { timestamp: new Date(), status, data: build, result, error });
+            process.exit(0);
         }
     }
 
-    _writeStream(readStream, build) {
+    _writeStream(readStream, zip) {
         return new Promise((resolve, reject) => {
-            const zip = `${process.cwd()}/uploads/zipped/${build.name}`;
             const writeStream = fse.createWriteStream(zip);
-            readStream.pipe(writeStream);
-            writeStream.on('close', () => {
-                return resolve(zip);
+            readStream.on('error', (err) => {
+                return reject(err);
             });
             writeStream.on('error', (err) => {
                 return reject(err);
             });
+            writeStream.on('close', () => {
+                return resolve();
+            });
+            readStream.pipe(writeStream);
         });
     }
 }
