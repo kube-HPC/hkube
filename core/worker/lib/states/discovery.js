@@ -20,6 +20,7 @@ class EtcdDiscovery extends EventEmitter {
         const discoveryInfo = {
             algorithmName: options.jobConsumer.job.type,
             podName: options.kubernetes.pod_name,
+            previousTaskIds: []
         };
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering worker discovery for id ${this._etcd.discovery._instanceId}`, { component });
