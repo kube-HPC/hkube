@@ -18,12 +18,13 @@ class Runner {
 
     async parse(jobId, nodeName) {
         try {
-            const pipeline = await this._getStoredExecution(jobId);
-            const { successors, predecessors } = this._createGraphAndFindRelevantSuccessorsAndPredecessors(pipeline.data, nodeName);
+            const originalJobId = this._getOriginialJobId(jobId);
+            const pipeline = await this._getStoredExecution(originalJobId);
+            const { successors, predecessors } = this._createGraphAndFindRelevantSuccessorsAndPredecessors(pipeline, nodeName);
             const flattenSuccessors = this._flattenSuccessors(successors, nodeName);
             const flattenPredecessors = this._flattenPredecessors(predecessors, nodeName);
-            const subPipeline = this._createSubPipeline(flattenSuccessors, pipeline.data, jobId);
-            const metadataFromPredecessors = await this._collectMetaDataFromPredecessors(jobId, flattenPredecessors, pipeline.date);
+            const subPipeline = this._createSubPipeline(flattenSuccessors, pipeline, originalJobId);
+            const metadataFromPredecessors = await this._collectMetaDataFromPredecessors(originalJobId, flattenPredecessors);
             const mergedPipeline = this._mergeSubPipelineWithMetadata(subPipeline, flattenPredecessors, metadataFromPredecessors);
             log.debug(`new pipeline sent for running: ${JSON.stringify(mergedPipeline)} `);
             return mergedPipeline;
@@ -33,6 +34,10 @@ class Runner {
              errorMessage: ${error.message}, stack: ${error.stack}`, { component: componentName.RUNNER });
             throw new Error(`part of the data is missing or incorrect error:${error.message} `);
         }
+    }
+
+    _getOriginialJobId(jobId) {
+        return jobId.split(':caching')[0];
     }
 
     _mergeSubPipelineWithMetadata(subPipeline, flattenPredecessors, metadataFromSuccessors) {
@@ -50,6 +55,9 @@ class Runner {
                         log.error(`couldn't find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
                     }
                 });
+                if (n.parentOutput.length === 0) {
+                    n.parentOutput = null;//eslint-disable-line
+                }
             }
         });
         return subPipeline;
@@ -97,7 +105,7 @@ class Runner {
     }
 
     async _getStoredExecution(jobId) {
-        const path = await storageManager.listExecution({ jobId });
+        const path = await storageManager.hkubeExecutions.list({ jobId });
         if (path.length === 0) {
             log.error(`cant find execution for jobId ${jobId}`, { component: componentName.RUNNER });
             throw new Error(`cant find execution for jobId ${jobId}`);
@@ -113,12 +121,12 @@ class Runner {
         };
     }
 
-    async _collectMetaDataFromPredecessors(jobId, flattenPredecessors, date) {
+    async _collectMetaDataFromPredecessors(jobId, flattenPredecessors) {
         let metadata = null;
         try {
             metadata = await Promise.all(flattenPredecessors.map(async p => ({
                 id: p,
-                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(jobId, p, date)
+                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(jobId, p)
             })));
         }
         catch (error) {
@@ -127,9 +135,9 @@ class Runner {
         return metadata;
     }
 
-    async _getMetaDataFromStorageAndCreateDescriptior(jobId, nodeName, date) {
+    async _getMetaDataFromStorageAndCreateDescriptior(jobId, nodeName) {
         try {
-            const metadataPathList = await storageManager.listMetadata({ date, jobId, nodeName });
+            const metadataPathList = await storageManager.hkubeMetadata.list({ jobId, nodeName });
             const metadataList = await Promise.all(metadataPathList.map(async (path) => {
                 const metadata = await storageManager.get(path);
                 return {

@@ -11,7 +11,7 @@
     "@hkube/logger": "^1.0.15",
     "@hkube/parsers": "^1.0.19",
     "@hkube/rest-server": "^1.0.11",
-    "@hkube/storage-manager": "^1.0.21",
+    "@hkube/storage-manager": "^1.0.30",
     "express": "^4.16.4",
     "graphlib": "^2.1.5",
     "lodash.clonedeep": "^4.5.0",
