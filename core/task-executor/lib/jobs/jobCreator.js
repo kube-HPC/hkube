@@ -82,7 +82,7 @@ const applyEnvToContainer = (inputSpec, containerName, inputEnv) => {
     const { env } = container;
     Object.entries(inputEnv).forEach(([key, value]) => {
         const index = env.findIndex(i => i.name === key);
-        const valueString = `${value}`;
+        const valueString = (typeof value === 'object') ? value : `${value}`;
         if (index !== -1) {
             if (value == null) {
                 env.splice(index, 1);

@@ -94,6 +94,11 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.containers[1].env).to.have.lengthOf(1);
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'newEnv', value: '5' });
         });
+        it('should add object env to algorunner spec', () => {
+            const res = applyEnvToContainer(jobTemplate, 'algorunner', { newEnv: { key1: { key2: 'value' } } });
+            expect(res.spec.template.spec.containers[1].env).to.have.lengthOf(1);
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'newEnv', value: { key1: { key2: 'value' } } });
+        });
     });
     it('should throw if no image name', () => {
         expect(() => createJobSpec({ algorithmName: 'myalgo1', options })).to.throw('Unable to create job spec. algorithmImage is required');
