@@ -2265,6 +2265,24 @@
                                 }
                             },
                             "default": {}
+                        },
+                        "minHotWorkers": {
+                            "type": "integer",
+                            "description": "how many live algorithm instances will always run",
+                            "minimum": 0,
+                            "default": 0
+                        },
+                        "algorithmEnv": {
+                            "type": "object",
+                            "description": "key value environment variables for algorithm"
+                        },
+                        "workerEnv": {
+                            "type": "object",
+                            "description": "key value environment variables for worker"
+                        },
+                        "nodeSelector": {
+                            "type": "object",
+                            "description": "key value labels for nodes constraint"
                         }
                     },
                     "required": [
@@ -2413,6 +2431,11 @@
                             "minimum": 0,
                             "maximum": 100,
                             "default": 80
+                        },
+                        "concurrentPipelines": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000
                         },
                         "progressVerbosityLevel": {
                             "type": "string",

@@ -258,5 +258,23 @@
                 "enabled": false
             }
         }
+    },
+    {
+        "name": "concurrentPipelines",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "flowInput"
+                ]
+            }
+        ],
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug",
+            "ttl": 3600,
+            "concurrentPipelines": 2
+        }
     }
 ]

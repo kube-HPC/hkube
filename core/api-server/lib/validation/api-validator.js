@@ -3,15 +3,13 @@ const converter = require('@hkube/units-converter');
 const { CronJob } = require('cron');
 const { Graph, alg } = require('graphlib');
 const { parser } = require('@hkube/parsers');
+const regex = require('../../lib/consts/regex');
 const stateManager = require('../state/state-manager');
 const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const validator = new Validator({ useDefaults: false, coerceTypes: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
-const URL_REGEX = /^(f|ht)tps?:\/\//i;
-const PIPELINE_NAME_REGEX = /^[-_.A-Za-z0-9]+$/i;
-const ALGORITHM_NAME_REGEX = /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/;
 const MIN_MEMORY = 4;
 
 class ApiValidator {
@@ -99,6 +97,19 @@ class ApiValidator {
         });
     }
 
+    async validateConcurrentPipelines(pipelines, jobId) {
+        if (pipelines.options && pipelines.options.concurrentPipelines) {
+            const { concurrentPipelines } = pipelines.options;
+            const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
+            if (jobIdPrefix) {
+                const result = await stateManager.getRunningPipelines({ jobId: jobIdPrefix[0] });
+                if (result.length >= concurrentPipelines) {
+                    throw new InvalidDataError(`maximum number [${concurrentPipelines}] of concurrent pipelines has been reached`);
+                }
+            }
+        }
+    }
+
     _validate(schema, object, useDefaults, options) {
         if (useDefaults) {
             this._validateInner(defaulter, schema, object, options);
@@ -173,18 +184,18 @@ class ApiValidator {
     }
 
     _validateUrl(url) {
-        return URL_REGEX.test(url);
+        return regex.URL_REGEX.test(url);
     }
 
     _validatePipelineName(name) {
-        if (!PIPELINE_NAME_REGEX.test(name)) {
+        if (!regex.PIPELINE_NAME_REGEX.test(name)) {
             throw new InvalidDataError('pipeline name must contain only alphanumeric, dash, dot or underscore');
         }
         return true;
     }
 
     _validateAlgorithmName(name) {
-        if (!ALGORITHM_NAME_REGEX.test(name)) {
+        if (!regex.ALGORITHM_NAME_REGEX.test(name)) {
             throw new InvalidDataError('algorithm name must contain only lower-case alphanumeric, dash or dot');
         }
         return true;

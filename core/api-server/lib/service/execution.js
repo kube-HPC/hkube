@@ -14,6 +14,7 @@ const validator = require('../validation/api-validator');
 const States = require('../state/States');
 const component = require('../../lib/consts/componentNames').EXECUTION_SERVICE;
 const WebhookTypes = require('../webhook/States').Types;
+const regex = require('../../lib/consts/regex');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 
 
@@ -83,6 +84,7 @@ class ExecutionService {
 
         validator.addPipelineDefaults(pipeline);
         await validator.validateAlgorithmName(pipeline);
+        await validator.validateConcurrentPipelines(pipeline, jobId);
 
         if (pipeline.flowInput && !alreadyExecuted) {
             const metadata = parser.replaceFlowInput(pipeline);
@@ -93,10 +95,11 @@ class ExecutionService {
                 flowInputOrig: pipeline.flowInput
             };
         }
+        const lastRunResult = await this._getLastPipeline(jobId);
         await storageManager.hkubeIndex.put({ jobId });
         await storageManager.hkubeExecutions.put({ jobId, data: pipeline });
-        await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now() } });
-        await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now() } });
+        await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now(), lastRunResult } });
+        await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now(), lastRunResult } });
         await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.INFO.name });
         await producer.createJob({ jobId, parentSpan: span.context() });
         span.finish();
@@ -229,6 +232,17 @@ class ExecutionService {
 
     _createJobID(options) {
         return [`${options.name}:${uuidv4()}`, options.name].join('.');
+    }
+
+    async _getLastPipeline(jobId) {
+        const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
+        if (jobIdPrefix) {
+            const result = await stateManager.getJobResults({ jobId: jobIdPrefix[0], limit: 1, sort: 'desc' });
+            if (result.length > 0) {
+                return (({ timestamp, status, timeTook }) => ({ timestamp, status, timeTook }))(result[0]);
+            }
+        }
+        return null;
     }
 }
 

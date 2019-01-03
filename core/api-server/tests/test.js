@@ -702,6 +702,29 @@ describe('Rest', () => {
                         expect(response2.body.name).to.have.string(options1.body.name);
                         expect(response2.body.nodes).to.deep.equal(options1.body.nodes);
                     });
+                    it('should exec stored pipeline with concurrent and failed if reached the max number', async () => {
+                        const rp = await stateManager.getRunningPipelines({ jobId: 'concurrentPipelines:' });
+                        await Promise.all(rp.map(p => stateManager.deleteRunningPipeline({ jobId: p.jobId })));
+                        const pipeline = pipelines.find(p => p.name === 'concurrentPipelines');
+
+                        const options = {
+                            method: 'POST',
+                            uri: restUrl + '/exec/stored',
+                            body: {
+                                name: pipeline.name
+                            }
+                        };
+                        const response = await _request(options);
+                        expect(response.body).to.have.property('jobId');
+
+                        const response1 = await _request(options);
+                        expect(response1.body).to.have.property('jobId');
+
+                        const response2 = await _request(options);
+                        expect(response2.body).to.have.property('error');
+                        expect(response2.body.error.message).to.equal(`maximum number [${pipeline.options.concurrentPipelines}] of concurrent pipelines has been reached`);
+
+                    });
                 });
             });
             describe('Pipelines', () => {
@@ -1691,6 +1714,7 @@ describe('Rest', () => {
                         body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal({
                             ...body,
+                            minHotWorkers: 0,
                             options: {
                                 debug: false
                             }
@@ -1713,6 +1737,7 @@ describe('Rest', () => {
                         body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal({
                             ...body,
+                            minHotWorkers: 0,
                             options: {
                                 debug: false
                             }
@@ -1742,6 +1767,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         body.mem = converter.getMemoryInMi(body.mem);
+                        body.minHotWorkers = 0;
                         expect(response.body).to.deep.equal(body);
                     });
                 });
@@ -2486,7 +2512,7 @@ describe('Rest', () => {
             };
             const response2 = await _request(options2);
             //expect(response2.body.error.message).to.equal(`data should have required property 'name'`);
-        });
+        }).timeout(5000);
         it('should throw error when invalid pipeline name', async () => {
             const options = {
                 method: 'POST',
@@ -2729,5 +2755,4 @@ describe('Rest', () => {
         });
     });
 });
-
 
