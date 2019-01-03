@@ -27,7 +27,7 @@ class Persistence {
         const pendingAmount = await bullQueue.getWaitingCount();
         await redisStorage.put(data);
         const scoreArray = data.map(d => d.calculated.score);
-        const status = await this.etcd.algorithms.algorithmQueue.set({ name: this.queueName, data: scoreArray, pendingAmount });
+        const status = await this.etcd.algorithms.algorithmQueue.set({ name: this.queueName, data: scoreArray, pendingAmount, timestamp: Date.now() });
         if (status) {
             log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
         }
