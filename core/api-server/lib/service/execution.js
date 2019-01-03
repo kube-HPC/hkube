@@ -223,7 +223,8 @@ class ExecutionService {
     }
 
     _createJobIdForCaching(jobId) {
-        return `caching:${jobId}:${randString(4)}`;
+        const originalJobID = jobId.split(':caching')[0];
+        return `${originalJobID}:caching:${randString(4)}`;
     }
 
     _createJobID(options) {
