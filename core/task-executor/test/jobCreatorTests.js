@@ -97,7 +97,7 @@ describe('jobCreator', () => {
         it('should add object env to algorunner spec', () => {
             const res = applyEnvToContainer(jobTemplate, 'algorunner', { newEnv: { key1: { key2: 'value' } } });
             expect(res.spec.template.spec.containers[1].env).to.have.lengthOf(1);
-            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'newEnv', value: { key1: { key2: 'value' } } });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'newEnv', valueFrom: { key1: { key2: 'value' } } });
         });
     });
     it('should throw if no image name', () => {

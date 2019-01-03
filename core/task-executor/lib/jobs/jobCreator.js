@@ -83,16 +83,17 @@ const applyEnvToContainer = (inputSpec, containerName, inputEnv) => {
     Object.entries(inputEnv).forEach(([key, value]) => {
         const index = env.findIndex(i => i.name === key);
         const valueString = (typeof value === 'object') ? value : `${value}`;
+        const valueKey = (typeof value === 'object') ? 'valueFrom' : 'value';
         if (index !== -1) {
             if (value == null) {
                 env.splice(index, 1);
             }
             else {
-                env[index] = { name: key, value: valueString };
+                env[index] = { name: key, [valueKey]: valueString };
             }
         }
         else {
-            env.push({ name: key, value: valueString });
+            env.push({ name: key, [valueKey]: valueString });
         }
     });
     return spec;
