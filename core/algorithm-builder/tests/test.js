@@ -5,7 +5,7 @@ const request = require('request-promise');
 const fse = require('fs-extra');
 const uuid = require('uuid/v4');
 const bootstrap = require('../bootstrap');
-const builder = require('../lib/builder');
+const builder = require('../lib/builds/builder');
 
 
 const postFile = async ({ uri, formData }) => {

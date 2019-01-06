@@ -14,7 +14,7 @@ class Algorunner {
     }
 
     async _connectToWorker(options) {
-        this._url = `${options.socket.protocol}://${options.socket.host}:${options.socket.port}`;
+        this._url = options.socket.url || `${options.socket.protocol}://${options.socket.host}:${options.socket.port}`;
         this._registerToCommunicationEvents();
         await workerCommunication.init({ url: this._url, ...options });
     }
@@ -51,6 +51,7 @@ class Algorunner {
                     throw new Error(`unable to find method ${m}`);
                 }
             });
+            process.chdir(`${process.cwd()}/lib/${path}`);
         }
         catch (e) {
             const error = `unable to load algorithm code, error: ${e.message}`;

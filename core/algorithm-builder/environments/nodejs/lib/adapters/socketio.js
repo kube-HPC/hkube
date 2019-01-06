@@ -11,7 +11,13 @@ class AlgorithmSocket extends EventEmitter {
     }
 
     _connect() {
-        this._socket = socketio(this._url);
+        const socketOptions = {
+            transports: ['websocket'],
+            rejectUnauthorized: false
+        };
+        const url = new URL(this._url);
+        socketOptions.path = url.pathname;
+        this._socket = socketio(url.origin, socketOptions.path === '/' ? null : socketOptions);
         this._registerSocketMessages(this._socket);
     }
 
