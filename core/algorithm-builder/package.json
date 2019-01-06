@@ -29,6 +29,7 @@
     "fs-extra": "^7.0.1",
     "multer": "^1.4.1",
     "request-promise": "^4.2.2",
+    "targz": "^1.0.1",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

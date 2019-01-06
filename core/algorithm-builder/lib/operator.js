@@ -26,7 +26,7 @@ class Operator {
             const readStream = await storageManager.storage._adapter.getStream({ path: `hkube/${buildId}` });
             const zipFile = `${process.cwd()}/uploads/zipped/${build.name}`;
             await this._writeStream(readStream, zipFile);
-            const response = await builder.build({ payload: build, file: zipFile });
+            const response = await builder.build({ payload: build, src: zipFile });
             error = response.errorMsg;
             result = response.resultData;
         }

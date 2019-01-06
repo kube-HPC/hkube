@@ -1,4 +1,5 @@
 const Zip = require('adm-zip');
+const targz = require('targz');
 const fse = require('fs-extra');
 const { exec } = require('child_process');
 const Logger = require('@hkube/logger');
@@ -17,21 +18,22 @@ class Builder {
         const filesToRemove = [];
         try {
             const overwrite = true;
-            const { payload, file } = options;
-            filesToRemove.push(file);
-            const zip = new Zip(file);
-            const alg = payload.name;
-            const env = `${process.cwd()}/environments/${payload.env}`;
-            const code = `${process.cwd()}/uploads/unzipped/${alg}`;
-            const buildPath = `${process.cwd()}/builds/${payload.env}/${alg}`;
+            const { payload, src } = options;
+            const { name, env, version, fileExt } = payload;
+            filesToRemove.push(src);
+
+            const envr = `${process.cwd()}/environments/${env}`;
+            const dest = `${process.cwd()}/uploads/unzipped/${name}`;
+            const buildPath = `${process.cwd()}/builds/${env}/${name}`;
             filesToRemove.push(buildPath);
-            zip.extractAllTo(code, overwrite);
+
+            await this._extractFile({ src, dest, fileExt, overwrite });
 
             await fse.ensureDir(buildPath);
-            await fse.copy(env, buildPath);
-            await fse.move(code, `${buildPath}/algorithm`, { overwrite });
+            await fse.copy(envr, buildPath);
+            await fse.move(dest, `${buildPath}/algorithm`, { overwrite });
 
-            resultData = await this._runBash(`${process.cwd()}/lib/builds/build.sh ${alg} ${payload.version} ${buildPath}`);
+            resultData = await this._runBash(`${process.cwd()}/lib/builds/build.sh ${name} ${version} ${buildPath}`);
         }
         catch (e) {
             errorMsg = e;
@@ -41,6 +43,29 @@ class Builder {
             this._removeFiles(filesToRemove);
         }
         return { errorMsg, resultData };
+    }
+
+    async _extractFile({ src, dest, fileExt, overwrite }) {
+        return new Promise((resolve, reject) => {
+            switch (fileExt) {
+                case '.zip': {
+                    const zip = new Zip(src);
+                    zip.extractAllTo(dest, overwrite);
+                    return resolve();
+                }
+                case '.gz': {
+                    targz.decompress({ src, dest }, (err) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        return resolve();
+                    });
+                    break;
+                }
+                default:
+                    return reject(new Error(`unsupported file type ${fileExt}`));
+            }
+        });
     }
 
     _runBash(command) {
