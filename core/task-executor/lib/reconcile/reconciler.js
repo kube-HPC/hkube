@@ -266,7 +266,9 @@ const _calaStats = (data) => {
         acc[cur.algorithmName].count = (acc[cur.algorithmName].count || 0) + 1;
 
         acc[cur.algorithmName][cur.workerStatus] = (acc[cur.algorithmName][cur.workerStatus] || 0) + 1;
-        acc[cur.algorithmName].hot = (acc[cur.algorithmName].hot || 0) + 1;
+        if (cur.hotWorker) {
+            acc[cur.algorithmName].hot = (acc[cur.algorithmName].hot || 0) + 1;
+        }
         return acc;
     }, {}));
 
