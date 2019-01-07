@@ -2280,7 +2280,7 @@
                             "type": "object",
                             "description": "key value environment variables for worker"
                         },
-                        "nodeSelector": {
+                        "nodeAffinity": {
                             "type": "object",
                             "description": "key value labels for nodes constraint"
                         }
