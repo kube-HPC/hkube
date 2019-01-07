@@ -1,3 +1,7 @@
+const { nodes, pods } = require('../stub/resources');
+const nodesBody = nodes;
+const podsBody = pods;
+
 class MockClient {
     constructor() {
         this.shouldThrow = false;
@@ -35,38 +39,38 @@ class MockClient {
         }
 
         const pods = (jobName) => ({
-            get: ({ qs }={}) => {
+            get: ({ qs } = {}) => {
                 if (this.shouldThrow) {
                     throw new Error();
                 }
-                return Promise.resolve({ getPod: { qs } })
-
-            },
+                return Promise.resolve({ getPod: { qs }, body: podsBody.body })
+            }
         });
-        pods.get=pods().get
-        const configmaps= (name) => ({
+        pods.get = pods().get
+        const configmaps = (name) => ({
             get: () => {
                 if (this.shouldThrow) {
                     throw new Error();
                 }
                 // configMap.body.data['versions.json'
-                return Promise.resolve( {
+                return Promise.resolve({
                     body: {
                         data: {
-                            'versions.json':JSON.stringify({name})
+                            'versions.json': JSON.stringify({ name, versions: [] })
                         }
                     }
-                } )
+                })
             }
         })
-        const nodes= {
+        const nodes = {
             get: () => {
                 if (this.shouldThrow) {
                     throw new Error();
                 }
-                return Promise.resolve( {
-                    get:'nodes'
-                } )
+                return Promise.resolve({
+                    get: 'nodes',
+                    body: nodesBody.body
+                })
             }
         }
         this.api = {

@@ -19,6 +19,7 @@ module.exports = {
         }
         return {
             mock: {
+                name: 'kubernetesMock',
                 init: async () => { },
                 createJob: async (...theArgs) => {
                     registerCount('createJob', theArgs);

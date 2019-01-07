@@ -1,8 +1,12 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotWorkers, normalizeColdWorkers } = require('../lib/reconcile/normalize');
 const { twoCompleted } = require('./stub/jobsRaw');
+const utils = require('../lib/utils/utils');
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
 const { nodes, pods } = require('./stub/resources');
+let templateStore = require('./stub/templateStore');
+templateStore = templateStore.map(t => ({ ...t, minHotWorkers: 10 }));
+const algorithmTemplates = utils.arrayToMap(templateStore);
 
 describe('normalize', () => {
     describe('normalize jobs', () => {
@@ -28,7 +32,6 @@ describe('normalize', () => {
             expect(res).to.have.lengthOf(3);
         });
     });
-
     describe('normalize workers', () => {
         it('should work with empty worker array', () => {
             const workers = {};
@@ -44,17 +47,20 @@ describe('normalize', () => {
                 '/discovery/workers/62eee6c4-6f35-4a2d-8660-fad6295ab334': {
                     algorithmName: 'green-alg',
                     workerStatus: 'ready',
+                    hotWorker: false,
                     jobStatus: 'ready',
                     error: null
                 },
                 '/discovery/workers/id2': {
                     algorithmName: 'green-alg',
+                    hotWorker: false,
                     workerStatus: 'not-ready',
                     jobStatus: 'ready',
                     error: null
                 },
                 '/discovery/workers/ae96e6ba-0352-43c4-8862-0e749d2f76c4': {
                     algorithmName: 'red-alg',
+                    hotWorker: false,
                     workerStatus: 'notready',
                     jobStatus: 'ready',
                     error: null
@@ -65,6 +71,7 @@ describe('normalize', () => {
             expect(res).to.deep.include({
                 id: '62eee6c4-6f35-4a2d-8660-fad6295ab334',
                 algorithmName: 'green-alg',
+                hotWorker: false,
                 workerStatus: 'ready',
                 workerPaused: false,
                 podName: undefined
@@ -72,6 +79,7 @@ describe('normalize', () => {
             expect(res).to.deep.include({
                 id: 'id2',
                 algorithmName: 'green-alg',
+                hotWorker: false,
                 workerStatus: 'not-ready',
                 workerPaused: false,
                 podName: undefined
@@ -79,10 +87,132 @@ describe('normalize', () => {
             expect(res).to.deep.include({
                 id: 'ae96e6ba-0352-43c4-8862-0e749d2f76c4',
                 algorithmName: 'red-alg',
+                hotWorker: false,
                 workerStatus: 'notready',
                 workerPaused: false,
                 podName: undefined
             });
+        });
+    });
+    describe('normalize hot workers', () => {
+        it('should work with undefined', () => {
+            const res = normalizeHotWorkers();
+            expect(res).to.have.lengthOf(0);
+        });
+        it('should work with empty data', () => {
+            const normRequests = [];
+            const algorithmTemplates = {};
+            const res = normalizeHotWorkers(normRequests, algorithmTemplates);
+            expect(res).to.have.lengthOf(0);
+        });
+        it('should work with empty normRequests', () => {
+            const normRequests = null;
+            const algorithmTemplates = {};
+            const res = normalizeHotWorkers(normRequests, algorithmTemplates);
+            expect(res).to.have.lengthOf(0);
+        });
+        it('should work with empty algorithmTemplates', () => {
+            const normRequests = [];
+            const algorithmTemplates = null;
+            const res = normalizeHotWorkers(normRequests, algorithmTemplates);
+            expect(res).to.have.lengthOf(0);
+        });
+        it('should return hot workers', () => {
+            const normRequests = [
+                {
+                    "algorithmName": "green-alg"
+                },
+                {
+                    "algorithmName": "black-alg"
+                },
+                {
+                    "algorithmName": "eval-alg"
+                },
+                {
+                    "algorithmName": "yellow-alg"
+                }
+            ]
+            const minHotWorkers = Object.values(algorithmTemplates).map(a => a.minHotWorkers).reduce((a, b) => a + b, 0);
+            const length = minHotWorkers - normRequests.length;
+            const res = normalizeHotWorkers(normRequests, algorithmTemplates);
+            expect(res).to.have.lengthOf(length);
+            expect(res[0]).to.have.property('algorithmName');
+            expect(res[0]).to.have.property('hotWorker');
+        });
+    });
+    describe('normalize cold workers', () => {
+        it('should work with undefined', () => {
+            const res = normalizeColdWorkers();
+            expect(res).to.have.lengthOf(0);
+        });
+        it('should work with empty data', () => {
+            const normWorkers = [];
+            const hotWorkers = [];
+            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            expect(res).to.have.lengthOf(0);
+        });
+        it('should work with empty normWorkers', () => {
+            const normWorkers = null;
+            const hotWorkers = [];
+            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            expect(res).to.have.lengthOf(0);
+        });
+        it('should work with empty hotWorkers', () => {
+            const normWorkers = [];
+            const hotWorkers = null;
+            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            expect(res).to.have.lengthOf(0);
+        });
+        it('should return full cold workers array', () => {
+            const normWorkers = [
+                {
+                    "id": "1ed6407e-6700-4b06-ae0d-307483578074",
+                    "algorithmName": "eval-alg",
+                    "hotWorker": true
+                },
+                {
+                    "id": "22fa61a6-bb1d-4412-8882-ed596e3f1a45",
+                    "algorithmName": "eval-alg",
+                    "hotWorker": true
+                }
+            ]
+            const hotWorkers = [];
+            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            expect(res).to.have.lengthOf(normWorkers.length);
+        });
+        it('should return partial cold workers array', () => {
+            const normWorkers = [
+                {
+                    "id": "1ed6407e-6700-4b06-ae0d-307483578074",
+                    "algorithmName": "eval-alg",
+                    "hotWorker": false
+                },
+                {
+                    "id": "22fa61a6-bb1d-4412-8882-ed596e3f1a45",
+                    "algorithmName": "eval-alg",
+                    "hotWorker": true
+                }
+            ]
+            const hotWorkers = [];
+            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            expect(res).to.have.lengthOf(normWorkers.length - 1);
+        });
+        it('should return empty cold workers array', () => {
+            const normWorkers = [
+                {
+                    "id": "1ed6407e-6700-4b06-ae0d-307483578074",
+                    "algorithmName": "eval-alg",
+                    "hotWorker": false
+                },
+                {
+                    "id": "22fa61a6-bb1d-4412-8882-ed596e3f1a45",
+                    "algorithmName": "eval-alg",
+                    "hotWorker": false
+                }
+            ]
+            const hotWorkers = [];
+            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            expect(res).to.have.lengthOf(normWorkers.length - 2);
         });
     });
     describe('normalize requests', () => {
@@ -128,7 +258,6 @@ describe('normalize', () => {
             });
         });
     });
-
     describe('normalize resources', () => {
         it('should work with empty resources array', () => {
             const res = normalizeResources({});

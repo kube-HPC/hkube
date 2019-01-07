@@ -30,7 +30,7 @@ class Executor {
         });
         this._interval = this._interval.bind(this);
         this._driversSettings = this._prepareDriversData(options);
-        this._interval(options);
+        await this._interval(options);
     }
 
     async _interval(options) {

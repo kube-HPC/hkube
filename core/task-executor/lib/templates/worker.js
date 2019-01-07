@@ -116,7 +116,6 @@ const jobTemplate = {
                     }
                 ],
                 restartPolicy: 'Never'
-
             }
         },
         backoffLimit: 4

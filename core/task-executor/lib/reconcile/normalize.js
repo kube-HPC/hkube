@@ -1,4 +1,5 @@
 const sumBy = require('lodash.sumby');
+const groupBy = require('lodash.groupby');
 const parse = require('@hkube/units-converter');
 const objectPath = require('object-path');
 
@@ -45,12 +46,56 @@ const normalizeWorkers = (workers) => {
             algorithmName: v.algorithmName,
             workerStatus: v.workerStatus,
             workerPaused: !!v.workerPaused,
+            hotWorker: v.hotWorker,
             podName: v.podName
         };
     });
     return workersArray;
 };
 
+const normalizeHotWorkers = (algorithmRequests, algorithmTemplateStore) => {
+    const requests = [];
+    const normRequests = algorithmRequests || [];
+    const algorithmTemplates = algorithmTemplateStore || {};
+    const groupNormRequests = groupBy(normRequests, 'algorithmName');
+    Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0).forEach(([k, v]) => {
+        const groupNor = groupNormRequests[k];
+        const requestsPerAlgorithm = (groupNor && groupNor.length) || 0;
+        if (requestsPerAlgorithm < v.minHotWorkers) {
+            const desired = v.minHotWorkers - requestsPerAlgorithm;
+            const array = new Array(desired).fill({ algorithmName: k, hotWorker: true });
+            requests.push(...array);
+        }
+    });
+    return requests;
+};
+
+
+/**
+ * find workers that should transform from hot to cold by calculating 
+ * the diff between the current hot workers and desired hot workers.
+ */
+const normalizeColdWorkers = (normWorkers, hotWorkers) => {
+    const coldWorkers = [];
+    if (!Array.isArray(normWorkers) || normWorkers.length === 0) {
+        return coldWorkers;
+    }
+    const normHotWorkers = normWorkers.filter(w => w.hotWorker);
+    const groupNorWorkers = groupBy(normHotWorkers, 'algorithmName');
+    const groupHotWorkers = groupBy(hotWorkers, 'algorithmName');
+    Object.entries(groupNorWorkers).forEach(([k, v]) => {
+        const groupHot = groupHotWorkers[k];
+        const countHot = (groupHot && groupHot.length) || 0;
+        const countNor = v.length;
+
+        const countDiff = countNor - countHot;
+        if (countDiff > 0) {
+            const array = v.slice(0, countDiff);
+            coldWorkers.push(...array);
+        }
+    });
+    return coldWorkers;
+};
 
 const normalizeDrivers = (drivers) => {
     if (drivers == null) {
@@ -79,6 +124,10 @@ const calcRatioFree = (node) => {
     };
 };
 
+const _nodeTaintsFilter = (node) => {
+    return !(node.spec && node.spec.taints && node.spec.taints.some(t => t.effect === 'NoSchedule'));
+};
+
 const normalizeResources = ({ pods, nodes } = {}) => {
     if (!pods || !nodes) {
         return {
@@ -94,7 +143,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             }
         };
     }
-    const initial = nodes.body.items.reduce((acc, cur) => {
+    const initial = nodes.body.items.filter(_nodeTaintsFilter).reduce((acc, cur) => {
         acc[cur.metadata.name] = {
             requests: { cpu: 0, memory: 0 },
             limits: { cpu: 0, memory: 0 },
@@ -116,7 +165,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
     const stateFilter = p => p.status.phase === 'Running' || p.status.phase === 'Pending';
     const resourcesPerNode = pods.body.items.filter(stateFilter).reduce((accumulator, pod) => {
         const { nodeName } = pod.spec;
-        if (!nodeName) {
+        if (!nodeName || !accumulator[nodeName]) {
             return accumulator;
         }
         const requestCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
@@ -256,6 +305,8 @@ const normalizeDriversAmount = (jobs, requests, settings) => {
 
 module.exports = {
     normalizeWorkers,
+    normalizeHotWorkers,
+    normalizeColdWorkers,
     normalizeDrivers,
     normalizeRequests,
     normalizeDriversRequests,

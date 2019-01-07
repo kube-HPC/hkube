@@ -11,6 +11,8 @@ const { commands, components, consts } = require('../../lib/consts');
 const component = components.RECONCILER;
 
 const { normalizeWorkers,
+    normalizeHotWorkers,
+    normalizeColdWorkers,
     normalizeDrivers,
     normalizeRequests,
     normalizeDriversRequests,
@@ -93,6 +95,12 @@ const _stopWorker = (worker) => {
     });
 };
 
+const _coolDownWorker = (worker) => {
+    return etcd.sendCommandToWorker({
+        workerId: worker.id, command: commands.coolDown, algorithmName: worker.algorithmName, podName: worker.podName
+    });
+};
+
 const _stopDriver = (driver) => {
     return etcd.sendCommandToDriver({ driverId: driver.id, command: commands.stopProcessing });
 };
@@ -111,7 +119,7 @@ const _processAllRequests = (
     { createPromises, createDetails, reconcileResult }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
-        const { algorithmName } = r;
+        const { algorithmName, hotWorker } = r;
         const idleWorkerIndex = idleWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (idleWorkerIndex !== -1) {
             // there is idle worker. don't do anything
@@ -142,7 +150,8 @@ const _processAllRequests = (
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
         const resourceRequests = createContainerResource(algorithmTemplate);
-        const { workerEnv, algorithmEnv, } = algorithmTemplate;
+        const { workerEnv, algorithmEnv, nodeAffinity } = algorithmTemplate;
+
         createDetails.push({
             numberOfNewJobs: 1,
             jobDetails: {
@@ -151,6 +160,8 @@ const _processAllRequests = (
                 workerImage,
                 workerEnv,
                 algorithmEnv,
+                nodeAffinity,
+                hotWorker,
                 resourceRequests,
                 clusterOptions,
                 awsAccessKeyId,
@@ -261,15 +272,24 @@ const _calaStats = (data) => {
     return stats;
 };
 
+const _combineWorkers = (normRequests, hotWorkers) => {
+    return [...hotWorkers, ...normRequests];
+};
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, options, clusterOptions } = {}) => {
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const merged = mergeWorkers(normWorkers, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
-    // log.debug(`algorithm requests ${normRequests.length}`);
+    const hotWorkers = normalizeHotWorkers(normRequests, algorithmTemplates);
+    const coldWorkers = normalizeColdWorkers(normWorkers, hotWorkers);
+    const totalRequests = _combineWorkers(normRequests, hotWorkers);
 
+    // console.log(JSON.stringify(normWorkers, null, 2));
+    // log.debug(`algorithm requests ${totalRequests.length}`);
     // log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
+
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
     if (isCpuPresure || isMemoryPresure) {
@@ -287,7 +307,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions
+            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: totalRequests, registry, clusterOptions
         },
         {
             createPromises, createDetails, reconcileResult
@@ -321,10 +341,11 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     if (created.length > 0) {
         log.debug(`creating ${created.length} algorithms....`);
     }
+    const coolDownPromises = coldWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStop.map(r => _stopWorker(r));
     createPromises.push(created.map(r => _createJob(r, options)));
 
-    await Promise.all([...createPromises, ...stopPromises]);
+    await Promise.all([...createPromises, ...stopPromises, ...coolDownPromises]);
     // add created and skipped info
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;

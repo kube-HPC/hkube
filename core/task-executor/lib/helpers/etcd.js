@@ -22,7 +22,7 @@ class Etcd extends EventEmitter {
         this._workerServiceName = options.workerServiceName || CONTAINERS.WORKER;
         this._pipelineDriverServiceName = options.workerServiceName || CONTAINERS.PIPELINE_DRIVER;
         const discoveryInfo = {
-            
+
         };
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering discovery for id ${this._etcd.discovery._instanceId}`, { component });
@@ -32,7 +32,7 @@ class Etcd extends EventEmitter {
         log.debug(`update discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
         await this._etcd.discovery.updateRegisteredData(options);
     }
-    
+
     sendCommandToWorker({ workerId, command, algorithmName, podName }) {
         log.info(`worker for algorithm ${algorithmName} command: ${command}`, {
             component, command, workerId, podName, algorithmName

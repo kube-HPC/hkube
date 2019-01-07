@@ -160,10 +160,31 @@ const applyName = (inputSpec, algorithmName) => {
     return spec;
 };
 
+const applyHotWorker = (inputSpec, hotWorker) => {
+    if (!hotWorker) {
+        return inputSpec;
+    }
+    return applyEnvToContainer(inputSpec, CONTAINERS.WORKER, { HOT_WORKER: 'true' });
+};
+
 const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     const spec = clonedeep(inputSpec);
     if (!clusterOptions.useNodeSelector) {
         delete spec.spec.template.spec.nodeSelector;
+    }
+    return spec;
+};
+
+const applyNodeAffinity = (inputSpec, nodeAffinity) => {
+    const spec = clonedeep(inputSpec);
+    if (nodeAffinity && Array.isArray(nodeAffinity.nodeSelectorTerms)) {
+        spec.spec.template.spec.affinity = {
+            nodeAffinity: {
+                requiredDuringSchedulingIgnoredDuringExecution: {
+                    nodeSelectorTerms: nodeAffinity.nodeSelectorTerms
+                }
+            }
+        };
     }
     return spec;
 };
@@ -209,7 +230,7 @@ const applyVolumeMounts = (inputSpec, containerName, vm) => {
     return spec;
 };
 
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv,
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, nodeAffinity, hotWorker,
     clusterOptions, options, awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl, fsBaseDirectory, fsVolumes, fsVolumeMounts }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
@@ -230,6 +251,8 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
     spec = applyNodeSelector(spec, clusterOptions);
+    spec = applyNodeAffinity(spec, nodeAffinity);
+    spec = applyHotWorker(spec, hotWorker);
 
     if (options.defaultStorage === 's3') {
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.WORKER, awsAccessKeyId);
@@ -280,7 +303,9 @@ module.exports = {
     applyPipelineDriverImage,
     applyEnvToContainer,
     applyAlgorithmResourceRequests,
+    applyHotWorker,
     applyNodeSelector,
+    applyNodeAffinity,
     applyEnvToContainerFromSecretOrConfigMap,
     applyVolumes,
     applyVolumeMounts
