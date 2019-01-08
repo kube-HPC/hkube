@@ -68,6 +68,7 @@ class ApiValidator {
 
     validateUpdateAlgorithm(algorithm) {
         this._validate(schemas.entities.algorithm, algorithm, true);
+        this._validateAlgorithmEnvVar(algorithm);
         this._validateMemory(algorithm);
     }
 
@@ -218,6 +219,33 @@ class ApiValidator {
             }
         }
         algorithm.mem = memory;  // eslint-disable-line
+    }
+
+    _validateAlgorithmEnvVar(algorithm) {
+        this._validateEnvVar(algorithm.algorithmEnv);
+        this._validateEnvVar(algorithm.workerEnv);
+    }
+
+    _validateEnvVar(env) {
+        if (!env) {
+            return;
+        }
+        Object.entries(env).forEach(([k, v]) => {
+            if (typeof k !== 'string') {
+                throw new InvalidDataError(`${k} must be a string`);
+            }
+            else if (this._isObject(v)) {
+                const key = Object.keys(v)[0];
+                const valid = validator.validate(_schemas.kubernetesValueFrom, key);
+                if (!valid) {
+                    throw new InvalidDataError(`${key} is invalid, only ${_schemas.kubernetesValueFrom.enum.join(',')}`);
+                }
+            }
+        });
+    }
+
+    _isObject(object) {
+        return Object.prototype.toString.call(object) === '[object Object]';
     }
 
     _validateCron(cron) {

@@ -2251,6 +2251,11 @@
                             "minimum": 0,
                             "description": "algorithm cpu"
                         },
+                        "gpu": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "algorithm gpu"
+                        },
                         "mem": {
                             "type": "string",
                             "description": "algorithm memory"
@@ -2280,9 +2285,12 @@
                             "type": "object",
                             "description": "key value environment variables for worker"
                         },
-                        "nodeAffinity": {
+                        "nodeSelector": {
                             "type": "object",
-                            "description": "key value labels for nodes constraint"
+                            "description": "key value labels for nodes constraint",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "required": [
@@ -2614,6 +2622,15 @@
                     "name",
                     "jobId",
                     "taskId"
+                ]
+            },
+            "kubernetesValueFrom": {
+                "type": "string",
+                "enum": [
+                    "fieldRef",
+                    "configMapKeyRef",
+                    "resourceFieldRef",
+                    "secretKeyRef"
                 ]
             }
         }
