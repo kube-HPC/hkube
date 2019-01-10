@@ -16,12 +16,10 @@ class StateManager extends EventEmitter {
         this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
         this._podName = options.podName;
         this._lastDiscovery = null;
-        this._etcd.discovery.register({ data: this._getDiscovery() });
+        this._etcd.discovery.register({ data: this._defaultDiscovery() });
+        this._discoveryMethod = options.discoveryMethod || function noop() { };
         this._subscribe();
-    }
-
-    close() {
-        this._etcd._client.client.close();
+        this._watchDrivers();
     }
 
     _subscribe() {
@@ -31,9 +29,12 @@ class StateManager extends EventEmitter {
         this._etcd.jobState.on('change', (data) => {
             this.emit(`job-${data.state}`, data);
         });
+        this._etcd.drivers.on('change', (data) => {
+            this.emit(data.status.command, data);
+        });
     }
 
-    _getDiscovery(discovery) {
+    _defaultDiscovery(discovery) {
         const data = {
             paused: false,
             driverStatus: DriverStates.READY,
@@ -44,11 +45,12 @@ class StateManager extends EventEmitter {
         return data;
     }
 
-    _updateDiscovery(discovery) {
-        const data = this._getDiscovery(discovery);
-        if (!equal(this._lastDiscovery, data)) {
-            this._lastDiscovery = data;
-            return this._etcd.discovery.updateRegisteredData(data);
+    _updateDiscovery() {
+        const discovery = this._discoveryMethod();
+        const currentDiscovery = this._defaultDiscovery(discovery);
+        if (!equal(this._lastDiscovery, currentDiscovery)) {
+            this._lastDiscovery = currentDiscovery;
+            return this._etcd.discovery.updateRegisteredData(currentDiscovery);
         }
         return null;
     }
@@ -80,10 +82,13 @@ class StateManager extends EventEmitter {
         return error;
     }
 
+    async updateDiscovery() {
+        return this._updateDiscovery();
+    }
+
     async setJobStatus(options) {
-        const { discovery, ...rest } = options;
-        await this._updateDiscovery(discovery);
-        return this._etcd.jobStatus.set({ jobId: rest.jobId, data: new JobStatus(rest) });
+        await this._updateDiscovery();
+        return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
     }
 
     getJobStatus(options) {
@@ -124,6 +129,10 @@ class StateManager extends EventEmitter {
 
     unWatchJobState(options) {
         return this._etcd.jobState.unwatch(options);
+    }
+
+    _watchDrivers() {
+        return this._etcd.drivers.watch({ driverId: this._etcd.discovery._instanceId });
     }
 }
 

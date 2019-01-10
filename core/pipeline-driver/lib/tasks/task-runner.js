@@ -30,6 +30,7 @@ class TaskRunner extends EventEmitter {
         this._jobStatus = null;
         this._error = null;
         this.pipeline = null;
+        this._paused = false;
         this._init(options);
     }
 
@@ -37,7 +38,15 @@ class TaskRunner extends EventEmitter {
         if (!log) {
             log = logger.GetLogFromContainer();
         }
-        this._stateManager = new StateManager({ etcd: options.etcd, serviceName: options.serviceName, podName: options.kubernetes.podName });
+        this._stateManager = new StateManager({
+            etcd: options.etcd,
+            serviceName: options.serviceName,
+            podName: options.kubernetes.podName,
+            discoveryMethod: this._getDiscoveryData.bind(this)
+        });
+        this._stateManager.on(Events.COMMANDS.stopProcessing, (data) => {
+            this.emit(Events.COMMANDS.stopProcessing, data);
+        });
         this._stateManager.on(Events.JOBS.STOP, (data) => {
             this.stop(null, data.reason);
         });
@@ -85,6 +94,7 @@ class TaskRunner extends EventEmitter {
         }
         this._active = true;
         try {
+            this._cleanState();
             result = await this._startPipeline(job);
         }
         catch (e) {
@@ -138,8 +148,7 @@ class TaskRunner extends EventEmitter {
         });
         this._progress = new Progress({
             calcProgress: this._nodes.calcProgress,
-            sendProgress: this._stateManager.setJobStatus,
-            discoveryMethod: this._getDiscoveryData.bind(this)
+            sendProgress: this._stateManager.setJobStatus
         });
 
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
@@ -252,7 +261,7 @@ class TaskRunner extends EventEmitter {
             await this._progress.error({ jobId: this._jobId, pipeline: this.pipeline.name, status, error });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, status, error });
+            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status, error });
         }
     }
 
@@ -261,7 +270,7 @@ class TaskRunner extends EventEmitter {
             await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, status });
+            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status });
         }
     }
 
@@ -273,30 +282,39 @@ class TaskRunner extends EventEmitter {
         this._pipeline = pipeline;
     }
 
+    async setPaused() {
+        this._paused = true;
+        this._jobStatus = DriverStates.PAUSED;
+        await this._stateManager.updateDiscovery();
+    }
+
     _getDiscoveryData() {
         const discoveryInfo = {
             jobId: this._jobId,
             pipelineName: this.pipeline.name,
             driverStatus: this._driverStatus,
             jobStatus: this._jobStatus,
-            error: this._error
+            error: this._error,
+            paused: this._paused
         };
         return discoveryInfo;
     }
 
     async _cleanJob(error) {
         await graphStore.stop();
-        this.pipeline = null;
         this._nodes = null;
         this._job && this._job.done(error);
         this._job = null;
+        this._progress = null;
+    }
+
+    async _cleanState() {
+        this.pipeline = null;
+        this._paused = false;
         this._jobId = null;
         this._error = null;
         this._driverStatus = null;
         this._jobStatus = null;
-        this._stateManager.close();
-        this._stateManager = null;
-        this._progress = null;
     }
 
     async _recoverPipeline() {

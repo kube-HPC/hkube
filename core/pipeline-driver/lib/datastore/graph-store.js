@@ -39,10 +39,10 @@ class GraphStore {
     }
 
     deleteGraph(options) {
-        return RedisStorage.deleteNodesGraph({ jobId: options.jobId });
+        return RedisStorage.deleteDriverGraph({ jobId: options.jobId });
     }
 
-    async _storeInterval() {
+    _storeInterval() {
         if (this._interval) {
             return;
         }
@@ -58,14 +58,13 @@ class GraphStore {
 
     async _store() {
         try {
-            if (!this._nodesMap) {
-                throw new Error('nodeMap not referenced');
+            if (this._nodesMap) {
+                const graph = this._nodesMap.getJSONGraph();
+                await Promise.all([
+                    this._updateGraph(graph),
+                    this._updateDriverGraph(graph)
+                ]);
             }
-            const graph = this._nodesMap.getJSONGraph();
-            await Promise.all([
-                this._updateGraph(graph),
-                this._updateNodesGraph(graph)
-            ]);
         }
         catch (error) {
             log.error(error, { component: components.GRAPH_STORE });
@@ -80,8 +79,8 @@ class GraphStore {
         }
     }
 
-    async _updateNodesGraph(graph) {
-        await RedisStorage.updateNodesGraph({ jobId: this._currentJobID, data: graph });
+    async _updateDriverGraph(graph) {
+        await RedisStorage.updateDriverGraph({ jobId: this._currentJobID, data: graph });
     }
 
     _filterData(graph) {

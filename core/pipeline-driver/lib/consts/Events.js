@@ -1,5 +1,4 @@
 
-
 module.exports = {
     JOBS: {
         STOP: 'job-stop',
@@ -16,5 +15,8 @@ module.exports = {
         FAILED: 'task-failed',
         STALLED: 'task-stalled',
         CRASHED: 'task-crashed'
+    },
+    COMMANDS: {
+        stopProcessing: 'stopProcessing'
     }
 };

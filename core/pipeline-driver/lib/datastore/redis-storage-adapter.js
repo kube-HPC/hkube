@@ -32,12 +32,12 @@ class RedisAdapter {
         return this._get(path);
     }
 
-    updateNodesGraph(options) {
+    updateDriverGraph(options) {
         const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, options.jobId);
         return this._set(path, options.data);
     }
 
-    deleteNodesGraph(options) {
+    deleteDriverGraph(options) {
         const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, options.jobId);
         return this._del(path);
     }
