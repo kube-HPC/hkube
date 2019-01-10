@@ -106,14 +106,29 @@ class GraphStore {
 
     _handleSingle(node) {
         const { SINGLE } = groupTypes;
-        const calculatedNode = { id: node.nodeName, label: node.nodeName, extra: {}, group: SINGLE.NOT_STARTED };
+        const calculatedNode = {
+            id: node.nodeName,
+            label: node.nodeName,
+            extra: {},
+            group: SINGLE.NOT_STARTED,
+            taskId: node.taskId,
+            algorithmName: node.algorithmName
+        };
         calculatedNode.group = this._singleStatus(node.status);
         return calculatedNode;
     }
 
     _handleBatch(node) {
         const { BATCH } = groupTypes;
-        const calculatedNode = { id: node.nodeName, label: node.nodeName, extra: {}, group: BATCH.NOT_STARTED };
+        const batchTasks = node.batch.map(n => ({ taskId: n.taskId, batchIndex: n.batchIndex }));
+        const calculatedNode = {
+            id: node.nodeName,
+            label: node.nodeName,
+            algorithmName: node.algorithmName,
+            extra: {},
+            group: BATCH.NOT_STARTED,
+            batchTasks
+        };
         const batchStatus = this._batchStatusCounter(node);
         if (batchStatus.completed === node.batch.length) {
             calculatedNode.extra.batch = `${node.batch.length}/${node.batch.length}`;
