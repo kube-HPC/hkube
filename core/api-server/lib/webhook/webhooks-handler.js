@@ -45,7 +45,7 @@ class WebhooksHandler {
         const { jobId } = payload;
         const pipeline = await stateManager.getExecution({ jobId });
 
-        if (pipeline && pipeline.webhooks && pipeline.webhooks.progress) {
+        if (pipeline && pipeline.webhooks && pipeline.webhooks.progress && payload.level) {
             const progressLevel = pipeline.options.progressVerbosityLevel.toUpperCase();
             const payloadLevel = payload.level.toUpperCase();
             const clientLevel = levels[progressLevel].level;
