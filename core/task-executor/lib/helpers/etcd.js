@@ -40,9 +40,9 @@ class Etcd extends EventEmitter {
         return this._etcd.workers.setState({ workerId, status: { command }, timestamp: Date.now() });
     }
 
-    sendCommandToDriver({ instanceId, command }) {
-        log.info(`driver command: ${command}`, { component, command, instanceId });
-        return this._etcd.discovery.set({ instanceId, serviceName: this._pipelineDriverServiceName, data: { status: { command } } });
+    sendCommandToDriver({ driverId, command }) {
+        log.info(`driver command: ${command}`, { component, command, driverId });
+        return this._etcd.drivers.setState({ driverId, status: { command }, timestamp: Date.now() });
     }
 
     async getWorkers(options = {}) {

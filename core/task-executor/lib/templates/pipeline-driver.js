@@ -20,9 +20,6 @@ const template = {
                 }
             },
             spec: {
-                nodeSelector: {
-                    core: 'true'
-                },
                 containers: [
                     {
                         name: 'pipeline-driver',

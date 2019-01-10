@@ -2,6 +2,7 @@ const sumBy = require('lodash.sumby');
 const groupBy = require('lodash.groupby');
 const parse = require('@hkube/units-converter');
 const objectPath = require('object-path');
+const { gpuVendors } = require('../consts');
 
 /**
  * normalizes the worker info from discovery
@@ -101,31 +102,37 @@ const normalizeDrivers = (drivers) => {
     if (drivers == null) {
         return [];
     }
-    const workersArray = Object.entries(drivers).map(([k, v]) => {
-        const workerId = k.match(/([^/]*)\/*$/)[0];
+    const driversArray = Object.entries(drivers).map(([k, v]) => {
+        const driverId = k.match(/([^/]*)\/*$/)[0];
         return {
-            id: workerId,
-            status: v.status,
+            id: driverId,
+            status: v.driverStatus,
             paused: !!v.paused,
             podName: v.podName
         };
     });
-    return workersArray;
+    return driversArray;
 };
 
 const calcRatioFree = (node) => {
     node.ratio = {
         cpu: node.requests.cpu / node.total.cpu,
-        memory: node.requests.memory / node.total.memory,
+        gpu: (node.total.gpu && node.requests.gpu / node.total.gpu) || 0,
+        memory: node.requests.memory / node.total.memory
     };
     node.free = {
         cpu: node.total.cpu - node.requests.cpu,
-        memory: node.total.memory - node.requests.memory,
+        gpu: node.total.gpu - node.requests.gpu,
+        memory: node.total.memory - node.requests.memory
     };
 };
 
 const _nodeTaintsFilter = (node) => {
     return !(node.spec && node.spec.taints && node.spec.taints.some(t => t.effect === 'NoSchedule'));
+};
+
+const parseGpu = (gpu) => {
+    return gpu && gpu[gpuVendors.NVIDIA] && parseInt(gpu[gpuVendors.NVIDIA], 10);
 };
 
 const normalizeResources = ({ pods, nodes } = {}) => {
@@ -134,10 +141,12 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             allNodes: {
                 ratio: {
                     cpu: 0,
-                    memory: 0
+                    gpu: 0,
+                    memory: 0,
                 },
                 free: {
                     cpu: 0,
+                    gpu: 0,
                     memory: 0
                 }
             }
@@ -145,20 +154,23 @@ const normalizeResources = ({ pods, nodes } = {}) => {
     }
     const initial = nodes.body.items.filter(_nodeTaintsFilter).reduce((acc, cur) => {
         acc[cur.metadata.name] = {
-            requests: { cpu: 0, memory: 0 },
-            limits: { cpu: 0, memory: 0 },
+            labels: cur.metadata.labels,
+            requests: { cpu: 0, gpu: 0, memory: 0 },
+            limits: { cpu: 0, gpu: 0, memory: 0 },
             total: {
                 cpu: parse.getCpuInCore(cur.status.allocatable.cpu),
+                gpu: parseGpu(cur.status.allocatable) || 0,
                 memory: parse.getMemoryInMi(cur.status.allocatable.memory)
             }
         };
         return acc;
     }, {});
     const allNodes = {
-        requests: { cpu: 0, memory: 0 },
-        limits: { cpu: 0, memory: 0 },
+        requests: { cpu: 0, gpu: 0, memory: 0 },
+        limits: { cpu: 0, gpu: 0, memory: 0 },
         total: {
             cpu: sumBy(Object.values(initial), 'total.cpu'),
+            gpu: sumBy(Object.values(initial), 'total.gpu'),
             memory: sumBy(Object.values(initial), 'total.memory'),
         }
     };
@@ -169,13 +181,17 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             return accumulator;
         }
         const requestCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
+        const requestGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.requests.gpu', 0)));
         const requestMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0)));
         const limitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
+        const limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits.gpu', 0)));
         const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0)));
 
         accumulator[nodeName].requests.cpu += requestCpu;
+        accumulator[nodeName].requests.gpu += requestGpu;
         accumulator[nodeName].requests.memory += requestMem;
         accumulator[nodeName].limits.cpu += limitsCpu;
+        accumulator[nodeName].limits.gpu += limitsGpu;
         accumulator[nodeName].limits.memory += limitsMem;
         return accumulator;
     }, initial);
@@ -184,8 +200,10 @@ const normalizeResources = ({ pods, nodes } = {}) => {
     Object.entries(resourcesPerNode).forEach(([k, v]) => {
         calcRatioFree(v);
         allNodes.requests.cpu += v.requests.cpu;
+        allNodes.requests.gpu += v.requests.gpu;
         allNodes.requests.memory += v.requests.memory;
         allNodes.limits.cpu += v.limits.cpu;
+        allNodes.limits.gpu += v.limits.gpu;
         allNodes.limits.memory += v.limits.memory;
         nodeList.push({ name: k, ...v });
     });

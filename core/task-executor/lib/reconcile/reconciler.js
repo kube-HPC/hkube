@@ -150,7 +150,7 @@ const _processAllRequests = (
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
         const resourceRequests = createContainerResource(algorithmTemplate);
-        const { workerEnv, algorithmEnv, nodeAffinity } = algorithmTemplate;
+        const { workerEnv, algorithmEnv, nodeSelector } = algorithmTemplate;
 
         createDetails.push({
             numberOfNewJobs: 1,
@@ -160,7 +160,7 @@ const _processAllRequests = (
                 workerImage,
                 workerEnv,
                 algorithmEnv,
-                nodeAffinity,
+                nodeSelector,
                 hotWorker,
                 resourceRequests,
                 clusterOptions,
@@ -289,9 +289,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const coldWorkers = normalizeColdWorkers(normWorkers, hotWorkers);
     const totalRequests = _combineWorkers(normRequests, hotWorkers);
 
-    // console.log(JSON.stringify(normWorkers, null, 2));
-    // log.debug(`algorithm requests ${totalRequests.length}`);
-    // log.debug(`resources:\n${JSON.stringify(normResources.allNodes, null, 2)}`);
+    // log.debug(JSON.stringify(normResources.allNodes, null, 2));
 
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
@@ -326,9 +324,10 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const resourcesToFree = skipped.reduce((prev, cur) => {
         return {
             cpu: prev.cpu + cur.resourceRequests.requests.cpu,
+            gpu: prev.gpu + cur.resourceRequests.requests.gpu,
             memory: prev.memory + parse.getMemoryInMi(cur.resourceRequests.requests.memory)
         };
-    }, { cpu: 0, memory: 0 });
+    }, { cpu: 0, gpu: 0, memory: 0 });
 
     _findWorkersToStop({
         skipped, idleWorkers, activeWorkers, algorithmTemplates
@@ -375,7 +374,6 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
     }
     const driversAmount = normalizeDriversAmount(normJobs, normRequests, settings);
 
-    // const isResourcePresure = isCpuPresure || isMemoryPresure;
     const createDetails = [];
     const stopDetails = [];
     const createPromises = [];
@@ -404,11 +402,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
         const podDiff = (idleDrivers.length + pendingDrivers.length) - requiredCount;
         const podDiffForDelete = idleDrivers.length - requiredCount;
         if (podDiffForDelete > 0) {
-            // need to stop some drivers
-            // if (isResourcePresure) {
             log.debug(`need to stop ${podDiffForDelete} pods for algorithm ${name}`);
-            // _stopWorkers(workersForAlgorithm, 1);
-
             const driverTemplate = driverTemplates[name];
             const resourceRequests = createContainerResource(driverTemplate);
 
@@ -419,10 +413,6 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
                     resourceRequests
                 }
             });
-            // }
-            // else {
-            //     log.debug(`resources ratio is: ${JSON.stringify(normResources.allNodes.ratio)}. no need to stop pods`);
-            // }
         }
         else if (podDiff < 0) {
             // need to add drivers

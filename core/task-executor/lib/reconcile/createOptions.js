@@ -1,3 +1,5 @@
+const { gpuVendors } = require('../consts');
+
 const parseImageName = (image) => {
     const match = image.match(/^(?:([^/]+)\/)?(?:([^/]+)\/)?([^@:/]+)(?:[@:](.+))?$/);
     if (!match) return null;
@@ -71,10 +73,11 @@ const setPipelineDriverImage = (template, versions, registry) => {
     return createImageName(imageParsed);
 };
 
-const _createContainerResourceByFactor = ({ cpu, mem } = {}, factor = 1) => {
+const _createContainerResourceByFactor = ({ cpu, mem, gpu } = {}, factor = 1) => {
     const cpuFactored = (cpu || 0.1) * factor;
     const memory = `${(mem || 4) * factor}Mi`;
-    return { cpu: cpuFactored, memory };
+    const gpus = gpu ? { [gpuVendors.NVIDIA]: gpu } : null;
+    return { cpu: cpuFactored, memory, ...gpus };
 };
 
 const createContainerResource = (template) => {

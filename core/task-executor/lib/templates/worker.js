@@ -22,9 +22,6 @@ const jobTemplate = {
                 }
             },
             spec: {
-                nodeSelector: {
-                    worker: 'true'
-                },
                 serviceAccountName: 'worker-serviceaccount',
                 containers: [
                     {

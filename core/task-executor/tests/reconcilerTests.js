@@ -85,8 +85,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
-
-        it('should keep node selector', async () => {
+        xit('should keep node selector', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
                 options,
@@ -113,7 +112,7 @@ describe('reconciler', () => {
             expect(res).to.exist;
             expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.exist;
         });
-        it('should remove node selector', async () => {
+        xit('should remove node selector', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
                 options,
@@ -140,8 +139,7 @@ describe('reconciler', () => {
             expect(res).to.exist;
             expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.be.undefined;
         });
-
-        it('should remove node selector 2', async () => {
+        xit('should remove node selector 2', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
                 options,
@@ -165,9 +163,7 @@ describe('reconciler', () => {
             expect(res).to.exist;
             expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.be.undefined;
         });
-
-
-        it('should keep node selector', async () => {
+        xit('should keep node selector', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({
                 options,
@@ -521,7 +517,7 @@ describe('reconciler', () => {
             expect(res).to.exist;
             expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.be.undefined;
         });
-        it('should keep node selector', async () => {
+        xit('should keep node selector', async () => {
             const count = options.driversSetting.minAmount;
             const res = await reconciler.reconcileDrivers({
                 options,

@@ -1,12 +1,29 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
 const { consts } = require('../../lib/consts');
-const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE, MAX_JOBS_PER_TICK } = consts;
+const { CPU_RATIO_PRESURE, GPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE, MAX_JOBS_PER_TICK } = consts;
 
-const findNodeForSchedule = (node, requestedCpu, requestedMemory) => {
+const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory) => {
     const freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESURE));
+    const freeGpu = node.free.gpu - (node.total.gpu * (1 - GPU_RATIO_PRESURE));
     const freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESURE));
-    return requestedCpu < freeCpu && requestedMemory < freeMemory;
+    return requestedCpu < freeCpu && requestedMemory < freeMemory && requestedGpu <= freeGpu;
+};
+
+const nodeSelectorFilter = (labels, nodeSelector) => {
+    let matched = true;
+    if (!nodeSelector) {
+        return true;
+    }
+    if (!labels) {
+        return false;
+    }
+    Object.entries(nodeSelector).forEach(([k, v]) => {
+        if (labels[k] !== v) {
+            matched = false;
+        }
+    });
+    return matched;
 };
 
 const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
@@ -14,14 +31,17 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
+    const requestedGpu = jobDetails.resourceRequests.requests.gpu || 0;
     const requestedMemory = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
-    const nodeForSchedule = availableResources.nodeList.find(r => findNodeForSchedule(r, requestedCpu, requestedMemory));
+    const nodeList = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
+    const nodeForSchedule = nodeList.find(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
     if (!nodeForSchedule) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
 
     nodeForSchedule.free.cpu -= requestedCpu;
+    nodeForSchedule.free.gpu -= requestedGpu;
     nodeForSchedule.free.memory -= requestedMemory;
 
     return { shouldAdd: true, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes } } };
@@ -82,7 +102,7 @@ const _findWorkerToStop = (workers, algorithmName) => {
 
 const pauseAccordingToResources = (stopDetails, availableResources, workers, resourcesToFree) => {
     // filter out debug workers
-    
+
     const localDetails = clone(stopDetails);
     let localWorkers = workers;
     let addedThisTime = 0;
@@ -151,6 +171,7 @@ const matchJobsToResources = (createDetails, availableResources) => {
 };
 
 module.exports = {
+    nodeSelectorFilter,
     matchJobsToResources,
     shouldAddJob,
     pauseAccordingToResources,

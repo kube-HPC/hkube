@@ -167,12 +167,15 @@ const applyHotWorker = (inputSpec, hotWorker) => {
     return applyEnvToContainer(inputSpec, CONTAINERS.WORKER, { HOT_WORKER: 'true' });
 };
 
-const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
-    const spec = clonedeep(inputSpec);
-    if (!clusterOptions.useNodeSelector) {
-        delete spec.spec.template.spec.nodeSelector;
+const nodeSelectorToNodeAffinity = (nodeSelector) => {
+    if (!nodeSelector) {
+        return null;
     }
-    return spec;
+    const matchExpressions = [];
+    Object.entries(nodeSelector).forEach(([k, v]) => {
+        matchExpressions.push({ key: k, operator: 'In', values: [v] });
+    });
+    return { nodeSelectorTerms: [{ matchExpressions }] };
 };
 
 const applyNodeAffinity = (inputSpec, nodeAffinity) => {
@@ -187,6 +190,11 @@ const applyNodeAffinity = (inputSpec, nodeAffinity) => {
         };
     }
     return spec;
+};
+
+const applyNodeSelector = (inputSpec, nodeSelector) => {
+    const nodeAffinity = nodeSelectorToNodeAffinity(nodeSelector);
+    return applyNodeAffinity(inputSpec, nodeAffinity);
 };
 
 const applyVolumes = (inputSpec, fsVolumes) => {
@@ -230,7 +238,7 @@ const applyVolumeMounts = (inputSpec, containerName, vm) => {
     return spec;
 };
 
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, nodeAffinity, hotWorker,
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, nodeSelector, hotWorker,
     clusterOptions, options, awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl, fsBaseDirectory, fsVolumes, fsVolumeMounts }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
@@ -250,8 +258,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyWorkerImage(spec, workerImage);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
-    spec = applyNodeSelector(spec, clusterOptions);
-    spec = applyNodeAffinity(spec, nodeAffinity);
+    spec = applyNodeSelector(spec, nodeSelector, clusterOptions);
     spec = applyHotWorker(spec, hotWorker);
 
     if (options.defaultStorage === 's3') {
@@ -279,7 +286,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyPipelineDriverImage(spec, image);
     spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
     spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
-    spec = applyNodeSelector(spec, clusterOptions);
+    spec = applyNodeSelector(spec, null, clusterOptions);
     if (options.defaultStorage === 's3') {
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.PIPELINE_DRIVER, awsAccessKeyId);
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.PIPELINE_DRIVER, awsSecretAccessKey);
@@ -306,6 +313,7 @@ module.exports = {
     applyHotWorker,
     applyNodeSelector,
     applyNodeAffinity,
+    nodeSelectorToNodeAffinity,
     applyEnvToContainerFromSecretOrConfigMap,
     applyVolumes,
     applyVolumeMounts

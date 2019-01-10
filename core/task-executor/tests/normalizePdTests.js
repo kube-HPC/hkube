@@ -39,21 +39,21 @@ describe('normalize pipeline driver', () => {
             expect(res).to.be.empty;
         });
         it('should return object with ids', () => {
-            const workers = {
+            const drivers = {
                 '/discovery/drivers/62eee6c4-6f35-4a2d-8660-fad6295ab334': {
-                    status: 'ready',
+                    driverStatus: 'ready',
                     error: null
                 },
                 '/discovery/drivers/id2': {
-                    status: 'not-ready',
+                    driverStatus: 'not-ready',
                     error: null
                 },
                 '/discovery/drivers/ae96e6ba-0352-43c4-8862-0e749d2f76c4': {
-                    status: 'notready',
+                    driverStatus: 'notready',
                     error: null
                 }
             };
-            const res = normalizeDrivers(workers);
+            const res = normalizeDrivers(drivers);
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
                 id: '62eee6c4-6f35-4a2d-8660-fad6295ab334',
@@ -113,29 +113,38 @@ describe('normalize pipeline driver', () => {
         it('should work with empty resources array', () => {
             const res = normalizeResources({});
             expect(res.allNodes.ratio.cpu).to.eq(0);
+            expect(res.allNodes.ratio.gpu).to.eq(0);
             expect(res.allNodes.ratio.memory).to.eq(0);
         });
         it('should work with undefined resources array', () => {
             const res = normalizeResources();
             expect(res.allNodes.ratio.cpu).to.eq(0);
+            expect(res.allNodes.ratio.gpu).to.eq(0);
             expect(res.allNodes.ratio.memory).to.eq(0);
         });
         it('should return resources by node and totals', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.total.cpu).to.eq(23.4);
+            expect(res.allNodes.total.gpu).to.eq(2);
             expect(res.allNodes.total.memory).to.eq(98304);
             expect(res.nodeList[0].requests.cpu).to.eq(0.2);
             expect(res.nodeList[1].requests.cpu).to.eq(0.25);
             expect(res.nodeList[2].requests.cpu).to.eq(0);
+            expect(res.nodeList[0].requests.gpu).to.eq(0);
+            expect(res.nodeList[1].requests.gpu).to.eq(0);
+            expect(res.nodeList[2].requests.gpu).to.eq(0);
         });
-
         it('should return resources free resources by node', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.free.cpu).to.eq(22.95);
+            expect(res.allNodes.free.gpu).to.eq(2);
             expect(res.allNodes.free.memory).to.eq(97664);
             expect(res.nodeList[0].free.cpu).to.eq(7.6);
             expect(res.nodeList[1].free.cpu).to.eq(7.55);
             expect(res.nodeList[2].free.cpu).to.eq(7.8);
+            expect(res.nodeList[0].free.gpu).to.eq(2);
+            expect(res.nodeList[1].free.gpu).to.eq(0);
+            expect(res.nodeList[2].free.gpu).to.eq(0);
         });
     });
     describe('merge workers', () => {
@@ -153,9 +162,7 @@ describe('normalize pipeline driver', () => {
             expect(merged.mergedWorkers[0].job).to.not.exist;
             expect(merged.mergedWorkers[1].job).to.not.exist;
             expect(merged.extraJobs).to.be.empty;
-
         });
-
         it('should keep all workers, and enrich with one jobs', () => {
             const merged = mergeWorkers(workersStub, jobsStub.slice(0, 1));
             expect(merged.mergedWorkers).to.be.an('array')

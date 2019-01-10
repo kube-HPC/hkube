@@ -1,3 +1,5 @@
+const { gpuVendors } = require('../../lib/consts');
+
 const pods = {
     body: {
         items: [
@@ -11,11 +13,13 @@ const pods = {
                             resources: {
                                 limits: {
                                     cpu: '200m',
-                                    memory: '256Mi'
+                                    memory: '256Mi',
+                                    [gpuVendors.NVIDIA]: '1'
                                 },
                                 requests: {
                                     cpu: '200m',
-                                    memory: '256Mi'
+                                    memory: '256Mi',
+                                    [gpuVendors.NVIDIA]: '1'
                                 }
                             }
                         }
@@ -36,11 +40,13 @@ const pods = {
                             resources: {
                                 limits: {
                                     cpu: '200m',
-                                    memory: '256Mi'
+                                    memory: '256Mi',
+                                    [gpuVendors.NVIDIA]: '1'
                                 },
                                 requests: {
                                     cpu: '200m',
-                                    memory: '256Mi'
+                                    memory: '256Mi',
+                                    [gpuVendors.NVIDIA]: '1'
                                 }
                             }
                         }
@@ -61,11 +67,13 @@ const pods = {
                             resources: {
                                 limits: {
                                     cpu: '100m',
-                                    memory: '128Mi'
+                                    memory: '128Mi',
+                                    [gpuVendors.NVIDIA]: '1'
                                 },
                                 requests: {
                                     cpu: '50m',
-                                    memory: '128Mi'
+                                    memory: '128Mi',
+                                    [gpuVendors.NVIDIA]: '1'
                                 }
                             }
                         },
@@ -73,11 +81,13 @@ const pods = {
                             resources: {
                                 limits: {
                                     cpu: '200m',
-                                    memory: '256Mi'
+                                    memory: '256Mi',
+                                    [gpuVendors.NVIDIA]: '1'
                                 },
                                 requests: {
                                     cpu: '200m',
-                                    memory: '256Mi'
+                                    memory: '256Mi',
+                                    [gpuVendors.NVIDIA]: '1'
                                 }
                             }
                         }
@@ -132,7 +142,7 @@ const pods = {
                     containers: [
                         {
                             resources: {
-                                
+
                             }
                         }
                     ],
@@ -159,26 +169,26 @@ const nodes = {
         items: [
             {
                 metadata: {
-                    name: 'node1',
-                    
+                    name: 'node1'
                 },
                 status: {
                     capacity: {
                         cpu: '8',
                         memory: '32Gi',
+                        [gpuVendors.NVIDIA]: '8',
                         pods: '110'
                     },
                     allocatable: {
                         cpu: '7800m',
                         memory: '32Gi',
+                        [gpuVendors.NVIDIA]: '2',
                         pods: '110'
                     },
                 }
             },
             {
                 metadata: {
-                    name: 'node2',
-                    
+                    name: 'node2'
                 },
                 status: {
                     capacity: {
@@ -190,13 +200,12 @@ const nodes = {
                         cpu: '7800m',
                         memory: '32Gi',
                         pods: '110'
-                    },
+                    }
                 }
             },
             {
                 metadata: {
-                    name: 'node3',
-                    
+                    name: 'node3'
                 },
                 status: {
                     capacity: {
@@ -208,9 +217,9 @@ const nodes = {
                         cpu: '7800m',
                         memory: '32Gi',
                         pods: '110'
-                    },
+                    }
                 }
-            },
+            }
         ]
     }
 };
