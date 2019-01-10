@@ -1,6 +1,6 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
-const { consts } = require('../../lib/consts');
+const { consts, gpuVendors } = require('../../lib/consts');
 const { CPU_RATIO_PRESURE, GPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE, MAX_JOBS_PER_TICK } = consts;
 
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory) => {
@@ -31,7 +31,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
-    const requestedGpu = jobDetails.resourceRequests.requests.gpu || 0;
+    const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
     const requestedMemory = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
     const nodeList = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
     const nodeForSchedule = nodeList.find(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
@@ -50,6 +50,8 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
 const shouldStopJob = (jobDetails, availableResources) => {
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
     const memoryRequests = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
+    const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
+
     const isCpuPresure = availableResources.allNodes.free.cpu < (availableResources.allNodes.total.cpu * (1 - CPU_RATIO_PRESURE));
     const isMemoryPresure = availableResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
     if (!isCpuPresure && !isMemoryPresure) {
@@ -58,15 +60,20 @@ const shouldStopJob = (jobDetails, availableResources) => {
 
     const nowFree = {
         cpu: availableResources.allNodes.free.cpu + requestedCpu,
-        memory: availableResources.allNodes.free.memory + memoryRequests
+        memory: availableResources.allNodes.free.memory + memoryRequests,
+        gpu: availableResources.allNodes.free.gpu + requestedGpu
     };
     const nowRequests = {
         cpu: availableResources.allNodes.requests.cpu - requestedCpu,
-        memory: availableResources.allNodes.requests.memory - memoryRequests
+        memory: availableResources.allNodes.requests.memory - memoryRequests,
+        gpu: availableResources.allNodes.requests.gpu - requestedGpu
+
     };
     const nowRatio = {
         cpu: availableResources.allNodes.requests.cpu / availableResources.allNodes.total.cpu,
         memory: availableResources.allNodes.requests.memory / availableResources.allNodes.total.memory,
+        gpu: availableResources.allNodes.total.gpu ? availableResources.allNodes.requests.gpu / availableResources.allNodes.total.gpu : 0
+
     };
     return {
         shouldStop: true,

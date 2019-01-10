@@ -43,12 +43,12 @@ describe('resources manager', () => {
             resourceRequests: {
                 requests: {
                     cpu: 3.5,
-                    gpu: 1,
+                    'nvidia.com/gpu': 1,
                     memory: '0.5Mi'
                 },
                 limits: {
                     cpu: 7,
-                    gpu: 1,
+                    'nvidia.com/gpu': 1,
                     memory: '1Mi'
                 }
             }
@@ -155,12 +155,12 @@ describe('resources manager', () => {
             resourceRequests: {
                 requests: {
                     cpu: 3.5,
-                    gpu: 1,
+                    'nvidia.com/gpu': 1,
                     memory: '0.5Mi'
                 },
                 limits: {
                     cpu: 7,
-                    gpu: 1,
+                    'nvidia.com/gpu': 1,
                     memory: '1Mi'
                 }
             }
@@ -204,12 +204,12 @@ describe('resources manager', () => {
             resourceRequests: {
                 requests: {
                     cpu: 1,
-                    gpu: 1,
+                    'nvidia.com/gpu': 1,
                     memory: '10000Mi'
                 },
                 limits: {
                     cpu: 7,
-                    gpu: 1,
+                    'nvidia.com/gpu': 1,
                     memory: '1'
                 }
             }

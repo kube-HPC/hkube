@@ -1,6 +1,6 @@
 const config = {};
 config.transport = {
-    console: false,
+    console: process.env.SHOW_TEST_LOGS,
     fluentd: false,
     logstash: false,
     file: false
