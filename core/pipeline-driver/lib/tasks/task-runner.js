@@ -200,7 +200,7 @@ class TaskRunner extends EventEmitter {
             data = this._nodes.pipelineResults();
         }
         this._jobStatus = status;
-        this._driverStatus = status;
+        this._driverStatus = DriverStates.READY;
         const resultError = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data, reason, error: errorMsg, status });
 
         if (errorMsg || resultError) {
