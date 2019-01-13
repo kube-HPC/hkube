@@ -5,6 +5,7 @@ const component = components.EXECUTOR;
 const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const reconciler = require('./reconcile/reconciler');
+const driversReconciler = require('./reconcile/drivers-reconciler');
 const { normalizeResources } = require('./reconcile/normalize');
 let log;
 
@@ -59,9 +60,11 @@ class Executor {
     }
 
     _prepareDriversData(options) {
-        const { minAmount, scalePercent, name } = options.driversSetting;
+        const { minAmount, scalePercent, ...rest } = options.driversSetting;
         const maxAmount = (minAmount * scalePercent) + minAmount;
-        return { minAmount, maxAmount, name };
+        return {
+            minAmount, maxAmount, ...rest
+        };
     }
 
     async _algorithmsHandle({ versions, normResources, registry, options, clusterOptions }) {
@@ -89,6 +92,10 @@ class Executor {
     }
 
     async _pipelineDriversHandle({ versions, normResources, registry, options, clusterOptions }) {
+        if (this._lastReconcileDrivers && Date.now() - this._lastReconcileDrivers < this._driversSettings.reconcileInterval) {
+            return;
+        }
+        this._lastReconcileDrivers = Date.now();
         const [driverTemplates, driversRequests, drivers, jobs] = await Promise.all([
             etcd.getDriversTemplate(),
             etcd.getPipelineDriverRequests(),
@@ -96,7 +103,7 @@ class Executor {
             kubernetes.getPipelineDriversJobs()
         ]);
 
-        await reconciler.reconcileDrivers({
+        await driversReconciler.reconcileDrivers({
             driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings: this._driversSettings, registry, options, clusterOptions
         });
     }

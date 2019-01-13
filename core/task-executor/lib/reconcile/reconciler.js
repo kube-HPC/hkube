@@ -2,7 +2,7 @@ const Logger = require('@hkube/logger');
 const log = Logger.GetLogFromContainer();
 const clonedeep = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
-const { createJobSpec, createDriverJobSpec } = require('../jobs/jobCreator');
+const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
 const { awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl } = require('../templates/s3-template');
@@ -13,16 +13,11 @@ const component = components.RECONCILER;
 const { normalizeWorkers,
     normalizeHotWorkers,
     normalizeColdWorkers,
-    normalizeDrivers,
     normalizeRequests,
-    normalizeDriversRequests,
     normalizeJobs,
-    normalizeDriversJobs,
-    mergeWorkers,
-    mergeDrivers,
-    normalizeDriversAmount } = require('./normalize');
+    mergeWorkers } = require('./normalize');
 
-const { setWorkerImage, createContainerResource, setAlgorithmImage, setPipelineDriverImage } = require('./createOptions');
+const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
 const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
 const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = consts;
 
@@ -33,27 +28,6 @@ const _createJob = (jobDetails, options) => {
     const spec = createJobSpec({ ...jobDetails, options });
     const jobCreateResult = kubernetes.createJob({ spec });
     return jobCreateResult;
-};
-
-const _createDriverJob = (jobDetails, options) => {
-    const spec = createDriverJobSpec({ ...jobDetails, options });
-    const jobCreateResult = kubernetes.createJob({ spec });
-    return jobCreateResult;
-};
-
-const _idleDriverFilter = (driver) => {
-    const match = driver.status === 'ready' && !driver.paused;
-    return match;
-};
-
-const _pausedDriverFilter = (driver) => {
-    const match = driver.status === 'ready' && driver.paused;
-    return match;
-};
-
-const _pendingDriverFilter = (job, algorithmName) => {
-    const match = job.algorithmName === algorithmName;
-    return match;
 };
 
 const _idleWorkerFilter = (worker, algorithmName) => {
@@ -80,15 +54,6 @@ const _pausedWorkerFilter = (worker, algorithmName) => {
     return match;
 };
 
-const _resumeWorkers = (workers, count) => {
-    const sorted = workers.slice().sort((a, b) => (b.workerPaused - a.workerPaused));
-    const promises = sorted.slice(0, count).map((w) => {
-        const workerId = w.id;
-        return etcd.sendCommandToWorker({ workerId, command: commands.startProcessing });
-    });
-    return Promise.all(promises);
-};
-
 const _stopWorker = (worker) => {
     return etcd.sendCommandToWorker({
         workerId: worker.id, command: commands.stopProcessing, algorithmName: worker.algorithmName, podName: worker.podName
@@ -101,15 +66,11 @@ const _coolDownWorker = (worker) => {
     });
 };
 
-const _stopDriver = (driver) => {
-    return etcd.sendCommandToDriver({ driverId: driver.id, command: commands.stopProcessing });
-};
-
 const _clearCreatedJobsList = (now, options) => {
     const newCreatedJobsList = createdJobsList.filter(j => (now || Date.now()) - j.createdTime < options.createdJobsTTL);
     const items = createdJobsList.length - newCreatedJobsList.length;
     if (items > 0) {
-        log.debug(`removed ${items} items from jobCreated list`);
+        log.debug(`removed ${items} items from jobCreated list`, { component });
     }
     createdJobsList = newCreatedJobsList;
 };
@@ -130,7 +91,7 @@ const _processAllRequests = (
         if (pausedWorkerIndex !== -1) {
             // there is paused worker. wake it up
             const workerId = pausedWorkers[pausedWorkerIndex].id;
-            createPromises.push(etcd.sendCommandToWorker({ workerId, command: commands.startProcessing }));
+            createPromises.push(etcd.sendCommandToWorker({ workerId, algorithmName, command: commands.startProcessing }));
             pausedWorkers.splice(pausedWorkerIndex, 1);
             continue;
         }
@@ -294,7 +255,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
     const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
     if (isCpuPresure || isMemoryPresure) {
-        log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
+        log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`, { component });
     }
     const createDetails = [];
     const createPromises = [];
@@ -341,7 +302,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     );
 
     if (created.length > 0) {
-        log.debug(`creating ${created.length} algorithms....`);
+        log.debug(`creating ${created.length} algorithms....`, { component });
     }
     const coolDownPromises = coldWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStop.map(r => _stopWorker(r));
@@ -361,101 +322,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     return reconcileResult;
 };
 
-const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, options, clusterOptions } = {}) => {
-    const normDrivers = normalizeDrivers(drivers);
-    const normJobs = normalizeDriversJobs(jobs, j => !j.status.succeeded);
-    const merged = mergeDrivers(normDrivers, normJobs);
-    const normRequests = normalizeDriversRequests(driversRequests);
-    // log.debug(`resources:\n${JSON.stringify(normResources, null, 2)}`);
-    const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
-    const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
-    if (isCpuPresure || isMemoryPresure) {
-        log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`);
-    }
-    const driversAmount = normalizeDriversAmount(normJobs, normRequests, settings);
-
-    const createDetails = [];
-    const stopDetails = [];
-    const createPromises = [];
-    const reconcileResult = {};
-    for (let r of driversAmount) { // eslint-disable-line
-        const { name } = r;
-        // find drivers currently for this type
-        const idleDrivers = merged.mergedDrivers.filter(w => _idleDriverFilter(w, name));
-        const pausedDrivers = merged.mergedDrivers.filter(w => _pausedDriverFilter(w, name));
-        const pendingDrivers = merged.extraJobs.filter(j => _pendingDriverFilter(j, name));
-        reconcileResult[name] = {
-            required: r.pods,
-            idle: idleDrivers.length,
-            paused: pausedDrivers.length,
-            pending: pendingDrivers.length
-        };
-        let requiredCount = r.pods;
-        if (requiredCount > 0 && pausedDrivers.length > 0) {
-            const canWakeWorkersCount = requiredCount > pausedDrivers.length ? pausedDrivers.length : requiredCount;
-            if (canWakeWorkersCount > 0) {
-                log.debug(`waking up ${canWakeWorkersCount} pods for algorithm ${name}`, { component });
-                createPromises.push(_resumeWorkers(pausedDrivers, canWakeWorkersCount));
-                requiredCount -= canWakeWorkersCount;
-            }
-        }
-        const podDiff = (idleDrivers.length + pendingDrivers.length) - requiredCount;
-        const podDiffForDelete = idleDrivers.length - requiredCount;
-        if (podDiffForDelete > 0) {
-            log.debug(`need to stop ${podDiffForDelete} pods for algorithm ${name}`);
-            const driverTemplate = driverTemplates[name];
-            const resourceRequests = createContainerResource(driverTemplate);
-
-            stopDetails.push({
-                count: podDiffForDelete,
-                details: {
-                    name,
-                    resourceRequests
-                }
-            });
-        }
-        else if (podDiff < 0) {
-            // need to add drivers
-            const numberOfNewJobs = -podDiff;
-
-            log.debug(`need to add ${numberOfNewJobs} pods for type ${name}`, { component });
-
-            const driverTemplate = driverTemplates[name];
-            const image = setPipelineDriverImage(driverTemplate, versions, registry);
-            const resourceRequests = createContainerResource(driverTemplate);
-            createDetails.push({
-                numberOfNewJobs,
-                jobDetails: {
-                    name,
-                    image,
-                    resourceRequests,
-                    clusterOptions,
-                    awsAccessKeyId,
-                    awsSecretAccessKey,
-                    s3EndpointUrl,
-                    fsBaseDirectory,
-                    fsVolumeMounts,
-                    fsVolumes
-                }
-            });
-        }
-    }
-    const { toStop } = pauseAccordingToResources(stopDetails, normResources, merged.mergedDrivers);
-    const stopPromises = toStop.map(r => _stopDriver(r));
-    const { created, skipped } = matchJobsToResources(createDetails, normResources);
-    createPromises.push(created.map(r => _createDriverJob(r, options)));
-    await Promise.all([...createPromises, ...stopPromises]);
-    // add created and skipped info
-    Object.entries(reconcileResult).forEach(([name, res]) => {
-        res.created = created.filter(c => c.name === name).length;
-        res.skipped = skipped.filter(c => c.name === name).length;
-        res.paused = toStop.filter(c => c.name === name).length;
-    });
-    return reconcileResult;
-};
-
 module.exports = {
     reconcile,
-    reconcileDrivers,
     _clearCreatedJobsList
 };

@@ -57,19 +57,19 @@ describe('normalize pipeline driver', () => {
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
                 id: '62eee6c4-6f35-4a2d-8660-fad6295ab334',
-                status: 'ready',
+                driverStatus: 'ready',
                 paused: false,
                 podName: undefined
             });
             expect(res).to.deep.include({
                 id: 'id2',
-                status: 'not-ready',
+                driverStatus: 'not-ready',
                 paused: false,
                 podName: undefined
             });
             expect(res).to.deep.include({
                 id: 'ae96e6ba-0352-43c4-8862-0e749d2f76c4',
-                status: 'notready',
+                driverStatus: 'notready',
                 paused: false,
                 podName: undefined
             });
@@ -145,65 +145,6 @@ describe('normalize pipeline driver', () => {
             expect(res.nodeList[0].free.gpu).to.eq(2);
             expect(res.nodeList[1].free.gpu).to.eq(0);
             expect(res.nodeList[2].free.gpu).to.eq(0);
-        });
-    });
-    describe('merge workers', () => {
-        it('should work with empty items', () => {
-            const merged = mergeWorkers([], []);
-            expect(merged.mergedWorkers).to.be.an('array');
-            expect(merged.mergedWorkers).to.be.empty;
-            expect(merged.extraJobs).to.be.an('array');
-            expect(merged.extraJobs).to.be.empty;
-        });
-        it('should keep all workers, and not change with no jobs', () => {
-            const merged = mergeWorkers(workersStub, []);
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.have.length(workersStub.length);
-            expect(merged.mergedWorkers[0].job).to.not.exist;
-            expect(merged.mergedWorkers[1].job).to.not.exist;
-            expect(merged.extraJobs).to.be.empty;
-        });
-        it('should keep all workers, and enrich with one jobs', () => {
-            const merged = mergeWorkers(workersStub, jobsStub.slice(0, 1));
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.have.length(workersStub.length);
-            expect(merged.mergedWorkers[0].job).to.eql(jobsStub[0]);
-            expect(merged.mergedWorkers[1].job).to.not.exist;
-            expect(merged.extraJobs).to.be.empty;
-
-        });
-        it('should keep all workers, and enrich with all jobs', () => {
-            const merged = mergeWorkers(workersStub, jobsStub);
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.have.length(workersStub.length);
-            expect(merged.mergedWorkers[0].job).to.eql(jobsStub[0]);
-            expect(merged.mergedWorkers[1].job).to.eql(jobsStub[1]);
-            expect(merged.mergedWorkers[2].job).to.eql(jobsStub[2]);
-            expect(merged.mergedWorkers[3].job).to.eql(jobsStub[3]);
-            expect(merged.extraJobs).to.be.empty;
-
-        });
-
-        it('should report all jobs as extra jobs', () => {
-            const merged = mergeWorkers([], jobsStub);
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.be.empty;
-            expect(merged.extraJobs).to.have.length(jobsStub.length);
-            expect(merged.extraJobs[0]).to.eql(jobsStub[0]);
-            expect(merged.extraJobs[1]).to.eql(jobsStub[1]);
-            expect(merged.extraJobs[2]).to.eql(jobsStub[2]);
-            expect(merged.extraJobs[3]).to.eql(jobsStub[3]);
-
-        });
-        it('should report extra jobs', () => {
-            const merged = mergeWorkers(workersStub.slice(0, 1), jobsStub);
-            expect(merged.mergedWorkers).to.be.an('array')
-            expect(merged.mergedWorkers).to.have.length(1);
-            expect(merged.extraJobs).to.have.length(3);
-            expect(merged.extraJobs[0]).to.eql(jobsStub[1]);
-            expect(merged.extraJobs[1]).to.eql(jobsStub[2]);
-            expect(merged.extraJobs[2]).to.eql(jobsStub[3]);
-
         });
     });
 });

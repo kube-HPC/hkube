@@ -106,7 +106,7 @@ const normalizeDrivers = (drivers) => {
         const driverId = k.match(/([^/]*)\/*$/)[0];
         return {
             id: driverId,
-            status: v.driverStatus,
+            driverStatus: v.driverStatus,
             paused: !!v.paused,
             podName: v.podName
         };
@@ -286,39 +286,16 @@ const mergeWorkers = (workers, jobs) => {
     return { mergedWorkers, extraJobs };
 };
 
-const mergeDrivers = (drivers, jobs) => {
-    const foundJobs = [];
-    const mergedDrivers = drivers.map((w) => {
-        const jobForWorker = jobs.find(j => w.podName && w.podName.startsWith(j.name));
-        if (jobForWorker) {
-            foundJobs.push(jobForWorker.name);
-        }
-        return { ...w, job: jobForWorker ? { ...jobForWorker } : undefined };
-    });
-
-    const extraJobs = jobs.filter((job) => {
-        return !foundJobs.find(j => j === job.name);
-    });
-    return { mergedDrivers, extraJobs };
-};
-
 const normalizeDriversAmount = (jobs, requests, settings) => {
     const { minAmount, maxAmount, name } = settings;
     let amount = minAmount;
-    const jobRequests = [];
-    if (requests.length === 0) {
-        jobRequests.push({ name, pods: 0 });
+    const request = requests[0] || {};
+
+    if (request.pods > minAmount) {
+        amount = maxAmount;
     }
-    else {
-        jobRequests.push(...requests);
-    }
-    return jobRequests.map((r) => {
-        if (r.pods > minAmount) {
-            amount = maxAmount;
-        }
-        const missingDrivers = amount - jobs.length;
-        return { name: r.name, pods: missingDrivers };
-    });
+    const missingDrivers = amount - jobs.length;
+    return { name, pods: missingDrivers };
 };
 
 module.exports = {
@@ -331,7 +308,6 @@ module.exports = {
     normalizeJobs,
     normalizeDriversJobs,
     mergeWorkers,
-    mergeDrivers,
     normalizeResources,
     normalizeDriversAmount
 };

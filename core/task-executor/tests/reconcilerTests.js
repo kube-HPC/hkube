@@ -12,12 +12,11 @@ const driversTemplateStore = require('./stub/driversTemplateStore');
 const awsAccessKeyId = { name: 'AWS_ACCESS_KEY_ID', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsKey' } } };
 const awsSecretAccessKey = { name: 'AWS_SECRET_ACCESS_KEY', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsSecret' } } };
 const s3EndpointUrl = { name: 'S3_ENDPOINT_URL', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsEndpointUrl' } } };
-
-
 const { fsBaseDirectory, fsVolumeMounts, fsVolumes } = require('../lib/templates/fs-template');
 const resources = require('./stub/resources');
+const drivers = require('./stub/drivers');
 const options = main;
-let normResources, reconciler, algorithmTemplates, driverTemplates;
+let normResources, reconciler, driversReconciler, algorithmTemplates, driverTemplates;
 
 const prepareDriversData = (options) => {
     const { minAmount, scalePercent, name } = options.driversSetting;
@@ -35,6 +34,7 @@ describe('reconciler', () => {
         });
         mockery.registerMock('../helpers/kubernetes', mock);
         reconciler = require('../lib/reconcile/reconciler');
+        driversReconciler = require('../lib/reconcile/drivers-reconciler');
 
         await etcd.init(main);
         await Promise.all(templateStore.map(d => etcd._etcd.algorithms.templatesStore.set({ name: d.name, data: d })));
@@ -467,9 +467,11 @@ describe('reconciler', () => {
     });
     describe('reconcile drivers tests', () => {
         it('should create min amount of drivers with one request', async () => {
+            const idle = Object.keys(drivers).length;
             const count = options.driversSetting.minAmount;
-            const res = await reconciler.reconcileDrivers({
+            const res = await driversReconciler.reconcileDrivers({
                 options,
+                drivers,
                 normResources,
                 settings,
                 driverTemplates,
@@ -488,17 +490,23 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [settings.name]: { idle: 0, required: count, paused: 0, pending: 0, created: count, skipped: 0 } });
+            expect(res).to.eql({ [settings.name]: { idle, required: count, paused: 0, pending: 0, created: count, skipped: 0 } });
             expect(callCount('createJob').length).to.eql(count);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].name).to.eql(settings.name);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/pipeline-driver');
         });
-        it('should remove node selector', async () => {
-            const count = options.driversSetting.minAmount;
-            const res = await reconciler.reconcileDrivers({
+        it('should paused drivers', async () => {
+            const idle = Object.keys(drivers).length;
+            const minAmount = 5;
+            const newSettings = {
+                ...settings,
+                minAmount
+            };
+            const res = await driversReconciler.reconcileDrivers({
                 options,
+                drivers,
                 normResources,
-                settings,
+                settings: newSettings,
                 driverTemplates,
                 driversRequests: [{
                     data: [
@@ -515,36 +523,13 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.be.undefined;
-        });
-        xit('should keep node selector', async () => {
-            const count = options.driversSetting.minAmount;
-            const res = await reconciler.reconcileDrivers({
-                options,
-                normResources,
-                settings,
-                driverTemplates,
-                driversRequests: [{
-                    data: [
-                        {
-                            name: 'pipeline-driver'
-                        }
-                    ]
-                }],
-                jobs: {
-                    body: {
-                        items: [
-                        ]
-                    }
-                },
-                clusterOptions: {
-                    useNodeSelector: true
-                }
-            });
-            expect(res).to.exist;
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.nodeSelector).to.exist;
+            expect(res).to.eql({ [settings.name]: { idle, required: minAmount, paused: idle - minAmount, pending: 0, created: minAmount, skipped: 0 } });
+            expect(callCount('createJob').length).to.eql(minAmount);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].name).to.eql(settings.name);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/pipeline-driver');
         });
         it('should create min amount of drivers not enough cpu', async () => {
+            const idle = Object.keys(drivers).length;
             const { maxAmount } = settings
             const requiredPods = 30;
             const created = 0;
@@ -553,8 +538,9 @@ describe('reconciler', () => {
                 ...entry[1],
                 cpu: 8
             };
-            const res = await reconciler.reconcileDrivers({
+            const res = await driversReconciler.reconcileDrivers({
                 options,
+                drivers,
                 normResources,
                 settings,
                 driverTemplates: {
@@ -574,9 +560,10 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [settings.name]: { idle: 0, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
+            expect(res).to.eql({ [settings.name]: { idle, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
         });
         it('should create min amount of drivers not enough memory', async () => {
+            const idle = Object.keys(drivers).length;
             const { maxAmount } = settings
             const required = 30;
             const created = 0;
@@ -586,8 +573,9 @@ describe('reconciler', () => {
                 mem: 28000
             };
 
-            const res = await reconciler.reconcileDrivers({
+            const res = await driversReconciler.reconcileDrivers({
                 options,
+                drivers,
                 normResources,
                 settings,
                 driverTemplates: {
@@ -607,12 +595,14 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [settings.name]: { idle: 0, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
+            expect(res).to.eql({ [settings.name]: { idle, required: maxAmount, paused: 0, pending: 0, created, skipped: maxAmount - created } });
         });
         it('should only create 30 in one iteration - drivers', async () => {
+            const idle = Object.keys(drivers).length;
             const { maxAmount } = settings
-            const res = await reconciler.reconcileDrivers({
+            const res = await driversReconciler.reconcileDrivers({
                 options,
+                drivers,
                 normResources,
                 settings,
                 driverTemplates,
@@ -631,17 +621,19 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [settings.name]: { idle: 0, required: maxAmount, paused: 0, pending: 0, created: maxAmount, skipped: 0 } });
+            expect(res).to.eql({ [settings.name]: { idle, required: maxAmount, paused: 0, pending: 0, created: maxAmount, skipped: 0 } });
             expect(callCount('createJob').length).to.eql(maxAmount);
         });
         it('should scale to max amount of drivers', async () => {
+            const idle = Object.keys(drivers).length;
             const { minAmount, scalePercent } = options.driversSetting;
             const required = minAmount;
             const requiredPods = required * 100;
             const scale = (minAmount * scalePercent) + minAmount;
 
-            const res = await reconciler.reconcileDrivers({
+            const res = await driversReconciler.reconcileDrivers({
                 options,
+                drivers,
                 normResources,
                 settings,
                 driverTemplates,
@@ -660,7 +652,7 @@ describe('reconciler', () => {
             });
 
             expect(res).to.exist;
-            expect(res).to.eql({ [settings.name]: { idle: 0, required: scale, paused: 0, pending: 0, created: scale, skipped: 0 } });
+            expect(res).to.eql({ [settings.name]: { idle, required: scale, paused: 0, pending: 0, created: scale, skipped: 0 } });
             expect(callCount('createJob').length).to.eql(scale);
         });
     });
