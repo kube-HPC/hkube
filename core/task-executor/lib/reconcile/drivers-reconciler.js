@@ -41,7 +41,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
         const extraDrivers = idleDrivers.slice(0, extra);
 
         if (extraDrivers.length > 0) {
-            log.info(`need to stop ${extraDrivers} extra drivers`, { component });
+            log.info(`need to stop ${extraDrivers.length} extra drivers`, { component });
             stopDetails.push(...extraDrivers.map(d => ({ id: d.id })));
         }
     }

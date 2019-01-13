@@ -30,7 +30,7 @@ class KubernetesApi extends EventEmitter {
     }
 
     async createJob({ spec, jobDetails = {} }) {
-        log.info(`Creating job ${spec.metadata.name}, hotWorker: ${jobDetails.hotWorker}`, { component });
+        log.info(`Creating job ${spec.metadata.name} ${jobDetails.hotWorker ? '[hot-worker]' : ''}`, { component });
         try {
             const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs.post({ body: spec });
             return res;
