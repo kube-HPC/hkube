@@ -26,7 +26,7 @@ const MIN_AGE_FOR_STOP = 10 * 1000;
 
 const _createJob = (jobDetails, options) => {
     const spec = createJobSpec({ ...jobDetails, options });
-    const jobCreateResult = kubernetes.createJob({ spec });
+    const jobCreateResult = kubernetes.createJob({ spec, jobDetails });
     return jobCreateResult;
 };
 
