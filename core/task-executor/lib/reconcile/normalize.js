@@ -59,7 +59,7 @@ const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
     const algorithmTemplates = algorithmTemplateStore || {};
     const algorithmStore = Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0);
 
-    if (algorithmStore.length === 0) {
+    if (normRequests.length === 0 || algorithmStore.length === 0) {
         return normRequests;
     }
 
