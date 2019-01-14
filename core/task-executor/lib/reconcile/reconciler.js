@@ -217,6 +217,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
         missingCount -= 1;
     });
 };
+
 const _calaStats = (data) => {
     const stats = Object.values(data.reduce((acc, cur) => {
         if (!acc[cur.algorithmName]) {
@@ -236,19 +237,14 @@ const _calaStats = (data) => {
     return stats;
 };
 
-const _combineWorkers = (normRequests, hotWorkers) => {
-    return [...hotWorkers, ...normRequests];
-};
-
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, options, clusterOptions } = {}) => {
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const merged = mergeWorkers(normWorkers, normJobs);
-    const normRequests = normalizeRequests(algorithmRequests);
-    const hotWorkers = normalizeHotWorkers(normRequests, algorithmTemplates);
-    const coldWorkers = normalizeColdWorkers(normWorkers, hotWorkers);
-    const totalRequests = _combineWorkers(normRequests, hotWorkers);
+    let normRequests = normalizeRequests(algorithmRequests);
+    normRequests = normalizeHotWorkers(normRequests, algorithmTemplates);
+    const coldWorkers = normalizeColdWorkers(normWorkers, normRequests);
 
     // log.debug(JSON.stringify(normResources.allNodes, null, 2));
 
@@ -269,7 +265,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: totalRequests, registry, clusterOptions
+            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions
         },
         {
             createPromises, createDetails, reconcileResult

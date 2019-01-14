@@ -34,7 +34,7 @@ class Etcd extends EventEmitter {
     }
 
     sendCommandToWorker({ workerId, command, algorithmName, podName }) {
-        log.info(`worker for algorithm ${algorithmName} command: ${command}`, {
+        log.info(`worker for algorithm ${algorithmName} command: ${command}, pod: ${podName}`, {
             component, command, workerId, podName, algorithmName
         });
         return this._etcd.workers.setState({ workerId, status: { command }, timestamp: Date.now() });

@@ -55,17 +55,29 @@ const normalizeWorkers = (workers) => {
 };
 
 const normalizeHotWorkers = (algorithmRequests, algorithmTemplateStore) => {
-    const requests = [];
     const normRequests = algorithmRequests || [];
     const algorithmTemplates = algorithmTemplateStore || {};
+    const algorithmStore = Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0);
+
+    if (algorithmStore.length === 0) {
+        return normRequests;
+    }
+
+    const requests = [];
     const groupNormRequests = groupBy(normRequests, 'algorithmName');
-    Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0).forEach(([k, v]) => {
+
+    algorithmStore.forEach(([k, v]) => {
+        const hotWorkers = new Array(v.minHotWorkers).fill({ algorithmName: k, hotWorker: true });
         const groupNor = groupNormRequests[k];
         const requestsPerAlgorithm = (groupNor && groupNor.length) || 0;
-        if (requestsPerAlgorithm < v.minHotWorkers) {
-            const desired = v.minHotWorkers - requestsPerAlgorithm;
-            const array = new Array(desired).fill({ algorithmName: k, hotWorker: true });
-            requests.push(...array);
+
+        if (requestsPerAlgorithm > v.minHotWorkers) {
+            const diff = requestsPerAlgorithm - v.minHotWorkers;
+            const array = groupNor.slice(0, diff);
+            requests.push(...hotWorkers, ...array);
+        }
+        else if (requestsPerAlgorithm < v.minHotWorkers) {
+            requests.push(...hotWorkers);
         }
     });
     return requests;
@@ -76,16 +88,17 @@ const normalizeHotWorkers = (algorithmRequests, algorithmTemplateStore) => {
  * find workers that should transform from hot to cold by calculating 
  * the diff between the current hot workers and desired hot workers.
  */
-const normalizeColdWorkers = (normWorkers, hotWorkers) => {
+const normalizeColdWorkers = (normWorkers, normRequests) => {
     const coldWorkers = [];
     if (!Array.isArray(normWorkers) || normWorkers.length === 0) {
         return coldWorkers;
     }
     const normHotWorkers = normWorkers.filter(w => w.hotWorker);
+    const normHotRequests = normRequests.filter(w => w.hotWorker);
     const groupNorWorkers = groupBy(normHotWorkers, 'algorithmName');
-    const groupHotWorkers = groupBy(hotWorkers, 'algorithmName');
+    const groupHotRequests = groupBy(normHotRequests, 'algorithmName');
     Object.entries(groupNorWorkers).forEach(([k, v]) => {
-        const groupHot = groupHotWorkers[k];
+        const groupHot = groupHotRequests[k];
         const countHot = (groupHot && groupHot.length) || 0;
         const countNor = v.length;
 

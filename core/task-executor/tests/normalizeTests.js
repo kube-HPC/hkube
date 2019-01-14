@@ -133,9 +133,8 @@ describe('normalize', () => {
                 }
             ]
             const minHotWorkers = Object.values(algorithmTemplates).map(a => a.minHotWorkers).reduce((a, b) => a + b, 0);
-            const length = minHotWorkers - normRequests.length;
             const res = normalizeHotWorkers(normRequests, algorithmTemplates);
-            expect(res).to.have.lengthOf(length);
+            expect(res).to.have.lengthOf(minHotWorkers);
             expect(res[0]).to.have.property('algorithmName');
             expect(res[0]).to.have.property('hotWorker');
         });
