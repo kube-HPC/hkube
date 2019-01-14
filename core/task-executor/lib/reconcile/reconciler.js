@@ -11,6 +11,7 @@ const { commands, components, consts } = require('../../lib/consts');
 const component = components.RECONCILER;
 
 const { normalizeWorkers,
+    normalizeHotRequests,
     normalizeHotWorkers,
     normalizeColdWorkers,
     normalizeRequests,
@@ -63,6 +64,12 @@ const _stopWorker = (worker) => {
 const _coolDownWorker = (worker) => {
     return etcd.sendCommandToWorker({
         workerId: worker.id, command: commands.coolDown, algorithmName: worker.algorithmName, podName: worker.podName
+    });
+};
+
+const _warmUpWorker = (worker) => {
+    return etcd.sendCommandToWorker({
+        workerId: worker.id, command: commands.warmUp, algorithmName: worker.algorithmName, podName: worker.podName
     });
 };
 
@@ -242,9 +249,10 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const merged = mergeWorkers(normWorkers, normJobs);
-    let normRequests = normalizeRequests(algorithmRequests);
-    normRequests = normalizeHotWorkers(normRequests, algorithmTemplates);
-    const coldWorkers = normalizeColdWorkers(normWorkers, normRequests);
+    const normRequests = normalizeRequests(algorithmRequests);
+    const warmUpWorkers = normalizeHotWorkers(normWorkers, algorithmTemplates);
+    const coolDownWorkers = normalizeColdWorkers(normWorkers, algorithmTemplates);
+    const totalRequests = normalizeHotRequests(normRequests, algorithmTemplates);
 
     // log.debug(JSON.stringify(normResources.allNodes, null, 2));
 
@@ -265,7 +273,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions
+            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: totalRequests, registry, clusterOptions
         },
         {
             createPromises, createDetails, reconcileResult
@@ -300,11 +308,12 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     if (created.length > 0) {
         log.debug(`creating ${created.length} algorithms....`, { component });
     }
-    const coolDownPromises = coldWorkers.map(r => _coolDownWorker(r));
+    const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));
+    const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStop.map(r => _stopWorker(r));
     createPromises.push(created.map(r => _createJob(r, options)));
 
-    await Promise.all([...createPromises, ...stopPromises, ...coolDownPromises]);
+    await Promise.all([...createPromises, ...stopPromises, ...warmUpPromises, ...coolDownPromises]);
     // add created and skipped info
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;

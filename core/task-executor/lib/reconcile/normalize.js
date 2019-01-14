@@ -54,7 +54,7 @@ const normalizeWorkers = (workers) => {
     return workersArray;
 };
 
-const normalizeHotWorkers = (algorithmRequests, algorithmTemplateStore) => {
+const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
     const normRequests = algorithmRequests || [];
     const algorithmTemplates = algorithmTemplateStore || {};
     const algorithmStore = Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0);
@@ -76,35 +76,61 @@ const normalizeHotWorkers = (algorithmRequests, algorithmTemplateStore) => {
             const array = groupNor.slice(0, diff);
             requests.push(...hotWorkers, ...array);
         }
-        else if (requestsPerAlgorithm < v.minHotWorkers) {
+        else if (requestsPerAlgorithm <= v.minHotWorkers) {
             requests.push(...hotWorkers);
         }
     });
     return requests;
 };
 
+/**
+ * find workers that should transform from cold to hot by calculating 
+ * the diff between the current hot workers and desired hot workers.
+ */
+const normalizeHotWorkers = (normWorkers, algorithmTemplates) => {
+    const hotWorkers = [];
+    if (normWorkers.length === 0) {
+        return hotWorkers;
+    }
+    const algorithmStore = Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0);
+    const groupNorWorkers = groupBy(normWorkers, 'algorithmName');
+
+    algorithmStore.forEach(([k, v]) => {
+        const minHot = v.minHotWorkers;
+        const groupWorkers = groupNorWorkers[k];
+
+        if (groupWorkers) {
+            const currentHot = groupWorkers.filter(w => w.hotWorker).length;
+
+            if (currentHot < minHot) {
+                const diff = minHot - currentHot;
+                const array = groupWorkers.slice(0, diff);
+                hotWorkers.push(...array);
+            }
+        }
+    });
+    return hotWorkers;
+};
 
 /**
  * find workers that should transform from hot to cold by calculating 
  * the diff between the current hot workers and desired hot workers.
  */
-const normalizeColdWorkers = (normWorkers, normRequests) => {
+const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     const coldWorkers = [];
     if (!Array.isArray(normWorkers) || normWorkers.length === 0) {
         return coldWorkers;
     }
     const normHotWorkers = normWorkers.filter(w => w.hotWorker);
-    const normHotRequests = normRequests.filter(w => w.hotWorker);
     const groupNorWorkers = groupBy(normHotWorkers, 'algorithmName');
-    const groupHotRequests = groupBy(normHotRequests, 'algorithmName');
     Object.entries(groupNorWorkers).forEach(([k, v]) => {
-        const groupHot = groupHotRequests[k];
-        const countHot = (groupHot && groupHot.length) || 0;
-        const countNor = v.length;
+        const algorithm = algorithmTemplates[k];
+        const request = algorithm && algorithm.minHotWorkers;
+        const current = v.length;
 
-        const countDiff = countNor - countHot;
-        if (countDiff > 0) {
-            const array = v.slice(0, countDiff);
+        const diff = current - request;
+        if (diff > 0) {
+            const array = v.slice(0, diff);
             coldWorkers.push(...array);
         }
     });
@@ -313,6 +339,7 @@ const normalizeDriversAmount = (jobs, requests, settings) => {
 
 module.exports = {
     normalizeWorkers,
+    normalizeHotRequests,
     normalizeHotWorkers,
     normalizeColdWorkers,
     normalizeDrivers,

@@ -1,5 +1,6 @@
 module.exports = {
     stopProcessing: 'stopProcessing',
     startProcessing: 'startProcessing',
-    coolDown: 'coolDown'
+    coolDown: 'coolDown',
+    warmUp: 'warmUp'
 };

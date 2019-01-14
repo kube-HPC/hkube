@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotWorkers, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
 const { twoCompleted } = require('./stub/jobsRaw');
 const utils = require('../lib/utils/utils');
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
@@ -96,25 +96,25 @@ describe('normalize', () => {
     });
     describe('normalize hot workers', () => {
         it('should work with undefined', () => {
-            const res = normalizeHotWorkers();
+            const res = normalizeHotRequests();
             expect(res).to.have.lengthOf(0);
         });
         it('should work with empty data', () => {
             const normRequests = [];
             const algorithmTemplates = {};
-            const res = normalizeHotWorkers(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
         it('should work with empty normRequests', () => {
             const normRequests = null;
             const algorithmTemplates = {};
-            const res = normalizeHotWorkers(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
         it('should work with empty algorithmTemplates', () => {
             const normRequests = [];
             const algorithmTemplates = null;
-            const res = normalizeHotWorkers(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
         it('should return hot workers', () => {
@@ -133,7 +133,7 @@ describe('normalize', () => {
                 }
             ]
             const minHotWorkers = Object.values(algorithmTemplates).map(a => a.minHotWorkers).reduce((a, b) => a + b, 0);
-            const res = normalizeHotWorkers(normRequests, algorithmTemplates);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
             expect(res).to.have.lengthOf(minHotWorkers);
             expect(res[0]).to.have.property('algorithmName');
             expect(res[0]).to.have.property('hotWorker');
@@ -146,20 +146,20 @@ describe('normalize', () => {
         });
         it('should work with empty data', () => {
             const normWorkers = [];
-            const hotWorkers = [];
-            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            const algorithmTemplates = {};
+            const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
         it('should work with empty normWorkers', () => {
             const normWorkers = null;
-            const hotWorkers = [];
-            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            const algorithmTemplates = {};
+            const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
         it('should work with empty hotWorkers', () => {
             const normWorkers = [];
-            const hotWorkers = null;
-            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            const algorithmTemplates = null;
+            const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(0);
         });
         it('should return full cold workers array', () => {
@@ -175,9 +175,42 @@ describe('normalize', () => {
                     "hotWorker": true
                 }
             ]
-            const hotWorkers = [];
-            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            const algorithmTemplates = {
+                ['eval-alg']: {
+                    name: 'eval-alg',
+                    algorithmImage: 'hkube/algorunner',
+                    cpu: 0.5,
+                    mem: 256,
+                    minHotWorkers: 0
+                }
+            };
+            const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(normWorkers.length);
+        });
+        it('should return empty array with high minHotWorkers', () => {
+            const normWorkers = [
+                {
+                    "id": "1ed6407e-6700-4b06-ae0d-307483578074",
+                    "algorithmName": "eval-alg",
+                    "hotWorker": true
+                },
+                {
+                    "id": "22fa61a6-bb1d-4412-8882-ed596e3f1a45",
+                    "algorithmName": "eval-alg",
+                    "hotWorker": true
+                }
+            ]
+            const algorithmTemplates = {
+                ['eval-alg']: {
+                    name: 'eval-alg',
+                    algorithmImage: 'hkube/algorunner',
+                    cpu: 0.5,
+                    mem: 256,
+                    minHotWorkers: 5
+                }
+            };
+            const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
+            expect(res).to.have.lengthOf(0);
         });
         it('should return partial cold workers array', () => {
             const normWorkers = [
@@ -192,8 +225,16 @@ describe('normalize', () => {
                     "hotWorker": true
                 }
             ]
-            const hotWorkers = [];
-            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            const algorithmTemplates = {
+                ['eval-alg']: {
+                    name: 'eval-alg',
+                    algorithmImage: 'hkube/algorunner',
+                    cpu: 0.5,
+                    mem: 256,
+                    minHotWorkers: 0
+                }
+            };
+            const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(normWorkers.length - 1);
         });
         it('should return empty cold workers array', () => {
@@ -209,8 +250,8 @@ describe('normalize', () => {
                     "hotWorker": false
                 }
             ]
-            const hotWorkers = [];
-            const res = normalizeColdWorkers(normWorkers, hotWorkers);
+            const algorithmTemplates = {};
+            const res = normalizeColdWorkers(normWorkers, algorithmTemplates);
             expect(res).to.have.lengthOf(normWorkers.length - 2);
         });
     });
