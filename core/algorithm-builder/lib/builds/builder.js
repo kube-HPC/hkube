@@ -1,7 +1,7 @@
 const Zip = require('adm-zip');
 const targz = require('targz');
 const fse = require('fs-extra');
-const { exec } = require('child_process');
+const { spawn, exec } = require('child_process');
 const Logger = require('@hkube/logger');
 const component = require('../consts/components').OPERATOR;
 
@@ -18,9 +18,12 @@ class Builder {
         const filesToRemove = [];
         try {
             const overwrite = true;
-            const { payload, src } = options;
-            const { name, env, version, fileExt } = payload;
-            filesToRemove.push(src);
+            const { payload, src, docker, deleteSrc } = options;
+            const { buildId, name, env, version, fileExt } = payload;
+
+            if (deleteSrc) {
+                filesToRemove.push(src);
+            }
 
             const envr = `${process.cwd()}/environments/${env}`;
             const dest = `${process.cwd()}/uploads/unzipped/${name}`;
@@ -33,14 +36,17 @@ class Builder {
             await fse.copy(envr, buildPath);
             await fse.move(dest, `${buildPath}/algorithm`, { overwrite });
 
-            resultData = await this._runBash(`${process.cwd()}/lib/builds/build.sh ${name} ${version} ${buildPath}`);
+            const dockerArgs = [docker.registry, docker.namespace, docker.user, docker.pass];
+            const args = [buildId, name, env, version, ...dockerArgs, buildPath];
+            // resultData = await this._runBash(`${process.cwd()}/lib/builds/build.sh ${args.join(' ')}`);
+            resultData = await this._runBashSpawn(`${process.cwd()}/lib/builds/build.sh`, args);
         }
         catch (e) {
             errorMsg = e;
             log.error(e.message, { component });
         }
         finally {
-            this._removeFiles(filesToRemove);
+            await this._removeFiles(filesToRemove);
         }
         return { errorMsg, resultData };
     }
@@ -68,23 +74,43 @@ class Builder {
         });
     }
 
-    _runBash(command) {
+    _runBashExec(command) {
         return new Promise((resolve, reject) => {
             exec(command, (err, stdout, stderr) => {
                 if (err) {
-                    return reject(stderr);
+                    return reject({ error: stderr });
                 }
-                return resolve(stdout);
+                return resolve({ result: stdout });
             });
         });
     }
 
-    _removeFiles(files) {
-        files.forEach((f) => {
-            fse.remove(f).catch((err) => {
-                log.error(err);
+    _runBashSpawn(command, args) {
+        return new Promise((resolve, reject) => {
+            const build = spawn(command, args);
+            let result = '';
+            let error = '';
+
+            build.stdout.on('data', (data) => {
+                result += data.toString();
+            });
+            build.stderr.on('data', (data) => {
+                error += data.toString();
+            });
+            build.on('close', (code) => {
+                if (error) {
+                    return reject(error);
+                }
+                return resolve(result);
+            });
+            build.on('error', (err) => {
+                return reject(err);
             });
         });
+    }
+
+    async _removeFiles(files) {
+        await Promise.all(files.map((f) => fse.remove(f)));
     }
 }
 

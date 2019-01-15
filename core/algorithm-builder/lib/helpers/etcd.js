@@ -1,6 +1,7 @@
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const component = require('../../lib/consts/components').ETCD;
+
 let log;
 
 class Etcd {
@@ -17,12 +18,11 @@ class Etcd {
     }
 
     async getBuild(options) {
-        const build = await this._etcd._client.get(`/buildStatus/${options.buildId}`, { isPrefix: false });
-        return build && build.data;
+        return this._etcd._client.get(`/algorithms/builds/${options.buildId}`, { isPrefix: false });
     }
 
     async setBuild(buildId, options) {
-        await this._etcd._client.put(`/buildStatus/${buildId}`, options);
+        await this._etcd._client.put(`/algorithms/builds/${buildId}`, options);
     }
 }
 

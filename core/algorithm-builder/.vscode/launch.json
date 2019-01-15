@@ -11,7 +11,7 @@
                 "<node_internals>/**"
             ],
             "env": {
-                "BUILD_ID": "build:sort-alg:a0a0b670-680d-47bb-8dfa-02d843b60948"
+                "BUILD_ID": "sort-alg:ea9095e7-5171-4163-9aa9-cec70e90541c"
             },
             "envFile": "${env:HOME}/dev/hkube/.env"
         },

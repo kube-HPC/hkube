@@ -1,21 +1,12 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const mockery = require('mockery');
-const request = require('request-promise');
-const fse = require('fs-extra');
-const uuid = require('uuid/v4');
-const bootstrap = require('../bootstrap');
+const Logger = require('@hkube/logger');
+const configIt = require('@hkube/config');
+const { main, logger } = configIt.load();
+const config = main;
+const log = new Logger(main.serviceName, logger);
 const builder = require('../lib/builds/builder');
-
-
-const postFile = async ({ uri, formData }) => {
-    const result = await request({
-        method: 'POST',
-        uri,
-        formData
-    });
-    return result;
-}
 
 describe('Test', function () {
     before(async () => {
@@ -24,21 +15,22 @@ describe('Test', function () {
             warnOnReplace: false,
             warnOnUnregistered: false
         });
-        await bootstrap.init();
     });
-    xdescribe('Docker', function () {
+    describe('Docker', function () {
         it('should build docker', async function () {
             this.timeout(30000);
             const payload = {
                 name: 'codeless',
-                env: 'nodejs'
+                env: 'nodejs',
+                fileExt: '.gz'
             }
-            const file = `${process.cwd()}/tests/mocks/zipped/a63d8da3237ed7a2232bc61ca4cd2d81`;
-            await builder.build({ payload: JSON.stringify(payload), file });
-            expect(true).to.be.a('boolean');
+            const src = `${process.cwd()}/tests/mocks/zipped/sort-alg.tar.gz`;
+            const response = await builder.build({ payload, src, docker: config.docker, deleteSrc: false });
+            expect(response).to.have.property('errorMsg');
+            expect(response).to.have.property('resultData');
         });
     });
-    describe('Environments', function () {
+    xdescribe('Environments', function () {
         describe('Nodejs', function () {
             it('should build docker', async function () {
                 this.timeout(30000);

@@ -10,7 +10,7 @@
     "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha tests/*.js --colors --recursive --exit",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
-    "build": "./dockerfile/build.sh api-server"
+    "build": "./dockerfile/build.sh algorithm-builder"
   },
   "pre-commit": {
     "run": [
@@ -23,11 +23,9 @@
     "@hkube/etcd": "^4.0.25",
     "@hkube/logger": "^1.0.15",
     "@hkube/rest-server": "^1.0.11",
-    "@hkube/storage-manager": "^1.0.27",
+    "@hkube/storage-manager": "^1.0.33",
     "adm-zip": "^0.4.13",
-    "express": "^4.16.4",
     "fs-extra": "^7.0.1",
-    "multer": "^1.4.1",
     "request-promise": "^4.2.2",
     "targz": "^1.0.1",
     "uuid": "^3.3.2"
