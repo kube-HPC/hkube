@@ -22,10 +22,22 @@ describe('Test', function () {
             const payload = {
                 name: 'codeless',
                 env: 'nodejs',
+                version: '1.0.0',
                 fileExt: '.gz'
             }
             const src = `${process.cwd()}/tests/mocks/zipped/sort-alg.tar.gz`;
             const response = await builder.build({ payload, src, docker: config.docker, deleteSrc: false });
+
+            console.log('------------RESULT-----------------');
+            console.log(response.resultData);
+            console.log('------------RESULT-----------------');
+
+            console.log('-----------------------------------');
+
+            console.log('------------ERROR-----------------');
+            console.error(response.errorMsg);
+            console.log('------------ERROR-----------------');
+
             expect(response).to.have.property('errorMsg');
             expect(response).to.have.property('resultData');
         });
