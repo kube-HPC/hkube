@@ -89,24 +89,19 @@ const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
  */
 const normalizeHotWorkers = (normWorkers, algorithmTemplates) => {
     const hotWorkers = [];
-    if (normWorkers.length === 0) {
+    if (!Array.isArray(normWorkers) || normWorkers.length === 0) {
         return hotWorkers;
     }
-    const algorithmStore = Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0);
     const groupNorWorkers = groupBy(normWorkers, 'algorithmName');
+    Object.entries(groupNorWorkers).forEach(([k, v]) => {
+        const algorithm = algorithmTemplates[k];
+        const requestHot = algorithm && algorithm.minHotWorkers;
+        const currentHot = v.filter(w => w.hotWorker).length;
+        const currentCold = v.filter(w => !w.hotWorker);
 
-    algorithmStore.forEach(([k, v]) => {
-        const minHot = v.minHotWorkers;
-        const groupWorkers = groupNorWorkers[k];
-
-        if (groupWorkers) {
-            const currentHot = groupWorkers.filter(w => w.hotWorker).length;
-
-            if (currentHot < minHot) {
-                const diff = minHot - currentHot;
-                const array = groupWorkers.slice(0, diff);
-                hotWorkers.push(...array);
-            }
+        if (currentHot < requestHot && currentCold.length > 0) {
+            const array = currentCold.slice(0, requestHot);
+            hotWorkers.push(...array);
         }
     });
     return hotWorkers;
