@@ -16,7 +16,7 @@ describe('Test', function () {
             warnOnUnregistered: false
         });
     });
-    describe('Docker', function () {
+    xdescribe('Docker', function () {
         it('should build docker', async function () {
             this.timeout(30000);
             const payload = {
