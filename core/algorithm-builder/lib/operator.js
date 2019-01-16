@@ -1,7 +1,8 @@
 const fse = require('fs-extra');
 const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
-const builder = require('../lib/builds/builder');
+const dockerBuild = require('./builds/docker-builder');
+const States = require('../lib/consts/States');
 const component = require('../lib/consts/components').OPERATOR;
 const etcd = require('./helpers/etcd');
 
@@ -13,6 +14,7 @@ class Operator {
         const { buildId } = options;
         let error;
         let result;
+        let image;
         let build;
         try {
             if (!buildId) {
@@ -23,22 +25,27 @@ class Operator {
             if (!build) {
                 throw new Error(`unable to find build -> ${buildId}`);
             }
-            await etcd.setBuild(buildId, { ...build, timestamp: new Date(), status: 'active' });
-            const readStream = await storageManager.storage._adapter.getStream({ path: `hkube/builds/${buildId}` });
+            await etcd.setBuild(buildId, { ...build, timestamp: new Date(), status: States.ACTIVE });
+            const readStream = await storageManager.hkubeBuilds.getStream({ buildId });
             const zipFile = `${process.cwd()}/uploads/zipped/${build.name}`;
             await this._writeStream(readStream, zipFile);
-            const response = await builder.build({ payload: build, src: zipFile, docker: options.docker });
+            const response = await dockerBuild({ payload: build, src: zipFile, docker: options.docker });
             error = response.errorMsg;
             result = response.resultData;
+            image = response.imageName;
         }
         catch (e) {
             error = e.message;
             log.error(e.message, { component });
         }
         finally {
-            const status = error ? 'failed' : 'completed';
-            log.info(`build ${status} -> ${buildId}. ${error}`, { component });
+            const status = error ? States.FAILED : States.COMPLETED;
+            log.info(`build ${status} -> ${buildId}. ${error || ''}`, { component });
             await etcd.setBuild(buildId, { ...build, timestamp: new Date(), status, result, error });
+            if (status === States.COMPLETED) {
+                const { algorithm } = build;
+                await etcd._etcd.algorithms.templatesStore.set({ name: algorithm.name, data: { ...algorithm, algorithmImage: image } });
+            }
             process.exit(0);
         }
     }

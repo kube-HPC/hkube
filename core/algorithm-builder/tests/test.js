@@ -6,7 +6,7 @@ const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
 const config = main;
 const log = new Logger(main.serviceName, logger);
-const builder = require('../lib/builds/builder');
+const dockerBuild = require('../lib/builds/docker-builder');
 
 describe('Test', function () {
     before(async () => {
@@ -20,13 +20,17 @@ describe('Test', function () {
         it('should build docker', async function () {
             this.timeout(30000);
             const payload = {
-                name: 'codeless',
-                env: 'nodejs',
                 version: '1.0.0',
-                fileExt: '.gz'
+                algorithm: {
+                    name: 'codeless',
+                    env: 'nodejs',
+                    code: {
+                        fileExt: '.gz'
+                    }
+                }
             }
             const src = `${process.cwd()}/tests/mocks/zipped/sort-alg.tar.gz`;
-            const response = await builder.build({ payload, src, docker: config.docker, deleteSrc: false });
+            const response = await dockerBuild({ payload, src, docker: config.docker, deleteSrc: false });
 
             console.log('------------RESULT-----------------');
             console.log(response.resultData);

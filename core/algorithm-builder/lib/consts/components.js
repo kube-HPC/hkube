@@ -1,7 +1,6 @@
 
 const Components = {
-    MAIN: 'Main',
-    REST_API: 'Rest-API'
+    MAIN: 'Main'
 };
 
 module.exports = Components;

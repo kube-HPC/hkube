@@ -1,12 +1,12 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const component = require('./lib/consts/components').MAIN;
-let log;
+const { main, logger } = configIt.load();
+const log = new Logger(main.serviceName, logger);
 
 const modules = [
     require('@hkube/storage-manager'),
     require('./lib/helpers/etcd'),
-    require('./lib/builds/builder'),
     require('./lib/operator')
 ];
 
@@ -14,8 +14,6 @@ class Bootstrap {
     async init() {
         try {
             this._handleErrors();
-            const { main, logger } = configIt.load();
-            log = new Logger(main.serviceName, logger);
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             for (const m of modules) {

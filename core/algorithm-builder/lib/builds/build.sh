@@ -1,44 +1,34 @@
 #!/usr/bin/env bash
 
-BUILD_ID=$1
-ALGORITHM_NAME=$2
-ALGORITHM_ENV=$3
-ALGORITHM_VERSION=$4
-DOCKER_REGISTRY=$5
-DOCKER_NAMESPACE=$6
-DOCKER_REGISTRY_USER=$7
-DOCKER_REGISTRY_PASS=$8
-BUILD_PATH=$9
-
-IMAGE_NAME=${DOCKER_REGISTRY}${DOCKER_NAMESPACE}/${ALGORITHM_NAME}
-VERSION="v${ALGORITHM_VERSION}"
-TAG_VER="${IMAGE_NAME}:${VERSION}"
+IMAGE_NAME=$1
+DOCKER_REGISTRY=$2
+DOCKER_REGISTRY_USER=$3
+DOCKER_REGISTRY_PASS=$4
+BUILD_PATH=$5
 
 echo docker version
 docker version
 echo
 
 echo Operating System Details
-cat /etc/lsb-release
+# cat /etc/lsb-release
+cat /etc/os-release
 echo
 
-echo BUILD_ID=${BUILD_ID}
-echo ALGORITHM_NAME=${ALGORITHM_NAME}
-echo ALGORITHM_ENV=${ALGORITHM_ENV}
+
 echo IMAGE_NAME=${IMAGE_NAME}
 echo DOCKER_REGISTRY=${DOCKER_REGISTRY}
-echo DOCKER_NAMESPACE=${DOCKER_NAMESPACE}
 echo BUILD_PATH=${BUILD_PATH}
-echo TAG_VER=${TAG_VER}
+
 echo
 
 echo docker login --username ${DOCKER_REGISTRY_USER} --password ${DOCKER_REGISTRY_PASS}
 
  docker build \
--t ${TAG_VER} \
+-t ${IMAGE_NAME} \
 --no-cache \
 --build-arg DOCKER_REGISTRY="${DOCKER_REGISTRY}" \
 --build-arg BUILD_PATH="${BUILD_PATH}" \
  -f ${BUILD_PATH}/builder/Dockerfile ${BUILD_PATH}
 
-echo docker push ${TAG_VER}
+echo docker push ${IMAGE_NAME}
