@@ -40,12 +40,13 @@ class PipelineStore {
 
     async insertPipeline(options) {
         validator.validateUpdatePipeline(options);
+        await validator.validateAlgorithmName(options);
+        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: options });
+
         const pipe = await stateManager.getPipeline(options);
         if (pipe) {
             throw new ResourceExistsError('pipeline', options.name);
         }
-        await validator.validateAlgorithmName(options);
-        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: options });
         await stateManager.setPipeline(options);
         return options;
     }
