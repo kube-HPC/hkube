@@ -120,7 +120,7 @@ const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
     const groupNorWorkers = groupBy(normHotWorkers, 'algorithmName');
     Object.entries(groupNorWorkers).forEach(([k, v]) => {
         const algorithm = algorithmTemplates[k];
-        const request = algorithm && algorithm.minHotWorkers;
+        const request = (algorithm && algorithm.minHotWorkers) || 0;
         const current = v.length;
 
         const diff = current - request;

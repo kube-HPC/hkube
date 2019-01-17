@@ -68,21 +68,21 @@ describe('PipelineDriverJobCreator', () => {
     describe('applyEnvToContainerFromSecretOrConfigMap', () => {
         it('should add env to spec', () => {
             const envLength = template.spec.template.spec.containers[0].env.length;
-            const test = { xxx: 'test' };
+            const test = { xxx: { obj: 'test' } };
             const res = applyEnvToContainerFromSecretOrConfigMap(template, CONTAINERS.PIPELINE_DRIVER, test);
             expect(res.spec.template.spec.containers[0].env).to.have.lengthOf(envLength + 1);
             expect(res.spec.template.spec.containers[0].env).to.deep.include({
-                name: 'xxx', valueFrom: 'test'
+                name: 'xxx', valueFrom: { obj: 'test' }
             });
         });
         it('should replace env in spec', () => {
-            const test = { xxx: 'test' };
-            const testNew = { xxx: 'testnew' };
+            const test = { xxx: { obj: 'test' } };
+            const testNew = { xxx: { obj: 'testnew' } };
             const res = applyEnvToContainerFromSecretOrConfigMap(template, CONTAINERS.PIPELINE_DRIVER, test);
             const envLength = res.spec.template.spec.containers[0].env.length;
             const resNew = applyEnvToContainerFromSecretOrConfigMap(res, CONTAINERS.PIPELINE_DRIVER, testNew);
             expect(resNew.spec.template.spec.containers[0].env).to.have.lengthOf(envLength);
-            expect(resNew.spec.template.spec.containers[0].env).to.deep.include({ name: 'xxx', valueFrom: 'testnew' });
+            expect(resNew.spec.template.spec.containers[0].env).to.deep.include({ name: 'xxx', valueFrom: { obj: 'testnew' } });
         });
         it('should remove env in spec', () => {
             const test = { xxx: 'test' };

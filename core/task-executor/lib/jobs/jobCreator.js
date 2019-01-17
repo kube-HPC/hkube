@@ -100,35 +100,7 @@ const applyEnvToContainer = (inputSpec, containerName, inputEnv) => {
 };
 
 const applyEnvToContainerFromSecretOrConfigMap = (inputSpec, containerName, inputEnv) => {
-    const spec = clonedeep(inputSpec);
-    if (!inputEnv) {
-        return spec;
-    }
-    const container = spec.spec.template.spec.containers.find(c => c.name === containerName);
-    if (!container) {
-        const msg = `Unable to create job spec. ${containerName} container not found`;
-        log.error(msg, { component });
-        throw new Error(msg);
-    }
-    if (!container.env) {
-        container.env = [];
-    }
-    const { env } = container;
-    Object.entries(inputEnv).forEach(([key, value]) => {
-        const index = env.findIndex(i => i.name === key);
-        if (index !== -1) {
-            if (value == null) {
-                env.splice(index, 1);
-            }
-            else {
-                env[index] = { name: key, valueFrom: value };
-            }
-        }
-        else {
-            env.push({ name: key, valueFrom: value });
-        }
-    });
-    return spec;
+    return applyEnvToContainer(inputSpec, containerName, inputEnv);
 };
 
 const applyAlgorithmName = (inputSpec, algorithmName) => {
