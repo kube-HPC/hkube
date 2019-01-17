@@ -22,9 +22,9 @@ const build = async (options) => {
             filesToRemove.push(src);
         }
 
-        const envr = `${process.cwd()}/environments/${env}`;
-        const dest = `${process.cwd()}/uploads/unzipped/${name}`;
-        const buildPath = `${process.cwd()}/builds/${env}/${name}`;
+        const envr = `environments/${env}`;
+        const dest = `uploads/unzipped/${name}`;
+        const buildPath = `builds/${env}/${name}`;
         filesToRemove.push(buildPath);
 
         await _extractFile({ src, dest, fileExt: code.fileExt, overwrite });

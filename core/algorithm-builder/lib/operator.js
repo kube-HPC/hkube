@@ -28,7 +28,7 @@ class Operator {
             const { algorithm } = build;
             await etcd.setBuild(buildId, { ...build, timestamp: new Date(), status: States.ACTIVE });
             const readStream = await storageManager.hkubeBuilds.getStream({ buildId });
-            const zipFile = `${process.cwd()}/uploads/zipped/${algorithm.name}`;
+            const zipFile = `uploads/zipped/${algorithm.name}`;
             await this._writeStream(readStream, zipFile);
             const response = await dockerBuild({ payload: build, src: zipFile, docker: options.docker });
             error = response.errorMsg;
