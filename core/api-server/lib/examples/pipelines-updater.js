@@ -1,4 +1,4 @@
-
+const log = require('@hkube/logger').GetLogFromContainer();
 const algorithms = require('./algorithms.json');
 const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
@@ -13,7 +13,9 @@ class PipelinesUpdater {
                 await Promise.all(algorithms.map(p => algorithmStore.insertAlgorithm(p)));
             }
         }
-        catch (error) { }// eslint-disable-line
+        catch (error) {
+            log.error(`failed to upload default algorithms. ${error.message}`);
+        }
 
         try {
             await Promise.all(drivers.map((d) => {
@@ -21,7 +23,9 @@ class PipelinesUpdater {
                 return stateManager.setPipelineDriverTemplate({ ...d, cpu, mem });
             }));
         }
-        catch (error) { }// eslint-disable-line
+        catch (error) {
+            log.error(`failed to upload default algorithms. ${error.message}`);
+        }
 
         try {
             const host = process.env.WEBHOOK_STUB_UI_SERVICE_HOST || 'localhost';
@@ -38,7 +42,9 @@ class PipelinesUpdater {
                 return pipelineStore.insertPipeline(pipe);
             }));
         }
-        catch (error) { }// eslint-disable-line
+        catch (error) {
+            log.error(`failed to upload default algorithms. ${error.message}`);
+        }
     }
 }
 
