@@ -62,7 +62,6 @@ const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
     if (algorithmStore.length === 0) {
         return normRequests;
     }
-
     const requests = [];
     const groupNormRequests = groupBy(normRequests, 'algorithmName');
 
@@ -80,6 +79,7 @@ const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
             requests.push(...hotWorkers);
         }
     });
+    requests.push(...normRequests.filter(r => !algorithmStore.find(a => a[0] === r.algorithmName)));
     return requests;
 };
 

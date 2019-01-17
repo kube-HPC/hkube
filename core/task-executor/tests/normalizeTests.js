@@ -138,6 +138,38 @@ describe('normalize', () => {
             expect(res[0]).to.have.property('algorithmName');
             expect(res[0]).to.have.property('hotWorker');
         });
+        it('should return hot workers and not hot workers', () => {
+            const normRequests = [
+                {
+                    "algorithmName": "green-alg"
+                },
+                {
+                    "algorithmName": "black-alg"
+                },
+                {
+                    "algorithmName": "eval-alg"
+                },
+                {
+                    "algorithmName": "yellow-alg"
+                },
+                {
+                    "algorithmName": "nothot-alg"
+                },
+                {
+                    "algorithmName": "nothot-alg"
+                },
+                {
+                    "algorithmName": "nothot-alg"
+                }
+            ]
+
+
+            const minHotWorkers = Object.values(algorithmTemplates).map(a => a.minHotWorkers).reduce((a, b) => a + b, 0);
+            const res = normalizeHotRequests(normRequests, algorithmTemplates);
+            expect(res).to.have.lengthOf(minHotWorkers+3);
+            expect(res[0]).to.have.property('algorithmName');
+            expect(res[0]).to.have.property('hotWorker');
+        });
     });
     describe('normalize cold workers', () => {
         it('should work with undefined', () => {
