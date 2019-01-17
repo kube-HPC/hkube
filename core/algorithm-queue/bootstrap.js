@@ -28,7 +28,7 @@ class Bootstrap {
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component: componentName.MAIN });
             });
-            monitor.check(main.redis);
+            await monitor.check(main.redis);
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
