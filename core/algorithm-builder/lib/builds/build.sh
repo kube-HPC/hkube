@@ -32,3 +32,5 @@ echo docker login --username ${DOCKER_REGISTRY_USER} --password ${DOCKER_REGISTR
  -f ${BUILD_PATH}/builder/Dockerfile ${BUILD_PATH}
 
 echo docker push ${IMAGE_NAME}
+
+echo docker rmi ${IMAGE_NAME}
