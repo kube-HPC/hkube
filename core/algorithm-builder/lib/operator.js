@@ -27,17 +27,19 @@ class Operator {
             }
             const { algorithm } = build;
             await etcd.setBuild(buildId, { ...build, timestamp: new Date(), status: States.ACTIVE });
+            await fse.ensureDir('uploads/zipped');
+            await fse.ensureDir('uploads/unzipped');
             const readStream = await storageManager.hkubeBuilds.getStream({ buildId });
             const zipFile = `uploads/zipped/${algorithm.name}`;
             await this._writeStream(readStream, zipFile);
-            const response = await dockerBuild({ payload: build, src: zipFile, docker: options.docker });
+            const response = await dockerBuild({ payload: build, src: zipFile, docker: options.docker, deleteSrc: true });
             error = response.errorMsg;
             result = response.resultData;
             image = response.imageName;
         }
         catch (e) {
             error = e.message;
-            log.error(e.message, { component });
+            log.error(e.message, { component }, e);
         }
         finally {
             const status = error ? States.FAILED : States.COMPLETED;

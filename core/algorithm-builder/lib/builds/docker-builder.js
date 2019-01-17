@@ -39,7 +39,7 @@ const build = async (options) => {
         resultData = await _runBash({ command: `${process.cwd()}/lib/builds/build.sh`, args });
     }
     catch (e) {
-        errorMsg = e;
+        errorMsg = e.message;
         log.error(e.message, { component });
     }
     finally {
