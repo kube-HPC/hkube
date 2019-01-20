@@ -301,7 +301,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const { toStop } = pauseAccordingToResources(
         stopDetails,
         normResources,
-        [...idleWorkers.filter(w => w.job && Date.now() - w.job.startTime > MIN_AGE_FOR_STOP), ...activeWorkers],
+        [...idleWorkers.filter(w => (w.job && Date.now() - w.job.startTime > MIN_AGE_FOR_STOP) && !w.hotWorker),
+            ...activeWorkers.filter(w => !w.hotWorker)],
         resourcesToFree
     );
 
