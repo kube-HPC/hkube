@@ -4,7 +4,7 @@ const targz = require('targz');
 const fse = require('fs-extra');
 const { spawn } = require('child_process');
 const Logger = require('@hkube/logger');
-const component = require('../consts/components').OPERATOR;
+const component = require('../consts/components').DOCKER_BUILDER;
 const log = Logger.GetLogFromContainer();
 
 const build = async (options) => {
@@ -27,6 +27,7 @@ const build = async (options) => {
         const buildPath = `builds/${env}/${name}`;
         filesToRemove.push(buildPath);
 
+        log.info(`extracting ${src} -> ${dest} - ext ${code.fileExt}`, { component });
         await _extractFile({ src, dest, fileExt: code.fileExt, overwrite });
 
         await fse.ensureDir(buildPath);
@@ -36,6 +37,7 @@ const build = async (options) => {
         const image = path.join(docker.registry, docker.namespace, name);
         imageName = `${image}:v${version}`;
         const args = [imageName, docker.registry, docker.user, docker.pass, buildPath];
+        log.info(`build.sh -> ${args}`, { component });
         resultData = await _runBash({ command: `${process.cwd()}/lib/builds/build.sh`, args });
     }
     catch (e) {

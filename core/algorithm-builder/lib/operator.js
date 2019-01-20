@@ -6,11 +6,10 @@ const States = require('../lib/consts/States');
 const component = require('../lib/consts/components').OPERATOR;
 const etcd = require('./helpers/etcd');
 
-let log;
+const log = Logger.GetLogFromContainer();
 
 class Operator {
     async init(options) {
-        log = Logger.GetLogFromContainer();
         const { buildId } = options;
         let error;
         let result;
@@ -26,11 +25,17 @@ class Operator {
                 throw new Error(`unable to find build -> ${buildId}`);
             }
             const { algorithm } = build;
+
+            log.info(`setBuild -> ${buildId}`, { component });
             await etcd.setBuild(buildId, { ...build, timestamp: new Date(), status: States.ACTIVE });
             await fse.ensureDir('uploads/zipped');
             await fse.ensureDir('uploads/unzipped');
+
+            log.info(`getStream -> ${buildId}`, { component });
             const readStream = await storageManager.hkubeBuilds.getStream({ buildId });
             const zipFile = `uploads/zipped/${algorithm.name}`;
+
+            log.info(`writeStream -> ${buildId} - ${zipFile}`, { component });
             await this._writeStream(readStream, zipFile);
             const response = await dockerBuild({ payload: build, src: zipFile, docker: options.docker, deleteSrc: true });
             error = response.errorMsg;
