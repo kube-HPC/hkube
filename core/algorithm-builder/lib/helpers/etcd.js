@@ -17,12 +17,12 @@ class Etcd {
         await this._etcd.jobState.watch({ jobId: 'hookWatch' });
     }
 
-    async getBuild(options) {
+    getBuild(options) {
         return this._etcd._client.get(`/algorithms/builds/${options.buildId}`, { isPrefix: false });
     }
 
-    async setBuild(buildId, options) {
-        await this._etcd._client.put(`/algorithms/builds/${buildId}`, options);
+    setBuild(buildId, options) {
+        return this._etcd._client.put(`/algorithms/builds/${buildId}`, options);
     }
 }
 

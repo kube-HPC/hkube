@@ -23,6 +23,8 @@ RUN set -eux; \
 	dockerd --version; \
 	docker --version
 
+RUN apt install gettext-base
+
 RUN mkdir /hkube
 COPY . /hkube/algorithm-builder
 RUN cd /hkube/algorithm-builder

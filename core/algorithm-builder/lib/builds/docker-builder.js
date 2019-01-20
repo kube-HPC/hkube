@@ -37,7 +37,7 @@ const build = async (options) => {
         const image = path.join(docker.registry, docker.namespace, name);
         imageName = `${image}:v${version}`;
         const args = [imageName, docker.registry, docker.user, docker.pass, buildPath];
-        log.info(`build.sh -> ${args}`, { component });
+        log.info(`build.sh`, { component });
         resultData = await _runBash({ command: `${process.cwd()}/lib/builds/build.sh`, args });
     }
     catch (e) {
@@ -86,8 +86,8 @@ const _runBash = ({ command, args }) => {
             error += data.toString();
         });
         build.on('close', (code) => {
-            if (error) {
-                return reject(error);
+            if (_realError(error)) {
+                return reject(new Error(error));
             }
             return resolve(result);
         });
@@ -95,6 +95,10 @@ const _runBash = ({ command, args }) => {
             return reject(err);
         });
     });
+}
+
+const _realError = (error) => {
+    return error && error.indexOf('WARNING') === -1
 }
 
 const _removeFiles = async ({ files }) => {
