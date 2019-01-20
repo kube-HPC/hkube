@@ -241,7 +241,7 @@ const _calaStats = (data) => {
         return acc;
     }, {}));
 
-    return {...stats, total: data.length};
+    return {stats, total: data.length};
 };
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, options, clusterOptions } = {}) => {
