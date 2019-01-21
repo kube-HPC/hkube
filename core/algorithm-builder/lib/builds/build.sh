@@ -28,11 +28,11 @@ fi
 DOCKER_REGISTRY=${DOCKER_REGISTRY} BUILD_PATH=${BUILD_PATH} envsubst < ${BUILD_PATH}/builder/DockerfileTemplate > ${BUILD_PATH}/builder/Dockerfile
 echo
 
-echo docker build \
+docker build \
 -t ${IMAGE_NAME} \
 --no-cache \
  -f ${BUILD_PATH}/builder/Dockerfile ${BUILD_PATH}
 
 docker push ${IMAGE_NAME}
 
-echo docker rmi ${IMAGE_NAME}
+docker rmi ${IMAGE_NAME}

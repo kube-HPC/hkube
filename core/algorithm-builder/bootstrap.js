@@ -7,7 +7,7 @@ const log = new Logger(main.serviceName, logger);
 const modules = [
     require('@hkube/storage-manager'),
     require('./lib/helpers/etcd'),
-    require('./lib/operator')
+    require('./lib/builds/docker-builder')
 ];
 
 class Bootstrap {

@@ -16,6 +16,12 @@ config.docker = {
     pass: process.env.DOCKER_REGISTRY_PASS || ''
 };
 
+config.buildDirs = {
+    ZIP: 'uploads/zipped',
+    UNZIP: 'uploads/unzipped',
+
+}
+
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
