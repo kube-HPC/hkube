@@ -35,4 +35,4 @@ docker build \
 
 docker push ${IMAGE_NAME}
 
-docker rmi ${IMAGE_NAME}
+echo docker rmi ${IMAGE_NAME}

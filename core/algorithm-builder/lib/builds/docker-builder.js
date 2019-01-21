@@ -7,7 +7,7 @@ const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const States = require('../consts/States');
 const component = require('../consts/components').OPERATOR;
-const etcd = require('../helpers/etcd');
+const stateManger = require('../state/state-manager');
 
 const _ensureDirs = async (dirs) => {
     await Promise.all(Object.values(dirs).map(d => fse.ensureDir(d)));
@@ -91,25 +91,15 @@ const _runBash = ({ command, args }) => {
 
 const _setBuildStatus = async ({ build, error, status, result }) => {
     log.info(`setBuild ${status} -> ${build.buildId}. ${error || ''}`, { component });
-    await etcd.setBuild(build.buildId, { ...build, timestamp: new Date(), status, result, error });
+    await stateManger.setBuild(build.buildId, { ...build, timestamp: new Date(), status, result, error });
 };
 
 const _updateAlgorithmImage = async ({ algorithmName, algorithmImage }) => {
-    if (!algorithmImage) {
-        return;
-    }
-    await etcd._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
-        return tx.get(`/algorithmTemplates/${algorithmName}`)
-            .then((val) => {
-                const alg = JSON.parse(val);
-                const algorithm = Object.assign({}, alg, { algorithmImage });
-                return tx.put(`/algorithmTemplates/${algorithmName}`).value(JSON.stringify(algorithm));
-            });
-    });
+    await stateManger.updateAlgorithmImage({ algorithmName, algorithmImage });
 };
 
 const _getBuild = async ({ buildId }) => {
-    const build = await etcd.getBuild({ buildId });
+    const build = await stateManger.getBuild({ buildId });
     if (!build) {
         throw new Error(`unable to find build -> ${buildId}`);
     }
