@@ -11,7 +11,6 @@ const dockerBuild = require('../lib/builds/docker-builder');
 const storageManager = require('@hkube/storage-manager');
 const stateManger = require('../lib/state/state-manager');
 const mockBuild = require('./mocks/build.json');
-const mockZip = `${process.cwd()}/tests/mocks/zipped/sort-alg`;
 
 describe('Test', function () {
     before(async () => {
@@ -40,6 +39,7 @@ describe('Test', function () {
         });
         it('should succeed to build docker', async function () {
             this.timeout(50000);
+            const mockZip = `${process.cwd()}/tests/mocks/zipped/sort-alg`;
             const { buildId } = mockBuild;
             await stateManger.setBuild(mockBuild);
             await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
@@ -52,34 +52,34 @@ describe('Test', function () {
             expect(response).to.have.property('result');
         });
     });
-    xdescribe('Environments', function () {
-        xdescribe('Nodejs', function () {
-            xit('should build docker', async function () {
-                // this.timeout(30000);
-                // const payload = {
-                //     name: 'codeless',
-                //     env: 'nodejs'
-                // };
-                // const config = {
-                //     adapter: 'socket',
-                //     socket: {
-                //         port: 9876,
-                //         host: 'localhost',
-                //         protocol: 'ws'
-                //     },
-                //     algorithmPath: `${process.cwd()}/tests/mocks/code/nodejs`,
-                //     algorithmData: {
-                //         entryPoint: 'lib/algorithm.js'
-                //     }
-                // };
+    // xdescribe('Environments', function () {
+    //     xdescribe('Nodejs', function () {
+    //         xit('should build docker', async function () {
+    //             this.timeout(30000);
+    //             const payload = {
+    //                 name: 'codeless',
+    //                 env: 'nodejs'
+    //             };
+    //             const config = {
+    //                 adapter: 'socket',
+    //                 socket: {
+    //                     port: 9876,
+    //                     host: 'localhost',
+    //                     protocol: 'ws'
+    //                 },
+    //                 algorithmPath: `${process.cwd()}/tests/mocks/code/nodejs`,
+    //                 algorithmData: {
+    //                     entryPoint: 'lib/algorithm.js'
+    //                 }
+    //             };
 
-                // const env = `${process.cwd()}/environments/${payload.env}`;
-                // const algorithm = require(`${env}/lib/algorunner.js`);
-                // await algorithm.init(config);
-                // expect(algorithm._algorithm.init).to.be.a('function');
-                // expect(algorithm._algorithm.start).to.be.a('function');
-                // expect(algorithm._algorithm.stop).to.be.a('function');
-            });
-        });
-    });
+    //             const env = `${process.cwd()}/environments/${payload.env}`;
+    //             const algorithm = require(`${env}/lib/algorunner.js`);
+    //             await algorithm.init(config);
+    //             expect(algorithm._algorithm.init).to.be.a('function');
+    //             expect(algorithm._algorithm.start).to.be.a('function');
+    //             expect(algorithm._algorithm.stop).to.be.a('function');
+    //         });
+    //     });
+    // });
 });
