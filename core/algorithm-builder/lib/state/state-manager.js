@@ -20,8 +20,19 @@ class StateManger {
         return this._etcd._client.get(`/algorithms/builds/${options.buildId}`, { isPrefix: false });
     }
 
-    async setBuild(buildId, options) {
-        return this._etcd._client.put(`/algorithms/builds/${buildId}`, options);
+    async setBuild(options) {
+        const { buildId } = options;
+        if (!buildId) {
+            return;
+        }
+        await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
+            return tx.get(`/algorithms/builds/${buildId}`)
+                .then((val) => {
+                    const bld = JSON.parse(val);
+                    const build = Object.assign({}, bld, { ...options });
+                    return tx.put(`/algorithms/builds/${buildId}`).value(JSON.stringify(build));
+                });
+        });
     }
 
     async updateAlgorithmImage({ algorithmName, algorithmImage }) {

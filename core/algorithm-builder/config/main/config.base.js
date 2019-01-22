@@ -18,8 +18,7 @@ config.docker = {
 
 config.buildDirs = {
     ZIP: 'uploads/zipped',
-    UNZIP: 'uploads/unzipped',
-
+    UNZIP: 'uploads/unzipped'
 }
 
 config.redis = {

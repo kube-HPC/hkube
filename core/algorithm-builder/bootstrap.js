@@ -1,13 +1,13 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const component = require('./lib/consts/components').MAIN;
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
+const component = require('./lib/consts/components').MAIN;
+const dockerBuild = require('./lib/builds/docker-builder')
 
 const modules = [
     require('@hkube/storage-manager'),
-    require('./lib/state/state-manager'),
-    require('./lib/builds/docker-builder')
+    require('./lib/state/state-manager')
 ];
 
 class Bootstrap {
@@ -15,10 +15,9 @@ class Bootstrap {
         try {
             this._handleErrors();
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
-
-            for (const m of modules) {
-                await m.init(main);
-            }
+            await Promise.all(modules.map(m => m.init(main)));
+            await dockerBuild(main);
+            process.exit(0);
         }
         catch (error) {
             this._onInitFailed(error);
@@ -26,14 +25,8 @@ class Bootstrap {
     }
 
     _onInitFailed(error) {
-        if (log) {
-            log.error(error.message, { component }, error);
-            log.error(error);
-        }
-        else {
-            console.error(error.message);
-            console.error(error);
-        }
+        log.error(error.message, { component }, error);
+        log.error(error);
         process.exit(1);
     }
 

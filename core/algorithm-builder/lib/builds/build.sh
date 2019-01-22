@@ -20,12 +20,13 @@ echo BUILD_PATH=${BUILD_PATH}
 
 echo
 
-if [ -v DOCKER_REGISTRY_PASS ]
+if [ -z DOCKER_REGISTRY_PASS ]
 then
+    echo "Found docker password, docker login...."
     echo ${DOCKER_REGISTRY_PASS} | docker login --username ${DOCKER_REGISTRY_USER} --password-stdin
 fi
 
-DOCKER_REGISTRY=${DOCKER_REGISTRY} BUILD_PATH=${BUILD_PATH} envsubst < ${BUILD_PATH}/builder/DockerfileTemplate > ${BUILD_PATH}/builder/Dockerfile
+DOCKER_REGISTRY=${DOCKER_REGISTRY} envsubst < ${BUILD_PATH}/builder/DockerfileTemplate > ${BUILD_PATH}/builder/Dockerfile
 echo
 
 docker build \

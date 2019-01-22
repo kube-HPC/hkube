@@ -1,4 +1,6 @@
 const path = require('path');
+const readChunk = require('read-chunk');
+const fileType = require('file-type');
 const fse = require('fs-extra');
 const Zip = require('adm-zip');
 const targz = require('targz');
@@ -6,7 +8,7 @@ const { spawn } = require('child_process');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const States = require('../consts/States');
-const component = require('../consts/components').OPERATOR;
+const component = require('../consts/components').DOCKER_BUILDER;
 const stateManger = require('../state/state-manager');
 
 const _ensureDirs = async (dirs) => {
@@ -36,16 +38,19 @@ const _writeStream = async ({ buildId, srcFile }) => {
     await _writeStreamToFile({ readStream, srcFile });
 };
 
-const _extractFile = async ({ srcFile, dest, fileExt, overwrite }) => {
+const _extractFile = async ({ srcFile, dest, overwrite }) => {
     return new Promise((resolve, reject) => {
-        log.info(`extracting ${srcFile} -> ${dest} - ext ${fileExt}`, { component });
-        switch (fileExt) {
-            case '.zip': {
+        const buffer = readChunk.sync(srcFile, 0, fileType.minimumBytes);
+        const type = fileType(buffer);
+        log.info(`extracting ${srcFile} -> ${dest} - ext ${type.ext}`, { component });
+
+        switch (type.ext) {
+            case 'zip': {
                 const zip = new Zip(srcFile);
                 zip.extractAllTo(dest, overwrite);
                 return resolve();
             }
-            case '.gz': {
+            case 'gz': {
                 targz.decompress({ src: srcFile, dest }, (err) => {
                     if (err) {
                         return reject(err);
@@ -55,7 +60,7 @@ const _extractFile = async ({ srcFile, dest, fileExt, overwrite }) => {
                 break;
             }
             default:
-                return reject(new Error(`unsupported file type ${fileExt}`));
+                return reject(new Error(`unsupported file type ${type.ext}`));
         }
     });
 };
@@ -89,9 +94,9 @@ const _runBash = ({ command, args }) => {
     });
 };
 
-const _setBuildStatus = async ({ build, error, status, result }) => {
-    log.info(`setBuild ${status} -> ${build.buildId}. ${error || ''}`, { component });
-    await stateManger.setBuild(build.buildId, { ...build, timestamp: new Date(), status, result, error });
+const _setBuildStatus = async ({ buildId, error, status, result }) => {
+    log.info(`setBuild ${status} -> ${buildId}. ${error || ''}`, { component });
+    await stateManger.setBuild({ buildId, timestamp: new Date(), status, result, error });
 };
 
 const _updateAlgorithmImage = async ({ algorithmName, algorithmImage }) => {
@@ -106,9 +111,9 @@ const _getBuild = async ({ buildId }) => {
     return build;
 };
 
-const _downloadFile = async ({ buildId, srcFile, dest, fileExt, overwrite }) => {
+const _downloadFile = async ({ buildId, srcFile, dest, overwrite }) => {
     await _writeStream({ buildId, srcFile });
-    await _extractFile({ srcFile, dest, fileExt, overwrite });
+    await _extractFile({ srcFile, dest, overwrite });
     await fse.remove(srcFile);
 };
 
@@ -127,15 +132,22 @@ const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {
     return { output, algorithmImage };
 };
 
-const init = async (options) => {
+const _removeFolder = async ({ folder }) => {
+    if (folder) {
+        await fse.remove(folder);
+    }
+};
+
+const build = async (options) => {
     let build;
     let buildPath;
     let algorithmName;
     let error;
+    let buildId;
     let result = {};
 
     try {
-        const { buildId } = options;
+        buildId = options.buildId;
         if (!buildId) {
             throw new Error('build id is required');
         }
@@ -152,8 +164,8 @@ const init = async (options) => {
         buildPath = `builds/${env}/${algorithmName}`;
 
         await _ensureDirs(buildDirs);
-        await _setBuildStatus({ build, status: States.ACTIVE });
-        await _downloadFile({ buildId, srcFile, srcFile, dest, fileExt: code.fileExt, overwrite });
+        await _setBuildStatus({ buildId, status: States.ACTIVE });
+        await _downloadFile({ buildId, srcFile, srcFile, dest, overwrite });
         await _prepareBuild({ buildPath, env, dest, overwrite });
         result = await _buildDocker({ docker, algorithmName, version, buildPath });
     }
@@ -162,12 +174,12 @@ const init = async (options) => {
         log.error(e.message, { component }, e);
     }
     finally {
-        await fse.remove(buildPath);
+        await _removeFolder({ folder: buildPath });
         const status = error ? States.FAILED : States.COMPLETED;
-        await _setBuildStatus({ build, error, status, result: result.output });
+        await _setBuildStatus({ buildId, error, status, result: result.output });
         await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage });
-        process.exit(0);
+        return { buildId, error, status, result: result.output };
     }
 };
 
-module.exports = { init };
+module.exports = build;

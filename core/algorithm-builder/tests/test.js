@@ -1,49 +1,55 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const mockery = require('mockery');
+const fse = require('fs-extra');
+const uuid = require('uuid');
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
 const config = main;
 const log = new Logger(main.serviceName, logger);
 const dockerBuild = require('../lib/builds/docker-builder');
+const storageManager = require('@hkube/storage-manager');
+const stateManger = require('../lib/state/state-manager');
+const mockBuild = require('./mocks/build.json');
+const mockZip = `${process.cwd()}/tests/mocks/zipped/sort-alg`;
 
 describe('Test', function () {
     before(async () => {
-        mockery.enable({
-            useCleanCache: false,
-            warnOnReplace: false,
-            warnOnUnregistered: false
-        });
+        await storageManager.init(main, true);
+        await stateManger.init(main);
     });
-    xdescribe('Docker', function () {
-        it('should build docker', async function () {
-            this.timeout(30000);
-            const payload = {
-                version: '1.0.0',
-                algorithm: {
-                    name: 'codeless',
-                    env: 'nodejs',
-                    code: {
-                        fileExt: '.gz'
-                    }
-                }
-            }
-            const src = `${process.cwd()}/tests/mocks/zipped/sort-alg.tar.gz`;
-            const response = await dockerBuild({ payload, src, docker: config.docker, deleteSrc: false });
-
-            console.log('------------RESULT-----------------');
-            console.log(response.resultData);
-            console.log('------------RESULT-----------------');
-
-            console.log('-----------------------------------');
-
-            console.log('------------ERROR-----------------');
-            console.error(response.errorMsg);
-            console.log('------------ERROR-----------------');
-
-            expect(response).to.have.property('errorMsg');
-            expect(response).to.have.property('resultData');
+    describe('Docker', function () {
+        it('should failed to build docker when no build id', async function () {
+            const response = await dockerBuild(config);
+            expect(response.error).to.equal('build id is required');
+            expect(response.status).to.equal('failed');
+            expect(response).to.have.property('buildId');
+            expect(response).to.have.property('error');
+            expect(response).to.have.property('status');
+            expect(response).to.have.property('result');
+        });
+        it('should failed to build docker when no such build id', async function () {
+            config.buildId = `no_such_build-${uuid()}`;
+            const response = await dockerBuild(config);
+            expect(response.error).to.equal(`unable to find build -> ${config.buildId}`);
+            expect(response.status).to.equal('failed');
+            expect(response).to.have.property('buildId');
+            expect(response).to.have.property('error');
+            expect(response).to.have.property('status');
+            expect(response).to.have.property('result');
+        });
+        it('should succeed to build docker', async function () {
+            this.timeout(50000);
+            const { buildId } = mockBuild;
+            await stateManger.setBuild(mockBuild);
+            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
+            config.buildId = buildId;
+            const response = await dockerBuild(config);
+            expect(response.status).to.equal('completed');
+            expect(response).to.have.property('buildId');
+            expect(response.result).to.contain('docker version')
+            expect(response).to.have.property('status');
+            expect(response).to.have.property('result');
         });
     });
     xdescribe('Environments', function () {
