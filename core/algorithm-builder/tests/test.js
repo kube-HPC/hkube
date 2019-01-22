@@ -53,8 +53,8 @@ describe('Test', function () {
         });
     });
     xdescribe('Environments', function () {
-        describe('Nodejs', function () {
-            it('should build docker', async function () {
+        xdescribe('Nodejs', function () {
+            xit('should build docker', async function () {
                 this.timeout(30000);
                 const payload = {
                     name: 'codeless',
