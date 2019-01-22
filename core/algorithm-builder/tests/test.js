@@ -36,7 +36,7 @@ describe('Test', function () {
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
         });
-        it('should succeed to build docker', async function () {
+        xit('should succeed to build docker', async function () {
             this.timeout(50000);
             const mockZip = `${process.cwd()}/tests/mocks/zipped/sort-alg`;
             const { buildId } = mockBuild;
