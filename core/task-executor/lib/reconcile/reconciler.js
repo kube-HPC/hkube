@@ -19,7 +19,7 @@ const { normalizeWorkers,
     mergeWorkers } = require('./normalize');
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
-const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
+const { matchJobsToResources, pauseAccordingToResources, matchWorkersToNodes } = require('./resources');
 const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = consts;
 
 let createdJobsList = [];
@@ -170,20 +170,39 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
             count: 1,
             details: {
                 algorithmName: r.algorithmName,
-                resourceRequests
+                resourceRequests,
+                nodeName: r.job ? r.job.nodeName : null,
+                podName: r.podName,
+                id: r.id
+
+
             }
         });
         missingCount -= 1;
     });
 
     const activeTypes = Object.entries(activeWorkers.reduce((prev, cur, index) => {
-        prev[cur.algorithmName] = (prev[cur.algorithmName] || 0) + ((index + 1) ** 0.7);
+        if (!prev[cur.algorithmName]) {
+            prev[cur.algorithmName] = {
+                count: 0,
+                list: []
+            };
+        }
+        prev[cur.algorithmName].count += ((index + 1) ** 0.7);
+        prev[cur.algorithmName].list.push(cur);
         return prev;
-    }, {})).map(([k, v]) => ({ algorithmName: k, count: v }));
+    }, {})).map(([k, v]) => ({ algorithmName: k, count: v.count, list: v.list }));
     const skippedTypes = Object.entries(skipped.reduce((prev, cur) => {
-        prev[cur.algorithmName] = (prev[cur.algorithmName] || 0) + 1;
+        if (!prev[cur.algorithmName]) {
+            prev[cur.algorithmName] = {
+                count: 0,
+                list: []
+            };
+        }
+        prev[cur.algorithmName].count += 1;
+        prev[cur.algorithmName].list.push(cur);
         return prev;
-    }, {})).map(([k, v]) => ({ algorithmName: k, count: v }));
+    }, {})).map(([k, v]) => ({ algorithmName: k, count: v.count, list: v.list }));
     const notUsedAlgorithms = activeTypes.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
 
 
@@ -193,14 +212,20 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
             return;
         }
         const resourceRequests = createContainerResource(algorithmTemplate);
-        stopDetails.push({
-            count: 1,
-            details: {
-                algorithmName: r.algorithmName,
-                resourceRequests
-            }
+        r.list.forEach((w) => {
+            stopDetails.push({
+                count: 1,
+                details: {
+                    algorithmName: r.algorithmName,
+                    resourceRequests,
+                    nodeName: w.job ? w.job.nodeName : null,
+                    podName: w.podName,
+                    id: w.id
+
+                }
+            });
+            missingCount -= 1;
         });
-        missingCount -= 1;
     });
 
     if (missingCount === 0) {
@@ -214,14 +239,19 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
             return;
         }
         const resourceRequests = createContainerResource(algorithmTemplate);
-        stopDetails.push({
-            count: 1,
-            details: {
-                algorithmName: r.algorithmName,
-                resourceRequests
-            }
+        r.list.forEach((w) => {
+            stopDetails.push({
+                count: 1,
+                details: {
+                    algorithmName: r.algorithmName,
+                    resourceRequests,
+                    nodeName: w.job ? w.job.nodeName : null,
+                    podName: w.podName,
+                    id: w.id
+                }
+            });
+            missingCount -= 1;
         });
-        missingCount -= 1;
     });
 };
 
@@ -241,13 +271,31 @@ const _calaStats = (data) => {
         return acc;
     }, {}));
 
-    return {stats, total: data.length};
+    return { stats, total: data.length };
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, registry, options, clusterOptions } = {}) => {
+const _getNodeStats = (normResources, workers) => {
+    const localResources = clonedeep(normResources);
+    const resourcesWithWorkers = matchWorkersToNodes(localResources.nodeList, workers.filter(w => w.job).map(w => ({
+        algorithmName: w.algorithmName,
+        nodeName: w.job.nodeName,
+        workerStatus: w.workerStatus
+    })));
+    const statsPerNode = resourcesWithWorkers.map(n => ({
+        name: n.name,
+        requests: n.requests,
+        total: n.total,
+        labels: n.labels,
+        workers: _calaStats(n.workers)
+    }
+    ));
+    return statsPerNode;
+};
+
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions } = {}) => {
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
-    const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
+    const normJobs = normalizeJobs(jobs, pods, j => !j.status.succeeded);
     const merged = mergeWorkers(normWorkers, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
     const warmUpWorkers = normalizeHotWorkers(normWorkers, algorithmTemplates);
@@ -301,9 +349,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const { toStop } = pauseAccordingToResources(
         stopDetails,
         normResources,
-        [...idleWorkers.filter(w => (w.job && Date.now() - w.job.startTime > MIN_AGE_FOR_STOP) && !w.hotWorker),
-            ...activeWorkers.filter(w => !w.hotWorker)],
-        resourcesToFree
+        [...idleWorkers.filter(w => (w.job && Date.now() - w.job.startTime > MIN_AGE_FOR_STOP) && !w.hotWorker), ...activeWorkers.filter(w => !w.hotWorker)],
+        resourcesToFree,
+        skipped
     );
 
     if (created.length > 0) {
@@ -323,7 +371,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     });
     await etcd.updateDiscovery({
         reconcileResult,
-        actual: _calaStats(normWorkers)
+        actual: _calaStats(normWorkers),
+        nodes: _getNodeStats(normResources, merged.mergedWorkers)
     });
     return reconcileResult;
 };

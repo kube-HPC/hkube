@@ -47,48 +47,6 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     return { shouldAdd: true, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes } } };
 };
 
-const shouldStopJob = (jobDetails, availableResources) => {
-    const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
-    const memoryRequests = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
-    const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
-
-    const isCpuPresure = availableResources.allNodes.free.cpu < (availableResources.allNodes.total.cpu * (1 - CPU_RATIO_PRESURE));
-    const isMemoryPresure = availableResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
-    if (!isCpuPresure && !isMemoryPresure) {
-        return { shouldStop: false, newResources: { ...availableResources } };
-    }
-
-    const nowFree = {
-        cpu: availableResources.allNodes.free.cpu + requestedCpu,
-        memory: availableResources.allNodes.free.memory + memoryRequests,
-        gpu: availableResources.allNodes.free.gpu + requestedGpu
-    };
-    const nowRequests = {
-        cpu: availableResources.allNodes.requests.cpu - requestedCpu,
-        memory: availableResources.allNodes.requests.memory - memoryRequests,
-        gpu: availableResources.allNodes.requests.gpu - requestedGpu
-
-    };
-    const nowRatio = {
-        cpu: availableResources.allNodes.requests.cpu / availableResources.allNodes.total.cpu,
-        memory: availableResources.allNodes.requests.memory / availableResources.allNodes.total.memory,
-        gpu: availableResources.allNodes.total.gpu ? availableResources.allNodes.requests.gpu / availableResources.allNodes.total.gpu : 0
-
-    };
-    return {
-        shouldStop: true,
-        newResources: {
-            ...availableResources,
-            allNodes: {
-                ...availableResources.allNodes,
-                free: nowFree,
-                requests: nowRequests,
-                ratio: nowRatio
-            }
-        }
-    };
-};
-
 const _sortWorkers = (a, b) => {
     if (b.workerPaused > a.workerPaused) {
         return 1;
@@ -99,50 +57,112 @@ const _sortWorkers = (a, b) => {
     return -1;
 };
 
-const _findWorkerToStop = (workers, algorithmName) => {
-    const workerIndex = workers.slice().sort(_sortWorkers).findIndex(w => w.algorithmName === algorithmName);
-    if (workerIndex !== -1) {
-        return { worker: workers[workerIndex], workers: workers.filter((w, i) => i !== workerIndex) };
-    }
-    return { workers };
-};
+function _scheduleAlgorithmToNode(nodeList, { requestedCpu, requestedGpu, memoryRequests }) {
+    const nodeForSchedule = nodeList.find(n => findNodeForSchedule(n, requestedCpu, requestedGpu, memoryRequests));
+    return nodeForSchedule;
+}
 
-const pauseAccordingToResources = (stopDetails, availableResources, workers, resourcesToFree) => {
-    // filter out debug workers
-
-    const localDetails = clone(stopDetails);
-    let localWorkers = workers;
-    let addedThisTime = 0;
-    let localResources = clone(availableResources);
-    if (resourcesToFree) {
-        localResources.allNodes.free.cpu -= resourcesToFree.cpu;
-        localResources.allNodes.free.memory -= resourcesToFree.memory;
+const _updateNodeResources = (nodeList, nodeName, { requestedCpu, requestedGpu, memoryRequests }) => {
+    const nodeListLocal = nodeList.slice();
+    const nodeIndex = nodeListLocal.findIndex(n => n.name === nodeName);
+    if (nodeIndex === -1) {
+        return nodeListLocal;
     }
-    const toStop = [];
-    const skipped = [];
-    const cb = (j) => {
-        if (j.count > 0) {
-            const { shouldStop, newResources } = shouldStopJob(j.details, localResources);
-            if (shouldStop) {
-                const workerToStop = _findWorkerToStop(localWorkers, j.details.algorithmName);
-                localWorkers = workerToStop.workers;
-                if (workerToStop.worker) {
-                    toStop.push(workerToStop.worker);
-                }
-            }
-            else {
-                skipped.push(j.details);
-            }
-            j.count -= 1;
-            addedThisTime += 1;
-            localResources = newResources;
-        }
+    const node = clone(nodeListLocal[nodeIndex]);
+    node.free = {
+        cpu: node.free.cpu + requestedCpu,
+        memory: node.free.memory + memoryRequests,
+        gpu: node.free.gpu + requestedGpu
+    };
+    node.requests = {
+        cpu: node.requests.cpu - requestedCpu,
+        memory: node.requests.memory - memoryRequests,
+        gpu: node.requests.gpu - requestedGpu
+
+    };
+    node.ratio = {
+        cpu: node.requests.cpu / node.total.cpu,
+        memory: node.requests.memory / node.total.memory,
+        gpu: node.total.gpu ? node.requests.gpu / node.total.gpu : 0
+
     };
 
-    do {
-        addedThisTime = 0;
-        localDetails.forEach(cb);
-    } while (addedThisTime > 0);
+    nodeListLocal[nodeIndex] = node;
+    return nodeListLocal;
+};
+
+const _findWorkersToStop = (nodeList, algorithmName, resources) => {
+    let nodeListLocal = clone(nodeList);
+    let workersToStop;
+    const foundAny = nodeListLocal.some((n) => {
+        let foundNode = null;
+        const workers = n.workers.filter(w => w.algorithmName !== algorithmName);
+        while (workers.length) {
+            workersToStop = [];
+            const worker = workers.shift();
+            const requestedCpu = parse.getCpuInCore('' + worker.resourceRequests.requests.cpu);
+            const memoryRequests = parse.getMemoryInMi(worker.resourceRequests.requests.memory);
+            const requestedGpu = worker.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
+            nodeListLocal = _updateNodeResources(nodeListLocal, n.name, { requestedCpu, requestedGpu, memoryRequests });
+            workersToStop.push(worker);
+            foundNode = _scheduleAlgorithmToNode(nodeListLocal, resources);
+            if (foundNode) {
+                break;
+            }
+        }
+        if (!foundNode) {
+            nodeListLocal = clone(nodeList);
+        }
+        return foundNode;
+    });
+    if (foundAny) {
+        return {
+            nodeList: nodeListLocal,
+            workersToStop
+        };
+    }
+    return {
+        nodeList
+    };
+};
+
+const matchWorkersToNodes = (nodeList, workers) => {
+    return nodeList.map(n => ({
+        ...n,
+        workers: workers.filter(w => w.nodeName === n.name)
+    }));
+};
+
+const pauseAccordingToResources = (stopDetails, availableResources, workers, resourcesToFree, skippedRequests) => {
+    // filter out debug workers
+    const toStop = [];
+    if (stopDetails.length === 0) {
+        return { toStop };
+    }
+    let localDetails = stopDetails.map(sd => sd.details);
+    const localResources = clone(availableResources);
+    skippedRequests.forEach((r) => {
+        const requestedCpu = parse.getCpuInCore('' + r.resourceRequests.requests.cpu);
+        const memoryRequests = parse.getMemoryInMi(r.resourceRequests.requests.memory);
+        const requestedGpu = r.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
+        // select just the nodes that match this request. sort from largest free space to smalles
+        let nodeList = localResources.nodeList.filter(n => nodeSelectorFilter(n.labels, r.nodeSelector)).sort((a, b) => b.free.cpu - a.free.cpu);
+        nodeList = matchWorkersToNodes(nodeList, localDetails);
+        const workersToStopData = _findWorkersToStop(nodeList, r.algorithmName, { requestedCpu, requestedGpu, memoryRequests });
+        if (workersToStopData.workersToStop) {
+            nodeList = workersToStopData.nodeList; //eslint-disable-line
+            localResources.nodeList.forEach((node) => {
+                const newNode = nodeList.find(n => n.name === node.name);
+                if (newNode) {
+                    node.free = newNode.free;
+                    node.requests = newNode.requests;
+                    node.gpu = newNode.gpu;
+                }
+            });
+            workersToStopData.workersToStop.forEach(w => toStop.push(w));
+            localDetails = localDetails.filter(d => !workersToStopData.workersToStop.find(w => d.id === w.id));
+        }
+    });
 
     return { toStop };
 };
@@ -182,5 +202,6 @@ module.exports = {
     matchJobsToResources,
     shouldAddJob,
     pauseAccordingToResources,
-    _sortWorkers
+    _sortWorkers,
+    matchWorkersToNodes
 };

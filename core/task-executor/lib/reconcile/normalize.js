@@ -276,18 +276,25 @@ const _tryParseTime = (timeString) => {
     }
 };
 
-const normalizeJobs = (jobsRaw, predicate = () => true) => {
+const normalizeJobs = (jobsRaw, pods, predicate = () => true) => {
     if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
         return [];
     }
+    const podsList = objectPath.get(pods, 'body.items', []);
     const jobs = jobsRaw.body.items
         .filter(predicate)
-        .map(j => ({
-            name: j.metadata.name,
-            algorithmName: j.metadata.labels['algorithm-name'],
-            active: j.status.active === 1,
-            startTime: _tryParseTime(j.status.startTime)
-        }));
+        .map((j) => {
+            const pod = podsList.find(p => objectPath.get(p, 'metadata.labels.controller-uid', '') === objectPath.get(j, 'metadata.uid'));
+            return {
+                name: j.metadata.name,
+                algorithmName: j.metadata.labels['algorithm-name'],
+                active: j.status.active === 1,
+                startTime: _tryParseTime(j.status.startTime),
+                podName: objectPath.get(pod, 'metadata.name'),
+                nodeName: objectPath.get(pod, 'spec.nodeName'),
+
+            };
+        });
     return jobs;
 };
 

@@ -20,11 +20,11 @@ describe('normalize', () => {
             expect(res).to.be.empty;
         });
         it('should ignore completed jobs', () => {
-            const res = normalizeJobs(twoCompleted, j => !j.status.succeeded);
+            const res = normalizeJobs(twoCompleted, null, j => !j.status.succeeded);
             expect(res).to.have.lengthOf(1);
         });
         it('should ignore active jobs', () => {
-            const res = normalizeJobs(twoCompleted, j => j.status.succeeded);
+            const res = normalizeJobs(twoCompleted, null, j => j.status.succeeded);
             expect(res).to.have.lengthOf(2);
         });
         it('should return all jobs', () => {
@@ -166,7 +166,7 @@ describe('normalize', () => {
 
             const minHotWorkers = Object.values(algorithmTemplates).map(a => a.minHotWorkers).reduce((a, b) => a + b, 0);
             const res = normalizeHotRequests(normRequests, algorithmTemplates);
-            expect(res).to.have.lengthOf(minHotWorkers+3);
+            expect(res).to.have.lengthOf(minHotWorkers + 3);
             expect(res[0]).to.have.property('algorithmName');
             expect(res[0]).to.have.property('hotWorker');
         });
