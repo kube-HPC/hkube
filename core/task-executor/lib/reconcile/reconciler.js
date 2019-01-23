@@ -228,31 +228,31 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
         });
     });
 
-    if (missingCount === 0) {
-        return;
-    }
+    // if (missingCount === 0) {
+    //     return;
+    // }
 
-    const sortedActiveTypes = activeTypes.sort((a, b) => a.count - b.count);
-    sortedActiveTypes.forEach((r) => {
-        const algorithmTemplate = algorithmTemplates[r.algorithmName];
-        if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-            return;
-        }
-        const resourceRequests = createContainerResource(algorithmTemplate);
-        r.list.forEach((w) => {
-            stopDetails.push({
-                count: 1,
-                details: {
-                    algorithmName: r.algorithmName,
-                    resourceRequests,
-                    nodeName: w.job ? w.job.nodeName : null,
-                    podName: w.podName,
-                    id: w.id
-                }
-            });
-            missingCount -= 1;
-        });
-    });
+    // const sortedActiveTypes = activeTypes.sort((a, b) => a.count - b.count);
+    // sortedActiveTypes.forEach((r) => {
+    //     const algorithmTemplate = algorithmTemplates[r.algorithmName];
+    //     if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
+    //         return;
+    //     }
+    //     const resourceRequests = createContainerResource(algorithmTemplate);
+    //     r.list.forEach((w) => {
+    //         stopDetails.push({
+    //             count: 1,
+    //             details: {
+    //                 algorithmName: r.algorithmName,
+    //                 resourceRequests,
+    //                 nodeName: w.job ? w.job.nodeName : null,
+    //                 podName: w.podName,
+    //                 id: w.id
+    //             }
+    //         });
+    //         missingCount -= 1;
+    //     });
+    // });
 };
 
 const _calaStats = (data) => {
