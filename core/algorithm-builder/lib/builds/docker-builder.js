@@ -156,7 +156,7 @@ const build = async (options) => {
 
         const overwrite = true;
         const { algorithm, version } = build;
-        const { env, code } = algorithm;
+        const { env } = algorithm;
         const { docker, buildDirs } = options;
         algorithmName = algorithm.name;
         const srcFile = `${buildDirs.ZIP}/${algorithm.name}`;
