@@ -6,8 +6,7 @@ COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 
-RUN pip3 -V
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-index --find-links=file:./include -r requirements.txt
 
 ENTRYPOINT ["python3"]
 CMD ["app.py"]
