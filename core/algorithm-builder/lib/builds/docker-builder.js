@@ -73,20 +73,17 @@ const _runBash = ({ command, args }) => {
     return new Promise((resolve, reject) => {
         log.info(`running ${command}`, { component });
         const build = spawn(command, args);
-        let result = '';
+        let data = '';
         let error = '';
 
-        build.stdout.on('data', (data) => {
-            result += data.toString();
+        build.stdout.on('data', (d) => {
+            data += d.toString();
         });
-        build.stderr.on('data', (data) => {
-            error += data.toString();
+        build.stderr.on('data', (d) => {
+            error += d.toString();
         });
         build.on('close', (code) => {
-            if (_realError(error)) {
-                return reject(new Error(error));
-            }
-            return resolve(result);
+            return resolve({ data, error });
         });
         build.on('error', (err) => {
             return reject(err);
@@ -99,8 +96,10 @@ const _setBuildStatus = async ({ buildId, error, status, result }) => {
     await stateManger.setBuild({ buildId, timestamp: new Date(), status, result, error });
 };
 
-const _updateAlgorithmImage = async ({ algorithmName, algorithmImage }) => {
-    await stateManger.updateAlgorithmImage({ algorithmName, algorithmImage });
+const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) => {
+    if (status === States.COMPLETED) {
+        await stateManger.updateAlgorithmImage({ algorithmName, algorithmImage });
+    }
 };
 
 const _getBuild = async ({ buildId }) => {
@@ -144,7 +143,7 @@ const build = async (options) => {
     let algorithmName;
     let error;
     let buildId;
-    let result = {};
+    let result = { output: {} };
 
     try {
         buildId = options.buildId;
@@ -175,11 +174,14 @@ const build = async (options) => {
         log.error(e.message, { component }, e);
     }
     finally {
+        if (_realError(result.output.error)) {
+            error = result.output.error;
+        }
         await _removeFolder({ folder: buildPath });
         const status = error ? States.FAILED : States.COMPLETED;
-        await _setBuildStatus({ buildId, error, status, result: result.output });
-        await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage });
-        return { buildId, error, status, result: result.output };
+        await _setBuildStatus({ buildId, error, status, result: result.output.data });
+        await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
+        return { buildId, error, status, result };
     }
 };
 
