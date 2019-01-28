@@ -9,7 +9,8 @@ const log = new Logger(main.serviceName, logger);
 const dockerBuild = require('../lib/builds/docker-builder');
 const storageManager = require('@hkube/storage-manager');
 const stateManger = require('../lib/state/state-manager');
-const mockBuild = require('./mocks/build.json');
+const mockBuildNodejs = require('./mocks/nodejs/build.json');
+const mockBuildPython = require('./mocks/python/build.json');
 
 describe('Test', function () {
     before(async () => {
@@ -36,11 +37,25 @@ describe('Test', function () {
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
         });
-        xit('should succeed to build docker', async function () {
+        xit('NODEJS: should succeed to build docker', async function () {
             this.timeout(50000);
-            const mockZip = `${process.cwd()}/tests/mocks/zipped/sort-alg`;
-            const { buildId } = mockBuild;
-            await stateManger.setBuild(mockBuild);
+            const mockZip = `${process.cwd()}/tests/mocks/nodejs/sort-alg`;
+            const { buildId } = mockBuildNodejs;
+            await stateManger.setBuild(mockBuildNodejs);
+            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
+            config.buildId = buildId;
+            const response = await dockerBuild(config);
+            expect(response.status).to.equal('completed');
+            expect(response).to.have.property('buildId');
+            expect(response.result).to.contain('docker version')
+            expect(response).to.have.property('status');
+            expect(response).to.have.property('result');
+        });
+        it('PYTHON: should succeed to build docker', async function () {
+            this.timeout(200000);
+            const mockZip = `${process.cwd()}/tests/mocks/python/sort-alg.tar.gz`;
+            const { buildId } = mockBuildPython;
+            await stateManger.setBuild(mockBuildPython);
             await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
             config.buildId = buildId;
             const response = await dockerBuild(config);

@@ -156,13 +156,14 @@ const build = async (options) => {
 
         const overwrite = true;
         const { algorithm, version } = build;
-        const { env } = algorithm;
+        const { env, name } = algorithm;
         const { docker, buildDirs } = options;
-        algorithmName = algorithm.name;
-        const srcFile = `${buildDirs.ZIP}/${algorithm.name}`;
+        algorithmName = name;
+        const srcFile = `${buildDirs.ZIP}/${algorithmName}`;
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
         buildPath = `builds/${env}/${algorithmName}`;
 
+        log.info(`starting build for algorithm=${algorithmName}, version=${version}, env=${env} -> ${buildId}`, { component });
         await _ensureDirs(buildDirs);
         await _setBuildStatus({ buildId, status: States.ACTIVE });
         await _downloadFile({ buildId, srcFile, srcFile, dest, overwrite });

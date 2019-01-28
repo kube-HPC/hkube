@@ -34,6 +34,6 @@ docker build \
 --no-cache \
  -f ${BUILD_PATH}/builder/Dockerfile ${BUILD_PATH}
 
-docker push ${IMAGE_NAME}
+echo docker push ${IMAGE_NAME}
 
 echo docker rmi ${IMAGE_NAME}

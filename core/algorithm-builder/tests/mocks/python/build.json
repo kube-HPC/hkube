@@ -1,8 +1,8 @@
 {
-    "buildId": "sort-alg-8506f596-03b1-49dd-afce-e29098212738",
+    "buildId": "sort-alg-1506f596-03b1-49dd-afce-e29098212738",
     "algorithm": {
         "name": "sort-alg",
-        "env": "nodejs",
+        "env": "python",
         "code": {
             "checksum": "0249a4867a396289f354b5125d741ddf",
             "fileSize": 18792,

@@ -11,6 +11,7 @@ class Algorunner:
         self._url = None
         self._algorithm = dict()
         self._events = Events()
+        self._loadAlgorithmError = None
         self._bootstrap(options)
 
     def _bootstrap(self, options):
@@ -18,17 +19,22 @@ class Algorunner:
         self._connectToWorker(options)
 
     def _loadAlgorithm(self, options):
-        cwd = os.getcwd()
-        alg = options.algorithm
-        entryPoint = f'{cwd}/src/{alg["path"]}/{alg["entryPoint"]}'
         try:
+            cwd = os.getcwd()
+            alg = options.algorithm
+            entryPoint = f'{cwd}/{alg["path"]}/{alg["entryPoint"]}'
             mod = imp.load_source('algorithm', entryPoint)
-            for method in dir(methods):
-                if not method.startswith("__"):
-                    self._algorithm[method] = getattr(mod, method)
+            for m in dir(methods):
+                if not m.startswith("__"):
+                    method = getattr(methods, m)
+                    try:
+                        self._algorithm[method] = getattr(mod, method)
+                    except Exception as e:
+                        print(e)
 
         except Exception as e:
-            self._sendError(e)
+            self._loadAlgorithmError = e
+            print(e)
 
     def _connectToWorker(self, options):
         socket = options.socket
@@ -57,8 +63,17 @@ class Algorunner:
 
     def _init(self, options):
         try:
-            self._algorithm[methods.init](options)
-            self._wsc.send({"command": messages.outgoing["initialized"]})
+            if (self._loadAlgorithmError):
+                self._sendError(self._loadAlgorithmError)
+            else:
+                method = self._algorithm.get(methods.init)
+                if (method is None):
+                    raise Exception(f'unable to find method {methods.init}')
+                else:
+                    method(options)
+                    self._wsc.send({
+                        "command": messages.outgoing["initialized"]
+                    })
 
         except Exception as e:
             self._sendError(e)
@@ -66,27 +81,39 @@ class Algorunner:
     def _start(self, options):
         try:
             self._wsc.send({"command": messages.outgoing["started"]})
-            output = self._algorithm[methods.start]()
-            self._wsc.send({
-                "command": messages.outgoing["done"],
-                "data": output
-            })
+            method = self._algorithm.get(methods.start)
+            if (method is None):
+                raise Exception(f'unable to find method {methods.start}')
+            else:
+                output = method(options)
+                self._wsc.send({
+                    "command": messages.outgoing["done"],
+                    "data": output
+                })
 
         except Exception as e:
             self._sendError(e)
 
     def _stop(self, options):
         try:
-            self._algorithm[methods.stop]()
-            self._wsc.send({"command": messages.outgoing["stopped"]})
+            method = self._algorithm.get(methods.stop)
+            if (method is None):
+                raise Exception(f'unable to find method {methods.stop}')
+            else:
+                method(options)
+                self._wsc.send({"command": messages.outgoing["stopped"]})
 
         except Exception as e:
             self._sendError(e)
 
     def _exit(self, options):
         try:
-            self._algorithm[methods.stop]()
-            self._wsc.send({"command": messages.outgoing["stopped"]})
+            self._wsc.stopWS()
+            method = self._algorithm.get(methods.exit)
+            if (method is None):
+                raise Exception(f'unable to find method {methods.exit}')
+            else:
+                method(options)
 
         except Exception as e:
             self._sendError(e)
@@ -97,6 +124,6 @@ class Algorunner:
             "command": messages.outgoing["error"],
             "error": {
                 "code": "Failed",
-                "message": error
+                "message": str(error)
             }
         })

@@ -1,0 +1,18 @@
+FROM ${DOCKER_REGISTRY}python:3.7-alpine
+LABEL maintainer="yehiyam@gmail.com"
+
+RUN apk update
+RUN apk add --no-cache python3 python3-dev build-base libev-dev bash
+RUN pip3 install --upgrade pip
+RUN rm -r /root/.cache
+
+RUN mkdir /hkube
+COPY . /hkube/algorithm-runner
+RUN cd /hkube/algorithm-runner
+WORKDIR /hkube/algorithm-runner
+
+RUN pip3 -V
+RUN pip3 install -r requirements.txt
+
+ENTRYPOINT ["python3"]
+CMD ["app.py"]

@@ -1,0 +1,38 @@
+{
+    "buildId": "sort-alg-2506f596-03b1-49dd-afce-e29098212738",
+    "algorithm": {
+        "name": "sort-alg",
+        "env": "nodejs",
+        "code": {
+            "checksum": "0249a4867a396289f354b5125d741ddf",
+            "fileSize": 18792,
+            "entryPoint": "index.js"
+        },
+        "algorithmImage": "hkube/sort-alg",
+        "cpu": 0.5,
+        "mem": 512,
+        "algorithmEnv": {
+            "ENV1": "bla-bla",
+            "ENV2": "bla-bla"
+        },
+        "workerEnv": {
+            "ENV1": "bla-bla",
+            "ENV2": "bla-bla"
+        },
+        "minHotWorkers": 1,
+        "nodeSelector": {
+            "diskType": "ssd"
+        },
+        "userInfo": {
+            "platform": "linux",
+            "hostname": "ubuntu-hareln-ww",
+            "username": "harelh"
+        },
+        "options": {
+            "debug": false
+        }
+    },
+    "version": "1.0.0",
+    "status": "pending",
+    "timestamp": "2019-01-22T07:41:51.999Z"
+}

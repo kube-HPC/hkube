@@ -8,15 +8,16 @@ except ImportError:
 import time
 
 # TODO:
-# 1) handle reconnect
-# 2) handle bytes instead of json
+# 1) handle bytes instead of json
 
 
 class WebsocketClient:
     def __init__(self):
         self.events = Events()
-        self.ws = None
-        self.switcher = {
+        self._ws = None
+        self._reconnectInterval = 5
+        self._active = True
+        self._switcher = {
             "initialize": self.init,
             "start": self.start,
             "stop": self.stop,
@@ -38,7 +39,8 @@ class WebsocketClient:
     def on_message(self, message):
         decoded = json.loads(message)
         command = decoded["command"]
-        func = self.switcher.get(command)
+        print(f'got message from worker: {command}')
+        func = self._switcher.get(command)
         data = None if 'data' not in decoded else decoded["data"]
         func(data)
 
@@ -52,14 +54,23 @@ class WebsocketClient:
         self.events.on_connection()
 
     def send(self, message):
-        self.ws.send(json.dumps(message))
+        print(f'sending message to worker {message["command"]}')
+        self._ws.send(json.dumps(message))
 
     def startWS(self, url):
         websocket.enableTrace(True)
-        self.ws = websocket.WebSocketApp(
+        self._ws = websocket.WebSocketApp(
             url,
             on_message=self.on_message,
             on_error=self.on_error,
             on_close=self.on_close)
-        self.ws.on_open = self.on_open
-        self.ws.run_forever()
+        self._ws.on_open = self.on_open
+        while self._active:
+            try:
+                self._ws.run_forever()
+                time.sleep(self._reconnectInterval)
+            except:
+                pass
+
+    def stopWS(self):
+        self._active = False
