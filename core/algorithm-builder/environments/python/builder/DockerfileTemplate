@@ -1,9 +1,6 @@
 FROM ${DOCKER_REGISTRY}python:3.7-alpine
 LABEL maintainer="yehiyam@gmail.com"
 
-RUN pip3 install --upgrade pip
-RUN rm -r /root/.cache
-
 RUN mkdir /hkube
 COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner

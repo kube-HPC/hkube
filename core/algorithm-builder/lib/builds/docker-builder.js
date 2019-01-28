@@ -103,6 +103,7 @@ const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) 
 };
 
 const _getBuild = async ({ buildId }) => {
+    log.info(`getBuild -> ${buildId}`, { component });
     const build = await stateManger.getBuild({ buildId });
     if (!build) {
         throw new Error(`unable to find build -> ${buildId}`);
