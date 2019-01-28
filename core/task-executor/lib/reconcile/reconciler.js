@@ -283,8 +283,18 @@ const _getNodeStats = (normResources, workers) => {
     })));
     const statsPerNode = resourcesWithWorkers.map(n => ({
         name: n.name,
-        requests: n.requests,
-        total: n.total,
+        total: {
+            cpu: n.total.cpu,
+            gpu: n.total.gpu,
+            mem: n.total.memory,
+
+        },
+        requests: {
+            cpu: n.requests.cpu,
+            gpu: n.requests.gpu,
+            mem: n.requests.memory,
+
+        },
         labels: n.labels,
         workers: _calaStats(n.workers)
     }
@@ -372,6 +382,11 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await etcd.updateDiscovery({
         reconcileResult,
         actual: _calaStats(normWorkers),
+        resourcePressure: {
+            cpu: consts.CPU_RATIO_PRESURE,
+            gpu: consts.GPU_RATIO_PRESURE,
+            mem: consts.MEMORY_RATIO_PRESURE
+        },
         nodes: _getNodeStats(normResources, merged.mergedWorkers)
     });
     return reconcileResult;
