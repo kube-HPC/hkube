@@ -24,6 +24,7 @@ class Algorunner:
             alg = options.algorithm
             entryPoint = f'{cwd}/{alg["path"]}/{alg["entryPoint"]}'
             mod = imp.load_source('algorithm', entryPoint)
+            print('algorithm code loaded')
             for m in dir(methods):
                 if not m.startswith("__"):
                     method = getattr(methods, m)
