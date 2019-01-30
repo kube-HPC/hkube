@@ -16,7 +16,13 @@ class AppServer {
         return new Promise((resolve, reject) => {
             rest.on('error', (data) => {
                 const { route, jobId, pipelineName } = data.res._internalMetadata || {};
-                log.error(`Error response, status=${data.status}, message=${data.error.message}`, { component, route, jobId, pipelineName });
+                const { status } = data;
+                if (status >= 500) {
+                    log.error(`Error response, status=${status}, message=${data.error.message}`, { component, route, jobId, pipelineName, status });
+                }
+                else {
+                    log.info(`status=${status}, message=${data.error.message}`, { component, route, jobId, pipelineName, status });
+                }
             });
 
             swagger.info.version = options.version;
