@@ -191,6 +191,9 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             labels: cur.metadata.labels,
             requests: { cpu: 0, gpu: 0, memory: 0 },
             limits: { cpu: 0, gpu: 0, memory: 0 },
+            workersTotal: { cpu: 0, gpu: 0, memory: 0 },
+            workers: [],
+            other: { cpu: 0, gpu: 0, memory: 0 },
             total: {
                 cpu: parse.getCpuInCore(cur.status.allocatable.cpu),
                 gpu: parseGpu(cur.status.allocatable) || 0,
@@ -227,6 +230,21 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         accumulator[nodeName].limits.cpu += limitsCpu;
         accumulator[nodeName].limits.gpu += limitsGpu;
         accumulator[nodeName].limits.memory += limitsMem;
+        if (pod.metadata.labels.type === 'worker') {
+            accumulator[nodeName].workersTotal.cpu += requestCpu;
+            accumulator[nodeName].workersTotal.gpu += requestGpu;
+            accumulator[nodeName].workersTotal.memory += requestMem;
+            accumulator[nodeName].workers.push({
+                algorithmName: objectPath.get(pod, 'metadata.labels.algorithm-name'),
+                nodeName
+            });
+        }
+        else {
+            accumulator[nodeName].other.cpu += requestCpu;
+            accumulator[nodeName].other.gpu += requestGpu;
+            accumulator[nodeName].other.memory += requestMem;
+        }
+
         return accumulator;
     }, initial);
 

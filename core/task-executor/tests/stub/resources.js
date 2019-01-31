@@ -5,7 +5,10 @@ const pods = {
         items: [
             {
                 metadata: {
-                    name: 'one container with resources'
+                    name: 'one container with resources',
+                    labels: {
+
+                    }
                 },
                 spec: {
                     containers: [
@@ -32,7 +35,10 @@ const pods = {
             },
             {
                 metadata: {
-                    name: 'one container with resources not running'
+                    name: 'one container with resources not running',
+                    labels: {
+                        
+                    }
                 },
                 spec: {
                     containers: [
@@ -59,7 +65,10 @@ const pods = {
             },
             {
                 metadata: {
-                    name: 'two container with resources'
+                    name: 'two container with resources',
+                    labels: {
+                        
+                    }
                 },
                 spec: {
                     containers: [
@@ -100,7 +109,10 @@ const pods = {
             },
             {
                 metadata: {
-                    name: 'two container no node name'
+                    name: 'two container no node name',
+                    labels: {
+                        
+                    }
                 },
                 spec: {
                     containers: [
@@ -136,7 +148,10 @@ const pods = {
             },
             {
                 metadata: {
-                    name: 'one container no resources'
+                    name: 'one container no resources',
+                    labels: {
+                        
+                    }
                 },
                 spec: {
                     containers: [

@@ -19,7 +19,7 @@ const { normalizeWorkers,
     mergeWorkers } = require('./normalize');
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
-const { matchJobsToResources, pauseAccordingToResources, matchWorkersToNodes } = require('./resources');
+const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
 const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = consts;
 
 let createdJobsList = [];
@@ -274,13 +274,14 @@ const _calaStats = (data) => {
     return { stats, total: data.length };
 };
 
-const _getNodeStats = (normResources, workers) => {
+const _getNodeStats = (normResources) => {
     const localResources = clonedeep(normResources);
-    const resourcesWithWorkers = matchWorkersToNodes(localResources.nodeList, workers.filter(w => w.job).map(w => ({
-        algorithmName: w.algorithmName,
-        nodeName: w.job.nodeName,
-        workerStatus: w.workerStatus
-    })));
+    const resourcesWithWorkers = localResources.nodeList;
+    // const resourcesWithWorkers = matchWorkersToNodes(localResources.nodeList, workers.map(w => ({
+    //     algorithmName: w.algorithmName,
+    //     nodeName: w.job.nodeName,
+    //     workerStatus: w.workerStatus
+    // })));
     const statsPerNode = resourcesWithWorkers.map(n => ({
         name: n.name,
         total: {
@@ -295,8 +296,20 @@ const _getNodeStats = (normResources, workers) => {
             mem: n.requests.memory,
 
         },
+        other: {
+            cpu: n.other.cpu,
+            gpu: n.other.gpu,
+            mem: n.other.memory,
+        },
+        workersTotal: {
+            cpu: n.workersTotal.cpu,
+            gpu: n.workersTotal.gpu,
+            mem: n.workersTotal.memory,
+        },
         labels: n.labels,
+        workers2: n.workers,
         workers: _calaStats(n.workers)
+
     }
     ));
     return statsPerNode;
