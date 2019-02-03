@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 
-IMAGE_NAME=$1
-DOCKER_REGISTRY=$2
-DOCKER_REGISTRY_USER=$3
-DOCKER_REGISTRY_PASS=$4
-BUILD_PATH=$5
+# This script used to create a specific base algorithm
 
-echo docker version
-docker version
-echo
+ENV=$1
+VER=$2
 
-echo Operating System Details
-cat /etc/os-release
-echo
+NPM_VERSION=${npm_package_version}
+VERSION="${VER:=${NPM_VERSION}}"
+BUILD_PATH="builders/environments/${ENV}"
+IMAGE_NAME="hkube/base-algorithm-${ENV}:v${VERSION}"
+
+if [ -z ${ENV} ]; then
+  echo "Please choose env (python, node)"
+  exit -1
+fi
 
 echo IMAGE_NAME=${IMAGE_NAME}
 echo DOCKER_REGISTRY=${DOCKER_REGISTRY}
@@ -24,10 +25,9 @@ if [[ ${DOCKER_REGISTRY_PASS} != "" ]]; then
     echo "Found docker password, docker login...."
     echo ${DOCKER_REGISTRY_PASS} | docker login --username ${DOCKER_REGISTRY_USER} --password-stdin
 else
-    echo "Didn't find docker password, no login...."
+    echo "Didn't find docker password, skip login...."
 fi
 
-DOCKER_REGISTRY=${DOCKER_REGISTRY} envsubst < ${BUILD_PATH}/builder/DockerfileTemplate > ${BUILD_PATH}/builder/Dockerfile
 echo
 
 docker build \
@@ -35,6 +35,6 @@ docker build \
 --no-cache \
  -f ${BUILD_PATH}/builder/Dockerfile ${BUILD_PATH}
 
-docker push ${IMAGE_NAME}
+# docker push ${IMAGE_NAME}
 
 # docker rmi ${IMAGE_NAME}

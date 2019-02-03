@@ -121,6 +121,7 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     const envr = `environments/${env}`;
     await fse.ensureDir(buildPath);
     await fse.copy(envr, buildPath);
+    await fse.remove(`${buildPath}/builder/Dockerfile`);
     await fse.move(dest, `${buildPath}/algorithm`, { overwrite });
 };
 

@@ -1,11 +1,12 @@
-FROM ${DOCKER_REGISTRY}hkube/base-python:v1.0.0
+
+ARG DOCKER_REGISTRY=""
+FROM ${DOCKER_REGISTRY}hkube/base-node:v1.1.1
 LABEL maintainer="yehiyam@gmail.com"
 
+RUN mkdir /hkube
 COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 
-RUN pip3 install -r requirements.txt
-
-ENTRYPOINT ["python3"]
-CMD ["app.py"]
+RUN npm i
+CMD ["npm", "start"]

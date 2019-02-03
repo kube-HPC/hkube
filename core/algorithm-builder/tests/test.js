@@ -18,7 +18,7 @@ describe('Test', function () {
         await stateManger.init(main);
     });
     describe('Docker', function () {
-        it('should failed to build docker when no build id', async function () {
+        xit('should failed to build docker when no build id', async function () {
             const response = await dockerBuild(config);
             expect(response.error).to.equal('build id is required');
             expect(response.status).to.equal('failed');
@@ -27,7 +27,7 @@ describe('Test', function () {
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
         });
-        it('should failed to build docker when no such build id', async function () {
+        xit('should failed to build docker when no such build id', async function () {
             config.buildId = `no_such_build-${uuid()}`;
             const response = await dockerBuild(config);
             expect(response.error).to.equal(`unable to find build -> ${config.buildId}`);
@@ -51,7 +51,7 @@ describe('Test', function () {
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
         });
-        xit('PYTHON: should succeed to build docker', async function () {
+        it('PYTHON: should succeed to build docker', async function () {
             this.timeout(200000);
             const mockZip = `${process.cwd()}/tests/mocks/python/sort-alg.tar.gz`;
             const { buildId } = mockBuildPython;
