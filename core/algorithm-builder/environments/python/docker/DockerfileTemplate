@@ -5,9 +5,6 @@ COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 
-RUN openssl s_client -connect pypi.org:443
-RUN openssl s_client -connect files.pythonhosted.org:443
-
 RUN if [ -f ./algorithm/requirements.txt ]; then echo found requirements.txt; pip3 install -r ./algorithm/requirements.txt; else echo no requirements.txt found; fi 
 
 CMD ["python3", "app.py"]
