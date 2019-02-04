@@ -1,0 +1,12 @@
+
+FROM ${DOCKER_REGISTRY}hkube/base-algorithm-nodejs:v1.0.0
+LABEL maintainer="yehiyam@gmail.com"
+
+COPY . /hkube/algorithm-runner
+WORKDIR /hkube/algorithm-runner/algorithm
+RUN npm i
+
+RUN cd /hkube/algorithm-runner
+WORKDIR /hkube/algorithm-runner
+
+CMD ["npm", "start"]

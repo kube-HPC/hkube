@@ -11,7 +11,7 @@
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
     "build": "./dockerfile/build.sh algorithm-builder",
-    "build-env": "./builders/build.sh"
+    "build-env": "./lib/builds/build-base-image.sh"
   },
   "pre-commit": {
     "run": [

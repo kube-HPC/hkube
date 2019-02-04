@@ -121,7 +121,6 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     const envr = `environments/${env}`;
     await fse.ensureDir(buildPath);
     await fse.copy(envr, buildPath);
-    await fse.remove(`${buildPath}/builder/Dockerfile`);
     await fse.move(dest, `${buildPath}/algorithm`, { overwrite });
 };
 
@@ -129,7 +128,7 @@ const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {
     const baseImage = path.join(docker.registry, docker.namespace, algorithmName);
     const algorithmImage = `${baseImage}:v${version}`;
     const args = [algorithmImage, docker.registry, docker.user, docker.pass, buildPath];
-    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build.sh`, args });
+    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
     return { output, algorithmImage };
 };
 
