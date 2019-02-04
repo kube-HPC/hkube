@@ -51,7 +51,7 @@ describe('Test', function () {
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
         });
-        it('PYTHON: should succeed to build docker', async function () {
+        xit('PYTHON: should succeed to build docker', async function () {
             this.timeout(200000);
             const mockZip = `${process.cwd()}/tests/mocks/python/web-scrap.tar.gz`;
             const { buildId } = mockBuildPython;

@@ -29,6 +29,6 @@ echo
 
 dockerBuild
 
-# docker push ${IMAGE_NAME}
+docker push ${IMAGE_NAME}
 
 # docker rmi ${IMAGE_NAME}

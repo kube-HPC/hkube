@@ -1,6 +1,7 @@
 ARG DOCKER_REGISTRY=""
 FROM ${DOCKER_REGISTRY}python:3.7-alpine
 LABEL maintainer="yehiyam@gmail.com"
+LABEL description="This is a base algorithm for Python env"
 
 RUN mkdir /hkube
 COPY . /hkube/algorithm-runner
