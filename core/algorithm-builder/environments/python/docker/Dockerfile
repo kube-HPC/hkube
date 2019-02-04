@@ -13,6 +13,3 @@ RUN apk add --no-cache libressl-dev
 RUN apk add --no-cache bash
 
 RUN pip3 install -r requirements.txt
-
-ENTRYPOINT ["python3"]
-CMD ["app.py"]

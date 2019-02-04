@@ -10,5 +10,4 @@ RUN openssl s_client -connect files.pythonhosted.org:443
 
 RUN if [ -f ./algorithm/requirements.txt ]; then echo found requirements.txt; pip3 install -r ./algorithm/requirements.txt; else echo no requirements.txt found; fi 
 
-ENTRYPOINT ["python3"]
-CMD ["app.py"]
+CMD ["python3", "app.py"]
