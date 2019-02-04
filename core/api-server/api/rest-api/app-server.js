@@ -18,10 +18,10 @@ class AppServer {
                 const { route, jobId, pipelineName } = data.res._internalMetadata || {};
                 const { status } = data;
                 if (status >= 500) {
-                    log.error(`Error response, status=${status}, message=${data.error.message}`, { component, route, jobId, pipelineName, status });
+                    log.error(`Error response, status=${status}, message=${data.error.message}`, { component, route, jobId, pipelineName, httpStatus: status });
                 }
                 else {
-                    log.info(`status=${status}, message=${data.error.message}`, { component, route, jobId, pipelineName, status });
+                    log.info(`status=${status}, message=${data.error.message}`, { component, route, jobId, pipelineName, httpStatus: status });
                 }
             });
 
