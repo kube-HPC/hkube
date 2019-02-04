@@ -8,7 +8,10 @@ COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 
+RUN apk add --no-cache libressl
+RUN apk add --no-cache libressl-dev
 RUN apk add --no-cache bash
+
 RUN pip3 install -r requirements.txt
 
 ENTRYPOINT ["python3"]
