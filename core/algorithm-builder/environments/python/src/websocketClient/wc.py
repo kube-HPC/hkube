@@ -1,10 +1,7 @@
 import websocket
 import json
 from events import Events
-try:
-    import thread
-except ImportError:
-    import _thread as thread
+import asyncio
 import time
 
 # TODO:
@@ -54,17 +51,19 @@ class WebsocketClient:
         self.events.on_connection()
 
     def send(self, message):
-        print(f'sending message to worker {message["command"]}')
-        self._ws.send(json.dumps(message))
+        try:
+            print(f'sending message to worker {message["command"]}')
+            self._ws.send(json.dumps(message))
+        except Exception as e:
+            print(e)
 
     def startWS(self, url):
-        websocket.enableTrace(True)
         self._ws = websocket.WebSocketApp(
             url,
             on_message=self.on_message,
             on_error=self.on_error,
+            on_open=self.on_open,
             on_close=self.on_close)
-        self._ws.on_open = self.on_open
         while self._active:
             try:
                 self._ws.run_forever()
