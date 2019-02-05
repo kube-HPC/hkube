@@ -1,5 +1,3 @@
-import imp
-import sys
 import os
 import importlib
 from src.websocketClient import wc

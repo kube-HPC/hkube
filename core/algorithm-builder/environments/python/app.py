@@ -1,6 +1,5 @@
 from configs import config
 import algorunner
-import time
 
 
 def main():

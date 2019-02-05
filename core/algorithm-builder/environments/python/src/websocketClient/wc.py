@@ -1,7 +1,6 @@
 import websocket
 import json
 from events import Events
-import asyncio
 import time
 
 # TODO:
