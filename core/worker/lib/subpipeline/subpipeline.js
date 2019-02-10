@@ -16,8 +16,10 @@ let log;
 class SubPipelineHandler {
     init() {
         log = Logger.GetLogFromContainer();
+
         // subpipeline IDs mapping: jobId => internal alg subpipeline Id
         this._jobId2InternalIdMap = new Map();
+        this._stoppingSubpipelines = false;
 
         this._registerToEtcdEvents();
         this._registerToAlgEvents();
@@ -195,21 +197,56 @@ class SubPipelineHandler {
     }
 
     /**
-     * finish subPipeline span
+     * Start subpipeline span for algorithm
+     * @param subPipelineName subPipeline name
+     * @param subPipelineId subpipeline internal algorithm id
+     * @param subPipelineJobId subPipeline jobId in hkube
+     */
+    _startSubPipelineSpan(subPipelineName, subPipelineId, subPipelineJobId) {
+        try {
+            const name = `start-subpipeline ${subPipelineName}`;
+            const spanOptions = {
+                name,
+                id: subPipelineId,
+                tags: {
+                    subPipelineJobId,
+                    subPipelineId,
+                    jobId: jobConsumer.jobId,
+                    taskId: jobConsumer.taskId,
+                }
+            };
+            if (!jobConsumer.algTracer.topSpan(jobConsumer.taskId)) {
+                const topWorkerSpan = tracer.topSpan(jobConsumer.taskId);
+                if (topWorkerSpan) {
+                    spanOptions.parent = topWorkerSpan.context();
+                }
+                else {
+                    spanOptions.parent = jobConsumer._job.data.spanId;
+                }
+            }
+            jobConsumer.algTracer.startSpan(spanOptions);
+        }
+        catch (error) {
+            log.error(`error while staring subpipeline span: ${error.messahe}`);
+        }
+    }
+
+    /**
+     * finish subPipeline span for algorithm
      * @param subPipelineId
      * @param status subPieline status when finished
      * @param error for status=FAILED: error object or message, for status=STOP: stop reason
      */
-    async _finishSubPipelineSpan(subPipelineId, status, error) {
-        const topSpan = tracer.topSpan(subPipelineId);
+    _finishSubPipelineSpan(subPipelineId, status, error) {
+        const topSpan = jobConsumer.algTracer.topSpan(subPipelineId);
         if (topSpan) {
             topSpan.addTag({ status });
             if (status === Status.STOPPED) {
                 topSpan.addTag({ reason: error });
-                await topSpan.finish();
+                topSpan.finish();
             }
             else {
-                await topSpan.finish(error);
+                topSpan.finish(error);
             }
         }
     }
@@ -256,22 +293,8 @@ class SubPipelineHandler {
                 log.info(`SubPipeline posted, alg subPipelineId=${subPipelineId}, jobId=${subPipelineJobId}`, { component });
 
                 // start subPipeline span
-                const name = `${jobConsumer.getAlgorithmType()}:  start-subpipeline ${subPipeline.name}`;
-                const topSpan = tracer.topSpan(jobConsumer.taskId);
-                const spanOptions = {
-                    name,
-                    id: subPipelineId,
-                    tags: {
-                        subPipelineJobId,
-                        subPipelineId,
-                        jobId: jobConsumer.jobId,
-                        taskId: jobConsumer.taskId,
-                    }
-                };
-                if (topSpan) {
-                    spanOptions.parent = topSpan.context();
-                }
-                tracer.startSpan(spanOptions);
+                this._startSubPipelineSpan(subPipeline.name, subPipelineId, subPipelineJobId);
+
                 // watch results
                 const result = await discovery.watchJobResults({ jobId: subPipelineJobId });
                 if (result) {
@@ -307,7 +330,7 @@ class SubPipelineHandler {
     async _stopSubPipeline(subPipelineJobId, reason) {
         log.info(`stopping subPipeline  ${subPipelineJobId} - reason: ${reason} ...`);
         try {
-            this.unwatchJobResults(subPipelineJobId);
+            await this.unwatchJobResults(subPipelineJobId);
             await apiServerClient.postStopSubPipeline(subPipelineJobId, reason);
         }
         catch (error) {
@@ -319,20 +342,32 @@ class SubPipelineHandler {
      * Stop all active subPipelinese
      * @param reason
      */
-    stopAllSubPipelines(reason) {
+    async stopAllSubPipelines(reason) {
+        if (this._stoppingSubpipelines) {
+            return;
+        }
         if (this._jobId2InternalIdMap.size === 0) {
             log.info('no registered subPipelines to stop', { component });
             return;
         }
-        // stop all subPipelines
-        log.info(`stopping ${this._jobId2InternalIdMap.size} registered subPipelines, reason: ${reason} ...`, { component });
-        this._jobId2InternalIdMap.forEach((subPipelineId, subPipelineJobId) => {
-            this._stopSubPipeline(subPipelineJobId, reason);
-            // finish subPipeline span
-            this._finishSubPipelineSpan(subPipelineId, Status.STOPPED, reason);
-        });
+        this._stoppingSubpipelines = true;
+        try {
+            await Promise.all([...this._jobId2InternalIdMap].map(subPipelineIdEntry => this._closeSubpipeline(subPipelineIdEntry, reason)));
+        }
+        catch (error) {
+            log.warning(`failed to stop subPipeline: ${error}`, { component });
+        }
+
         // clean subPipelines IDs
         this._jobId2InternalIdMap.clear();
+        this._stoppingSubpipelines = false;
+    }
+
+    async _closeSubpipeline(subPipelineIdEntry, reason) {
+        const [subPipelineJobId, subPipelineId] = subPipelineIdEntry;
+        await this._stopSubPipeline(subPipelineJobId, reason);
+        this._jobId2InternalIdMap.delete(subPipelineJobId);
+        this._finishSubPipelineSpan(subPipelineId, Status.STOPPED, reason);
     }
 
     /**

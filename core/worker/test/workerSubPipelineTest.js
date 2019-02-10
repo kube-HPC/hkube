@@ -1,10 +1,11 @@
 const { expect } = require('chai');
-// const sinon = require('sinon');
+const sinon = require('sinon');
 const chai = require('chai');
 const mockery = require('mockery');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
+const delay = require('delay');
 const { main, logger } = configIt.load();
 log = new Logger(main.serviceName, logger);
 const messages = require('../lib/algorithm-communication/messages');
@@ -137,6 +138,9 @@ describe('worker SubPipeline test', () => {
         const bootstrap = require('../bootstrap');
         workerCommunication = require('../lib/algorithm-communication/workerCommunication');
         stateManager = require('./mocks/stateManager');
+        if (jobConsumer._algTracer) {
+            jobConsumer._algTracer._tracer.close();
+        }
         await storageManager.init(main, true);
         await bootstrap.init();
     });
@@ -328,23 +332,18 @@ describe('worker SubPipeline test', () => {
             done();
         }, 2000);
     });
-    it('enter ready state should clear subPipelines data', function (done) {
+    it('enter ready state should clear subPipelines data', async function () {
         const subPipelineHandler = require('../lib/subpipeline/subpipeline');
         // simulate 2 subPipelines
+        const state = workerStates.ready;
+        const spy = sinon.spy(subPipelineHandler, 'stopAllSubPipelines');
         subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
-        expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        stateManager.emit(stateEvents.stateEntered, { state: workerStates.ready });
+        stateManager.emit(stateEvents.stateEntered, { state });
+        await delay(1000);
+
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).equals(`parent algorithm entered state ${state}`, 'expect args to be correct');
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after state ready');
-
-        // subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
-        // expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        // stateManager.emit(stateEvents.stateEntered, { state: workerStates.error });
-        // expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after error');
-
-        // subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
-        // expect(subPipelineHandler._jobId2InternalIdMap.size).equals(2);
-        // stateManager.emit(stateEvents.stateEntered, { state: workerStates.init, job: { data: 1 } });
-        // expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after init');
-        done();
     });
 });

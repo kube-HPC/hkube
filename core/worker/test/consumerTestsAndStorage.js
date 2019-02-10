@@ -36,6 +36,11 @@ function getConfig() {
                 }
             }
         },
+        tracer: {
+            tracerConfig: {
+                serviceName: 'worker'
+            }
+        },
         redis: {
             host: process.env.REDIS_SERVICE_HOST || 'localhost',
             port: process.env.REDIS_SERVICE_PORT || 6379
@@ -68,6 +73,9 @@ describe('consumer tests', () => {
         await storageManager.init(config, true);
         await bootstrap.init();
         consumer = Consumer;
+        if (consumer._algTracer) {
+            consumer._algTracer._tracer.close();
+        }
     });
     it('store data and validate result from algorithm', (done) => {
         let config = getConfig();

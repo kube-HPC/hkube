@@ -18,7 +18,7 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
 };
 
-config.debugMode = formatter.parseBool(process.env.DEBUG_MODE || false);
+config.debugMode = formatter.parseBool(process.env.DEBUG_MODE);
 
 config.apiServer = {
     protocol: 'http',
@@ -59,6 +59,8 @@ config.jobConsumer = {
 };
 
 config.pollingInterval = process.env.POLLING_INTERVAL || 100; // The polling interval is the period of time between jobs in ms.
+
+config.hotWorker = formatter.parseBool(process.env.HOT_WORKER);
 
 config.timeouts = {
     stop: 10000 // timeout to stop the algorithm in ms

@@ -1,6 +1,8 @@
 const commands = {
     stopProcessing: 'stopProcessing',
-    startProcessing: 'startProcessing'
+    startProcessing: 'startProcessing',
+    coolDown: 'coolDown',
+    warmUp: 'warmUp'
 };
 
 module.exports = commands;

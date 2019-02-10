@@ -24,10 +24,13 @@ class JobConsumer extends EventEmitter {
         this._job = null;
         this._jobId = undefined;
         this._taskId = undefined;
+        this._batchIndex = undefined;
         this._pipelineName = undefined;
         this._consumerPaused = false;
         this.workerStartingTime = new Date();
         this.jobCurrentTime = null;
+        this._hotWorker = false;
+        this._algTracer = null;
     }
 
     async init(options) {
@@ -40,11 +43,15 @@ class JobConsumer extends EventEmitter {
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
+        // create another tracer for the algorithm
+        this._algTracer = await tracer.createTracer(this.getAlgorithmType(), options.tracer);
+
         if (this._consumer) {
             this._consumer.removeAllListeners();
             this._consumer = null;
             this._job = null;
         }
+        this._hotWorker = this._options.hotWorker;
         this._registerMetrics();
         this._consumer = new Consumer(this._options.jobConsumer);
         this._jobProvider = new JobProvider(options);
@@ -58,8 +65,9 @@ class JobConsumer extends EventEmitter {
             this._job = job;
             this._jobId = job.data.jobId;
             this._taskId = job.data.taskId;
+            this._batchIndex = job.data.batchIndex;
             this._pipelineName = job.data.pipelineName;
-            this._jobData = { nodeName: job.data.nodeName, batchID: job.data.batchID };
+            this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
             const watchState = await etcd.watch({ jobId: this._jobId });
 
             if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
@@ -123,6 +131,14 @@ class JobConsumer extends EventEmitter {
         }
     }
 
+    get hotWorker() {
+        return this._hotWorker;
+    }
+
+    set hotWorker(value) {
+        this._hotWorker = value;
+    }
+
     async updateDiscovery(data) {
         const discoveryInfo = this.getDiscoveryData(data);
         await etcd.updateDiscovery(discoveryInfo);
@@ -144,6 +160,7 @@ class JobConsumer extends EventEmitter {
             workerStartingTime: this.workerStartingTime,
             jobCurrentTime: this.jobCurrentTime,
             workerPaused: this.isConsumerPaused,
+            hotWorker: this._hotWorker,
             error
         };
         return discoveryInfo;
@@ -363,7 +380,8 @@ class JobConsumer extends EventEmitter {
             jobId: this._jobId,
             taskId: this._taskId,
             pipelineName: this._pipelineName,
-            algorithmName: this.getAlgorithmType()
+            algorithmName: this.getAlgorithmType(),
+            batchIndex: this._batchIndex
         };
     }
 
@@ -381,6 +399,10 @@ class JobConsumer extends EventEmitter {
 
     getAlgorithmType() {
         return this._options.jobConsumer.job.type;
+    }
+
+    get algTracer() {
+        return this._algTracer;
     }
 }
 

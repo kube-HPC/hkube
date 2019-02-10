@@ -45,15 +45,26 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(EventMessages.STOP, (res) => {
+        discovery.on(EventMessages.STOP, async (res) => {
             log.info(`got stop: ${res.reason}`, { component });
             // stop registered subpipelines first
             const reason = `parent pipeline stopped: ${res.reason}`;
-            subpieline.stopAllSubPipelines(reason);
+            await subpieline.stopAllSubPipelines(reason);
             // then stop worker
             stateManager.stop();
         });
-
+        discovery.on(workerCommands.coolDown, async () => {
+            log.info('got coolDown event', { component });
+            jobConsumer.hotWorker = false;
+            await jobConsumer.updateDiscovery({ state: stateManager.state });
+            this._setInactiveTimeout();
+        });
+        discovery.on(workerCommands.warmUp, async () => {
+            log.info('got warmUp event', { component });
+            jobConsumer.hotWorker = true;
+            await jobConsumer.updateDiscovery({ state: stateManager.state });
+            this._setInactiveTimeout();
+        });
         discovery.on(workerCommands.stopProcessing, async () => {
             if (!jobConsumer.isConsumerPaused) {
                 await jobConsumer.pause();
@@ -122,12 +133,12 @@ class Worker {
                 log.debug(`progress: ${message.data.progress}`, { component });
             }
         });
-        algoRunnerCommunication.on(messages.incomming.error, (message) => {
+        algoRunnerCommunication.on(messages.incomming.error, async (message) => {
             const errText = message.error && message.error.message;
             log.error(`got error from algorithm: ${errText}`, { component });
             // clean remind subPipelines
             const reason = `parent algorithm failed: ${errText}`;
-            subpieline.stopAllSubPipelines(reason);
+            await subpieline.stopAllSubPipelines(reason);
             // finish (with error)
             stateManager.done(message);
         });
@@ -167,16 +178,27 @@ class Worker {
             log.error(`invalid startSpan message: ${JSON.stringify(message, 2, null)}`);
             return;
         }
-        const name = `${jobConsumer.getAlgorithmType()}: ${data.name}`;
-        tracer.startSpan({
-            name,
+        const spanOptions = {
+            name: data.name,
             id: jobConsumer.taskId,
             tags: {
                 ...data.tags,
                 jobId: jobConsumer.jobId,
                 taskId: jobConsumer.taskId,
             }
-        });
+        };
+        // set parent span
+        if (!jobConsumer.algTracer.topSpan(jobConsumer.taskId)) {
+            const topWorkerSpan = tracer.topSpan(jobConsumer.taskId);
+            if (topWorkerSpan) {
+                spanOptions.parent = topWorkerSpan.context();
+            }
+            else {
+                spanOptions.parent = jobConsumer._job.data.spanId;
+            }
+        }
+        // start span
+        jobConsumer.algTracer.startSpan(spanOptions);
     }
 
     /**
@@ -191,16 +213,18 @@ class Worker {
         }
         const { data } = message;
         if (!data) {
-            log.error(`invalid finishSpan message: ${JSON.stringify(message, 2, null)}`);
+            log.warning(`invalid finishSpan message: ${JSON.stringify(message, 2, null)}`);
             return;
         }
-        // const topSpan = tracer.topSpan(data.spanId);
-        const topSpan = tracer.topSpan(jobConsumer.taskId);
+        const topSpan = jobConsumer.algTracer.topSpan(jobConsumer.taskId);
         if (topSpan) {
             if (data.tags) {
                 topSpan.addTag(data.tags);
             }
             topSpan.finish(data.error);
+        }
+        else {
+            log.warning('got finishSpan request but algorithm span stack is empty!');
         }
     }
 
@@ -221,13 +245,18 @@ class Worker {
                         log.info(`deleted job ${jobName}`, { component });
                     }
                 }
-
-                // clean all registered subPiplines, if exist
-                const reason = 'parent pipeline exit';
-                subpieline.stopAllSubPipelines(reason);
             }
             catch (error) {
                 log.error(`failed to handle exit: ${error}`, { component });
+            }
+
+            try {
+                // clean all registered subPiplines, if exist
+                const reason = 'parent pipeline exit';
+                await subpieline.stopAllSubPipelines(reason);
+            }
+            catch (error) {
+                log.error(`failed to stop subpipeline/s: ${error}`, { component });
             }
             finally {
                 this._inTerminationMode = false;
@@ -247,12 +276,12 @@ class Worker {
     }
 
     _handleTimeout(state) {
-        if (state === workerStates.ready || state === workerStates.exit) {
+        if (state === workerStates.ready) {
             if (this._inactiveTimer) {
                 clearTimeout(this._inactiveTimer);
                 this._inactiveTimer = null;
             }
-            if (this._inactiveTimeoutMs != 0) { // eslint-disable-line
+            if (!jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
                 log.info(`starting inactive timeout for worker ${this._inactiveTimeoutMs / 1000} seconds`, { component });
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {
@@ -288,7 +317,7 @@ class Worker {
                 case workerStates.ready:
                     // clean all registered subPiplines, if exist
                     reason = `parent algorithm entered state ${state}`;
-                    subpieline.stopAllSubPipelines(reason);
+                    await subpieline.stopAllSubPipelines(reason);
                     break;
                 case workerStates.init: {
                     // start init

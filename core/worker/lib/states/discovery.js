@@ -94,7 +94,7 @@ class EtcdDiscovery extends EventEmitter {
             log.debug('end unwatch', { component });
         }
         catch (error) {
-            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${JSON.stringify(error)}`, { component }, error);
+            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
         }
     }
 }
