@@ -268,7 +268,7 @@ class JobConsumer extends EventEmitter {
 
         const resData = Object.assign({ status, error, jobId: this._jobId, taskId: this._taskId }, storageResult);
         await etcd.update(resData);
-        await this._putMetadata(resultData);
+        await this._putMetadata(resData);
         this._summarizeMetrics(status);
         log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
