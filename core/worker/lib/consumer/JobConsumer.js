@@ -188,18 +188,18 @@ class JobConsumer extends EventEmitter {
     _getStatus(data) {
         const { state, results } = data;
         const workerStatus = state;
-        let jobStatus = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
+        let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
 
         if (results != null) {
             error = results.error && results.error.message;
-            jobStatus = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
+            status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
         }
 
         const resultData = results && results.data;
         return {
             workerStatus,
-            jobStatus,
+            status,
             error,
             resultData
         };
@@ -242,31 +242,19 @@ class JobConsumer extends EventEmitter {
         }
 
         await etcd.unwatch({ jobId: this._jobId });
-        let resultLink = null;
-        let { resultData, jobStatus, error } = this._getStatus(data); // eslint-disable-line prefer-const
+        let storageResult = {};
+        let { resultData, status, error } = this._getStatus(data); // eslint-disable-line prefer-const
 
-        if (!error && jobStatus === constants.JOB_STATUS.SUCCEED) {
-            const { storageError, storageLink } = await this._putResult(resultData);
-            if (storageError) {
-                jobStatus = constants.JOB_STATUS.FAILED;
-                error = storageError;
-            }
-            resultLink = storageLink;
+        if (!error && status === constants.JOB_STATUS.SUCCEED) {
+            storageResult = await this._putResult(resultData);
         }
 
-        const resData = {
-            jobId: this._jobId,
-            taskId: this._taskId,
-            status: jobStatus,
-            result: resultLink,
-            error
-        };
-
+        const resData = Object.assign({ status, error, jobId: this._jobId, taskId: this._taskId }, storageResult);
         await etcd.update(resData);
-        await storageManager.hkubeMetadata.put({ jobId: this._jobId, taskId: this._taskId, data: resData });
-        this._summarizeMetrics(jobStatus);
-        log.debug(`result: ${JSON.stringify(resultLink)}`, { component });
-        log.info(`finishJob - status: ${jobStatus}, error: ${error}`, { component });
+        await this._putMetadata(resultData);
+        this._summarizeMetrics(status);
+        log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
+        log.info(`finishJob - status: ${status}, error: ${error}`, { component });
 
         this._job.done(error);
         this._job = null;
@@ -277,41 +265,55 @@ class JobConsumer extends EventEmitter {
     }
 
     _summarizeMetrics(jobStatus) {
-        const pipelineName = formatter.formatPipelineName(this._pipelineName);
-        if (jobStatus === constants.JOB_STATUS.FAILED) {
-            metrics.get(metricsNames.worker_failed).inc({
+        try {
+            const pipelineName = formatter.formatPipelineName(this._pipelineName);
+            if (jobStatus === constants.JOB_STATUS.FAILED) {
+                metrics.get(metricsNames.worker_failed).inc({
+                    labelValues: {
+                        pipeline_name: pipelineName,
+                        algorithm_name: this.getAlgorithmType()
+                    }
+                });
+            }
+            else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
+                metrics.get(metricsNames.worker_succeeded).inc({
+                    labelValues: {
+                        pipeline_name: pipelineName,
+                        algorithm_name: this.getAlgorithmType()
+                    }
+                });
+            }
+            metrics.get(metricsNames.worker_net).end({
+                id: this._taskId,
                 labelValues: {
-                    pipeline_name: pipelineName,
-                    algorithm_name: this.getAlgorithmType()
+                    status: jobStatus
+                }
+            });
+            metrics.get(metricsNames.worker_runtime).end({
+                id: this._taskId,
+                labelValues: {
+                    status: jobStatus
                 }
             });
         }
-        else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
-            metrics.get(metricsNames.worker_succeeded).inc({
-                labelValues: {
-                    pipeline_name: pipelineName,
-                    algorithm_name: this.getAlgorithmType()
-                }
-            });
+        catch (err) {
+            log.error(`failed to report metrics:${this._jobId} task:${this._taskId}`, { component }, err);
         }
-        metrics.get(metricsNames.worker_net).end({
-            id: this._taskId,
-            labelValues: {
-                status: jobStatus
-            }
-        });
-        metrics.get(metricsNames.worker_runtime).end({
-            id: this._taskId,
-            labelValues: {
-                status: jobStatus
-            }
-        });
     }
 
-    async _putResult(result) {
-        let data = result;
-        let storageLink = null;
-        let storageError = null;
+    async _putMetadata(metadata) {
+        try {
+            await storageManager.hkubeMetadata.put({ jobId: this._jobId, taskId: this._taskId, data: metadata });
+        }
+        catch (err) {
+            log.error(`failed to store Metadata job:${this._jobId} task:${this._taskId}`, { component }, err);
+        }
+    }
+
+    async _putResult(data) {
+        let result = null;
+        let error = null;
+        let status = constants.JOB_STATUS.SUCCEED;
         let span;
         try {
             span = tracer.startSpan({
@@ -323,13 +325,14 @@ class JobConsumer extends EventEmitter {
                 }
             });
             if (data === undefined) {
+                // eslint-disable-next-line no-param-reassign
                 data = null;
             }
             const storageInfo = await storageManager.hkube.put({
                 jobId: this._job.data.jobId, taskId: this._job.data.taskId, data
             });
             const object = { [this._job.data.nodeName]: data };
-            storageLink = {
+            result = {
                 metadata: parser.objectToMetadata(object, this._job.data.info.savePaths),
                 storageInfo
             };
@@ -342,12 +345,17 @@ class JobConsumer extends EventEmitter {
                 span.finish(err);
             }
             log.error(`failed to store data job:${this._jobId} task:${this._taskId}`, { component }, err);
-            storageError = err.message;
+            error = err.message;
+            status = constants.JOB_STATUS.FAILED;
         }
-        return {
-            storageLink,
-            storageError
-        };
+        finally {
+            // eslint-disable-next-line no-unsafe-finally
+            return {
+                status,
+                result,
+                error
+            };
+        }
     }
 
     currentTaskInfo() {

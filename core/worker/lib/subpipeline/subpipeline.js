@@ -123,20 +123,19 @@ class SubPipelineHandler {
             return;
         }
         // get subpipeline results from storage
-        const res = await storageManager.get(result.data.storageInfo);
-        if (res.error) {
-            this._handleJobError(res.error.message, subPipelineId);
-            return;
+        try {
+            const res = await storageManager.get(result.data.storageInfo);
+            algoRunnerCommunication.send({
+                command: messages.outgoing.subPipelineDone,
+                data: {
+                    response: res,
+                    subPipelineId
+                }
+            });
         }
-
-        // send subPipelineDone to alg
-        algoRunnerCommunication.send({
-            command: messages.outgoing.subPipelineDone,
-            data: {
-                response: res,
-                subPipelineId
-            }
-        });
+        catch (error) {
+            this._handleJobError(error.message, subPipelineId);
+        }
     }
 
     /**

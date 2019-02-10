@@ -8,6 +8,8 @@ const worker = require('../lib/worker');
 const uuid = require('uuid/v4');
 const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
+const mockery = require('mockery');
+const delay = require('delay');
 
 let consumer, producer;
 
@@ -56,6 +58,12 @@ function getConfig() {
 
 describe('consumer tests', () => {
     beforeEach(async () => {
+        mockery.enable({
+            warnOnReplace: false,
+            warnOnUnregistered: false,
+            useCleanCache: true
+        });
+        mockery.resetCache();
         let config = getConfig();
         await storageManager.init(config, true);
         await bootstrap.init();
@@ -66,6 +74,7 @@ describe('consumer tests', () => {
         storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then((link) => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
+
                     producer = new Producer(config.jobConsumer);
                     let x = await producer.createJob({
                         job: {
@@ -77,17 +86,20 @@ describe('consumer tests', () => {
                                 storage: {
                                     'guid-5': { storageInfo: link, path: 'data.engine' }
                                 },
-                                pipelineName: 'xxx'
+                                pipelineName: 'xxx',
+                                info: { savePaths: [] }
+
                             },
                         }
                     });
                     Object.keys(workerStates).forEach(element => {
-                        stateManager.once('stateEntered' + element, (job) => {
+                        stateManager.once('stateEntered' + element, async (job) => {
                             if (element === 'working') {
                                 workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
                             }
                             else if (element === 'results') {
                                 expect(job.results.input).to.eql(['test-param', true, 12345, 'deep']);
+                                await delay(1000);
                                 done();
                             }
                         });
@@ -97,7 +109,7 @@ describe('consumer tests', () => {
                 workerCommunication.adapter.start();
             })
         });
-    }).timeout(5000);
+    }).timeout(10000);
     it('received array with null from algorithm', (done) => {
         let config = getConfig();
         consumer.init(config).then(() => {
@@ -110,12 +122,14 @@ describe('consumer tests', () => {
                             jobId: config.jobId,
                             taskId: config.taskId,
                             input: [null, 1, undefined],
-                            pipelineName: 'xxx'
+                            pipelineName: 'xxx',
+                            info: { savePaths: [] }
+
                         }
                     }
                 });
                 Object.keys(workerStates).forEach(element => {
-                    stateManager.once('stateEntered' + element, (job) => {
+                    stateManager.once('stateEntered' + element, async (job) => {
                         if (element === 'working') {
                             workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
                         }
@@ -123,6 +137,7 @@ describe('consumer tests', () => {
                             expect(job.results.input[0]).to.eql(null);
                             expect(job.results.input[1]).to.eql(1);
                             expect(job.results.input[2]).to.eql(null);
+                            await delay(1000);
                             done();
                         }
                     });
@@ -131,9 +146,10 @@ describe('consumer tests', () => {
             worker._registerToConnectionEvents();
             workerCommunication.adapter.start();
         });
-    });
+    }).timeout(10000);
     it('received empty array from algorithm', (done) => {
         let config = getConfig();
+        console.log(config.jobId);
         consumer.init(config).then(() => {
             stateManager.once('stateEnteredready', async () => {
                 producer = new Producer(config.jobConsumer);
@@ -144,18 +160,21 @@ describe('consumer tests', () => {
                             jobId: config.jobId,
                             taskId: config.taskId,
                             input: [],
-                            pipelineName: 'xxx'
+                            pipelineName: 'xxx',
+                            info: { savePaths: [] }
                         },
 
                     }
                 });
                 Object.keys(workerStates).forEach(element => {
-                    stateManager.once('stateEntered' + element, (job) => {
+                    stateManager.once('stateEntered' + element, async (job) => {
+                        console.log(`recevied [${job.job.data.jobId}]${element}`)
                         if (element === 'working') {
                             workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
                         }
                         else if (element === 'results') {
                             expect(job.results.input).to.eql([]);
+                            await delay(1000);
                             done();
                         }
                     });
@@ -165,7 +184,7 @@ describe('consumer tests', () => {
             workerCommunication.adapter.start();
         });
     }).timeout(10000);
-    xit('finish job if failed to store data', (done) => {
+    it('finish job if failed to store data', (done) => {
         let config = getConfig();
         consumer.init(config).then(() => {
             stateManager.once('stateEnteredready', async () => {
@@ -178,16 +197,19 @@ describe('consumer tests', () => {
                             taskId: config.taskId,
                             input: ['$$guid-5'],
                             storage: {
-                                'guid-5': { storageInfo: { Bucket: 'bucket-not-exists', Key: config.taskId }, path: 'data.engine.inputs.raw' }
+                                'guid-5': { storageInfo: { path: 'bucket-not-exists/test123/err' }, path: 'data.engine.inputs.raw' }
                             },
-                            pipelineName: 'xxx'
+                            pipelineName: 'xxx',
+                            info: { savePaths: [] }
+
                         },
                     }
                 });
                 Object.keys(workerStates).forEach(element => {
-                    stateManager.once('stateEntered' + element, (job) => {
+                    stateManager.once('stateEntered' + element, async (job) => {
                         if (element === 'results') {
                             expect(job.results.error.code).to.eql('NoSuchBucket');
+                            await delay(1000);
                             done();
                         }
                     });
@@ -197,41 +219,54 @@ describe('consumer tests', () => {
             workerCommunication.adapter.start();
         });
     });
-    it('get input from storage and send to algorithm', (done) => {
-        let config = getConfig();
-        storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: 'test' }).then((link) => {
-            consumer.init(config).then(() => {
-                stateManager.once('stateEnteredready', async () => {
-                    producer = new Producer(config.jobConsumer);
-                    await producer.createJob({
-                        job: {
-                            type: config.jobConsumer.job.type,
-                            data: {
-                                jobId: config.jobId,
-                                taskId: config.taskId,
-                                input: ['$$guid-5'],
-                                storage: {
-                                    'guid-5': { storageInfo: link }
-                                },
-                                pipelineName: 'xxx'
-                            },
-                        }
-                    });
-                    Object.keys(workerStates).forEach(element => {
-                        stateManager.once('stateEntered' + element, (job) => {
-                            if (element === 'working') {
-                                workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
-                            }
-                            else if (element === 'results') {
-                                expect(job.results.input).to.eql(["test"]);
-                                done();
+    it('finish job and store data - object with path', () => {
+        return (new Promise(async function (resolve, reject) {
+            let config = getConfig();
+            const arr = [];
+            arr.push(storageManager.hkube.put({ jobId: config.jobId, taskId: '1', data: { field: { test: 'test-extract1' } } }))
+            arr.push(storageManager.hkube.put({ jobId: config.jobId, taskId: '2', data: { field: { test: 'test-extract2' } } }))
+            arr.push(storageManager.hkube.put({ jobId: config.jobId, taskId: '3', data: { field: { test: 'test-extract3' } } }))
+            await Promise.all(arr).then((links) => {
+                consumer.init(config).then(() => {
+                    stateManager.once('stateEnteredready', async () => {
+                        producer = new Producer(config.jobConsumer);
+                        await producer.createJob({
+                            job: {
+                                type: config.jobConsumer.job.type,
+                                data: {
+                                    jobId: config.jobId,
+                                    taskId: config.taskId,
+                                    input: ['$$guid-5'],
+                                    pipelineName: 'xxx',
+                                    storage: {
+                                        'guid-5': {
+                                            storageInfo: [links[0], links[1], links[2]],
+                                            path: 'field.test'
+                                        },
+                                        info: { savePaths: [] }
+                                    },
+                                }
                             }
                         });
+
+                        Object.keys(workerStates).forEach(element => {
+                            stateManager.once('stateEntered' + element, async (job) => {
+                                if (element === 'working') {
+                                    workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
+                                }
+                                else if (element === 'results') {
+                                    expect(job.results.input[0][0]).to.eql("test-extract1");
+                                    expect(job.results.input[0][1]).to.eql("test-extract2");
+                                    expect(job.results.input[0][2]).to.eql("test-extract3");
+                                    resolve();
+                                }
+                            });
+                        });
                     });
+                    worker._registerToConnectionEvents();
+                    workerCommunication.adapter.start();
                 });
-                worker._registerToConnectionEvents();
-                workerCommunication.adapter.start();
             });
-        });
-    }).timeout(5000);
+        }));
+    }).timeout(5000)
 });

@@ -30,7 +30,7 @@ describe('worker communication', () => {
         expect(spy.getCall(0).args[0]).to.eql(['1', '2']);
     });
 
-    it('should pass message.command events', async () => {
+    xit('should pass message.command events', async () => {
         const spy = sinon.spy();
         expect(stateManager.state).to.equal('bootstrap');
         stateManager.bootstrap();
