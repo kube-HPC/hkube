@@ -30,7 +30,7 @@ class WsWorkerCommunication extends EventEmitter {
                     return reject(new Error(validatedOptions.errors[0]));
                 }
                 const server = this._options.httpServer || http.createServer();
-                this._socketServer = new WebSocket.Server({ server });
+                this._socketServer = new WebSocket.Server({ server, maxPayload: this._options.maxPayload });
 
                 this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!', { component });
@@ -62,7 +62,7 @@ class WsWorkerCommunication extends EventEmitter {
             log.debug(`got message ${payload.command}`, { component });
             this.emit(payload.command, payload);
         });
-        socket.on('disconnect', () => {
+        socket.on('close', () => {
             log.info('socket disconnected', { component });
             this._socket = null;
             this.emit('disconnect');

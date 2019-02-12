@@ -28,11 +28,12 @@ config.apiServer = {
 };
 
 config.workerCommunication = {
-    adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || 'socket',
+    adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || process.env.WORKER_SOCKET_PROTOCOL || 'socket',
     config: {
         connection: {
             port: process.env.WORKER_SOCKET_PORT || 3000
-        }
+        },
+        maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES
     }
 };
 

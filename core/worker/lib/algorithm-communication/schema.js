@@ -31,6 +31,10 @@ const socketWorkerCommunicationSchema = {
         pingTimeout: {
             type: 'integer',
             default: 30000
+        },
+        maxPayload: {
+            type: 'integer',
+            default: 1e8
         }
     }
 };
