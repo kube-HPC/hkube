@@ -70,7 +70,7 @@ class Algorunner:
     def _getMethod(self, methodName):
         method = self._algorithm.get(methodName)
         if (method is None):
-            raise Exception(f'unable to find method {methods.init}')
+            raise Exception(f'unable to find method {methodName}')
         return method
 
     def _init(self, options):
