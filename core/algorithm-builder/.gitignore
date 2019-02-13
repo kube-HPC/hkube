@@ -3,6 +3,10 @@
 uploads
 /builds
 
+# Python
+__pycache__/
+*.py[cod]
+
 # Dependency directories
 /node_modules
 /jspm_packages

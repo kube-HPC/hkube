@@ -166,7 +166,7 @@ const build = async (options) => {
         log.info(`starting build for algorithm=${algorithmName}, version=${version}, env=${env} -> ${buildId}`, { component });
         await _ensureDirs(buildDirs);
         await _setBuildStatus({ buildId, status: States.ACTIVE });
-        await _downloadFile({ buildId, srcFile, srcFile, dest, overwrite });
+        await _downloadFile({ buildId, srcFile, dest, overwrite });
         await _prepareBuild({ buildPath, env, dest, overwrite });
         result = await _buildDocker({ docker, algorithmName, version, buildPath });
     }

@@ -67,19 +67,20 @@ class Algorunner:
     def _disconnect(self):
         print(f'disconnected from {self._url}')
 
+    def _getMethod(self, methodName):
+        method = self._algorithm.get(methodName)
+        if (method is None):
+            raise Exception(f'unable to find method {methods.init}')
+        return method
+
     def _init(self, options):
         try:
             if (self._loadAlgorithmError):
                 self._sendError(self._loadAlgorithmError)
             else:
-                method = self._algorithm.get(methods.init)
-                if (method is None):
-                    raise Exception(f'unable to find method {methods.init}')
-                else:
-                    method(options)
-                    self._wsc.send({
-                        "command": messages.outgoing["initialized"]
-                    })
+                method = self._getMethod(methods.init)
+                method(options)
+                self._wsc.send({"command": messages.outgoing["initialized"]})
 
         except Exception as e:
             self._sendError(e)
@@ -87,27 +88,21 @@ class Algorunner:
     def _start(self, options):
         try:
             self._wsc.send({"command": messages.outgoing["started"]})
-            method = self._algorithm.get(methods.start)
-            if (method is None):
-                raise Exception(f'unable to find method {methods.start}')
-            else:
-                output = method(options)
-                self._wsc.send({
-                    "command": messages.outgoing["done"],
-                    "data": output
-                })
+            method = self._getMethod(methods.start)
+            output = method(options)
+            self._wsc.send({
+                "command": messages.outgoing["done"],
+                "data": output
+            })
 
         except Exception as e:
             self._sendError(e)
 
     def _stop(self, options):
         try:
-            method = self._algorithm.get(methods.stop)
-            if (method is None):
-                raise Exception(f'unable to find method {methods.stop}')
-            else:
-                method(options)
-                self._wsc.send({"command": messages.outgoing["stopped"]})
+            method = self._getMethod(methods.stop)
+            method(options)
+            self._wsc.send({"command": messages.outgoing["stopped"]})
 
         except Exception as e:
             self._sendError(e)
@@ -115,11 +110,8 @@ class Algorunner:
     def _exit(self, options):
         try:
             self._wsc.stopWS()
-            method = self._algorithm.get(methods.exit)
-            if (method is None):
-                raise Exception(f'unable to find method {methods.exit}')
-            else:
-                method(options)
+            method = self._getMethod(methods.exit)
+            method(options)
 
         except Exception as e:
             self._sendError(e)
