@@ -13,6 +13,5 @@ dockerBuild() {
   docker build \
   --rm \
   -t ${IMAGE_NAME} \
-  --no-cache \
   -f ${BUILD_PATH}/docker/Dockerfile ${BUILD_PATH}
 }
