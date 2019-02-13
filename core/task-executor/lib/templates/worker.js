@@ -76,7 +76,16 @@ const jobTemplate = {
                                         fieldPath: 'status.hostIP'
                                     }
                                 }
-                            }
+                            },
+                            {
+                                name: 'WORKER_SOCKET_MAX_PAYLOAD_BYTES',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'WORKER_SOCKET_MAX_PAYLOAD_BYTES'
+                                    }
+                                }
+                            },
                         ],
                         volumeMounts: [
                             {
