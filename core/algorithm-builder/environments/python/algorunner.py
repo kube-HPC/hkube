@@ -10,6 +10,7 @@ class Algorunner:
     def __init__(self, options):
         self._url = None
         self._algorithm = dict()
+        self._input = None
         self._events = Events()
         self._loadAlgorithmError = None
         self._bootstrap(options)
@@ -31,10 +32,15 @@ class Algorunner:
             for m in dir(methods):
                 if not m.startswith("__"):
                     method = getattr(methods, m)
+                    methodName = method["name"]
                     try:
-                        self._algorithm[method] = getattr(mod, method)
+                        self._algorithm[methodName] = getattr(mod, methodName)
                     except Exception as e:
-                        print(e)
+                        mandatory = "mandatory" if method["mandatory"] else "optional"
+                        error = f'unable to find {mandatory} method {methodName}'
+                        if (method["mandatory"]):
+                            raise Exception(error)
+                        print(error)
 
         except Exception as e:
             self._loadAlgorithmError = e
@@ -67,19 +73,19 @@ class Algorunner:
     def _disconnect(self):
         print(f'disconnected from {self._url}')
 
-    def _getMethod(self, methodName):
-        method = self._algorithm.get(methodName)
-        if (method is None):
-            raise Exception(f'unable to find method {methodName}')
-        return method
+    def _getMethod(self, method):
+        return self._algorithm.get(method["name"])
 
     def _init(self, options):
         try:
             if (self._loadAlgorithmError):
                 self._sendError(self._loadAlgorithmError)
             else:
+                self._input = options
                 method = self._getMethod(methods.init)
-                method(options)
+                if (method is not None):
+                    method(options)
+
                 self._wsc.send({"command": messages.outgoing["initialized"]})
 
         except Exception as e:
@@ -89,7 +95,10 @@ class Algorunner:
         try:
             self._wsc.send({"command": messages.outgoing["started"]})
             method = self._getMethod(methods.start)
-            output = method(options)
+            if (method is None):
+                raise Exception(f'unable to find method {methods.start}')
+
+            output = method(self._input)
             self._wsc.send({
                 "command": messages.outgoing["done"],
                 "data": output
@@ -101,7 +110,9 @@ class Algorunner:
     def _stop(self, options):
         try:
             method = self._getMethod(methods.stop)
-            method(options)
+            if (method is not None):
+                method(options)
+
             self._wsc.send({"command": messages.outgoing["stopped"]})
 
         except Exception as e:
@@ -111,7 +122,8 @@ class Algorunner:
         try:
             self._wsc.stopWS()
             method = self._getMethod(methods.exit)
-            method(options)
+            if (method is not None):
+                method(options)
 
         except Exception as e:
             self._sendError(e)

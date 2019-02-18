@@ -37,7 +37,7 @@ class WebsocketClient:
         command = decoded["command"]
         print(f'got message from worker: {command}')
         func = self._switcher.get(command)
-        data = None if 'data' not in decoded else decoded["data"]
+        data = None if "data" not in decoded else decoded["data"]
         func(data)
 
     def on_error(self, error):
