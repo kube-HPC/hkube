@@ -35,7 +35,7 @@ describe('Rest', () => {
         await Promise.all(algorithms.map(p => stateManager.setAlgorithm(p)));
         webhookStub.start();
     });
-    const versions = ['v1', 'v2'];
+    const versions = ['v1'];
     versions.forEach((v) => {
         describe(`Rest-API ${v}`, () => {
             let restUrl = null;
