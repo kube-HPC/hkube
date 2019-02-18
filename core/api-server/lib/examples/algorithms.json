@@ -3,7 +3,7 @@
         "name": "eval-alg",
         "algorithmImage": "hkube/algorunner",
         "cpu": 1,
-        "mem": "512Mi"
+        "mem": "1Gi"
     },
     {
         "name": "green-alg",
