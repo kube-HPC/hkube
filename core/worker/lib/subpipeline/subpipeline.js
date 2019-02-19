@@ -227,7 +227,7 @@ class SubPipelineHandler {
             jobConsumer.algTracer.startSpan(spanOptions);
         }
         catch (error) {
-            log.error(`error while staring subpipeline span: ${error.messahe}`);
+            log.error(`error while staring subpipeline span: ${error.message}`);
         }
     }
 

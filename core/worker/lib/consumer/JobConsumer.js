@@ -233,16 +233,13 @@ class JobConsumer extends EventEmitter {
     }
 
     async _tryExtractDataFromStorage(jobInfo) {
-        const startSpan = tracer.startSpan.bind(tracer, {
-            name: 'storage-get',
-            id: this._taskId,
-            tags: {
-                jobId: this._jobId,
-                taskId: this._taskId,
-            }
-        });
+        function partial(func, argsBound) {
+            return (args) => {
+                return func.call(tracer, { ...argsBound, tags: { ...argsBound.tags, ...args } });
+            };
+        }
         try {
-            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, startSpan);
+            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, partial(tracer.startSpan, this.getTracer('storage-get')));
             return { data: { ...jobInfo, input } };
         }
         catch (error) {
@@ -332,36 +329,22 @@ class JobConsumer extends EventEmitter {
         let result = null;
         let error = null;
         let status = constants.JOB_STATUS.SUCCEED;
-        let span;
         try {
-            span = tracer.startSpan({
-                name: 'storage-put',
-                id: this._taskId,
-                tags: {
-                    jobId: this._jobId,
-                    taskId: this._taskId,
-                }
-            });
             if (data === undefined) {
                 // eslint-disable-next-line no-param-reassign
                 data = null;
             }
             const storageInfo = await storageManager.hkube.put({
                 jobId: this._job.data.jobId, taskId: this._job.data.taskId, data
-            });
+            }, tracer.startSpan.bind(tracer, this.getTracer('storage-put')));
+
             const object = { [this._job.data.nodeName]: data };
             result = {
                 metadata: parser.objectToMetadata(object, this._job.data.info.savePaths),
                 storageInfo
             };
-            if (span) {
-                span.finish();
-            }
         }
         catch (err) {
-            if (span) {
-                span.finish(err);
-            }
             log.error(`failed to store data job:${this._jobId} task:${this._taskId}`, { component }, err);
             error = err.message;
             status = constants.JOB_STATUS.FAILED;
@@ -374,6 +357,23 @@ class JobConsumer extends EventEmitter {
                 error
             };
         }
+    }
+
+    getTracer(name) {
+        let parent = null;
+        const topWorkerSpan = tracer.topSpan(this._taskId);
+        if (topWorkerSpan) {
+            parent = topWorkerSpan.context();
+        }
+        return {
+            name,
+            id: this._taskId,
+            parent,
+            tags: {
+                jobId: this._jobId,
+                taskId: this._taskId
+            }
+        };
     }
 
     currentTaskInfo() {
