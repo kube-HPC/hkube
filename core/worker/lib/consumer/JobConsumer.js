@@ -233,7 +233,7 @@ class JobConsumer extends EventEmitter {
     }
 
     async _tryExtractDataFromStorage(jobInfo) {
-        const startSpan = tracer.startSpan.bind(this, {
+        const startSpan = tracer.startSpan.bind(tracer, {
             name: 'storage-get',
             id: this._taskId,
             tags: {
