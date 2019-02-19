@@ -4,7 +4,7 @@ const clone = require('clone');
 const storageManager = require('@hkube/storage-manager');
 
 class DataExtractor {
-    async extract(input, storage) {
+    async extract(input, storage, tracerStart) {
         const result = clone(input);
         const flatObj = flatten(input);
 
@@ -14,13 +14,13 @@ class DataExtractor {
                 const link = storage[key];
                 let data = null;
                 if (Array.isArray(link.storageInfo)) {
-                    data = await Promise.all(link.storageInfo.map(a => a && storageManager.get(a)));
+                    data = await Promise.all(link.storageInfo.map(a => a && storageManager.get(a, tracerStart)));
                     if (link.path) {
                         data = data.map(d => deep(d, link.path));
                     }
                 }
                 else {
-                    data = await storageManager.get(link.storageInfo);
+                    data = await storageManager.get(link.storageInfo, tracerStart);
                     if (link.path) {
                         data = deep(data, link.path);
                     }

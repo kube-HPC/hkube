@@ -117,7 +117,7 @@ describe('consumer tests', () => {
                 workerCommunication.adapter.start();
             })
         });
-    }).timeout(10000);
+    }).timeout(5000);
     it('received array with null from algorithm', (done) => {
         let config = getConfig();
         consumer.init(config).then(() => {
@@ -154,7 +154,7 @@ describe('consumer tests', () => {
             worker._registerToConnectionEvents();
             workerCommunication.adapter.start();
         });
-    }).timeout(10000);
+    }).timeout(5000);
     it('received empty array from algorithm', (done) => {
         let config = getConfig();
         console.log(config.jobId);
@@ -191,7 +191,7 @@ describe('consumer tests', () => {
             worker._registerToConnectionEvents();
             workerCommunication.adapter.start();
         });
-    }).timeout(10000);
+    }).timeout(5000);
     it('finish job if failed to store data', (done) => {
         let config = getConfig();
         consumer.init(config).then(() => {
@@ -226,7 +226,7 @@ describe('consumer tests', () => {
             worker._registerToConnectionEvents();
             workerCommunication.adapter.start();
         });
-    });
+    }).timeout(5000);
     it('finish job and store data - object with path', () => {
         return (new Promise(async function (resolve, reject) {
             let config = getConfig();

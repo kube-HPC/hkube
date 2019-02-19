@@ -224,7 +224,16 @@ class JobConsumer extends EventEmitter {
 
     async extractData(jobInfo) {
         this.jobCurrentTime = new Date();
-        const span = tracer.startSpan({
+        const { error, data } = await this._tryExtractDataFromStorage(jobInfo);
+        if (error) {
+            log.error(`failed to extract data input: ${error.message}`, { component }, error);
+            stateManager.done({ error });
+        }
+        return { error, data };
+    }
+
+    async _tryExtractDataFromStorage(jobInfo) {
+        const startSpan = tracer.startSpan.bind(this, {
             name: 'storage-get',
             id: this._taskId,
             tags: {
@@ -232,32 +241,24 @@ class JobConsumer extends EventEmitter {
                 taskId: this._taskId,
             }
         });
-        const { error, data } = await this._tryExtractDataFromStorage(jobInfo);
-        if (error) {
-            log.error(`failed to extract data input: ${error.message}`, { component }, error);
-            stateManager.done({ error });
-        }
-        if (span) {
-            span.finish(error);
-        }
-        return { error, data };
-    }
-
-    async _tryExtractDataFromStorage(jobInfo) {
         try {
-            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage);
+            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, startSpan);
             return { data: { ...jobInfo, input } };
         }
         catch (error) {
+            const span = tracer.pop(this._taskId);
+            if (span) {
+                span.finish(error);
+            }
             return { error };
         }
     }
+
 
     async finishJob(data = {}) {
         if (!this._job) {
             return;
         }
-
         await etcd.unwatch({ jobId: this._jobId });
         let storageResult = {};
         let { resultData, status, error } = this._getStatus(data); // eslint-disable-line prefer-const
