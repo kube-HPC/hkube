@@ -243,10 +243,6 @@ class JobConsumer extends EventEmitter {
             return { data: { ...jobInfo, input } };
         }
         catch (error) {
-            const span = tracer.pop(this._taskId);
-            if (span) {
-                span.finish(error);
-            }
             return { error };
         }
     }
