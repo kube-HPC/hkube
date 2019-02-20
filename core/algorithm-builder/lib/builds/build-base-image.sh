@@ -13,7 +13,7 @@ BUILD_PATH="environments/${ENV}"
 IMAGE_NAME="hkube/base-algorithm-${ENV}:v${VERSION}"
 
 if [ -z ${ENV} ]; then
-  echo "Please choose env (python, node, go)"
+  echo "Please choose env (python, nodejs, go)"
   exit -1
 fi
 
