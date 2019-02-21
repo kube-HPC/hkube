@@ -323,7 +323,7 @@ class JobConsumer extends EventEmitter {
 
     async _putResult(data) {
         let result = null;
-        let error = null;
+        let error;
         let status = constants.JOB_STATUS.SUCCEED;
         try {
             if (data === undefined) {
