@@ -41,6 +41,10 @@
             "description": "Get pipelines cron result and status"
         },
         {
+            "name": "Pipeline Readme",
+            "description": "Store readme for pipelines and algorithms "
+        },
+        {
             "name": "Webhooks",
             "description": "Webhooks status and result"
         }
@@ -2026,6 +2030,514 @@
                     },
                     "404": {
                         "description": "jobId Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/readme/algorithms/{name}": {
+            "get": {
+                "tags": [
+                    "Algorithm Readme"
+                ],
+                "summary": "Get stored readme by name",
+                "description": "Get stored readme by name",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "description": "algorithm name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Algorithm Readme"
+                ],
+                "summary": "Insert new readme to algorithm",
+                "description": "Insert new algorithm to store if not exists",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "description": "algorithm name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "algorithm created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "algorithm conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                  
+                                    "README.md": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "the readme.md file name of the file must be README.md"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "algorithm readme to be added to the store",
+                    "required": true
+                }
+            },
+            "put": {
+                "tags": [
+                    "Algorithm Readme"
+                ],
+                "summary": "Update readme to algorithm",
+                "description": "Update algorithm's store if not exists",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "description": "algorithm name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "algorithm readme updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "algorithm conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                  
+                                    "README.md": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "the readme.md file name of the file must be README.md"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "algorithm readme to be added to the store",
+                    "required": true
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Algorithm Readme"
+                ],
+                "summary": "Delete algorithm",
+                "description": "Delete existing algorithm from store",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "description": "algorithm name to get from the store",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/readme/pipelines/{name}": {
+            "get": {
+                "tags": [
+                    "Pipeline Readme"
+                ],
+                "summary": "Get stored readme by name",
+                "description": "Get stored readme by name",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "description": "pipelines name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Pipeline Readme"
+                ],
+                "summary": "Insert new readme to pipelines",
+                "description": "Insert new pipeline to store if not exists",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "description": "pipeline name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "pipeline created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "pipeline conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                  
+                                    "README.md": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "the readme.md file name of the file must be README.md"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "pipeline readme to be added to the store",
+                    "required": true
+                }
+            },
+            "put": {
+                "tags": [
+                    "Pipeline Readme"
+                ],
+                "summary": "Update readme to pipeline",
+                "description": "Update pipeline's store if not exists",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "description": "pipeline name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "pipeline readme updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "pipeline conflict",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                  
+                                    "README.md": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "the readme.md file name of the file must be README.md"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "pipeline readme to be added to the store",
+                    "required": true
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Pipeline Readme"
+                ],
+                "summary": "Delete pipeline",
+                "description": "Delete existing pipeline from store",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "description": "pipeline name to get from the store",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "action summery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "pipeline Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
