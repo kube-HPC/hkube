@@ -2061,6 +2061,7 @@
                 "parameters": [
                     {
                         "name": "name",
+                        "in": "path",
                         "description": "algorithm name",
                         "schema": {
                             "type": "string"
@@ -2099,6 +2100,7 @@
                 "parameters": [
                     {
                         "name": "name",
+                        "in": "path",
                         "description": "algorithm name",
                         "schema": {
                             "type": "string"
@@ -2176,6 +2178,7 @@
                 "parameters": [
                     {
                         "name": "name",
+                        "in":"path",
                         "description": "algorithm name",
                         "schema": {
                             "type": "string"
@@ -2315,6 +2318,7 @@
                 "parameters": [
                     {
                         "name": "name",
+                        "in": "path",
                         "description": "pipelines name",
                         "schema": {
                             "type": "string"
@@ -2430,6 +2434,7 @@
                 "parameters": [
                     {
                         "name": "name",
+                        "in": "path",
                         "description": "pipeline name",
                         "schema": {
                             "type": "string"
