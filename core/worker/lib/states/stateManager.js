@@ -63,16 +63,24 @@ class StateManager extends EventEmitter {
         });
 
         this._stateMachine.observe('onEnterState', (state) => {
-            if (this._job && this._job.data) {
+            if (this._job && this._job.data && state.to !== workerStates.ready) {
+                let parent;
+                const topSpan = tracer.topSpan(this._job.data.jobId);
+                if (topSpan) {
+                    parent = topSpan.context();
+                }
                 tracer.startSpan({
                     name: state.to,
                     id: this._job.data.taskId,
-                    parent: this._job.data.spanId,
+                    parent,
                     tags: {
                         jobId: this._job.data.jobId,
                         taskId: this._job.data.taskId,
                     }
                 });
+            }
+            else if (this._job && this._job.data && state.to === workerStates.ready) {
+                this.emit('finish');
             }
             if (state.to === workerStates.bootstrap) {
                 this._startInactiveTimer();

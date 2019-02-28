@@ -81,6 +81,18 @@ class JobConsumer extends EventEmitter {
             stateManager.setJob(job);
             stateManager.prepare();
         });
+
+        stateManager.on('finish', () => {
+            if (this._job) {
+                this._job.done(this._job.error);
+                log.info(`finish job ${this._jobId}`);
+            }
+            this._job = null;
+            this._jobId = undefined;
+            this._taskId = undefined;
+            this._pipelineName = undefined;
+            this._jobData = undefined;
+        });
     }
 
     _initMetrics(job) {
@@ -259,20 +271,13 @@ class JobConsumer extends EventEmitter {
         if (!error && status === constants.JOB_STATUS.SUCCEED) {
             storageResult = await this._putResult(resultData);
         }
-
+        this._job.error = error;
         const resData = Object.assign({ status, error, jobId: this._jobId, taskId: this._taskId }, storageResult);
         await etcd.update(resData);
         await this._putMetadata(resData);
         this._summarizeMetrics(status);
         log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
-
-        this._job.done(error);
-        this._job = null;
-        this._jobId = undefined;
-        this._taskId = undefined;
-        this._pipelineName = undefined;
-        this._jobData = undefined;
     }
 
     _summarizeMetrics(jobStatus) {
