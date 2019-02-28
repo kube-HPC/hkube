@@ -93,23 +93,31 @@ class Worker {
             stateManager.bootstrap();
             log.info('finished bootstrap state', { component });
         });
-        algoRunnerCommunication.on('disconnect', (reason) => {
+        algoRunnerCommunication.on('disconnect', async (reason) => {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
             log.warning(`algorithm runner has disconnected, reason: ${reason}`, { component });
             if (!this._debugMode) {
                 const type = jobConsumer.getAlgorithmType();
+                const containerStatus = await this._getAlgorunnerContainerStatus();
                 const message = {
                     command: 'errorMessage',
                     error: {
                         code: 'Failed',
-                        message: `algorithm ${type} has disconnected, reason: ${reason}`
+                        message: `algorithm ${type} has disconnected, reason: ${reason}. algorithm container status is ${JSON.stringify(containerStatus)}`
                     }
                 };
                 stateManager.done(message);
             }
         });
+    }
+
+    async _getAlgorunnerContainerStatus() {
+        await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, 'algorunner', 1000);
+        const status = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name); // eslint-disable-line no-await-in-loop
+        const containerStatus = status && status.find(s => s.name === 'algorunner');
+        return containerStatus;
     }
 
     /**

@@ -49,11 +49,20 @@ class KubernetesApi extends EventEmitter {
             if (!statusRaw) {
                 return [];
             }
-            return statusRaw.map(s => ({
-                name: s.name,
-                running: !!s.state.running,
-                terminated: !!s.state.terminated
-            }));
+            return statusRaw.map((s) => {
+                const status = {
+                    name: s.name,
+                    running: !!s.state.running,
+                    terminated: !!s.state.terminated
+                };
+                if (status.terminated) {
+                    status.terminationDetails = {
+                        reason: s.state.terminated.reason,
+                        exitCode: s.state.terminated.exitCode
+                    };
+                }
+                return status;
+            });
         }
         catch (error) {
             log.throttle.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
