@@ -246,11 +246,54 @@ describe('Test', function () {
                     })
                 }
             });
+            it('should update algorithm execution', function () {
+                const pipeline = pipelines.find(p => p.name === 'one-node');
+                const node = pipeline.nodes[0];
+                const nodesMap = new NodesMap(pipeline);
+
+                const execution1 = {
+                    nodeName: node.nodeName,
+                    algorithmName: 'new-algorithm',
+                    execId: `execId-${uuidv4()}`
+                }
+                const exec1 = nodesMap.updateAlgorithmExecution(execution1);
+                expect(exec1.status).to.be.undefined;
+
+                const execution2 = {
+                    nodeName: node.nodeName,
+                    algorithmName: 'new-algorithm',
+                    execId: execution1.execId,
+                    status: 'succeed'
+                }
+                const exec2 = nodesMap.updateAlgorithmExecution(execution2);
+                expect(exec2.status).to.equal(execution2.status);
+            });
+            it('should call setTaskState with execId', async function () {
+                const jobId = `jobid-${uuidv4()}`;
+                const job = {
+                    data: { jobId },
+                    done: () => { }
+                }
+                const pipeline = pipelines.find(p => p.name === 'one-node');
+                const node = pipeline.nodes[0];
+                const execution = {
+                    taskId: `taskId-${uuidv4()}`,
+                    execId: `execId-${uuidv4()}`,
+                    nodeName: node.nodeName,
+                    algorithmName: 'new-algorithm',
+                    status: 'succeed'
+                }
+                const taskRunner = new TaskRunner(config);
+                await stateManager.setExecution({ jobId, data: pipeline });
+                await taskRunner.start(job)
+                taskRunner._setTaskState(execution);
+                taskRunner._taskComplete(execution.taskId);
+            });
         });
         describe('State', function () {
             it('getNodeResults: should not able to get node results', function () {
                 const nodesMap = new NodesMap(pipelines[0]);
-                expect(() => nodesMap.getNodeResults('not_exists')).to.throw(`unable to find node not_exists`);
+                expect(() => nodesMap._getNodeResults('not_exists')).to.throw(`unable to find node not_exists`);
             });
             it('getNodeStates: should not able to get node states', function () {
                 const nodesMap = new NodesMap(pipelines[0]);
@@ -271,7 +314,7 @@ describe('Test', function () {
                     algorithmName: node.algorithmName,
                     result: result
                 }));
-                const results = nodesMap.getNodeResults(node.nodeName);
+                const results = nodesMap._getNodeResults(node.nodeName);
                 expect(results[0]).to.deep.equal(result);
             });
             it('getNodeResults: should get node results', function () {
@@ -284,7 +327,7 @@ describe('Test', function () {
                     algorithmName: node.algorithmName,
                     result: result
                 }));
-                const results = nodesMap.getNodeResults(node.nodeName);
+                const results = nodesMap._getNodeResults(node.nodeName);
                 expect(results).to.deep.equal(result);
             });
             it('updateNodeState: should update node status', function () {

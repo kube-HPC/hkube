@@ -9,8 +9,7 @@ const NodesMap = require('../nodes/nodes-map');
 const NodeStates = require('../state/NodeStates');
 const DriverStates = require('../state/DriverStates');
 const Events = require('../consts/Events');
-const Batch = require('../nodes/node-batch');
-const Node = require('../nodes/node');
+const { Node, Batch } = require('../nodes');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
@@ -71,14 +70,14 @@ class TaskRunner extends EventEmitter {
     _handleTaskEvent(task) {
         switch (task.status) {
             case NodeStates.STALLED:
-                this._setTaskState(task.taskId, { status: NodeStates.STALLED, error: task.error });
+                this._setTaskState(task);
                 break;
             case NodeStates.ACTIVE:
-                this._setTaskState(task.taskId, { status: NodeStates.ACTIVE });
+                this._setTaskState(task);
                 break;
             case NodeStates.FAILED:
             case NodeStates.SUCCEED:
-                this._setTaskState(task.taskId, { status: task.status, error: task.error, result: task.result });
+                this._setTaskState(task);
                 this._taskComplete(task.taskId);
                 break;
             default:
@@ -141,7 +140,7 @@ class TaskRunner extends EventEmitter {
         await this._watchJobState();
 
         this.pipeline = pipeline;
-        this._nodes = new NodesMap(this.pipeline, this._jobId);
+        this._nodes = new NodesMap(this.pipeline);
         this._nodes.on('node-ready', (node) => {
             log.debug(`new node ready to run: ${node.nodeName}`, { component });
             this._runNode(node.nodeName, node.parentOutput, node.index);
@@ -165,13 +164,8 @@ class TaskRunner extends EventEmitter {
         else {
             this._driverStatus = DriverStates.ACTIVE;
             await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
-            const entryNodes = this._nodes.findEntryNodes();
-
-            if (entryNodes.length === 0) {
-                throw new Error('unable to find entry nodes');
-            }
             await this._watchTasks();
-            entryNodes.forEach(n => this._runNode(n));
+            this._runEntryNodes();
         }
         await graphStore.start(job.data.jobId, this._nodes);
         return this.pipeline;
@@ -215,6 +209,14 @@ class TaskRunner extends EventEmitter {
         }
 
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
+    }
+
+    _runEntryNodes() {
+        const entryNodes = this._nodes.findEntryNodes();
+        if (entryNodes.length === 0) {
+            throw new Error('unable to find entry nodes');
+        }
+        entryNodes.forEach(n => this._runNode(n));
     }
 
     get _currentProgress() {
@@ -338,10 +340,13 @@ class TaskRunner extends EventEmitter {
                     }
                 });
             }
+            else {
+                this._runEntryNodes();
+            }
         }
     }
 
-    _runNode(nodeName, parentOutput, index) {
+    async _runNode(nodeName, parentOutput, index) {
         try {
             const node = this._nodes.getNode(nodeName);
             const parse = {
@@ -361,16 +366,16 @@ class TaskRunner extends EventEmitter {
                 storage: result.storage
             };
             if (index && result.batch) {
-                this._runWaitAnyBatch(options);
+                await this._runWaitAnyBatch(options);
             }
             else if (index) {
-                this._runWaitAny(options);
+                await this._runWaitAny(options);
             }
             else if (result.batch) {
-                this._runNodeBatch(options);
+                await this._runNodeBatch(options);
             }
             else {
-                this._runNodeSimple(options);
+                await this._runNodeSimple(options);
             }
         }
         catch (error) {
@@ -378,7 +383,7 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _runWaitAny(options) {
+    async _runWaitAny(options) {
         if (options.index === -1) {
             this._skipBatchNode(options);
         }
@@ -391,8 +396,8 @@ class TaskRunner extends EventEmitter {
             });
             const batch = [waitAny];
             this._nodes.addBatch(waitAny);
-            this._setTaskState(waitAny.taskId, waitAny);
-            this._createJob(options, batch);
+            this._setTaskState(waitAny);
+            await this._createJob(options, batch);
         }
     }
 
@@ -408,22 +413,22 @@ class TaskRunner extends EventEmitter {
                 input: inp
             });
             this._nodes.addBatch(batch);
-            this._setTaskState(batch.taskId, batch);
+            this._setTaskState(batch);
             this._createJob(batch);
         });
     }
 
-    _runNodeSimple(options) {
+    async _runNodeSimple(options) {
         const node = new Node({
             ...options.node,
             input: options.input
         });
         this._nodes.setNode(node);
-        this._setTaskState(node.taskId, node);
-        this._createJob(options);
+        this._setTaskState(node);
+        await this._createJob(options);
     }
 
-    _runNodeBatch(options) {
+    async _runNodeBatch(options) {
         if (options.input.length === 0) {
             this._skipBatchNode(options);
         }
@@ -436,9 +441,9 @@ class TaskRunner extends EventEmitter {
                     storage: inp.storage
                 });
                 this._nodes.addBatch(batch);
-                this._setTaskState(batch.taskId, batch);
+                this._setTaskState(batch);
             });
-            this._createJob(options, options.node.batch);
+            await this._createJob(options, options.node.batch);
         }
     }
 
@@ -450,7 +455,7 @@ class TaskRunner extends EventEmitter {
         });
         this._nodes.addBatch(node);
         this._nodes.setNode({ nodeName: node.nodeName, result: [], status: NodeStates.SKIPPED });
-        this._setTaskState(node.taskId, node);
+        this._setTaskState(node);
         this._taskComplete(node.taskId);
     }
 
@@ -477,7 +482,7 @@ class TaskRunner extends EventEmitter {
 
     _checkBatchTolerance(task) {
         let error;
-        if (task.error) {
+        if (task.error && !task.execId) {
             if (task.batchIndex) {
                 const { batchTolerance } = this.pipeline.options;
                 const states = this._nodes.getNodeStates(task.nodeName);
@@ -496,16 +501,22 @@ class TaskRunner extends EventEmitter {
         return error;
     }
 
-    _setTaskState(taskId, options) {
+    _setTaskState(task) {
         if (!this._active) {
             return;
         }
-        const task = this._nodes.updateTaskState(taskId, options);
-        if (options.error) {
-            log.error(`task ${options.status} ${taskId}. error: ${options.error}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId, algorithmName: task.algorithmName });
+        const { taskId, execId, status, error } = task;
+        if (execId) {
+            this._nodes.updateAlgorithmExecution(task);
         }
         else {
-            log.debug(`task ${options.status} ${taskId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId, algorithmName: task.algorithmName });
+            this._nodes.updateTaskState(taskId, task);
+        }
+        if (error) {
+            log.error(`task ${status} ${taskId}. error: ${error}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
+        }
+        else {
+            log.debug(`task ${status} ${taskId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         }
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
         pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: NodeStates.ACTIVE });

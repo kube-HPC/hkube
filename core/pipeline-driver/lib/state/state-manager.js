@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const equal = require('deep-equal');
+const isEqual = require('lodash.isequal');
 const Etcd = require('@hkube/etcd');
 const { JobResult, JobStatus } = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
@@ -48,7 +48,7 @@ class StateManager extends EventEmitter {
     _updateDiscovery() {
         const discovery = this._discoveryMethod();
         const currentDiscovery = this._defaultDiscovery(discovery);
-        if (!equal(this._lastDiscovery, currentDiscovery)) {
+        if (!isEqual(this._lastDiscovery, currentDiscovery)) {
             this._lastDiscovery = currentDiscovery;
             return this._etcd.discovery.updateRegisteredData(currentDiscovery);
         }

@@ -1,17 +1,24 @@
 const groupBy = require('lodash.groupby');
 
 class GroupBy {
-    constructor(array, property) {
-        this._grouped = groupBy(array, property);
+    text(grouped) {
+        return Object.entries(grouped).map(([k, v]) => `${v} ${k}`).join(', ');
     }
 
-    group() {
-        return this._grouped;
+    groupBy(array, prop) {
+        return groupBy(array, prop);
     }
 
-    text() {
-        return Object.entries(this._grouped).map(([k, v]) => `${v.length} ${k}`).join(', ');
+    reduce(grouped) {
+        const map = Object.create(null);
+        return Object.entries(grouped)
+            .map(([k, v]) => ({ key: k, count: v.length }))
+            .reduce((prev, cur) => {
+                const data = prev;
+                data[cur.key] = cur.count;
+                return data;
+            }, map);
     }
 }
 
-module.exports = GroupBy;
+module.exports = new GroupBy();

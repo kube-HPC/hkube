@@ -5,6 +5,7 @@ const RedisStorage = require('./redis-storage-adapter');
 const { groupTypes } = require('../consts/graph-storage-types');
 const components = require('../consts/componentNames');
 
+const { EDGE } = groupTypes;
 const INTERVAL = 4000;
 let log;
 
@@ -83,8 +84,23 @@ class GraphStore {
         await RedisStorage.updateDriverGraph({ jobId: this._currentJobID, data: graph });
     }
 
+    _formatEdge(e) {
+        const { type } = e.value[0];
+        const edge = {
+            from: e.v,
+            to: e.w,
+            group: EDGE.NONE
+        };
+        if (type === EDGE.WAIT_ANY) {
+            edge.group = EDGE.WAIT_ANY;
+        }
+        else if (type === EDGE.ALGORITHM_EXECUTION) {
+            edge.group = EDGE.ALGORITHM_EXECUTION;
+        }
+        return edge;
+    }
+
     _filterData(graph) {
-        const { EDGE } = groupTypes;
         const adaptedGraph = {
             jobId: this._currentJobID,
             graph: {
@@ -92,7 +108,7 @@ class GraphStore {
                 nodes: [],
             }
         };
-        adaptedGraph.graph.edges = graph.edges.map(e => ({ from: e.v, to: e.w, group: e.value[0].type === EDGE.WAIT_ANY ? EDGE.WAIT_ANY : EDGE.NONE }));
+        adaptedGraph.graph.edges = graph.edges.map(e => this._formatEdge(e));
         adaptedGraph.graph.nodes = graph.nodes.map(n => this._handleNode(n.value));
         return adaptedGraph;
     }
@@ -125,6 +141,7 @@ class GraphStore {
             id: node.nodeName,
             label: node.nodeName,
             algorithmName: node.algorithmName,
+            algorithmExecution: node.algorithmExecution || false,
             extra: {},
             group: BATCH.NOT_STARTED,
             batchTasks

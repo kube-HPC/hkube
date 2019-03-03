@@ -22,8 +22,7 @@ class ProgressManager {
     _defaultCalcProgress() {
         return {
             progress: 0,
-            details: '',
-            activeNodes: []
+            details: ''
         };
     }
 

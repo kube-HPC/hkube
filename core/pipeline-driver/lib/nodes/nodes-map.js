@@ -1,10 +1,10 @@
 const EventEmitter = require('events');
 const graphlib = require('graphlib');
 const deepExtend = require('deep-extend');
+const isEqual = require('lodash.isequal');
 const { parser, consts } = require('@hkube/parsers');
-const GroupBy = require('../helpers/group-by');
-const GraphNode = require('./graph-node');
-const NodeResult = require('./node-result');
+const groupBy = require('../helpers/group-by');
+const { GraphNode, ExecNode, ExecBatch, NodeResult } = require('./index');
 const States = require('../state/NodeStates');
 
 /**
@@ -15,9 +15,8 @@ const States = require('../state/NodeStates');
  * @extends {EventEmitter}
  */
 class NodesMap extends EventEmitter {
-    constructor(options, jobId) {
+    constructor(options) {
         super();
-        this._jobId = jobId;
         this.calcProgress = this.calcProgress.bind(this);
         this._graph = new graphlib.Graph({ directed: true });
         this._buildGraph(options);
@@ -57,6 +56,9 @@ class NodesMap extends EventEmitter {
         let index = ind;
         const edges = this._graph.edge(source, target).map(e => e.type);
 
+        if ((this._isAlgorithmExecution(edges))) {
+            return nodeResults;
+        }
         if ((this._isWaitAny(edges)) && (this._isWaitNode(edges) || this._isWaitBatch(edges))) {
             index = null;
             completed = this.isAllParentsFinished(target);
@@ -88,14 +90,14 @@ class NodesMap extends EventEmitter {
                 parentOutput.push({
                     type: consts.relations.WAIT_NODE,
                     node: p,
-                    result: this.getNodeResults(node.nodeName)
+                    result: this._getNodeResults(node.nodeName)
                 });
             }
             if (this._isWaitBatch(edges)) {
                 parentOutput.push({
                     type: consts.relations.WAIT_BATCH,
                     node: p,
-                    result: this.getNodeResults(node.nodeName)
+                    result: this._getNodeResults(node.nodeName)
                 });
             }
             if (this._isWaitAny(edges)) {
@@ -121,8 +123,7 @@ class NodesMap extends EventEmitter {
             }
         });
         if (parentOutput.length > 0) {
-            const groupBy = new GroupBy(parentOutput, 'index');
-            const group = groupBy.group();
+            const group = groupBy.groupBy(parentOutput, 'index');
             const waitNodes = group.undefined;
             const keys = Object.keys(group);
             delete group.undefined;
@@ -147,6 +148,10 @@ class NodesMap extends EventEmitter {
 
     _isWaitAny(edges) {
         return edges.includes(consts.relations.WAIT_ANY) || edges.includes(consts.relations.WAIT_ANY_BATCH);
+    }
+
+    _isAlgorithmExecution(edges) {
+        return edges.includes('algorithmExecution');
     }
 
     _isWaitNode(edges) {
@@ -175,14 +180,6 @@ class NodesMap extends EventEmitter {
         return status === States.SUCCEED || status === States.FAILED || status === States.SKIPPED;
     }
 
-    _isIdle(status) {
-        return status === States.CREATING || status === States.PENDING;
-    }
-
-    _isCurrentRunning(status) {
-        return this._isCompleted(status) || status === States.ACTIVE;
-    }
-
     _parents(node) {
         return this._graph.predecessors(node);
     }
@@ -208,7 +205,10 @@ class NodesMap extends EventEmitter {
 
     updateCompletedTask(task) {
         const childs = this._childs(task.nodeName);
-        return childs.map(child => this._checkChildNode(task.nodeName, child, task.batchIndex));
+        if (childs) {
+            return childs.map(child => this._checkChildNode(task.nodeName, child, task.batchIndex));
+        }
+        return null;
     }
 
     findEntryNodes() {
@@ -221,7 +221,7 @@ class NodesMap extends EventEmitter {
         return this._graph.node(name);
     }
 
-    getNodeResults(nodeName) {
+    _getNodeResults(nodeName) {
         let results = null;
         const node = this.getNode(nodeName);
         if (!node) {
@@ -262,14 +262,40 @@ class NodesMap extends EventEmitter {
         return task;
     }
 
+    updateAlgorithmExecution(options) {
+        const { nodeName, algorithmName, execId, status, error, result } = options;
+        const node = this.getNode(nodeName);
+        if (!node) {
+            throw new Error(`unable to find node ${nodeName}`);
+        }
+        const uniqueNodeName = `${nodeName}:${algorithmName}`;
+        const execNodeParams = { ...options, nodeName: uniqueNodeName };
+        let execNode = this.getNode(uniqueNodeName);
+        if (!execNode) {
+            execNode = new ExecNode(execNodeParams);
+            this._graph.setNode(uniqueNodeName, execNode);
+            this._graph.setEdge(nodeName, uniqueNodeName, [{ type: 'algorithmExecution' }]);
+        }
+
+        let execBatch = execNode.batch.find(e => e.execId === execId);
+        if (!execBatch) {
+            execBatch = new ExecBatch({ ...execNodeParams, batchIndex: execNode.batch.length + 1 });
+            execNode.batch.push(execBatch);
+        }
+        else {
+            deepExtend(execBatch, { status, error, result });
+        }
+        return execBatch;
+    }
+
     getNodeStates(nodeName) {
-        let states = [];
+        const states = [];
         const node = this.getNode(nodeName);
         if (!node) {
             throw new Error(`unable to find node ${nodeName}`);
         }
         if (node.batch.length > 0) {
-            states = node.batch.map(n => n.status);
+            states.push(...node.batch.map(n => n.status));
         }
         else {
             states.push(node.status);
@@ -284,17 +310,7 @@ class NodesMap extends EventEmitter {
     }
 
     isNodeCompleted(nodeName) {
-        let states = [];
-        const node = this.getNode(nodeName);
-        if (!node) {
-            throw new Error(`unable to find node ${nodeName}`);
-        }
-        if (node.batch.length > 0) {
-            states = node.batch.map(n => n.status);
-        }
-        else {
-            states.push(node.status);
-        }
+        const states = this.getNodeStates(nodeName);
         return states.every(this._isCompleted);
     }
 
@@ -346,7 +362,7 @@ class NodesMap extends EventEmitter {
 
     pipelineResults() {
         const results = [];
-        const nodes = this.getAllNodes();
+        const nodes = this.getAllNodes().filter(n => !n.algorithmExecution);
         nodes.forEach((n) => {
             const childs = this._childs(n.nodeName);
             if (childs.length === 0) {
@@ -365,65 +381,47 @@ class NodesMap extends EventEmitter {
         const calc = {
             progress: 0,
             details: '',
-            states: {},
-            activeNodes: []
+            states: {}
         };
-        const nodesList = this.getAllNodes();
-        if (nodesList.length === 0) {
+        const nodes = this._getNodesAsFlat();
+        if (nodes.length === 0) {
             return calc;
         }
-        const nodes = [];
-        nodesList.forEach((n) => {
-            if (n.batch.length > 0) {
-                n.batch.forEach(b => nodes.push(b));
-            }
-            else {
-                nodes.push(n);
-            }
-        });
-        const groupBy = new GroupBy(nodes, 'status');
-        const groupedStates = groupBy.group();
+        const groupedStates = groupBy.groupBy(nodes, 'status');
+        const reduceStates = groupBy.reduce(groupedStates);
+        const textStates = groupBy.text(reduceStates);
+
         const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
         const failed = groupedStates.failed ? groupedStates.failed.length : 0;
         const skipped = groupedStates.skipped ? groupedStates.skipped.length : 0;
         const completed = succeed + failed + skipped;
+
         calc.progress = parseFloat(((completed / nodes.length) * 100).toFixed(2));
-        const statesText = groupBy.text();
-        calc.states = nodes.map(n => n.status).reduce((prev, cur) => {
-            const map = prev;
-            if (cur in prev) {
-                map[cur] += 1;
-            }
-            else {
-                map[cur] = 1;
-            }
-            return map;
-        }, {});
-        calc.details = `${calc.progress}% completed, ${statesText}`;
-        nodesList.forEach((n) => {
-            const node = {
-                nodeName: n.nodeName,
-                algorithmName: n.algorithmName
-            };
-            if (n.batch.length === 0 && n.status === States.ACTIVE) {
-                calc.activeNodes.push(node);
-            }
-            else if (n.batch.length > 0) {
-                const batchStates = n.batch.map(b => b.status);
-                const isIdle = batchStates.every(this._isIdle);
-                const allCompleted = batchStates.every(this._isCompleted);
-                if (!allCompleted && !isIdle) {
-                    const active = n.batch.filter(b => this._isCurrentRunning(b.status));
-                    if (active.length > 0) {
-                        node.batch = {
-                            active: active.length,
-                            total: n.batch.length
-                        };
-                        calc.activeNodes.push(node);
+        calc.states = reduceStates;
+        calc.details = `${calc.progress}% completed, ${textStates}`;
+
+        if (failed > 0) {
+            const map = Object.create(null);
+            const batchErrors = groupedStates.failed
+                .filter(f => f.batchIndex)
+                .map(f => ({ nodeName: f.nodeName, error: f.error, input: f.input }))
+                .reduce((prev, cur) => {
+                    const data = prev;
+                    const { error, input } = cur;
+                    if (!data[cur.nodeName]) {
+                        data[cur.nodeName] = { errors: [] };
                     }
-                }
-            }
-        });
+
+                    let err = data[cur.nodeName].errors.find(e => e.error === error && isEqual(e.input, input));
+                    if (!err) {
+                        err = { error, input, count: 0 };
+                        data[cur.nodeName].errors.push(err);
+                    }
+                    err.count += 1;
+                    return data;
+                }, map);
+            calc.batchErrors = batchErrors;
+        }
         return calc;
     }
 

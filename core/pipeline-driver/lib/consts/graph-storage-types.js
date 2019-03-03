@@ -16,6 +16,7 @@ const groupTypes = {
     },
     EDGE: {
         WAIT_ANY: 'waitAny',
+        ALGORITHM_EXECUTION: 'algorithmExecution',
         NONE: 'none'
     }
 };
