@@ -421,6 +421,7 @@ class TaskRunner extends EventEmitter {
     async _runNodeSimple(options) {
         const node = new Node({
             ...options.node,
+            storage: options.storage,
             input: options.input
         });
         this._nodes.setNode(node);

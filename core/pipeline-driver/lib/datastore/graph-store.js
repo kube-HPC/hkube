@@ -1,4 +1,7 @@
 
+const clone = require('clone');
+const deep = require('deep-get-set');
+const flatten = require('flat');
 const logger = require('@hkube/logger');
 const States = require('../state/NodeStates');
 const RedisStorage = require('./redis-storage-adapter');
@@ -126,6 +129,9 @@ class GraphStore {
             id: node.nodeName,
             label: node.nodeName,
             extra: {},
+            input: this._parseInput(node),
+            output: node.result,
+            error: node.error,
             group: SINGLE.NOT_STARTED,
             taskId: node.taskId,
             algorithmName: node.algorithmName
@@ -136,7 +142,13 @@ class GraphStore {
 
     _handleBatch(node) {
         const { BATCH } = groupTypes;
-        const batchTasks = node.batch.map(n => ({ taskId: n.taskId, batchIndex: n.batchIndex }));
+        const batchTasks = node.batch.map(b => ({
+            taskId: b.taskId,
+            batchIndex: b.batchIndex,
+            input: this._parseInput(b),
+            output: b.result,
+            error: b.error
+        }));
         const calculatedNode = {
             id: node.nodeName,
             label: node.nodeName,
@@ -160,6 +172,23 @@ class GraphStore {
             calculatedNode.group = BATCH.RUNNING;
         }
         return calculatedNode;
+    }
+
+    _parseInput(node) {
+        if (!node.input) {
+            return null;
+        }
+        const result = clone(node.input);
+        const flatObj = flatten(node.input);
+
+        Object.entries(flatObj).forEach(([objectPath, value]) => {
+            if (typeof value === 'string' && value.startsWith('$$')) {
+                const key = value.substring(2);
+                const link = node.storage[key];
+                deep(result, objectPath, link.storageInfo);
+            }
+        });
+        return result;
     }
 
     _batchStatusCounter(node) {

@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
 const graphlib = require('graphlib');
 const deepExtend = require('deep-extend');
-const isEqual = require('lodash.isequal');
 const { parser, consts } = require('@hkube/parsers');
 const groupBy = require('../helpers/group-by');
 const { GraphNode, ExecNode, ExecBatch, NodeResult } = require('./index');
@@ -400,28 +399,6 @@ class NodesMap extends EventEmitter {
         calc.states = reduceStates;
         calc.details = `${calc.progress}% completed, ${textStates}`;
 
-        if (failed > 0) {
-            const map = Object.create(null);
-            const batchErrors = groupedStates.failed
-                .filter(f => f.batchIndex)
-                .map(f => ({ nodeName: f.nodeName, error: f.error, input: f.input }))
-                .reduce((prev, cur) => {
-                    const data = prev;
-                    const { error, input } = cur;
-                    if (!data[cur.nodeName]) {
-                        data[cur.nodeName] = { errors: [] };
-                    }
-
-                    let err = data[cur.nodeName].errors.find(e => e.error === error && isEqual(e.input, input));
-                    if (!err) {
-                        err = { error, input, count: 0 };
-                        data[cur.nodeName].errors.push(err);
-                    }
-                    err.count += 1;
-                    return data;
-                }, map);
-            calc.batchErrors = batchErrors;
-        }
         return calc;
     }
 
