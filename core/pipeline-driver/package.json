@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.1.63",
+  "version": "1.1.65",
   "description": "pipeline execution based on producer-consumer",
   "main": "app.js",
   "directories": {
@@ -13,7 +13,7 @@
     "@hkube/logger": "^1.0.15",
     "@hkube/metrics": "^1.0.31",
     "@hkube/parsers": "^1.0.20",
-    "@hkube/producer-consumer": "^1.0.40",
+    "@hkube/producer-consumer": "^1.0.44",
     "@hkube/redis-utils": "^1.0.1",
     "@hkube/rest-server": "^1.0.8",
     "@hkube/storage-manager": "^1.0.39",
