@@ -33,7 +33,8 @@ config.workerCommunication = {
         connection: {
             port: process.env.WORKER_SOCKET_PORT || 3000
         },
-        maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES
+        maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES,
+        pingTimeout: formatter.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000)
     }
 };
 
@@ -88,7 +89,8 @@ config.tracer = {
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
-    pod_name: process.env.POD_NAME
+    pod_name: process.env.POD_NAME,
+    podId: process.env.POD_ID
 };
 
 config.s3 = {

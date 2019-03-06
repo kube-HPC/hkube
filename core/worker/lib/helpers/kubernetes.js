@@ -26,6 +26,9 @@ class KubernetesApi extends EventEmitter {
         }
         log.info(`Initialized kubernetes client with options ${JSON.stringify({ options: options.kubernetes, url: config.url })}`, { component });
         this._client = new kubernetesClient.Client({ config, version: '1.9' });
+        const kubeVersionRaw = await this._client.version.get();
+        this.kubeVersion = kubeVersionRaw.body;
+        log.info(`kubernetes version: ${this.kubeVersion.major}:${this.kubeVersion.minor}`);
         this._namespace = k8sOptions.namespace;
     }
 

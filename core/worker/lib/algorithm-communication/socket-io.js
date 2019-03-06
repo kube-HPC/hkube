@@ -31,7 +31,11 @@ class SocketWorkerCommunication extends EventEmitter {
                     return reject(new Error(validatedOptions.errors[0]));
                 }
                 const server = this._options.httpServer || http.createServer();
-                this._socketServer = socketio.listen(server, { pingTimeout: this._options.pingTimeout, maxHttpBufferSize: this._options.maxPayload });
+                this._socketServer = socketio.listen(server, {
+                    pingTimeout: this._options.pingTimeout,
+                    pingInterval: this._options.pingTimeout * 2,
+                    maxHttpBufferSize: this._options.maxPayload
+                });
                 this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!', { component });
                     this._registerSocketMessages(socket);

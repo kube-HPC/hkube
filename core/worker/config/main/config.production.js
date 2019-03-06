@@ -1,12 +1,10 @@
-const path = require('path');
-
 const formatter = require(process.cwd() + '/lib/helpers/formatters'); // eslint-disable-line
 
 const config = {};
 config.algorunnerLogging = {
     disable: formatter.parseBool(process.env.DISABLE_ALGORITHM_LOGGING || false),
-    algorunnerLogFileName: process.env.ALGORITHM_LOG_FILE_NAME || 'algorunner_0.log',
-    baseLogsPath: path.join((process.env.BASE_LOGS_PATH || '/var/log/pods'), (process.env.POD_ID || ''))
+    algorunnerLogFileName: process.env.ALGORITHM_LOG_FILE_NAME,
+    baseLogsPath: process.env.BASE_LOGS_PATH
 };
 
 config.timeouts = {
@@ -17,4 +15,3 @@ config.timeouts = {
 };
 
 module.exports = config;
-

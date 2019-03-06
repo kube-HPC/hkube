@@ -3,6 +3,7 @@ const fs = require('fs');
 const Logger = require('@hkube/logger');
 const { Tail } = require('tail');
 const component = require('../consts').Components.ALGORUNNER;
+const kubernetes = require('../helpers/kubernetes');
 
 const DELAY = 2;
 let log;
@@ -15,15 +16,42 @@ class LoggingProxy {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
-        const { algorunnerLogFileName, baseLogsPath, disable } = options.algorunnerLogging;
+        const { algorunnerLogFileName, baseLogsPath, disable } = this._createLogPath({
+            ...options.algorunnerLogging,
+            podId: options.kubernetes.podId
+        });
         if (disable || !algorunnerLogFileName || !baseLogsPath) {
             log.warning('Algorunner logging proxy not started.', { component });
             return;
         }
+
         this._algorunnerLogFilePath = path.join(baseLogsPath, algorunnerLogFileName);
         log.info(`reading algorunner logs from host path ${this._algorunnerLogFilePath}`, { component });
         this._startWatch = this._startWatch.bind(this);
         this._startWatch();
+    }
+
+    _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId }) {
+        if (disable) {
+            return { disable };
+        }
+        if (algorunnerLogFileName && baseLogsPath) {
+            return { algorunnerLogFileName, baseLogsPath };
+        }
+        const { kubeVersion } = kubernetes;
+        if (kubeVersion.major >= 1 && kubeVersion.minor >= 12) {
+            // logs are in /var/log/pods/podid/container_name/0.log
+
+            return {
+                algorunnerLogFileName: '0.log',
+                baseLogsPath: `/var/log/pods/${podId}/algorunner`
+            };
+        }
+        // logs are in /var/log/pods/podid/container_name_0.log
+        return {
+            algorunnerLogFileName: 'algorunner_0.log',
+            baseLogsPath: `/var/log/pods/${podId}`
+        };
     }
 
     _getLogMessage(rawLine) {
