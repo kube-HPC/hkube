@@ -14,7 +14,7 @@ let etcd;
 describe('state machine', () => {
     before(async () => {
         const { main, logger } = await configIt.load();
-        await storageManager.init(main, true);
+        await storageManager.init(main, null, true);
         await bootstrap.init();
         log = new Logger(main.serviceName, logger);
         etcd = new Etcd();

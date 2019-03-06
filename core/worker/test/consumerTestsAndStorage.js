@@ -70,7 +70,7 @@ describe('consumer tests', () => {
         });
         mockery.resetCache();
         let config = getConfig();
-        await storageManager.init(config, true);
+        await storageManager.init(config, null, true);
         await bootstrap.init();
         consumer = Consumer;
         if (consumer._algTracer) {

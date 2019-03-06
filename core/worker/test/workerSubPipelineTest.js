@@ -141,7 +141,7 @@ describe('worker SubPipeline test', () => {
         if (jobConsumer._algTracer) {
             jobConsumer._algTracer._tracer.close();
         }
-        await storageManager.init(main, true);
+        await storageManager.init(main, null, true);
         await bootstrap.init();
     });
     beforeEach(() => {
