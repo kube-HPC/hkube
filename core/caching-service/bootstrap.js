@@ -19,7 +19,7 @@ class Bootstrap {
     async init() {
         try {
             this._handleErrors();
-            storageManager.init(main);
+            storageManager.init(main, log);
             log.info('running application in ' + configIt.env() + ' environment', { component: componentName.MAIN });
             await Promise.all(modules.map(m => require(m).init(main)));// eslint-disable-line global-require, import/no-dynamic-require
             return main;
