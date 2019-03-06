@@ -39,7 +39,7 @@ class Bootstrap {
             await monitor.check(main.redis);
             await metrics.init(main.metrics);
             await tracer.init(main.tracer);
-            await storageManager.init(main);
+            await storageManager.init(main, log);
             worker.preInit();
             for (const m of modules) {
                 await m.init(main, log);
