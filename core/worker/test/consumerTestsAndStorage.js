@@ -1,15 +1,18 @@
 const bootstrap = require('../bootstrap');
 const Consumer = require('../lib/consumer/JobConsumer');
 const { Producer } = require('@hkube/producer-consumer');
+const { JobResult } = require('@hkube/etcd');
 const stateManager = require('../lib/states/stateManager.js');
 const { expect } = require('chai');
 const workerCommunication = require('../lib/algorithm-communication/workerCommunication');
 const worker = require('../lib/worker');
+const sinon = require('sinon');
 const uuid = require('uuid/v4');
 const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
 const mockery = require('mockery');
 const delay = require('delay');
+const etcd = require('../lib/states/discovery');
 
 let consumer, producer;
 
@@ -77,6 +80,34 @@ describe('consumer tests', () => {
             consumer._algTracer._tracer.close();
         }
     });
+    it('if job already stopped return and finish job', (done) => {
+        let config = getConfig();
+        etcd._etcd.jobState.stop({ jobId: config.jobId }).then(() => {
+            consumer.init(config).then(() => {
+                stateManager.once('stateEnteredready', async () => {
+                    const spy = sinon.spy(consumer, '_stopJob');
+                    producer = new Producer(config.jobConsumer);
+                    producer.createJob({
+                        job: {
+                            type: config.jobConsumer.job.type,
+                            data: {
+                                jobId: config.jobId,
+                                taskId: config.taskId,
+                                input: ['test-param', true, 12345],
+                                pipelineName: 'stopped',
+                            }
+                        }
+                    }).then(async () => {
+                        await delay(500);
+                        expect(spy.callCount).to.eq(1);
+                        done();
+                    })
+                });
+                worker._registerToConnectionEvents();
+                workerCommunication.adapter.start();
+            });
+        })
+    }).timeout(5000);
     it('store data and validate result from algorithm', (done) => {
         let config = getConfig();
         storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then((link) => {
