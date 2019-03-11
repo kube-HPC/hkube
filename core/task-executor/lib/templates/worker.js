@@ -70,6 +70,15 @@ const jobTemplate = {
                                 }
                             },
                             {
+                                name: 'CLUSTER_NAME',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'CLUSTER_NAME'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'JAEGER_AGENT_SERVICE_HOST',
                                 valueFrom: {
                                     fieldRef: {
