@@ -15,6 +15,7 @@ config.rest = {
     }
 };
 
+config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
@@ -32,7 +33,7 @@ config.apiServer = {
     protocol: 'http',
     host: process.env.API_SERVER_SERVICE_HOST || 'localhost',
     port: process.env.API_SERVER_SERVICE_PORT || 3000,
-    base_path:'api/v1'
+    base_path: 'api/v1'
 };
 config.consumer = {
     concurrency: 10000
@@ -42,7 +43,7 @@ config.consumer = {
 config.metrics = {
     collectDefault: true,
     server: {
-        
+
         port: process.env.METRICS_PORT
     }
 };
