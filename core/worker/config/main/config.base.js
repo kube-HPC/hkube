@@ -19,6 +19,7 @@ config.etcd = {
 };
 
 config.debugMode = formatter.parseBool(process.env.DEBUG_MODE);
+config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.apiServer = {
     protocol: 'http',
