@@ -2,7 +2,6 @@ const path = require('path');
 const fse = require('fs-extra');
 const Zip = require('adm-zip');
 const targz = require('targz');
-const moment = require('moment');
 const { spawn } = require('child_process');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
