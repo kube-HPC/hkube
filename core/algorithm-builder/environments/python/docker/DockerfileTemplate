@@ -7,4 +7,5 @@ WORKDIR /hkube/algorithm-runner
 
 RUN if [ -f ./algorithm/requirements.txt ]; then echo found requirements.txt; pip3 install -r ./algorithm/requirements.txt; else echo no requirements.txt found; fi 
 
-CMD ["python3", "app.py"]
+ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm
+CMD ["python3", "-u", "app.py"]

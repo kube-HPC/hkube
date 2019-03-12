@@ -35,16 +35,16 @@ class StateManger {
         });
     }
 
-    async updateAlgorithmImage({ algorithmName, algorithmImage }) {
+    async updateAlgorithmImage({ algorithm, algorithmImage }) {
         if (!algorithmImage) {
             return;
         }
         await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
-            return tx.get(`/algorithmTemplates/${algorithmName}`)
+            return tx.get(`/algorithmTemplates/${algorithm.name}`)
                 .then((val) => {
                     const alg = JSON.parse(val);
-                    const algorithm = Object.assign({}, alg, { algorithmImage });
-                    return tx.put(`/algorithmTemplates/${algorithmName}`).value(JSON.stringify(algorithm));
+                    const newAlgorithm = Object.assign({}, algorithm, alg, { algorithmImage });
+                    return tx.put(`/algorithmTemplates/${algorithm.name}`).value(JSON.stringify(newAlgorithm));
                 });
         });
     }

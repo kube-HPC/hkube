@@ -4,6 +4,7 @@ from src.websocketClient import wc
 from src.consts import messages, methods
 from events import Events
 import threading
+import algorithm
 
 
 class Algorunner:
@@ -23,10 +24,11 @@ class Algorunner:
         try:
             cwd = os.getcwd()
             alg = options.algorithm
-            folderName = alg["path"]
-            fileName = os.path.splitext(alg["entryPoint"])[0]
-            os.chdir(f'{cwd}/{folderName}')
-            mod = importlib.import_module(f'.{fileName}', package=folderName)
+            package = alg["path"]
+            entryPoint = os.path.splitext(alg["entryPoint"])[0]
+            os.chdir('{cwd}/{package}'.format(cwd=cwd, package=package))
+            print('loading {package}/{entryPoint}'.format(entryPoint=entryPoint, package=package))
+            mod = importlib.import_module('.{entryPoint}'.format(entryPoint=entryPoint), package=package)
             print('algorithm code loaded')
 
             for m in dir(methods):
@@ -37,7 +39,7 @@ class Algorunner:
                         self._algorithm[methodName] = getattr(mod, methodName)
                     except Exception as e:
                         mandatory = "mandatory" if method["mandatory"] else "optional"
-                        error = f'unable to find {mandatory} method {methodName}'
+                        error = 'unable to find {mandatory} method {methodName}'.format(mandatory=mandatory, methodName=methodName)
                         if (method["mandatory"]):
                             raise Exception(error)
                         print(error)
@@ -51,7 +53,7 @@ class Algorunner:
         if (socket["url"] is not None):
             self._url = socket["url"]
         else:
-            self._url = f'{socket["protocol"]}://{socket["host"]}:{socket["port"]}'
+            self._url = '{protocol}://{host}:{port}'.format(**socket)
 
         self._wsc = wc.WebsocketClient()
         self._registerToWorkerEvents()
@@ -68,10 +70,10 @@ class Algorunner:
         self._wsc.events.on_exit += self._exit
 
     def _connection(self):
-        print(f'connected to {self._url}')
+        print('connected to ' + self._url)
 
     def _disconnect(self):
-        print(f'disconnected from {self._url}')
+        print('disconnected from '+ self._url)
 
     def _getMethod(self, method):
         return self._algorithm.get(method["name"])
@@ -95,9 +97,6 @@ class Algorunner:
         try:
             self._wsc.send({"command": messages.outgoing["started"]})
             method = self._getMethod(methods.start)
-            if (method is None):
-                raise Exception(f'unable to find method {methods.start}')
-
             output = method(self._input)
             self._wsc.send({
                 "command": messages.outgoing["done"],

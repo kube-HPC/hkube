@@ -2,6 +2,7 @@ const path = require('path');
 const fse = require('fs-extra');
 const Zip = require('adm-zip');
 const targz = require('targz');
+const moment = require('moment');
 const { spawn } = require('child_process');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -87,14 +88,15 @@ const _runBash = ({ command, args }) => {
     });
 };
 
-const _setBuildStatus = async ({ buildId, error, status, result }) => {
+const _setBuildStatus = async (options) => {
+    const { buildId, status, error } = options;
     log.info(`setBuild ${status} -> ${buildId}. ${error || ''}`, { component });
-    await stateManger.setBuild({ buildId, timestamp: new Date(), status, result, error });
+    await stateManger.setBuild({ timestamp: Date.now(), ...options });
 };
 
-const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) => {
+const _updateAlgorithmImage = async ({ algorithm, algorithmImage, status }) => {
     if (status === States.COMPLETED) {
-        await stateManger.updateAlgorithmImage({ algorithmName, algorithmImage });
+        await stateManger.updateAlgorithmImage({ algorithm, algorithmImage });
     }
 };
 
@@ -137,33 +139,36 @@ const _removeFolder = async ({ folder }) => {
 const runBuild = async (options) => {
     let build;
     let buildPath;
-    let algorithmName;
+    let algorithm;
     let error;
     let buildId;
     let result = { output: {} };
 
     try {
-        buildId = options.buildId; // eslint-disable-line
+        buildId = options.buildId;
         if (!buildId) {
             throw new Error('build id is required');
         }
         log.info(`build started -> ${buildId}`, { component });
+        await _setBuildStatus({ buildId, progress: 10, status: States.ACTIVE });
         build = await _getBuild({ buildId });
 
         const overwrite = true;
-        const { algorithm } = build;
+        algorithm = build.algorithm;
         const { env, name, version, fileInfo } = algorithm;
         const { docker, buildDirs } = options;
-        algorithmName = name;
+        const algorithmName = name;
         const src = `${buildDirs.ZIP}/${algorithmName}`;
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
         buildPath = `builds/${env}/${algorithmName}`;
 
         log.info(`starting build for algorithm=${algorithmName}, version=${version}, env=${env} -> ${buildId}`, { component });
+
         await _ensureDirs(buildDirs);
-        await _setBuildStatus({ buildId, status: States.ACTIVE });
+        await _setBuildStatus({ buildId, progress: 30, status: States.ACTIVE });
         await _downloadFile({ buildId, src, dest, ext: fileInfo.fileExt, overwrite });
         await _prepareBuild({ buildPath, env, dest, overwrite });
+        await _setBuildStatus({ buildId, progress: 50, status: States.ACTIVE });
         result = await _buildDocker({ docker, algorithmName, version, buildPath });
     }
     catch (e) {
@@ -172,12 +177,13 @@ const runBuild = async (options) => {
     }
 
     if (_realError(result.output.error)) {
-        error = result.output.error; // eslint-disable-line
+        error = result.output.error;
     }
     await _removeFolder({ folder: buildPath });
     const status = error ? States.FAILED : States.COMPLETED;
-    await _setBuildStatus({ buildId, error, status, result: result.output.data });
-    await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
+    const progress = error ? 50 : 100;
+    await _setBuildStatus({ buildId, progress, error, status, endTime: Date.now(), result: result.output.data });
+    await _updateAlgorithmImage({ algorithm, algorithmImage: result.algorithmImage, status });
     return { buildId, error, status, result };
 };
 

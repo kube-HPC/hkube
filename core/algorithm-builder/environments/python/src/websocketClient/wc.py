@@ -35,7 +35,7 @@ class WebsocketClient:
     def on_message(self, message):
         decoded = json.loads(message)
         command = decoded["command"]
-        print(f'got message from worker: {command}')
+        print('got message from worker: {command}'.format(command=command))
         func = self._switcher.get(command)
         data = None if "data" not in decoded else decoded["data"]
         func(data)
@@ -51,7 +51,7 @@ class WebsocketClient:
 
     def send(self, message):
         try:
-            print(f'sending message to worker {message["command"]}')
+            print('sending message to worker {command}'.format(**message))
             self._ws.send(json.dumps(message))
         except Exception as e:
             print(e)
