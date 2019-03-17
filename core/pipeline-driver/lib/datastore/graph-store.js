@@ -126,15 +126,15 @@ class GraphStore {
     _handleSingle(node) {
         const { SINGLE } = groupTypes;
         const calculatedNode = {
-            id: node.nodeName,
-            label: node.nodeName,
-            extra: {},
+            nodeName: node.nodeName,
+            algorithmName: node.algorithmName,
             input: this._parseInput(node),
             output: node.result,
             error: node.error,
             group: SINGLE.NOT_STARTED,
             taskId: node.taskId,
-            algorithmName: node.algorithmName
+            startTime: node.startTime,
+            endTime: node.endTime
         };
         calculatedNode.group = this._singleStatus(node.status);
         return calculatedNode;
@@ -147,13 +147,13 @@ class GraphStore {
             batchIndex: b.batchIndex,
             input: this._parseInput(b),
             output: b.result,
-            error: b.error
+            error: b.error,
+            startTime: b.startTime,
+            endTime: b.endTime
         }));
         const calculatedNode = {
-            id: node.nodeName,
-            label: node.nodeName,
+            nodeName: node.nodeName,
             algorithmName: node.algorithmName,
-            algorithmExecution: node.algorithmExecution || false,
             extra: {},
             group: BATCH.NOT_STARTED,
             batchTasks

@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const graphlib = require('graphlib');
+const merge = require('lodash.merge');
 const deepExtend = require('deep-extend');
 const { parser, consts } = require('@hkube/parsers');
 const groupBy = require('../helpers/group-by');
@@ -252,12 +253,12 @@ class NodesMap extends EventEmitter {
         }
     }
 
-    updateTaskState(taskId, { status, result, error } = {}) {
-        const task = this.getNodeByTaskID(taskId);
+    updateTaskState(taskId, { status, result, error, startTime, endTime } = {}) {
+        let task = this.getNodeByTaskID(taskId);
         if (!task) {
             throw new Error(`unable to find task ${taskId}`);
         }
-        deepExtend(task, { status, result, error });
+        task = merge(task, { status, result, error, startTime, endTime });
         return task;
     }
 
