@@ -23,6 +23,9 @@ config.metrics = {
     }
 };
 
+config.clusterName = process.env.CLUSTER_NAME || 'local';
+
+
 config.tracer = {
     tracerConfig: {
         serviceName: config.serviceName,

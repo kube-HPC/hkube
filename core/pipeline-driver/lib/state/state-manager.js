@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const Etcd = require('@hkube/etcd');
 const { JobResult, JobStatus } = require('@hkube/etcd');
+const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
 
@@ -61,23 +62,32 @@ class StateManager extends EventEmitter {
 
     async setJobResults(options) {
         let error;
+        let parent;
+        const topSpan = tracer.topSpan(options.jobId);
+        if (topSpan) {
+            parent = topSpan.context();
+        }
+        const span = tracer.startSpan({ name: 'set job result', parent, tags: { jobId: options.jobId } });
         try {
             let results;
             if (options.data) {
+                const startSpan = tracer.startSpan.bind(tracer, { name: 'storage-get', parent: span.context() });
                 const data = await Promise.all(options.data.map(async (a) => {
                     if (a.result && a.result.storageInfo) {
-                        const result = await storageManager.get(a.result.storageInfo);
+                        const result = await storageManager.get(a.result.storageInfo, startSpan);
                         return { ...a, result };
                     }
                     return a;
                 }));
-                const storageInfo = await storageManager.hkubeResults.put({ jobId: options.jobId, data });
+                const storageInfo = await storageManager.hkubeResults.put({ jobId: options.jobId, data }, tracer.startSpan.bind(tracer, { name: 'storage-put', parent: span.context() }));
                 results = { storageInfo };
             }
             await this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult({ ...options, data: results }) });
+            span.finish();
         }
         catch (e) {
             error = e.message;
+            span.finish(e);
         }
         return error;
     }
@@ -133,6 +143,14 @@ class StateManager extends EventEmitter {
 
     _watchDrivers() {
         return this._etcd.drivers.watch({ driverId: this._etcd.discovery._instanceId });
+    }
+
+    _getTracer(jobId, name) {
+        const parent = tracer.topSpan(jobId);
+        if (parent) {
+            return tracer.startSpan.bind(tracer, { name, parent: parent.context() });
+        }
+        return null;
     }
 }
 

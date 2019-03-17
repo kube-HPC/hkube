@@ -4,6 +4,7 @@ const Logger = require('@hkube/logger');
 const monitor = require('@hkube/redis-utils').Monitor;
 const { tracer, metrics } = require('@hkube/metrics');
 const component = require('./lib/consts/componentNames').MAIN;
+const storageManager = require('@hkube/storage-manager');
 let log;
 
 const modules = [
@@ -11,8 +12,7 @@ const modules = [
     require('./lib/consumer/jobs-consumer'),
     require('./lib/datastore/redis-storage-adapter'),
     require('./lib/metrics/pipeline-metrics'),
-    require('./lib/datastore/graph-store'),
-    require('@hkube/storage-manager')
+    require('./lib/datastore/graph-store')
 ];
 
 class Bootstrap {
@@ -32,6 +32,7 @@ class Bootstrap {
             });
             monitor.check(main.redis);
             await metrics.init(main.metrics);
+            await storageManager.init(main, log);
 
             if (main.tracer) {
                 await tracer.init(main.tracer);

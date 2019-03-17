@@ -28,7 +28,7 @@ const delay = d => new Promise(r => setTimeout(r, d));
 
 describe('Test', function () {
     before(async () => {
-        await storageManager.init(main, true);
+        await storageManager.init(main, log, true);
         await bootstrap.init();
         TaskRunner = require('../lib/tasks/task-runner');
         stateManager = new StateManager(main);
