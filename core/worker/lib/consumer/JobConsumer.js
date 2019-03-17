@@ -76,7 +76,7 @@ class JobConsumer extends EventEmitter {
             this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
 
             await etcd.update({
-                jobId: this._jobId, taskId: this._taskId, status: constants.JOB_STATUS.ACTIVE
+                jobId: this._jobId, taskId: this._taskId, startTime: Date.now(), status: constants.JOB_STATUS.ACTIVE
             });
 
             stateManager.setJob(job);
@@ -279,7 +279,7 @@ class JobConsumer extends EventEmitter {
             storageResult = await this._putResult(resultData);
         }
         this._job.error = error;
-        const resData = Object.assign({ status, error, jobId: this._jobId, taskId: this._taskId }, storageResult);
+        const resData = Object.assign({ status, error, jobId: this._jobId, taskId: this._taskId, endTime: Date.now() }, storageResult);
         await etcd.update(resData);
         await this._putMetadata(resData);
         this._summarizeMetrics(status);
