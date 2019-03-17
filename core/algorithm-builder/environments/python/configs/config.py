@@ -12,5 +12,5 @@ class Config:
     }
     algorithm = {
         "path": "algorithm",
-        "entryPoint": os.environ.get('ALGORITHM_ENTRY_POINT', "")
+        "entryPoint": os.environ.get('ALGORITHM_ENTRY_POINT', "main.py")
     }
