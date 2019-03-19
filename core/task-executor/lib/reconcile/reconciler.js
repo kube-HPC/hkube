@@ -7,7 +7,7 @@ const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
 const { awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl } = require('../templates/s3-template');
 const { fsBaseDirectory, fsVolumeMounts, fsVolumes } = require('../templates/fs-template');
-const { commands, components, consts } = require('../../lib/consts');
+const { commands, components, consts, gpuVendors } = require('../../lib/consts');
 const component = components.RECONCILER;
 
 const { normalizeWorkers,
@@ -360,7 +360,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const resourcesToFree = skipped.reduce((prev, cur) => {
         return {
             cpu: prev.cpu + cur.resourceRequests.requests.cpu,
-            gpu: prev.gpu + cur.resourceRequests.requests.gpu,
+            gpu: prev.gpu + cur.resourceRequests.requests[gpuVendors.NVIDIA],
             memory: prev.memory + parse.getMemoryInMi(cur.resourceRequests.requests.memory)
         };
     }, { cpu: 0, gpu: 0, memory: 0 });

@@ -125,25 +125,25 @@ describe('normalize pipeline driver', () => {
         it('should return resources by node and totals', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.total.cpu).to.eq(23.4);
-            expect(res.allNodes.total.gpu).to.eq(2);
+            expect(res.allNodes.total.gpu).to.eq(8);
             expect(res.allNodes.total.memory).to.eq(98304);
             expect(res.nodeList[0].requests.cpu).to.eq(0.2);
             expect(res.nodeList[1].requests.cpu).to.eq(0.25);
             expect(res.nodeList[2].requests.cpu).to.eq(0);
-            expect(res.nodeList[0].requests.gpu).to.eq(0);
-            expect(res.nodeList[1].requests.gpu).to.eq(0);
+            expect(res.nodeList[0].requests.gpu).to.eq(1);
+            expect(res.nodeList[1].requests.gpu).to.eq(2);
             expect(res.nodeList[2].requests.gpu).to.eq(0);
         });
         it('should return resources free resources by node', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.free.cpu).to.eq(22.95);
-            expect(res.allNodes.free.gpu).to.eq(2);
+            expect(res.allNodes.free.gpu).to.eq(5);
             expect(res.allNodes.free.memory).to.eq(97664);
             expect(res.nodeList[0].free.cpu).to.eq(7.6);
             expect(res.nodeList[1].free.cpu).to.eq(7.55);
             expect(res.nodeList[2].free.cpu).to.eq(7.8);
-            expect(res.nodeList[0].free.gpu).to.eq(2);
-            expect(res.nodeList[1].free.gpu).to.eq(0);
+            expect(res.nodeList[0].free.gpu).to.eq(3);
+            expect(res.nodeList[1].free.gpu).to.eq(2);
             expect(res.nodeList[2].free.gpu).to.eq(0);
         });
     });

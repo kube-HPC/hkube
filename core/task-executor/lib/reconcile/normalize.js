@@ -166,7 +166,10 @@ const _nodeTaintsFilter = (node) => {
 };
 
 const parseGpu = (gpu) => {
-    return gpu && gpu[gpuVendors.NVIDIA] && parseInt(gpu[gpuVendors.NVIDIA], 10);
+    if (!gpu || !gpu[gpuVendors.NVIDIA]) {
+        return 0;
+    }
+    return parseInt(gpu[gpuVendors.NVIDIA], 10);
 };
 
 const normalizeResources = ({ pods, nodes } = {}) => {
@@ -218,10 +221,10 @@ const normalizeResources = ({ pods, nodes } = {}) => {
             return accumulator;
         }
         const requestCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
-        const requestGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.requests.gpu', 0)));
+        const requestGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.requests', 0)));
         const requestMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0)));
         const limitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
-        const limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits.gpu', 0)));
+        const limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits', 0)));
         const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0)));
 
         accumulator[nodeName].requests.cpu += requestCpu;

@@ -196,7 +196,7 @@ const nodes = {
                     allocatable: {
                         cpu: '7800m',
                         memory: '32Gi',
-                        [gpuVendors.NVIDIA]: '2',
+                        [gpuVendors.NVIDIA]: '4',
                         pods: '110'
                     },
                 }
@@ -209,11 +209,13 @@ const nodes = {
                     capacity: {
                         cpu: '8',
                         memory: '32Gi',
+                        [gpuVendors.NVIDIA]: '4',
                         pods: '110'
                     },
                     allocatable: {
                         cpu: '7800m',
                         memory: '32Gi',
+                        [gpuVendors.NVIDIA]: '4',
                         pods: '110'
                     }
                 }
