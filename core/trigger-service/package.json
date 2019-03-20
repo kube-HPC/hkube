@@ -30,7 +30,6 @@
     "@hkube/etcd": "^4.0.25",
     "@hkube/logger": "^1.0.15",
     "@hkube/metrics": "^1.0.24",
-    "@hkube/redis-utils": "^1.0.3",
     "async": "^2.6.1",
     "cron": "^1.5.0",
     "requestretry": "^3.0.2"
