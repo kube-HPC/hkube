@@ -59,7 +59,7 @@ const routes = () => {
             return next(error);
         }
     });
-    router.put('/readme/pipelines/:name', logger(), async (req, res, next) => {
+    router.put('/pipelines/:name', upload.single('README.md'), logger(), async (req, res, next) => {
         const { name } = req.params;
         try {
             if (req.file && await isPipelineAvailable(name)) {
@@ -78,7 +78,7 @@ const routes = () => {
         const { name } = req.params;
         try {
             if (await isPipelineAvailable(name)) {
-                await storageManager.hkubeStore.delete({ type: 'readme/pipeline', name, data: { readme: req.file.buffer.toString() } });
+                await storageManager.hkubeStore.delete({ type: 'readme/pipeline', name });
                 res.json({ message: 'OK' });
             }
             return next();
@@ -105,18 +105,19 @@ const routes = () => {
         const { name } = req.params;
         try {
             if (req.file && await isAlgorithmAvailable(name)) {
-                const data = await storageManager.hkubeStore.put({ type: 'readme/algorithms', name, data: { readme: req.file.buffer.toString() } });
-                res.status(201).json(data);
+                await storageManager.hkubeStore.put({ type: 'readme/algorithms', name, data: { readme: req.file.buffer.toString() } });
+                res.status(201);
             }
-
-            res.status(400).json({ message: 'one of your inputs are incorrect please verify that there is algorithm with that name and that the file name is README.md' });
+            else {
+                res.status(400).json({ message: 'one of your inputs are incorrect please verify that there is algorithm with that name and that the file name is README.md' });
+            }
             return next();
         }
         catch (error) {
             return next(error);
         }
     });
-    router.put('/readme/algorithms/:name', logger(), async (req, res, next) => {
+    router.put('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
         try {
             if (req.file && await isAlgorithmAvailable(name)) {
