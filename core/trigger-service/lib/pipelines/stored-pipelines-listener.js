@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
-const log = require('@hkube/logger').GetLogFromContainer();
-const { componentName, Events } = require('../consts/index');
+const { Events } = require('../consts');
 const storeManager = require('../store/store-manager');
 const Trigger = require('../triggers/Trigger');
 
@@ -16,13 +15,8 @@ class StoredPipelinesListener extends EventEmitter {
 
     async getTriggeredPipelineByType(type) {
         let pipelines = [];
-        try {
-            pipelines = await storeManager.getPipelines();
-            pipelines = pipelines.filter(p => p.triggers != null && p.triggers[type] != null).map(p => new Trigger(p));
-        }
-        catch (error) {
-            log.error(`didn't received data from store error: ${error} `, { component: componentName.STORED_PIPELINES_LISTENER });
-        }
+        pipelines = await storeManager.getPipelines();
+        pipelines = pipelines.filter(p => p.triggers != null && p.triggers[type] != null).map(p => new Trigger(p));
         return pipelines;
     }
 }

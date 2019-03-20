@@ -1,15 +1,14 @@
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
-const { tracer } = require('@hkube/metrics');
-const { componentName } = require('./lib/consts/index');
+const { componentName } = require('./lib/consts');
 const component = componentName.MAIN;
 let log;
 
 const modules = [
-    './lib/store/store-manager',
-    './lib/queue/trigger-runner',
-    './lib/pipelines/stored-pipelines-listener',
-    './lib/pipelines/pipeline-producer'
+    require('./lib/store/store-manager'),
+    require('./lib/queue/trigger-runner'),
+    require('./lib/pipelines/stored-pipelines-listener'),
+    require('./lib/pipelines/pipeline-producer')
 ];
 
 class Bootstrap {
@@ -22,16 +21,14 @@ class Bootstrap {
             log = new Logger(main.serviceName, logger);
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
-            if (main.tracer) {
-                await tracer.init(main.tracer);
+            for (const m of modules) {
+                await m.init(main);
             }
-            await Promise.all(modules.map(m => require(m).init(main)));
 
             config = main;
         }
         catch (error) {
-            log.error(error);
-            this._onInitFailed(new Error(`unable to start application. ${error.message}`));
+            this._onInitFailed(error);
         }
         return config;
     }

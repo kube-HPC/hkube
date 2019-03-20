@@ -1,11 +1,12 @@
-const log = require('@hkube/logger').GetLogFromContainer();
+const logger = require('@hkube/logger');
 const storeManager = require('../store/store-manager');
 const triggerQueue = require('../queue/trigger-queue');
-const { componentName, Events, Triggers } = require('../consts/index');
+const { componentName, Events, Triggers } = require('../consts');
+let log;
 
 class PipelineTrigger {
     init() {
-        log.info('pipeline trigger initiated successfully', { component: componentName.PIPELINE_TRIGGER });
+        log = logger.GetLogFromContainer();
         this._watchJobResults();
     }
 

@@ -1,14 +1,14 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
-const { Events } = require('../consts/index');
+const { Events } = require('../consts');
 
 class StateManager extends EventEmitter {
     async init(options) {
         this._etcd = new Etcd();
         this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
-        this._watchPipelines();
-        this._watchJobResults();
+        await this._watchPipelines();
+        await this._watchJobResults();
     }
 
     async _watchPipelines() {

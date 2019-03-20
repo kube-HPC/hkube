@@ -5,7 +5,7 @@ let storedPipelineListener, cronTrigger, pipelineTrigger, triggerQueue, pipeline
 const Trigger = require('../lib/triggers/Trigger');
 const pipelines = require('./mocks/pipelines.json');
 const apiServerMock = require('./mocks/api-server');
-const { Triggers } = require('../lib/consts/index');
+const { Triggers } = require('../lib/consts');
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
 const delay = require('await-delay');
