@@ -1394,27 +1394,31 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal("data should be string");
+                        expect(response.body.error.message).to.equal(`data should have required property 'name'`);
                     });
-                    it('should throw validation error of not have any cron trigger', async () => {
-                        const qs = querystring.stringify({ limit: "y" });
+                    it('should throw validation error of invalid cron', async () => {
                         const options = {
                             uri: restPath,
                             method,
                             body: {
-                                name: 'simple'
+                                name: 'simple',
+                                pattern: 'no_such'
                             }
                         };
                         const response = await _request(options);
                         expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal("pipeline simple does not have any cron trigger");
+                        expect(response.body.error.message).to.equal(`data.pattern should match format "cron"`);
                     });
                     it('should success to start cron', async () => {
                         const pipeline = pipelines.find(p => p.name === 'trigger-cron-disabled');
+                        const pattern = "* * * * *";
                         const options1 = {
                             uri: restPath,
                             method,
-                            body: { name: pipeline.name }
+                            body: {
+                                name: pipeline.name,
+                                pattern
+                            }
                         };
                         const options2 = {
                             uri: `${restUrl}/store/pipelines/${pipeline.name}`,
@@ -1424,7 +1428,7 @@ describe('Rest', () => {
                         const response2 = await _request(options2);
                         expect(response1.body.message).to.equal('OK');
                         expect(response2.body.triggers.cron.enabled).to.equal(true);
-                        expect(response2.body.triggers.cron.pattern).to.equal(pipeline.triggers.cron.pattern);
+                        expect(response2.body.triggers.cron.pattern).to.equal(pattern);
                     });
                 });
                 describe('/cron/stop', () => {
@@ -1463,20 +1467,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal("data should be string");
-                    });
-                    it('should throw validation error of not have any cron trigger', async () => {
-                        const qs = querystring.stringify({ limit: "y" });
-                        const options = {
-                            uri: restPath,
-                            method,
-                            body: {
-                                name: 'simple'
-                            }
-                        };
-                        const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
-                        expect(response.body.error.message).to.equal("pipeline simple does not have any cron trigger");
+                        expect(response.body.error.message).to.equal(`data should have required property 'name'`);
                     });
                     it('should success to stop cron', async () => {
                         const pipeline = pipelines.find(p => p.name === 'trigger-cron-enabled');

@@ -29,7 +29,7 @@ class Bootstrap {
             });
             await monitor.check(main.redis);
             await metrics.init(main.metrics);
-            await storageManager.init(main, true);
+            await storageManager.init(main, log, true);
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }

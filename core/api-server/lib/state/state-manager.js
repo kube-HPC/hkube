@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
+const { tracer } = require('@hkube/metrics');
 const { JobStatus, JobResult, Webhook } = require('@hkube/etcd');
 const States = require('./States');
 
@@ -169,7 +170,7 @@ class StateManager extends EventEmitter {
     async getResultFromStorage(options) {
         if (options && options.data && options.data.storageInfo) {
             try {
-                const data = await storageManager.get(options.data.storageInfo);
+                const data = await storageManager.get(options.data.storageInfo, tracer.startSpan.bind(tracer, { name: 'storage-get-result' }));
                 return { ...options, data, storageModule: storageManager.moduleName };
             }
             catch (error) {

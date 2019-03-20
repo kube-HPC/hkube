@@ -53,6 +53,8 @@ config.webhooks = {
     }
 };
 
+config.clusterName = process.env.CLUSTER_NAME || 'local';
+
 config.pipelineDriversResources = {
     cpu: parseFloat(process.env.PIPELINE_DRIVER_CPU || 0.15),
     mem: parseFloat(process.env.PIPELINE_DRIVER_MEM || 256)

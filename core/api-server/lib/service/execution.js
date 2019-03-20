@@ -73,37 +73,36 @@ class ExecutionService {
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name });
         }
-        const span = tracer.startSpan({
-            id: jobId,
-            name: 'run pipeline',
-            tags: {
-                jobId,
-                name: pipeline.name
+        const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name } });
+        try {
+            validator.addPipelineDefaults(pipeline);
+            await validator.validateAlgorithmName(pipeline);
+            await validator.validateConcurrentPipelines(pipeline, jobId);
+
+            if (pipeline.flowInput && !alreadyExecuted) {
+                const metadata = parser.replaceFlowInput(pipeline);
+                const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },
+                    tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
+                pipeline = {
+                    ...pipeline,
+                    flowInput: { metadata, storageInfo },
+                    flowInputOrig: pipeline.flowInput
+                };
             }
-        });
-
-        validator.addPipelineDefaults(pipeline);
-        await validator.validateAlgorithmName(pipeline);
-        await validator.validateConcurrentPipelines(pipeline, jobId);
-
-        if (pipeline.flowInput && !alreadyExecuted) {
-            const metadata = parser.replaceFlowInput(pipeline);
-            const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput });
-            pipeline = {
-                ...pipeline,
-                flowInput: { metadata, storageInfo },
-                flowInputOrig: pipeline.flowInput
-            };
+            const lastRunResult = await this._getLastPipeline(jobId);
+            await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
+            await storageManager.hkubeExecutions.put({ jobId, data: pipeline }, tracer.startSpan.bind(tracer, { name: 'storage-put-exeuctions', parent: span.context() }));
+            await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now(), lastRunResult } });
+            await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now(), lastRunResult } });
+            await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.INFO.name });
+            await producer.createJob({ jobId, parentSpan: span.context() });
+            span.finish();
+            return jobId;
         }
-        const lastRunResult = await this._getLastPipeline(jobId);
-        await storageManager.hkubeIndex.put({ jobId });
-        await storageManager.hkubeExecutions.put({ jobId, data: pipeline });
-        await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now(), lastRunResult } });
-        await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now(), lastRunResult } });
-        await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.INFO.name });
-        await producer.createJob({ jobId, parentSpan: span.context() });
-        span.finish();
-        return jobId;
+        catch (error) {
+            span.finish(error);
+            throw error;
+        }
     }
 
     async getJobStatus(options) {

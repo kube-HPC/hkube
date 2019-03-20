@@ -48,16 +48,15 @@ class ExecutionService {
     }
 
     async _toggleCronJob(options, toggle) {
-        validator.validatePipelineName(options.name);
+        validator.validateCronRequest(options);
         const pipeline = await stateManager.getPipeline(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        if (!pipeline.triggers || !pipeline.triggers.cron) {
-            throw new InvalidDataError(`pipeline ${pipeline.name} does not have any cron trigger`);
-        }
+        const pattern = objectPath.get(pipeline, 'triggers.cron.pattern');
         objectPath.set(pipeline, 'triggers.cron.enabled', toggle);
-        await storageManager.hkubeStore.put({ type: 'pipeline', name: pipeline.name, data: pipeline });
+        objectPath.set(pipeline, 'triggers.cron.pattern', options.pattern || pattern);
+        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: pipeline });
         await stateManager.setPipeline(pipeline);
         return pipeline;
     }

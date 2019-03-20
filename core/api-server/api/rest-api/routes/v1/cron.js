@@ -41,8 +41,8 @@ const routes = (options) => {
         });
     });
     router.all('/start', methods(['POST']), logger(), (req, res, next) => {
-        const { name } = req.body;
-        Cron.startCronJob({ name }).then(() => {
+        const { name, pattern } = req.body;
+        Cron.startCronJob({ name, pattern }).then(() => {
             res.json({ message: 'OK' });
             res.name = name;
             next();
@@ -51,8 +51,8 @@ const routes = (options) => {
         });
     });
     router.all('/stop', methods(['POST']), logger(), (req, res, next) => {
-        const { name } = req.body;
-        Cron.stopCronJob({ name }).then(() => {
+        const { name, pattern } = req.body;
+        Cron.stopCronJob({ name, pattern }).then(() => {
             res.json({ message: 'OK' });
             res.name = name;
             next();

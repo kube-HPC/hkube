@@ -80,6 +80,10 @@ class ApiValidator {
         this._validate(schemas.entities.pipelineName, name, false);
     }
 
+    validateCronRequest(options) {
+        this._validate(schemas.requests.cronRequest, options, false);
+    }
+
     validateResultList(pipeline) {
         this._validate(_schemas.list, pipeline, true);
     }
