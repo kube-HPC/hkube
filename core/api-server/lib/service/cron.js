@@ -4,7 +4,7 @@ const storageManager = require('@hkube/storage-manager');
 const execution = require('../../lib/service/execution');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
-const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
+const { ResourceNotFoundError } = require('../errors');
 
 class ExecutionService {
     async getCronResult(options) {

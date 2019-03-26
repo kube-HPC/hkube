@@ -117,7 +117,7 @@ const routes = () => {
             return next(error);
         }
     });
-    router.put('/algorithms/:name', logger(), async (req, res, next) => {
+    router.put('/algorithms/:name', upload.single('README.md'), logger(), async (req, res, next) => {
         const { name } = req.params;
         try {
             if (req.file && await isAlgorithmAvailable(name)) {
