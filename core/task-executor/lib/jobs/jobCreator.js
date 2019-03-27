@@ -132,6 +132,10 @@ const applyName = (inputSpec, algorithmName) => {
     return spec;
 };
 
+const applyEntryPoint = (inputSpec, entryPoint) => {
+    return applyEnvToContainer(inputSpec, CONTAINERS.ALGORITHM, { ALGORITHM_ENTRY_POINT: entryPoint });
+};
+
 const applyHotWorker = (inputSpec, hotWorker) => {
     if (!hotWorker) {
         return inputSpec;
@@ -210,7 +214,7 @@ const applyVolumeMounts = (inputSpec, containerName, vm) => {
     return spec;
 };
 
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, nodeSelector, hotWorker,
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, nodeSelector, entryPoint, hotWorker,
     clusterOptions, options, awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl, fsBaseDirectory, fsVolumes, fsVolumeMounts }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
@@ -232,6 +236,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
     spec = applyNodeSelector(spec, nodeSelector, clusterOptions);
     spec = applyHotWorker(spec, hotWorker);
+    spec = applyEntryPoint(spec, entryPoint);
 
     if (options.defaultStorage === 's3') {
         spec = applyEnvToContainerFromSecretOrConfigMap(spec, CONTAINERS.WORKER, awsAccessKeyId);

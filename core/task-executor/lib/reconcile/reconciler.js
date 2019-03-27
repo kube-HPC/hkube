@@ -118,7 +118,7 @@ const _processAllRequests = (
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
         const resourceRequests = createContainerResource(algorithmTemplate);
-        const { workerEnv, algorithmEnv, nodeSelector } = algorithmTemplate;
+        const { workerEnv, algorithmEnv, nodeSelector, entryPoint } = algorithmTemplate;
 
         createDetails.push({
             numberOfNewJobs: 1,
@@ -129,6 +129,7 @@ const _processAllRequests = (
                 workerEnv,
                 algorithmEnv,
                 nodeSelector,
+                entryPoint,
                 hotWorker,
                 resourceRequests,
                 clusterOptions,
