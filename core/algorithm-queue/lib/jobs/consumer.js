@@ -22,6 +22,8 @@ class JobConsumer extends EventEmitter {
         this._options = options;
         this.etcd.init({ etcd, serviceName });
         await this.etcd.jobState.watch();
+        await this.etcd.algorithmExecutions.watch();
+
         log.info(`registering for job ${options.algorithmType}`, { component });
 
         this._consumer = new Consumer({ setting: { redis: options.redis, tracer, prefix: jobPrefix.JOB_PREFIX } });
@@ -30,7 +32,14 @@ class JobConsumer extends EventEmitter {
         });
         this.etcd.jobState.on('change', (data) => {
             if (data && data.state === 'stop') {
-                queueRunner.queue.removeJobId([data.jobId]);
+                const { jobId } = data;
+                queueRunner.queue.removeJobs([{ jobId }]);
+            }
+        });
+        this.etcd.algorithmExecutions.on('change', (data) => {
+            if (data && data.state === 'stop') {
+                const { jobId, taskId } = data;
+                queueRunner.queue.removeJobs([{ jobId, taskId }]);
             }
         });
         this._consumer.register({ job: { type: algorithmType, concurrency: options.consumer.concurrency } });
@@ -42,7 +51,7 @@ class JobConsumer extends EventEmitter {
             const data = await this.etcd.jobState.getState({ jobId });
             if (data && data.state === 'stop') {
                 log.warning(`job arrived with state stop therefore will not added to queue : ${jobId}`, { component });
-                queueRunner.queue.removeJobId([job.data.jobId]);
+                queueRunner.queue.removeJobs([{ jobId }]);
             }
             else {
                 log.info(`job arrived with inputs amount: ${job.data.tasks.length}`, { component });

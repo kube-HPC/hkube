@@ -63,7 +63,7 @@ describe('Test', () => {
                     queue.on(queueEvents.REMOVE, () => {
                         _semaphore.callDone();
                     });
-                    queue.removeJobId([stubJob.jobId]);
+                    queue.removeJobs([{ jobId: stubJob.jobId }]);
                     await _semaphore.done();
                     const q = queue.get;
                     expect(q).to.have.length(0);
@@ -76,7 +76,7 @@ describe('Test', () => {
                     queue.on(queueEvents.REMOVE, () => {
                         called = true;
                     });
-                    queue.removeJobId(['111222333']);
+                    queue.removeJobs([{ jobId: '111222333' }]);
                     expect(called).to.equal(false);
                     const q = queue.get;
                     expect(q).to.have.length(1);
@@ -136,7 +136,7 @@ describe('Test', () => {
                     queue.intervalRunningStatus = false;
                     const stubJob = stubTemplate();
                     await queue.add([stubJob]);
-                    await queue.removeJobId([stubJob.jobId]);
+                    await queue.removeJobs([{ jobId: stubJob.jobId }]);
                     await _semaphore.done();
                 });
                 afterEach(() => {

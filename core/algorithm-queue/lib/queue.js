@@ -103,13 +103,13 @@ class Queue extends events {
      * Remove all tasks of given job IDs from queue
      * @param {Array} jobsId
      */
-    removeJobId(jobsId) {
+    removeJobs(jobs) {
         if (this.isScoreDuringUpdate) {
             log.debug('remove -  score is currently updated so the remove is added to the temp arr ', { component: components.QUEUE });
-            this.tempRemoveJobIDsQueue = this.tempRemoveJobIDsQueue.concat(jobsId);
+            this.tempRemoveJobIDsQueue.push(...jobs);
             return;
         }
-        this._removeJobID(jobsId);
+        this._removeJobs(jobs);
     }
 
     async updateScore() {
@@ -139,28 +139,28 @@ class Queue extends events {
         this.queue = _.orderBy([...this.queue], j => j.calculated.score, 'desc');
     }
 
-    _removeJobID(jobArr) {
-        if (jobArr.length === 0) {
+    _removeJobs(jobs) {
+        if (jobs.length === 0) {
             log.debug('there is no deleted jobs', { component: components.QUEUE });
             return;
         }
-        log.info(`${[...jobArr]} removed from queue  `, { component: components.QUEUE });
-        let removedTasksArr = [];
-        jobArr.forEach((jobId) => {
+        const removedTasks = [];
+        jobs.forEach((j) => {
             // collect removed tasks to send in REMOVE event
-            removedTasksArr = [].concat(removedTasksArr, _.remove(this.queue, task => task.jobId === jobId));
+            const tasks = _.remove(this.queue, t => (t.jobId === j.jobId) && (j.taskId ? t.taskId === j.taskId : true));
+            removedTasks.push(...tasks);
         });
-        if (removedTasksArr.length === 0) {
-            log.warning(`no task in queue is matching job IDs: ${jobArr.join('.')}`);
+        if (removedTasks.length === 0) {
             return;
         }
-        this.emit(queueEvents.REMOVE, removedTasksArr);
+        log.info(`${removedTasks.length} removed from queue`, { component: components.QUEUE });
+        this.emit(queueEvents.REMOVE, removedTasks);
     }
 
     // should be merged after each interval cycle
     _mergeTemp() {
         this._insert(this.tempInsertTasksQueue);
-        this._removeJobID(this.tempRemoveJobIDsQueue);
+        this._removeJobs(this.tempRemoveJobIDsQueue);
         this.tempInsertTasksQueue = [];
         this.tempRemoveJobIDsQueue = [];
     }
