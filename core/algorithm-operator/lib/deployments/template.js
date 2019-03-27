@@ -1,28 +1,30 @@
+const { ALGORITHM_QUEUE } = require('../consts/containers');
+
 const algorithmQueueTemplate = {
     apiVersion: 'apps/v1',
     kind: 'Deployment',
     metadata: {
-        name: 'algorithm-queue-algorithm-name',
+        name: ALGORITHM_QUEUE,
         labels: {
-            app: 'algorithm-queue-algorithm-name',
+            app: ALGORITHM_QUEUE,
             group: 'hkube',
             core: 'true',
-            'metrics-group': 'algorithm-queue'
+            'metrics-group': ALGORITHM_QUEUE
         }
     },
     spec: {
         replicas: 1,
         selector: {
             matchLabels: {
-                app: 'algorithm-queue-algorithm-name'
+                app: ALGORITHM_QUEUE
             }
         },
         template: {
             metadata: {
                 labels: {
-                    app: 'algorithm-queue-algorithm-name',
+                    app: ALGORITHM_QUEUE,
                     group: 'hkube',
-                    'metrics-group': 'algorithm-queue'
+                    'metrics-group': ALGORITHM_QUEUE
                 }
             },
             spec: {
@@ -31,8 +33,8 @@ const algorithmQueueTemplate = {
                 },
                 containers: [
                     {
-                        name: 'algorithm-queue',
-                        image: 'hkube/algorithm-queue:latest',
+                        name: ALGORITHM_QUEUE,
+                        image: `hkube/${ALGORITHM_QUEUE}:latest`,
                         ports: [
                             {
                                 containerPort: 3000

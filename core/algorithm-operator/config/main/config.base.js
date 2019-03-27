@@ -1,11 +1,13 @@
 const config = {};
 
 config.serviceName = 'algorithm-operator';
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default'
 };
+
 config.etcd = {
     etcd: {
         protocol: 'http',
@@ -15,7 +17,7 @@ config.etcd = {
     serviceName: config.serviceName
 };
 
-config.intervalMs = 10000;
+config.intervalMs = process.env.INTERVAL_MS || 10000;
 
 config.metrics = {
     collectDefault: true,

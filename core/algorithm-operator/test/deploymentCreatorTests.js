@@ -2,13 +2,14 @@ const clonedeep = require('lodash.clonedeep');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger); // eslint-disable-line
+const log = new Logger(main.serviceName, logger);
 
-const { expect } = require('chai'); // eslint-disable-line
-const { createDeploymentSpec, applyImage, applyAlgorithmName, applyName, applyNodeSelector } = require('../lib/deployments/deploymentCreator'); // eslint-disable-line object-curly-newline
-const { createImageName, parseImageName, isValidDeploymentName } = require('../lib/helpers/images'); // eslint-disable-line object-curly-newline
-const { algorithmQueueTemplate } = require('./stub/jobTemplates');
-describe('jobCreator', () => {
+const { expect } = require('chai');
+const { createDeploymentSpec, applyImage, applyAlgorithmName, applyName, applyNodeSelector } = require('../lib/deployments/deploymentCreator');
+const { createImageName, parseImageName, isValidDeploymentName } = require('../lib/helpers/images');
+const { algorithmQueueTemplate } = require('./stub/deploymentTemplates');
+
+describe('deploymentCreator', () => {
     describe('applyAlgorithmName', () => {
         it('should replace image name in spec', () => {
             const res = applyAlgorithmName(algorithmQueueTemplate, 'myAlgo1');
@@ -33,7 +34,7 @@ describe('jobCreator', () => {
     });
     describe('useNodeSelector', () => {
         it('should remove node selector in spec', () => {
-            const res = applyNodeSelector(algorithmQueueTemplate, {useNodeSelector: false});
+            const res = applyNodeSelector(algorithmQueueTemplate, { useNodeSelector: false });
             expect(res.spec.template.spec.nodeSelector).to.be.undefined;
         });
         it('should remove node selector in spec 2', () => {
@@ -41,7 +42,7 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.nodeSelector).to.be.undefined;
         });
         it('should not remove node selector in spec', () => {
-            const res = applyNodeSelector(algorithmQueueTemplate, {useNodeSelector: true});
+            const res = applyNodeSelector(algorithmQueueTemplate, { useNodeSelector: true });
             expect(res.spec.template.spec.nodeSelector).to.exist;
         });
     });

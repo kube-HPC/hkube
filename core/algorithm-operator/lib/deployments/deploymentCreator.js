@@ -2,13 +2,14 @@ const clonedeep = require('lodash.clonedeep');
 const Logger = require('@hkube/logger');
 const decamelize = require('decamelize');
 const log = Logger.GetLogFromContainer();
-const component = require('../../common/consts/componentNames').K8S;
+const component = require('../../lib/consts/componentNames').K8S;
 const { algorithmQueueTemplate } = require('./template.js');
 const { createImageName, parseImageName, isValidDeploymentName } = require('../helpers/images');
+const CONTAINERS = require('../consts/containers');
 
 const applyImage = (inputSpec, image) => {
     const spec = clonedeep(inputSpec);
-    const algorithmQueueContainer = spec.spec.template.spec.containers.find(c => c.name === 'algorithm-queue');
+    const algorithmQueueContainer = spec.spec.template.spec.containers.find(c => c.name === CONTAINERS.ALGORITHM_QUEUE);
     if (!algorithmQueueContainer) {
         const msg = 'Unable to create deployment spec. algorithm-queue container not found';
         log.error(msg, { component });
@@ -21,7 +22,7 @@ const applyImage = (inputSpec, image) => {
 const applyAlgorithmName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
     spec.metadata.labels['algorithm-name'] = algorithmName;
-    const workerContainer = spec.spec.template.spec.containers.find(c => c.name === 'algorithm-queue');
+    const workerContainer = spec.spec.template.spec.containers.find(c => c.name === CONTAINERS.ALGORITHM_QUEUE);
     if (!workerContainer) {
         const msg = 'Unable to create deployment spec. algorithm-queue container not found';
         log.error(msg, { component });
@@ -54,13 +55,13 @@ const applyName = (inputSpec, algorithmName) => {
         log.error(msg, { component });
         throw new Error(msg);
     }
-    const name = `algorithm-queue-${validName}`;
+    const name = `${CONTAINERS.ALGORITHM_QUEUE}-${validName}`;
     spec.metadata.name = name;
     return spec;
 };
 
 const _setAlgorithmImage = (version, registry) => {
-    const imageName = 'hkube/algorithm-queue';
+    const imageName = `hkube/${CONTAINERS.ALGORITHM_QUEUE}`;
     const imageParsed = parseImageName(imageName);
     if (registry) {
         imageParsed.registry = registry.registry;

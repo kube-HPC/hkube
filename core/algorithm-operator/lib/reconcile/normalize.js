@@ -14,6 +14,7 @@ const normalizeDeployments = (deploymentsRaw) => {
     }));
     return deployments;
 };
+
 const normalizeAlgorithms = (algorithmsRaw) => {
     if (algorithmsRaw == null) {
         return [];
@@ -22,8 +23,37 @@ const normalizeAlgorithms = (algorithmsRaw) => {
     return algorithmsRaw;
 };
 
+const _tryParseTime = (timeString) => {
+    if (!timeString) {
+        return null;
+    }
+    try {
+        const date = new Date(timeString);
+        return date.getTime();
+    }
+    catch (error) {
+        return null;
+    }
+};
+
+const normalizeJobs = (jobsRaw, predicate = () => true) => {
+    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
+        return [];
+    }
+    const jobs = jobsRaw.body.items
+        .filter(predicate)
+        .map(j => ({
+            name: j.metadata.name,
+            buildId: j.metadata.labels['build-id'],
+            active: j.status.active === 1,
+            startTime: _tryParseTime(j.status.startTime)
+        }));
+    return jobs;
+};
+
 
 module.exports = {
     normalizeDeployments,
-    normalizeAlgorithms
+    normalizeAlgorithms,
+    normalizeJobs
 };

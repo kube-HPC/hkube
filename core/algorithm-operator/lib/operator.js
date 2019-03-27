@@ -1,11 +1,12 @@
 const Logger = require('@hkube/logger');
 const { metrics } = require('@hkube/metrics');
 const fs = require('fs');
-const component = require('../common/consts/componentNames').OPERATOR;
-const { metricsNames } = require('../common/consts/metricsNames');
+const component = require('../lib/consts/componentNames').OPERATOR;
+const { metricsNames } = require('../lib/consts/metricsNames');
 const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const reconciler = require('./reconcile/reconciler');
+const CONTAINERS = require('./consts/containers');
 let log;
 
 class Operator {
@@ -28,35 +29,50 @@ class Operator {
             name: metricsNames.ALGORITHM_QUEUE_REMOVED,
             labels: ['algorithmName']
         });
-
-        this._startInterval();
+        this._interval = this._interval.bind(this);
+        this._interval(options);
     }
 
-    _startInterval() {
-        setTimeout(this._intervalCallback.bind(this), this._intervalMs);
-    }
-
-    async _intervalCallback() {
-        log.debug('Reconcile inteval.', { component });
-
+    async _interval(options) {
         try {
-            const {versions, registry, clusterOptions} = await kubernetes.getVersionsConfigMap();
-            const deployments = await kubernetes.getDeployments({ labelSelector: 'metrics-group=algorithm-queue' });
-            const algorithms = await etcd.getAlgorithmTemplates();
-            await reconciler.reconcile({
-                deployments,
-                algorithms,
-                versions,
-                registry,
-                clusterOptions
-            });
+            log.debug('Reconcile interval.', { component });
+            const configMap = await kubernetes.getVersionsConfigMap();
+            await Promise.all([
+                this._algorithmBuilds(configMap, options),
+                this._algorithmQueue(configMap, options)
+            ]);
         }
-        catch (error) {
-            log.error(`Fail to Reconcile ${error}`, { component });
+        catch (e) {
+            log.throttle.error(e.message, { component });
         }
         finally {
-            setTimeout(this._intervalCallback.bind(this), this._intervalMs);
+            setTimeout(this._interval, this._intervalMs, options);
         }
+    }
+
+    async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
+        const builds = await etcd.getPendingBuilds();
+        const jobs = await kubernetes.getJobs({ labelSelector: `type=${CONTAINERS.ALGORITHM_BUILDER}` });
+        await reconciler.reconcileBuilds({
+            builds,
+            jobs,
+            versions,
+            registry,
+            clusterOptions,
+            options
+        });
+    }
+
+    async _algorithmQueue({ versions, registry, clusterOptions }) {
+        const deployments = await kubernetes.getDeployments({ labelSelector: `metrics-group=${CONTAINERS.ALGORITHM_QUEUE}` });
+        const algorithms = await etcd.getAlgorithmTemplates();
+        await reconciler.reconcile({
+            deployments,
+            algorithms,
+            versions,
+            registry,
+            clusterOptions
+        });
     }
 }
 

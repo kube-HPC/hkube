@@ -13,17 +13,14 @@ before_install:
   --data-dir=data.etcd --name "my-etcd" --cors='*' --initial-advertise-peer-urls http://0.0.0.0:2380
   --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:4001
   --listen-client-urls http://0.0.0.0:4001     --initial-cluster-state new
-# - docker run -d -p 9000:9000 --name minio1 -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE" -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" minio/minio server /data
 install:
 - npm install
-# - npm install -g snyk
-# - snyk test || true
 cache:
   directories:
   - node_modules
 script:
-- NODE_ENV=test npm run-script test-travis
-after_script: "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+- npm run lint && npm run test:cov
+after_script: "npm run coverage"
 after_success:
 - |
   if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then

@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const kubernetesClient = require('kubernetes-client');
-const component = require('../../common/consts/componentNames').K8S;
+const component = require('../../lib/consts/componentNames').K8S;
 let log;
 
 class KubernetesApi extends EventEmitter {
@@ -49,6 +49,7 @@ class KubernetesApi extends EventEmitter {
         }
         return null;
     }
+
     async deleteDeployment(deploymentName) {
         log.debug(`Deleting job ${deploymentName}`, { component });
         try {
@@ -64,6 +65,23 @@ class KubernetesApi extends EventEmitter {
     async getDeployments({ labelSelector }) {
         const deploymentsRaw = await this._client.apis.apps.v1.namespaces(this._namespace).deployments().get({ qs: { labelSelector } });
         return deploymentsRaw;
+    }
+
+    async getJobs({ labelSelector }) {
+        const jobsRaw = await this._client.apis.batch.v1.namespaces(this._namespace).jobs().get({ qs: { labelSelector } });
+        return jobsRaw;
+    }
+
+    async createJob({ spec }) {
+        log.info(`Creating job ${spec.metadata.name}`, { component });
+        try {
+            const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs.post({ body: spec });
+            return res;
+        }
+        catch (error) {
+            log.error(`unable to create job ${spec.metadata.name}. error: ${error.message}`, { component }, error);
+        }
+        return null;
     }
 
     async getVersionsConfigMap() {

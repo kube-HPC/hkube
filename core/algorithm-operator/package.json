@@ -4,17 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha test --exit",
-    "test-travis": "./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha --exit",
-    "build": "dockerfile/build.sh algorithm-operator",
-    "lint": "./node_modules/eslint/bin/eslint.js ."
+    "lint": "./node_modules/eslint/bin/eslint.js .",
+    "test": "NODE_ENV=test node_modules/mocha/bin/mocha test --exit",
+    "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha --exit",
+    "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "start": "node app",
+    "build": "dockerfile/build.sh algorithm-operator"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@hkube/config": "^2.0.5",
-    "@hkube/etcd": "^4.0.7",
-    "@hkube/logger": "^1.0.12",
+    "@hkube/etcd": "^4.0.25",
+    "@hkube/logger": "^1.0.15",
     "@hkube/metrics": "^1.0.28",
     "@hkube/rest-server": "^1.0.8",
     "decamelize": "^2.0.0",
