@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
+const merge = require('lodash.merge');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const { JobStatus, JobResult, Webhook } = require('@hkube/etcd');
@@ -178,6 +179,18 @@ class StateManager extends EventEmitter {
             }
         }
         return options;
+    }
+
+    async setBuild(options) {
+        const { buildId } = options;
+        await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
+            return tx.get(`/algorithms/builds/${buildId}`)
+                .then((val) => {
+                    const bld = JSON.parse(val);
+                    const build = merge(bld, options);
+                    return tx.put(`/algorithms/builds/${buildId}`).value(JSON.stringify(build));
+                });
+        });
     }
 }
 

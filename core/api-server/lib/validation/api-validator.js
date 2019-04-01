@@ -72,12 +72,25 @@ class ApiValidator {
         this._validateMemory(algorithm);
     }
 
+    validateAlgorithmBuild(algorithm) {
+        this._validate(_schemas.algorithmBuild, algorithm);
+    }
+
+    validateApplyAlgorithm(algorithm) {
+        this._validate(schemas.entities.algorithm, algorithm, true);
+        this._validateMemory(algorithm);
+    }
+
     validateName(pipeline) {
         this._validate(_schemas.name, pipeline, false);
     }
 
     validatePipelineName(name) {
         this._validate(schemas.entities.pipelineName, name, false);
+    }
+
+    validateBuildId(build) {
+        this._validate(_schemas.buildId, build, false);
     }
 
     validateCronRequest(options) {
@@ -128,7 +141,11 @@ class ApiValidator {
         const object = obj || {};
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
-            const error = validatorInstance.errorsText(validatorInstance.errors);
+            const { errors } = validatorInstance;
+            let error = validatorInstance.errorsText(errors);
+            if (errors[0].params && errors[0].params.allowedValues) {
+                error += ` (${errors[0].params.allowedValues.join(',')})`;
+            }
             throw new InvalidDataError(error);
         }
         if (object.nodes) {

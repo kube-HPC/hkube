@@ -4,8 +4,10 @@
         "algorithmImage": "hkube/algorunner",
         "cpu": 1.5,
         "mem": "50Mi",
+        "minHotWorkers": 0,
         "options": {
-            "debug": false
+            "debug": false,
+            "pending": false
         }
     },
     {
@@ -13,8 +15,10 @@
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
         "mem": "600Ki",
+        "minHotWorkers": 0,
         "options": {
-            "debug": false
+            "debug": false,
+            "pending": false
         }
     },
     {
@@ -22,8 +26,10 @@
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 7.1,
         "mem": "1.2Gi",
+        "minHotWorkers": 0,
         "options": {
-            "debug": false
+            "debug": false,
+            "pending": false
         }
     },
     {
@@ -31,8 +37,10 @@
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 2,
         "mem": "100Mi",
+        "minHotWorkers": 0,
         "options": {
-            "debug": false
+            "debug": false,
+            "pending": false
         }
     }
 ]

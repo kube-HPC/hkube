@@ -46,7 +46,7 @@ const routes = (options) => {
             return next(error);
         });
     });
-    router.all('/pipeline/:jobId?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/pipelines/:jobId?', methods(['GET']), logger(), (req, res, next) => {
         const { jobId } = req.params;
         Execution.getPipeline({ jobId }).then((response) => {
             res.json(response);

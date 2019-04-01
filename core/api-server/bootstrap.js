@@ -20,7 +20,7 @@ class Bootstrap {
         let config = null;
         try {
             this._handleErrors();
-            log.info(`running application in ${configIt.env()} environment`, { component });
+            log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component });
             });

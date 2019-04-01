@@ -171,7 +171,7 @@
                     "Execution"
                 ],
                 "summary": "Run job from a specific node",
-                "description": "the api allows you to run job from current node and getting the data of the predecessors from caching of the previous run ",
+                "description": "the api allows you to run job from current node and getting the data of the predecessors from caching of the previous run",
                 "responses": {
                     "200": {
                         "description": "pipeline execution data",
@@ -288,7 +288,7 @@
                 }
             }
         },
-        "/exec/pipeline/{jobId}": {
+        "/exec/pipelines/{jobId}": {
             "get": {
                 "tags": [
                     "Execution"
@@ -372,16 +372,6 @@
                         "description": "bad request",
                         "schema": {
                             "$ref": "#/components/schemas/responses/Error"
-                        }
-                    },
-                    "404": {
-                        "description": "jobId Not Found",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/responses/Error"
-                                }
-                            }
                         }
                     },
                     "default": {
@@ -650,7 +640,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "pipelines Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -739,7 +729,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "pipelines Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -828,7 +818,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "pipelines Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -917,7 +907,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "pipelines Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1006,7 +996,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "results Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1095,7 +1085,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "status Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1175,7 +1165,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "cron Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1236,7 +1226,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "pipeline Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1297,7 +1287,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "pipeline Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1464,7 +1454,9 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "items": {
+                                        "$ref": "#/components/schemas/responses/algorithm"
+                                    }
                                 }
                             }
                         }
@@ -1503,7 +1495,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1513,7 +1505,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1592,6 +1584,68 @@
                 }
             }
         },
+        "/store/algorithms/apply": {
+            "post": {
+                "tags": [
+                    "StoreAlgorithms"
+                ],
+                "summary": "Apply algorithm",
+                "description": "create or update algorithm, build id will be returned if build was triggered",
+                "responses": {
+                    "200": {
+                        "description": "algorithm applied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/algorithmApplyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "payload": {
+                                        "$ref": "#/components/schemas/entities/algorithm"
+                                    },
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "the algorithm source code (file types: zip, tar.gz)"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "algorithm descriptor to be added to the store",
+                    "required": true
+                }
+            }
+        },
         "/store/pipelines/{name}": {
             "get": {
                 "tags": [
@@ -1616,7 +1670,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "$ref": "#/components/schemas/entities/pipeline"
                                 }
                             }
                         }
@@ -1737,7 +1791,9 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "items": {
+                                        "$ref": "#/components/schemas/entities/pipeline"
+                                    }
                                 }
                             }
                         }
@@ -1766,7 +1822,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "$ref": "#/components/schemas/entities/pipeline"
                                 }
                             }
                         }
@@ -1776,7 +1832,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1786,7 +1842,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "$ref": "#/components/schemas/responses/Error"
                                 }
                             }
                         }
@@ -1826,7 +1882,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/responses/defaultResponse"
+                                    "$ref": "#/components/schemas/entities/pipeline"
                                 }
                             }
                         }
@@ -1967,7 +2023,7 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "webhook Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2029,7 +2085,157 @@
                         }
                     },
                     "404": {
-                        "description": "jobId Not Found",
+                        "description": "webhook Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/builds/status/{buildId}": {
+            "get": {
+                "tags": [
+                    "Builds"
+                ],
+                "summary": "Get build status",
+                "description": "returns the build status by specific build id",
+                "parameters": [
+                    {
+                        "name": "buildId",
+                        "in": "path",
+                        "description": "Unique identifier representing build for algorithm",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "algorithm apply response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/algorithmApplyResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "build Not Found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/builds/list/{name}": {
+            "get": {
+                "tags": [
+                    "Builds"
+                ],
+                "summary": "Get build",
+                "description": "returns all builds that related to algorithm",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "path",
+                        "description": "algorithm name",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "sort by asc or desc",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "description": "order by",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "limit",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "algorithm apply list response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "$ref": "#/components/schemas/responses/algorithmApplyResponse"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/responses/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "build Not Found",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2696,6 +2902,24 @@
                             "type": "string"
                         }
                     }
+                },
+                "algorithmApplyResponse": {
+                    "type": "object",
+                    "properties": {
+                        "buildId": {
+                            "type": "string",
+                            "description": "Pipeline name"
+                        },
+                        "algorithm": {
+                            "$ref": "#/components/schemas/entities/algorithm"
+                        },
+                        "status": {
+                            "type": "string"
+                        },
+                        "timestamp": {
+                            "type": "string"
+                        }
+                    }
                 }
             },
             "entities": {
@@ -2750,10 +2974,17 @@
                             "minLength": 1,
                             "format": "algorithm-name"
                         },
+                        "env": {
+                            "type": "string",
+                            "enum": [
+                                "nodejs",
+                                "python",
+                                "jvm"
+                            ]
+                        },
                         "algorithmImage": {
                             "type": "string",
-                            "description": "image name as in the docker registry",
-                            "minLength": 1
+                            "description": "image name as in the docker registry"
                         },
                         "cpu": {
                             "type": "number",
@@ -2767,7 +2998,8 @@
                         },
                         "mem": {
                             "type": "string",
-                            "description": "algorithm memory"
+                            "description": "algorithm memory",
+                            "example": "512Mi"
                         },
                         "options": {
                             "type": "object",
@@ -2776,9 +3008,20 @@
                                     "type": "boolean",
                                     "description": "debug algorithm locally",
                                     "default": false
+                                },
+                                "pending": {
+                                    "type": "boolean",
+                                    "description": "pending algorithm",
+                                    "default": false
                                 }
                             },
                             "default": {}
+                        },
+                        "entryPoint": {
+                            "type": "string"
+                        },
+                        "version": {
+                            "type": "string"
                         },
                         "minHotWorkers": {
                             "type": "integer",
@@ -2803,8 +3046,7 @@
                         }
                     },
                     "required": [
-                        "name",
-                        "algorithmImage"
+                        "name"
                     ]
                 },
                 "storedPipeline": {
@@ -2889,12 +3131,14 @@
                         "progress": {
                             "type": "string",
                             "format": "url",
-                            "description": "url to activate upon progress"
+                            "description": "url to activate upon progress",
+                            "example": "http://my-url-to-progress"
                         },
                         "result": {
                             "type": "string",
                             "format": "url",
-                            "description": "url to activate upon result"
+                            "description": "url to activate upon result",
+                            "example": "http://my-url-to-result"
                         }
                     },
                     "additionalProperties": false
@@ -2935,7 +3179,9 @@
                 "priority": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 5
+                    "maximum": 5,
+                    "default": 3,
+                    "example": 3
                 },
                 "options": {
                     "type": "object",
@@ -2944,22 +3190,26 @@
                             "type": "integer",
                             "description": "pipeline time to live in seconds",
                             "minimum": 1,
-                            "default": 3600
+                            "default": 3600,
+                            "example": 3600
                         },
                         "batchTolerance": {
                             "type": "integer",
                             "minimum": 0,
                             "maximum": 100,
-                            "default": 80
+                            "default": 80,
+                            "example": 80
                         },
                         "concurrentPipelines": {
                             "type": "integer",
                             "minimum": 1,
-                            "maximum": 10000
+                            "maximum": 10000,
+                            "example": 1
                         },
                         "progressVerbosityLevel": {
                             "type": "string",
                             "default": "info",
+                            "example": "info",
                             "enum": [
                                 "trace",
                                 "debug",
@@ -2999,6 +3249,30 @@
             }
         },
         "_schemas": {
+            "algorithmBuild": {
+                "type": "object",
+                "properties": {
+                    "fileExt": {
+                        "type": "string",
+                        "enum": [
+                            "zip",
+                            "gz"
+                        ]
+                    },
+                    "env": {
+                        "type": "string",
+                        "enum": [
+                            "nodejs",
+                            "python",
+                            "jvm"
+                        ]
+                    }
+                },
+                "required": [
+                    "fileExt",
+                    "env"
+                ]
+            },
             "list": {
                 "type": "object",
                 "properties": {
@@ -3044,6 +3318,17 @@
                 },
                 "required": [
                     "name"
+                ]
+            },
+            "buildId": {
+                "type": "object",
+                "properties": {
+                    "buildId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "buildId"
                 ]
             },
             "pipeline": {

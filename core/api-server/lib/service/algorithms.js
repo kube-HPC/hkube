@@ -1,8 +1,11 @@
 
+const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed } = require('../errors');
+const builds = require('./builds');
+const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
+const { MESSAGES } = require('../consts/builds');
 
 class AlgorithmStore {
     async updateAlgorithm(options) {
@@ -82,6 +85,45 @@ class AlgorithmStore {
 
     async getAlgorithmsQueueList() {
         return stateManager.getAlgorithmsQueueList();
+    }
+
+    async applyAlgorithm(options) {
+        const { payload, file } = options;
+        let buildId;
+        const messages = [];
+        try {
+            validator.validateUpdateAlgorithm(payload);
+            const oldAlgorithm = await stateManager.getAlgorithm(payload);
+            let newAlgorithm = payload;
+
+            if (file.path) {
+                const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
+                buildId = result.buildID;
+                messages.push(...result.messages);
+                newAlgorithm = result.algorithm;
+            }
+            else {
+                messages.push(MESSAGES.NO_FILE_FOR_BUILD);
+            }
+
+            if (buildId && payload.algorithmImage) {
+                throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
+            }
+
+            newAlgorithm = Object.assign({}, oldAlgorithm, newAlgorithm);
+            if (!newAlgorithm.algorithmImage && !file.path) {
+                throw new InvalidDataError(MESSAGES.APPLY_ERROR);
+            }
+            if (!newAlgorithm.algorithmImage && buildId) {
+                newAlgorithm.options.pending = true;
+            }
+            messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
+            await stateManager.setAlgorithm(newAlgorithm);
+        }
+        finally {
+            builds.removeFile(file);
+        }
+        return { buildId, messages };
     }
 }
 

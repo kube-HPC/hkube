@@ -1,7 +1,10 @@
 const express = require('express');
+const multer = require('multer');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
 const logger = require('../../middlewares/logger');
+
+const upload = multer({ dest: 'uploads/zipped/' });
 
 const routes = (options) => {
     const router = express.Router();
@@ -112,6 +115,17 @@ const routes = (options) => {
         const { name } = req.params;
         algorithmStore.deleteAlgorithm({ name }).then(() => {
             res.json({ message: 'OK' });
+            next();
+        }).catch((error) => {
+            return next(error);
+        });
+    });
+    router.post('/algorithms/apply', upload.single('file'), logger(), (req, res, next) => {
+        const body = (req.body.payload) || null;
+        const file = req.file || {};
+        const payload = JSON.parse(body);
+        algorithmStore.applyAlgorithm({ payload, file: { path: file.path, name: file.originalname } }).then((response) => {
+            res.json(response);
             next();
         }).catch((error) => {
             return next(error);
