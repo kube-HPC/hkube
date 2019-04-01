@@ -93,9 +93,9 @@ const _setBuildStatus = async (options) => {
     await stateManger.setBuild({ timestamp: Date.now(), ...options });
 };
 
-const _updateAlgorithmImage = async ({ algorithm, algorithmImage, status }) => {
+const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) => {
     if (status === States.COMPLETED) {
-        await stateManger.updateAlgorithmImage({ algorithm, algorithmImage });
+        await stateManger.updateAlgorithmImage({ algorithmName, algorithmImage });
     }
 };
 
@@ -138,9 +138,9 @@ const _removeFolder = async ({ folder }) => {
 const runBuild = async (options) => {
     let build;
     let buildPath;
-    let algorithm;
     let error;
     let buildId;
+    let algorithmName;
     let result = { output: {} };
 
     try {
@@ -153,10 +153,9 @@ const runBuild = async (options) => {
         build = await _getBuild({ buildId });
 
         const overwrite = true;
-        algorithm = build.algorithm;
-        const { env, name, version, fileInfo } = algorithm;
+        const { env, name, version, fileInfo } = build.algorithm;
         const { docker, buildDirs } = options;
-        const algorithmName = name;
+        algorithmName = name;
         const src = `${buildDirs.ZIP}/${algorithmName}`;
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
         buildPath = `builds/${env}/${algorithmName}`;
@@ -182,7 +181,7 @@ const runBuild = async (options) => {
     const status = error ? States.FAILED : States.COMPLETED;
     const progress = error ? 50 : 100;
     await _setBuildStatus({ buildId, progress, error, status, endTime: Date.now(), result: result.output.data });
-    await _updateAlgorithmImage({ algorithm, algorithmImage: result.algorithmImage, status });
+    await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
     return { buildId, error, status, result };
 };
 

@@ -1,3 +1,4 @@
+const merge = require('lodash.merge');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const component = require('../consts/components').ETCD;
@@ -35,16 +36,16 @@ class StateManger {
         });
     }
 
-    async updateAlgorithmImage({ algorithm, algorithmImage }) {
+    async updateAlgorithmImage({ algorithmName, algorithmImage }) {
         if (!algorithmImage) {
             return;
         }
         await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
-            return tx.get(`/algorithmTemplates/${algorithm.name}`)
+            return tx.get(`/algorithmTemplates/${algorithmName}`)
                 .then((val) => {
-                    const alg = JSON.parse(val);
-                    const newAlgorithm = Object.assign({}, algorithm, alg, { algorithmImage });
-                    return tx.put(`/algorithmTemplates/${algorithm.name}`).value(JSON.stringify(newAlgorithm));
+                    const algorithm = JSON.parse(val);
+                    const newAlgorithm = merge(algorithm, { algorithmImage }, { options: { pending: false } });
+                    return tx.put(`/algorithmTemplates/${algorithmName}`).value(JSON.stringify(newAlgorithm));
                 });
         });
     }
