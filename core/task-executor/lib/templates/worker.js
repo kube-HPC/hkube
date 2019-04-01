@@ -61,6 +61,14 @@ const jobTemplate = {
                                 }
                             },
                             {
+                                name: 'NAMESPACE',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'metadata.namespace'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'DEFAULT_STORAGE',
                                 valueFrom: {
                                     configMapKeyRef: {
