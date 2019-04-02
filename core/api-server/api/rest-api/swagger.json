@@ -2361,7 +2361,6 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                  
                                     "README.md": {
                                         "type": "string",
                                         "format": "binary",
@@ -2384,7 +2383,7 @@
                 "parameters": [
                     {
                         "name": "name",
-                        "in":"path",
+                        "in": "path",
                         "description": "algorithm name",
                         "schema": {
                             "type": "string"
@@ -2439,7 +2438,6 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                  
                                     "README.md": {
                                         "type": "string",
                                         "format": "binary",
@@ -2617,7 +2615,6 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                  
                                     "README.md": {
                                         "type": "string",
                                         "format": "binary",
@@ -2695,7 +2692,6 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                  
                                     "README.md": {
                                         "type": "string",
                                         "format": "binary",
