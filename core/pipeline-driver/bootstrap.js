@@ -22,7 +22,7 @@ class Bootstrap {
             this._handleErrors();
 
             log = new Logger(main.serviceName, logger);
-            log.info('running application in ' + configIt.env() + ' environment', { component });
+            log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component });

@@ -142,7 +142,6 @@ class TaskRunner extends EventEmitter {
         this.pipeline = pipeline;
         this._nodes = new NodesMap(this.pipeline);
         this._nodes.on('node-ready', (node) => {
-            log.debug(`new node ready to run: ${node.nodeName}`, { component });
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
         this._progress = new Progress({
@@ -348,6 +347,7 @@ class TaskRunner extends EventEmitter {
 
     async _runNode(nodeName, parentOutput, index) {
         try {
+            log.info(`node ${nodeName} is ready to run`, { component });
             const node = this._nodes.getNode(nodeName);
             const parse = {
                 flowInput: this.pipeline.flowInput,
