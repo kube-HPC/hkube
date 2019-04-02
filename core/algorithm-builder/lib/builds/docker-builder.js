@@ -17,19 +17,21 @@ const _ensureDirs = async (dirs) => {
 const _writeStreamToFile = ({ readStream, src }) => {
     return new Promise((resolve, reject) => {
         if (!(readStream instanceof Stream)) {
-            return reject(new TypeError('data must readable stream'));
+            reject(new TypeError('data must readable stream'));
         }
-        const writeStream = fse.createWriteStream(src);
-        readStream.on('error', (err) => {
-            return reject(err);
-        });
-        writeStream.on('error', (err) => {
-            return reject(err);
-        });
-        writeStream.on('close', () => {
-            return resolve();
-        });
-        readStream.pipe(writeStream);
+        else {
+            const writeStream = fse.createWriteStream(src);
+            readStream.on('error', (err) => {
+                reject(err);
+            });
+            writeStream.on('error', (err) => {
+                reject(err);
+            });
+            writeStream.on('close', () => {
+                resolve();
+            });
+            readStream.pipe(writeStream);
+        }
     });
 };
 
