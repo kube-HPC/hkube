@@ -1,4 +1,5 @@
 const path = require('path');
+const Stream = require('stream');
 const fse = require('fs-extra');
 const Zip = require('adm-zip');
 const targz = require('targz');
@@ -15,6 +16,9 @@ const _ensureDirs = async (dirs) => {
 
 const _writeStreamToFile = ({ readStream, src }) => {
     return new Promise((resolve, reject) => {
+        if (!(readStream instanceof Stream)) {
+            return reject(new TypeError('data must readable stream'));
+        }
         const writeStream = fse.createWriteStream(src);
         readStream.on('error', (err) => {
             return reject(err);

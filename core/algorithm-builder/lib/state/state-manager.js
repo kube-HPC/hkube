@@ -30,7 +30,7 @@ class StateManger {
             return tx.get(`/algorithms/builds/${buildId}`)
                 .then((val) => {
                     const bld = JSON.parse(val);
-                    const build = Object.assign({}, bld, { ...options });
+                    const build = merge(bld, options);
                     return tx.put(`/algorithms/builds/${buildId}`).value(JSON.stringify(build));
                 });
         });

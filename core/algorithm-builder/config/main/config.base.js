@@ -4,9 +4,8 @@ config.serviceName = packageJson.name;
 
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
-
+config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.version = packageJson.version;
-
 config.buildId = process.env.BUILD_ID;
 
 config.docker = {
