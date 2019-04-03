@@ -128,7 +128,7 @@ const applyVolumeMounts = (inputSpec, containerName, vm) => {
     return spec;
 };
 
-const createJobSpec = ({ buildId, version, registry, options }) => {
+const createBuildJobSpec = ({ buildId, version, registry, options }) => {
     if (!buildId) {
         const msg = 'Unable to create job spec. buildId is required';
         log.error(msg, { component });
@@ -154,7 +154,7 @@ const createJobSpec = ({ buildId, version, registry, options }) => {
 };
 
 module.exports = {
-    createJobSpec,
+    createBuildJobSpec,
     applyName,
     applyImage,
     applyBuildId,

@@ -5,8 +5,6 @@ const normalizeDeployments = (deploymentsRaw) => {
     if (deploymentsRaw == null) {
         return [];
     }
-    // deploymentsRaw.body.items[0].spec.template.spec.containers[0].image
-
     const deployments = deploymentsRaw.body.items.map(j => ({
         name: j.metadata.name,
         algorithmName: j.metadata.labels['algorithm-name'],
@@ -19,8 +17,7 @@ const normalizeAlgorithms = (algorithmsRaw) => {
     if (algorithmsRaw == null) {
         return [];
     }
-
-    return algorithmsRaw;
+    return algorithmsRaw.filter(a => !a.options.pending);
 };
 
 const _tryParseTime = (timeString) => {
@@ -36,7 +33,7 @@ const _tryParseTime = (timeString) => {
     }
 };
 
-const normalizeJobs = (jobsRaw, predicate = () => true) => {
+const normalizeBuildJobs = (jobsRaw, predicate = () => true) => {
     if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
         return [];
     }
@@ -51,9 +48,8 @@ const normalizeJobs = (jobsRaw, predicate = () => true) => {
     return jobs;
 };
 
-
 module.exports = {
     normalizeDeployments,
     normalizeAlgorithms,
-    normalizeJobs
+    normalizeBuildJobs
 };

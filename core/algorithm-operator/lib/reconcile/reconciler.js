@@ -1,16 +1,16 @@
 const Logger = require('@hkube/logger');
 const etcd = require('../helpers/etcd');
-const { createJobSpec } = require('../jobs/jobCreator');
+const { createBuildJobSpec } = require('../jobs/jobCreator');
 const { createDeploymentSpec } = require('../deployments/deploymentCreator');
 const kubernetes = require('../helpers/kubernetes');
 const { findVersion } = require('../helpers/images');
 const component = require('../consts/componentNames').RECONCILER;
-const { normalizeDeployments, normalizeAlgorithms, normalizeJobs } = require('./normalize');
+const { normalizeDeployments, normalizeAlgorithms, normalizeBuildJobs } = require('./normalize');
 const CONTAINERS = require('../consts/containers');
 const log = Logger.GetLogFromContainer();
 
-const _createJob = async (jobDetails) => {
-    const spec = createJobSpec(jobDetails);
+const _createBuildJob = async (jobDetails) => {
+    const spec = createBuildJobSpec(jobDetails);
     await etcd.setBuild({ buildId: jobDetails.buildId, timestamp: Date.now(), progress: 5, status: 'creating' });
     await kubernetes.createJob({ spec });
 };
@@ -58,9 +58,9 @@ const reconcile = async ({ deployments, algorithms, versions, registry, clusterO
 // TODO: clean algorithm-builder k8s Jobs
 const reconcileBuilds = async ({ builds, jobs, versions, registry, options }) => {
     const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_BUILDER });
-    const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
+    const normJobs = normalizeBuildJobs(jobs, j => !j.status.succeeded);
     const added = builds.filter(a => !normJobs.find(d => d.buildId === a.buildId));
-    await Promise.all(added.map(a => _createJob({ buildId: a.buildId, version, registry, options })));
+    await Promise.all(added.map(a => _createBuildJob({ buildId: a.buildId, version, registry, options })));
 };
 
 module.exports = {
