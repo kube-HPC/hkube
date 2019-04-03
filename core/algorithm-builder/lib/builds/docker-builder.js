@@ -145,6 +145,7 @@ const runBuild = async (options) => {
     let build;
     let buildPath;
     let error;
+    let trace;
     let buildId;
     let algorithmName;
     let result = { output: {} };
@@ -155,8 +156,8 @@ const runBuild = async (options) => {
             throw new Error('build id is required');
         }
         log.info(`build started -> ${buildId}`, { component });
-        await _setBuildStatus({ buildId, progress: 10, status: States.ACTIVE });
         build = await _getBuild({ buildId });
+        await _setBuildStatus({ buildId, progress: 10, status: States.ACTIVE });
 
         const overwrite = true;
         const { env, name, version, fileExt } = build;
@@ -177,6 +178,7 @@ const runBuild = async (options) => {
     }
     catch (e) {
         error = e.message;
+        trace = e.stack;
         log.error(e.message, { component }, e);
     }
 
@@ -186,7 +188,7 @@ const runBuild = async (options) => {
     await _removeFolder({ folder: buildPath });
     const status = error ? States.FAILED : States.COMPLETED;
     const progress = error ? 50 : 100;
-    await _setBuildStatus({ buildId, progress, error, status, endTime: Date.now(), result: result.output.data });
+    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: result.output.data });
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
     return { buildId, error, status, result };
 };
