@@ -32,8 +32,7 @@ class Builds {
 
     async startBuild(options) {
         const build = {
-            algorithm: options.algorithm,
-            buildId: options.buildId,
+            ...options,
             status: States.PENDING,
             startTime: Date.now(),
             endTime: null
@@ -84,7 +83,8 @@ class Builds {
     async _storeBuild(file, algorithm) {
         const buildId = this._createBuildID(algorithm.name);
         await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
-        await this.startBuild({ buildId, algorithm });
+        const { env, name, version, fileInfo } = algorithm;
+        await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt });
         return buildId;
     }
 
