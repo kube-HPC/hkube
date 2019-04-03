@@ -34,6 +34,8 @@ class Builds {
         const build = {
             ...options,
             status: States.PENDING,
+            error: null,
+            progress: 0,
             startTime: Date.now(),
             endTime: null
         };
