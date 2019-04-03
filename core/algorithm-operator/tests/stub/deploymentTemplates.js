@@ -4,10 +4,10 @@ const algorithmQueueTemplate = {
     metadata: {
         name: 'algorithm-queue-algorithm-name',
         labels: {
+            type: 'algorithm-queue',
             app: 'algorithm-queue-algorithm-name',
             group: 'hkube',
-            core: 'true',
-            'metrics-group': 'algorithm-queue'
+            core: 'true'
         }
     },
     spec: {

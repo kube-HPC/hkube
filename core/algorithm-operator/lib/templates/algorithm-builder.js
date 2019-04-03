@@ -15,8 +15,8 @@ const jobTemplate = {
         template: {
             metadata: {
                 labels: {
-                    group: 'hkube',
-                    type: ALGORITHM_BUILDER
+                    type: ALGORITHM_BUILDER,
+                    group: 'hkube'
                 }
             },
             spec: {

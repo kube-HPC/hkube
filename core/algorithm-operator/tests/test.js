@@ -1,4 +1,3 @@
-/* eslint-disable global-require */
 const { expect } = require('chai');
 const mockery = require('mockery');
 const etcd = require('../lib/helpers/etcd');
@@ -25,8 +24,6 @@ describe('bootstrap', () => {
     it('should init without error', async () => {
 
     });
-
-   
     it('should get template store', async () => {
         await Promise.all(Object.keys(templateStoreStub).map(path => etcd._etcd._client.put(path, templateStoreStub[path])));
         const template = await etcd.getAlgorithmTemplate({ algorithmName: 'algo2' });

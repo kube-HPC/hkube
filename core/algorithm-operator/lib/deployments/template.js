@@ -6,10 +6,10 @@ const algorithmQueueTemplate = {
     metadata: {
         name: ALGORITHM_QUEUE,
         labels: {
+            type: ALGORITHM_QUEUE,
             app: ALGORITHM_QUEUE,
             group: 'hkube',
-            core: 'true',
-            'metrics-group': ALGORITHM_QUEUE
+            core: 'true'
         }
     },
     spec: {
@@ -22,9 +22,9 @@ const algorithmQueueTemplate = {
         template: {
             metadata: {
                 labels: {
+                    type: ALGORITHM_QUEUE,
                     app: ALGORITHM_QUEUE,
                     group: 'hkube',
-                    'metrics-group': ALGORITHM_QUEUE
                 }
             },
             spec: {

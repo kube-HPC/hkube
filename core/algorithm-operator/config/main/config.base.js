@@ -1,7 +1,11 @@
-const config = {};
+const packageJson = require(process.cwd() + '/package.json');
+const config = module.exports = {};
 
-config.serviceName = 'algorithm-operator';
+config.serviceName = packageJson.name;
+config.version = packageJson.version;
+config.intervalMs = process.env.INTERVAL_MS || 10000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
@@ -16,24 +20,3 @@ config.etcd = {
     },
     serviceName: config.serviceName
 };
-
-config.intervalMs = process.env.INTERVAL_MS || 10000;
-
-config.metrics = {
-    collectDefault: true,
-    server: {
-        port: process.env.METRICS_PORT
-    }
-};
-
-config.tracer = {
-    tracerConfig: {
-        serviceName: config.serviceName,
-        reporter: {
-            agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
-            agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
-        }
-    }
-};
-
-module.exports = config;

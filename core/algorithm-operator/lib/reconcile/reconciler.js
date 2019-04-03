@@ -1,5 +1,5 @@
 const Logger = require('@hkube/logger');
-const log = Logger.GetLogFromContainer();
+const etcd = require('../helpers/etcd');
 const { createJobSpec } = require('../jobs/jobCreator');
 const { createDeploymentSpec } = require('../deployments/deploymentCreator');
 const kubernetes = require('../helpers/kubernetes');
@@ -8,9 +8,12 @@ const component = require('../consts/componentNames').RECONCILER;
 const { normalizeDeployments, normalizeAlgorithms, normalizeJobs } = require('./normalize');
 const CONTAINERS = require('../consts/containers');
 
-const _createJob = (jobDetails) => {
+const log = Logger.GetLogFromContainer();
+
+const _createJob = async (jobDetails) => {
     const spec = createJobSpec(jobDetails);
-    const jobCreateResult = kubernetes.createJob({ spec });
+    const jobCreateResult = await kubernetes.createJob({ spec });
+    await etcd.setBuild({ buildId: jobDetails.buildId, timestamp: Date.now(), progress: 5, status: 'creating' });
     return jobCreateResult;
 };
 
@@ -39,6 +42,7 @@ const reconcile = async ({ deployments, algorithms, versions, registry, clusterO
     log.debug(`added:\n ${JSON.stringify(added, null, 2)}\nremoved:\n${JSON.stringify(removed, null, 2)}\nupdated:\n${JSON.stringify(updated, null, 2)}`);
     const createPromises = [];
     const reconcileResult = {};
+
     for (let algorithm of added) { // eslint-disable-line
         createPromises.push(_createDeployment(algorithm.name, { version, registry, clusterOptions }));
     }
@@ -58,13 +62,10 @@ const reconcileBuilds = async ({ builds, jobs, versions, registry, options }) =>
     const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_BUILDER });
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const added = builds.filter(a => !normJobs.find(d => d.buildId === a.buildId));
-    const createPromises = [];
 
     for (let build of added) { // eslint-disable-line
-        createPromises.push(_createJob({ buildId: build.buildId, version, registry, options })); // eslint-disable-line
+        await _createJob({ buildId: build.buildId, version, registry, options }); // eslint-disable-line
     }
-
-    await Promise.all(createPromises);
 };
 
 module.exports = {

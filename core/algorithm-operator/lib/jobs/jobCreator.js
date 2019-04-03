@@ -83,6 +83,9 @@ const applyBuildId = (inputSpec, buildId) => {
     return applyEnvToContainer(spec, ALGORITHM_BUILDER, { BUILD_ID: buildId });
 };
 
+const applyClusterName = (inputSpec, clusterName) => {
+    return applyEnvToContainer(inputSpec, ALGORITHM_BUILDER, { CLUSTER_NAME: clusterName });
+};
 
 const applyVolumes = (inputSpec, fsVolume) => {
     if (!fsVolume) return inputSpec;
@@ -135,6 +138,7 @@ const createJobSpec = ({ buildId, version, registry, options }) => {
     spec = applyName(spec, buildId);
     spec = applyImage(spec, version, registry);
     spec = applyBuildId(spec, buildId);
+    spec = applyClusterName(spec, options.clusterName);
 
     if (options.defaultStorage === 's3') {
         spec = _applyEnvToContainerFromSecretOrConfigMap(spec, ALGORITHM_BUILDER, awsAccessKeyId);

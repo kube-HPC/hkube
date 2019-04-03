@@ -19,9 +19,9 @@ const parseImageName = (image) => {
         tag: tag || null
     };
 
-    registry = registry ? registry + '/' : '';
-    namespace = namespace && namespace !== 'library' ? namespace + '/' : '';
-    tag = tag && tag !== 'latest' ? ':' + tag : '';
+    registry = registry ? `${registry}/` : '';
+    namespace = namespace && namespace !== 'library' ? `${namespace}/` : '';
+    tag = tag && tag !== 'latest' ? `:${tag}` : '';
 
     result.name = registry + namespace + repository + tag;
     result.fullname = registry + (namespace || 'library/') + repository + (tag || ':latest');

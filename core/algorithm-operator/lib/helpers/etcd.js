@@ -1,8 +1,10 @@
 const EventEmitter = require('events');
+const merge = require('lodash.merge');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const component = require('../../lib/consts/componentNames').ETCD;
 let log;
+
 class Etcd extends EventEmitter {
     constructor() {
         super();
@@ -29,6 +31,21 @@ class Etcd extends EventEmitter {
         const list = await this._etcd._client.getByQuery('/algorithms/builds/', { sort: 'desc' });
         const results = list.map(l => l.value);
         return results.filter(b => b.status === 'pending');
+    }
+
+    async setBuild(options) {
+        const { buildId } = options;
+        if (!buildId) {
+            return;
+        }
+        await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
+            return tx.get(`/algorithms/builds/${buildId}`)
+                .then((val) => {
+                    const bld = JSON.parse(val);
+                    const build = merge(bld, options);
+                    return tx.put(`/algorithms/builds/${buildId}`).value(JSON.stringify(build));
+                });
+        });
     }
 }
 

@@ -1,4 +1,3 @@
-/* eslint-disable global-require */
 const { expect } = require('chai');
 const { findVersion } = require('../lib/helpers/images');
 const versions = {

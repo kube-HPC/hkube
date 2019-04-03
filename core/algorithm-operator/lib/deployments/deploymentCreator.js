@@ -100,4 +100,3 @@ module.exports = {
     applyName,
     applyNodeSelector
 };
-
