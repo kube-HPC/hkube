@@ -160,9 +160,9 @@ const runBuild = async (options) => {
         await _setBuildStatus({ buildId, progress: 10, status: States.ACTIVE });
 
         const overwrite = true;
-        const { env, name, version, fileExt } = build;
+        const { env, version, fileExt } = build;
         const { docker, buildDirs } = options;
-        algorithmName = name;
+        algorithmName = build.algorithmName;
         const src = `${buildDirs.ZIP}/${algorithmName}`;
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
         buildPath = `builds/${env}/${algorithmName}`;
@@ -187,7 +187,7 @@ const runBuild = async (options) => {
     }
     await _removeFolder({ folder: buildPath });
     const status = error ? States.FAILED : States.COMPLETED;
-    const progress = error ? 50 : 100;
+    const progress = error ? 80 : 100;
     await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: result.output.data });
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
     return { buildId, error, status, result };
