@@ -42,11 +42,11 @@ const _writeStream = async ({ buildId, src }) => {
     await _writeStreamToFile({ readStream, src });
 };
 
-const _extractFile = async ({ src, dest, ext, overwrite }) => {
+const _extractFile = async ({ src, dest, fileExt, overwrite }) => {
     return new Promise((resolve, reject) => { // eslint-disable-line
-        log.info(`extracting ${src} -> ${dest} - ext ${ext}`, { component });
+        log.info(`extracting ${src} -> ${dest} - ext ${fileExt}`, { component });
 
-        switch (ext) {
+        switch (fileExt) {
             case 'zip': {
                 const zip = new Zip(src);
                 zip.extractAllTo(dest, overwrite);
@@ -62,7 +62,7 @@ const _extractFile = async ({ src, dest, ext, overwrite }) => {
                 break;
             }
             default:
-                return reject(new Error(`unsupported file type ${ext}`));
+                return reject(new Error(`unsupported file type ${fileExt}`));
         }
     });
 };
@@ -114,9 +114,9 @@ const _getBuild = async ({ buildId }) => {
     return build;
 };
 
-const _downloadFile = async ({ buildId, src, dest, ext, overwrite }) => {
+const _downloadFile = async ({ buildId, src, dest, fileExt, overwrite }) => {
     await _writeStream({ buildId, src });
-    await _extractFile({ src, dest, ext, overwrite });
+    await _extractFile({ src, dest, fileExt, overwrite });
     await fse.remove(src);
 };
 
@@ -159,7 +159,7 @@ const runBuild = async (options) => {
         build = await _getBuild({ buildId });
 
         const overwrite = true;
-        const { env, name, version, fileInfo } = build.algorithm;
+        const { env, name, version, fileExt } = build;
         const { docker, buildDirs } = options;
         algorithmName = name;
         const src = `${buildDirs.ZIP}/${algorithmName}`;
@@ -170,7 +170,7 @@ const runBuild = async (options) => {
 
         await _ensureDirs(buildDirs);
         await _setBuildStatus({ buildId, progress: 30, status: States.ACTIVE });
-        await _downloadFile({ buildId, src, dest, ext: fileInfo.fileExt, overwrite });
+        await _downloadFile({ buildId, src, dest, fileExt, overwrite });
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress: 50, status: States.ACTIVE });
         result = await _buildDocker({ docker, algorithmName, version, buildPath });
