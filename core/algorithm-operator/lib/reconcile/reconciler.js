@@ -7,14 +7,12 @@ const { findVersion } = require('../helpers/images');
 const component = require('../consts/componentNames').RECONCILER;
 const { normalizeDeployments, normalizeAlgorithms, normalizeJobs } = require('./normalize');
 const CONTAINERS = require('../consts/containers');
-
 const log = Logger.GetLogFromContainer();
 
 const _createJob = async (jobDetails) => {
     const spec = createJobSpec(jobDetails);
-    const jobCreateResult = await kubernetes.createJob({ spec });
     await etcd.setBuild({ buildId: jobDetails.buildId, timestamp: Date.now(), progress: 5, status: 'creating' });
-    return jobCreateResult;
+    await kubernetes.createJob({ spec });
 };
 
 const _createDeployment = async (algorithmName, options) => {
@@ -62,10 +60,7 @@ const reconcileBuilds = async ({ builds, jobs, versions, registry, options }) =>
     const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_BUILDER });
     const normJobs = normalizeJobs(jobs, j => !j.status.succeeded);
     const added = builds.filter(a => !normJobs.find(d => d.buildId === a.buildId));
-
-    for (let build of added) { // eslint-disable-line
-        await _createJob({ buildId: build.buildId, version, registry, options }); // eslint-disable-line
-    }
+    await Promise.all(added.map(a => _createJob({ buildId: a.buildId, version, registry, options })));
 };
 
 module.exports = {
