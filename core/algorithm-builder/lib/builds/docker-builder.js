@@ -101,6 +101,7 @@ const _setBuildStatus = async (options) => {
 
 const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) => {
     if (status === States.COMPLETED) {
+        log.info(`update algorithm image, name=${algorithmName}, image=${algorithmImage}`, { component });
         await stateManger.updateAlgorithmImage({ algorithmName, algorithmImage });
     }
 };
@@ -188,8 +189,8 @@ const runBuild = async (options) => {
     await _removeFolder({ folder: buildPath });
     const status = error ? States.FAILED : States.COMPLETED;
     const progress = error ? 80 : 100;
-    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: result.output.data });
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
+    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: result.output.data });
     return { buildId, error, status, result };
 };
 
