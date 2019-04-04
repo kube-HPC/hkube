@@ -1455,7 +1455,7 @@
                             "application/json": {
                                 "schema": {
                                     "items": {
-                                        "$ref": "#/components/schemas/responses/algorithm"
+                                        "$ref": "#/components/schemas/entities/algorithm"
                                     }
                                 }
                             }

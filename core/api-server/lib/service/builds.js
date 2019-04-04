@@ -1,4 +1,5 @@
 const path = require('path');
+const merge = require('lodash.merge');
 const crypto = require('crypto');
 const uuidv4 = require('uuid/v4');
 const format = require('string-template');
@@ -35,6 +36,8 @@ class Builds {
             ...options,
             status: States.PENDING,
             error: null,
+            stack: null,
+            result: null,
             progress: 0,
             startTime: Date.now(),
             endTime: null
@@ -69,25 +72,20 @@ class Builds {
 
     async createBuild(file, oldAlgorithm, newAlgorithm) {
         const messages = [];
-        let buildID;
-        let algorithm = await this._newAlgorithm(file, oldAlgorithm, newAlgorithm);
+        let buildId;
+        const algorithm = await this._newAlgorithm(file, oldAlgorithm, newAlgorithm);
         const result = this._shouldBuild(oldAlgorithm, algorithm);
         messages.push(...result.messages);
 
         if (result.shouldBuild) {
             const version = this._incVersion(oldAlgorithm, newAlgorithm);
-            algorithm = Object.assign({}, algorithm, { version });
-            buildID = await this._storeBuild(file, algorithm);
+            buildId = this._createBuildID(algorithm.name);
+            const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
+            merge(algorithm, { version, fileInfo: { path: putStream.path } });
+            const { env, name, fileInfo } = algorithm;
+            await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt });
         }
-        return { algorithm, buildID, messages };
-    }
-
-    async _storeBuild(file, algorithm) {
-        const buildId = this._createBuildID(algorithm.name);
-        await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
-        const { env, name, version, fileInfo } = algorithm;
-        await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt });
-        return buildId;
+        return { algorithm, buildId, messages };
     }
 
     async _newAlgorithm(file, oldAlgorithm, newAlgorithm) {

@@ -98,7 +98,7 @@ class AlgorithmStore {
 
             if (file.path) {
                 const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
-                buildId = result.buildID;
+                buildId = result.buildId; // eslint-disable-line
                 messages.push(...result.messages);
                 newAlgorithm = result.algorithm;
             }
