@@ -4,6 +4,7 @@ const kubernetesClient = require('kubernetes-client');
 const objectPath = require('object-path');
 const delay = require('delay');
 const component = require('../../lib/consts').Components.K8S;
+const formatters = require('./formatters');
 
 let log;
 
@@ -27,7 +28,11 @@ class KubernetesApi extends EventEmitter {
         log.info(`Initialized kubernetes client with options ${JSON.stringify({ options: options.kubernetes, url: config.url })}`, { component });
         this._client = new kubernetesClient.Client({ config, version: '1.9' });
         const kubeVersionRaw = await this._client.version.get();
-        this.kubeVersion = kubeVersionRaw.body;
+        this.kubeVersion = {
+            ...kubeVersionRaw.body,
+            major: formatters.parseInt(kubeVersionRaw.body.major, 1),
+            minor: formatters.parseInt(kubeVersionRaw.body.minor, 9)
+        };
         log.info(`kubernetes version: ${this.kubeVersion.major}:${this.kubeVersion.minor}`);
         this._namespace = k8sOptions.namespace;
     }

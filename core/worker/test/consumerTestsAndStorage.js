@@ -74,6 +74,8 @@ describe('consumer tests', () => {
         mockery.resetCache();
         let config = getConfig();
         await storageManager.init(config, null, true);
+        worker._isConnected=false;
+        worker._isBootstrapped=false;
         await bootstrap.init();
         consumer = Consumer;
         if (consumer._algTracer) {

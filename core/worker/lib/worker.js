@@ -16,6 +16,9 @@ let log;
 class Worker {
     constructor() {
         this._stopTimeout = null;
+        this._isConnected = false;
+        this._isInit = false;
+        this._isBootstrapped = false;
     }
 
     preInit() {
@@ -32,6 +35,8 @@ class Worker {
         this._registerToEtcdEvents();
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
         this._setInactiveTimeout();
+        this._isInit = true;
+        this._doTheBootstrap();
     }
 
     _setInactiveTimeout() {
@@ -84,14 +89,32 @@ class Worker {
         });
     }
 
+    _doTheBootstrap() {
+        if (!this._isConnected) {
+            log.info('not connected yet', { component });
+            return;
+        }
+        if (!this._isInit) {
+            log.info('not init yet', { component });
+            return;
+        }
+        if (this._isBootstrapped) {
+            log.info('already bootstrapped', { component });
+            return;
+        }
+        this._isBootstrapped = true;
+        log.info('starting bootstrap state', { component });
+        stateManager.bootstrap();
+        log.info('finished bootstrap state', { component });
+    }
+
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', () => {
+            this._isConnected = true;
             if (stateManager.state === workerStates.exit) {
                 return;
             }
-            log.info('starting bootstrap state', { component });
-            stateManager.bootstrap();
-            log.info('finished bootstrap state', { component });
+            this._doTheBootstrap();
         });
         algoRunnerCommunication.on('disconnect', async (reason) => {
             if (stateManager.state === workerStates.exit) {
