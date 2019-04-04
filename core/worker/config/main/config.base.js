@@ -29,7 +29,7 @@ config.apiServer = {
 };
 
 config.workerCommunication = {
-    adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || 'ws',
+    adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || 'socket',
     config: {
         connection: {
             port: process.env.WORKER_SOCKET_PORT || 3000
