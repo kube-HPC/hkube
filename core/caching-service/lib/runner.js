@@ -105,12 +105,13 @@ class Runner {
     }
 
     async _getStoredExecution(jobId) {
-        const path = await storageManager.hkubeExecutions.list({ jobId });
-        if (path.length === 0) {
+        try {
+            return storageManager.hkubeExecutions.get({ jobId });
+        }
+        catch (error) {
             log.error(`cant find execution for jobId ${jobId}`, { component: componentName.RUNNER });
             throw new Error(`cant find execution for jobId ${jobId}`);
         }
-        return storageManager.get(path[0]);
     }
 
     _createGraphAndFindRelevantSuccessorsAndPredecessors(pipeline, nodeName) {
