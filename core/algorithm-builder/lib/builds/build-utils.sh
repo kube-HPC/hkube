@@ -11,7 +11,7 @@ dockerLogin() {
 
 dockerBuild() {
   docker build \
-  --rm \
+  --force-rm \
   -t ${IMAGE_NAME} \
   -f ${BUILD_PATH}/docker/Dockerfile ${BUILD_PATH}
 }
