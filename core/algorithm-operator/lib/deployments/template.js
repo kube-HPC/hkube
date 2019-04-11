@@ -24,6 +24,7 @@ const algorithmQueueTemplate = {
                 labels: {
                     type: ALGORITHM_QUEUE,
                     app: ALGORITHM_QUEUE,
+                    'metrics-group': ALGORITHM_QUEUE,
                     group: 'hkube',
                 }
             },
