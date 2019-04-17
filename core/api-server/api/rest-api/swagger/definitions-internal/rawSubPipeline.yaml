@@ -1,0 +1,30 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/pipelineName"
+  nodes:
+    type: array
+    items:
+      $ref: "#/components/schemas/pipelineNode"
+  flowInput:
+    type: object
+    description: input object
+  webhooks:
+    $ref: "#/components/schemas/webhooks"
+  options:
+    $ref: "#/components/schemas/options"
+    default: {}
+  priority:
+    $ref: "#/components/schemas/priority"
+    default: 3
+  triggers:
+    $ref: "#/components/schemas/triggers"
+  jobId:
+    type: string
+  taskId:
+    type: string
+required:
+  - name
+  - nodes
+  - jobId
+  - taskId

@@ -1,0 +1,18 @@
+type: object
+properties:
+  pipelines:
+    type: array
+    description: pipelines to activate upon result
+    items:
+      type: string
+      minLength: 1
+  cron:
+    type: object
+    properties:
+      pattern:
+        $ref: "#/components/schemas/cronPattern"
+      enabled:
+        type: boolean
+        description: enable or disable cron job
+        default: false
+additionalProperties: false

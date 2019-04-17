@@ -7,6 +7,7 @@ const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
 config.version = packageJson.version;
+
 config.rest = {
     port: process.env.API_SERVER_REST_PORT || 3000,
     prefix: 'api',

@@ -1,0 +1,4 @@
+type: string
+description: Unique identifier representing a specific pipeline
+minLength: 1
+format: pipeline-name

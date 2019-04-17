@@ -1,0 +1,37 @@
+post:
+  tags:
+    - Execution
+  summary: Run stored pipeline
+  description: "Start pipeline execution when the name of the pipeline is known, all parameters in this action will be merged with the stored pipeline and then returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc."
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/storedPipeline"
+    description: an object representing all information needed for stored pipeline execution
+    required: true
+  responses:
+    "200":
+      description: pipeline execution data
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/jobId"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

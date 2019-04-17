@@ -1,0 +1,11 @@
+type: object
+properties:
+  jobId:
+    type: string
+    description: Unique identifier representing pipeline execution
+  reason:
+    type: string
+    default: requested by user
+    description: reason for stop pipeline
+required:
+  - jobId

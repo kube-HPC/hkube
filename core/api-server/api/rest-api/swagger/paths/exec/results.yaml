@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Execution
+  summary: Get pipeline result
+  description: returns result for the execution of a specific pipeline run. if called before result is determined - returns error.
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing workflow execution - is given in response to calling pipeline run method .
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/pipelineResult"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

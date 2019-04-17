@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Webhooks
+  summary: Webhook list
+  description: Returns all webhooks for specific pipeline
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing pipeline execution
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: pipeline result
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/webhookResult"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: webhook Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

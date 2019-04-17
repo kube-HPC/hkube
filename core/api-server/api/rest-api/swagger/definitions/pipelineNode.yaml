@@ -1,0 +1,19 @@
+type: object
+properties:
+  nodeName:
+    type: string
+    description: Unique node identifier
+    minLength: 1
+  algorithmName:
+    type: string
+    description: The name of the algorithm
+    format: algorithm-name
+    minLength: 1
+  input:
+    type: array
+    description: The input for the algorithm
+    items: {}
+    default: []
+required:
+  - nodeName
+  - algorithmName

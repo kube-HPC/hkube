@@ -1,0 +1,16 @@
+openapi: 3.0.0
+info:
+  $ref: ./swagger/info/index.yaml
+tags:
+  $ref: ./swagger/tags/index.yaml
+externalDocs:
+  description: Find out more about Hkube
+  url: "http://hkube.io"
+servers: []
+paths:
+  $ref: ./swagger/paths/index.yaml
+components:
+  schemas:
+    $ref: ./swagger/definitions/index.yaml
+schemasInternal:
+  $ref: ./swagger/definitions-internal/index.yaml

@@ -1,0 +1,13 @@
+type: object
+properties:
+  progress:
+    type: string
+    format: url
+    description: url to activate upon progress
+    example: "http://my-url-to-progress"
+  result:
+    type: string
+    format: url
+    description: url to activate upon result
+    example: "http://my-url-to-result"
+additionalProperties: false

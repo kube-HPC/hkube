@@ -1,0 +1,16 @@
+algorithmBuild:
+  $ref: ./algorithmBuild.yaml
+buildId:
+  $ref: ./buildId.yaml
+kubernetesValueFrom:
+  $ref: ./kubernetesValueFrom.yaml
+list:
+  $ref: ./list.yaml
+name:
+  $ref: ./name.yaml
+pipeline:
+  $ref: ./pipeline.yaml
+rawSubPipeline:
+  $ref: ./rawSubPipeline.yaml
+storedSubPipeline:
+  $ref: ./storedSubPipeline.yaml

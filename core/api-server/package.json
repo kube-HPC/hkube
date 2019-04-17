@@ -22,6 +22,8 @@
         "file-type": "^10.10.0",
         "fs-extra": "^7.0.1",
         "graphlib": "^2.1.7",
+        "js-yaml": "^3.13.1",
+        "json-refs": "^3.0.13",
         "lodash.merge": "^4.6.1",
         "md5": "^2.2.1",
         "moment": "^2.24.0",
@@ -31,6 +33,7 @@
         "requestretry": "^4.0.0",
         "semver": "^6.0.0",
         "string-template": "^1.0.0",
+        "swagger-parser": "^6.0.5",
         "uuid": "^3.3.2"
     },
     "devDependencies": {

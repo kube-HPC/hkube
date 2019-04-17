@@ -1,0 +1,16 @@
+type: object
+properties:
+  fileExt:
+    type: string
+    enum:
+      - zip
+      - gz
+  env:
+    type: string
+    enum:
+      - nodejs
+      - python
+      - jvm
+required:
+  - fileExt
+  - env

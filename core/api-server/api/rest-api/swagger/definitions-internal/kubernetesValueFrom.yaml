@@ -1,0 +1,6 @@
+type: string
+enum:
+  - fieldRef
+  - configMapKeyRef
+  - resourceFieldRef
+  - secretKeyRef

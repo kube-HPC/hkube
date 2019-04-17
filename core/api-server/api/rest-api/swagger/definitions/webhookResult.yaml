@@ -1,0 +1,19 @@
+type: object
+properties:
+  timestamp:
+    type: string
+  url:
+    type: string
+  pipelineStatus:
+    type: string
+  responseStatus:
+    type: string
+  httpResponse:
+    type: object
+    properties:
+      statusCode:
+        type: string
+      statusMessage:
+        type: string
+  status:
+    type: string

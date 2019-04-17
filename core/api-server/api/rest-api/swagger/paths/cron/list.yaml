@@ -1,0 +1,48 @@
+get:
+  tags:
+    - Cron
+  summary: Get cron list
+  description: return cron list of all stored pipeline
+  parameters:
+    - name: sort
+      in: query
+      description: sort by asc or desc
+      schema:
+        type: string
+    - name: order
+      in: query
+      description: order by
+      schema:
+        type: string
+    - name: limit
+      in: query
+      description: limit
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/pipelineResult"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: cron Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

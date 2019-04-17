@@ -1,0 +1,42 @@
+algorithm:
+  $ref: ./algorithm.yaml
+algorithmApplyResponse:
+  $ref: ./algorithmApplyResponse.yaml
+caching:
+  $ref: ./caching.yaml
+cronPattern:
+  $ref: ./cronPattern.yaml
+cronRequest:
+  $ref: ./cronRequest.yaml
+defaultResponse:
+  $ref: ./defaultResponse.yaml
+error:
+  $ref: ./error.yaml
+execTreeNode:
+  $ref: ./execTreeNode.yaml
+execTreeResult:
+  $ref: ./execTreeResult.yaml
+jobId:
+  $ref: ./jobId.yaml
+options:
+  $ref: ./options.yaml
+pipeline:
+  $ref: ./pipeline.yaml
+pipelineName:
+  $ref: ./pipelineName.yaml
+pipelineNode:
+  $ref: ./pipelineNode.yaml
+pipelineResult:
+  $ref: ./pipelineResult.yaml
+priority:
+  $ref: ./priority.yaml
+stopRequest:
+  $ref: ./stopRequest.yaml
+storedPipeline:
+  $ref: ./storedPipeline.yaml
+triggers:
+  $ref: ./triggers.yaml
+webhookResult:
+  $ref: ./webhookResult.yaml
+webhooks:
+  $ref: ./webhooks.yaml

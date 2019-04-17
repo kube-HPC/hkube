@@ -1,0 +1,160 @@
+get:
+  tags:
+    - Algorithm Readme
+  summary: Get stored readme by name
+  description: Get stored readme by name
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+post:
+  tags:
+    - Algorithm Readme
+  summary: Insert new readme to algorithm
+  description: Insert new algorithm to store if not exists
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name
+      required: true
+      schema:
+        type: string
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            README.md:
+              type: string
+              format: binary
+              description: the readme.md file name of the file must be README.md
+    description: algorithm readme to be added to the store
+    required: true
+  responses:
+    "201":
+      description: algorithm created
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "409":
+      description: algorithm conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+put:
+  tags:
+    - Algorithm Readme
+  summary: Update readme to algorithm
+  description: Update algorithm's store if not exists
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name
+      required: true
+      schema:
+        type: string
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            README.md:
+              type: string
+              format: binary
+              description: the readme.md file name of the file must be README.md
+    description: algorithm readme to be added to the store
+    required: true
+  responses:
+    "201":
+      description: algorithm readme updated
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "409":
+      description: algorithm conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+delete:
+  tags:
+    - Algorithm Readme
+  summary: Delete algorithm
+  description: Delete existing algorithm from store
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

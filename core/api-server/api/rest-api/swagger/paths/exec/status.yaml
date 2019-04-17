@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Execution
+  summary: Get pipeline status
+  description: Returns a status for the current pipeline.
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing pipeline execution
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: pipeline result
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/pipelineResult"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

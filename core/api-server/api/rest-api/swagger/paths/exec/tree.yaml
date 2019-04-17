@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Execution
+  summary: Pipeline execution tree
+  description: "Returns a tree of pipelines, usually a triggered pipelines"
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing pipeline execution
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: pipeline tree
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/execTreeResult"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

@@ -1,0 +1,6 @@
+type: object
+properties:
+  buildId:
+    type: string
+required:
+  - buildId

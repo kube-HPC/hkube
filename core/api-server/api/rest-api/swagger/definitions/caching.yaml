@@ -1,0 +1,14 @@
+type: object
+properties:
+  jobId:
+    type: string
+    description: Unique job identifier
+    minLength: 1
+  nodeName:
+    type: string
+    description: Unique node identifier
+    minLength: 1
+additionalProperties: false
+required:
+  - jobId
+  - nodeName

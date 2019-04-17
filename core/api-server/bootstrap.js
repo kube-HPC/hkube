@@ -33,7 +33,9 @@ class Bootstrap {
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }
-            await Promise.all(modules.map(m => m.init(main)));
+            for (const m of modules) {
+                await m.init(main);
+            }
             config = main;
         }
         catch (error) {

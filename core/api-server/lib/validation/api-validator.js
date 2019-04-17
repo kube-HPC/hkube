@@ -5,7 +5,6 @@ const { Graph, alg } = require('graphlib');
 const { parser } = require('@hkube/parsers');
 const regex = require('../../lib/consts/regex');
 const stateManager = require('../state/state-manager');
-const { schemas, _schemas } = require('../../api/rest-api/swagger.json').components;
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
 const validator = new Validator({ useDefaults: false, coerceTypes: true });
@@ -13,7 +12,9 @@ const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
 const MIN_MEMORY = 4;
 
 class ApiValidator {
-    constructor() {
+    init(schemas, schemasInternal) {
+        this._definitions = schemas;
+        this._definitionsInternal = schemasInternal;
         this._prepare(validator);
         this._prepare(defaulter);
     }
@@ -23,86 +24,84 @@ class ApiValidator {
         validatorInstance.addFormat('cron', this._validateCron);
         validatorInstance.addFormat('pipeline-name', this._validatePipelineName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
-        Object.entries(schemas).forEach(([k1]) => {
-            Object.entries(schemas[k1]).forEach(([k2, v2]) => {
-                validatorInstance.addSchema(v2, `#/components/schemas/${k1}/${k2}`);
-            });
+        Object.entries(this._definitions).forEach(([k, v]) => {
+            validatorInstance.addSchema(v, `#/components/schemas/${k}`);
         });
     }
 
     addPipelineDefaults(pipeline) {
-        this._addDefaults(schemas.entities.pipeline, pipeline);
+        this._addDefaults(this._definitions.pipeline, pipeline);
     }
 
     validateStoredInternal(pipeline) {
-        this._validate(_schemas.pipeline, pipeline, false);
+        this._validate(this._definitionsInternal.pipeline, pipeline, false);
     }
 
     validateRawSubPipeline(pipeline) {
-        this._validate(_schemas.rawSubPipeline, pipeline, false);
+        this._validate(this._definitionsInternal.rawSubPipeline, pipeline, false);
     }
 
     validateStoredSubPipeline(pipeline) {
-        this._validate(_schemas.storedSubPipeline, pipeline, false);
+        this._validate(this._definitionsInternal.storedSubPipeline, pipeline, false);
     }
 
     validateRunRawPipeline(pipeline) {
-        this._validate(schemas.entities.pipeline, pipeline, false, { checkFlowInput: true });
+        this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true });
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(schemas.entities.storedPipeline, pipeline, false, { checkFlowInput: false });
+        this._validate(this._definitions.storedPipeline, pipeline, false, { checkFlowInput: false });
     }
 
     validateCaching(request) {
-        this._validate(schemas.entities.caching, request, false);
+        this._validate(this._definitions.caching, request, false);
     }
 
     validateStopPipeline(pipeline) {
-        this._validate(schemas.requests.stopRequest, pipeline, true);
+        this._validate(this._definitions.stopRequest, pipeline, true);
     }
 
     validateUpdatePipeline(pipeline) {
-        this._validate(schemas.entities.pipeline, pipeline, true);
+        this._validate(this._definitions.pipeline, pipeline, true);
     }
 
     validateUpdateAlgorithm(algorithm) {
-        this._validate(schemas.entities.algorithm, algorithm, true);
+        this._validate(this._definitions.algorithm, algorithm, true);
         this._validateAlgorithmEnvVar(algorithm);
         this._validateMemory(algorithm);
     }
 
     validateAlgorithmBuild(algorithm) {
-        this._validate(_schemas.algorithmBuild, algorithm);
+        this._validate(this._definitionsInternal.algorithmBuild, algorithm);
     }
 
     validateApplyAlgorithm(algorithm) {
-        this._validate(schemas.entities.algorithm, algorithm, true);
+        this._validate(this._definitions.algorithm, algorithm, true);
         this._validateMemory(algorithm);
     }
 
     validateName(pipeline) {
-        this._validate(_schemas.name, pipeline, false);
+        this._validate(this._definitionsInternal.name, pipeline, false);
     }
 
     validatePipelineName(name) {
-        this._validate(schemas.entities.pipelineName, name, false);
+        this._validate(this._definitions.pipelineName, name, false);
     }
 
     validateBuildId(build) {
-        this._validate(_schemas.buildId, build, false);
+        this._validate(this._definitionsInternal.buildId, build, false);
     }
 
     validateCronRequest(options) {
-        this._validate(schemas.requests.cronRequest, options, false);
+        this._validate(this._definitions.cronRequest, options, false);
     }
 
     validateResultList(pipeline) {
-        this._validate(_schemas.list, pipeline, true);
+        this._validate(this._definitionsInternal.list, pipeline, true);
     }
 
     validateJobID(pipeline) {
-        this._validate(schemas.responses.jobId, pipeline, false);
+        this._validate(this._definitions.jobId, pipeline, false);
     }
 
     async validateAlgorithmName(pipeline) {
@@ -257,9 +256,9 @@ class ApiValidator {
             }
             else if (this._isObject(v)) {
                 const key = Object.keys(v)[0];
-                const valid = validator.validate(_schemas.kubernetesValueFrom, key);
+                const valid = validator.validate(this._definitionsInternal.kubernetesValueFrom, key);
                 if (!valid) {
-                    throw new InvalidDataError(`${key} is invalid, only ${_schemas.kubernetesValueFrom.enum.join(',')}`);
+                    throw new InvalidDataError(`${key} is invalid, only ${this._definitionsInternal.kubernetesValueFrom.enum.join(',')}`);
                 }
             }
         });

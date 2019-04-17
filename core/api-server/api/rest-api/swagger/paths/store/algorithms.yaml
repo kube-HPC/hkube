@@ -1,0 +1,93 @@
+get:
+  tags:
+    - StoreAlgorithms
+  summary: Get all algorithms
+  description: Get all available algorithms from store
+  parameters:
+    - name: sort
+      in: query
+      description: sort by
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            items:
+              $ref: "#/components/schemas/algorithm"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+post:
+  tags:
+    - StoreAlgorithms
+  summary: Insert algorithm
+  description: Insert new algorithm to store if not exists
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/algorithm"
+    description: algorithm descriptor to be added to the store
+    required: true
+  responses:
+    "201":
+      description: algorithm created
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "409":
+      description: pipeline conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+put:
+  tags:
+    - StoreAlgorithms
+  summary: Update algorithm
+  description: Update existing algorithm
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/algorithm"
+    description: algorithm descriptor to be added to the store
+    required: true
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

@@ -1,0 +1,160 @@
+get:
+  tags:
+    - Pipeline Readme
+  summary: Get stored readme by name
+  description: Get stored readme by name
+  parameters:
+    - name: name
+      in: path
+      description: pipelines name
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+post:
+  tags:
+    - Pipeline Readme
+  summary: Insert new readme to pipelines
+  description: Insert new pipeline to store if not exists
+  parameters:
+    - name: name
+      in: path
+      description: pipeline name
+      required: true
+      schema:
+        type: string
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            README.md:
+              type: string
+              format: binary
+              description: the readme.md file name of the file must be README.md
+    description: pipeline readme to be added to the store
+    required: true
+  responses:
+    "201":
+      description: pipeline created
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "409":
+      description: pipeline conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+put:
+  tags:
+    - Pipeline Readme
+  summary: Update readme to pipeline
+  description: Update pipeline's store if not exists
+  parameters:
+    - name: name
+      in: path
+      description: pipeline name
+      required: true
+      schema:
+        type: string
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            README.md:
+              type: string
+              format: binary
+              description: the readme.md file name of the file must be README.md
+    description: pipeline readme to be added to the store
+    required: true
+  responses:
+    "201":
+      description: pipeline readme updated
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "409":
+      description: pipeline conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+delete:
+  tags:
+    - Pipeline Readme
+  summary: Delete pipeline
+  description: Delete existing pipeline from store
+  parameters:
+    - name: name
+      in: path
+      description: pipeline name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

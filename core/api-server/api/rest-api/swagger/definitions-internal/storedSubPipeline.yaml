@@ -1,0 +1,18 @@
+type: object
+properties:
+  name:
+    type: string
+  jobId:
+    type: string
+  taskId:
+    type: string
+  options:
+    $ref: "#/components/schemas/options"
+    default: {}
+  priority:
+    $ref: "#/components/schemas/priority"
+    default: 3
+required:
+  - name
+  - jobId
+  - taskId

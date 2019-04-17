@@ -1,0 +1,36 @@
+post:
+  tags:
+    - Cron
+  summary: Stop cron
+  description: Stop cron by given pipeline name
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/cronRequest"
+    required: true
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

@@ -1,0 +1,31 @@
+post:
+  tags:
+    - Execution
+  summary: Run raw pipeline
+  description: "Start pipeline execution with raw input, returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc."
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/pipeline"
+    description: an object representing all information needed for pipeline execution
+    required: true
+  responses:
+    "200":
+      description: pipeline execution data
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/jobId"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

@@ -1,0 +1,73 @@
+# exec
+/exec/raw:
+  $ref: ./exec/raw.yaml
+/exec/stored:
+  $ref: ./exec/stored.yaml
+/exec/caching:
+  $ref: ./exec/caching.yaml
+/exec/stop:
+  $ref: ./exec/stop.yaml
+/exec/pipelines/{jobId}:
+  $ref: ./exec/pipelines_jobId.yaml
+/exec/pipelines/list:
+  $ref: ./exec/pipelines_list.yaml
+/exec/status/{jobId}:
+  $ref: ./exec/status.yaml
+/exec/results/{jobId}:
+  $ref: ./exec/results.yaml
+/exec/tree/{jobId}:
+  $ref: ./exec/tree.yaml
+
+# pipelines
+/pipelines/results/raw/{name}:
+  $ref: ./pipelines/results_raw.yaml
+/pipelines/results/stored/{name}:
+  $ref: ./pipelines/results_stored.yaml
+/pipelines/status/raw/{name}:
+  $ref: ./pipelines/status_raw.yaml
+/pipelines/status/stored/{name}:
+  $ref: ./pipelines/status_stored.yaml
+
+# cron
+/cron/results/{name}:
+  $ref: ./cron/results.yaml
+/cron/status/{name}:
+  $ref: ./cron/status.yaml
+/cron/list:
+  $ref: ./cron/list.yaml
+/cron/start:
+  $ref: ./cron/start.yaml
+/cron/stop:
+  $ref: ./cron/stop.yaml
+
+# store
+/store/algorithms/{name}:
+  $ref: ./store/algorithms_name.yaml
+/store/algorithms:
+  $ref: ./store/algorithms.yaml
+/store/algorithms/apply:
+  $ref: ./store/algorithms_apply.yaml
+/store/pipelines/{name}:
+  $ref: ./store/pipelines_name.yaml
+/store/pipelines:
+  $ref: ./store/pipelines.yaml
+
+# webhooks
+/webhooks/status/{jobId}:
+  $ref: ./webhooks/status.yaml
+/webhooks/results/{jobId}:
+  $ref: ./webhooks/results.yaml
+/webhooks/{jobId}:
+  $ref: ./webhooks/jobId.yaml
+
+# builds
+/builds/status/{buildId}:
+  $ref: ./builds/status.yaml
+/builds/list/{name}:
+  $ref: ./builds/list.yaml
+
+# readme
+/readme/algorithms/{name}:
+  $ref: ./readme/algorithms.yaml
+/readme/pipelines/{name}:
+  $ref: ./readme/pipelines.yaml

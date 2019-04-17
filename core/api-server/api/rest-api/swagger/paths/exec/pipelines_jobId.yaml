@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Execution
+  summary: Get pipeline data
+  description: Returns the executed pipeline data
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing pipeline execution
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: pipeline data
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/pipeline"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

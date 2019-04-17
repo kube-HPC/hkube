@@ -1,0 +1,8 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/pipelineName"
+  pattern:
+    $ref: "#/components/schemas/cronPattern"
+required:
+  - name

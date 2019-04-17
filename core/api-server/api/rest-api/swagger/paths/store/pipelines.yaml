@@ -1,0 +1,93 @@
+get:
+  tags:
+    - StorePipelines
+  summary: Get all pipelines
+  description: Get all pipelines from store
+  parameters:
+    - name: sort
+      in: query
+      description: sort by
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            items:
+              $ref: "#/components/schemas/pipeline"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+post:
+  tags:
+    - StorePipelines
+  summary: Insert pipeline
+  description: Insert new pipeline to store if not exist
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/pipeline"
+    description: an object representing all information needed for pipeline execution
+    required: true
+  responses:
+    "201":
+      description: pipeline created
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/pipeline"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "409":
+      description: pipeline conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+put:
+  tags:
+    - StorePipelines
+  summary: Update pipeline
+  description: Update existing pipeline
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/pipeline"
+    description: an object representing all information needed for pipeline execution
+    required: true
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/pipeline"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

@@ -1,0 +1,8 @@
+type: object
+properties:
+  name:
+    type: string
+    description: Pipeline name
+  jobId:
+    type: string
+    description: Unique identifier representing a specific pipeline

@@ -1,0 +1,14 @@
+- name: Execution
+  description: Execution pipelines as raw or stored
+- name: Pipelines
+  description: Get pipelines status and result
+- name: StoreAlgorithms
+  description: "Store new algorithms, update, get and delete"
+- name: StorePipelines
+  description: "Store new pipelines, update, get and delete"
+- name: Cron
+  description: Get pipelines cron result and status
+- name: Pipeline Readme
+  description: "Store readme for pipelines and algorithms"
+- name: Webhooks
+  description: Webhooks status and result
