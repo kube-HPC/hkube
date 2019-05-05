@@ -3,8 +3,6 @@ const log = Logger.GetLogFromContainer();
 const { createDriverJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
-const { awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl } = require('../templates/s3-template');
-const { fsBaseDirectory, fsVolumeMounts, fsVolumes } = require('../templates/fs-template');
 const { commands, components } = require('../consts');
 const { normalizeDrivers, normalizeDriversRequests, normalizeDriversJobs, normalizeDriversAmount } = require('./normalize');
 const { createContainerResource, setPipelineDriverImage } = require('./createOptions');
@@ -57,13 +55,7 @@ const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, job
                 name,
                 image,
                 resourceRequests,
-                clusterOptions,
-                awsAccessKeyId,
-                awsSecretAccessKey,
-                s3EndpointUrl,
-                fsBaseDirectory,
-                fsVolumeMounts,
-                fsVolumes
+                clusterOptions
             }
         });
     }

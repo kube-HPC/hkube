@@ -1,19 +1,13 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const mockery = require('mockery');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const config = main;
 
-describe('executor', () => {
+xdescribe('executor', () => {
     before(async () => {
-        mockery.enable({
-            warnOnReplace: false,
-            warnOnUnregistered: false,
-            useCleanCache: false
-        });
         const KubernetesApi = require('../lib/helpers/kubernetes');
         await KubernetesApi.init(config);
     });

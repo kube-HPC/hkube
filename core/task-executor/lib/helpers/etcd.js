@@ -1,4 +1,3 @@
-const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const utils = require('../utils/utils');
@@ -7,9 +6,8 @@ const component = components.ETCD;
 const CONTAINERS = containers;
 let log;
 
-class Etcd extends EventEmitter {
+class Etcd {
     constructor() {
-        super();
         this._etcd = null;
     }
 

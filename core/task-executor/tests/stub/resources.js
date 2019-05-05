@@ -37,7 +37,7 @@ const pods = {
                 metadata: {
                     name: 'one container with resources not running',
                     labels: {
-                        
+
                     }
                 },
                 spec: {
@@ -67,7 +67,7 @@ const pods = {
                 metadata: {
                     name: 'two container with resources',
                     labels: {
-                        
+
                     }
                 },
                 spec: {
@@ -111,7 +111,7 @@ const pods = {
                 metadata: {
                     name: 'two container no node name',
                     labels: {
-                        
+
                     }
                 },
                 spec: {
@@ -150,7 +150,7 @@ const pods = {
                 metadata: {
                     name: 'one container no resources',
                     labels: {
-                        
+
                     }
                 },
                 spec: {

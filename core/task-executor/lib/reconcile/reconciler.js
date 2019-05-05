@@ -5,8 +5,6 @@ const parse = require('@hkube/units-converter');
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
-const { awsAccessKeyId, awsSecretAccessKey, s3EndpointUrl } = require('../templates/s3-template');
-const { fsBaseDirectory, fsVolumeMounts, fsVolumes } = require('../templates/fs-template');
 const { commands, components, consts, gpuVendors } = require('../../lib/consts');
 const component = components.RECONCILER;
 
@@ -132,13 +130,7 @@ const _processAllRequests = (
                 entryPoint,
                 hotWorker,
                 resourceRequests,
-                clusterOptions,
-                awsAccessKeyId,
-                awsSecretAccessKey,
-                s3EndpointUrl,
-                fsBaseDirectory,
-                fsVolumeMounts,
-                fsVolumes
+                clusterOptions
             }
         });
         if (!reconcileResult[algorithmName]) {

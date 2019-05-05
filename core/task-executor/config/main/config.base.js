@@ -1,6 +1,12 @@
-const config = {};
+const packageJson = require(process.cwd() + '/package.json');
+const config = module.exports = {};
 
-config.serviceName = 'task-executor';
+config.serviceName = packageJson.name;
+config.version = packageJson.version;
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.clusterName = process.env.CLUSTER_NAME || 'local';
+config.intervalMs = process.env.INTERVAL_MS || '3000';
+config.createdJobsTTL = process.env.CREATED_JOBS_TTL || 15 * 1000;
 
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
@@ -23,26 +29,9 @@ config.driversSetting = {
     reconcileInterval: parseInt(process.env.PIPELINE_DRIVERS_RECONCILE_INTERVAL || 30000, 10)
 };
 
-config.intervalMs = process.env.INTERVAL_MS || '3000';
-config.createdJobsTTL = process.env.CREATED_JOBS_TTL || 15 * 1000;
-
 config.metrics = {
     collectDefault: true,
     server: {
         port: process.env.METRICS_PORT
     }
 };
-
-config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
-
-config.tracer = {
-    tracerConfig: {
-        serviceName: config.serviceName,
-        reporter: {
-            agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
-            agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
-        }
-    }
-};
-
-module.exports = config;
