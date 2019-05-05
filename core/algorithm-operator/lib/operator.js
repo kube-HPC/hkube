@@ -1,14 +1,14 @@
-const Logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../lib/consts/componentNames').OPERATOR;
 const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
-const reconciler = require('./reconcile/reconciler');
+const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
+const workerDebugReconciler = require('./reconcile/algorithm-debug');
+const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const CONTAINERS = require('./consts/containers');
-let log;
 
 class Operator {
     async init(options = {}) {
-        log = Logger.GetLogFromContainer();
         this._intervalMs = options.intervalMs;
         this._interval = this._interval.bind(this);
         this._interval(options);
@@ -18,13 +18,15 @@ class Operator {
         try {
             log.debug('Reconcile interval.', { component });
             const configMap = await kubernetes.getVersionsConfigMap();
+            const algorithms = await etcd.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds(configMap, options),
-                this._algorithmQueue(configMap, options)
+                this._algorithmDebug(configMap, algorithms, options),
+                this._algorithmQueue(configMap, algorithms, options)
             ]);
         }
         catch (e) {
-            log.throttle.error(e.message, { component });
+            log.throttle.error(e, { component });
         }
         finally {
             setTimeout(this._interval, this._intervalMs, options);
@@ -32,9 +34,9 @@ class Operator {
     }
 
     async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
+        const jobs = await kubernetes.getJobs({ labelSelector: `type=${CONTAINERS.ALGORITHM_BUILDS}` });
         const builds = await etcd.getPendingBuilds();
-        const jobs = await kubernetes.getJobs({ labelSelector: `type=${CONTAINERS.ALGORITHM_BUILDER}` });
-        await reconciler.reconcileBuilds({
+        await algorithmBuildsReconciler.reconcile({
             builds,
             jobs,
             versions,
@@ -44,10 +46,22 @@ class Operator {
         });
     }
 
-    async _algorithmQueue({ versions, registry, clusterOptions }) {
+    async _algorithmDebug({ versions, registry, clusterOptions }, algorithms, options) {
+        const kubernetesKinds = await kubernetes.getAlgorithmForDebug({ labelSelector: `type=${CONTAINERS.ALGORITHM_DEBUG}` });
+        const debugAlgorithms = algorithms.filter(a => a.options && a.options.debug === true);
+        await workerDebugReconciler.reconcile({
+            kubernetesKinds,
+            algorithms: debugAlgorithms,
+            versions,
+            registry,
+            clusterOptions,
+            options
+        });
+    }
+
+    async _algorithmQueue({ versions, registry, clusterOptions }, algorithms) {
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
-        const algorithms = await etcd.getAlgorithmTemplates();
-        await reconciler.reconcile({
+        await algorithmQueueReconciler.reconcile({
             deployments,
             algorithms,
             versions,

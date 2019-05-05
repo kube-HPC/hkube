@@ -25,7 +25,7 @@ const algorithmQueueTemplate = {
                     type: ALGORITHM_QUEUE,
                     app: ALGORITHM_QUEUE,
                     'metrics-group': ALGORITHM_QUEUE,
-                    group: 'hkube',
+                    group: 'hkube'
                 }
             },
             spec: {
@@ -35,7 +35,7 @@ const algorithmQueueTemplate = {
                 containers: [
                     {
                         name: ALGORITHM_QUEUE,
-                        image: `hkube/${ALGORITHM_QUEUE}:latest`,
+                        image: `hkube/${ALGORITHM_QUEUE}`,
                         ports: [
                             {
                                 containerPort: 3000

@@ -4,8 +4,8 @@ const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
 const { expect } = require('chai');
-const { createBuildJobSpec, applyImage, applyName } = require('../lib/jobs/jobCreator.js');
-const algorithmBuilderTemplate = require('../lib/templates/algorithm-builder.js');
+const { createBuildJobSpec, applyName } = require('../lib/jobs/algorithm-builds');
+const algorithmBuilderTemplate = require('../lib/templates/algorithm-builder');
 
 describe('jobCreator', () => {
     describe('applyName', () => {
@@ -14,18 +14,12 @@ describe('jobCreator', () => {
             expect(res).to.nested.include({ 'metadata.name': 'build-myAlgo1' });
         });
     });
-    describe('applyImage', () => {
-        it('should set image name in spec', () => {
-            const res = applyImage(algorithmBuilderTemplate, 'v1.2');
-            expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/algorithm-builder:v1.2' });
-        });
-    });
     it('should throw if no algorithm name', () => {
         expect(() => createBuildJobSpec({ version: 'v1.2' })).to.throw('Unable to create job spec. buildId is required');
     });
     it('should apply all required properties', () => {
         const buildId = 'my-alg-12345'
-        const res = createBuildJobSpec({ buildId, version: 'v1.2', options: main });
+        const res = createBuildJobSpec({ buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, options: main });
         expect(res).to.nested.include({ 'metadata.name': 'build-' + buildId });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/algorithm-builder:v1.2' });
         expect(res).to.nested.include({ 'metadata.labels.build-id': buildId });

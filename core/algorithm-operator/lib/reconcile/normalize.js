@@ -1,5 +1,5 @@
 const objectPath = require('object-path');
-const { parseImageName } = require('../helpers/images');
+const { parseImageName } = require('@hkube/kubernetes-client').utils;
 
 const normalizeDeployments = (deploymentsRaw) => {
     if (deploymentsRaw == null) {
@@ -17,7 +17,7 @@ const normalizeAlgorithms = (algorithmsRaw) => {
     if (algorithmsRaw == null) {
         return [];
     }
-    return algorithmsRaw.filter(a => !a.options.pending);
+    return algorithmsRaw.filter(a => a.options && !a.options.pending);
 };
 
 const _tryParseTime = (timeString) => {

@@ -1,35 +1,19 @@
 const EventEmitter = require('events');
-const Logger = require('@hkube/logger');
-const kubernetesClient = require('kubernetes-client');
+const log = require('@hkube/logger').GetLogFromContainer();
+const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const component = require('../../lib/consts/componentNames').K8S;
-let log;
+const { WORKER, SERVICE, INGRESS } = require('../../lib/consts/kubernetes-kind-prefix');
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
-        const k8sOptions = options.kubernetes || {};
-        log = Logger.GetLogFromContainer();
-        let config;
-        if (!k8sOptions.isLocal) {
-            try {
-                config = kubernetesClient.config.fromKubeconfig();
-            }
-            catch (error) {
-                log.error(`Error initializing kubernetes. error: ${error.message}`, { component }, error);
-                return;
-            }
-        }
-        else {
-            config = kubernetesClient.config.getInCluster();
-        }
-        log.info(`Initialized kubernetes client with options ${JSON.stringify({ options: options.kubernetes, url: config.url })}`, { component });
-        this._client = new kubernetesClient.Client({ config, version: '1.9' });
-        this._namespace = k8sOptions.namespace;
+        this._client = new KubernetesClient(options.kubernetes);
+        log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
     }
 
     async createDeployment({ spec }) {
-        log.debug(`Creating deployment ${spec.metadata.name}`, { component });
+        log.info(`Creating deployment ${spec.metadata.name}`, { component });
         try {
-            const res = await this._client.apis.apps.v1.namespaces(this._namespace).deployments.post({ body: spec });
+            const res = await this._client.deployments.create({ spec });
             return res;
         }
         catch (error) {
@@ -39,9 +23,9 @@ class KubernetesApi extends EventEmitter {
     }
 
     async updateDeployment({ spec }) {
-        log.debug(`Updating deployment ${spec.metadata.name}`, { component });
+        log.info(`Updating deployment ${spec.metadata.name}`, { component });
         try {
-            const res = await this._client.apis.apps.v1.namespaces(this._namespace).deployments(spec.metadata.name).patch({ body: spec });
+            const res = await this._client.deployments.update({ deploymentName: spec.metadata.name, spec });
             return res;
         }
         catch (error) {
@@ -51,9 +35,9 @@ class KubernetesApi extends EventEmitter {
     }
 
     async deleteDeployment(deploymentName) {
-        log.debug(`Deleting job ${deploymentName}`, { component });
+        log.info(`Deleting job ${deploymentName}`, { component });
         try {
-            const res = await this._client.apis.apps.v1.namespaces(this._namespace).deployment(deploymentName).delete();
+            const res = await this._client.deployments.delete({ deploymentName });
             return res;
         }
         catch (error) {
@@ -63,19 +47,19 @@ class KubernetesApi extends EventEmitter {
     }
 
     async getDeployments({ labelSelector }) {
-        const deploymentsRaw = await this._client.apis.apps.v1.namespaces(this._namespace).deployments().get({ qs: { labelSelector } });
+        const deploymentsRaw = await this._client.deployments.get({ labelSelector });
         return deploymentsRaw;
     }
 
     async getJobs({ labelSelector }) {
-        const jobsRaw = await this._client.apis.batch.v1.namespaces(this._namespace).jobs().get({ qs: { labelSelector } });
+        const jobsRaw = await this._client.jobs.get({ labelSelector });
         return jobsRaw;
     }
 
     async createJob({ spec }) {
         log.info(`Creating job ${spec.metadata.name}`, { component });
         try {
-            const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs.post({ body: spec });
+            const res = await this._client.jobs.create({ spec });
             return res;
         }
         catch (error) {
@@ -86,16 +70,63 @@ class KubernetesApi extends EventEmitter {
 
     async getVersionsConfigMap() {
         try {
-            const configMap = await this._client.api.v1.namespaces(this._namespace).configmaps('hkube-versions').get();
-            const versions = JSON.parse(configMap.body.data['versions.json']);
-            const registry = configMap.body.data['registry.json'] && JSON.parse(configMap.body.data['registry.json']);
-            const clusterOptions = configMap.body.data['clusterOptions.json'] && JSON.parse(configMap.body.data['clusterOptions.json']);
-            return { versions, registry, clusterOptions };
+            const res = await this._client.configMaps.get({ name: 'hkube-versions' });
+            return this._client.configMaps.extractConfigMap(res);
         }
         catch (error) {
             log.error(`unable to get configmap. error: ${error.message}`, { component }, error);
             return {};
         }
+    }
+
+    async createAlgorithmForDebug({ deploymentSpec, ingressSpec, serviceSpec, algorithmName }) {
+        log.info(`Creating algorithm for debug ${deploymentSpec.metadata.name}`, { component });
+        let resDeployment = null;
+        let resIngress = null;
+        let resService = null;
+
+        try {
+            resDeployment = await this._client.deployments.create({ spec: deploymentSpec });
+            resIngress = await this._client.ingresses.create({ spec: ingressSpec });
+            resService = await this._client.services.create({ spec: serviceSpec });
+
+            return {
+                resDeployment,
+                resIngress,
+                resService
+            };
+        }
+        catch (error) {
+            log.error(`failed to continue creating operation ${deploymentSpec.metadata.name}. error: ${error.message}`, { component }, error);
+            await this.deleteAlgorithmForDebug(algorithmName);
+            throw error;
+        }
+    }
+
+    async deleteAlgorithmForDebug(algorithmName) {
+        log.info(`Deleting algorithm for debug ${algorithmName}`, { component });
+        const [resDeployment, resIngress, resService] = await Promise.all([
+            this._client.deployments.delete({ deploymentName: `${WORKER}-${algorithmName}` }),
+            this._client.ingresses.delete({ ingressName: `${INGRESS}-${algorithmName}` }),
+            this._client.services.delete({ serviceName: `${SERVICE}-${algorithmName}` })
+        ]);
+        return {
+            resDeployment,
+            resIngress,
+            resService
+        };
+    }
+
+    async getAlgorithmForDebug({ labelSelector }) {
+        const resDeployment = await this._client.deployments.get({ labelSelector });
+        const resIngress = await this._client.ingresses.get({ labelSelector });
+        const resService = await this._client.services.get({ labelSelector });
+
+        return {
+            resDeployment,
+            resIngress,
+            resService
+        };
     }
 }
 

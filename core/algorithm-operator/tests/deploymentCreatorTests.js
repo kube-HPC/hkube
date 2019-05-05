@@ -5,31 +5,19 @@ const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
 const { expect } = require('chai');
-const { createDeploymentSpec, applyImage, applyAlgorithmName, applyName, applyNodeSelector } = require('../lib/deployments/deploymentCreator');
-const { createImageName, parseImageName, isValidDeploymentName } = require('../lib/helpers/images');
+const { createDeploymentSpec, applyAlgorithmName, applyNodeSelector } = require('../lib/deployments/algorithm-queue');
 const { algorithmQueueTemplate } = require('./stub/deploymentTemplates');
 
 describe('deploymentCreator', () => {
     describe('applyAlgorithmName', () => {
         it('should replace image name in spec', () => {
-            const res = applyAlgorithmName(algorithmQueueTemplate, 'myAlgo1');
+            const res = applyAlgorithmName(algorithmQueueTemplate, 'myAlgo1', 'algorithm-queue');
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myAlgo1' });
         });
         it('should throw if no worker container', () => {
             const missingWorkerSpec = clonedeep(algorithmQueueTemplate);
             missingWorkerSpec.spec.template.spec.containers.splice(0, 1);
-            expect(() => applyAlgorithmName(missingWorkerSpec, 'myAlgo1')).to.throw('create deployment spec. algorithm-queue container not found');
-        });
-    });
-    describe('applyImage', () => {
-        it('should set image name in spec', () => {
-            const res = applyImage(algorithmQueueTemplate, 'registry:5000/myAlgo1Image:v2');
-            expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'registry:5000/myAlgo1Image:v2' });
-        });
-        it('should throw if no algorithm container', () => {
-            const missingAlgorunnerSpec = clonedeep(algorithmQueueTemplate);
-            missingAlgorunnerSpec.spec.template.spec.containers.splice(0, 1);
-            expect(() => applyImage(missingAlgorunnerSpec, 'registry:5000/myAlgo1Image:v2')).to.throw('Unable to create deployment spec. algorithm-queue container not found');
+            expect(() => applyAlgorithmName(missingWorkerSpec, 'myAlgo1', 'algorithm-queue')).to.throw('unable to find container algorithm-queue');
         });
     });
     describe('useNodeSelector', () => {

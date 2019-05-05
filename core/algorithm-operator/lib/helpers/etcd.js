@@ -1,9 +1,8 @@
 const EventEmitter = require('events');
 const merge = require('lodash.merge');
 const EtcdClient = require('@hkube/etcd');
-const Logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../lib/consts/componentNames').ETCD;
-let log;
 
 class Etcd extends EventEmitter {
     constructor() {
@@ -12,7 +11,6 @@ class Etcd extends EventEmitter {
     }
 
     async init(options) {
-        log = Logger.GetLogFromContainer();
         this._etcd = new EtcdClient();
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
         await this._etcd.init(options.etcd);
@@ -25,6 +23,14 @@ class Etcd extends EventEmitter {
 
     getAlgorithmTemplates() {
         return this._etcd.algorithms.templatesStore.list();
+    }
+
+    storeAlgorithmData(algorithmName, data) {
+        return this._etcd.algorithmDebug.set({ algorithmName, data });
+    }
+
+    removeAlgorithmData(algorithmName) {
+        return this._etcd.algorithmDebug.delete({ algorithmName });
     }
 
     async getPendingBuilds() {

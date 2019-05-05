@@ -5,11 +5,11 @@ config.serviceName = packageJson.name;
 config.version = packageJson.version;
 config.intervalMs = process.env.INTERVAL_MS || 10000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
-config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
-    namespace: process.env.NAMESPACE || 'default'
+    namespace: process.env.NAMESPACE || 'default',
+    version: '1.9'
 };
 
 config.etcd = {

@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
     "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --colors --recursive --exit",
-    "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --exclude=bootstrap.js --reporter=html --reporter=text --reporter=lcov mocha tests --colors --recursive --exit",
+    "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --exclude=tests --reporter=html --reporter=text --reporter=lcov mocha tests --colors --recursive --exit",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
     "build": "dockerfile/build.sh algorithm-operator"
@@ -16,9 +16,9 @@
   "dependencies": {
     "@hkube/config": "^2.0.7",
     "@hkube/etcd": "^4.0.32",
+    "@hkube/kubernetes-client": "^1.0.12",
     "@hkube/logger": "^1.0.15",
     "decamelize": "^3.1.1",
-    "kubernetes-client": "^5.3.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.1",
     "object-path": "^0.11.4"

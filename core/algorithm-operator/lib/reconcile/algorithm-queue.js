@@ -1,19 +1,10 @@
-const Logger = require('@hkube/logger');
-const etcd = require('../helpers/etcd');
-const { createBuildJobSpec } = require('../jobs/jobCreator');
-const { createDeploymentSpec } = require('../deployments/deploymentCreator');
+const log = require('@hkube/logger').GetLogFromContainer();
+const { createDeploymentSpec } = require('../deployments/algorithm-queue');
 const kubernetes = require('../helpers/kubernetes');
 const { findVersion } = require('../helpers/images');
-const component = require('../consts/componentNames').RECONCILER;
-const { normalizeDeployments, normalizeAlgorithms, normalizeBuildJobs } = require('./normalize');
+const component = require('../consts/componentNames').ALGORITHM_QUEUE_RECONCILER;
+const { normalizeDeployments, normalizeAlgorithms } = require('./normalize');
 const CONTAINERS = require('../consts/containers');
-const log = Logger.GetLogFromContainer();
-
-const _createBuildJob = async (jobDetails) => {
-    const spec = createBuildJobSpec(jobDetails);
-    await etcd.setBuild({ buildId: jobDetails.buildId, timestamp: Date.now(), progress: 5, status: 'creating' });
-    await kubernetes.createJob({ spec });
-};
 
 const _createDeployment = async (algorithmName, options) => {
     log.debug(`need to add ${algorithmName} with details ${JSON.stringify(options, null, 2)}`, { component });
@@ -42,28 +33,19 @@ const reconcile = async ({ deployments, algorithms, versions, registry, clusterO
     const reconcileResult = {};
 
     for (let algorithm of added) { // eslint-disable-line
-        createPromises.push(_createDeployment(algorithm.name, { version, registry, clusterOptions }));
+        createPromises.push(_createDeployment(algorithm.name, { versions, registry, clusterOptions }));
     }
     for (let algorithm of removed) { // eslint-disable-line
         createPromises.push(kubernetes.deleteDeployment(algorithm.name));
     }
     for (let deployment of updated) { // eslint-disable-line
-        createPromises.push(_updateDeployment(deployment, { version, registry, clusterOptions }));
+        createPromises.push(_updateDeployment(deployment, { versions, registry, clusterOptions }));
     }
 
     await Promise.all(createPromises);
     return reconcileResult;
 };
 
-// TODO: clean algorithm-builder k8s Jobs
-const reconcileBuilds = async ({ builds, jobs, versions, registry, options }) => {
-    const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_BUILDER });
-    const normJobs = normalizeBuildJobs(jobs, j => !j.status.succeeded);
-    const added = builds.filter(a => !normJobs.find(d => d.buildId === a.buildId));
-    await Promise.all(added.map(a => _createBuildJob({ buildId: a.buildId, version, registry, options })));
-};
-
 module.exports = {
-    reconcile,
-    reconcileBuilds
+    reconcile
 };

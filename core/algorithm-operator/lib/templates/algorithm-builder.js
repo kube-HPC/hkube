@@ -1,12 +1,12 @@
-const { ALGORITHM_BUILDER } = require('../../lib/consts/containers');
+const { ALGORITHM_BUILDS } = require('../../lib/consts/containers');
 
 const jobTemplate = {
     apiVersion: 'batch/v1',
     kind: 'Job',
     metadata: {
-        name: ALGORITHM_BUILDER,
+        name: ALGORITHM_BUILDS,
         labels: {
-            type: ALGORITHM_BUILDER,
+            type: ALGORITHM_BUILDS,
             group: 'hkube',
             core: 'true'
         }
@@ -15,7 +15,7 @@ const jobTemplate = {
         template: {
             metadata: {
                 labels: {
-                    type: ALGORITHM_BUILDER,
+                    type: ALGORITHM_BUILDS,
                     group: 'hkube'
                 }
             },
@@ -25,8 +25,8 @@ const jobTemplate = {
                 },
                 containers: [
                     {
-                        name: ALGORITHM_BUILDER,
-                        image: `hkube/${ALGORITHM_BUILDER}`,
+                        name: ALGORITHM_BUILDS,
+                        image: `hkube/${ALGORITHM_BUILDS}`,
                         env: [
                             {
                                 name: 'NODE_ENV',
@@ -54,6 +54,15 @@ const jobTemplate = {
                                     configMapKeyRef: {
                                         name: 'algorithm-operator-configmap',
                                         key: 'DEFAULT_STORAGE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'CLUSTER_NAME',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'CLUSTER_NAME'
                                     }
                                 }
                             },
