@@ -6,8 +6,8 @@ const { tracer, metrics } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
 const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts').Components.MAIN;
-let log;
 const worker = require('./lib/worker');
+let log;
 
 const modules = [
     require('./lib/states/stateManager.js'),

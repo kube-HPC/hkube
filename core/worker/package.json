@@ -26,6 +26,7 @@
     "dependencies": {
         "@hkube/config": "^2.0.7",
         "@hkube/etcd": "^4.0.32",
+        "@hkube/kubernetes-client": "^1.0.12",
         "@hkube/logger": "^1.0.15",
         "@hkube/metrics": "^1.0.33",
         "@hkube/parsers": "^1.0.20",
@@ -41,7 +42,6 @@
         "flat": "^4.1.0",
         "forward-emitter": "^0.1.1",
         "javascript-state-machine": "^3.1.0",
-        "kubernetes-client": "^6.6.1",
         "object-path": "^0.11.4",
         "request": "^2.88.0",
         "request-promise": "^4.2.4",

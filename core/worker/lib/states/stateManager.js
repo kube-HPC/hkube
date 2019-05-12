@@ -238,7 +238,7 @@ class StateManager extends EventEmitter {
     }
 
     _startInactiveTimer() {
-        if (this._config.timeouts.algorithmDisconnected != 0) { // eslint-disable-line
+        if (this._config.timeouts.algorithmDisconnected > 0) {
             log.info(`starting inactive timeout for algorunner (bootstrap) ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
             this._inactiveTimer = setTimeout(() => {
                 log.info(`algorunner is offline for more than ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });

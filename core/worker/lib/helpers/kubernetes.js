@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
-const kubernetesClient = require('kubernetes-client');
+const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const objectPath = require('object-path');
 const delay = require('delay');
 const component = require('../../lib/consts').Components.K8S;
@@ -10,37 +10,29 @@ let log;
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
-        const k8sOptions = options.kubernetes || {};
         log = Logger.GetLogFromContainer();
-        let config;
-        if (!k8sOptions.isLocal) {
-            try {
-                config = kubernetesClient.config.fromKubeconfig();
-            }
-            catch (error) {
-                log.error(`Error initializing kubernetes. error: ${error.message}`, { component }, error);
-                return;
-            }
+
+        try {
+            this._client = new KubernetesClient(options.kubernetes);
+            log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
+
+            const kubeVersionRaw = await this._client.versions.get();
+            this.kubeVersion = {
+                ...kubeVersionRaw.body,
+                major: formatters.parseInt(kubeVersionRaw.body.major, 1),
+                minor: formatters.parseInt(kubeVersionRaw.body.minor, 9)
+            };
+            log.info(`kubernetes version: ${this.kubeVersion.major}:${this.kubeVersion.minor}`);
         }
-        else {
-            config = kubernetesClient.config.getInCluster();
+        catch (error) {
+            log.error(`Error initializing kubernetes. error: ${error.message}`, { component }, error);
         }
-        log.info(`Initialized kubernetes client with options ${JSON.stringify({ options: options.kubernetes, url: config.url })}`, { component });
-        this._client = new kubernetesClient.Client({ config, version: '1.9' });
-        const kubeVersionRaw = await this._client.version.get();
-        this.kubeVersion = {
-            ...kubeVersionRaw.body,
-            major: formatters.parseInt(kubeVersionRaw.body.major, 1),
-            minor: formatters.parseInt(kubeVersionRaw.body.minor, 9)
-        };
-        log.info(`kubernetes version: ${this.kubeVersion.major}:${this.kubeVersion.minor}`);
-        this._namespace = k8sOptions.namespace;
     }
 
     async getJobForPod(podName) {
         try {
             log.debug(`getJobForPod for pod ${podName}`, { component });
-            const pod = await this._client.api.v1.namespaces(this._namespace).pods(podName).get();
+            const pod = await this._client.pods.get({ podName });
             return objectPath.get(pod, 'body.metadata.labels.job-name');
         }
         catch (error) {
@@ -49,28 +41,31 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
-    async getPodContainerStatus(podName) {
+    _mapContainerStatus(status) {
+        const containerStatus = {
+            name: status.name,
+            running: !!status.state.running,
+            terminated: !!status.state.terminated
+        };
+        if (containerStatus.terminated) {
+            containerStatus.terminationDetails = {
+                reason: status.state.terminated.reason,
+                exitCode: status.state.terminated.exitCode
+            };
+        }
+        return containerStatus;
+    }
+
+    async getPodContainerStatus(podName, containerName) {
         try {
-            log.debug(`getPodContainers for pod ${podName}`, { component });
-            const pod = await this._client.api.v1.namespaces(this._namespace).pods(podName).get();
+            log.debug(`getPodContainers for pod ${podName}, container ${containerName}`, { component });
+            const pod = await this._client.pods.get({ podName });
             const statusRaw = objectPath.get(pod, 'body.status.containerStatuses');
             if (!statusRaw) {
                 return [];
             }
-            return statusRaw.map((s) => {
-                const status = {
-                    name: s.name,
-                    running: !!s.state.running,
-                    terminated: !!s.state.terminated
-                };
-                if (status.terminated) {
-                    status.terminationDetails = {
-                        reason: s.state.terminated.reason,
-                        exitCode: s.state.terminated.exitCode
-                    };
-                }
-                return status;
-            });
+            const statuses = statusRaw.filter(r => r.name === containerName).map(this._mapContainerStatus);
+            return statuses[0];
         }
         catch (error) {
             log.throttle.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
@@ -81,23 +76,26 @@ class KubernetesApi extends EventEmitter {
     async waitForTerminatedState(podName, containerName, timeout = 20000) {
         log.info('waiting for pod termination', { component });
         const start = Date.now();
+
         do {
-            const status = await this.getPodContainerStatus(podName); // eslint-disable-line no-await-in-loop
-            const containerStatus = status && status.find(s => s.name === containerName);
+            const containerStatus = await this.getPodContainerStatus(podName, containerName); // eslint-disable-line no-await-in-loop
             log.throttle.debug(`waitForTerminatedState for pod ${podName}, container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
             if (containerStatus && containerStatus.terminated) {
                 return true;
             }
             await delay(1000); // eslint-disable-line no-await-in-loop
-        } while (Date.now() - start < timeout);
+        }
+        while (Date.now() - start < timeout);
+
         log.info(`waitForTerminatedState for pod ${podName}, container: ${containerName} timeout waiting for terminated state`, { component });
+
         return false;
     }
 
     async deleteJob(jobName) {
         log.debug(`Deleting job ${jobName}`, { component });
         try {
-            const res = await this._client.apis.batch.v1.namespaces(this._namespace).jobs(jobName).delete({ body: { propagationPolicy: 'Foreground' } });
+            const res = await this._client.jobs.delete({ jobName, body: { propagationPolicy: 'Foreground' } });
             return res;
         }
         catch (error) {

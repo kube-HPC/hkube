@@ -38,7 +38,7 @@ class LoggingProxy {
         if (algorunnerLogFileName && baseLogsPath) {
             return { algorunnerLogFileName, baseLogsPath };
         }
-        const { kubeVersion } = kubernetes;
+        const kubeVersion = kubernetes.kubeVersion || {};
         if (kubeVersion.major > 1 || (kubeVersion.major === 1 && kubeVersion.minor >= 12)) {
             // logs are in /var/log/pods/podid/container_name/0.log
 

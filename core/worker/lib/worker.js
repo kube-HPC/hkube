@@ -9,6 +9,7 @@ const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subpieline = require('./subpipeline/subpipeline');
 
+const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
@@ -137,9 +138,8 @@ class Worker {
     }
 
     async _getAlgorunnerContainerStatus() {
-        await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, 'algorunner', 1000);
-        const status = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name); // eslint-disable-line no-await-in-loop
-        const containerStatus = status && status.find(s => s.name === 'algorunner');
+        await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER, 1000); // ???
+        const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER); // eslint-disable-line no-await-in-loop
         return containerStatus;
     }
 
@@ -265,7 +265,7 @@ class Worker {
             try {
                 log.info(`starting termination mode. Exiting with code ${code}`, { component });
                 this._tryToSendCommand({ command: messages.outgoing.exit });
-                const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, 'algorunner');
+                const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
                 if (terminated) {
                     log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
                 }
