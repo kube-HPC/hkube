@@ -62,7 +62,7 @@ class KubernetesApi extends EventEmitter {
             const pod = await this._client.pods.get({ podName });
             const statusRaw = objectPath.get(pod, 'body.status.containerStatuses');
             if (!statusRaw) {
-                return [];
+                return null;
             }
             const statuses = statusRaw.filter(r => r.name === containerName).map(this._mapContainerStatus);
             return statuses[0];
