@@ -223,13 +223,15 @@ class ApiValidator {
     }
 
     _validateMemory(algorithm) {
-        let memory = algorithm.mem;
-        if (!memory) {
+        let memory;
+        const { mem } = algorithm;
+        const memReadable = algorithm.mem;
+        if (!mem) {
             memory = 4;
         }
         else {
             try {
-                memory = converter.getMemoryInMi(memory);
+                memory = converter.getMemoryInMi(mem);
                 if (memory < MIN_MEMORY) {
                     throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
                 }
@@ -238,7 +240,8 @@ class ApiValidator {
                 throw new InvalidDataError(ex.message);
             }
         }
-        algorithm.mem = memory;  // eslint-disable-line
+        algorithm.mem = memory;               // eslint-disable-line
+        algorithm.memReadable = memReadable;  // eslint-disable-line
     }
 
     _validateAlgorithmEnvVar(algorithm) {

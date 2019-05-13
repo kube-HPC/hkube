@@ -709,7 +709,6 @@ describe('Rest', () => {
                     });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {}
                         };
@@ -779,7 +778,6 @@ describe('Rest', () => {
                     it('should succeed to get pipelines results', async () => {
                         const pipeline = 'flow1';
                         const optionsRun = {
-
                             uri: restUrl + '/exec/stored',
                             body: {
                                 name: pipeline
@@ -813,7 +811,6 @@ describe('Rest', () => {
                     });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {}
                         };
@@ -883,7 +880,6 @@ describe('Rest', () => {
                     it('should succeed to get pipelines results', async () => {
                         const pipeline = 'flow1';
                         const optionsRun = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: pipeline,
@@ -924,7 +920,6 @@ describe('Rest', () => {
                     });
                     it('should throw Method Not Allowed', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {}
                         };
@@ -994,7 +989,6 @@ describe('Rest', () => {
                     it('should succeed to get pipelines status', async () => {
                         const pipeline = 'flow1';
                         const optionsRun = {
-
                             uri: restUrl + '/exec/stored',
                             body: {
                                 name: pipeline
@@ -1772,10 +1766,10 @@ describe('Rest', () => {
                     });
                     it('should return specific algorithm', async () => {
                         const body = {
-                            "name": "test-alg",
-                            "algorithmImage": "hkube/algorithm-example",
-                            "cpu": 1,
-                            "mem": "5000Ki"
+                            name: "test-alg",
+                            algorithmImage: "hkube/algorithm-example",
+                            cpu: 1,
+                            mem: "5000Ki"
                         };
                         const options = {
                             uri: restPath,
@@ -1788,8 +1782,9 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(getOptions);
-                        body.mem = converter.getMemoryInMi(body.mem);
-                        expect(response.body.mem).to.equal(body.mem);
+                        const mem = converter.getMemoryInMi(body.mem);
+                        expect(response.body.mem).to.equal(mem);
+                        expect(response.body.memReadable).to.equal(body.mem);
                     });
                 });
                 describe('/store/algorithms:name DELETE', () => {
@@ -1807,7 +1802,6 @@ describe('Rest', () => {
                     xit('should delete specific algorithm', async () => {
                         const optionsInsert = {
                             uri: restPath,
-
                             body: {
                                 name: "delete",
                                 algorithmImage: "image"
@@ -1838,7 +1832,6 @@ describe('Rest', () => {
                 describe('/store/algorithms POST', () => {
                     it('should throw validation error of required property name', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {}
                         };
@@ -1849,7 +1842,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of data.name should be string', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: {}
@@ -1868,7 +1860,6 @@ describe('Rest', () => {
                             cpu: 1
                         }
                         const options = {
-
                             uri: restPath,
                             body
                         };
@@ -1879,7 +1870,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: ''
@@ -1893,7 +1883,6 @@ describe('Rest', () => {
                     it('should throw conflict error', async () => {
                         const options = {
                             uri: restPath,
-
                             body: {
                                 name: "conflict",
                                 algorithmImage: "image"
@@ -1910,7 +1899,6 @@ describe('Rest', () => {
                         it(`should throw invalid algorithm name if include ${v}`, async () => {
                             const options = {
                                 uri: restPath,
-
                                 body: {
                                     name: `notvalid${v}name`,
                                     algorithmImage: "image"
@@ -1927,7 +1915,6 @@ describe('Rest', () => {
                         it(`should throw invalid if algorithm name if start with ${v}`, async () => {
                             const options = {
                                 uri: restPath,
-
                                 body: {
                                     name: `${v}notvalidname`,
                                     algorithmImage: "image"
@@ -1941,7 +1928,6 @@ describe('Rest', () => {
                         it(`should throw invalid if algorithm name if end with ${v}`, async () => {
                             const options = {
                                 uri: restPath,
-
                                 body: {
                                     name: `notvalidname${v}`,
                                     algorithmImage: "image"
@@ -1962,11 +1948,11 @@ describe('Rest', () => {
                         }
                         const options = {
                             uri: restPath,
-
                             body
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(201);
+                        body.memReadable = body.mem;
                         body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal({
                             ...body,
@@ -1991,6 +1977,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.response.statusCode).to.equal(201);
+                        body.memReadable = body.mem;
                         body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal({
                             ...body,
@@ -2326,6 +2313,7 @@ describe('Rest', () => {
                             body
                         };
                         const response = await _request(options);
+                        body.memReadable = body.mem;
                         body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal(body);
                     });
@@ -2372,7 +2360,6 @@ describe('Rest', () => {
                         const pipeline = clone(pipelines[0]);
                         const optionsInsert = {
                             uri: restPath,
-
                             body: pipeline
                         };
                         await _request(optionsInsert);
@@ -2400,7 +2387,6 @@ describe('Rest', () => {
                 describe('/store/pipelines POST', () => {
                     it('should throw validation error of required property name', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {}
                         };
@@ -2411,7 +2397,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of data.name should be string', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: {}
@@ -2424,7 +2409,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: ''
@@ -2437,7 +2421,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of required property nodes', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: 'string'
@@ -2450,7 +2433,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of required property nodes.nodeName', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: 'string',
@@ -2477,7 +2459,6 @@ describe('Rest', () => {
                             }
                         }
                         const options = {
-
                             uri: restPath,
                             body: pipeline
                         };
@@ -2507,7 +2488,6 @@ describe('Rest', () => {
                             pipelines: [""]
                         };
                         const options = {
-
                             uri: restPath,
                             body: pipeline
                         };
@@ -2518,7 +2498,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of required property nodes.algorithmName', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: 'string',
@@ -2539,7 +2518,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of nodes.input should be array', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: 'string',
@@ -2558,7 +2536,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of data should NOT have additional properties', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: 'string',
@@ -2585,7 +2562,6 @@ describe('Rest', () => {
                         pipeline.name = 'flow1';
                         const options = {
                             uri: restPath,
-
                             body: pipeline
                         };
                         await _request(options);
@@ -2596,7 +2572,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of duplicate node', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: 'string',
@@ -2621,7 +2596,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of invalid reserved name flowInput', async () => {
                         const options = {
-
                             uri: restPath,
                             body: {
                                 name: 'reservedName',
@@ -2642,7 +2616,6 @@ describe('Rest', () => {
                     it('should throw validation error of node depend on not exists node', async () => {
                         const pipeline = pipelines.find(p => p.name === 'NodeNotExists');
                         const options = {
-
                             uri: restPath,
                             body: pipeline
                         };
@@ -2654,7 +2627,6 @@ describe('Rest', () => {
                     it('should throw validation error of cyclic nodes', async () => {
                         const pipeline = pipelines.find(p => p.name === 'cyclicNodes');
                         const options = {
-
                             uri: restPath,
                             body: pipeline
                         };
@@ -2665,7 +2637,6 @@ describe('Rest', () => {
                     });
                     it('should throw validation error of flowInput not exist', async () => {
                         const options = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: 'flowInputPipeline',
@@ -2691,7 +2662,6 @@ describe('Rest', () => {
                         const body = pipeline;
                         const options = {
                             uri: restPath,
-
                             body
                         };
                         const response = await _request(options);
@@ -2703,7 +2673,6 @@ describe('Rest', () => {
                         const name = uuidv4();
                         const options = {
                             uri: restPath,
-
                             body: {
                                 name,
                                 nodes: [
@@ -2738,7 +2707,6 @@ describe('Rest', () => {
                         pipeline.description = 'my description';
                         const options = {
                             uri: restPath,
-
                             body: pipeline
                         };
                         const response = await _request(options);
@@ -2817,7 +2785,6 @@ describe('Rest', () => {
                     });
                     it('should throw webhooks validation error of should match format "url', async () => {
                         const options = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: 'string',
@@ -2840,7 +2807,6 @@ describe('Rest', () => {
                     });
                     it('should throw webhooks validation error of NOT have additional properties', async () => {
                         const options = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: 'string',
@@ -2863,7 +2829,6 @@ describe('Rest', () => {
                     });
                     it('should succeed to store pipeline with webhooks', async () => {
                         const options = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: 'string',
@@ -2945,7 +2910,6 @@ describe('Rest', () => {
                     });
                     it('should throw webhooks validation error of should match format "url', async () => {
                         const options = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: 'string',
@@ -2968,7 +2932,6 @@ describe('Rest', () => {
                     });
                     it('should throw webhooks validation error of NOT have additional properties', async () => {
                         const options = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: 'string',
@@ -2991,7 +2954,6 @@ describe('Rest', () => {
                     });
                     it('should succeed to store pipeline with webhooks', async () => {
                         const options = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: 'string',

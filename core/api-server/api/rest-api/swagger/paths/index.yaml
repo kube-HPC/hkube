@@ -9,7 +9,7 @@
   $ref: ./exec/stop.yaml
 /exec/pipelines/{jobId}:
   $ref: ./exec/pipelines_jobId.yaml
-/exec/pipelines/list:
+/exec/pipeline/list:
   $ref: ./exec/pipelines_list.yaml
 /exec/status/{jobId}:
   $ref: ./exec/status.yaml

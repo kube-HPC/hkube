@@ -16,13 +16,14 @@ const rest = new RestServer();
 class AppServer {
     async init(options) {
         rest.on('error', (data) => {
-            const { route, jobId, pipelineName } = data.res._internalMetadata || {};
-            const { status } = data;
+            const error = data.error || data.message || {};
+            const { route, jobId, pipelineName } = (data.res && data.res._internalMetadata) || {};
+            const status = data.status || data.code;
             if (status >= 500) {
-                log.error(`Error response, status=${status}, message=${data.error.message}`, { component, route, jobId, pipelineName, httpStatus: status });
+                log.error(`Error response, status=${status}, message=${error}`, { component, route, jobId, pipelineName, httpStatus: status });
             }
             else {
-                log.info(`status=${status}, message=${data.error.message}`, { component, route, jobId, pipelineName, httpStatus: status });
+                log.info(`status=${status}, message=${error}`, { component, route, jobId, pipelineName, httpStatus: status });
             }
         });
 

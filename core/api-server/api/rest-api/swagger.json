@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.1.141",
+    "version": "1.1.144",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -943,7 +943,7 @@
         }
       }
     },
-    "/exec/pipelines/list": {
+    "/exec/pipeline/list": {
       "get": {
         "tags": [
           "Execution"
