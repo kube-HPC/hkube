@@ -21,6 +21,10 @@ class StateManger {
         return this._etcd._client.get(`/algorithms/builds/${options.buildId}`, { isPrefix: false });
     }
 
+    async insertBuild(options) {
+        return this._etcd._client.put(`/algorithms/builds/${options.buildId}`, options);
+    }
+
     async setBuild(options) {
         const { buildId } = options;
         if (!buildId) {
@@ -29,6 +33,9 @@ class StateManger {
         await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
             return tx.get(`/algorithms/builds/${buildId}`)
                 .then((val) => {
+                    if (!val) {
+                        return Promise.resolve();
+                    }
                     const bld = JSON.parse(val);
                     const build = merge(bld, options);
                     return tx.put(`/algorithms/builds/${buildId}`).value(JSON.stringify(build));
@@ -43,6 +50,9 @@ class StateManger {
         await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
             return tx.get(`/algorithmTemplates/${algorithmName}`)
                 .then((val) => {
+                    if (!val) {
+                        return Promise.resolve();
+                    }
                     const algorithm = JSON.parse(val);
                     const newAlgorithm = merge(algorithm, { algorithmImage }, { options: { pending: false } });
                     return tx.put(`/algorithmTemplates/${algorithmName}`).value(JSON.stringify(newAlgorithm));

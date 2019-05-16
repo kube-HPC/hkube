@@ -14,7 +14,7 @@ const mockBuildPython = require('./mocks/python/build.json');
 
 describe('Test', function () {
     before(async () => {
-        await storageManager.init(main, true);
+        await storageManager.init(main, log, true);
         await stateManger.init(main);
     });
     describe('Docker', function () {
@@ -41,7 +41,7 @@ describe('Test', function () {
             this.timeout(50000);
             const mockZip = `${process.cwd()}/tests/mocks/nodejs/sort-alg-nodejs.tar.gz`;
             const { buildId } = mockBuildNodejs;
-            await stateManger.setBuild(mockBuildNodejs);
+            await stateManger.insertBuild(mockBuildNodejs);
             await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
             config.buildId = buildId;
             const response = await dockerBuild(config);
@@ -55,7 +55,7 @@ describe('Test', function () {
             this.timeout(200000);
             const mockZip = `${process.cwd()}/tests/mocks/python/web-scrap.tar.gz`;
             const { buildId } = mockBuildPython;
-            await stateManger.setBuild(mockBuildPython);
+            await stateManger.insertBuild(mockBuildPython);
             await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
             config.buildId = buildId;
             const response = await dockerBuild(config);
