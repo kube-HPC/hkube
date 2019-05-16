@@ -4,3 +4,5 @@ tests
 app.js
 bootstrap.js
 environments
+builds
+uploads
