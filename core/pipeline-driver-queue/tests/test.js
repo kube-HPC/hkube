@@ -80,7 +80,7 @@ describe('Test', () => {
                     queue.remove('not_exist job');
                     await delay(1000);
                     expect(called).to.equal(false);
-                });
+                }).timeout(3000);
             });
             describe('pop', () => {
                 it('should pop from queue', async () => {

@@ -46,6 +46,7 @@ config.heuristicsWeights = {
 };
 
 config.metrics = {
+    prefix: 'hkube_',
     collectDefault: true,
     server: {
         port: process.env.METRICS_PORT

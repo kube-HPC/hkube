@@ -2,6 +2,17 @@ const { metrics } = require('@hkube/metrics');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, metricsName, metricsTypes, heuristicsName } = require('../consts');
 
+/**
+ * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
+ * @param {string} pipelineName 
+ */
+function formatPipelineName(pipelineName) {
+    if (pipelineName.startsWith('raw-')) {
+        return 'raw';
+    }
+    return pipelineName;
+}
+
 class AggregationMetricsFactory {
     constructor() {
         this.timeInQueue = null;
@@ -112,9 +123,10 @@ class AggregationMetricsFactory {
      * @param {Object} job 
      */
     updateScoreMetrics(job) {
+        const pipelineName = formatPipelineName(job.pipelineName);
         try {
             const labelValues = {
-                pipeline_name: job.pipelineName
+                pipeline_name: pipelineName
             };
             this._metrics[metricsName.PRIORITY_SCORE].instance[0].retroactive({
                 labelValues,
@@ -141,10 +153,11 @@ class AggregationMetricsFactory {
      * @param {string} metricOperation 
      */
     _histogram(metric, job, metricOperation) {
+        const pipelineName = formatPipelineName(job.pipelineName);
         const metricData = {
             id: job.jobId,
             labelValues: {
-                pipeline_name: job.pipelineName
+                pipeline_name: pipelineName
             }
         };
         if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.start) {
@@ -166,10 +179,11 @@ class AggregationMetricsFactory {
      * @param {string} metricOperation 
      */
     _gauge(metric, job, metricOperation) {
+        const pipelineName = formatPipelineName(job.pipelineName);
         const metricData = {
             id: job.jobId,
             labelValues: {
-                pipeline_name: job.pipelineName
+                pipeline_name: pipelineName
             }
         };
         if (metricOperation === metricsTypes.GAUGE_OPERATION.increase) {
@@ -187,10 +201,11 @@ class AggregationMetricsFactory {
      * @param {string} metricOperation 
      */
     _counter(metric, job, metricOperation) {
+        const pipelineName = formatPipelineName(job.pipelineName);
         const metricData = {
             id: job.jobId,
             labelValues: {
-                pipeline_name: job.pipelineName
+                pipeline_name: pipelineName
             }
         };
         if (metricOperation === metricsTypes.COUNTER_OPERATION.increase) {

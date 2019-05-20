@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver-queue",
-  "version": "1.1.9",
+  "version": "1.1.14",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -30,7 +30,6 @@
     "@hkube/producer-consumer": "^1.0.40",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.11",
-    "lodash": "^4.17.11",
     "lodash.isequal": "^4.5.0"
   },
   "devDependencies": {
