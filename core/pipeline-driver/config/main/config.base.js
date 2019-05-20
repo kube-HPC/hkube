@@ -1,9 +1,11 @@
-var packageJson = require(process.cwd() + '/package.json');
-var config = module.exports = {};
+const packageJson = require(process.cwd() + '/package.json');
+const config = module.exports = {};
 
 config.serviceName = packageJson.name;
+config.version = packageJson.version;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.jobs = {
     consumer: {
@@ -22,9 +24,6 @@ config.metrics = {
         port: process.env.METRICS_PORT
     }
 };
-
-config.clusterName = process.env.CLUSTER_NAME || 'local';
-
 
 config.tracer = {
     tracerConfig: {
