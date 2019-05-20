@@ -33,7 +33,7 @@ class Bootstrap {
             }
         }
         catch (error) {
-            this._onInitFailed(new Error(`unable to start application. ${error.message}`));
+            this._onInitFailed(error);
         }
     }
 
@@ -45,22 +45,22 @@ class Bootstrap {
 
     _handleErrors() {
         process.on('exit', (code) => {
-            log.info('exit' + (code ? ' code ' + code : ''), { component });
+            log.info(`exit code ${code}`, { component });
         });
         process.on('SIGINT', () => {
             log.info('SIGINT', { component });
-            process.exit(1);
+            process.exit(0);
         });
         process.on('SIGTERM', () => {
             log.info('SIGTERM', { component });
-            process.exit(1);
+            process.exit(0);
         });
         process.on('unhandledRejection', (error) => {
-            log.error('unhandledRejection: ' + error.message, { component }, error);
+            log.error(`unhandledRejection: ${error.message}`, { component }, error);
             process.exit(1);
         });
         process.on('uncaughtException', (error) => {
-            log.error('uncaughtException: ' + error.message, { component }, error);
+            log.error(`uncaughtException: ${error.message}`, { component }, error);
             log.error(error);
             process.exit(1);
         });

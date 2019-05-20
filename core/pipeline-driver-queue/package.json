@@ -25,9 +25,9 @@
   "dependencies": {
     "@hkube/config": "^2.0.5",
     "@hkube/etcd": "^4.0.25",
-    "@hkube/logger": "^1.0.12",
+    "@hkube/logger": "^1.0.15",
     "@hkube/metrics": "^1.0.28",
-    "@hkube/producer-consumer": "^1.0.39",
+    "@hkube/producer-consumer": "^1.0.40",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.11",
     "lodash": "^4.17.11",
@@ -36,7 +36,7 @@
   "devDependencies": {
     "await-delay": "^1.0.0",
     "await-done": "^1.0.10",
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "coveralls": "^3.0.1",
     "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "^12.1.0",
@@ -46,7 +46,7 @@
     "mocha": "^5.2.0",
     "mockery": "^2.1.0",
     "pre-commit": "^1.2.2",
-    "sinon": "^6.3.3",
+    "sinon": "^6.3.5",
     "uuid": "^3.2.1"
   }
 }
