@@ -26,7 +26,7 @@ class Operator {
             ]);
         }
         catch (e) {
-            log.throttle.error(e, { component });
+            log.throttle.error(e.message, { component }, e);
         }
         finally {
             setTimeout(this._interval, this._intervalMs, options);

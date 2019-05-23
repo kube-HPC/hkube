@@ -33,8 +33,7 @@ class Etcd extends EventEmitter {
 
     async getPendingBuilds() {
         const list = await this._etcd.algorithms.builds.list({ sort: 'desc' });
-        const results = list.map(l => l.value);
-        return results.filter(b => b.status === 'pending');
+        return list.filter(b => b.status === 'pending');
     }
 
     async setBuild(options) {
