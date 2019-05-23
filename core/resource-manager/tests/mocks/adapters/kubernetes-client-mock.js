@@ -1,7 +1,7 @@
 const nodesStatus = require('../data/k8s-nodes.json');
 const podsStatus = require('../data/k8s-pods.json');
 
-const b = class baseTest {
+const Client = class baseTest {
     constructor() { }
     get pods() {
         return { get: function () { return podsStatus } };
@@ -11,19 +11,8 @@ const b = class baseTest {
     }
 }
 
-class test extends b {
-    constructor() { }
-
-
-
-}
-
-const Core = b;
-const config = { fromKubeconfig: function () { return } };
-
 module.exports = {
-    Core,
-    config
+    Client
 }
 
 

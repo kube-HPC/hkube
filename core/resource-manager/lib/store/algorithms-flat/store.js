@@ -7,7 +7,6 @@ class StoreAdapter {
     async setData(data) {
         this._log(data);
         await stateManager.setAlgorithmsResourceRequirements({ name: 'data', data });
-        // const result = await stateManager.getAlgorithmsResourceRequirements({ name: 'data' });
         return null;
     }
 

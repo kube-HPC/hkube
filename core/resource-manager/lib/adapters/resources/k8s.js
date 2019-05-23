@@ -1,17 +1,12 @@
 const parse = require('@hkube/units-converter');
 const groupBy = require('lodash.groupby');
-const Api = require('kubernetes-client');
+const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const Adapter = require('../Adapter');
 
 class K8sAdapter extends Adapter {
     constructor(options) {
         super(options);
-        if (options.config.k8s.local) {
-            this._client = new Api.Core(Api.config.fromKubeconfig());
-        }
-        else {
-            this._client = new Api.Core(Api.config.getInCluster());
-        }
+        this._client = new KubernetesClient(options.config.kubernetes);
     }
 
     _stateFilter(p) {

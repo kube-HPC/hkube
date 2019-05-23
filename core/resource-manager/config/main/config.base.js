@@ -15,8 +15,10 @@ config.prometheus = {
     endpoint: process.env.PROMETHEUS_ENDPOINT
 };
 
-config.k8s = {
-    local: !process.env.KUBERNETES_SERVICE_HOST
+config.kubernetes = {
+    isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
+    namespace: process.env.NAMESPACE || 'default',
+    version: '1.9'
 };
 
 config.interval = process.env.INTERVAL || 1000;

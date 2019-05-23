@@ -9,13 +9,13 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.7",
-    "@hkube/etcd": "^4.0.25",
+    "@hkube/etcd": "^5.0.3",
+    "@hkube/kubernetes-client": "^1.0.13",
     "@hkube/logger": "^1.0.15",
-    "@hkube/metrics": "^1.0.31",
+    "@hkube/metrics": "^1.0.33",
     "@hkube/prometheus-client": "^1.0.0",
-    "@hkube/rest-server": "^1.0.11",
+    "@hkube/rest-server": "^1.0.12",
     "@hkube/units-converter": "^1.0.11",
-    "kubernetes-client": "^5.4.0",
     "lodash.groupby": "^4.6.0",
     "lodash.orderby": "^4.6.0",
     "median": "0.0.2"
@@ -23,16 +23,16 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "coveralls": "^3.0.2",
-    "eslint": "^5.7.0",
+    "coveralls": "^3.0.3",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.14.0",
-    "mocha": "^5.2.0",
+    "eslint-plugin-import": "^2.17.2",
+    "mocha": "^6.1.4",
     "mockery": "^2.1.0",
-    "nyc": "^12.0.2",
+    "nyc": "^14.1.1",
     "pre-commit": "^1.2.2",
-    "sinon": "^6.3.5"
+    "sinon": "^7.3.2"
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
