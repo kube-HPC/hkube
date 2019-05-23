@@ -59,10 +59,10 @@ class JobProducer {
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            this._pendingAmount++;
+            this._pendingAmount += 1;
             log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.WAITING });
         }).on(Events.ACTIVE, (data) => {
-            this._pendingAmount--;
+            this._pendingAmount -= 1;
             queueRunner.queue.dequeue();
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.ACTIVE });
         }).on(Events.COMPLETED, (data) => {
@@ -70,7 +70,7 @@ class JobProducer {
         }).on(Events.FAILED, (data) => {
             log.error(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
         }).on(Events.STALLED, (data) => {
-            this._pendingAmount++;
+            this._pendingAmount += 1;
             log.error(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.STALLED });
         }).on(Events.CRASHED, async (data) => {
             const { jobId, error } = data;

@@ -1,5 +1,6 @@
 const Events = require('events');
-const _ = require('lodash');
+const orderby = require('lodash.orderby');
+const remove = require('lodash.remove');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { queueEvents, componentName } = require('./consts');
 const component = componentName.QUEUE;
@@ -56,7 +57,7 @@ class Queue extends Events {
     enqueue(job) {
         this.queue.push(job);
         this.queue = this.queue.map(q => this.scoreHeuristic(q));
-        this.queue = _.orderBy(this.queue, j => j.score, 'desc');
+        this.queue = orderby(this.queue, j => j.score, 'desc');
         const jobQ = this.queue.find(j => j.jobId === job.jobId);
         this.emit(queueEvents.INSERT, jobQ);
         this.emit(queueEvents.UPDATE_SCORE, jobQ);
@@ -83,7 +84,7 @@ class Queue extends Events {
     }
 
     remove(jobId) {
-        const jobs = _.remove(this.queue, job => job.jobId === jobId);
+        const jobs = remove(this.queue, job => job.jobId === jobId);
         if (jobs.length > 0) {
             this.emit(queueEvents.REMOVE, jobs[0]);
             log.info(`job removed from queue, queue size: ${this.queue.length}`, { component });

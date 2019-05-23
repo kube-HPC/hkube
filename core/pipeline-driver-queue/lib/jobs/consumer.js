@@ -1,9 +1,9 @@
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
+const log = require('@hkube/logger').GetLogFromContainer();
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
 const { jobState } = require('../consts');
-const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName } = require('../consts');
 const component = componentName.JOBS_CONSUMER;
 
@@ -18,7 +18,7 @@ class JobConsumer {
                 redis: options.redis,
                 tracer,
                 prefix: options.consumer.prefix,
-                settings: { ...options.consumer.stalled }
+                settings: options.consumer.stalled
             }
         });
         this._consumer.register({ job: { type: options.consumer.jobType, concurrency: options.consumer.concurrency } });
@@ -86,4 +86,3 @@ class JobConsumer {
 }
 
 module.exports = new JobConsumer();
-

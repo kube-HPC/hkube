@@ -138,7 +138,7 @@ describe('Test', () => {
     describe('job-consume', () => {
         it('should consume job with params', async () => {
             const jobId = uuidv4();
-            await persistence.client.execution.set({ jobId, data: pipelines[0] });
+            await persistence.client.executions.stored.set({ jobId, ...pipelines[0] });
             const options = {
                 job: {
                     type: 'pipeline-job',

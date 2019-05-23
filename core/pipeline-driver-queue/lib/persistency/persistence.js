@@ -1,20 +1,18 @@
 const EventEmitter = require('events');
 const Client = require('@hkube/etcd');
-const { JobStatus, JobResult } = require('@hkube/etcd');
 
 class Persistence extends EventEmitter {
     constructor() {
         super();
         this.queueName = null;
-        this.client = new Client();
     }
 
     async init({ options }) {
         const { etcd, persistence, serviceName } = options;
         this.queueName = persistence.type;
-        this.client.init({ etcd, serviceName });
+        this.client = new Client({ ...etcd, serviceName });
         await this.watchJobState();
-        this.client.jobState.on('change', (data) => {
+        this.client.jobs.state.on('change', (data) => {
             this.emit(`job-${data.state}`, data);
         });
         return this;
@@ -29,27 +27,27 @@ class Persistence extends EventEmitter {
     }
 
     deleteTasksState(options) {
-        return this.client.jobState.delete(options);
+        return this.client.jobs.state.delete(options);
     }
 
     getExecution(options) {
-        return this.client.execution.get(options);
+        return this.client.executions.stored.get(options);
     }
 
     setJobStatus(options) {
-        return this.client.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
+        return this.client.jobs.status.set(options);
     }
 
     setJobResults(options) {
-        return this.client.jobResults.set({ jobId: options.jobId, data: new JobResult(options) });
+        return this.client.jobs.results.set(options);
     }
 
     watchJobState(options) {
-        return this.client.jobState.watch(options);
+        return this.client.jobs.state.watch(options);
     }
 
     getJobState(options) {
-        return this.client.jobState.getState(options);
+        return this.client.jobs.state.get(options);
     }
 }
 

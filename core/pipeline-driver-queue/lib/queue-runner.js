@@ -21,8 +21,6 @@ class QueueRunner {
             scoreHeuristic: this.heuristicRunner,
             persistence
         });
-        
-        // this.queue.on(queueEvents.UPDATE_SCORE, queueScore => aggregationMetricFactory.scoreHistogram(queueScore));
         this.queue.on(queueEvents.UPDATE_SCORE, job => aggregationMetricFactory.updateScoreMetrics(job));
         this.queue.on(queueEvents.INSERT, job => this._jobAdded(job));
         this.queue.on(queueEvents.POP, job => this._jobRemoved(job));

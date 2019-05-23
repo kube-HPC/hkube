@@ -4,7 +4,7 @@ const { componentName, metricsName, metricsTypes, heuristicsName } = require('..
 
 /**
  * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
- * @param {string} pipelineName 
+ * @param {string} pipelineName
  */
 function formatPipelineName(pipelineName) {
     if (pipelineName.startsWith('raw-')) {
@@ -24,11 +24,13 @@ class AggregationMetricsFactory {
         this.metricsMaps = {};
         this._options = null;
     }
+
     async init(options) {
         this._options = options;
         await metrics.init(this._options.metrics);
         this._register();
     }
+
     _register() {
         this.timeInQueue = metrics.addTimeMeasure({
             name: metricsName.TIME_IN_QUEUE,
@@ -120,7 +122,7 @@ class AggregationMetricsFactory {
 
     /**
      * set score metrics for given job
-     * @param {Object} job 
+     * @param {Object} job
      */
     updateScoreMetrics(job) {
         const pipelineName = formatPipelineName(job.pipelineName);
@@ -148,9 +150,9 @@ class AggregationMetricsFactory {
 
     /**
      * Apply operation on histogram metric
-     * @param {Object} metric 
-     * @param {Object} task 
-     * @param {string} metricOperation 
+     * @param {Object} metric
+     * @param {Object} task
+     * @param {string} metricOperation
      */
     _histogram(metric, job, metricOperation) {
         const pipelineName = formatPipelineName(job.pipelineName);
@@ -174,9 +176,9 @@ class AggregationMetricsFactory {
 
     /**
      * Apply operation on gauge metric
-     * @param {Object} metric 
-     * @param {Object} task 
-     * @param {string} metricOperation 
+     * @param {Object} metric
+     * @param {Object} task
+     * @param {string} metricOperation
      */
     _gauge(metric, job, metricOperation) {
         const pipelineName = formatPipelineName(job.pipelineName);
@@ -196,9 +198,9 @@ class AggregationMetricsFactory {
 
     /**
      * Apply operation on counter metric
-     * @param {Object} metric 
-     * @param {Object} task 
-     * @param {string} metricOperation 
+     * @param {Object} metric
+     * @param {Object} task
+     * @param {string} metricOperation
      */
     _counter(metric, job, metricOperation) {
         const pipelineName = formatPipelineName(job.pipelineName);
