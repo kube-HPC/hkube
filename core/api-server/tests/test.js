@@ -1086,10 +1086,9 @@ describe('Rest', () => {
                         expect(response.body.error.code).to.equal(400);
                         expect(response.body.error.message).to.equal("data.limit should be integer");
                     });
-                    it('should succeed to get pipelines results', async () => {
-                        const pipeline = 'flow1';
+                    it('should succeed to get pipelines statuses', async () => {
+                        const pipeline = 'pipeline_statuses';
                         const optionsRun = {
-
                             uri: restUrl + '/exec/raw',
                             body: {
                                 name: pipeline,

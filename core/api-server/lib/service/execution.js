@@ -92,8 +92,8 @@ class ExecutionService {
             const lastRunResult = await this._getLastPipeline(jobId);
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await storageManager.hkubeExecutions.put({ jobId, data: pipeline }, tracer.startSpan.bind(tracer, { name: 'storage-put-exeuctions', parent: span.context() }));
-            await stateManager.setExecution({ jobId, data: { ...pipeline, startTime: Date.now(), lastRunResult } });
-            await stateManager.setRunningPipeline({ jobId, data: { ...pipeline, startTime: Date.now(), lastRunResult } });
+            await stateManager.setExecution({ jobId, ...pipeline, startTime: Date.now(), lastRunResult });
+            await stateManager.setRunningPipeline({ jobId, ...pipeline, startTime: Date.now(), lastRunResult });
             await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.INFO.name });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
@@ -217,7 +217,7 @@ class ExecutionService {
     }
 
     createRawName(options) {
-        return `raw-${options.name}-${randString(10)}`;
+        return `raw-${options.name}-${randString({ length: 10 })}`;
     }
 
     _createSubPipelineJobID(options) {
@@ -226,7 +226,7 @@ class ExecutionService {
 
     _createJobIdForCaching(jobId) {
         const originalJobID = jobId.split(':caching')[0];
-        return `${originalJobID}:caching:${randString(4)}`;
+        return `${originalJobID}:caching:${randString({ length: 4 })}`;
     }
 
     _createJobID(options) {

@@ -1,9 +1,7 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
-const merge = require('lodash.merge');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
-const { JobStatus, JobResult, Webhook } = require('@hkube/etcd');
 const States = require('./States');
 
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
@@ -11,8 +9,7 @@ const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
 
 class StateManager extends EventEmitter {
     async init(options) {
-        this._etcd = new Etcd();
-        this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
+        this._etcd = new Etcd(options.etcd);
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
         return this._watchJobResults();
     }
@@ -26,64 +23,64 @@ class StateManager extends EventEmitter {
     }
 
     setExecution(options) {
-        return this._etcd.execution.set(options);
+        return this._etcd.executions.stored.set(options);
     }
 
     getExecution(options) {
-        return this._etcd.execution.get(options);
+        return this._etcd.executions.stored.get(options);
     }
 
     deleteExecution(options) {
-        return this._etcd.execution.delete(options);
+        return this._etcd.executions.stored.delete(options);
     }
 
     setRunningPipeline(options) {
-        return this._etcd.runningPipelines.set(options);
+        return this._etcd.executions.running.set(options);
     }
 
     deleteRunningPipeline(options) {
-        return this._etcd.runningPipelines.delete(options);
+        return this._etcd.executions.running.delete(options);
     }
 
     async getRunningPipelines(options, filter = () => true) {
-        const runningPipelines = await this._etcd.runningPipelines.list(options);
+        const runningPipelines = await this._etcd.executions.running.list(options);
         return runningPipelines.filter(filter);
     }
 
     getExecutionsTree(options) {
-        return this._etcd.jobStatus.getExecutionsTree(options);
+        return this._etcd.jobs.status.getExecutionsTree(options);
     }
 
     setAlgorithm(options) {
-        return this._etcd.algorithms.templatesStore.set({ name: options.name, data: options });
+        return this._etcd.algorithms.store.set(options);
     }
 
     setPipelineDriverTemplate(options) {
-        return this._etcd.pipelineDrivers.templatesStore.set({ name: options.name, data: options });
+        return this._etcd.pipelineDrivers.store.set(options);
     }
 
     getAlgorithm(options) {
-        return this._etcd.algorithms.templatesStore.get({ name: options.name });
+        return this._etcd.algorithms.store.get(options);
     }
 
     getAlgorithmsQueueList(options) {
-        return this._etcd.algorithms.algorithmQueue.list(options);
+        return this._etcd.algorithms.queue.list(options);
     }
 
     getAlgorithms(options) {
-        return this._etcd.algorithms.templatesStore.list(options);
+        return this._etcd.algorithms.store.list(options);
     }
 
     deleteAlgorithm(options) {
-        return this._etcd.algorithms.templatesStore.delete(options);
+        return this._etcd.algorithms.store.delete(options);
     }
 
     setPipeline(options) {
-        return this._etcd.pipelines.set({ name: options.name, data: options });
+        return this._etcd.pipelines.set(options);
     }
 
     getPipeline(options) {
-        return this._etcd.pipelines.get({ name: options.name });
+        return this._etcd.pipelines.get(options);
     }
 
     async getPipelines(options, filter = () => true) {
@@ -96,44 +93,44 @@ class StateManager extends EventEmitter {
     }
 
     async _watchJobResults() {
-        await this._etcd.jobResults.singleWatch();
-        await this._etcd.jobStatus.singleWatch();
-        this._etcd.jobResults.on('change', (result) => {
+        await this._etcd.jobs.results.singleWatch();
+        await this._etcd.jobs.status.singleWatch();
+        this._etcd.jobs.results.on('change', (result) => {
             this.emit('job-result', result);
         });
-        this._etcd.jobStatus.on('change', (result) => {
+        this._etcd.jobs.status.on('change', (result) => {
             this.emit('job-status', result);
         });
     }
 
     releaseJobResultsLock(options) {
-        return this._etcd.jobResults.releaseChangeLock(options.jobId);
+        return this._etcd.jobs.results.releaseChangeLock(options);
     }
 
     releaseJobStatusLock(options) {
-        return this._etcd.jobStatus.releaseChangeLock(options.jobId);
+        return this._etcd.jobs.status.releaseChangeLock(options);
     }
 
     async getJobResult(options) {
-        const result = await this._etcd.jobResults.get(options);
+        const result = await this._etcd.jobs.results.get(options);
         return this.getResultFromStorage(result);
     }
 
     async getJobResults(options) {
-        const list = await this._etcd.jobResults.list(options);
+        const list = await this._etcd.jobs.results.list(options);
         return Promise.all(list.map(r => this.getResultFromStorage(r)));
     }
 
     setJobResults(options) {
-        return this._etcd.jobResults.set({ jobId: options.jobId, data: new JobResult(options) });
+        return this._etcd.jobs.results.set(options);
     }
 
     deleteJobResults(options) {
-        return this._etcd.jobResults.delete(options);
+        return this._etcd.jobs.results.delete(options);
     }
 
     setWebhook(options) {
-        return this._etcd.webhooks.set({ jobId: options.jobId, type: options.type, data: new Webhook(options.data) });
+        return this._etcd.webhooks.set(options);
     }
 
     getWebhook(options) {
@@ -149,23 +146,23 @@ class StateManager extends EventEmitter {
     }
 
     getJobStatus(options) {
-        return this._etcd.jobStatus.get(options);
+        return this._etcd.jobs.status.get(options);
     }
 
     getJobStatuses(options) {
-        return this._etcd.jobStatus.list(options);
+        return this._etcd.jobs.status.list(options);
     }
 
     setJobStatus(options) {
-        return this._etcd.jobStatus.set({ jobId: options.jobId, data: new JobStatus(options) });
+        return this._etcd.jobs.status.set(options);
     }
 
     deleteJobStatus(options) {
-        return this._etcd.jobStatus.delete(options);
+        return this._etcd.jobs.status.delete(options);
     }
 
     stopJob(options) {
-        return this._etcd.jobState.stop(options);
+        return this._etcd.jobs.state.set({ jobId: options.jobId, state: 'stop', reason: options.reason });
     }
 
     async getResultFromStorage(options) {
@@ -181,16 +178,20 @@ class StateManager extends EventEmitter {
         return options;
     }
 
+    async getBuilds(options) {
+        return this._etcd.algorithms.builds.list(options);
+    }
+
+    async getBuild(options) {
+        return this._etcd.algorithms.builds.get(options);
+    }
+
     async setBuild(options) {
-        const { buildId } = options;
-        await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
-            return tx.get(`/algorithms/builds/${buildId}`)
-                .then((val) => {
-                    const bld = JSON.parse(val);
-                    const build = merge(bld, options);
-                    return tx.put(`/algorithms/builds/${buildId}`).value(JSON.stringify(build));
-                });
-        });
+        await this._etcd.algorithms.builds.set(options);
+    }
+
+    async updateBuild(options) {
+        await this._etcd.algorithms.builds.update(options);
     }
 }
 

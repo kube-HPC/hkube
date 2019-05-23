@@ -18,7 +18,7 @@ const { MESSAGES } = require('../consts/builds');
 class Builds {
     async getBuild(options) {
         validator.validateBuildId(options);
-        const response = await stateManager._etcd._client.get(`/algorithms/builds/${options.buildId}`, { isPrefix: false });
+        const response = await stateManager.getBuild(options);
         if (!response) {
             throw new ResourceNotFoundError('build', options.buildId);
         }
@@ -27,20 +27,16 @@ class Builds {
 
     async getBuilds(options) {
         validator.validateResultList(options);
-        const response = await stateManager._etcd._client.getByQuery(`/algorithms/builds/${options.name}`);
-        return response.map(b => b.value);
+        const response = await stateManager.getBuilds(options);
+        return response;
     }
 
     async startBuild(options) {
         const build = {
             ...options,
             status: States.PENDING,
-            error: null,
-            stack: null,
-            result: null,
             progress: 0,
-            startTime: Date.now(),
-            endTime: null
+            startTime: Date.now()
         };
         return stateManager.setBuild(build);
     }
@@ -57,7 +53,7 @@ class Builds {
             status: States.STOPPED,
             endTime: Date.now()
         };
-        await stateManager.setBuild(buildData);
+        await stateManager.updateBuild(buildData);
     }
 
     async rerunBuild(options) {

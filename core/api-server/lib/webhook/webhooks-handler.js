@@ -53,7 +53,7 @@ class WebhooksHandler {
             log.debug(`progress event with ${payloadLevel} verbosity, client requested ${pipeline.options.progressVerbosityLevel}`, { component, jobId });
             if (clientLevel <= pipelineLevel) {
                 const result = await this._request(pipeline.webhooks.progress, payload, Types.PROGRESS, payload.status, jobId);
-                await stateManager.setWebhook({ jobId, type: Types.PROGRESS, data: result });
+                await stateManager.setWebhook({ jobId, type: Types.PROGRESS, ...result });
             }
         }
         if (stateManager.isCompletedState(payload.status)) {
@@ -76,7 +76,7 @@ class WebhooksHandler {
         if (pipeline.webhooks && pipeline.webhooks.result) {
             const payloadData = await stateManager.getResultFromStorage(payload);
             const result = await this._request(pipeline.webhooks.result, payloadData, Types.RESULT, payload.status, jobId);
-            await stateManager.setWebhook({ jobId, type: Types.RESULT, data: result });
+            await stateManager.setWebhook({ jobId, type: Types.RESULT, ...result });
         }
         await stateManager.releaseJobResultsLock({ jobId });
     }
