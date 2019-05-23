@@ -9,7 +9,6 @@ class Persistence {
         this.queue = null;
         this.queueName = null;
         this.etcdConfig = null;
-        this.etcd = new Etcd();
     }
 
     async init({ options }) {
@@ -17,7 +16,7 @@ class Persistence {
         this.options = options;
         this.queueName = algorithmType;
         await redisStorage.init(options.redis, this.queueName);
-        this.etcd.init({ etcd, serviceName });
+        this.etcd = new Etcd({ ...etcd, serviceName });
         return this;
     }
 
@@ -27,7 +26,7 @@ class Persistence {
         const pendingAmount = await bullQueue.getWaitingCount();
         await redisStorage.put(data);
         const scoreArray = data.map(d => d.calculated.score);
-        const status = await this.etcd.algorithms.algorithmQueue.set({ name: this.queueName, data: scoreArray, pendingAmount, timestamp: Date.now() });
+        const status = await this.etcd.algorithms.queue.set({ name: this.queueName, data: scoreArray, pendingAmount, timestamp: Date.now() });
         if (status) {
             log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
         }

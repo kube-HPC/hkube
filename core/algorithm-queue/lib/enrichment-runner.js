@@ -6,6 +6,7 @@ class EnrichmentRunner {
     addEnrichments(enrichment) {
         this.enrichmentMap.push(enrichment);
     }
+
     async run(queue) {
         this.enrichmentMap.forEach(e => e(queue));
     }

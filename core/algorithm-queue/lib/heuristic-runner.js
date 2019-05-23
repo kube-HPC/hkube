@@ -1,7 +1,7 @@
 const Logger = require('@hkube/logger');
-const components = require('./consts/component-name');
-const _ = require('lodash');
 const aigle = require('aigle');
+const _ = require('lodash');
+const components = require('./consts/component-name');
 
 const log = Logger.GetLogFromContainer();
 

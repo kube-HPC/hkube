@@ -5,6 +5,7 @@ class ProducerSingleton {
     constructor() {
         this.options = null;
     }
+
     async init(options) {
         this.options = options;
         this.producer = new Producer({
@@ -15,10 +16,10 @@ class ProducerSingleton {
             }
         });
     }
+
     get get() {
         return this.producer;
     }
 }
-
 
 module.exports = new ProducerSingleton();

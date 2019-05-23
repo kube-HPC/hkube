@@ -1,6 +1,3 @@
-// const componentName = ['QUERIER', 'QUEUE', 'QUEUE_RUNNER', 'BOOTSTRAP'];
-
-// module.exports = componentName.reduce((initial, component) => ({...initial, [component]: component}), {});
 
 module.exports = {
     QUERIER: 'QUERIER',
@@ -14,5 +11,4 @@ module.exports = {
     JOBS_PRODUCER: 'JOBS_PRODUCER',
     JOBS_CONSUMER: 'JOBS_CONSUMER',
     AGGREGATION_METRIC: 'AGGREGATION_METRIC'
-
 };

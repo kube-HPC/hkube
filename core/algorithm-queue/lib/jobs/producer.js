@@ -1,20 +1,16 @@
+const Etcd = require('@hkube/etcd');
 const { Events } = require('@hkube/producer-consumer');
-const producerSingleton = require('./producer-singleton');
 const log = require('@hkube/logger').GetLogFromContainer();
+const producerSingleton = require('./producer-singleton');
 const { componentName, jobState, taskStatus } = require('../consts/index');
 const queueRunner = require('../queue-runner');
-const Etcd = require('@hkube/etcd');
 
 const MAX_JOB_ATTEMPTS = 3;
 
 class JobProducer {
-    constructor() {
-        this._etcd = new Etcd();
-    }
-
     async init(options) {
         const { etcd, serviceName } = options;
-        await this._etcd.init({ etcd, serviceName });
+        this.etcd = new Etcd({ ...etcd, serviceName });
         this._producer = producerSingleton.get;
         this.bullQueue = this._producer._createQueue(options.algorithmType);
         this._producerEventRegistry();
@@ -68,7 +64,7 @@ class JobProducer {
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${MAX_JOB_ATTEMPTS}`;
             log.error(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
-            await this._etcd.tasks.setState({ jobId, taskId, status, error });
+            await this.etcd.jobs.tasks.set({ jobId, taskId, status, error });
         });
     }
 

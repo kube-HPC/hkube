@@ -24,4 +24,3 @@ module.exports = {
     COUNTER_OPERATION,
     METRICS_KINDS
 };
-

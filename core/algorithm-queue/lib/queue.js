@@ -1,8 +1,8 @@
-const log = require('@hkube/logger').GetLogFromContainer();
-const components = require('./consts/component-name');
-const _ = require('lodash');
-const aigle = require('aigle');
 const events = require('events');
+const _ = require('lodash');
+const log = require('@hkube/logger').GetLogFromContainer();
+const aigle = require('aigle');
+const components = require('./consts/component-name');
 const queueEvents = require('./consts/queue-events');
 
 class Queue extends events {
