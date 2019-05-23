@@ -27,26 +27,26 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.7",
-    "@hkube/etcd": "^4.0.25",
+    "@hkube/etcd": "^5.0.3",
     "@hkube/logger": "^1.0.15",
-    "async": "^2.6.1",
-    "cron": "^1.5.0",
-    "requestretry": "^3.0.2"
+    "async": "^3.0.0",
+    "cron": "^1.7.1",
+    "requestretry": "^4.0.0"
   },
   "devDependencies": {
     "await-delay": "^1.0.0",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.2",
-    "eslint": "^5.8.0",
+    "coveralls": "^3.0.3",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.14.0",
-    "express": "^4.16.4",
+    "eslint-plugin-import": "^2.17.2",
+    "express": "^4.17.0",
     "istanbul": "^0.4.5",
-    "mocha": "^5.2.0",
+    "mocha": "^6.1.4",
     "mockery": "^2.1.0",
     "pre-commit": "^1.2.2",
-    "sinon": "^7.1.1",
+    "sinon": "^7.3.2",
     "uuid": "^3.3.2"
   }
 }

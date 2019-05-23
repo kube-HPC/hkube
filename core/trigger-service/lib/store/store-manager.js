@@ -4,8 +4,7 @@ const { Events } = require('../consts');
 
 class StateManager extends EventEmitter {
     async init(options) {
-        this._etcd = new Etcd();
-        this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
+        this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
         await this._watchPipelines();
         await this._watchJobResults();
@@ -22,8 +21,8 @@ class StateManager extends EventEmitter {
     }
 
     async _watchJobResults() {
-        await this._etcd.jobResults.watch();
-        this._etcd.jobResults.on(Events.CHANGE, async (result) => {
+        await this._etcd.jobs.results.watch();
+        this._etcd.jobs.results.on(Events.CHANGE, async (result) => {
             this.emit(Events.RESULTS, result);
         });
     }
