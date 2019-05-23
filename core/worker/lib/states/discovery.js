@@ -16,13 +16,15 @@ class EtcdDiscovery extends EventEmitter {
     async init(options) {
         log = Logger.GetLogFromContainer();
         this._etcd = new Etcd(options.etcd);
+        this._workerId = this._etcd.discovery._instanceId;
         const discoveryInfo = {
+            workerId: this._workerId,
             algorithmName: options.jobConsumer.job.type,
             podName: options.kubernetes.pod_name,
             previousTaskIds: []
         };
         await this._etcd.discovery.register({ data: discoveryInfo });
-        log.info(`registering worker discovery for id ${this._etcd.discovery._instanceId}`, { component });
+        log.info(`registering worker discovery for id ${this._workerId}`, { component });
 
         await this.watchWorkerStates();
         this._etcd.workers.on('change', (res) => {
@@ -58,7 +60,7 @@ class EtcdDiscovery extends EventEmitter {
         if (options.taskId && !this.previousTaskIds.find(taskId => taskId === options.taskId)) {
             this.previousTaskIds.push(options.taskId);
         }
-        log.info(`update worker discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
+        log.info(`update worker discovery for id ${this._workerId} with data ${JSON.stringify(options)}`, { component });
         await this._etcd.discovery.updateRegisteredData({ ...options, previousTaskIds: this.previousTaskIds });
     }
 
@@ -71,7 +73,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async watchWorkerStates() {
-        return this._etcd.workers.watch({ workerId: this._etcd.discovery._instanceId });
+        return this._etcd.workers.watch({ workerId: this._workerId });
     }
 
     async unwatch(options) {
