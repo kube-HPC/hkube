@@ -53,7 +53,7 @@ class Executor {
             ]);
         }
         catch (e) {
-            log.throttle.error(e.message, { component });
+            log.throttle.error(e.message, { component }, e);
         }
         finally {
             setTimeout(this._interval, this._intervalMs, options);
