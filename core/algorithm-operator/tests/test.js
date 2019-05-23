@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const mockery = require('mockery');
 const etcd = require('../lib/helpers/etcd');
 const decache = require('decache');
-const { discoveryStub, templateStoreStub } = require('./stub/discoveryStub');
+const { templateStoreStub } = require('./stub/discoveryStub');
 const { callCount, mock } = (require('./mocks/kubernetes.mock')).kubernetes()
 
 describe('bootstrap', () => {
@@ -25,8 +25,8 @@ describe('bootstrap', () => {
 
     });
     it('should get template store', async () => {
-        await Promise.all(Object.keys(templateStoreStub).map(path => etcd._etcd._client.put(path, templateStoreStub[path])));
-        const template = await etcd.getAlgorithmTemplate({ algorithmName: 'algo2' });
-        expect(template).to.eql(templateStoreStub['/algorithmTemplates/algo2']);
+        await Promise.all(templateStoreStub.map(a => etcd._etcd.algorithms.store.set(a)));
+        const template = await etcd.getAlgorithmTemplate({ name: 'algo2' });
+        expect(template).to.eql(templateStoreStub[1]);
     });
 });

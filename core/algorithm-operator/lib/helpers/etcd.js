@@ -1,5 +1,4 @@
 const EventEmitter = require('events');
-const merge = require('lodash.merge');
 const EtcdClient = require('@hkube/etcd');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../lib/consts/componentNames').ETCD;
@@ -11,30 +10,29 @@ class Etcd extends EventEmitter {
     }
 
     async init(options) {
-        this._etcd = new EtcdClient();
+        this._etcd = new EtcdClient(options.etcd);
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
-        await this._etcd.init(options.etcd);
-        await this._etcd.jobState.watch({ jobId: 'hookWatch' });
+        await this._etcd.jobs.state.watch({ jobId: 'hookWatch' });
     }
 
-    getAlgorithmTemplate({ algorithmName }) {
-        return this._etcd.algorithms.templatesStore.get({ name: algorithmName });
+    getAlgorithmTemplate({ name }) {
+        return this._etcd.algorithms.store.get({ name });
     }
 
     getAlgorithmTemplates() {
-        return this._etcd.algorithms.templatesStore.list();
+        return this._etcd.algorithms.store.list();
     }
 
-    storeAlgorithmData(algorithmName, data) {
-        return this._etcd.algorithmDebug.set({ algorithmName, data });
+    storeAlgorithmData(name, data) {
+        return this._etcd.algorithms.debug.set({ name, ...data });
     }
 
-    removeAlgorithmData(algorithmName) {
-        return this._etcd.algorithmDebug.delete({ algorithmName });
+    removeAlgorithmData(name) {
+        return this._etcd.algorithms.debug.delete({ name });
     }
 
     async getPendingBuilds() {
-        const list = await this._etcd._client.getByQuery('/algorithms/builds/', { sort: 'desc' });
+        const list = await this._etcd.algorithms.builds.list({ sort: 'desc' });
         const results = list.map(l => l.value);
         return results.filter(b => b.status === 'pending');
     }
@@ -44,14 +42,7 @@ class Etcd extends EventEmitter {
         if (!buildId) {
             return;
         }
-        await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
-            return tx.get(`/algorithms/builds/${buildId}`)
-                .then((val) => {
-                    const bld = JSON.parse(val);
-                    const build = merge(bld, options);
-                    return tx.put(`/algorithms/builds/${buildId}`).value(JSON.stringify(build));
-                });
-        });
+        await this._etcd.algorithms.builds.update(options);
     }
 }
 

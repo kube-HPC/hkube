@@ -15,10 +15,10 @@
   "license": "ISC",
   "dependencies": {
     "@hkube/config": "^2.0.7",
-    "@hkube/etcd": "^4.0.32",
-    "@hkube/kubernetes-client": "^1.0.12",
+    "@hkube/etcd": "^5.0.3",
+    "@hkube/kubernetes-client": "^1.0.13",
     "@hkube/logger": "^1.0.15",
-    "decamelize": "^3.1.1",
+    "decamelize": "^3.2.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.merge": "^4.6.1",
     "object-path": "^0.11.4"
@@ -30,10 +30,10 @@
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.16.0",
-    "mocha": "^6.0.2",
+    "eslint-plugin-import": "^2.17.2",
+    "mocha": "^6.1.4",
     "mockery": "^2.1.0",
-    "nyc": "^13.3.0",
-    "sinon": "^7.3.1"
+    "nyc": "^14.1.1",
+    "sinon": "^7.3.2"
   }
 }
