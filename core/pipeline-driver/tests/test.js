@@ -284,7 +284,7 @@ describe('Test', function () {
                     status: 'succeed'
                 }
                 const taskRunner = new TaskRunner(config);
-                await stateManager.setExecution({ jobId, data: pipeline });
+                await stateManager.setExecution({ jobId, ...pipeline });
                 await taskRunner.start(job)
                 taskRunner._setTaskState(execution);
                 taskRunner._taskComplete(execution.taskId);
@@ -442,7 +442,7 @@ describe('Test', function () {
                 const status = 'active';
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
-                await stateManager.setExecution({ jobId, data: pipeline });
+                await stateManager.setExecution({ jobId, ...pipeline });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -464,7 +464,7 @@ describe('Test', function () {
                 const result = 'test-result';
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
-                await stateManager.setExecution({ jobId, data: pipeline });
+                await stateManager.setExecution({ jobId, ...pipeline });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -474,6 +474,7 @@ describe('Test', function () {
                 expect(node.result).to.eql(result);
             });
             it('should create job and handle failed status', async function () {
+                this.timeout(3000);
                 const jobId = `jobid-failed-event-${uuidv4()}`;
                 const job = {
                     data: { jobId },
@@ -487,7 +488,7 @@ describe('Test', function () {
                 const error = 'test-error';
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
-                await stateManager.setExecution({ jobId, data: pipeline });
+                await stateManager.setExecution({ jobId, ...pipeline });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -497,6 +498,7 @@ describe('Test', function () {
                 expect(node.error).to.eql(error);
             });
             it('should create job and handle stalled status', async function () {
+                this.timeout(3000);
                 const jobId = `jobid-stalled-event-${uuidv4()}`;
                 const job = {
                     data: { jobId },
@@ -510,7 +512,7 @@ describe('Test', function () {
                 const error = 'test-stalled';
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
-                await stateManager.setExecution({ jobId, data: pipeline });
+                await stateManager.setExecution({ jobId, ...pipeline });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -534,7 +536,7 @@ describe('Test', function () {
                 const error = 'test-crashed';
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
-                await stateManager.setExecution({ jobId, data: pipeline });
+                await stateManager.setExecution({ jobId, ...pipeline });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -555,7 +557,7 @@ describe('Test', function () {
                 }
                 const status = 'invalid';
                 const taskRunner = new TaskRunner(config);
-                await stateManager.setExecution({ jobId, data: pipeline });
+                await stateManager.setExecution({ jobId, ...pipeline });
                 await taskRunner.start(job)
                 await delay(200);
                 const node = taskRunner._nodes.getNode('green');
@@ -608,7 +610,7 @@ describe('Test', function () {
                 done: () => { }
             }
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
-            await stateManager.setExecution({ jobId, data: pipeline });
+            await stateManager.setExecution({ jobId, ...pipeline });
             const res1 = await taskRunner.start(job);
             const res2 = await taskRunner.start(job);
 
@@ -622,7 +624,7 @@ describe('Test', function () {
                 done: () => { }
             }
             const pipeline = pipelines[1];
-            await stateManager.setExecution({ jobId, data: pipeline });
+            await stateManager.setExecution({ jobId, ...pipeline });
             await taskRunner.start(job)
             expect(taskRunner._jobId).to.equal(jobId);
             expect(taskRunner._active).to.equal(true);
@@ -638,7 +640,7 @@ describe('Test', function () {
             }
             const pipeline = pipelines.find(p => p.name === 'batch');
             const node = pipeline.nodes[0];
-            await stateManager.setExecution({ jobId, data: pipeline });
+            await stateManager.setExecution({ jobId, ...pipeline });
             await taskRunner.start(job);
 
             const tasks = taskRunner._nodes._getNodesAsFlat();
@@ -662,9 +664,9 @@ describe('Test', function () {
             const nodesMap = new NodesMap(pipeline);
             nodesMap.setNode(node1);
             nodesMap.setNode(node2);
-            await stateManager.setExecution({ jobId, data: pipeline });
-            await stateManager._etcd.tasks.setState({ jobId, taskId: node1.taskId, status: 'succeed' });
-            await stateManager._etcd.tasks.setState({ jobId, taskId: node2.taskId, status: 'succeed' });
+            await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
 
             const spy = sinon.spy(taskRunner, "_recoverPipeline");
 
@@ -758,7 +760,7 @@ describe('Test', function () {
             let result = { storageInfo };
             results.data = [{ result }];
             await stateManager.setJobResults(results);
-            const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
+            const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
             const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
         });
@@ -774,7 +776,7 @@ describe('Test', function () {
             let result = { storageInfo };
             results.data = [{ result }];
             await stateManager.setJobResults(results);
-            const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
+            const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
             const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
         });
@@ -804,7 +806,7 @@ describe('Test', function () {
             let result = { storageInfo };
             results.data = [{ result }];
             await stateManager.setJobResults(results);
-            const etcdResult = await stateManager._etcd.jobResults.get({ jobId: jobId });
+            const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
             const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
         });
@@ -812,15 +814,15 @@ describe('Test', function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { status: 'completed' };
             await stateManager.setJobStatus({ jobId, data });
-            const response = await stateManager._etcd.jobStatus.get({ jobId });
+            const response = await stateManager._etcd.jobs.status.get({ jobId });
             expect(response.data).to.deep.equal(data);
         });
         it('getExecution', async function () {
             const jobId = `jobid-${uuidv4()}`;
-            const data = { status: 'completed' };
-            await stateManager.setExecution({ jobId, data });
-            const response = await stateManager.getExecution({ jobId });
-            expect(response).to.deep.equal(data);
+            const options = { jobId, status: 'completed' };
+            await stateManager.setExecution(options);
+            const response = await stateManager.getExecution(options);
+            expect(response).to.deep.equal(options);
         });
         it('unWatchTasks', function () {
             return new Promise(async (resolve, reject) => {
@@ -832,7 +834,7 @@ describe('Test', function () {
                     throw new Error('failed');
                 });
                 await stateManager.unWatchTasks({ jobId });
-                await stateManager._etcd.tasks.setState({ jobId, taskId, error: data.error, status: data.status });
+                await stateManager._etcd.jobs.tasks.set({ jobId, taskId, error: data.error, status: data.status });
                 setTimeout(() => {
                     resolve();
                 }, 1000)
@@ -849,7 +851,7 @@ describe('Test', function () {
                         resolve();
                     }
                 });
-                await stateManager._etcd.jobState.stop({ jobId });
+                await stateManager._etcd.jobs.state.set({ jobId, state: 'stop' });
             });
         });
         it('unWatchJobState', function () {
@@ -860,7 +862,7 @@ describe('Test', function () {
                     throw new Error('failed');
                 });
                 await stateManager.unWatchJobState({ jobId });
-                await stateManager._etcd.jobState.stop({ jobId });
+                await stateManager._etcd.jobs.state.set({ jobId, state: 'stop' });
                 setTimeout(() => {
                     resolve();
                 }, 1000)
@@ -897,7 +899,7 @@ describe('Test', function () {
                 }
             };
             const pipeline = pipelines[0];
-            await stateManager.setExecution({ jobId, data: pipeline });
+            await stateManager.setExecution({ jobId, ...pipeline });
             await stateFactory._etcd.discovery.set({ serviceName: main.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'startProcessing' } });
             const producer = new Producer({ setting });
             await producer.createJob(options);

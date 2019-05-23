@@ -24,12 +24,11 @@ class WorkerStub {
             this._job = job;
         });
         consumer.register(setting);
-        this._etcd = new Etcd();
-        this._etcd.init({ etcd: etcdOptions, serviceName });
+        this._etcd = new Etcd({ ...etcdOptions, serviceName });
     }
 
     async done({ jobId, taskId, result, error, status }) {
-        await this._etcd.tasks.setState({ jobId, taskId, result, error, status });
+        await this._etcd.jobs.tasks.set({ jobId, taskId, result, error, status });
         this._job && this._job.done(error);
     }
 }
