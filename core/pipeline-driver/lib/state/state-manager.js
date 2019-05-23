@@ -15,6 +15,7 @@ class StateManager extends EventEmitter {
         this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
         this._podName = options.podName;
         this._lastDiscovery = null;
+        this._driverId = this._etcd.discovery._instanceId;
         this._etcd.discovery.register({ data: this._defaultDiscovery() });
         this._discoveryMethod = options.discoveryMethod || function noop() { };
         this._subscribe();
@@ -35,6 +36,7 @@ class StateManager extends EventEmitter {
 
     _defaultDiscovery(discovery) {
         const data = {
+            driverId: this._driverId,
             paused: false,
             driverStatus: DriverStates.READY,
             jobStatus: DriverStates.READY,
@@ -144,7 +146,7 @@ class StateManager extends EventEmitter {
     }
 
     _watchDrivers() {
-        return this._etcd.drivers.watch({ driverId: this._etcd.discovery._instanceId });
+        return this._etcd.drivers.watch({ driverId: this._driverId });
     }
 
     _getTracer(jobId, name) {
