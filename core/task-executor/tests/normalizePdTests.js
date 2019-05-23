@@ -28,35 +28,38 @@ describe('normalize pipeline driver', () => {
             expect(res).to.have.lengthOf(3);
         });
     });
-    describe('normalize workers', () => {
-        it('should work with empty worker array', () => {
-            const workers = {};
-            const res = normalizeDrivers(workers);
+    describe('normalize drivers', () => {
+        it('should work with empty drivers array', () => {
+            const drivers = [];
+            const res = normalizeDrivers(drivers);
             expect(res).to.be.empty;
         });
-        it('should work with undefined worker array', () => {
+        it('should work with undefined drivers array', () => {
             const res = normalizeDrivers();
             expect(res).to.be.empty;
         });
         it('should return object with ids', () => {
-            const drivers = {
-                '/discovery/drivers/62eee6c4-6f35-4a2d-8660-fad6295ab334': {
+            const drivers = [
+                {
+                    driverId: 'id1',
                     driverStatus: 'ready',
                     error: null
                 },
-                '/discovery/drivers/id2': {
+                {
+                    driverId: 'id2',
                     driverStatus: 'not-ready',
                     error: null
                 },
-                '/discovery/drivers/ae96e6ba-0352-43c4-8862-0e749d2f76c4': {
+                {
+                    driverId: 'id3',
                     driverStatus: 'notready',
                     error: null
                 }
-            };
+            ];
             const res = normalizeDrivers(drivers);
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
-                id: '62eee6c4-6f35-4a2d-8660-fad6295ab334',
+                id: 'id1',
                 driverStatus: 'ready',
                 paused: false,
                 podName: undefined
@@ -68,7 +71,7 @@ describe('normalize pipeline driver', () => {
                 podName: undefined
             });
             expect(res).to.deep.include({
-                id: 'ae96e6ba-0352-43c4-8862-0e749d2f76c4',
+                id: 'id3',
                 driverStatus: 'notready',
                 paused: false,
                 podName: undefined

@@ -13,10 +13,9 @@ class Etcd {
 
     async init(options) {
         log = Logger.GetLogFromContainer();
-        this._etcd = new EtcdClient();
+        this._etcd = new EtcdClient(options.etcd);
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
-        await this._etcd.init(options.etcd);
-        await this._etcd.jobState.watch({ jobId: 'hookWatch' });
+        await this._etcd.jobs.state.watch({ jobId: 'hookWatch' });
         this._workerServiceName = options.workerServiceName || CONTAINERS.WORKER;
         this._pipelineDriverServiceName = options.workerServiceName || CONTAINERS.PIPELINE_DRIVER;
         const discoveryInfo = {
@@ -35,23 +34,23 @@ class Etcd {
         log.info(`worker for algorithm ${algorithmName} command: ${command}, pod: ${podName}`, {
             component, command, workerId, podName, algorithmName
         });
-        return this._etcd.workers.setState({ workerId, status: { command }, timestamp: Date.now() });
+        return this._etcd.workers.set({ workerId, status: { command }, timestamp: Date.now() });
     }
 
     sendCommandToDriver({ driverId, command }) {
         log.info(`driver command: ${command}`, { component, command, driverId });
-        return this._etcd.drivers.setState({ driverId, status: { command }, timestamp: Date.now() });
+        return this._etcd.drivers.set({ driverId, status: { command }, timestamp: Date.now() });
     }
 
     async getWorkers(options = {}) {
-        const workerServiceName = options.workerServiceName || this._workerServiceName;
-        const workers = await this._etcd.discovery.get({ serviceName: workerServiceName });
+        const serviceName = options.workerServiceName || this._workerServiceName;
+        const workers = await this._etcd.discovery.list({ serviceName });
         return workers;
     }
 
     async getPipelineDrivers(options = {}) {
         const serviceName = options.pipelineDriverServiceName || this._pipelineDriverServiceName;
-        const drivers = await this._etcd.discovery.get({ serviceName });
+        const drivers = await this._etcd.discovery.list({ serviceName });
         return drivers;
     }
 
@@ -59,23 +58,23 @@ class Etcd {
         const options = {
             name: 'data'
         };
-        return this._etcd.algorithms.resourceRequirements.list(options);
+        return this._etcd.algorithms.requirements.list(options);
     }
 
     async getPipelineDriverRequests() {
         const options = {
             name: 'data'
         };
-        return this._etcd.pipelineDrivers.resourceRequirements.list(options);
+        return this._etcd.pipelineDrivers.requirements.list(options);
     }
 
     async getAlgorithmTemplate() {
-        const templates = await this._etcd.algorithms.templatesStore.list();
+        const templates = await this._etcd.algorithms.store.list();
         return utils.arrayToMap(templates);
     }
 
     async getDriversTemplate() {
-        const templates = await this._etcd.pipelineDrivers.templatesStore.list();
+        const templates = await this._etcd.pipelineDrivers.store.list();
         return utils.arrayToMap(templates);
     }
 }

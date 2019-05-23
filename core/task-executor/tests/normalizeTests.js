@@ -34,7 +34,7 @@ describe('normalize', () => {
     });
     describe('normalize workers', () => {
         it('should work with empty worker array', () => {
-            const workers = {};
+            const workers = [];
             const res = normalizeWorkers(workers);
             expect(res).to.be.empty;
         });
@@ -43,33 +43,36 @@ describe('normalize', () => {
             expect(res).to.be.empty;
         });
         it('should return object with ids', () => {
-            const workers = {
-                '/discovery/workers/62eee6c4-6f35-4a2d-8660-fad6295ab334': {
+            const workers = [
+                {
+                    workerId: 'id1',
                     algorithmName: 'green-alg',
                     workerStatus: 'ready',
                     hotWorker: false,
                     jobStatus: 'ready',
                     error: null
                 },
-                '/discovery/workers/id2': {
+                {
+                    workerId: 'id2',
                     algorithmName: 'green-alg',
                     hotWorker: false,
                     workerStatus: 'not-ready',
                     jobStatus: 'ready',
                     error: null
                 },
-                '/discovery/workers/ae96e6ba-0352-43c4-8862-0e749d2f76c4': {
+                {
+                    workerId: 'id3',
                     algorithmName: 'red-alg',
                     hotWorker: false,
                     workerStatus: 'notready',
                     jobStatus: 'ready',
                     error: null
                 }
-            };
+            ];
             const res = normalizeWorkers(workers);
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
-                id: '62eee6c4-6f35-4a2d-8660-fad6295ab334',
+                id: 'id1',
                 algorithmName: 'green-alg',
                 hotWorker: false,
                 workerStatus: 'ready',
@@ -85,7 +88,7 @@ describe('normalize', () => {
                 podName: undefined
             });
             expect(res).to.deep.include({
-                id: 'ae96e6ba-0352-43c4-8862-0e749d2f76c4',
+                id: 'id3',
                 algorithmName: 'red-alg',
                 hotWorker: false,
                 workerStatus: 'notready',

@@ -37,18 +37,17 @@ const { gpuVendors } = require('../consts');
  */
 
 const normalizeWorkers = (workers) => {
-    if (workers == null) {
+    if (!workers) {
         return [];
     }
-    const workersArray = Object.entries(workers).map(([k, v]) => {
-        const workerId = k.match(/([^/]*)\/*$/)[0];
+    const workersArray = workers.map((w) => {
         return {
-            id: workerId,
-            algorithmName: v.algorithmName,
-            workerStatus: v.workerStatus,
-            workerPaused: !!v.workerPaused,
-            hotWorker: v.hotWorker,
-            podName: v.podName
+            id: w.workerId,
+            algorithmName: w.algorithmName,
+            workerStatus: w.workerStatus,
+            workerPaused: !!w.workerPaused,
+            hotWorker: w.hotWorker,
+            podName: w.podName
         };
     });
     return workersArray;
@@ -133,16 +132,15 @@ const normalizeColdWorkers = (normWorkers, algorithmTemplates) => {
 };
 
 const normalizeDrivers = (drivers) => {
-    if (drivers == null) {
+    if (!drivers) {
         return [];
     }
-    const driversArray = Object.entries(drivers).map(([k, v]) => {
-        const driverId = k.match(/([^/]*)\/*$/)[0];
+    const driversArray = drivers.map((d) => {
         return {
-            id: driverId,
-            driverStatus: v.driverStatus,
-            paused: !!v.paused,
-            podName: v.podName
+            id: d.driverId,
+            driverStatus: d.driverStatus,
+            paused: !!d.paused,
+            podName: d.podName
         };
     });
     return driversArray;
