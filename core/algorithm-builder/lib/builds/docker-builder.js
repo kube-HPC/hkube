@@ -95,8 +95,8 @@ const _runBash = ({ command, args }) => {
 
 const _setBuildStatus = async (options) => {
     const { buildId, status, error } = options;
-    log.info(`setBuild ${status} -> ${buildId}. ${error || ''}`, { component });
-    await stateManger.setBuild({ timestamp: Date.now(), ...options });
+    log.info(`update build ${status} -> ${buildId}. ${error || ''}`, { component });
+    await stateManger.updateBuild({ timestamp: Date.now(), ...options });
 };
 
 const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) => {

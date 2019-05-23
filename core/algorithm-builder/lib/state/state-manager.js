@@ -1,4 +1,3 @@
-const merge = require('lodash.merge');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const component = require('../consts/components').ETCD;
@@ -12,52 +11,31 @@ class StateManger {
 
     async init(options) {
         log = Logger.GetLogFromContainer();
-        this._etcd = new EtcdClient();
+        this._etcd = new EtcdClient({ ...options.etcd, serviceName: options.serviceName });
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
-        await this._etcd.init({ etcd: options.etcd, serviceName: options.serviceName });
     }
 
     async getBuild(options) {
-        return this._etcd._client.get(`/algorithms/builds/${options.buildId}`, { isPrefix: false });
+        return this._etcd.algorithms.builds.get({ buildId: options.buildId });
     }
 
     async insertBuild(options) {
-        return this._etcd._client.put(`/algorithms/builds/${options.buildId}`, options);
+        return this._etcd.algorithms.builds.set({ buildId: options.buildId, data: options });
     }
 
-    async setBuild(options) {
+    async updateBuild(options) {
         const { buildId } = options;
         if (!buildId) {
             return;
         }
-        await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
-            return tx.get(`/algorithms/builds/${buildId}`)
-                .then((val) => {
-                    if (!val) {
-                        return Promise.resolve();
-                    }
-                    const bld = JSON.parse(val);
-                    const build = merge(bld, options);
-                    return tx.put(`/algorithms/builds/${buildId}`).value(JSON.stringify(build));
-                });
-        });
+        await this._etcd.algorithms.builds.update({ buildId: options.buildId, data: options });
     }
 
     async updateAlgorithmImage({ algorithmName, algorithmImage }) {
         if (!algorithmImage) {
             return;
         }
-        await this._etcd._client.client.stm({ retries: 0, isolation: 1 }).transact((tx) => {
-            return tx.get(`/algorithmTemplates/${algorithmName}`)
-                .then((val) => {
-                    if (!val) {
-                        return Promise.resolve();
-                    }
-                    const algorithm = JSON.parse(val);
-                    const newAlgorithm = merge(algorithm, { algorithmImage }, { options: { pending: false } });
-                    return tx.put(`/algorithmTemplates/${algorithmName}`).value(JSON.stringify(newAlgorithm));
-                });
-        });
+        await this._etcd.algorithms.store.update({ name: algorithmName, data: { algorithmImage, options: { pending: false } } });
     }
 }
 
