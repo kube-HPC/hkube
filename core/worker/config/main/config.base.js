@@ -15,7 +15,8 @@ config.redis = {
 config.etcd = {
     protocol: 'http',
     host: process.env.ETCD_CLIENT_SERVICE_HOST || '127.0.0.1',
-    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001
+    port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
+    serviceName: config.serviceName
 };
 
 config.debugMode = formatter.parseBool(process.env.DEBUG_MODE);
@@ -36,16 +37,6 @@ config.workerCommunication = {
         },
         maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES,
         pingTimeout: formatter.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000)
-    }
-};
-
-config.etcdDiscovery = {
-    init: {
-        etcd: config.etcd,
-        serviceName: config.serviceName
-    },
-    register: {
-        // use defaults for now
     }
 };
 

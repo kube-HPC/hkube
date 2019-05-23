@@ -15,8 +15,7 @@ class EtcdDiscovery extends EventEmitter {
 
     async init(options) {
         log = Logger.GetLogFromContainer();
-        this._etcd = new Etcd();
-        await this._etcd.init(options.etcdDiscovery.init);
+        this._etcd = new Etcd(options.etcd);
         const discoveryInfo = {
             algorithmName: options.jobConsumer.job.type,
             podName: options.kubernetes.pod_name,
@@ -31,7 +30,7 @@ class EtcdDiscovery extends EventEmitter {
             this.emit(res.status.command, res);
         });
         this.watch({ jobId: 'hookWatch' });
-        this._etcd.jobState.on('change', (res) => {
+        this._etcd.jobs.state.on('change', (res) => {
             log.info(JSON.stringify(res), { component });
             switch (res.state) {
                 case 'stop':
@@ -41,26 +40,18 @@ class EtcdDiscovery extends EventEmitter {
                     this.emit('change', res);
             }
         });
-        this._etcd.jobResults.on('change', (result) => {
+        this._etcd.jobs.results.on('change', (result) => {
             // send job-result-completed, job-result-failed or job-result-stopped accordingly
             this.emit(`${EventMessages.JOB_RESULT}-${result.status}`, result);
         });
     }
 
     watchJobResults(options) {
-        return this._etcd.jobResults.watch(options);
+        return this._etcd.jobs.results.watch(options);
     }
 
     async unWatchJobResults(options) {
-        return this._etcd.jobResults.unwatch(options);
-    }
-
-    async setState(options) {
-        const { data } = options;
-        await this._etcd.services.set({
-            data,
-            postfix: 'state'
-        });
+        return this._etcd.jobs.results.unwatch(options);
     }
 
     async updateDiscovery(options) {
@@ -72,25 +63,21 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async update(options) {
-        await this._etcd.tasks.setState(options);
+        await this._etcd.jobs.tasks.set(options);
     }
 
     async watch(options) {
-        return this._etcd.jobState.watch(options);
+        return this._etcd.jobs.state.watch(options);
     }
 
     async watchWorkerStates() {
         return this._etcd.workers.watch({ workerId: this._etcd.discovery._instanceId });
     }
 
-    async unwatchWorkerStates() {
-        return this._etcd.workers.unwatch({ workerId: this._etcd.discovery._instanceId });
-    }
-
     async unwatch(options) {
         try {
             log.debug('start unwatch', { component });
-            await this._etcd.jobState.unwatch(options);
+            await this._etcd.jobs.state.unwatch(options);
             log.debug('end unwatch', { component });
         }
         catch (error) {

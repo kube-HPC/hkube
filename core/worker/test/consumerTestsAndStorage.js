@@ -1,7 +1,6 @@
 const bootstrap = require('../bootstrap');
 const Consumer = require('../lib/consumer/JobConsumer');
 const { Producer } = require('@hkube/producer-consumer');
-const { JobResult } = require('@hkube/etcd');
 const stateManager = require('../lib/states/stateManager.js');
 const { expect } = require('chai');
 const workerCommunication = require('../lib/algorithm-communication/workerCommunication');
@@ -74,8 +73,8 @@ describe('consumer tests', () => {
         mockery.resetCache();
         let config = getConfig();
         await storageManager.init(config, null, true);
-        worker._isConnected=false;
-        worker._isBootstrapped=false;
+        worker._isConnected = false;
+        worker._isBootstrapped = false;
         await bootstrap.init();
         consumer = Consumer;
         if (consumer._algTracer) {
@@ -84,7 +83,7 @@ describe('consumer tests', () => {
     });
     it('if job already stopped return and finish job', (done) => {
         let config = getConfig();
-        etcd._etcd.jobState.stop({ jobId: config.jobId }).then(() => {
+        etcd._etcd.jobs.state.set({ jobId: config.jobId, state: 'stop' }).then(() => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     const spy = sinon.spy(consumer, '_stopJob');

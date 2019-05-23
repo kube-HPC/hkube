@@ -17,8 +17,7 @@ describe('state machine', () => {
         await storageManager.init(main, null, true);
         await bootstrap.init();
         log = new Logger(main.serviceName, logger);
-        etcd = new Etcd();
-        etcd.init({ etcd: main.etcd, serviceName: main.serviceName });
+        etcd = new Etcd({ ...main.etcd, serviceName: main.serviceName });
         await stateMachine.init(main);
     });
 
@@ -79,7 +78,7 @@ describe('state machine', () => {
         stateMachine.prepare();
         stateMachine.start();
         stateMachine.done();
-        etcd.workers.setState({ workerId: etcd.discovery._instanceId, status: { command: 'stopProcessing' } });
+        etcd.workers.set({ workerId: etcd.discovery._instanceId, status: { command: 'stopProcessing' } });
         await delay(600);
         expect(jobConsumer._consumerPaused).to.eql(false);
     });
