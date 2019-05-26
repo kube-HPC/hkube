@@ -61,7 +61,7 @@ class EtcdDiscovery extends EventEmitter {
             this.previousTaskIds.push(options.taskId);
         }
         log.info(`update worker discovery for id ${this._workerId} with data ${JSON.stringify(options)}`, { component });
-        await this._etcd.discovery.updateRegisteredData({ ...options, previousTaskIds: this.previousTaskIds });
+        await this._etcd.discovery.updateRegisteredData({ ...options, workerId: this._workerId, previousTaskIds: this.previousTaskIds });
     }
 
     async update(options) {
