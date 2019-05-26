@@ -5,7 +5,7 @@ COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 
-RUN if [ -f ./algorithm/requirements.txt ]; then echo found requirements.txt; pip3 install -r ./algorithm/requirements.txt; else echo no requirements.txt found; fi 
+RUN docker/requirements.sh
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm
 CMD ["python3", "-u", "app.py"]

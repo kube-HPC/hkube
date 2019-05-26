@@ -4,7 +4,8 @@ LABEL maintainer="yehiyam@gmail.com"
 
 COPY . /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner/algorithm
-RUN npm i
+
+RUN ../docker/requirements.sh
 
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner

@@ -20,7 +20,7 @@ class StateManger {
     }
 
     async insertBuild(options) {
-        return this._etcd.algorithms.builds.set({ buildId: options.buildId, data: options });
+        return this._etcd.algorithms.builds.set({ buildId: options.buildId, ...options });
     }
 
     async updateBuild(options) {
@@ -28,14 +28,14 @@ class StateManger {
         if (!buildId) {
             return;
         }
-        await this._etcd.algorithms.builds.update({ buildId: options.buildId, data: options });
+        await this._etcd.algorithms.builds.update({ buildId: options.buildId, ...options });
     }
 
     async updateAlgorithmImage({ algorithmName, algorithmImage }) {
         if (!algorithmImage) {
             return;
         }
-        await this._etcd.algorithms.store.update({ name: algorithmName, data: { algorithmImage, options: { pending: false } } });
+        await this._etcd.algorithms.store.update({ name: algorithmName, ...{ algorithmImage, options: { pending: false } } });
     }
 }
 
