@@ -2,7 +2,6 @@ const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
-const log = require('@hkube/logger').GetLogFromContainer();
 const States = require('./States');
 
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
