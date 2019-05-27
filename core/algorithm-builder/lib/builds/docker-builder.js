@@ -68,7 +68,7 @@ const _extractFile = async ({ src, dest, fileExt, overwrite }) => {
 };
 
 const _realError = (error) => {
-    return error && error.indexOf('WARNING') === -1;
+    return error && error.indexOf('non-zero code') !== -1;
 };
 
 const _runBash = ({ command, args }) => {
@@ -95,7 +95,7 @@ const _runBash = ({ command, args }) => {
 
 const _setBuildStatus = async (options) => {
     const { buildId, status, error } = options;
-    log.info(`update build ${status} -> ${buildId}. ${error || ''}`, { component });
+    log.info(`update build status to: ${status} -> ${buildId}. ${error || ''}`, { component });
     await stateManger.updateBuild({ timestamp: Date.now(), ...options });
 };
 
@@ -182,11 +182,6 @@ const runBuild = async (options) => {
         trace = e.stack;
         log.error(e.message, { component }, e);
     }
-
-    if (result.output.error) {
-        log.error(result.output.error, { component });
-    }
-
     if (_realError(result.output.error)) {
         error = result.output.error;
     }
