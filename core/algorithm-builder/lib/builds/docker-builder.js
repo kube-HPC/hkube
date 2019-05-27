@@ -183,6 +183,10 @@ const runBuild = async (options) => {
         log.error(e.message, { component }, e);
     }
 
+    if (result.output.error) {
+        log.error(result.output.error, { component });
+    }
+
     if (_realError(result.output.error)) {
         error = result.output.error;
     }
