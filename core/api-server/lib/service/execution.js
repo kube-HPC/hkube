@@ -37,7 +37,8 @@ class ExecutionService {
         validator.validateCaching({ jobId, nodeName });
         const retryStrategy = {
             maxAttempts: 0,
-            retryDelay: 5000
+            retryDelay: 5000,
+            retryStrategy: request.RetryStrategies.HTTPOrNetworkError
         };
         const { protocol, host, port, prefix } = main.cachingServer;
         const uri = `${protocol}://${host}:${port}/${prefix}?jobId=${jobId}&&nodeName=${nodeName}`;
@@ -46,14 +47,12 @@ class ExecutionService {
             method: 'GET',
             uri,
             json: true,
-            maxAttempts: retryStrategy.maxAttempts,
-            retryDelay: retryStrategy.retryDelay,
-            retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+            ...retryStrategy
         });
         if (response.statusCode !== 200) {
             throw new Error(`error:${response.body.error.message}`);
         }
-        log.debug(` get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
+        log.debug(`get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
         const cacheJobId = this._createJobIdForCaching(jobId);
         return this._run(response.body, cacheJobId, true);
     }
@@ -203,15 +202,16 @@ class ExecutionService {
 
     async cleanJob(options) {
         const { jobId } = options;
-        await stateManager.stopJob({ jobId: options.jobId, reason: 'clean job' });
         await Promise.all([
+            storageManager.hkubeIndex.delete({ jobId }),
+            storageManager.hkubeExecutions.delete({ jobId }),
+            stateManager.stopJob({ jobId: options.jobId, reason: 'clean job' }),
             stateManager.deleteRunningPipeline({ jobId }),
             stateManager.deleteExecution({ jobId }),
             stateManager.deleteJobResults({ jobId }),
             stateManager.deleteJobStatus({ jobId }),
             stateManager.deleteWebhook({ jobId, type: WebhookTypes.PROGRESS }),
             stateManager.deleteWebhook({ jobId, type: WebhookTypes.RESULT }),
-            // storageFactory.adapter.delete({ jobId }),
             producer.stopJob({ jobId })
         ]);
     }

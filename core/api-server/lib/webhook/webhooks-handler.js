@@ -81,8 +81,9 @@ class WebhooksHandler {
         await stateManager.releaseJobResultsLock({ jobId });
     }
 
-    _deleteRunningPipeline(options) {
-        stateManager.deleteRunningPipeline(options);
+    async _deleteRunningPipeline(options) {
+        const res = await stateManager.deleteRunningPipeline(options);
+        log.info(`deleted running executions ${JSON.stringify(res)}`, { component });
     }
 
     _request(url, body, type, pipelineStatus, jobId) {
