@@ -11,6 +11,6 @@ class Config:
         "url": os.environ.get('WORKER_SOCKET_URL', None),
     }
     algorithm = {
-        "path": "algorithm",
+        "path": "algorithm_unique_folder",
         "entryPoint": os.environ.get('ALGORITHM_ENTRY_POINT', "main.py")
     }

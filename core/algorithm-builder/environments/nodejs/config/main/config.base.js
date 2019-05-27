@@ -10,6 +10,6 @@ config.socket = {
 };
 
 config.algorithm = {
-    path: '../algorithm',
+    path: '../algorithm_unique_folder',
     entryPoint: process.env.ALGORITHM_ENTRY_POINT || ''
 };

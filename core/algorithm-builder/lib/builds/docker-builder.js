@@ -125,7 +125,7 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     const envr = `environments/${env}`;
     await fse.ensureDir(buildPath);
     await fse.copy(envr, buildPath);
-    await fse.move(dest, `${buildPath}/algorithm`, { overwrite });
+    await fse.move(dest, `${buildPath}/algorithm_unique_folder`, { overwrite });
 };
 
 const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {

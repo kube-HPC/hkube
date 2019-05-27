@@ -7,5 +7,5 @@ WORKDIR /hkube/algorithm-runner
 
 RUN docker/requirements.sh
 
-ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm
+ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
 CMD ["python3", "-u", "app.py"]

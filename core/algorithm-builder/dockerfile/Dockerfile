@@ -29,4 +29,4 @@ RUN mkdir /hkube
 COPY . /hkube/algorithm-builder
 RUN cd /hkube/algorithm-builder
 WORKDIR /hkube/algorithm-builder
-CMD ["node", "app.js"]
+CMD ["npm", "start"]

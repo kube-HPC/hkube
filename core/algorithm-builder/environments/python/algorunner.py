@@ -4,7 +4,7 @@ from src.websocketClient import wc
 from src.consts import messages, methods
 from events import Events
 import threading
-import algorithm
+import algorithm_unique_folder
 
 
 class Algorunner:
@@ -25,9 +25,11 @@ class Algorunner:
             cwd = os.getcwd()
             alg = options.algorithm
             package = alg["path"]
-            entryPoint = os.path.splitext(alg["entryPoint"])[0]
+            entry = alg["entryPoint"]
+            entryPoint = entry.replace("/", ".")
+            entryPoint = os.path.splitext(entryPoint)[0]
             os.chdir('{cwd}/{package}'.format(cwd=cwd, package=package))
-            print('loading {package}/{entryPoint}'.format(entryPoint=entryPoint, package=package))
+            print('loading {entry}'.format(entry=entry))
             mod = importlib.import_module('.{entryPoint}'.format(entryPoint=entryPoint), package=package)
             print('algorithm code loaded')
 
