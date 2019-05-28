@@ -2,4 +2,4 @@
 
 set -e
 
-npm i debug
+npm i
