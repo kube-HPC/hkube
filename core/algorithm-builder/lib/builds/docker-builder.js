@@ -161,6 +161,11 @@ const runBuild = async (options) => {
     let result = { output: { error: '' } };
 
     try {
+
+        const output = await _runBash({ command: `${process.cwd()}/environments/nodejs/docker/requirements.sh` });
+        console.log(JSON.stringify(output, null, 2));
+        return { error: null };
+
         buildId = options.buildId;
         if (!buildId) {
             throw new Error('build id is required');
