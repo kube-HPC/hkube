@@ -5,7 +5,7 @@ const { normalizeBuildJobs } = require('./normalize');
 
 const _createBuildJob = async (jobDetails) => {
     const spec = createBuildJobSpec(jobDetails);
-    await etcd.setBuild({ buildId: jobDetails.buildId, timestamp: Date.now(), progress: 7, status: 'creating' });
+    await etcd.setBuild({ buildId: jobDetails.buildId, timestamp: Date.now(), progress: 5, status: 'creating' });
     await kubernetes.createJob({ spec });
 };
 

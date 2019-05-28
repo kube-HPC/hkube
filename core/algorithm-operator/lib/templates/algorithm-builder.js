@@ -20,10 +20,6 @@ const jobTemplate = {
                 }
             },
             spec: {
-                nodeSelector: {
-                    builder: 'true'
-                },
-                hostNetwork: true,
                 containers: [
                     {
                         name: ALGORITHM_BUILDS,
