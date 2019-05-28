@@ -51,7 +51,7 @@ class WebsocketClient:
 
     def send(self, message):
         try:
-            print('sending message to worker {command}'.format(**message))
+            print('sending message to worker: {command}'.format(**message))
             self._ws.send(json.dumps(message))
         except Exception as e:
             print(e)

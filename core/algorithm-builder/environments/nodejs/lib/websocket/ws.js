@@ -45,7 +45,8 @@ class AlgorithmWS extends EventEmitter {
     _handleMessages() {
         this._socket.on('message', (message) => {
             const payload = JSON.parse(message);
-            this.emit(payload.command, payload);
+            console.log(`got message from worker: ${payload.command}`);
+            this.emit(payload.command, payload.data);
         });
     }
 
@@ -57,6 +58,7 @@ class AlgorithmWS extends EventEmitter {
     }
 
     send(message) {
+        console.log(`sending message to worker: ${message.command}`);
         this._socket.send(JSON.stringify(message));
     }
 }

@@ -1,5 +1,6 @@
 module.exports = {
-    init: 'init',
-    start: 'start',
-    stop: 'stop'
+    init: { type: "optional" },
+    start: { type: "mandatory" },
+    stop: { type: "optional" },
+    exit: { type: "optional" },
 }

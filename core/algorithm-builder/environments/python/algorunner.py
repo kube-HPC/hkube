@@ -1,4 +1,5 @@
 import os
+import sys
 import importlib
 from src.websocketClient import wc
 from src.consts import messages, methods
@@ -39,6 +40,7 @@ class Algorunner:
                     methodName = method["name"]
                     try:
                         self._algorithm[methodName] = getattr(mod, methodName)
+                        print('found method {methodName}'.format(methodName=methodName))
                     except Exception as e:
                         mandatory = "mandatory" if method["mandatory"] else "optional"
                         error = 'unable to find {mandatory} method {methodName}'.format(mandatory=mandatory, methodName=methodName)
@@ -60,6 +62,7 @@ class Algorunner:
         self._wsc = wc.WebsocketClient()
         self._registerToWorkerEvents()
 
+        print('connecting to {url}'.format(url=self._url))
         t = threading.Thread(target=self._wsc.startWS, args=(self._url, ))
         t.start()
 
@@ -125,6 +128,11 @@ class Algorunner:
             method = self._getMethod(methods.exit)
             if (method is not None):
                 method(options)
+           
+            option = options if options is not None else dict()
+            code = option.get('exitCode', 0)
+            print('Got exit command. Exiting with code', code)
+            sys.exit(code)
 
         except Exception as e:
             self._sendError(e)

@@ -10,7 +10,7 @@ module.exports = {
     incoming: {
         initialize: 'initialize',
         start: 'start',
-        stop: 'stop'
-
+        stop: 'stop',
+        exit: 'exit'
     }
 }

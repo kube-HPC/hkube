@@ -67,10 +67,6 @@ const _extractFile = async ({ src, dest, fileExt, overwrite }) => {
     });
 };
 
-const _realError = (error) => {
-    return error && error.indexOf('non-zero code') !== -1;
-};
-
 const _runBash = ({ command, args }) => {
     return new Promise((resolve, reject) => {
         log.info(`running ${command}`, { component });
@@ -142,6 +138,19 @@ const _removeFolder = async ({ folder }) => {
     }
 };
 
+const _realError = (e) => {
+    return e.indexOf('WARNING') === -1;
+};
+
+const _analyzeErrors = (output, error) => {
+    if (error) {
+        return error;
+    }
+    let errors = output.error.split('\n\n');
+    errors = errors.filter(_realError);
+    return errors.join('\n');
+};
+
 const runBuild = async (options) => {
     let build;
     let buildPath;
@@ -149,7 +158,7 @@ const runBuild = async (options) => {
     let trace;
     let buildId;
     let algorithmName;
-    let result = { output: {} };
+    let result = { output: { error: '' } };
 
     try {
         buildId = options.buildId;
@@ -182,9 +191,10 @@ const runBuild = async (options) => {
         trace = e.stack;
         log.error(e.message, { component }, e);
     }
-    if (_realError(result.output.error)) {
-        error = result.output.error;
-    }
+
+    // result.output.error = "WARNING! Your password will be stored unencrypted in /root/.docker/config.json.\nConfigure a credential helper to remove this warning. See\nhttps://docs.docker.com/engine/reference/commandline/login/#credentials-store\n\nThe command '/bin/sh -c docker/requirements.sh' returned a non-zero code: 1\nAn image does not exist locally with the tag: hkube/ccc\n";
+    error = _analyzeErrors(result.output, error);
+
     await _removeFolder({ folder: buildPath });
     const status = error ? States.FAILED : States.COMPLETED;
     const progress = error ? 80 : 100;
