@@ -125,11 +125,17 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
 };
 
 const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {
-    const baseImage = path.join(docker.registry, docker.namespace, algorithmName);
-    const algorithmImage = `${baseImage}:v${version}`;
-    const args = [algorithmImage, docker.registry, docker.user, docker.pass, buildPath];
-    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
-    return { output, algorithmImage };
+    const depOutput = await _installDependencies(buildPath);
+    if (depOutput.error) {
+        return { output: depOutput };
+    }
+    else {
+        const baseImage = path.join(docker.registry, docker.namespace, algorithmName);
+        const algorithmImage = `${baseImage}:v${version}`;
+        const args = [algorithmImage, docker.registry, docker.user, docker.pass, buildPath];
+        const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
+        return { output, algorithmImage };
+    }
 };
 
 const _removeFolder = async ({ folder }) => {
@@ -149,6 +155,14 @@ const _analyzeErrors = (output, error) => {
     let errors = output.error.split('\n\n');
     errors = errors.filter(_realError);
     return errors.join('\n');
+};
+
+const _installDependencies = async (buildPath) => {
+    const depPath = path.join(process.cwd(), buildPath);
+    const args = [path.join(depPath, 'algorithm_unique_folder')];
+    const output = await _runBash({ command: `${depPath}/docker/requirements.sh`, args });
+    console.log(JSON.stringify(output, null, 2));
+    return output;
 };
 
 const runBuild = async (options) => {
