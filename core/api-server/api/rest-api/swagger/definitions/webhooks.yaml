@@ -3,11 +3,13 @@ properties:
   progress:
     type: string
     format: url
+    minLength: 1
     description: url to activate upon progress
     example: "http://my-url-to-progress"
   result:
     type: string
     format: url
+    minLength: 1
     description: url to activate upon result
     example: "http://my-url-to-result"
 additionalProperties: false
