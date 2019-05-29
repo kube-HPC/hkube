@@ -8,5 +8,4 @@ COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 
-RUN npm i
 CMD ["npm", "start"]

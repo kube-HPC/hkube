@@ -124,45 +124,56 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     await fse.move(dest, `${buildPath}/algorithm_unique_folder`, { overwrite });
 };
 
-const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {
-    const depOutput = await _installDependencies(buildPath);
-    if (depOutput.error) {
-        return { output: depOutput };
-    }
-    else {
-        const baseImage = path.join(docker.registry, docker.namespace, algorithmName);
-        const algorithmImage = `${baseImage}:v${version}`;
-        const args = [algorithmImage, docker.registry, docker.user, docker.pass, buildPath];
-        const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
-        return { output, algorithmImage };
-    }
-};
-
 const _removeFolder = async ({ folder }) => {
     if (folder) {
         await fse.remove(folder);
     }
 };
 
-const _realError = (e) => {
-    return e.indexOf('WARNING') === -1;
-};
-
-const _analyzeErrors = (output, error) => {
-    if (error) {
-        return error;
+const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {
+    let algorithmImage;
+    const output = {};
+    const depOutput = await _installDependencies(buildPath);
+    if (depOutput.error) {
+        output.dependencies = depOutput;
     }
-    let errors = output.error.split('\n\n');
-    errors = errors.filter(_realError);
-    return errors.join('\n');
+    else {
+        const baseImage = path.join(docker.registry, docker.namespace, algorithmName);
+        algorithmImage = `${baseImage}:v${version}`;
+        const args = [algorithmImage, docker.registry, docker.user, docker.pass, buildPath];
+        const dockerOutput = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
+        output.docker = dockerOutput;
+    }
+    return { output, algorithmImage };
 };
 
 const _installDependencies = async (buildPath) => {
     const depPath = path.join(process.cwd(), buildPath);
     const args = [path.join(depPath, 'algorithm_unique_folder')];
     const output = await _runBash({ command: `${depPath}/docker/requirements.sh`, args });
-    console.log(JSON.stringify(output, null, 2));
     return output;
+};
+
+const _isWarning = (e) => {
+    return e.indexOf('WARN') !== -1;
+};
+
+const _analyzeErrors = (output, error) => {
+    if (error) {
+        return error;
+    }
+    const dependenciesOutput = _analyzeError(output.dependencies);
+    const dockerOutput = _analyzeError(output.docker);
+    return { dependenciesOutput, dockerOutput };
+};
+
+const _analyzeError = (out) => {
+    const output = out || {};
+    const e = output.error || '';
+    const error = e.replace(/^\s*[\r\n]/gm, '').split('\n');
+    const warnings = error.filter(e => _isWarning(e)).join(',');
+    const errors = error.filter(e => !_isWarning(e)).join(',');
+    return { data: output.data, warnings, errors };
 };
 
 const runBuild = async (options) => {
@@ -172,7 +183,7 @@ const runBuild = async (options) => {
     let trace;
     let buildId;
     let algorithmName;
-    let result = { output: { error: '' } };
+    let result = { output: {} };
 
     try {
         buildId = options.buildId;
@@ -206,14 +217,20 @@ const runBuild = async (options) => {
         log.error(e.message, { component }, e);
     }
 
-    // result.output.error = "WARNING! Your password will be stored unencrypted in /root/.docker/config.json.\nConfigure a credential helper to remove this warning. See\nhttps://docs.docker.com/engine/reference/commandline/login/#credentials-store\n\nThe command '/bin/sh -c docker/requirements.sh' returned a non-zero code: 1\nAn image does not exist locally with the tag: hkube/ccc\n";
+    // result.output.error = "WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+    // Configure a credential helper to remove this warning. 
+    // See https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+    //The command '/bin/sh -c docker/requirements.sh' returned a non-zero code: 1\n
+    //An image does not exist locally with the tag: hkube/ccc\n";
+
     error = _analyzeErrors(result.output, error);
 
     await _removeFolder({ folder: buildPath });
     const status = error ? States.FAILED : States.COMPLETED;
     const progress = error ? 80 : 100;
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
-    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: result.output.data });
+    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: result.output });
     return { buildId, error, status, result };
 };
 

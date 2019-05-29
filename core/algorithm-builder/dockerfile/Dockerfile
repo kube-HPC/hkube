@@ -24,6 +24,7 @@ RUN set -eux; \
 	docker --version
 
 RUN apt install gettext-base
+RUN apt update && apt install -y python-pip
 
 RUN mkdir /hkube
 COPY . /hkube/algorithm-builder

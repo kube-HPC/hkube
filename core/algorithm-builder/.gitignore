@@ -3,7 +3,6 @@
 uploads
 /builds
 algorithm_unique_folder/
-node_modules
 /node_modules
 /jspm_packages
 

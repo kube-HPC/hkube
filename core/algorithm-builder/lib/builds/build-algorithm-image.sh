@@ -33,4 +33,4 @@ dockerBuild
 
 docker push ${IMAGE_NAME}
 
-# docker rmi ${IMAGE_NAME}
+docker rmi -f ${IMAGE_NAME}
