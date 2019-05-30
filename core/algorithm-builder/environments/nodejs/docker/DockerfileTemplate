@@ -3,6 +3,9 @@ FROM ${DOCKER_REGISTRY}hkube/base-algorithm-nodejs:v1.1.47
 LABEL maintainer="yehiyam@gmail.com"
 
 COPY . /hkube/algorithm-runner
+WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
+RUN ../docker/requirements.sh
+
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 

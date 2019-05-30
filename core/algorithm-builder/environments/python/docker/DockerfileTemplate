@@ -1,9 +1,11 @@
-FROM ${DOCKER_REGISTRY}hkube/base-algorithm-python:v1.1.48
+FROM ${DOCKER_REGISTRY}hkube/base-algorithm-python:v1.1.50
 LABEL maintainer="yehiyam@gmail.com"
 
 COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
+
+RUN ./docker/requirements.sh
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
 CMD ["python3", "-u", "app.py"]

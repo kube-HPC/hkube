@@ -131,27 +131,11 @@ const _removeFolder = async ({ folder }) => {
 };
 
 const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {
-    let algorithmImage;
-    const output = {};
-    const depOutput = await _installDependencies(buildPath);
-    if (depOutput.error) {
-        output.dependencies = depOutput;
-    }
-    else {
-        const baseImage = path.join(docker.registry, docker.namespace, algorithmName);
-        algorithmImage = `${baseImage}:v${version}`;
-        const args = [algorithmImage, docker.registry, docker.user, docker.pass, buildPath];
-        const dockerOutput = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
-        output.docker = dockerOutput;
-    }
+    const baseImage = path.join(docker.registry, docker.namespace, algorithmName);
+    const algorithmImage = `${baseImage}:v${version}`;
+    const args = [algorithmImage, docker.registry, docker.user, docker.pass, buildPath];
+    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
     return { output, algorithmImage };
-};
-
-const _installDependencies = async (buildPath) => {
-    const depPath = path.join(process.cwd(), buildPath);
-    const args = [path.join(depPath, 'algorithm_unique_folder')];
-    const output = await _runBash({ command: `${depPath}/docker/requirements.sh`, args });
-    return output;
 };
 
 const _isWarning = (e) => {
@@ -160,15 +144,12 @@ const _isWarning = (e) => {
 
 const _analyzeErrors = (output, error) => {
     if (error) {
-        return error;
+        return { data: output.data, errors: error };
     }
-    const dependenciesOutput = _analyzeError(output.dependencies);
-    const dockerOutput = _analyzeError(output.docker);
-    return { dependenciesOutput, dockerOutput };
+    return _analyzeError(output);
 };
 
-const _analyzeError = (out) => {
-    const output = out || {};
+const _analyzeError = (output) => {
     const e = output.error || '';
     const error = e.replace(/^\s*[\r\n]/gm, '').split('\n');
     const warnings = error.filter(e => _isWarning(e)).join(',');
@@ -224,13 +205,13 @@ const runBuild = async (options) => {
     //The command '/bin/sh -c docker/requirements.sh' returned a non-zero code: 1\n
     //An image does not exist locally with the tag: hkube/ccc\n";
 
-    error = _analyzeErrors(result.output, error);
+    const { data, warnings, errors } = _analyzeErrors(result.output, error);
 
     await _removeFolder({ folder: buildPath });
-    const status = error ? States.FAILED : States.COMPLETED;
+    const status = errors ? States.FAILED : States.COMPLETED;
     const progress = error ? 80 : 100;
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
-    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: result.output });
+    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: data, warnings, errors });
     return { buildId, error, status, result };
 };
 

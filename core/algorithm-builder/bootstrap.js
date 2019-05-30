@@ -17,6 +17,7 @@ class Bootstrap {
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
             await Promise.all(modules.map(m => m.init(main)));
             const response = await dockerBuild(main);
+            console.log(JSON.stringify(response, null, 2));
             const code = response.error ? 1 : 0;
             process.exit(code);
         }
