@@ -36,6 +36,10 @@ class Builds {
             ...options,
             status: States.PENDING,
             progress: 0,
+            result: null,
+            error: null,
+            trace: null,
+            endTime: null,
             startTime: Date.now()
         };
         return stateManager.setBuild(build);
