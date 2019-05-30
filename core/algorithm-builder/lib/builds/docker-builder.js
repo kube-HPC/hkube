@@ -212,7 +212,7 @@ const runBuild = async (options) => {
     const status = errors ? States.FAILED : States.COMPLETED;
     const progress = error ? 80 : 100;
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
-    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: data, warnings, errors });
+    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
     return { buildId, error, status, result };
 };
 

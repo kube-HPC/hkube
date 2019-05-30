@@ -12,6 +12,7 @@ dockerLogin() {
 dockerBuild() {
   docker build \
   --force-rm \
+  --network=host \
   -t ${IMAGE_NAME} \
   -f ${BUILD_PATH}/docker/Dockerfile ${BUILD_PATH}
 }
