@@ -138,8 +138,9 @@ const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {
     return { output, algorithmImage };
 };
 
-const _isWarning = (e) => {
-    return e.toLowerCase().indexOf('warn') !== -1;
+const _isWarning = (error) => {
+    const e = error.toLowerCase();
+    return e.includes('warn') || e.includes('docs.docker.com');
 };
 
 const _analyzeErrors = (output, error) => {
