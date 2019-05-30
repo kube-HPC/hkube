@@ -1,5 +1,5 @@
 
-FROM ${DOCKER_REGISTRY}hkube/base-algorithm-nodejs:v1.1.47
+FROM ${DOCKER_REGISTRY}hkube/base-algorithm-nodejs:v1.1.51
 LABEL maintainer="yehiyam@gmail.com"
 
 COPY . /hkube/algorithm-runner
