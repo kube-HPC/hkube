@@ -154,7 +154,8 @@ class SubPipelineHandler {
         algoRunnerCommunication.send({
             command: messages.outgoing.subPipelineStopped,
             data: {
-                subPipelineId
+                subPipelineId,
+                reason: result.reason
             }
         });
     }
