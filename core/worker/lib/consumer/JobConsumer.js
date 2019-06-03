@@ -71,12 +71,27 @@ class JobConsumer extends EventEmitter {
             this._job = job;
             this._jobId = job.data.jobId;
             this._taskId = job.data.taskId;
+            this._execId = job.data.execId;
             this._batchIndex = job.data.batchIndex;
             this._pipelineName = job.data.pipelineName;
             this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
 
+            if (this._execId) {
+                const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
+                if (watchExecutionState && watchExecutionState.state === constants.WATCH_STATE.STOP) {
+                    await this.finishJob();
+                    return;
+                }
+            }
+
             await etcd.update({
-                jobId: this._jobId, taskId: this._taskId, startTime: Date.now(), status: constants.JOB_STATUS.ACTIVE
+                jobId: this._jobId,
+                taskId: this._taskId,
+                status: constants.JOB_STATUS.ACTIVE,
+                execId: this._job.data.execId,
+                nodeName: this._job.data.nodeName,
+                algorithmName: this._job.data.algorithmName,
+                startTime: Date.now()
             });
 
             stateManager.setJob(job);
@@ -272,14 +287,28 @@ class JobConsumer extends EventEmitter {
             return;
         }
         await etcd.unwatch({ jobId: this._jobId });
+        if (this._execId) {
+            await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
+        }
         let storageResult = {};
-        let { resultData, status, error } = this._getStatus(data); // eslint-disable-line prefer-const
+        const { resultData, status, error } = this._getStatus(data);
 
         if (!error && status === constants.JOB_STATUS.SUCCEED) {
             storageResult = await this._putResult(resultData);
         }
+
+        const resData = Object.assign({
+            status,
+            error,
+            jobId: this._jobId,
+            taskId: this._taskId,
+            execId: this._job.data.execId,
+            nodeName: this._job.data.nodeName,
+            algorithmName: this._job.data.algorithmName,
+            endTime: Date.now()
+        }, storageResult);
+
         this._job.error = error;
-        const resData = Object.assign({ status, error, jobId: this._jobId, taskId: this._taskId, endTime: Date.now() }, storageResult);
         await etcd.update(resData);
         await this._putMetadata(resData);
         this._summarizeMetrics(status);
@@ -396,6 +425,10 @@ class JobConsumer extends EventEmitter {
 
     get isConsumerPaused() {
         return this._consumerPaused;
+    }
+
+    get jobData() {
+        return this._job && this._job.data;
     }
 
     get jobId() {

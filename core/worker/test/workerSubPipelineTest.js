@@ -335,7 +335,7 @@ describe('worker SubPipeline test', () => {
     it('enter ready state should clear subPipelines data', async function () {
         const subPipelineHandler = require('../lib/subpipeline/subpipeline');
         // simulate 2 subPipelines
-        const state = workerStates.ready;
+        const state = workerStates.results;
         const spy = sinon.spy(subPipelineHandler, 'stopAllSubPipelines');
         subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
         stateManager.emit(stateEvents.stateEntered, { state });

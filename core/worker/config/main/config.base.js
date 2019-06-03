@@ -3,6 +3,8 @@ const formatter = require(process.cwd() + '/lib/helpers/formatters');
 const config = {};
 
 config.serviceName = packageJson.name;
+config.version = packageJson.version;
+
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 

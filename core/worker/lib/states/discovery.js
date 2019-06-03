@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const { EventMessages, Components } = require('../consts');
+const { WATCH_STATE } = require('../consumer/consts');
 
 const component = Components.ETCD;
 let log;
@@ -32,20 +33,46 @@ class EtcdDiscovery extends EventEmitter {
             this.emit(res.status.command, res);
         });
         this.watch({ jobId: 'hookWatch' });
+
         this._etcd.jobs.state.on('change', (res) => {
             log.info(JSON.stringify(res), { component });
             switch (res.state) {
-                case 'stop':
-                    this.emit('stop', res);
+                case WATCH_STATE.STOP:
+                    this.emit(res.state, res);
                     break;
                 default:
                     this.emit('change', res);
             }
         });
+        this._etcd.algorithms.executions.on('change', (res) => {
+            this.emit(res.state, res);
+        });
+        this._etcd.jobs.tasks.on('change', (data) => {
+            this.emit(`task-${data.status}`, data);
+        });
         this._etcd.jobs.results.on('change', (result) => {
             // send job-result-completed, job-result-failed or job-result-stopped accordingly
             this.emit(`${EventMessages.JOB_RESULT}-${result.status}`, result);
         });
+    }
+
+
+    async stopAlgorithmExecution(options) {
+        return this._etcd.algorithms.executions.stop(options);
+    }
+
+    async watchAlgorithmExecutions(options) {
+        return this._etcd.algorithms.executions.watch(options);
+    }
+
+    async unwatchAlgorithmExecutions(options) {
+        try {
+            log.debug('start unwatch algorithm executions', { component });
+            await this._etcd.algorithms.executions.unwatch(options);
+        }
+        catch (error) {
+            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
+        }
     }
 
     watchJobResults(options) {
@@ -66,6 +93,14 @@ class EtcdDiscovery extends EventEmitter {
 
     async update(options) {
         await this._etcd.jobs.tasks.set(options);
+    }
+
+    async watchTasks(options) {
+        return this._etcd.jobs.tasks.watch(options);
+    }
+
+    async unWatchTasks(options) {
+        return this._etcd.jobs.tasks.unwatch(options);
     }
 
     async watch(options) {

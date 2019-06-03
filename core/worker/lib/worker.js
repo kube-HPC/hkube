@@ -7,7 +7,8 @@ const discovery = require('./states/discovery');
 const { stateEvents, EventMessages, workerStates, workerCommands, Components } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
-const subpieline = require('./subpipeline/subpipeline');
+const subPipeline = require('./subpipeline/subpipeline');
+const execAlgorithms = require('./algorithm-execution/algorithm-execution');
 
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
@@ -53,10 +54,8 @@ class Worker {
     _registerToEtcdEvents() {
         discovery.on(EventMessages.STOP, async (res) => {
             log.info(`got stop: ${res.reason}`, { component });
-            // stop registered subpipelines first
             const reason = `parent pipeline stopped: ${res.reason}`;
-            await subpieline.stopAllSubPipelines(reason);
-            // then stop worker
+            await this._stopAllPipelinesAndExecutions(reason);
             stateManager.stop();
         });
         discovery.on(workerCommands.coolDown, async () => {
@@ -167,10 +166,8 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.error, async (message) => {
             const errText = message.error && message.error.message;
             log.error(`got error from algorithm: ${errText}`, { component });
-            // clean remind subPipelines
             const reason = `parent algorithm failed: ${errText}`;
-            await subpieline.stopAllSubPipelines(reason);
-            // finish (with error)
+            await this._stopAllPipelinesAndExecutions(reason);
             stateManager.done(message);
         });
         algoRunnerCommunication.on(messages.incomming.startSpan, (message) => {
@@ -179,6 +176,13 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.finishSpan, (message) => {
             this._finishAlgorithmSpan(message);
         });
+    }
+
+    async _stopAllPipelinesAndExecutions(reason) {
+        await Promise.all([
+            subPipeline.stopAllSubPipelines(reason),
+            execAlgorithms.stopAllExecutions(reason)
+        ]);
     }
 
     /**
@@ -264,6 +268,9 @@ class Worker {
             this._inTerminationMode = true;
             try {
                 log.info(`starting termination mode. Exiting with code ${code}`, { component });
+                const reason = 'parent pipeline exit';
+                await this._stopAllPipelinesAndExecutions(reason);
+
                 this._tryToSendCommand({ command: messages.outgoing.exit });
                 const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
                 if (terminated) {
@@ -279,15 +286,6 @@ class Worker {
             }
             catch (error) {
                 log.error(`failed to handle exit: ${error}`, { component });
-            }
-
-            try {
-                // clean all registered subPiplines, if exist
-                const reason = 'parent pipeline exit';
-                await subpieline.stopAllSubPipelines(reason);
-            }
-            catch (error) {
-                log.error(`failed to stop subpipeline/s: ${error}`, { component });
             }
             finally {
                 this._inTerminationMode = false;
@@ -341,17 +339,14 @@ class Worker {
                     this.handleExit(0);
                     break;
                 case workerStates.results:
-                    // finish job
+                    reason = `parent algorithm entered state ${state}`;
+                    await this._stopAllPipelinesAndExecutions(reason);
                     await jobConsumer.finishJob(result);
                     pendingTransition = stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
-                    // clean all registered subPiplines, if exist
-                    reason = `parent algorithm entered state ${state}`;
-                    await subpieline.stopAllSubPipelines(reason);
                     break;
                 case workerStates.init: {
-                    // start init
                     const { error, data } = await jobConsumer.extractData(job.data);
                     if (!error) {
                         algoRunnerCommunication.send({

@@ -10,6 +10,7 @@ const Components = {
     ALGORUNNER: 'Algorunner',
     ETCD: 'Etcd',
     WORKER: 'Worker',
+    ALGORITHM_EXECUTION: 'Algorithm-Execution',
     SUB_PIPELINE: 'SubPipeline',
     JOB_PROVIDER: 'JobProvider',
     K8S: 'k8s'

@@ -17,7 +17,8 @@ const modules = [
     require('./lib/helpers/kubernetes.js'),
     require('./lib/algorithm-logging/logging-proxy.js'),
     require('./lib/helpers/api-server-client.js'),
-    require('./lib/subpipeline/subpipeline.js')
+    require('./lib/subpipeline/subpipeline.js'),
+    require('./lib/algorithm-execution/algorithm-execution.js')
 ];
 
 class Bootstrap {
@@ -28,7 +29,7 @@ class Bootstrap {
 
             log = new Logger(main.serviceName, logger);
             log.plugins.use(new VerbosityPlugin(main.redis));
-            log.info('running application in ' + configIt.env() + ' environment', { component });
+            log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component });

@@ -10,6 +10,8 @@ module.exports = {
         stopSubPipeline: 'stopSubPipeline',
         startSpan: 'startSpan',
         finishSpan: 'finishSpan',
+        startAlgorithmExecution: 'startAlgorithmExecution',
+        stopAlgorithmExecution: 'stopAlgorithmExecution',
         done: 'done'
     },
     outgoing: {
@@ -21,6 +23,8 @@ module.exports = {
         subPipelineStarted: 'subPipelineStarted',
         subPipelineError: 'subPipelineError',
         subPipelineDone: 'subPipelineDone',
-        subPipelineStopped: 'subPipelineStopped'
+        subPipelineStopped: 'subPipelineStopped',
+        execAlgorithmError: 'algorithmExecutionError',
+        execAlgorithmDone: 'algorithmExecutionDone'
     }
 };
