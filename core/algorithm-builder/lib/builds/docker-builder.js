@@ -199,13 +199,6 @@ const runBuild = async (options) => {
         log.error(e.message, { component }, e);
     }
 
-    // result.output.error = "WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
-    // Configure a credential helper to remove this warning. 
-    // See https://docs.docker.com/engine/reference/commandline/login/#credentials-store
-
-    //The command '/bin/sh -c docker/requirements.sh' returned a non-zero code: 1\n
-    //An image does not exist locally with the tag: hkube/ccc\n";
-
     const { data, warnings, errors } = _analyzeErrors(result.output, error);
 
     await _removeFolder({ folder: buildPath });
