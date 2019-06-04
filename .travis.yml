@@ -1,0 +1,22 @@
+sudo: required
+language: node_js
+node_js:
+- '10'
+services:
+- docker
+- redis-server
+branches:
+  only:
+  - master
+before_install: ./scripts/beforeInstall.sh
+install:
+- npm i
+- export CHANGED=$(lerna changed)
+- echo ${CHANGED}
+- lerna bootstrap
+script:
+- echo ${CHANGED}
+- ./scripts/test.sh
+- ./scripts/createVersion.sh
+- ./scripts/build.sh
+- ./scripts/trigger.js
