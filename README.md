@@ -1,3 +1,4 @@
+
 # Welcome to HKUBE
 
 Hkube is a cloud-native open source framework to run distributed pipeline of algorithms built on Kubernetes. Hkube allows running pipelines of algorithms on Kubernetes cluster optimally utilizing the available resources, based on user priorities and AI heuristics.
@@ -20,9 +21,12 @@ Hkube is a cloud-native open source framework to run distributed pipeline of alg
 **Jupiter Integration** -  hkube has integration with jupiter so you able to scale  your running on top hkube via jupiter  
 
 
-## API
-Hkube Supports to kinds of APIs:  **JSON** and **Code**
+## APIs
+ 
+ 
+##  Pipeline descriptor 
 
+Hkube Supports to kinds of APIs for creating pipeline:  **JSON** and **Code**
 lets take a look for an example for demonstrating how the api work 
 
 ```mermaid
@@ -44,9 +48,8 @@ D(Multiply . ) --> E( Aggregate .  )
 ``[2,4,6,8,10] -> 30``
 
 
-
-**Pipeline descriptor** 
-	The pipeline descriptor is a JSON file which describes and defines the links between the nodes by defining the   dependency between them.
+### JSON File
+The pipeline descriptor is a JSON file which describes and defines the links between the nodes by defining the  dependency between them.
 ```JSON
 {
 	"name":"numbers",
@@ -83,4 +86,55 @@ D(Multiply . ) --> E( Aggregate .  )
 A we can see we created a pipeline with a name, numbers.  the pipeline is defined by three nodes, in Hkube, the linkage between the nodes is done by defining the algorithm inputs , for example, multiply will be run after add algorithm because of the input dependency between them. 
 
 keep in mind that hkube will transport the results between the nodes automatically for doing it hkube currently support two different types of transportation layers *object storage* and *files system* 
-the *flowInput* is the place to define the Pipeline inputs .
+the *flowInput* is the place to define the Pipeline inputs in the example above we we used  ``data:5``  but it could be anything .
+
+theres a lot of great more features that can be define from the descriptor file
+
+#### Other Options  (for advanched users )
+
+```JSON
+ "webhooks": {
+      "progress": "[http://my-url-to-progress](http://my-url-to-progress/)",
+       "result": "[http://my-url-to-result](http://my-url-to-result/)"
+     },
+   "priority": 3,
+   "triggers":
+	   {
+	    "pipelines":[],
+	     "cron":{}
+	   }
+	"options":{
+		"batchTolerance": 80,
+        "concurrentPipelines": 2,
+        "ttl": 3600,
+        "progressVerbosityLevel":"info"
+	}
+```
+**webhooks** - hkube has a REST api for getting the results but it support webhooks as well.  
+There are two types of webhooks, *progress* and *result*. You can also fetch the same data from the REST API 
+-  progress - ``{jobId}/api/v1/exec/status``
+-  result -  ``{jobId}/api/v1/exec/results`` 
+
+**priority**  -  Hkube support five level of proirities, five is the highest . those priorites with the metrics that hkube gatherd helps to decide which algorithms should be run first .
+**triggers** - there two types of triggers that hkube currently support *cron* and *pipeline*
+  - **cron** - Hkube can schedule your stored pipelines based on cron pattern.  
+see this [cron](https://crontab.guru/) editor in order to construct your cron.
+ - **pipeline** - You can set your pipelines to run each time other pipeline/s has been  finished sucssesfuly .
+ 
+ **options** - there is even other options can be configured 
+  -  **Batch Tolerance** -  The Batch Tolerance is a threshold setting that allow to control in  	 which *percent* from the batch processing the entire pipeline should be fail.
+  - **Concurrency** - Pipeline Concurrency define the number of pipelines that are allowed to be running at the same time
+  - **TTL** - Time to live (TTL) limits the lifetime of pipeline in the cluster. stop will be sent if pipeline running for more than ttl (in seconds).
+  - **Verbosity Level** -  The Verbosity Level is a setting that allow to control what type of progress events the client will notified about.  The severity levels are ascending from least important to most important: `trace`  `debug`  `info`  `warn`  `error`  `critical`
+  
+  
+### Algorithm
+ as you probably understood the pipeline is built from algorithms which containerized with docker. 
+ There are two ways to integrate your algorithm into Hkube:  
+  - **Build API** - As written above hkube can build automatically your docker with the  Hkube's websocket wrapper. For doing it you have to use one 
+-  **code writing** -  work with WebSocket and Docker.
+
+
+ 
+
+
