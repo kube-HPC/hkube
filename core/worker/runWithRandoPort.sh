@@ -39,7 +39,7 @@ echo METRICS_PORT $METRICS_PORT
 #run_parallel "sleep 1" "sleep 2"
 export alg=$1
 export ALGO_COMMAND=${2:-"node app"}
-export ALGOCWD=${3:-"../algorunner"}
+export ALGOCWD=${3:-"../../../algorunner"}
 echo "Running ${ALGO_COMMAND}"
 export ALGORITHM_LOG_FILE_NAME=algorunner_${port}.log
 echo "worker for algorithm ${alg}"

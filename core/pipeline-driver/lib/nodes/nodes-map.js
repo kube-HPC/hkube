@@ -364,7 +364,7 @@ class NodesMap extends EventEmitter {
         const results = [];
         const nodes = this.getAllNodes().filter(n => !n.algorithmExecution);
         nodes.forEach((n) => {
-            const childs = this._childs(n.nodeName);
+            const childs = this._childs(n.nodeName).map(c => this.getNode(c)).filter(e => !e.algorithmExecution);
             if (childs.length === 0) {
                 if (n.batch.length > 0) {
                     n.batch.forEach(b => results.push(new NodeResult(b)));
