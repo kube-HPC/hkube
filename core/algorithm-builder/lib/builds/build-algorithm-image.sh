@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This script used to create a specific algorithm
+# This script used to create a specific algorithm image
 
 source $PWD/lib/builds/build-utils.sh
 
