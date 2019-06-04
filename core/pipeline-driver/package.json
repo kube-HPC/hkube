@@ -1,7 +1,7 @@
 {
   "name": "pipeline-driver",
   "version": "1.1.77",
-  "description": "pipeline execution based on producer-consumer",
+  "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
     "lib": "lib",
