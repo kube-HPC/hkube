@@ -13,6 +13,8 @@ install:
 - npm i
 - export CHANGED=$(lerna changed)
 - echo ${CHANGED}
+- export CHANGED=${CHANGED:-$(lerna list)}
+- echo ${CHANGED}
 - lerna bootstrap
 script:
 - echo ${CHANGED}
