@@ -16,7 +16,13 @@ install:
 - lerna bootstrap
 script:
 - echo ${CHANGED}
-- ./scripts/test.sh
-- ./scripts/createVersion.sh
-- ./scripts/build.sh
-- ./scripts/trigger.js
+- |
+  if [ -z $CHANGED ]; 
+  then 
+    echo nothing changed
+  else 
+    ./scripts/test.sh
+    ./scripts/createVersion.sh
+    ./scripts/build.sh
+    ./scripts/trigger.js
+  fi
