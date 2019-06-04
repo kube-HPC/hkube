@@ -49,8 +49,9 @@ class AppServer {
 
         await swaggerParser.validate(swagger);
         validator.init(swagger.components.schemas, schemasInternal);
-        fs.writeFileSync(path.join(__dirname, 'swagger.json'), JSON.stringify(swagger, null, 2));
-
+        if (options.writeSwaggerJson) {
+            fs.writeFileSync(path.join(__dirname, 'swagger.json'), JSON.stringify(swagger, null, 2));
+        }
         const { beforeRoutesMiddlewares, afterRoutesMiddlewares } = metrics.getMiddleware();
         const routeLogBlacklist = ['/metrics', '/swagger'];
 
