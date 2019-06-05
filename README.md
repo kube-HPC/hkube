@@ -1,4 +1,7 @@
 
+
+![BannerGithub](https://user-images.githubusercontent.com/27515937/58962009-efe1ec80-87b2-11e9-8630-59a09ac5c3e4.png)
+
 # Welcome to HKUBE
 
 Hkube is a cloud-native open source framework to run distributed pipeline of algorithms built on Kubernetes. Hkube allows running pipelines of algorithms on Kubernetes cluster optimally utilizing the available resources, based on user priorities and AI heuristics.
@@ -29,18 +32,20 @@ Hkube is a cloud-native open source framework to run distributed pipeline of alg
 Hkube Supports to kinds of APIs for creating pipeline:  **JSON** and **Code**
 lets take a look for an example for demonstrating how the api work 
 
+
+
 ```mermaid
 graph LR
-A(Add .   ) --> B(Multiply . )
-A(Add .   ) --> C(Multiply . )
-A(Add .   ) --> D(Multiply .  )
+A(Range    ) --> B(Multiply . )
+A(Range    ) --> C(Multiply . )
+A(Range .     ) --> D(Multiply .  )
 B(Multiply . ) --> E( Aggregate .  )
 C(Multiply . ) --> E( Aggregate .  )
 D(Multiply . ) --> E( Aggregate .  )
 ```
 **our pipeline is built from three algorithms :**
  *for this example we send 5 as an input to the first algorithm*
- - **Add algorithm:** creating an array with a length that matches the input .     
+ - **Range algorithm:** creating an array with a length that matches the input .     
      ``5-> [1,2,3,4,5]``
 -  **Multiply algorithm:** multiples the received data from Add algorithm with the input .     
     ``[1,2,3,4,5] (2) -> [2,4,6,8,10]``
@@ -92,7 +97,7 @@ theres a lot of great more features that can be define from the descriptor file
 
 #### Other Options  (for advanched users )
 
-```JSON
+```JSON  
  "webhooks": {
       "progress": "[http://my-url-to-progress](http://my-url-to-progress/)",
        "result": "[http://my-url-to-result](http://my-url-to-result/)"
@@ -131,8 +136,28 @@ see this [cron](https://crontab.guru/) editor in order to construct your cron.
 ### Algorithm
  as you probably understood the pipeline is built from algorithms which containerized with docker. 
  There are two ways to integrate your algorithm into Hkube:  
-  - **Build API** - As written above hkube can build automatically your docker with the  Hkube's websocket wrapper. For doing it you have to use one 
--  **code writing** -  work with WebSocket and Docker.
+  - **Seemless Integration** - As written above hkube can build automatically your docker with the Hkube's websocket wrapper.  
+-  **Code writing** -  In order to add algorithm manually to hkube you need to wrap your algorithm with hkube . hkube already has a wrappers for python,javaScript, java and .NET core.
+
+### Seemless Integration
+
+Now lets create the alogrithms from the numbers pipeline by our self, Hkube currently support two languages for auto build *Python* and *JavaScript* so we will those languages to create our algroithms. So we have three differnet algorithms *Range*, *Multiply* and *Aggregate*
+
+ - **Range** - for the range algorithm we will use *Python* 
+```Python
+def  start(args):
+	print('algorithm: start')
+	input  = args['input']
+	array =  range(input);
+	return array
+```
+**Installling dependncies**
+ During the contanier build, Hkube will search for the *requirment.txt* file and will try to install the packages from the pip package manager
+
+**Advanched Operations**
+
+
+
 
 
  
