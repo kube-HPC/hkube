@@ -287,8 +287,8 @@ nodes:
   input:
   - "@Multiply"
   flowInput:
-	  data:5
-	  mul:2
+     data:5
+     mul:2
 ```
 
 There are two method to integarate pipeline with hkube 
@@ -302,9 +302,9 @@ To store the pipeline we will have to create two diffrent steps:
 	2. ``hkubectl pipeline exec stored numbers --f flowInput.yaml ``
 	
 ```yaml 
-  flowInput:
-	  data:5
-	  mul:2
+   flowInput:
+     data:5
+     mul:2
 ```
 As a result of executing pipeline, Hkube will return a **jobId**.  
 This is a unique identifier which helps to query this specific pipeline execution.
