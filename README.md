@@ -1,6 +1,6 @@
 
 
-![BannerGithub](https://user-images.githubusercontent.com/27515937/58962009-efe1ec80-87b2-11e9-8630-59a09ac5c3e4.png)
+![BannerGithub](https://user-images.githubusercontent.com/27515937/59034366-94c3fe80-8873-11e9-9f9d-c991c632a9e8.png)
 
 # Welcome to HKUBE
 
@@ -24,50 +24,108 @@ Hkube is a cloud-native open source framework to run distributed pipeline of alg
 **Jupiter Integration** -  hkube has integration with jupiter so you able to scale  your running on top hkube via jupiter  
 
 
-## APIs
+# Inatallation
+
+## Prerquisite
+
+Hkube runs on top of kubernetes so in order  to run hkube we have to install it's prerequisites
+
+1. **Kubernetes** - Install  [Kubernetes](https://kubernetes.io/docs/user-journeys/users/application-developer/foundational/#section-1)  or  [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/)  or  [microk8s](https://microk8s.io/)
+
+	> Make sure kubectl is configured to your cluster.  
+	> For collecting algorithm logs, and to create builds, Hkube requires that certain pods will run in privileged security permissions. Consult your kubernetes installation to see how to do that.
+2.  **Helm** -  hkube installation uses helm for more information about how to install it follow this guide [helm installation](https://helm.sh/docs/using_helm/#installing-helm)
+
+## Install 
+
+1. **Add  Hkube helm repository** -  The chart is hosted in [http://hkube.io/helm/](http://hkube.io/helm/) To add the repo to your helm run 
+``$ helm repo add hkube http://hkube.io/helm/``
+
+2. **Install hkube chart** -  To install the chart with the release name `release name`
+``$ helm install hkube/hkube --name my-release``
+
+>This command installs `hkube` in a minimal configuration for development. For production installation follow the link here [production-deployment](http://hkube.io/learn/install/#production-deployment) 
+
+
+# APIs
+
+  There are three ways for communicating with hkube, REST, CLI and Hkube's UI dashbaord ,
+
+### REST
+ Hkube exposes it's funcntionality with REST,  It is a good place to say that the CLI and the UI using the REST api for all of te operations so you probably can do anything  from the REST api without using any other tool. 
+  
+   - Spec -  From Hkube site  [http://hkube.io/spec/](http://hkube.io/spec/)
+  - Swagger - locally  `{yourDomail}`/hkube/api-server/swagger-ui
+
+### CLI
+`hkubectl`  is a command-line tool that help you to work with hkube more easily.
+
+**inorder to use `hkubectl` you have to do the follows:**
+
+- **Download** 
+```bash
+curl -L https://github.com/kube-HPC/hkubectl/releases/download/v1.1.7/hkubectl.tgz | tar xvz
+sudo cp ./hkubectl /usr/local/bin
+```
+**Config**
+
+`hkubectl`  config set endpoint <KUBERNETES-MASTER-IP>/hkube/api-server/  
+`hkubectl`  config set rejectUnauthorized false
+
+**Syntax**
+``hkubectl [type] [command] [name]``
+
+use ``hkubectl --help`` for more information  
+
+### UI 
+
+
+Hkube as rich ui which supports pretty much every functionality hkube as to offer and even more .
+
+![ui](https://user-images.githubusercontent.com/27515937/59031674-051b5180-886d-11e9-9806-ecce2e3ba8f0.png )
+
+for more information and screenshots [http://hkube.io/tech/dashboard/](http://hkube.io/tech/dashboard/)
+
+
+# First steps 
+
+So now after we familar with hkube's features and APIs 
+lets create our first pipeline, hkube Supports two kinds of APIs for creating pipeline:  **JSON** and **Code**
  
- 
+
 ##  Pipeline descriptor 
 
-Hkube Supports to kinds of APIs for creating pipeline:  **JSON** and **Code**
-lets take a look for an example for demonstrating how the api work 
+Lets use an example for demonstrating how the api works
+
+![GraphGithub](https://user-images.githubusercontent.com/27515937/58963745-616f6a00-87b6-11e9-92d2-cf322bf343ed.png)
 
 
-
-```mermaid
-graph LR
-A(Range    ) --> B(Multiply . )
-A(Range    ) --> C(Multiply . )
-A(Range .     ) --> D(Multiply .  )
-B(Multiply . ) --> E( Aggregate .  )
-C(Multiply . ) --> E( Aggregate .  )
-D(Multiply . ) --> E( Aggregate .  )
-```
-**our pipeline is built from three algorithms :**
- *for this example we send 5 as an input to the first algorithm*
- - **Range algorithm:** creating an array with a length that matches the input .     
+**The pipeline takes a number creates an array from 1 to  the number , multiply each of them with other number, and summerize them together**
+ 
+ *for demonstration lets take `5` as  our first number and `2` as the second*
+ - **Range algorithm:** creating an array with a length that matches the first input .     
      ``5-> [1,2,3,4,5]``
--  **Multiply algorithm:** multiples the received data from Add algorithm with the input .     
+-  **Multiply algorithm:** multiples the received data from Add algorithm with the second input .     
     ``[1,2,3,4,5] (2) -> [2,4,6,8,10]``
 -  **Aggregate Algorithm**: the algorithm will wait until all the instances of the multiplication algorithm will finish then it will summarize the received data together .    
 ``[2,4,6,8,10] -> 30``
 
 
-### JSON File
-The pipeline descriptor is a JSON file which describes and defines the links between the nodes by defining the  dependency between them.
+### JSON 
+The pipeline descriptor is a JSON object which describes and defines the links between the nodes by defining the  dependency between them.
 ```JSON
 {
 	"name":"numbers",
 	"nodes":[
 		{ 
-			"nodeName":"Add",
-			"algorithmName":"add-algorithm",
+			"nodeName":"Range",
+			"algorithmName":"range-algorithm",
 			"input":["@flowInput.data"]
 		},
 		{ 
 			"nodeName":"Multiply",
 			"algorithmName":"multiply-algorithm",
-			"input":["#@Add"]
+			"input":["#@Add","@flowInput.mul"]
 		},
 		{ 
 			"nodeName":"Aggregate",
@@ -76,7 +134,8 @@ The pipeline descriptor is a JSON file which describes and defines the links bet
 		},
 	],
 	"flowInput":{
-		"data":5
+		"data":5,
+		"mul":2
 	}
 }
 ```
@@ -85,13 +144,16 @@ The pipeline descriptor is a JSON file which describes and defines the links bet
 
 **@** —  Defines input parameters for the algorithm .  
 **#**  —  By using this in the input we can execute nodes in parallel .  
- **\*** .  
+ **\*** -
  
+
+
  
-A we can see we created a pipeline with a name, numbers.  the pipeline is defined by three nodes, in Hkube, the linkage between the nodes is done by defining the algorithm inputs , for example, multiply will be run after add algorithm because of the input dependency between them. 
+A we can see we created a pipeline with the name numbers.  the pipeline is defined by three nodes, in Hkube, the linkage between the nodes is done by defining the algorithm inputs , for example, multiply will be run after add algorithm because of the input dependency between them. 
 
 keep in mind that hkube will transport the results between the nodes automatically for doing it hkube currently support two different types of transportation layers *object storage* and *files system* 
 the *flowInput* is the place to define the Pipeline inputs in the example above we we used  ``data:5``  but it could be anything .
+
 
 theres a lot of great more features that can be define from the descriptor file
 
@@ -143,23 +205,116 @@ see this [cron](https://crontab.guru/) editor in order to construct your cron.
 
 Now lets create the alogrithms from the numbers pipeline by our self, Hkube currently support two languages for auto build *Python* and *JavaScript* so we will those languages to create our algroithms. So we have three differnet algorithms *Range*, *Multiply* and *Aggregate*
 
+**Two importent notes**
+
+- **Installling dependncies**
+ *During the contanier build, Hkube will search for the *requirment.txt* file and will try to install the packages from the pip package manager*
+
+- **Advanched Operations**
+ *Hkube can build the algorithm only by implemnting start function but for advanched operation such as one time initiation and gracefully stopping you have to implement two other functions ``init`` and ``stop``
+
+**So lets start by careating our algorithms**
+
  - **Range** - for the range algorithm we will use *Python* 
-```Python
-def  start(args):
-	print('algorithm: start')
-	input  = args['input']
-	array =  range(input);
-	return array
-```
-**Installling dependncies**
- During the contanier build, Hkube will search for the *requirment.txt* file and will try to install the packages from the pip package manager
+	```Python
+	def  start(args):
+		print('algorithm: range start')
+		input  = args['input'][0]
+		array =  range(input);
+		return array
+	```
 
-**Advanched Operations**
+*as you can see the start method calls with the args parameter, The inputs to the algorithm will appear in the ``input`` property, The ``input`` property is an array, so would like to take the first argument (``"input":["@flowInput.data"]`` as you can see we placed ``data`` as the first argument)*
 
 
+ - **Multiply** - for this algorithm we will use *Python*  again
+   ```Python
+	def  start(args):
+		print('algorithm: multiply start')
+		input  = args['input'][0];
+		mul  = args['input'][1];
+	    return input * mul
+	```
 
+ *Lets remember in the inputs that we write in the descriptor ,  `"input":["#@Add","@flowInput.mul"]`* . 
+ We sent two parameters, the first one is the ouput from *Add* that sent an array of numbers, but because we using *batch* sign (``#``) each multiply algorithm will get one item from the array, the second parameter we passing is  the *mul* parameter from the ``flowInput`` object.
 
+- **Aggreagate** - we will use javascript for this algorithm
+	
+   ```javascript
+   module.exports.start = (args)=>{
+	const input = args.input[0]
+	return input.reduce(accum, curValue) => accum + curValue
+	}
+	```
 
+*We placed``["@Multiply"]`` in the input parameter, HKube will collect all the data from the multply algorithm and will sent it as an array in the first input parameter*
+
+After we created the algortithms, all we have to do is to integrate them with hkube, for this tutorial we will use Hkube's CLI api but pretty much every operation can be done from Hkube's UI, 
  
+for doing it we need to create a yaml (or json) that defines the algorithms (we will demonstrate the first but its pretty much the same operation to all of them)
 
+```yaml
+name: range
+#env can be python or javascript 
+env: python
+# if gpu is not needed just remove it from the file
+resources:
+   cpu: 0.5
+#  gpu: 1
+   mem: 512Mi
+
+code:
+   path: /path-to-algorithm/range.tar.gz
+   entryPoint: main.py
+```
+To add it from the CLI we will use ``hkubectl algorithm apply --f algorithmName.yml`` (keep in mind we have to do it for all the algorithms)
+
+```yaml
+name: numbers
+nodes:
+- nodeName: Range
+  algorithmName: range-algorithm
+  input:
+  - "@flowInput.data"
+- nodeName: Multiply
+  algorithmName: multiply-algorithm
+  input:
+  - "#@Range"
+  - "@flowInput.mul" 
+- nodeName: Aggregate
+  algorithmName: aggregate-algorithm
+  input:
+  - "@Multiply"
+  flowInput:
+	  data:5
+	  mul:2
+```
+
+There are two method to integarate pipeline with hkube 
+ - **Raw** -  Ad-hoc pipeline running 
+ - **Stored** - storing the pipeline descriptor for next running 
+
+For running our pipleine as raw we will use ``hkubectl pipeline exec raw --f numbers.yml``
+
+To store the pipeline we will have to create two diffrent steps:
+	1. ``hkubectl pipeline store --f numbers.yml`` for storing the pipeline  
+	2. ``hkubectl pipeline exec stored numbers --f flowInput.yaml ``
+	
+```yaml 
+  flowInput:
+	  data:5
+	  mul:2
+```
+As a result of executing pipeline, Hkube will return a **jobId**.  
+This is a unique identifier which helps to query this specific pipeline execution.
+
+you can stop the pipeline like this.
+ `hkubectl exec stop <jobId> [reason]`
+
+You can also track the pipeline status
+ `hkubectl exec status <jobId>`
+
+or the pipeline result
+ `hkubectl exec result <jobId>`
 
