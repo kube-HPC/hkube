@@ -50,7 +50,7 @@ Hkube runs on top of kubernetes so in order  to run hkube we have to install it'
 
 # APIs
 
-  There are three ways for communicating with hkube, REST, CLI and Hkube's UI dashbaord ,
+  There are three ways for communicating with hkube, REST, CLI and Hkube's UI dashboard.
 
 ### REST
  Hkube exposes it's functionality with REST, It is a good place to say that the CLI and the UI using the REST api for all of te operations so you probably can do anything  from the REST api without using any other tool. 
@@ -183,7 +183,7 @@ There are two types of webhooks, *progress* and *result*. You can also fetch the
 -  progress - ``{jobId}/api/v1/exec/status``
 -  result -  ``{jobId}/api/v1/exec/results`` 
 
-**priority**  -  Hkube support five level of priorities, five is the highest . those priorities with the metrics that hkube gatherd helps to decide which algorithms should be run first .
+**priority**  -  Hkube support five level of priorities, five is the highest . those priorities with the metrics that hkube gathered helps to decide which algorithms should be run first .
 **triggers** - there two types of triggers that hkube currently support *cron* and *pipeline*
   - **cron** - Hkube can schedule your stored pipelines based on cron pattern.  
 see this [cron](https://crontab.guru/) editor in order to construct your cron.
@@ -304,9 +304,9 @@ To store the pipeline we will have to create two different steps:
 	2. ``hkubectl pipeline exec stored numbers --f flowInput.yaml``
 	
 ```yaml 
-   flowInput:
-     data: 5
-     mul: 2
+flowInput:
+  data: 5
+  mul: 2
 ```
 As a result of executing pipeline, Hkube will return a **jobId**.  
 This is a unique identifier which helps to query this specific pipeline execution.
