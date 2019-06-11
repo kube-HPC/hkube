@@ -65,7 +65,7 @@ Hkube runs on top of kubernetes so in order  to run hkube we have to install it'
 
 - **Download** 
 ```bash
-curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/v1.1.26/hkubectl && chmod +x hkubectl && sudo mv hkubectl /usr/local/bin/
+curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/v1.1.27/hkubectl && chmod +x hkubectl && sudo mv hkubectl /usr/local/bin/
 ```
 **Config**
 
@@ -296,11 +296,11 @@ There are two method to integrate pipeline with hkube
  - **Raw** -  Ad-hoc pipeline running 
  - **Stored** - storing the pipeline descriptor for next running 
 
-For running our pipeline as raw we will use ``hkubectl pipeline exec raw --f numbers.yml``
+For running our pipeline as raw we will use ``hkubectl exec raw --f numbers.yml``
 
 To store the pipeline we will have to create two different steps:
 	1. ``hkubectl pipeline store --f numbers.yml`` for storing the pipeline  
-	2. ``hkubectl pipeline exec stored numbers --f flowInput.yaml``
+	2. ``hkubectl exec stored numbers --f flowInput.yaml``
 	
 ```yaml 
 flowInput:
