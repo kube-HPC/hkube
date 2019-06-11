@@ -65,8 +65,7 @@ Hkube runs on top of kubernetes so in order  to run hkube we have to install it'
 
 - **Download** 
 ```bash
-curl -L https://github.com/kube-HPC/hkubectl/releases/download/v1.1.7/hkubectl.tgz | tar xvz
-sudo cp ./hkubectl /usr/local/bin
+curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/v1.1.26/hkubectl && chmod +x hkubectl && sudo mv hkubectl /usr/local/bin/
 ```
 **Config**
 
