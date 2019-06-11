@@ -25,9 +25,9 @@ Hkube is a cloud-native open source framework to run distributed pipeline of alg
 **Jupiter Integration** -  hkube has integration with jupiter so you able to scale  your running on top hkube via jupiter  
 
 
-# Inatallation
+# Installation
 
-## Prerquisite
+## Prerequisite
 
 Hkube runs on top of kubernetes so in order  to run hkube we have to install it's prerequisites
 
@@ -61,7 +61,7 @@ Hkube runs on top of kubernetes so in order  to run hkube we have to install it'
 ### CLI
 `hkubectl`  is a command-line tool that help you to work with hkube more easily.
 
-**inorder to use `hkubectl` you have to do the follows:**
+**in order to use `hkubectl` you have to do the follows:**
 
 - **Download** 
 ```bash
