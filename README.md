@@ -69,8 +69,8 @@ curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/v1.1.26
 ```
 **Config**
 
-`hkubectl`  config set endpoint <KUBERNETES-MASTER-IP>/hkube/api-server/  
-`hkubectl`  config set rejectUnauthorized false
+`hkubectl` config set endpoint <KUBERNETES-MASTER-IP> 
+`hkubectl` config set rejectUnauthorized false
 
 **Syntax**
 ``hkubectl [type] [command] [name]``
