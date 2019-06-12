@@ -1,9 +1,9 @@
 from configs import config
-from hkube_python_wrapper import Algorunner
+import algorunner
 
 def main():
     print("starting algorithm runner")
-    alg = Algorunner(config.Config)
+    alg = algorunner.Algorunner(config.Config)
     
     # data = {"input": [5]}
     # #data = {"input": [[2, 4, 3, 5, 1], 'asc']}
