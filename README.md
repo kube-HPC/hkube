@@ -1,10 +1,10 @@
-# ![BannerGithubSimulator](https://user-images.githubusercontent.com/27515937/59049270-4cffa000-8890-11e9-8281-4aa97b1ecca3.png)
+# ![HKube](https://user-images.githubusercontent.com/27515937/59049270-4cffa000-8890-11e9-8281-4aa97b1ecca3.png) <!-- omit in toc -->
 
 > HKube is a cloud-native open source framework to run **[distributed](https://en.wikipedia.org/wiki/Distributed_computing) pipeline of algorithms** built on [Kubernetes](https://kubernetes.io/).
 >
 > HKube optimally **utilizing** pipeline's resources, based on **user priorities** and **[heuristics](https://en.wikipedia.org/wiki/Heuristic)**.
 
-## Features
+## Features <!-- omit in toc -->
 
 - **Distributed pipeline of algorithms**
 
@@ -30,44 +30,71 @@
 
 - **Jupyter Integration** - Scale your tasks with [Jupyter](https://jupyter.org/).
 
+## User Guide <!-- omit in toc -->
+
+<!-- TOC -->
+
+- [Installation](#installation)
+  - [Dependencies](#dependencies)
+  - [Helm](#helm)
+- [APIs](#apis)
+  - [UI Dashboard](#ui-dashboard)
+  - [REST API](#rest-api)
+  - [CLI](#cli)
+- [API Usage Example](#api-usage-example)
+  - [The Problem](#the-problem)
+  - [Solution](#solution)
+  - [Building a pipeline](#building-a-pipeline)
+  - [Pipeline Descriptor](#pipeline-descriptor)
+    - [JSON](#json)
+      - [Node dependencies](#node-dependencies)
+        - [JSON Breakout](#json-breakout)
+      - [More JSON Options (For advanced use cases)](#more-json-options-for-advanced-use-cases)
+  - [Algorithm](#algorithm)
+    - [Seamless Integration](#seamless-integration)
+    - [Creating the algorithms](#creating-the-algorithms)
+      - [Range (Python)](#range-python)
+      - [Multiply (Python)](#multiply-python)
+      - [Reduce (Javascript)](#reduce-javascript)
+  - [Integrate Algorithms](#integrate-algorithms)
+  - [Integrate Pipeline](#integrate-pipeline)
+    - [Raw - Ad-hoc pipeline running](#raw---ad-hoc-pipeline-running)
+    - [Stored - Storing the pipeline descriptor for next running](#stored---storing-the-pipeline-descriptor-for-next-running)
+  - [Monitor Pipeline Results](#monitor-pipeline-results)
+
 ## Installation
 
-### Prerequisite
+### Dependencies
 
 HKube runs on top of Kubernetes so in order to run HKube we have to install it's prerequisites.
 
-1. **Kubernetes** - Install [Kubernetes](https://kubernetes.io/docs/user-journeys/users/application-developer/foundational/#section-1) or [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or [microk8s](https://microk8s.io/)
+- **Kubernetes** - Install [Kubernetes](https://kubernetes.io/docs/user-journeys/users/application-developer/foundational/#section-1) or [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/) or [microk8s](https://microk8s.io/).
 
-   > Make sure `kubectl` is configured to your cluster.
-   > For collecting algorithm logs, and to create builds, HKube requires that certain pods will run in privileged security permissions. Consult your kubernetes installation to see how to do that.
+- **Helm** - HKube installation uses [Helm](https://helm.sh/), follow the [installation guide](https://helm.sh/docs/using_helm/#installing-helm).
 
-2. **Helm** - HKube installation uses `helm`, follow the [installation guide](https://helm.sh/docs/using_helm/#installing-helm).
+### Helm
 
-### Install
-
-1. **Add HKube helm repository** - Add the [HKube helm repository](http://hkube.io/helm/) to your `helm`:
+1. Add the [HKube Helm repository](http://hkube.io/helm/) to `helm`:
 
    ```bash
-   helm repo add HKube http://hkube.io/helm/
+   helm repo add hkube http://hkube.io/helm/
    ```
 
-2. **Install HKube chart**
-
-   - Development - install the chart with release name:
+2. Install HKube chart
 
    ```console
-   helm install HKube/HKube --name my-release-name
+   helm install hkube/hkube --name my-release
    ```
 
-   - [Production deployment](http://hkube.io/learn/install/#production-deployment).
+> This command installs HKube in a minimal configuration for **development**. Check [production-deployment](http://hkube.io/learn/install/#production-deployment).
 
 ## APIs
 
 There are three ways to communicate with HKube: **Dashboard**, **REST API** and **CLI**.
 
-### Dashboard
+### UI Dashboard
 
-HKube has a rich [UI Dashboard](http://hkube.io/tech/dashboard/) which supports every functionality HKube has to offer and even more.
+[Dashboard](http://hkube.io/tech/dashboard/) is a web-based HKube user interface. Dashboard supports every functionality HKube has to offer.
 
 ![ui](https://user-images.githubusercontent.com/27515937/59031674-051b5180-886d-11e9-9806-ecce2e3ba8f0.png)
 
@@ -75,37 +102,44 @@ HKube has a rich [UI Dashboard](http://hkube.io/tech/dashboard/) which supports 
 
 HKube exposes it's functionality with REST API.
 
-- [HKube API Spec](http://hkube.io/spec/)
-- [Swagger-UI](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/kube-HPC/api-server/master/api/rest-api/swagger.json) - locally visit `{yourDomain}/hkube/api-server/swagger-ui`
+- [API Spec](http://hkube.io/spec/)
+- [Swagger-UI](http://petstore.swagger.io/?url=https://raw.githubusercontent.com/kube-HPC/api-server/master/api/rest-api/swagger.json) - locally `{yourDomain}/hkube/api-server/swagger-ui`
 
 ### CLI
 
-`hkubectl` is a command-line tool that helps you to work with HKube more easily.
-
-#### Syntax
+`hkubectl` is HKube command line tool.
 
 ```bash
 hkubectl [type] [command] [name]
+
+# More information
+hkubectl --help
 ```
 
-use `hkubectl --help` for more information
+Download `hkubectl` [latest version](https://github.com/kube-HPC/hkubectl/releases).
 
 ```bash
-# Download
-curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/v1.1.27/hkubectl \
+# Check release page for latest version
+latestVersion="v1.1.27"
+curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/${latest-version}/hkubectl \
 && chmod +x hkubectl \
 && sudo mv hkubectl /usr/local/bin/
+```
 
+Config `hkubectl` with your running Kubernetes.
+
+```bash
 # Config
-hkubectl config set endpoint ${KUBERNETES-MASTER-IP}/HKube/api-server/
+hkubectl config set endpoint ${KUBERNETES-MASTER-IP}
 
 hkubectl config set rejectUnauthorized false
 ```
 
-## API Usage Example
+> Make sure `kubectl` is configured to your cluster.
+>
+> HKube requires that certain pods will run in privileged security permissions, consult your Kubernetes installation to see how it's done.
 
-After we got familiar with HKube **features** and **APIs**
-lets create our first pipeline.
+## API Usage Example
 
 ### The Problem
 
@@ -122,15 +156,7 @@ For example: `N=3`, `k=5` will result:
 
 ### Solution
 
-We will solve **the problem** by running a distributed pipeline of three algorithms:
-
-1. Range
-2. Multiply
-3. Reduce
-
-We will **implement the algorithms** using various languages and **construct a pipeline** from them using **HKube**.
-
-#### Meet the Algorithms
+We will solve **the problem** by running a distributed pipeline of three algorithms: Range, Multiply and Reduce.
 
 1. **Range Algorithm:** Creates an array of length `N`.
 
@@ -152,13 +178,17 @@ We will **implement the algorithms** using various languages and **construct a p
    [2,4,6,8,10] -> 30
    ```
 
+### Building a pipeline
+
+We will **implement the algorithms** using various languages and **construct a pipeline** from them using **HKube**.
+
 ![PipelineExample](https://user-images.githubusercontent.com/27515937/59348861-e9a6bf80-8d20-11e9-8d7b-76efedeb669f.png)
 
-#### Pipeline Descriptor
+### Pipeline Descriptor
 
 HKube Supports two kinds of APIs for creating pipeline: **JSON** and **Code**.
 
-##### JSON
+#### JSON
 
 The **pipeline descriptor** is a **JSON object** which describes and defines the links between the **nodes** by defining the dependencies between them.
 
@@ -191,7 +221,7 @@ The **pipeline descriptor** is a **JSON object** which describes and defines the
 
 > Note the `flowInput`: data = N = 5, muk = k = 2
 
-###### Node dependencies
+##### Node dependencies
 
 HKube [allows special signs](http://hkube.io/learn/execution/#batch) in nodes `input` for defining the pipeline execution flow.
 
@@ -258,8 +288,8 @@ There are more features that can be defined from the descriptor file.
 
 ```JSON
  "webhooks": {
-      "progress": "[http://my-url-to-progress](http://my-url-to-progress/)",
-       "result": "[http://my-url-to-result](http://my-url-to-result/)"
+      "progress": "http://my-url-to-progress",
+       "result": "http://my-url-to-result"
      },
    "priority": 3,
    "triggers":
@@ -296,7 +326,7 @@ There are two types of webhooks, _progress_ and _result_. You can also fetch the
 - **TTL** - Time to live (TTL) limits the lifetime of pipeline in the cluster. stop will be sent if pipeline running for more than ttl (in seconds).
 - **Verbosity Level** - The Verbosity Level is a setting that allows to control what type of progress events the client will notified about. The severity levels are ascending from least important to most important: `trace` `debug` `info` `warn` `error` `critical`.
 
-#### Algorithm
+### Algorithm
 
 The pipeline is built from algorithms which containerized with docker.
 
@@ -305,7 +335,7 @@ There are two ways to integrate your algorithm into HKube:
 - **Seamless Integration** - As written above HKube can build automatically your docker with the HKube's websocket wrapper.
 - **Code writing** - In order to add algorithm manually to HKube you need to wrap your algorithm with HKube. HKube already has a wrappers for `python`,`javaScript`, `java` and `.NET core`.
 
-##### Seamless Integration
+#### Seamless Integration
 
 Now lets create the algorithms to solve [the problem](#the-problem), HKube currently support two languages for auto build _Python_ and _JavaScript_.
 
@@ -316,15 +346,15 @@ Now lets create the algorithms to solve [the problem](#the-problem), HKube curre
 > - **Advanced Operations**
 >   HKube can build the algorithm only by implementing start function but for advanced operation such as one time initiation and gracefully stopping you have to implement two other functions `init` and `stop`.
 
-##### Creating the [algorithms](#meet-the-algorithms)
+#### Creating the [algorithms](#meet-the-algorithms)
 
-- **Range** - For the `range` algorithm we will use _Python_.
+##### Range (Python)
 
 ```Python
-def  start(args):
+def start(args):
     print('algorithm: range start')
-    input  = args['input'][0]
-    array =  range(input);
+    input = args['input'][0]
+    array = list(range(input))
     return array
 ```
 
@@ -332,38 +362,37 @@ The start method calls with the args parameter, the inputs to the algorithm will
 
 The `input` property is an array, so you would like to take the first argument (`"input":["@flowInput.data"]` as you can see we placed `data` as the first argument)
 
-- **Multiply** - For the `multiply` algorithm we will use _Python_:
+##### Multiply (Python)
 
 ```Python
-def  start(args):
+def start(args):
     print('algorithm: multiply start')
-    input  = args['input'][0];
-    mul  = args['input'][1];
+    input = args['input'][0]
+    mul = args['input'][1]
     return input * mul
 ```
 
-Lets remind the inputs that we write in the descriptor:
+We sent two parameters `"input":["#@Range","@flowInput.mul"]`, the first one is the output from `Range` that sent an array of numbers, but because we using **batch** sign **(#)** each multiply algorithm will get one item from the array, the second parameter we passing is the `mul` parameter from the `flowInput` object.
 
-```JSON
- "input":["#@Range","@flowInput.mul"]
-```
-
-We sent two parameters, the first one is the output from `Range` that sent an array of numbers, but because we using **batch** sign **(#)** each multiply algorithm will get one item from the array, the second parameter we passing is the `mul` parameter from the `flowInput` object.
-
-- **Aggregate** - For the `aggregate` algorithm we will use _Javascript_:
+##### Reduce (Javascript)
 
 ```javascript
-module.exports.start = (args) => {
-    const input = args.input[0];
-    return input.reduce(acc, curr) => acc + curr;
-}
+module.exports.start = args => {
+  console.log('algorithm: reduce start');
+  const input = args.input[0];
+  return input.reduce((acc, cur) => acc + cur);
+};
 ```
 
 We placed `["@Multiply"]` in the input parameter, HKube will collect all the data from the multiply algorithm and will sent it as an array in the first input parameter.
 
-After we created the algorithms, all we have to do is to integrate them with HKube, for this tutorial we will use HKube's CLI api but pretty much every operation can be done from HKube's [Dashboard](http://hkube.io/tech/dashboard/).
+### Integrate Algorithms
 
-For doing it we need to create a `yaml` (or `JSON`) that defines the algorithms (we will demonstrate the first but its pretty much the same operation to all of them).
+After we created the [algorithms](#meet-the-algorithms), we will integrate them with the [CLI](#cli).
+
+> Can be done also through the [Dashboard](#dashboard)
+
+Create a `yaml` (or `JSON`) that defines the **algorithm**:
 
 ```yaml
 # range.yml
@@ -379,15 +408,19 @@ code:
   entryPoint: main.py
 ```
 
-To add it from the CLI we will use:
+Add it with the [CLI](#cli):
 
 ```console
 hkubectl algorithm apply --f range.yml
 ```
 
-> Keep in mind we have to do it for all the algorithms.
+> Keep in mind we have to do it **for each one of the algorithms**.
 
-```yaml
+### Integrate Pipeline
+
+Create a `yaml` (or `JSON`) that defines the **pipeline**:
+
+```yml
 # number.yml
 name: numbers
 nodes:
@@ -409,39 +442,62 @@ flowInput:
   mul: 2
 ```
 
-There are two methods to integrate pipeline with HKube:
+#### Raw - Ad-hoc pipeline running
 
-- **Raw** - Ad-hoc pipeline running.
-- **Stored** - Storing the pipeline descriptor for next running.
-
-For running our pipeline as raw we will use:
+For running our pipeline as raw-data:
 
 ```bash
-hkubectl pipeline exec raw --f numbers.yml
+hkubectl exec raw --f numbers.yml
 ```
 
-To store the pipeline we will have to create two different steps:
+#### Stored - Storing the pipeline descriptor for next running
 
-1. For storing the pipeline:
+First we store the pipeline:
 
-   ```bash
-   hkubectl pipeline store --f numbers.yml
-   ```
+```bash
+hkubectl pipeline store --f numbers.yml
+```
 
-2. For executed the pipeline:
+Then you can execute it (if `flowInput` available)
 
-   ```bash
-   hkubectl pipeline exec stored numbers --f flowInput.yaml
-   ```
+```bash
+# flowInput stored
+hkubectl exec stored numbers
+```
+
+For executing the pipeline with other input, create `yaml` (or `JSON`) file with `flowInput` key:
+
+```yml
+# otherFlowInput.yml
+flowInput:
+  data: 500
+  mul: 200
+```
+
+Then you can executed it by pipeline `name`:
+
+```bash
+# Executes pipeline "numbers" with data=500, mul=200
+hkubectl exec stored numbers --f otherFlowInput.yml
+```
+
+### Monitor Pipeline Results
 
 As a result of executing pipeline, HKube will return a `jobId`.
-This is a unique identifier which helps to query this specific pipeline execution.
 
-- You can stop the pipeline:
+```bash
+# Job ID returned after execution.
+result:
+  jobId: numbers:a56c97cb-5d62-4990-817c-04a8b0448b7c.numbers
+```
+
+This is a unique identifier helps to **query** this **specific pipeline execution**.
+
+- **Stop** pipeline execution:
   `hkubectl exec stop <jobId> [reason]`
 
-- You can track the pipeline status:
+- **Track** pipeline status:
   `hkubectl exec status <jobId>`
 
-- You can track the result:
+- **Track** pipeline result:
   `hkubectl exec result <jobId>`
