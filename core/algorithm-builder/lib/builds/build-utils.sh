@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 dockerLogin() {
   if [[ ${DOCKER_REGISTRY_PASS} != "" ]]; then 
     echo "Found docker password, docker login...."

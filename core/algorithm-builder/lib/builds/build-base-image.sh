@@ -4,8 +4,37 @@
 
 source $PWD/lib/builds/build-utils.sh
 
-ENV=$1
-VER=$2
+usage(){
+    echo "usage: sysinfo_page [[[-e env ] [-i]] | [-h]]"
+}
+
+while [[ $# -gt 0 ]]
+do
+key="$1"
+
+case $key in
+    -e|--env)
+    ENV="$2"
+    shift
+    shift
+    ;;
+    -v|--ver)
+    VER="$2"
+    shift
+    shift
+    ;;
+    -h|--help)
+    usage
+    exit 1
+    ;;
+    *)
+    usage
+    exit 1
+esac
+done
+
+echo ENV = "${ENV}"
+echo VER = "${VER}"
 
 NPM_VERSION=${npm_package_version}
 VERSION="${VER:=${NPM_VERSION}}"

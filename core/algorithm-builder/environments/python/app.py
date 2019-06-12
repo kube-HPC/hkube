@@ -1,6 +1,5 @@
 from configs import config
 from hkube_python_wrapper import Algorunner
-import time
 
 def main():
     print("starting algorithm runner")
