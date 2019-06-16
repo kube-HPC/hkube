@@ -5,7 +5,7 @@
 source $PWD/lib/builds/build-utils.sh
 
 usage(){
-    echo "usage: sysinfo_page [[[-e env ] [-i]] | [-h]]"
+    echo "usage: [-e --env ] | [-v --ver] | -h --help]"
 }
 
 while [[ $# -gt 0 ]]
@@ -33,13 +33,11 @@ case $key in
 esac
 done
 
-echo ENV = "${ENV}"
-echo VER = "${VER}"
-
 NPM_VERSION=${npm_package_version}
 VERSION="${VER:=${NPM_VERSION}}"
 BUILD_PATH="environments/${ENV}"
 IMAGE_NAME="hkube/base-algorithm-${ENV}:v${VERSION}"
+DOCKER_FILE="Dockerfile"
 
 if [ -z ${ENV} ]; then
   echo "Please choose env (python, nodejs, go)"
@@ -52,12 +50,12 @@ echo BUILD_PATH=${BUILD_PATH}
 
 echo
 
-dockerLogin
+dockerLogin ${DOCKER_PULL_USER} ${DOCKER_PULL_PASS}
 
 echo
 
-dockerBuild
+dockerBuild ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE}
 
-docker push ${IMAGE_NAME}
+dockerPush ${IMAGE_NAME}
 
-# docker rmi ${IMAGE_NAME}
+removeImage ${IMAGE_NAME}

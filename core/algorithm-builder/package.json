@@ -11,7 +11,8 @@
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
     "build": "./dockerfile/build.sh algorithm-builder",
-    "build-env": "./lib/builds/build-base-image.sh",
+    "build-env-python": "./lib/builds/build-base-image.sh --env python",
+    "build-env-nodejs": "./lib/builds/build-base-image.sh --env nodejs",
     "build-algorithm": "./lib/builds/build-algorithm-image.sh"
   },
   "pre-commit": {
@@ -29,7 +30,8 @@
     "fs-extra": "^8.0.1",
     "lodash.merge": "^4.6.1",
     "moment": "^2.24.0",
-    "targz": "^1.0.1"
+    "targz": "^1.0.1",
+    "yargs": "^13.2.4"
   },
   "devDependencies": {
     "chai": "^4.2.0",
