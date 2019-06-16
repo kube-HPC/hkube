@@ -28,7 +28,7 @@
   - Debug a **part of a pipeline** based on previous results.
   - Debug a **single algorithm** on your IDE, while the rest of the algorithms running in the cluster.
 
-- **Jupyter Integration** - Scale your tasks with [Jupyter](https://jupyter.org/).
+- **Jupyter Integration** - Scale your jupyter running tasks [Jupyter](https://jupyter.org/) with hkube.
 
 ## User Guide <!-- omit in toc -->
 
