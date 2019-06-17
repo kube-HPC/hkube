@@ -1,7 +1,5 @@
 const config = module.exports = {};
 
-config.adapter = process.env.WORKER_ALGORITHM_PROTOCOL || 'ws';
-
 config.socket = {
     port: process.env.WORKER_SOCKET_PORT || 3000,
     host: process.env.WORKER_SOCKET_HOST || 'localhost',
@@ -10,6 +8,6 @@ config.socket = {
 };
 
 config.algorithm = {
-    path: '../algorithm_unique_folder',
-    entryPoint: process.env.ALGORITHM_ENTRY_POINT || ''
+    path: 'algorithm_unique_folder',
+    entryPoint: process.env.ALGORITHM_ENTRY_POINT || 'index.js'
 };
