@@ -1,4 +1,4 @@
-const jobTemplate = {
+const workerTemplate = {
     apiVersion: 'batch/v1',
     kind: 'Job',
     metadata: {
@@ -104,17 +104,6 @@ const jobTemplate = {
                                 }
                             },
                         ],
-                        volumeMounts: [
-                            {
-                                name: 'varlog',
-                                mountPath: '/var/log'
-                            },
-                            {
-                                name: 'varlibdockercontainers',
-                                mountPath: '/var/lib/docker/containers',
-                                readOnly: true
-                            }
-                        ],
                         securityContext: {
                             privileged: true
                         }
@@ -124,20 +113,6 @@ const jobTemplate = {
                         image: 'hkube/algorunner:latest'
                     }
                 ],
-                volumes: [
-                    {
-                        name: 'varlog',
-                        hostPath: {
-                            path: '/var/log'
-                        }
-                    },
-                    {
-                        name: 'varlibdockercontainers',
-                        hostPath: {
-                            path: '/var/lib/docker/containers'
-                        }
-                    }
-                ],
                 restartPolicy: 'Never'
             }
         },
@@ -145,4 +120,35 @@ const jobTemplate = {
     }
 };
 
-module.exports = jobTemplate;
+const logVolumes = [
+    {
+        name: 'varlog',
+        hostPath: {
+            path: '/var/log'
+        }
+    },
+    {
+        name: 'varlibdockercontainers',
+        hostPath: {
+            path: '/var/lib/docker/containers'
+        }
+    }
+];
+
+const logVolumeMounts = [
+    {
+        name: 'varlog',
+        mountPath: '/var/log'
+    },
+    {
+        name: 'varlibdockercontainers',
+        mountPath: '/var/lib/docker/containers',
+        readOnly: true
+    }
+];
+
+module.exports = {
+    workerTemplate,
+    logVolumes,
+    logVolumeMounts
+};

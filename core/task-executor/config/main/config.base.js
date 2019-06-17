@@ -10,7 +10,9 @@ config.createdJobsTTL = process.env.CREATED_JOBS_TTL || 15 * 1000;
 
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
-    namespace: process.env.NAMESPACE || 'default'
+    namespace: process.env.NAMESPACE || 'default',
+    isNamespaced: process.env.IS_NAMESPACED === 'true',
+    noPrivileged: process.env.NO_PRIVILEGED === 'true',
 };
 
 config.etcd = {
