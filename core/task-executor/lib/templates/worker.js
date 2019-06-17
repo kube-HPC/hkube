@@ -104,9 +104,6 @@ const workerTemplate = {
                                 }
                             },
                         ],
-                        securityContext: {
-                            privileged: true
-                        }
                     },
                     {
                         name: 'algorunner',

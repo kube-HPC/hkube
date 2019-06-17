@@ -35,3 +35,11 @@ config.metrics = {
         port: process.env.METRICS_PORT
     }
 };
+
+
+config.resources = {
+    worker: {
+        mem: parseFloat(process.env.WORKER_MEMORY) || 256,
+        cpu: parseFloat(process.env.WORKER_CPU) || 0.1
+    }
+}

@@ -82,7 +82,8 @@ describe('jobCreator', () => {
                 algorithmName: 'myalgo1',
                 workerImage: 'workerImage2',
                 options,
-                resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } }
+                resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } },
+                workerResourceRequests: { requests: { cpu: '100m' }, limits: { cpu: '200m', memory: '100Mi' } }
             });
             expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'workerImage2' });
             expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'myImage1' });
@@ -90,6 +91,7 @@ describe('jobCreator', () => {
             expect(res.metadata.name).to.include('myalgo1-');
             expect(res.spec.template.spec.containers[1].resources).to.deep.include({ requests: { cpu: '200m' } });
             expect(res.spec.template.spec.containers[1].resources).to.deep.include({ limits: { cpu: '500m', memory: '200M' } });
+            expect(res.spec.template.spec.containers[0].resources).to.deep.include({ limits: { cpu: '200m', memory: '100Mi' } });
         });
     });
 });

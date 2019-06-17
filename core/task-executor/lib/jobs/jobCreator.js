@@ -12,6 +12,10 @@ const applyAlgorithmResourceRequests = (inputSpec, resourceRequests) => {
     return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.ALGORITHM);
 };
 
+const applyWorkerResourceRequests = (inputSpec, workerResourceRequests) => {
+    return applyResourceRequests(inputSpec, workerResourceRequests, CONTAINERS.WORKER);
+};
+
 const applyPipelineDriverResourceRequests = (inputSpec, resourceRequests) => {
     return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.PIPELINE_DRIVER);
 };
@@ -66,7 +70,7 @@ const applyPrivileged = (inputSpec, options) => {
         return spec;
     }
     const container = findContainer(spec, CONTAINERS.WORKER);
-    objectPath.set(spec.spec.template.spec, 'securityContext.privileged', true);
+    objectPath.set(container, 'securityContext.privileged', true);
     if (!container.volumeMounts) {
         container.volumeMounts = [];
     }
@@ -80,7 +84,7 @@ const applyPrivileged = (inputSpec, options) => {
     return spec;
 };
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -99,6 +103,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyWorkerImage(spec, workerImage);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
+    spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     spec = applyNodeSelector(spec, nodeSelector, clusterOptions);
     spec = applyHotWorker(spec, hotWorker);
     spec = applyEntryPoint(spec, entryPoint);
@@ -134,6 +139,7 @@ module.exports = {
     applyPipelineDriverImage,
     applyAlgorithmName,
     applyAlgorithmResourceRequests,
+    applyWorkerResourceRequests,
     applyHotWorker,
     applyEnvToContainerFromSecretOrConfigMap,
 };

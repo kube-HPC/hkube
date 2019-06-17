@@ -429,7 +429,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(logVolumeMounts[1]);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[0]);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[1]);
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.securityContext.privileged).to.be.true;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
         })
         it('should not add Privileged flag if configured', async () => {
             const algorithm = 'green-alg';
@@ -470,7 +470,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(logVolumes[0]);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(logVolumes[1]);
 
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.securityContext).to.not.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext).to.not.exist;
         })
         it('should add env param, volume, volumeMount if fs is defaultStorage', async () => {
             const algorithm = 'green-alg';
@@ -548,6 +548,43 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include(awsAccessKeyId);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include(awsSecretAccessKey);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include(s3EndpointUrl);
+        });
+
+        it('should add worker resources', async () => {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+            };
+
+            const testOptions = { ...options, defaultStorage: 's3' };
+
+            const res = await reconciler.reconcile({
+                options: testOptions,
+                workerResources: testOptions.resources.worker,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
+            .to.deep.include({ limits: { cpu: 0.2, memory: '512Mi' } });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
+            .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
         });
     });
     describe('reconcile drivers tests', () => {
