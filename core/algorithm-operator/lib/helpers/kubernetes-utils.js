@@ -6,6 +6,12 @@ const applyImage = (inputSpec, containerName, versions, registry) => {
     return spec;
 };
 
+const createContainerResourceByFactor = ({ cpu, memory } = {}, factor = 1) => {
+    const cpuFactored = (cpu || 0.1) * factor;
+    const memoryFactored = `${(memory || 4) * factor}Mi`;
+    return { cpu: cpuFactored, memory: memoryFactored };
+};
 module.exports = {
-    applyImage
+    applyImage,
+    createContainerResourceByFactor
 };

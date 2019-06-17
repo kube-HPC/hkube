@@ -1,11 +1,12 @@
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const decamelize = require('decamelize');
-const { applyEnvToContainer } = require('@hkube/kubernetes-client').utils;
+const { applyEnvToContainer, applyResourceRequests } = require('@hkube/kubernetes-client').utils;
 const { applyImage } = require('../helpers/kubernetes-utils');
 const component = require('../consts/componentNames').K8S;
 const { algorithmQueueTemplate } = require('../templates/algorithm-queue');
 const { isValidDeploymentName } = require('../helpers/images');
+const { createContainerResourceByFactor } = require('../helpers/kubernetes-utils');
 const CONTAINERS = require('../consts/containers');
 
 const applyAlgorithmName = (inputSpec, algorithmName, containerName) => {
@@ -22,6 +23,7 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
+
 const applyName = (inputSpec, algorithmName, containerName) => {
     const spec = clonedeep(inputSpec);
     const validName = decamelize(algorithmName, '-');
@@ -35,7 +37,15 @@ const applyName = (inputSpec, algorithmName, containerName) => {
     return spec;
 };
 
-const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOptions }) => {
+const applyResources = (inputSpec, resources) => {
+    let spec = clonedeep(inputSpec);
+    const requests = createContainerResourceByFactor(resources, 1);
+    const limits = createContainerResourceByFactor(resources, 2);
+    spec = applyResourceRequests(spec, { requests, limits }, CONTAINERS.ALGORITHM_QUEUE);
+    return spec;
+}
+
+const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOptions, resources }) => {
     if (!algorithmName) {
         const msg = 'Unable to create deployment spec. algorithmName is required';
         log.error(msg, { component });
@@ -46,6 +56,7 @@ const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOption
     spec = applyAlgorithmName(spec, algorithmName, CONTAINERS.ALGORITHM_QUEUE);
     spec = applyImage(spec, CONTAINERS.ALGORITHM_QUEUE, versions, registry);
     spec = applyNodeSelector(spec, clusterOptions);
+    spec = applyResources(spec, resources);
     return spec;
 };
 

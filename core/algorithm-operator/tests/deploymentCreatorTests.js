@@ -51,4 +51,16 @@ describe('deploymentCreator', () => {
         expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myAlgoStam' });
     });
 
+    it('should apply resources', () => {
+        const resources = {
+            memory: 256,
+            cpu: 0.2
+        }
+        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam', resources });
+        expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.limits.memory': '512Mi' });
+        expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.limits.cpu': 0.4 });
+        expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.requests.memory': '256Mi' });
+        expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.requests.cpu': 0.2 });
+    });
+
 });
