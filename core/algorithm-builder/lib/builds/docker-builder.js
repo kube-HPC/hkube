@@ -130,12 +130,34 @@ const _removeFolder = async ({ folder }) => {
     }
 };
 
-const _buildDocker = async ({ docker, algorithmName, version, buildPath }) => {
-    const baseImage = path.join(docker.registry, docker.namespace, algorithmName);
+const _buildDocker = async ({ docker, algorithmName, version, buildPath, rmi }) => {
+    const pullRegistry = _fixUrl(docker.pull.registry);
+    const pushRegistry = _fixUrl(docker.push.registry);
+
+    const baseImage = path.join(pushRegistry, docker.push.namespace, algorithmName);
     const algorithmImage = `${baseImage}:v${version}`;
-    const args = [algorithmImage, docker.registry, docker.user, docker.pass, buildPath];
+
+    const args = [
+        "--img", algorithmImage,
+        "--rmi", rmi,
+        "--buildpath", buildPath,
+
+        // docker pull
+        "--dplr", pullRegistry,
+        "--dplu", docker.pull.user,
+        "--dplp", docker.pull.pass,
+
+        // docker push
+        "--dphr", pushRegistry,
+        "--dphu", docker.push.user,
+        "--dphp", docker.push.pass
+    ];
     const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
     return { output, algorithmImage };
+};
+
+const _fixUrl = (url) => {
+    return url.replace(/\/+$/, "");
 };
 
 const _isWarning = (error) => {
@@ -191,7 +213,7 @@ const runBuild = async (options) => {
         await _downloadFile({ buildId, src, dest, fileExt, overwrite });
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress: 50, status: States.ACTIVE });
-        result = await _buildDocker({ docker, algorithmName, version, buildPath });
+        result = await _buildDocker({ docker, algorithmName, version, buildPath, rmi: "True" });
     }
     catch (e) {
         error = e.message;
@@ -210,3 +232,4 @@ const runBuild = async (options) => {
 };
 
 module.exports = runBuild;
+module.exports.buildDocker = _buildDocker;

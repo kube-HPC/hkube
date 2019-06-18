@@ -64,20 +64,74 @@ const jobTemplate = {
                                 }
                             },
                             {
-                                name: 'DOCKER_REGISTRY_USER',
+                                name: 'DOCKER_PULL_REGISTRY',
                                 valueFrom: {
                                     secretKeyRef: {
                                         name: 'docker-credentials-secret',
-                                        key: 'username'
+                                        key: 'pull-registry'
                                     }
                                 }
                             },
                             {
-                                name: 'DOCKER_REGISTRY_PASS',
+                                name: 'DOCKER_PULL_NAMESPACE',
                                 valueFrom: {
                                     secretKeyRef: {
                                         name: 'docker-credentials-secret',
-                                        key: 'password'
+                                        key: 'pull-namespace'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DOCKER_PULL_USER',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'docker-credentials-secret',
+                                        key: 'pull-username'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DOCKER_PULL_PASS',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'docker-credentials-secret',
+                                        key: 'pull-password'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DOCKER_PUSH_REGISTRY',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'docker-credentials-secret',
+                                        key: 'push-registry'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DOCKER_PUSH_NAMESPACE',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'docker-credentials-secret',
+                                        key: 'push-namespace'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DOCKER_PUSH_USER',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'docker-credentials-secret',
+                                        key: 'push-username'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DOCKER_PUSH_PASS',
+                                valueFrom: {
+                                    secretKeyRef: {
+                                        name: 'docker-credentials-secret',
+                                        key: 'push-password'
                                     }
                                 }
                             }

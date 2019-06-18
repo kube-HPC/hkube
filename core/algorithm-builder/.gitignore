@@ -3,7 +3,9 @@
 uploads
 /builds
 algorithm_unique_folder/
+__DockerFile__
 /node_modules
+node_modules
 /jspm_packages
 
 # Python
