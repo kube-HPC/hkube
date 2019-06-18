@@ -82,7 +82,7 @@ const jobTemplate = {
                                 }
                             },
                             {
-                                name: 'DOCKER_PULL_USER',
+                                name: 'DOCKER_PULL_USERNAME',
                                 valueFrom: {
                                     secretKeyRef: {
                                         name: 'docker-credentials-secret',
@@ -91,7 +91,7 @@ const jobTemplate = {
                                 }
                             },
                             {
-                                name: 'DOCKER_PULL_PASS',
+                                name: 'DOCKER_PULL_PASSWORD',
                                 valueFrom: {
                                     secretKeyRef: {
                                         name: 'docker-credentials-secret',
@@ -118,7 +118,7 @@ const jobTemplate = {
                                 }
                             },
                             {
-                                name: 'DOCKER_PUSH_USER',
+                                name: 'DOCKER_PUSH_USERNAME',
                                 valueFrom: {
                                     secretKeyRef: {
                                         name: 'docker-credentials-secret',
@@ -127,7 +127,7 @@ const jobTemplate = {
                                 }
                             },
                             {
-                                name: 'DOCKER_PUSH_PASS',
+                                name: 'DOCKER_PUSH_PASSWORD',
                                 valueFrom: {
                                     secretKeyRef: {
                                         name: 'docker-credentials-secret',
