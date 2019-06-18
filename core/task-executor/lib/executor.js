@@ -44,7 +44,7 @@ class Executor {
             const { pods } = resources;
             const normResources = normalizeResources(resources);
             const data = {
-                versions, normResources, options, registry, clusterOptions, pods, workerResource: options.resources.worker
+                versions, normResources, options, registry, clusterOptions, pods, workerResources: options.resources.worker
             };
 
             await Promise.all([
@@ -68,7 +68,7 @@ class Executor {
         };
     }
 
-    async _algorithmsHandle({ versions, normResources, registry, options, clusterOptions, pods, workerResource }) {
+    async _algorithmsHandle({ versions, normResources, registry, options, clusterOptions, pods, workerResources }) {
         const [algorithmTemplates, algorithmRequests, workers, jobs] = await Promise.all([
             etcd.getAlgorithmTemplate(),
             etcd.getAlgorithmRequests({}),
@@ -77,7 +77,7 @@ class Executor {
         ]);
 
         const reconcilerResults = await reconciler.reconcile({
-            algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResource
+            algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
