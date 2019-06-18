@@ -131,10 +131,10 @@ const _removeFolder = async ({ folder }) => {
 };
 
 const _buildDocker = async ({ docker, algorithmName, version, buildPath, rmi }) => {
-    const pullRegistry = _fixUrl(docker.pull.registry);
-    const pushRegistry = _fixUrl(docker.push.registry);
+    const pullRegistry = _createURL(docker.pull);
+    const pushRegistry = _createURL(docker.push);
 
-    const baseImage = path.join(pushRegistry, docker.push.namespace, algorithmName);
+    const baseImage = path.join(pushRegistry, algorithmName);
     const algorithmImage = `${baseImage}:v${version}`;
 
     const args = [
@@ -154,6 +154,11 @@ const _buildDocker = async ({ docker, algorithmName, version, buildPath, rmi }) 
     ];
     const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
     return { output, algorithmImage };
+};
+
+
+const _createURL = (options) => {
+    return path.join(_fixUrl(options.registry), options.namespace);
 };
 
 const _fixUrl = (url) => {
