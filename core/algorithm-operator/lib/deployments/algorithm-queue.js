@@ -43,7 +43,7 @@ const applyResources = (inputSpec, resources) => {
     const limits = createContainerResourceByFactor(resources, 2);
     spec = applyResourceRequests(spec, { requests, limits }, CONTAINERS.ALGORITHM_QUEUE);
     return spec;
-}
+};
 
 const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOptions, resources }) => {
     if (!algorithmName) {
