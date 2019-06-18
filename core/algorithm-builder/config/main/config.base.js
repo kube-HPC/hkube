@@ -9,10 +9,18 @@ config.version = packageJson.version;
 config.buildId = process.env.BUILD_ID;
 
 config.docker = {
-    registry: process.env.DOCKER_REGISTRY || '',
-    namespace: process.env.DOCKER_NAMESPACE || 'hkube',
-    user: process.env.DOCKER_REGISTRY_USER || '',
-    pass: process.env.DOCKER_REGISTRY_PASS || ''
+    pull: {
+        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io/hkube',
+        namespace: process.env.DOCKER_PULL_NAMESPACE || '',
+        user: process.env.DOCKER_PULL_USERNAME || '',
+        pass: process.env.DOCKER_PULL_PASSWORD || ''
+    },
+    push: {
+        registry: process.env.DOCKER_PUSH_REGISTRY || 'docker.io/hkubedev',
+        namespace: process.env.DOCKER_PUSH_NAMESPACE || '',
+        user: process.env.DOCKER_PUSH_USERNAME || '',
+        pass: process.env.DOCKER_PUSH_PASSWORD || ''
+    }
 };
 
 config.buildDirs = {

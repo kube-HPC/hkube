@@ -1,2 +1,1 @@
-Events==0.3
-websocket-client==0.54.0
+hkube-python-wrapper==0.1.8
