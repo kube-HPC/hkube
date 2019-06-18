@@ -28,7 +28,7 @@
   - Debug a **part of a pipeline** based on previous results.
   - Debug a **single algorithm** on your IDE, while the rest of the algorithms running in the cluster.
 
-- **Jupyter Integration** - Scale your tasks with [Jupyter](https://jupyter.org/).
+- **Jupyter Integration** - Scale your jupyter running tasks [Jupyter](https://jupyter.org/) with hkube.
 
 ## User Guide <!-- omit in toc -->
 
@@ -44,15 +44,16 @@
 - [API Usage Example](#api-usage-example)
   - [The Problem](#the-problem)
   - [Solution](#solution)
-  - [Building a pipeline](#building-a-pipeline)
-  - [Pipeline Descriptor](#pipeline-descriptor)
-    - [JSON](#json)
-      - [Node dependencies](#node-dependencies)
-        - [JSON Breakout](#json-breakout)
-      - [More JSON Options (For advanced use cases)](#more-json-options-for-advanced-use-cases)
+    - [Range Algorithm](#range-algorithm)
+    - [Multiply Algorithm](#multiply-algorithm)
+    - [Reduce Algorithm](#reduce-algorithm)
+  - [Building a Pipeline](#building-a-pipeline)
+    - [Pipeline Descriptor](#pipeline-descriptor)
+    - [Node dependencies](#node-dependencies)
+    - [JSON Breakdown](#json-breakdown)
+    - [Advance Options](#advance-options)
   - [Algorithm](#algorithm)
-    - [Seamless Integration](#seamless-integration)
-    - [Creating the algorithms](#creating-the-algorithms)
+    - [Implementing the Algorithms](#implementing-the-algorithms)
       - [Range (Python)](#range-python)
       - [Multiply (Python)](#multiply-python)
       - [Reduce (Javascript)](#reduce-javascript)
@@ -146,49 +147,47 @@ hkubectl config set rejectUnauthorized false
 We want to solve the next problem with given input and a desired output:
 
 - _Input:_ Two numbers `N`, `k`.
-- _Desired Output:_ A number `M` so:
+- _Desired Output:_ A number `M` so: <div style="text-align:center"><img src="https://latex.codecogs.com/svg.latex?M&space;=&space;\sum_{i=1}^N&space;k\cdot&space;i" title="M = \sum_{i=1}^N k\cdot i" /></div>
 
-<div style="text-align:center"><img src="https://latex.codecogs.com/svg.latex?M&space;=&space;\sum_{i=1}^N&space;k\cdot&space;i" title="M = \sum_{i=1}^N k\cdot i" /></div>
-
-For example: `N=3`, `k=5` will result:
-
-<div style="text-align:center"><img src="https://latex.codecogs.com/svg.latex?2\cdot1&plus;2\cdot&space;2&space;&plus;&space;2\cdot&space;3&space;&plus;&space;2\cdot&space;4&space;&plus;&space;2\cdot&space;5&space;=&space;2&space;&plus;&space;4&space;&plus;6&plus;8&plus;10&space;=&space;30&space;=&space;M" title="2\cdot1+2\cdot 2 + 2\cdot 3 + 2\cdot 4 + 2\cdot 5 = 2 + 4 +6+8+10 = 30 = M" /></div>
+For example: `N=3`, `k=5` will result: <div style="text-align:center"><img src="https://latex.codecogs.com/svg.latex?2\cdot1&plus;2\cdot&space;2&space;&plus;&space;2\cdot&space;3&space;&plus;&space;2\cdot&space;4&space;&plus;&space;2\cdot&space;5&space;=&space;2&space;&plus;&space;4&space;&plus;6&plus;8&plus;10&space;=&space;30&space;=&space;M" title="2\cdot1+2\cdot 2 + 2\cdot 3 + 2\cdot 4 + 2\cdot 5 = 2 + 4 +6+8+10 = 30 = M" /></div>
 
 ### Solution
 
 We will solve **the problem** by running a distributed pipeline of three algorithms: Range, Multiply and Reduce.
 
-1. **Range Algorithm:** Creates an array of length `N`.
+#### Range Algorithm
 
-   ```console
-    N = 5
-    5 -> [1,2,3,4,5]
-   ```
+Creates an array of length `N`.
 
-2. **Multiply Algorithm:** Multiples the received data from `Range Algorithm` by `k`.
+```console
+ N = 5
+ 5 -> [1,2,3,4,5]
+```
 
-   ```console
-   k = 2
-   [1,2,3,4,5] * (2) -> [2,4,6,8,10]
-   ```
+#### Multiply Algorithm
 
-3. **Reduce Algorithm**: The algorithm will wait until all the instances of the `Multiply Algorithm` will finish then it will summarize the received data together .
+Multiples the received data from `Range Algorithm` by `k`.
 
-   ```console
-   [2,4,6,8,10] -> 30
-   ```
+```console
+k = 2
+[1,2,3,4,5] * (2) -> [2,4,6,8,10]
+```
 
-### Building a pipeline
+#### Reduce Algorithm
+
+The algorithm will wait until all the instances of the `Multiply Algorithm` will finish then it will summarize the received data together .
+
+```console
+[2,4,6,8,10] -> 30
+```
+
+### Building a Pipeline
 
 We will **implement the algorithms** using various languages and **construct a pipeline** from them using **HKube**.
 
 ![PipelineExample](https://user-images.githubusercontent.com/27515937/59348861-e9a6bf80-8d20-11e9-8d7b-76efedeb669f.png)
 
-### Pipeline Descriptor
-
-HKube Supports two kinds of APIs for creating pipeline: **JSON** and **Code**.
-
-#### JSON
+#### Pipeline Descriptor
 
 The **pipeline descriptor** is a **JSON object** which describes and defines the links between the **nodes** by defining the dependencies between them.
 
@@ -219,9 +218,9 @@ The **pipeline descriptor** is a **JSON object** which describes and defines the
 }
 ```
 
-> Note the `flowInput`: data = N = 5, muk = k = 2
+> Note the `flowInput`: `data` = N = 5, `mul` = k = 2
 
-##### Node dependencies
+#### Node dependencies
 
 HKube [allows special signs](http://hkube.io/learn/execution/#batch) in nodes `input` for defining the pipeline execution flow.
 
@@ -235,7 +234,7 @@ In our case we used:
 
 ![JSON](https://user-images.githubusercontent.com/27515937/59355883-815fda00-8d30-11e9-963c-c13b18caf54e.png)
 
-###### JSON Breakout
+#### JSON Breakdown
 
 We created a pipeline name `numbers`.
 
@@ -271,7 +270,7 @@ Keep in mind that HKube will transport the results between the nodes **automatic
 
 ![Group 4 (3)](https://user-images.githubusercontent.com/27515937/59355963-a3595c80-8d30-11e9-88b0-96084085103e.png)
 
-The `flowInput` is the place to define the Pipeline inputs.
+The `flowInput` is the place to define the Pipeline inputs:
 
 ```json
 "flowInput":{
@@ -280,51 +279,52 @@ The `flowInput` is the place to define the Pipeline inputs.
 }
 ```
 
-In our case we used Numeric Type but it can be any [JSON type](https://json-schema.org/understanding-json-schema/reference/type.html) (`Object`, `String` etc).
+In our case we used _Numeric Type_ but it can be any [JSON type](https://json-schema.org/understanding-json-schema/reference/type.html) (`Object`, `String` etc).
 
-##### More JSON Options (For advanced use cases)
+#### Advance Options
 
 There are more features that can be defined from the descriptor file.
 
 ```JSON
- "webhooks": {
-      "progress": "http://my-url-to-progress",
-       "result": "http://my-url-to-result"
-     },
-   "priority": 3,
-   "triggers":
-       {
-        "pipelines":[],
-         "cron":{}
-       }
-    "options":{
-        "batchTolerance": 80,
-        "concurrentPipelines": 2,
-        "ttl": 3600,
-        "progressVerbosityLevel":"info"
-    }
+"webhooks": {
+    "progress": "http://my-url-to-progress",
+      "result": "http://my-url-to-result"
+    },
+  "priority": 3,
+  "triggers":
+      {
+      "pipelines":[],
+        "cron":{}
+      }
+  "options":{
+      "batchTolerance": 80,
+      "concurrentPipelines": 2,
+      "ttl": 3600,
+      "progressVerbosityLevel":"info"
+  }
 ```
 
-**webhooks** - HKube has a REST api for getting the results but it support **webhooks** as well.
-There are two types of webhooks, _progress_ and _result_. You can also fetch the same data from the REST API.
+- **webhooks** - There are two types of webhooks, _progress_ and _result_.
 
-- progress:`{jobId}/api/v1/exec/status`
-- result: `{jobId}/api/v1/exec/results`
+  > You can also fetch the same data from the REST API.
 
-**priority** - HKube support five level of priorities, five is the highest. Those priorities with the metrics that HKube gathered helps to decide which algorithms should be run first.
+  - progress:`{jobId}/api/v1/exec/status`
+  - result: `{jobId}/api/v1/exec/results`
 
-**triggers** - There are two types of triggers that HKube currently support `cron` and `pipeline`.
+- **priority** - HKube support five level of priorities, five is the highest. Those priorities with the metrics that HKube gathered helps to decide which algorithms should be run first.
 
-- **cron** - HKube can schedule your stored pipelines based on cron pattern.
-  > Check [cron editor](https://crontab.guru/) in order to construct your cron.
-- **pipeline** - You can set your pipelines to run each time other pipeline/s has been finished successfully .
+- **triggers** - There are two types of triggers that HKube currently support `cron` and `pipeline`.
 
-  **options** - There are other more options that can be configured:
+  - **cron** - HKube can schedule your stored pipelines based on cron pattern.
+    > Check [cron editor](https://crontab.guru/) in order to construct your cron.
+  - **pipeline** - You can set your pipelines to run each time other pipeline/s has been finished successfully .
 
-- **Batch Tolerance** - The Batch Tolerance is a threshold setting that allow you to control in which _percent_ from the batch processing the entire pipeline should be fail.
-- **Concurrency** - Pipeline Concurrency define the number of pipelines that are allowed to be running at the same time.
-- **TTL** - Time to live (TTL) limits the lifetime of pipeline in the cluster. stop will be sent if pipeline running for more than ttl (in seconds).
-- **Verbosity Level** - The Verbosity Level is a setting that allows to control what type of progress events the client will notified about. The severity levels are ascending from least important to most important: `trace` `debug` `info` `warn` `error` `critical`.
+- **options** - There are other more options that can be configured:
+
+  - **Batch Tolerance** - The Batch Tolerance is a threshold setting that allow you to control in which _percent_ from the batch processing the entire pipeline should be fail.
+  - **Concurrency** - Pipeline Concurrency define the number of pipelines that are allowed to be running at the same time.
+  - **TTL** - Time to live (TTL) limits the lifetime of pipeline in the cluster. stop will be sent if pipeline running for more than ttl (in seconds).
+  - **Verbosity Level** - The Verbosity Level is a setting that allows to control what type of progress events the client will notified about. The severity levels are ascending from least important to most important: `trace` `debug` `info` `warn` `error` `critical`.
 
 ### Algorithm
 
@@ -335,9 +335,9 @@ There are two ways to integrate your algorithm into HKube:
 - **Seamless Integration** - As written above HKube can build automatically your docker with the HKube's websocket wrapper.
 - **Code writing** - In order to add algorithm manually to HKube you need to wrap your algorithm with HKube. HKube already has a wrappers for `python`,`javaScript`, `java` and `.NET core`.
 
-#### Seamless Integration
+#### Implementing the [Algorithms](#meet-the-algorithms)
 
-Now lets create the algorithms to solve [the problem](#the-problem), HKube currently support two languages for auto build _Python_ and _JavaScript_.
+We will create the algorithms to solve [the problem](#the-problem), HKube currently support two languages for auto build _Python_ and _JavaScript_.
 
 > Important notes:
 >
@@ -345,8 +345,6 @@ Now lets create the algorithms to solve [the problem](#the-problem), HKube curre
 >   During the container build, HKube will search for the _requirement.txt_ file and will try to install the packages from the pip package manager.
 > - **Advanced Operations**
 >   HKube can build the algorithm only by implementing start function but for advanced operation such as one time initiation and gracefully stopping you have to implement two other functions `init` and `stop`.
-
-#### Creating the [algorithms](#meet-the-algorithms)
 
 ##### Range (Python)
 
@@ -390,7 +388,7 @@ We placed `["@Multiply"]` in the input parameter, HKube will collect all the dat
 
 After we created the [algorithms](#meet-the-algorithms), we will integrate them with the [CLI](#cli).
 
-> Can be done also through the [Dashboard](#dashboard)
+> Can be done also through the [Dashboard](#dashboard).
 
 Create a `yaml` (or `JSON`) that defines the **algorithm**:
 
