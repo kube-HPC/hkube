@@ -2,7 +2,7 @@ const uuidv4 = require('uuid/v4');
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
-const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage, applyStorage, findContainer } = require('@hkube/kubernetes-client').utils;
+const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage, applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts } = require('@hkube/kubernetes-client').utils;
 const { components, containers } = require('../consts');
 const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate } = require('../templates');
@@ -64,23 +64,20 @@ const applyPipelineDriverImage = (inputSpec, image) => {
     return applyImage(inputSpec, image, CONTAINERS.PIPELINE_DRIVER);
 };
 
-const applyPrivileged = (inputSpec, options) => {
-    const spec = clonedeep(inputSpec);
-    if (!options.kubernetes.isPrivileged) {
+const applyLogging = (inputSpec, options) => {
+    let spec = clonedeep(inputSpec);
+    const { isPrivileged } = options.kubernetes;
+    if (!isPrivileged) {
         return spec;
     }
-    const container = findContainer(spec, CONTAINERS.WORKER);
-    objectPath.set(container, 'securityContext.privileged', true);
-    if (!container.volumeMounts) {
-        container.volumeMounts = [];
-    }
-    container.volumeMounts.push(...logVolumeMounts);
 
-
-    if (!spec.spec.template.spec.volumes) {
-        spec.spec.template.spec.volumes = [];
-    }
-    spec.spec.template.spec.volumes.push(...logVolumes);
+    spec = applyPrivileged(spec, isPrivileged, CONTAINERS.WORKER);
+    logVolumeMounts.forEach((vm) => {
+        spec = applyVolumeMounts(spec, CONTAINERS.WORKER, vm);
+    });
+    logVolumes.forEach((v) => {
+        spec = applyVolumes(spec, v);
+    });
     return spec;
 };
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv,
@@ -108,7 +105,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyHotWorker(spec, hotWorker);
     spec = applyEntryPoint(spec, entryPoint);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.WORKER, 'task-executor-configmap');
-    spec = applyPrivileged(spec, options);
+    spec = applyLogging(spec, options);
 
     return spec;
 };
