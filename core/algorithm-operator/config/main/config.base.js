@@ -18,3 +18,10 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
     serviceName: config.serviceName
 };
+
+config.resources = {
+    algorithmQueue: {
+        memory: parseFloat(process.env.ALGORITHM_QUEUE_MEMORY) || 256,
+        cpu: parseFloat(process.env.ALGORITHM_QUEUE_CPU) || 0.1
+    }
+}

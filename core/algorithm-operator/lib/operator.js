@@ -22,7 +22,7 @@ class Operator {
             await Promise.all([
                 this._algorithmBuilds(configMap, options),
                 this._algorithmDebug(configMap, algorithms, options),
-                this._algorithmQueue(configMap, algorithms, options)
+                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options)
             ]);
         }
         catch (e) {
@@ -59,14 +59,15 @@ class Operator {
         });
     }
 
-    async _algorithmQueue({ versions, registry, clusterOptions }, algorithms) {
+    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms) {
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({
             deployments,
             algorithms,
             versions,
             registry,
-            clusterOptions
+            clusterOptions,
+            resources
         });
     }
 }

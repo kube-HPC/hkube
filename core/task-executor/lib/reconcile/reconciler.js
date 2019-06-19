@@ -81,7 +81,7 @@ const _clearCreatedJobsList = (now, options) => {
 };
 
 const _processAllRequests = (
-    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions },
+    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources },
     { createPromises, createDetails, reconcileResult }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
@@ -116,6 +116,8 @@ const _processAllRequests = (
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
         const resourceRequests = createContainerResource(algorithmTemplate);
+        const workerResourceRequests = createContainerResource(workerResources);
+
         const { workerEnv, algorithmEnv, nodeSelector, entryPoint } = algorithmTemplate;
 
         createDetails.push({
@@ -130,6 +132,7 @@ const _processAllRequests = (
                 entryPoint,
                 hotWorker,
                 resourceRequests,
+                workerResourceRequests,
                 clusterOptions
             }
         });
@@ -308,7 +311,7 @@ const _getNodeStats = (normResources) => {
     return statsPerNode;
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions } = {}) => {
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, pods, j => !j.status.succeeded);
@@ -337,7 +340,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: totalRequests, registry, clusterOptions
+            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: totalRequests, registry, clusterOptions, workerResources
         },
         {
             createPromises, createDetails, reconcileResult

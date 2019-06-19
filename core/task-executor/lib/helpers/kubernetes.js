@@ -10,6 +10,7 @@ class KubernetesApi {
     async init(options = {}) {
         log = Logger.GetLogFromContainer();
         this._client = new KubernetesClient(options.kubernetes);
+        this._isNamespaced = options.kubernetes.isNamespaced;
         log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
     }
 
@@ -70,7 +71,48 @@ class KubernetesApi {
         }
     }
 
+    async _getNamespacedResources() {
+        const podsRaw = await this._client.pods.all(true);
+        const pods = {
+            body: {
+                items: podsRaw.body.items.map((p) => {
+                    objectPath.set(p, 'spec.nodeName', 'virtual-node');
+                    return p;
+                })
+            }
+        };
+        const quota = await this._client.resourcequotas.get();
+        const hard = objectPath.get(quota, 'body.items.0.spec.hard', {});
+        const cpu = hard['limits.cpu'] || 0;
+        const memory = hard['limits.memory'] || 0;
+        const gpu = hard['requests.nvidia.com/gpu'] || 0;
+
+        const node = {
+            metadata: {
+                name: 'virtual-node'
+            },
+            status: {
+                allocatable: {
+                    cpu,
+                    memory,
+                    'nvidia.com/gpu': gpu
+                }
+            }
+        };
+        const nodes = {
+            body: {
+                items: [
+                    node
+                ]
+            }
+        };
+        return { pods, nodes };
+    }
+
     async getResourcesPerNode() {
+        if (this._isNamespaced) {
+            return this._getNamespacedResources();
+        }
         const [pods, nodes] = await Promise.all([this._client.pods.all(), this._client.nodes.all()]);
         return { pods, nodes };
     }

@@ -2,14 +2,18 @@ const uuidv4 = require('uuid/v4');
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
-const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage, applyStorage } = require('@hkube/kubernetes-client').utils;
+const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage, applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts } = require('@hkube/kubernetes-client').utils;
 const { components, containers } = require('../consts');
 const component = components.K8S;
-const { workerTemplate, pipelineDriverTemplate } = require('../templates');
+const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate } = require('../templates');
 const CONTAINERS = containers;
 
 const applyAlgorithmResourceRequests = (inputSpec, resourceRequests) => {
     return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.ALGORITHM);
+};
+
+const applyWorkerResourceRequests = (inputSpec, workerResourceRequests) => {
+    return applyResourceRequests(inputSpec, workerResourceRequests, CONTAINERS.WORKER);
 };
 
 const applyPipelineDriverResourceRequests = (inputSpec, resourceRequests) => {
@@ -60,8 +64,24 @@ const applyPipelineDriverImage = (inputSpec, image) => {
     return applyImage(inputSpec, image, CONTAINERS.PIPELINE_DRIVER);
 };
 
+const applyLogging = (inputSpec, options) => {
+    let spec = clonedeep(inputSpec);
+    const { isPrivileged } = options.kubernetes;
+    if (!isPrivileged) {
+        return spec;
+    }
+
+    spec = applyPrivileged(spec, isPrivileged, CONTAINERS.WORKER);
+    logVolumeMounts.forEach((vm) => {
+        spec = applyVolumeMounts(spec, CONTAINERS.WORKER, vm);
+    });
+    logVolumes.forEach((v) => {
+        spec = applyVolumes(spec, v);
+    });
+    return spec;
+};
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -80,10 +100,12 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyWorkerImage(spec, workerImage);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
+    spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     spec = applyNodeSelector(spec, nodeSelector, clusterOptions);
     spec = applyHotWorker(spec, hotWorker);
     spec = applyEntryPoint(spec, entryPoint);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.WORKER, 'task-executor-configmap');
+    spec = applyLogging(spec, options);
 
     return spec;
 };
@@ -114,6 +136,7 @@ module.exports = {
     applyPipelineDriverImage,
     applyAlgorithmName,
     applyAlgorithmResourceRequests,
+    applyWorkerResourceRequests,
     applyHotWorker,
     applyEnvToContainerFromSecretOrConfigMap,
 };
