@@ -443,7 +443,7 @@ describe('reconciler', () => {
                 }
             };
 
-            const testOptions = { ...options, defaultStorage: 'fs', kubernetes: { ...options.kubernetes, noPrivileged: true } };
+            const testOptions = { ...options, defaultStorage: 'fs', kubernetes: { ...options.kubernetes, isPrivileged: false } };
             const res = await reconciler.reconcile({
                 options: testOptions,
                 normResources,

@@ -66,7 +66,7 @@ const applyPipelineDriverImage = (inputSpec, image) => {
 
 const applyPrivileged = (inputSpec, options) => {
     const spec = clonedeep(inputSpec);
-    if (options.kubernetes.noPrivileged) {
+    if (!options.kubernetes.isPrivileged) {
         return spec;
     }
     const container = findContainer(spec, CONTAINERS.WORKER);

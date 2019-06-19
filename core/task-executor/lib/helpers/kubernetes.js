@@ -81,7 +81,7 @@ class KubernetesApi {
                 })
             }
         };
-        const quota = await this._client.pods._client.api.v1.namespaces('hkube').resourcequotas.get();
+        const quota = await this._client.resourcequotas.get();
         const hard = objectPath.get(quota, 'body.items.0.spec.hard', {});
         const cpu = hard['limits.cpu'] || 0;
         const memory = hard['limits.memory'] || 0;

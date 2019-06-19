@@ -1,4 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
+const formatter = require(process.cwd() + '/lib/helpers/formatters');
 const config = module.exports = {};
 
 config.serviceName = packageJson.name;
@@ -11,8 +12,8 @@ config.createdJobsTTL = process.env.CREATED_JOBS_TTL || 15 * 1000;
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
-    isNamespaced: process.env.IS_NAMESPACED === 'true',
-    noPrivileged: process.env.NO_PRIVILEGED === 'true',
+    isNamespaced: formatter.parseBool(process.env.IS_NAMESPACED, false),
+    isPrivileged: formatter.parseBool(process.env.IS_PRIVILEGED, true),
 };
 
 config.etcd = {
