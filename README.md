@@ -127,11 +127,11 @@ curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/${lates
 && sudo mv hkubectl /usr/local/bin/
 ```
 
-Config `hkubectl` with your running Kubernetes.
+Config `hkubectl` with HKube API server.
 
 ```bash
 # Config
-hkubectl config set endpoint ${KUBERNETES-MASTER-IP}
+hkubectl config set endpoint http://<HKube-API-Server-ip>:3000
 
 hkubectl config set rejectUnauthorized false
 ```
