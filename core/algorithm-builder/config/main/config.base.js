@@ -10,14 +10,14 @@ config.buildId = process.env.BUILD_ID;
 
 config.docker = {
     pull: {
-        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io/hkube',
-        namespace: process.env.DOCKER_PULL_NAMESPACE || '',
+        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io',
+        namespace: process.env.DOCKER_PULL_NAMESPACE || 'hkube',
         user: process.env.DOCKER_PULL_USERNAME || '',
         pass: process.env.DOCKER_PULL_PASSWORD || ''
     },
     push: {
-        registry: process.env.DOCKER_PUSH_REGISTRY || 'docker.io/hkubedev',
-        namespace: process.env.DOCKER_PUSH_NAMESPACE || '',
+        registry: process.env.DOCKER_PUSH_REGISTRY || 'docker.io',
+        namespace: process.env.DOCKER_PUSH_NAMESPACE || 'hkubedev',
         user: process.env.DOCKER_PUSH_USERNAME || '',
         pass: process.env.DOCKER_PUSH_PASSWORD || ''
     }

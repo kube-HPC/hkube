@@ -217,7 +217,7 @@ class ExecutionService {
     }
 
     createRawName(options) {
-        return `raw-${options.name}-${randString({ length: 10 })}`;
+        return `raw-${options.name}`;
     }
 
     _createSubPipelineJobID(options) {
