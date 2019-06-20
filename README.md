@@ -80,11 +80,28 @@ HKube runs on top of Kubernetes so in order to run HKube we have to install it's
    ```bash
    helm repo add hkube http://hkube.io/helm/
    ```
+2. Configure a docker registry for builds  
+Create a ```values.yaml``` file for custom helm values
+```yaml
+build_secret:
+# pull secret is only needed if docker hub is not accessible
+  pull:
+    registry: ''
+    namespace: ''
+    username: ''
+    password: ''
+# enter your docker hub / other registry credentials
+  push:
+    registry: '' # can be left empty for docker hub
+    namespace: '' # registry namespace - usually your username
+    username: ''
+    password: ''
+```
 
 2. Install HKube chart
 
    ```console
-   helm install hkube/hkube --name my-release
+   helm install hkube/hkube  -f ./values.yaml --name my-release
    ```
 
 > This command installs HKube in a minimal configuration for **development**. Check [production-deployment](http://hkube.io/learn/install/#production-deployment).
