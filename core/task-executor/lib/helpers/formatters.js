@@ -4,10 +4,7 @@ module.exports = {
             return value;
         }
         if (typeof value === 'string') {
-            if (value.toLowerCase() === 'true') {
-                return true;
-            }
-            return false;
+            return value.toLowerCase() === 'true';
         }
         return defaultValue || false;
     },
