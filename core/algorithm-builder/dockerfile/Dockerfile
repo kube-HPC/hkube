@@ -1,6 +1,6 @@
 ARG BASE_PRIVATE_REGISTRY=""
 FROM ${BASE_PRIVATE_REGISTRY}hkube/base-node:v1.1.1
-LABEL maintainer="yehiyam@gmail.com"
+LABEL maintainer="hkube.dev@gmail.com"
 
 ENV DOCKER_CHANNEL 'stable'
 ENV DOCKER_VERSION '18.09.1'

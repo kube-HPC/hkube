@@ -7,6 +7,7 @@ config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.version = packageJson.version;
 config.buildId = process.env.BUILD_ID;
+config.testMode = process.env.TEST_MODE === 'True';
 
 config.docker = {
     pull: {
