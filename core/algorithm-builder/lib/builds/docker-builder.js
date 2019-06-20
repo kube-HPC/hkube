@@ -156,9 +156,8 @@ const _buildDocker = async ({ docker, algorithmName, version, buildPath, rmi }) 
     return { output, algorithmImage };
 };
 
-
 const _createURL = (options) => {
-    return path.join(_fixUrl(options.registry), options.namespace);
+    return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
 };
 
 const _fixUrl = (url) => {
