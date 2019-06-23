@@ -11,14 +11,14 @@ config.testMode = process.env.TEST_MODE === 'True';
 
 config.docker = {
     pull: {
-        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io',
-        namespace: process.env.DOCKER_PULL_NAMESPACE || 'hkube',
+        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io/hkube/',
+        namespace: process.env.DOCKER_PULL_NAMESPACE || '',
         user: process.env.DOCKER_PULL_USERNAME || '',
         pass: process.env.DOCKER_PULL_PASSWORD || ''
     },
     push: {
         registry: process.env.DOCKER_PUSH_REGISTRY || 'docker.io',
-        namespace: process.env.DOCKER_PUSH_NAMESPACE || 'hkubedev',
+        namespace: process.env.DOCKER_PUSH_NAMESPACE || '',
         user: process.env.DOCKER_PUSH_USERNAME || '',
         pass: process.env.DOCKER_PUSH_PASSWORD || ''
     }
