@@ -5,14 +5,12 @@ const log = new Logger(main.serviceName, logger);
 
 const { expect } = require('chai');
 const { createBuildJobSpec, applyName } = require('../lib/jobs/algorithm-builds');
-const algorithmBuilderTemplate = require('../lib/templates/algorithm-builder');
+const { jobTemplate } = require('../lib/templates/algorithm-builder');
 
 describe('jobCreator', () => {
-    describe('applyName', () => {
-        it('should replace image name in spec', () => {
-            const res = applyName(algorithmBuilderTemplate, 'myAlgo1');
-            expect(res).to.nested.include({ 'metadata.name': 'build-myAlgo1' });
-        });
+    it('should replace image name in spec', () => {
+        const res = applyName(jobTemplate, 'myAlgo1');
+        expect(res).to.nested.include({ 'metadata.name': 'build-myAlgo1' });
     });
     it('should throw if no algorithm name', () => {
         expect(() => createBuildJobSpec({ version: 'v1.2' })).to.throw('Unable to create job spec. buildId is required');
@@ -24,5 +22,27 @@ describe('jobCreator', () => {
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/algorithm-builder:v1.2' });
         expect(res).to.nested.include({ 'metadata.labels.build-id': buildId });
         expect(res).to.nested.include({ 'metadata.labels.type': 'algorithm-builder' });
+    });
+    it('should add kaniko if needed', () => {
+        const buildId = 'my-alg-12345'
+        const options = {
+            ...main,
+            buildMode: 'kaniko'
+        }
+        const res = createBuildJobSpec({ buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, options });
+        expect(res.spec.template.spec.containers).to.be.of.length(2);
+        expect(res.spec.template.spec.containers[1].name).to.eql('kaniko');
+        expect(res.spec.template.spec.containers[1].securityContext).to.not.exist;
+        expect(res.spec.template.spec.containers[0].securityContext).to.not.exist;
+    });
+    it('should not add kaniko if not needed', () => {
+        const buildId = 'my-alg-12345'
+        const options = {
+            ...main,
+            buildMode: 'docker'
+        }
+        const res = createBuildJobSpec({ buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, options });
+        expect(res.spec.template.spec.containers).to.be.of.length(1);
+        expect(res.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
     });
 });

@@ -135,24 +135,7 @@ const jobTemplate = {
                                     }
                                 }
                             }
-                        ],
-                        volumeMounts: [
-                            {
-                                name: 'dockersock',
-                                mountPath: '/var/run/docker.sock'
-                            }
-                        ],
-                        securityContext: {
-                            privileged: true
-                        }
-                    }
-                ],
-                volumes: [
-                    {
-                        name: 'dockersock',
-                        hostPath: {
-                            path: '/var/run/docker.sock'
-                        }
+                        ]
                     }
                 ],
                 restartPolicy: 'Never'
@@ -162,4 +145,64 @@ const jobTemplate = {
     }
 };
 
-module.exports = jobTemplate;
+const dockerVolumes = {
+    volumeMounts: [
+        {
+            name: 'dockersock',
+            mountPath: '/var/run/docker.sock'
+        }
+    ],
+    volumes: [
+        {
+            name: 'dockersock',
+            hostPath: {
+                path: '/var/run/docker.sock'
+            }
+        }
+    ]
+};
+
+const kanikoVolumes = {
+    volumeMounts: [
+        {
+            name: 'commands',
+            mountPath: '/tmp/commands'
+        },
+        {
+            name: 'workspace',
+            mountPath: '/tmp/workspace'
+        }
+    ],
+    volumes: [
+        {
+            name: 'commands',
+            emptyDir: {}
+        },
+        {
+            name: 'workspace',
+            emptyDir: {}
+        }
+    ]
+};
+
+const kanikoContainer = {
+    name: 'kaniko',
+    image: 'hkube/kaniko',
+    volumeMounts: [
+        {
+            name: 'commands',
+            mountPath: '/commands'
+        },
+        {
+            name: 'workspace',
+            mountPath: '/workspace'
+        }
+    ],
+};
+
+module.exports = {
+    jobTemplate,
+    kanikoContainer,
+    dockerVolumes,
+    kanikoVolumes
+};
