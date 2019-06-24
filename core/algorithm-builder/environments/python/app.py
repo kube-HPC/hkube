@@ -3,7 +3,10 @@ from hkube_python_wrapper import Algorunner
 
 def main():
     print("starting algorithm runner")
-    alg = Algorunner(config.Config)
+    conf = config.Config
+    alg = Algorunner()
+    alg.loadAlgorithm(conf.algorithm)
+    alg.connectToWorker(conf.socket)
 
 if __name__ == "__main__":
     main()
