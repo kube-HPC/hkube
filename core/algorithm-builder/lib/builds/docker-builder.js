@@ -130,7 +130,7 @@ const _removeFolder = async ({ folder }) => {
     }
 };
 
-const _buildDocker = async ({ docker, algorithmName, version, buildPath, rmi }) => {
+const _buildDocker = async ({ buildMode, docker, algorithmName, version, buildPath, rmi, tmpFolder }) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
 
@@ -150,9 +150,10 @@ const _buildDocker = async ({ docker, algorithmName, version, buildPath, rmi }) 
         // docker push
         "--dphr", pushRegistry,
         "--dphu", docker.push.user,
-        "--dphp", docker.push.pass
+        "--dphp", docker.push.pass,
+        "--tmpFolder", tmpFolder
     ];
-    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image.sh`, args });
+    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
     return { output, algorithmImage };
 };
 
@@ -217,7 +218,7 @@ const runBuild = async (options) => {
         await _downloadFile({ buildId, src, dest, fileExt, overwrite });
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress: 50, status: States.ACTIVE });
-        result = await _buildDocker({ docker, algorithmName, version, buildPath, rmi: "True" });
+        result = await _buildDocker({ buildMode: options.buildMode, docker, algorithmName, version, buildPath, rmi: "True", tmpFolder: options.tmpFolder });
     }
     catch (e) {
         error = e.message;
@@ -232,7 +233,7 @@ const runBuild = async (options) => {
     const progress = error ? 80 : 100;
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
     await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
-    return { buildId, error, status, result };
+    return { buildId, error, status, result: { data, warnings, errors } };
 };
 
 module.exports = runBuild;

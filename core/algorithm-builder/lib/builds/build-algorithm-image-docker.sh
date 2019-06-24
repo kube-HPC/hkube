@@ -65,7 +65,7 @@ case $key in
     shift
     ;;
 
-    *)
+     --help)
     usage
     exit 1
 esac
@@ -88,7 +88,7 @@ cat /etc/os-release
 echo
 
 echo
-dockerLogin ${DOCKER_PULL_USER} ${DOCKER_PULL_PASS}
+dockerLogin ${DOCKER_PULL_USER} ${DOCKER_PULL_PASS} ${DOCKER_PULL_REGISTRY}
 echo
 
 echo
@@ -100,7 +100,7 @@ dockerBuild ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE}
 echo
 
 echo
-dockerLogin ${DOCKER_PUSH_USER} ${DOCKER_PUSH_PASS}
+dockerLogin ${DOCKER_PUSH_USER} ${DOCKER_PUSH_PASS} ${DOCKER_PUSH_REGISTRY}
 echo
 
 echo
