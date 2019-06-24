@@ -3,13 +3,41 @@
 dockerLogin() {
   user=$1
   pass=$2
+  registry=$3
+  if [[ ${registry} == docker.io* ]]; then
+    echo found docker hub. remove registry
+    registry=""
+  fi
 
   if [[ ${user} != "" ]]; then 
     echo "Found docker password, docker login...."
-    echo ${pass} | docker login --username ${user} --password-stdin
+    echo ${pass} | docker login --username ${user} --password-stdin $registry
   else
     echo "Didn't find docker password, skip login...."
   fi
+}
+
+dockerBuildKaniko() {
+  image=$1
+  buildPath=$2
+  dockerFile=$3
+  workspace=${4:-/workspace}
+  commands=${5:-/commands}
+  echo "Building image ${image}"
+  echo copy context from ${buildPath} to ${workspace}
+  cp -r ${buildPath}/* ${workspace}
+  echo copy docker creds
+  cp ~/.docker/config.json ${commands}/
+  echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ --context dir:///workspace/ --destination $image" > ${commands}/run
+  chmod +x ${commands}/run
+  cat ${commands}/run
+  touch ${commands}/start
+  while [ ! -f "${commands}/done" ]; do
+    # echo "done file does not exist"
+    sleep 1s
+  done
+  echo build done
+  cat ${commands}/output
 }
 
 dockerBuild() {

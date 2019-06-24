@@ -24,7 +24,7 @@ case $key in
     ;;
 
      --dplr)
-    DOCKER_PULL_REGISTRY="$2"
+    export DOCKER_PULL_REGISTRY="$2"
     shift
     shift
     ;;
@@ -65,48 +65,37 @@ case $key in
     shift
     ;;
 
+     --tmpFolder)
+    TMP_FOLDER="$2"
+    shift
+    shift
+    ;;
+
      --help)
     usage
     exit 1
 esac
 done
 
+TMP_FOLDER=${TMP_FOLDER:-/tmp}
 echo
 echo IMAGE_NAME=${IMAGE_NAME}
 echo BUILD_PATH=${BUILD_PATH}
 echo DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY}
 echo DOCKER_PUSH_REGISTRY=${DOCKER_PUSH_REGISTRY}
 echo REMOVE_IMAGE=${REMOVE_IMAGE}
-echo
-
-echo docker version
-docker version
-echo
-
-echo Operating System Details
-cat /etc/os-release
+echo TMP_FOLDER=${TMP_FOLDER}
 echo
 
 echo
 dockerLogin ${DOCKER_PULL_USER} ${DOCKER_PULL_PASS} ${DOCKER_PULL_REGISTRY}
-echo
-
-echo
-DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY} envsubst < ${BUILD_PATH}/docker/DockerfileTemplate > ${BUILD_PATH}/docker/${DOCKER_FILE}
-echo
-
-echo
-dockerBuild ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE}
-echo
-
-echo
 dockerLogin ${DOCKER_PUSH_USER} ${DOCKER_PUSH_PASS} ${DOCKER_PUSH_REGISTRY}
 echo
 
 echo
-dockerPush ${IMAGE_NAME}
+envsubst < ${BUILD_PATH}/docker/DockerfileTemplate > ${BUILD_PATH}/docker/${DOCKER_FILE}
 echo
 
 echo
-removeImage ${IMAGE_NAME} ${REMOVE_IMAGE}
+dockerBuildKaniko ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE} ${TMP_FOLDER}/workspace ${TMP_FOLDER}/commands
 echo
