@@ -25,7 +25,7 @@ config.docker = {
     }
 };
 
-config.tmpFolder=process.env.TMP_FOLDER || '/tmp';
+config.tmpFolder = process.env.TMP_FOLDER || '/tmp';
 
 config.buildDirs = {
     ZIP: 'uploads/zipped',

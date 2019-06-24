@@ -153,8 +153,7 @@ const _buildDocker = async ({ buildMode, docker, algorithmName, version, buildPa
         "--dphp", docker.push.pass,
         "--tmpFolder", tmpFolder
     ];
-    const script = buildMode === 'kaniko' ? 'build-algorithm-image-kaniko.sh' : 'build-algorithm-image.sh'
-    const output = await _runBash({ command: `${process.cwd()}/lib/builds/${script}`, args });
+    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
     return { output, algorithmImage };
 };
 
