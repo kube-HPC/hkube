@@ -1,4 +1,4 @@
-const { ALGORITHM_BUILDS } = require('../../lib/consts/containers');
+const { ALGORITHM_BUILDS, KANIKO } = require('../../lib/consts/containers');
 
 const jobTemplate = {
     apiVersion: 'batch/v1',
@@ -186,8 +186,8 @@ const kanikoVolumes = {
 };
 
 const kanikoContainer = {
-    name: 'kaniko',
-    image: 'hkube/kaniko',
+    name: KANIKO,
+    image: `hkube/${KANIKO}`,
     volumeMounts: [
         {
             name: 'commands',

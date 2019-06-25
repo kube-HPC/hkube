@@ -4,7 +4,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const { applyEnvToContainer, applyStorage, applyVolumeMounts: applyVolumeMount, applyVolumes: applyVolume, applyPrivileged } = require('@hkube/kubernetes-client').utils;
 const { applyImage } = require('../helpers/kubernetes-utils');
 const components = require('../consts/componentNames');
-const { ALGORITHM_BUILDS } = require('../consts/containers');
+const { ALGORITHM_BUILDS, KANIKO } = require('../consts/containers');
 const { jobTemplate, kanikoContainer, dockerVolumes, kanikoVolumes } = require('../templates/algorithm-builder');
 
 const component = components.K8S;
@@ -22,9 +22,10 @@ const applyBuildId = (inputSpec, buildId) => {
     return applyEnvToContainer(spec, ALGORITHM_BUILDS, { BUILD_ID: buildId });
 };
 
-const applyKanikoContainer = (inputSpec) => {
-    const spec = clonedeep(inputSpec);
+const applyKanikoContainer = (inputSpec, versions, registry) => {
+    let spec = clonedeep(inputSpec);
     spec.spec.template.spec.containers.push(kanikoContainer);
+    spec = applyImage(spec, KANIKO, versions, registry);
     return spec;
 };
 
@@ -63,7 +64,7 @@ const createBuildJobSpec = ({ buildId, versions, registry, options }) => {
     else {
         spec = applyVolumes(spec, kanikoVolumes.volumes);
         spec = applyVolumeMounts(spec, ALGORITHM_BUILDS, kanikoVolumes.volumeMounts);
-        spec = applyKanikoContainer(spec);
+        spec = applyKanikoContainer(spec, versions, registry);
     }
 
     return spec;
