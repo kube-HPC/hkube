@@ -29,9 +29,48 @@ describe('jobCreator', () => {
             ...main,
             buildMode: 'kaniko'
         }
-        const res = createBuildJobSpec({ buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, options });
+        const res = createBuildJobSpec({
+            buildId, versions: {
+                versions: [
+                    {
+                        project: 'algorithm-builder', tag: 'v1.2'
+                    },
+                    {
+                        project: 'kaniko', tag: 'v1.1.0'
+                    }]
+            },
+            options
+        });
         expect(res.spec.template.spec.containers).to.be.of.length(2);
         expect(res.spec.template.spec.containers[1].name).to.eql('kaniko');
+        expect(res.spec.template.spec.containers[1].image).to.eql('hkube/kaniko:v1.1.0');
+        expect(res.spec.template.spec.containers[1].securityContext).to.not.exist;
+        expect(res.spec.template.spec.containers[0].securityContext).to.not.exist;
+    });
+    it('should add kaniko if needed with registry', () => {
+        const buildId = 'my-alg-12345'
+        const options = {
+            ...main,
+            buildMode: 'kaniko'
+        }
+        const res = createBuildJobSpec({
+            buildId, versions: {
+                versions: [
+                    {
+                        project: 'algorithm-builder', tag: 'v1.2'
+                    },
+                    {
+                        project: 'kaniko', tag: 'v1.1.0'
+                    }]
+            },
+            options,
+            registry: {
+                registry: 'my-reg:5000'
+            }
+        });
+        expect(res.spec.template.spec.containers).to.be.of.length(2);
+        expect(res.spec.template.spec.containers[1].name).to.eql('kaniko');
+        expect(res.spec.template.spec.containers[1].image).to.eql('my-reg:5000/hkube/kaniko:v1.1.0');
         expect(res.spec.template.spec.containers[1].securityContext).to.not.exist;
         expect(res.spec.template.spec.containers[0].securityContext).to.not.exist;
     });
