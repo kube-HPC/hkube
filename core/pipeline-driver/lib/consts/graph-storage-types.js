@@ -8,6 +8,7 @@ const groupTypes = {
         NOT_STARTED: 'batchNotStarted',
         RUNNING: 'batchRunning',
         COMPLETED: 'batchCompleted',
+        ERRORS: 'batchErrors',
     },
     SINGLE: {
         NOT_STARTED: 'notStarted',

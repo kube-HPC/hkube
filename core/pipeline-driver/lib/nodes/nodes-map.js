@@ -253,12 +253,12 @@ class NodesMap extends EventEmitter {
         }
     }
 
-    updateTaskState(taskId, { status, result, error, startTime, endTime } = {}) {
+    updateTaskState(taskId, { status, result, error, retries, startTime, endTime } = {}) {
         let task = this.getNodeByTaskID(taskId);
         if (!task) {
             throw new Error(`unable to find task ${taskId}`);
         }
-        task = merge(task, { status, result, error, startTime, endTime });
+        task = merge(task, { status, result, error, retries, startTime, endTime });
         return task;
     }
 
