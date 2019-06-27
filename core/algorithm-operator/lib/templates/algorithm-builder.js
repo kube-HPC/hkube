@@ -1,4 +1,4 @@
-const { ALGORITHM_BUILDS } = require('../../lib/consts/containers');
+const { ALGORITHM_BUILDS, KANIKO } = require('../../lib/consts/containers');
 
 const jobTemplate = {
     apiVersion: 'batch/v1',
@@ -135,24 +135,7 @@ const jobTemplate = {
                                     }
                                 }
                             }
-                        ],
-                        volumeMounts: [
-                            {
-                                name: 'dockersock',
-                                mountPath: '/var/run/docker.sock'
-                            }
-                        ],
-                        securityContext: {
-                            privileged: true
-                        }
-                    }
-                ],
-                volumes: [
-                    {
-                        name: 'dockersock',
-                        hostPath: {
-                            path: '/var/run/docker.sock'
-                        }
+                        ]
                     }
                 ],
                 restartPolicy: 'Never'
@@ -162,4 +145,64 @@ const jobTemplate = {
     }
 };
 
-module.exports = jobTemplate;
+const dockerVolumes = {
+    volumeMounts: [
+        {
+            name: 'dockersock',
+            mountPath: '/var/run/docker.sock'
+        }
+    ],
+    volumes: [
+        {
+            name: 'dockersock',
+            hostPath: {
+                path: '/var/run/docker.sock'
+            }
+        }
+    ]
+};
+
+const kanikoVolumes = {
+    volumeMounts: [
+        {
+            name: 'commands',
+            mountPath: '/tmp/commands'
+        },
+        {
+            name: 'workspace',
+            mountPath: '/tmp/workspace'
+        }
+    ],
+    volumes: [
+        {
+            name: 'commands',
+            emptyDir: {}
+        },
+        {
+            name: 'workspace',
+            emptyDir: {}
+        }
+    ]
+};
+
+const kanikoContainer = {
+    name: KANIKO,
+    image: `hkube/${KANIKO}`,
+    volumeMounts: [
+        {
+            name: 'commands',
+            mountPath: '/commands'
+        },
+        {
+            name: 'workspace',
+            mountPath: '/workspace'
+        }
+    ],
+};
+
+module.exports = {
+    jobTemplate,
+    kanikoContainer,
+    dockerVolumes,
+    kanikoVolumes
+};

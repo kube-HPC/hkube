@@ -8,6 +8,7 @@ config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.version = packageJson.version;
 config.buildId = process.env.BUILD_ID;
 config.testMode = process.env.TEST_MODE === 'True';
+config.buildMode = process.env.BUILD_MODE || 'kaniko'
 
 config.docker = {
     pull: {
@@ -23,6 +24,8 @@ config.docker = {
         pass: process.env.DOCKER_PUSH_PASSWORD || ''
     }
 };
+
+config.tmpFolder = process.env.TMP_FOLDER || '/tmp';
 
 config.buildDirs = {
     ZIP: 'uploads/zipped',

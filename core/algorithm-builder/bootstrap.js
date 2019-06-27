@@ -19,8 +19,9 @@ class Bootstrap {
             await Promise.all(modules.map(m => m.init(config)));
             await this._initTestMode(config);
             const response = await dockerBuild(config);
-            console.log(response.result.output.data);
-            console.log(response.result.output.error);
+            console.log(response.result.data);
+            console.log(response.result.warning || 'No Warnings');
+            console.log(response.result.errors || 'No Errors');
             const code = response.error ? 1 : 0;
             process.exit(code);
         }

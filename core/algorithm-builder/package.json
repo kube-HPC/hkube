@@ -1,6 +1,6 @@
 {
   "name": "algorithm-builder",
-  "version": "1.1.65",
+  "version": "1.1.67",
   "description": "build algorithm with hkube worker connectivity",
   "author": "Hkube",
   "license": "ISC",
@@ -13,7 +13,7 @@
     "build": "./dockerfile/build.sh algorithm-builder",
     "build-env-python": "./lib/builds/build-base-image.sh --env python",
     "build-env-nodejs": "./lib/builds/build-base-image.sh --env nodejs",
-    "build-algorithm": "./lib/builds/build-algorithm-image.sh"
+    "build-algorithm": "./lib/builds/build-algorithm-image-docker.sh"
   },
   "pre-commit": {
     "run": [

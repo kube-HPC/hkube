@@ -5,6 +5,7 @@ config.serviceName = packageJson.name;
 config.version = packageJson.version;
 config.intervalMs = process.env.INTERVAL_MS || 10000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.buildMode = process.env.BUILD_MODE || 'kaniko'
 
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
