@@ -345,7 +345,7 @@ describe('AlgorithmExecutions', () => {
             };
             await execAlgorithm._startAlgorithmExecution({ data });
         }
-        await execAlgorithm.stopAllExecutions('cancel all...');
+        await execAlgorithm.stopAllExecutions({ reason: 'cancel all...' });
         expect(execAlgorithm._executions.size).to.equal(0);
     });
 });

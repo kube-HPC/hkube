@@ -343,7 +343,7 @@ class SubPipelineHandler {
      * Stop all active subPipelinese
      * @param reason
      */
-    async stopAllSubPipelines(reason) {
+    async stopAllSubPipelines({ reason }) {
         if (this._stoppingSubpipelines) {
             return;
         }

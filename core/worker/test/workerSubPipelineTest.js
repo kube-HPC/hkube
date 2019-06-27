@@ -343,7 +343,7 @@ describe('worker SubPipeline test', () => {
 
         const call = spy.getCalls()[0] || {};
         const args = call.args && call.args[0];
-        expect(args).equals(`parent algorithm entered state ${state}`, 'expect args to be correct');
+        expect(args.reason).equals(`parent algorithm entered state ${state}`, 'expect args to be correct');
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after state ready');
     });
 });
