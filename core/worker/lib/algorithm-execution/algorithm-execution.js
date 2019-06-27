@@ -108,14 +108,15 @@ class AlgorithmExecution {
         }
     }
 
-    async stopAllExecutions(reason) {
+    async stopAllExecutions({ jobId }) {
         if (this._stopping) {
             return;
         }
         try {
             this._stopping = true;
-            const { jobId } = jobConsumer.jobData;
-
+            if (!jobId) {
+                throw new Error('jobId was not supplied');
+            }
             await this._unWatchTasks({ jobId });
 
             if (this._executions.size === 0) {

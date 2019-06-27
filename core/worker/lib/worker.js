@@ -55,7 +55,8 @@ class Worker {
         discovery.on(EventMessages.STOP, async (res) => {
             log.info(`got stop: ${res.reason}`, { component });
             const reason = `parent pipeline stopped: ${res.reason}`;
-            await this._stopAllPipelinesAndExecutions(reason);
+            const { jobId } = jobConsumer.jobData;
+            await this._stopAllPipelinesAndExecutions({ jobId, reason });
             stateManager.stop();
         });
         discovery.on(workerCommands.coolDown, async () => {
@@ -166,8 +167,9 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.error, async (message) => {
             const errText = message.error && message.error.message;
             log.error(`got error from algorithm: ${errText}`, { component });
+            const { jobId } = jobConsumer.jobData;
             const reason = `parent algorithm failed: ${errText}`;
-            await this._stopAllPipelinesAndExecutions(reason);
+            await this._stopAllPipelinesAndExecutions({ jobId, reason });
             stateManager.done(message);
         });
         algoRunnerCommunication.on(messages.incomming.startSpan, (message) => {
@@ -178,10 +180,10 @@ class Worker {
         });
     }
 
-    async _stopAllPipelinesAndExecutions(reason) {
+    async _stopAllPipelinesAndExecutions({ jobId, reason }) {
         await Promise.all([
-            subPipeline.stopAllSubPipelines(reason),
-            execAlgorithms.stopAllExecutions(reason)
+            subPipeline.stopAllSubPipelines({ reason }),
+            execAlgorithms.stopAllExecutions({ jobId })
         ]);
     }
 
@@ -263,13 +265,13 @@ class Worker {
         }
     }
 
-    async handleExit(code) {
+    async handleExit(code, jobId) {
         if (!this._inTerminationMode) {
             this._inTerminationMode = true;
             try {
                 log.info(`starting termination mode. Exiting with code ${code}`, { component });
                 const reason = 'parent pipeline exit';
-                await this._stopAllPipelinesAndExecutions(reason);
+                await this._stopAllPipelinesAndExecutions({ jobId, reason });
 
                 this._tryToSendCommand({ command: messages.outgoing.exit });
                 const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
@@ -329,6 +331,7 @@ class Worker {
 
     _registerToStateEvents() {
         stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
+            const { jobId } = jobConsumer.jobData || {};
             let pendingTransition = null;
             let reason = null;
             log.info(`Entering state: ${state}`, { component });
@@ -336,11 +339,11 @@ class Worker {
             this._handleTimeout(state);
             switch (state) {
                 case workerStates.exit:
-                    this.handleExit(0);
+                    this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
                     reason = `parent algorithm entered state ${state}`;
-                    await this._stopAllPipelinesAndExecutions(reason);
+                    await this._stopAllPipelinesAndExecutions({ jobId, reason });
                     await jobConsumer.finishJob(result);
                     pendingTransition = stateManager.cleanup.bind(stateManager);
                     break;
@@ -369,7 +372,7 @@ class Worker {
                     this._stopTimeout = setTimeout(() => {
                         log.error('Timeout exceeded trying to stop algorithm.', { component });
                         stateManager.done('Timeout exceeded trying to stop algorithm');
-                        this.handleExit(0);
+                        this.handleExit(0, jobId);
                     }, this._stopTimeoutMs);
                     algoRunnerCommunication.send({
                         command: messages.outgoing.stop
