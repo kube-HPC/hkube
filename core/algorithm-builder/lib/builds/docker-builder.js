@@ -181,9 +181,7 @@ const _buildDocker = async ({ buildMode, docker, algorithmName, version, buildPa
     const baseImage = path.join(pushRegistry, algorithmName);
     const algorithmImage = `${baseImage}:v${version}`;
     const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
-    if (dockerCreds && dockerCreds.auths) {
-        await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
-    }
+    await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
     const args = [
         "--img", algorithmImage,
         "--rmi", rmi,

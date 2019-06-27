@@ -15,7 +15,6 @@ dockerLogin() {
   else
     echo "Didn't find docker password, skip login...."
   fi
-  cat ~/.docker/config.json
 }
 
 dockerBuildKaniko() {
