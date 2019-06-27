@@ -130,29 +130,76 @@ const _removeFolder = async ({ folder }) => {
     }
 };
 
+const _argsHelper = (args, key, value) => {
+    if (value !== "") {
+        args.push(key);
+        args.push(value);
+    }
+    return args;
+}
+
+const _dockerCredentialsHelper = (registryOrig, user, password) => {
+    log.info('creating docker creds')
+    if (!user || !password) {
+        return null;
+    }
+    const dockerHubRegistry = 'https://index.docker.io/v1/';
+    let registry = registryOrig;
+    if (!registry || registry.includes('docker.io')) {
+        log.info(`found docker hub. using ${dockerHubRegistry}`)
+        registry = dockerHubRegistry;
+    }
+    const auth = Buffer.from(`${user}:${password}`).toString('base64');
+    return { registry, auth }
+}
+
+const _createDockerCredentials = (pullRegistry, pushRegistry) => {
+    const creds = {
+        auths: {
+
+        }
+    };
+    if (pullRegistry) {
+        const auth = _dockerCredentialsHelper(pullRegistry.registry, pullRegistry.user, pullRegistry.pass);
+        if (auth) {
+            creds.auths[auth.registry] = auth.auth;
+        }
+    }
+    if (pushRegistry) {
+        const auth = _dockerCredentialsHelper(pushRegistry.registry, pushRegistry.user, pushRegistry.pass);
+        if (auth) {
+            creds.auths[auth.registry] = { auth: auth.auth };
+        }
+    }
+    return creds;
+}
+
 const _buildDocker = async ({ buildMode, docker, algorithmName, version, buildPath, rmi, tmpFolder }) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
 
     const baseImage = path.join(pushRegistry, algorithmName);
     const algorithmImage = `${baseImage}:v${version}`;
-
+    const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
+    if (dockerCreds && dockerCreds.auths) {
+        await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
+    }
     const args = [
         "--img", algorithmImage,
         "--rmi", rmi,
         "--buildpath", buildPath,
+    ]
+    // docker pull
+    _argsHelper(args, "--dplr", pullRegistry);
+    _argsHelper(args, "--dplu", docker.pull.user);
+    _argsHelper(args, "--dplp", docker.pull.pass);
 
-        // docker pull
-        "--dplr", pullRegistry,
-        "--dplu", docker.pull.user,
-        "--dplp", docker.pull.pass,
+    // docker push
+    _argsHelper(args, "--dphr", pushRegistry);
+    _argsHelper(args, "--dphu", docker.push.user);
+    _argsHelper(args, "--dphp", docker.push.pass);
+    _argsHelper(args, "--tmpFolder", tmpFolder);
 
-        // docker push
-        "--dphr", pushRegistry,
-        "--dphu", docker.push.user,
-        "--dphp", docker.push.pass,
-        "--tmpFolder", tmpFolder
-    ];
     const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
     return { output, algorithmImage };
 };
