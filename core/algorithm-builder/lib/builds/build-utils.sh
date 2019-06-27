@@ -9,7 +9,7 @@ dockerLogin() {
     registry=""
   fi
 
-  if [[ ${user} != "" ]]; then 
+  if [[ ${user} != "none" ]] && [[ ${user} != "none" ]]; then 
     echo "Found docker password, docker login...."
     echo ${pass} | docker login --username ${user} --password-stdin $registry
   else
@@ -26,8 +26,8 @@ dockerBuildKaniko() {
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
   cp -r ${buildPath}/* ${workspace}
-  echo copy docker creds
-  cp ~/.docker/config.json ${commands}/
+  # echo copy docker creds
+  # cp ~/.docker/config.json ${commands}/
   echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ --context dir:///workspace/ --destination $image" > ${commands}/run
   chmod +x ${commands}/run
   cat ${commands}/run
