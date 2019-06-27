@@ -80,11 +80,28 @@ HKube runs on top of Kubernetes so in order to run HKube we have to install it's
    ```bash
    helm repo add hkube http://hkube.io/helm/
    ```
+2. Configure a docker registry for [builds](http://hkube.io/learn/algorithms/#the-easy-way)  
+Create a ```values.yaml``` file for custom helm values
+```yaml
+build_secret:
+# pull secret is only needed if docker hub is not accessible
+  pull:
+    registry: ''
+    namespace: ''
+    username: ''
+    password: ''
+# enter your docker hub / other registry credentials
+  push:
+    registry: '' # can be left empty for docker hub
+    namespace: '' # registry namespace - usually your username
+    username: ''
+    password: ''
+```
 
 2. Install HKube chart
 
    ```console
-   helm install hkube/hkube --name my-release
+   helm install hkube/hkube  -f ./values.yaml --name my-release
    ```
 
 > This command installs HKube in a minimal configuration for **development**. Check [production-deployment](http://hkube.io/learn/install/#production-deployment).
@@ -121,11 +138,13 @@ Download `hkubectl` [latest version](https://github.com/kube-HPC/hkubectl/releas
 
 ```bash
 # Check release page for latest version
-latestVersion="v1.1.27"
-curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/${latest-version}/hkubectl \
+latestVersion="v1.1.28"
+curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/${latestVersion}/hkubectl-linux \
 && chmod +x hkubectl \
 && sudo mv hkubectl /usr/local/bin/
 ```
+> For mac replace with hkubectl-macos
+> For Windows download hkubectl-win.exe
 
 Config `hkubectl` with your running Kubernetes.
 
