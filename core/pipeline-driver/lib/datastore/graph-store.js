@@ -126,13 +126,15 @@ class GraphStore {
     _handleSingle(node) {
         const { SINGLE } = groupTypes;
         const calculatedNode = {
-            nodeName: node.nodeName,
-            algorithmName: node.algorithmName,
+            taskId: node.taskId,
             input: this._parseInput(node),
             output: node.result,
+            status: node.status,
             error: node.error,
+            nodeName: node.nodeName,
+            algorithmName: node.algorithmName,
+            retries: node.retries,
             group: SINGLE.NOT_STARTED,
-            taskId: node.taskId,
             startTime: node.startTime,
             endTime: node.endTime
         };
@@ -147,7 +149,9 @@ class GraphStore {
             batchIndex: b.batchIndex,
             input: this._parseInput(b),
             output: b.result,
+            status: b.status,
             error: b.error,
+            retries: b.retries,
             startTime: b.startTime,
             endTime: b.endTime
         }));
@@ -158,19 +162,26 @@ class GraphStore {
             group: BATCH.NOT_STARTED,
             batchTasks
         };
+        let completed = 0;
+        let group = null;
         const batchStatus = this._batchStatusCounter(node);
         if (batchStatus.completed === node.batch.length) {
-            calculatedNode.extra.batch = `${node.batch.length}/${node.batch.length}`;
-            calculatedNode.group = BATCH.COMPLETED;
+            completed = node.batch.length;
+            group = BATCH.COMPLETED;
         }
         else if (batchStatus.idle === node.batch.length) {
-            calculatedNode.extra.batch = `0/${node.batch.length}`;
-            calculatedNode.group = BATCH.NOT_STARTED;
+            completed = 0;
+            group = BATCH.NOT_STARTED;
         }
         else {
-            calculatedNode.extra.batch = `${batchStatus.running + batchStatus.completed}/${node.batch.length}`;
-            calculatedNode.group = BATCH.RUNNING;
+            completed = batchStatus.running + batchStatus.completed;
+            group = BATCH.RUNNING;
         }
+        if (batchStatus.errors > 0) {
+            group = BATCH.ERRORS;
+        }
+        calculatedNode.extra.batch = `${completed}/${node.batch.length}`;
+        calculatedNode.group = group;
         return calculatedNode;
     }
 
@@ -195,12 +206,16 @@ class GraphStore {
         const batchState = {
             idle: 0,
             completed: 0,
-            running: 0,
+            errors: 0,
+            running: 0
         };
 
         node.batch.forEach((b) => {
             const { STATUS } = groupTypes;
             const status = this._singleStatus(b.status);
+            if (b.error) {
+                batchState.errors += 1;
+            }
             if (status === STATUS.COMPLETED) {
                 batchState.completed += 1;
             }
