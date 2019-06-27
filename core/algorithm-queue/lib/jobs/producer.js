@@ -64,7 +64,7 @@ class JobProducer {
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${MAX_JOB_ATTEMPTS}`;
             log.error(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
-            await this.etcd.jobs.tasks.set({ jobId, taskId, status, error });
+            await this.etcd.jobs.tasks.set({ jobId, taskId, status, error, retries: attempts });
         });
     }
 
