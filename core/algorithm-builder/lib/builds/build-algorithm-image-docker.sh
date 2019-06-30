@@ -64,7 +64,13 @@ case $key in
     shift
     shift
     ;;
-
+    
+     --tmpFolder)
+    TMP_FOLDER="$2"
+    shift
+    shift
+    ;;
+    
      --help)
     usage
     exit 1
