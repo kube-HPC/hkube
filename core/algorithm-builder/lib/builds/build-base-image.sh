@@ -59,3 +59,6 @@ dockerBuild ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE}
 dockerPush ${IMAGE_NAME}
 
 removeImage ${IMAGE_NAME}
+
+# update dockerfile template
+sed -i "1s/.*/FROM \${DOCKER_PULL_REGISTRY}\/base-algorithm-${ENV}:v${VERSION}/" ${BUILD_PATH}/docker/DockerfileTemplate

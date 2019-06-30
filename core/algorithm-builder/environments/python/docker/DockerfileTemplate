@@ -1,5 +1,4 @@
-
-FROM ${DOCKER_PULL_REGISTRY}/base-algorithm-python:v1.1.61
+FROM ${DOCKER_PULL_REGISTRY}/base-algorithm-python:v1.1.69
 LABEL maintainer="hkube.dev@gmail.com"
 
 COPY . /hkube/algorithm-runner
