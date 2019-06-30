@@ -85,6 +85,7 @@ echo DOCKER_PUSH_REGISTRY=${DOCKER_PUSH_REGISTRY}
 echo REMOVE_IMAGE=${REMOVE_IMAGE}
 echo
 
+
 echo docker version
 docker version
 echo
@@ -94,6 +95,8 @@ cat /etc/os-release
 echo
 
 echo
+DOCKER_PULL_USER=${DOCKER_PULL_USER:-"none"}
+DOCKER_PULL_PASS=${DOCKER_PULL_PASS:-"none"}
 dockerLogin ${DOCKER_PULL_USER} ${DOCKER_PULL_PASS} ${DOCKER_PULL_REGISTRY}
 echo
 
@@ -106,6 +109,8 @@ dockerBuild ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE}
 echo
 
 echo
+DOCKER_PUSH_USER=${DOCKER_PUSH_USER:-"none"}
+DOCKER_PUSH_PASS=${DOCKER_PUSH_PASS:-"none"}
 dockerLogin ${DOCKER_PUSH_USER} ${DOCKER_PUSH_PASS} ${DOCKER_PUSH_REGISTRY}
 echo
 
