@@ -9,7 +9,7 @@ dockerLogin() {
     registry=""
   fi
 
-  if [[ ${user} != "none" ]] && [[ ${user} != "none" ]]; then 
+  if [[ ${user} != "none" ]] && [[ ${pass} != "none" ]]; then 
     echo "Found docker password, docker login...."
     echo ${pass} | docker login --username ${user} --password-stdin $registry
   else
