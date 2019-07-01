@@ -123,22 +123,24 @@ class GraphStore {
         return this._handleBatch(node);
     }
 
-    _handleSingle(node) {
-        const { SINGLE } = groupTypes;
-        const calculatedNode = {
-            taskId: node.taskId,
-            input: this._parseInput(node),
-            output: node.result,
-            status: node.status,
-            error: node.error,
-            prevErrors: node.prevErrors,
-            nodeName: node.nodeName,
-            algorithmName: node.algorithmName,
-            retries: node.retries,
-            group: SINGLE.NOT_STARTED,
-            startTime: node.startTime,
-            endTime: node.endTime
+    _mapTask(task) {
+        return {
+            taskId: task.taskId,
+            input: this._parseInput(task),
+            output: task.result,
+            status: task.status,
+            error: task.error,
+            prevErrors: task.prevErrors,
+            nodeName: task.nodeName,
+            algorithmName: task.algorithmName,
+            retries: task.retries,
+            startTime: task.startTime,
+            endTime: task.endTime
         };
+    }
+
+    _handleSingle(node) {
+        const calculatedNode = this._mapTask(node);
         calculatedNode.group = this._singleStatus(node.status);
         return calculatedNode;
     }
@@ -146,16 +148,8 @@ class GraphStore {
     _handleBatch(node) {
         const { BATCH } = groupTypes;
         const batchTasks = node.batch.map(b => ({
-            taskId: b.taskId,
-            batchIndex: b.batchIndex,
-            input: this._parseInput(b),
-            output: b.result,
-            status: b.status,
-            error: b.error,
-            prevErrors: b.prevErrors,
-            retries: b.retries,
-            startTime: b.startTime,
-            endTime: b.endTime
+            ...this._mapTask(b),
+            batchIndex: b.batchIndex
         }));
         const calculatedNode = {
             nodeName: node.nodeName,
