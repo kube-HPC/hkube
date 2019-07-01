@@ -8,6 +8,7 @@ const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const States = require('../consts/States');
 const component = require('../consts/components').DOCKER_BUILDER;
+const { KANIKO, DOCKER } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
 
 const _ensureDirs = async (dirs) => {
@@ -80,8 +81,11 @@ const _runBash = ({ command, args }) => {
         build.stderr.on('data', (d) => {
             error += d.toString();
         });
-        build.on('close', () => {
-            return resolve({ data, error });
+        build.on('close', (code) => {
+            if (code) {
+                error += `Exit with code ${code}`
+            }
+            return resolve({ data, error, code });
         });
         build.on('error', (err) => {
             return reject(err);
@@ -180,7 +184,7 @@ const _buildDocker = async ({ buildMode, docker, algorithmName, version, buildPa
 
     const baseImage = path.join(pushRegistry, algorithmName);
     const algorithmImage = `${baseImage}:v${version}`;
-    if (buildMode === 'kaniko'){
+    if (buildMode === KANIKO) {
         const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
         await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
     }
@@ -194,11 +198,15 @@ const _buildDocker = async ({ buildMode, docker, algorithmName, version, buildPa
     _argsHelper(args, "--dplu", docker.pull.user);
     _argsHelper(args, "--dplp", docker.pull.pass);
 
+
     // docker push
     _argsHelper(args, "--dphr", pushRegistry);
     _argsHelper(args, "--dphu", docker.push.user);
     _argsHelper(args, "--dphp", docker.push.pass);
-    _argsHelper(args, "--tmpFolder", tmpFolder);
+
+    if (buildMode === KANIKO) {
+        _argsHelper(args, "--tmpFolder", tmpFolder);
+    }
 
     const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
     return { output, algorithmImage };
