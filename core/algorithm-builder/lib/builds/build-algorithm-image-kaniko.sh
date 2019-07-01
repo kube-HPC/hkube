@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This script used to create a specific algorithm image
-
+set -e
 source $PWD/lib/builds/build-utils.sh
 
 DOCKER_FILE="__DockerFile__"
@@ -98,4 +98,8 @@ echo
 
 echo
 dockerBuildKaniko ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE} ${TMP_FOLDER}/workspace ${TMP_FOLDER}/commands
+ret=${exit_code}
+echo build finished with code $ret
 echo
+
+exit $ret

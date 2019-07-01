@@ -28,7 +28,7 @@ dockerBuildKaniko() {
   cp -r ${buildPath}/* ${workspace}
   # echo copy docker creds
   # cp ~/.docker/config.json ${commands}/
-  echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ --context dir:///workspace/ --destination $image" > ${commands}/run
+  echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ --insecure --insecure-pull --context dir:///workspace/ --destination $image" > ${commands}/run
   chmod +x ${commands}/run
   cat ${commands}/run
   touch ${commands}/start
@@ -38,6 +38,12 @@ dockerBuildKaniko() {
   done
   echo build done
   cat ${commands}/output
+  # >&2 cat ${commands}/errors
+  if [ -f "${commands}/code_ok" ]; then
+    exit_code=0
+  else
+    exit_code=1
+  fi
 }
 
 dockerBuild() {
