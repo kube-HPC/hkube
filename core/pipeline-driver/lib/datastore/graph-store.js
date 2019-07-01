@@ -131,6 +131,7 @@ class GraphStore {
             output: node.result,
             status: node.status,
             error: node.error,
+            prevErrors: node.prevErrors,
             nodeName: node.nodeName,
             algorithmName: node.algorithmName,
             retries: node.retries,
@@ -151,6 +152,7 @@ class GraphStore {
             output: b.result,
             status: b.status,
             error: b.error,
+            prevErrors: b.prevErrors,
             retries: b.retries,
             startTime: b.startTime,
             endTime: b.endTime

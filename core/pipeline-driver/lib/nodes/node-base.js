@@ -11,6 +11,7 @@ class NodeBase extends Task {
         this.storage = options.storage;
         this.status = options.status || States.CREATING;
         this.error = options.error;
+        this.prevErrors = [];
         this.result = options.result;
     }
 }

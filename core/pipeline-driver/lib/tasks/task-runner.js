@@ -59,7 +59,9 @@ class TaskRunner extends EventEmitter {
             this._handleTaskEvent(task);
         });
         this._stateManager.on(Events.TASKS.STALLED, (task) => {
-            this._handleTaskEvent(task);
+            const { error, ...rest } = task;
+            const prevError = error;
+            this._handleTaskEvent({ prevError, ...rest });
         });
         this._stateManager.on(Events.TASKS.CRASHED, (task) => {
             const data = { ...task, status: NodeStates.FAILED };
@@ -468,7 +470,7 @@ class TaskRunner extends EventEmitter {
         if (!task) {
             return;
         }
-        const error = this._checkBatchTolerance(task);
+        const error = this._checkTaskErrors(task);
         if (error) {
             this.stop(error);
         }
@@ -481,7 +483,7 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _checkBatchTolerance(task) {
+    _checkTaskErrors(task) {
         let error;
         if (task.error && !task.execId) {
             if (task.batchIndex) {
