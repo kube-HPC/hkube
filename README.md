@@ -137,14 +137,12 @@ hkubectl --help
 Download `hkubectl` [latest version](https://github.com/kube-HPC/hkubectl/releases).
 
 ```bash
-# Check release page for latest version
-latestVersion="v1.1.28"
-curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/${latestVersion}/hkubectl-linux \
+curl -Lo hkubectl https://github.com/kube-HPC/hkubectl/releases/download/$(curl -s https://api.github.com/repos/kube-HPC/hkubectl/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')/hkubectl-linux \
 && chmod +x hkubectl \
 && sudo mv hkubectl /usr/local/bin/
 ```
-> For mac replace with hkubectl-macos
-> For Windows download hkubectl-win.exe
+> For mac replace with hkubectl-macos  
+> For Windows download hkubectl-win.exe  
 
 Config `hkubectl` with your running Kubernetes.
 
