@@ -7,7 +7,9 @@
     "lerna": "./node_modules/.bin/lerna",
     "test": "lerna changed 2>/dev/null | xargs -n 1  lerna run test --scope",
     "lint": "lerna changed 2>/dev/null | xargs -n 1  lerna run lint --scope",
-    "version": "echo $npm_package_version"
+    "version": "echo $npm_package_version",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -26,6 +28,8 @@
   "dependencies": {
     "@octokit/rest": "^16.27.3",
     "js-yaml": "^3.13.1",
-    "request-promise": "^4.2.4"
-  }
+    "request-promise": "^4.2.4",
+    "snyk": "^1.189.0"
+  },
+  "snyk": true
 }
