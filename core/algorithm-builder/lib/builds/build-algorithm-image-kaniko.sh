@@ -27,7 +27,7 @@ case $key in
     ;;
 
     --baseVersion)
-    BASE_VERSION"$2"
+    BASE_VERSION="$2"
     shift
     shift
     ;;

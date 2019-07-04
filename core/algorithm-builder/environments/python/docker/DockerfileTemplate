@@ -1,6 +1,6 @@
 # First build
 ARG baseVersion
-FROM ${DOCKER_PULL_REGISTRY}/base-algorithm-python:${baseVersion} AS build
+FROM ${pullRegistry}/base-algorithm-python:${baseVersion} AS build
 LABEL maintainer="hkube.dev@gmail.com"
 ARG packagesRegistry
 ARG packagesToken
@@ -12,7 +12,7 @@ WORKDIR /hkube/algorithm-runner
 RUN ./docker/requirements.sh ${packagesRegistry} ${packagesToken}
 
 # Second build
-FROM ${pullRegistry}/base-algorithm-nodejs:${baseVersion}
+FROM ${pullRegistry}/base-algorithm-python:${baseVersion}
 COPY --from=build /hkube/algorithm-runner /hkube/algorithm-runner
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
