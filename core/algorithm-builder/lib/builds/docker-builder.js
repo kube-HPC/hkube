@@ -195,6 +195,7 @@ const _buildDocker = async ({ buildMode, env, docker, algorithmName, version, bu
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
     const baseVersion = await _getBaseImageVersion(env);
+    const packages = packagesRepo[env];
 
     if (!baseVersion) {
         throw new Error(`unable to find base version for image ${algorithmImage}`);
@@ -221,11 +222,9 @@ const _buildDocker = async ({ buildMode, env, docker, algorithmName, version, bu
     _argsHelper(args, "--dphu", docker.push.user);
     _argsHelper(args, "--dphp", docker.push.pass);
 
-    // packages repository
-    _argsHelper(args, "--pckr", packagesRepo.registry);
-    _argsHelper(args, "--pckt", packagesRepo.token);
-    _argsHelper(args, "--pcku", packagesRepo.username);
-    _argsHelper(args, "--pckp", packagesRepo.password);
+    // packages
+    _argsHelper(args, "--pckr", packages.registry);
+    _argsHelper(args, "--pckt", packages.token);
 
     if (buildMode === KANIKO) {
         _argsHelper(args, "--tmpFolder", tmpFolder);

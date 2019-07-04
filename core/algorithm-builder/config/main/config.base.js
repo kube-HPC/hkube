@@ -27,18 +27,22 @@ config.docker = {
 };
 
 config.packagesRepo = {
-    registry: process.env.PACKAGES_REGISTRY || '',
-    token: process.env.PACKAGES_TOKEN || '',
-    username: process.env.PACKAGES_USERNAME || '',
-    password: process.env.PACKAGES_PASSWORD || ''
-}
+    nodejs: {
+        registry: process.env.NPM_REGISTRY || '',
+        token: process.env.NPM_TOKEN || '',
+    },
+    python: {
+        registry: process.env.PIP_REGISTRY || '',
+        token: process.env.PIP_TOKEN || ''
+    }
+};
 
 config.tmpFolder = process.env.TMP_FOLDER || '/tmp';
 
 config.buildDirs = {
     ZIP: 'uploads/zipped',
     UNZIP: 'uploads/unzipped'
-}
+};
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',

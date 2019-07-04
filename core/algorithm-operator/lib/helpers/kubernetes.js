@@ -56,6 +56,11 @@ class KubernetesApi extends EventEmitter {
         return jobsRaw;
     }
 
+    async getSecret({ secretName }) {
+        const secretsRaw = await this._client.secrets.get({ secretName });
+        return secretsRaw;
+    }
+
     async createJob({ spec }) {
         log.info(`Creating job ${spec.metadata.name}`, { component });
         try {
