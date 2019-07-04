@@ -8,6 +8,7 @@ config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.version = packageJson.version;
 config.buildId = process.env.BUILD_ID;
 config.testMode = process.env.TEST_MODE === 'True';
+config.testModeEnv = process.env.TEST_MODE_ENV || 'nodejs';
 config.buildMode = process.env.BUILD_MODE || 'kaniko'
 
 config.docker = {
@@ -24,6 +25,13 @@ config.docker = {
         pass: process.env.DOCKER_PUSH_PASSWORD || ''
     }
 };
+
+config.packagesRepo = {
+    registry: process.env.PACKAGES_REGISTRY || '',
+    token: process.env.PACKAGES_TOKEN || '',
+    username: process.env.PACKAGES_USERNAME || '',
+    password: process.env.PACKAGES_PASSWORD || ''
+}
 
 config.tmpFolder = process.env.TMP_FOLDER || '/tmp';
 

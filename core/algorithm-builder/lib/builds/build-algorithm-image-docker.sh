@@ -17,7 +17,7 @@ case $key in
     shift
     ;;
 
-    --buildpath)
+    --buildPath)
     BUILD_PATH="$2"
     shift
     shift
@@ -101,7 +101,7 @@ dockerLogin ${DOCKER_PULL_USER} ${DOCKER_PULL_PASS} ${DOCKER_PULL_REGISTRY}
 echo
 
 echo
-DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY} envsubst < ${BUILD_PATH}/docker/DockerfileTemplate > ${BUILD_PATH}/docker/${DOCKER_FILE}
+envsubst < ${BUILD_PATH}/docker/DockerfileTemplate > ${BUILD_PATH}/docker/${DOCKER_FILE}
 echo
 
 echo

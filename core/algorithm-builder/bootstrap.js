@@ -32,14 +32,15 @@ class Bootstrap {
 
     async _initTestMode(config) {
         if (config.testMode) {
-            const mockZip = `${process.cwd()}/tests/mocks/nodejs/sort-alg-nodejs.tar.gz`;
-            const mockBuildNodejs = require('./tests/mocks/nodejs/build.json');
+            const env = config.testModeEnv;
+            const tar = `${process.cwd()}/tests/mocks/${env}/alg.tar.gz`;
+            const mockBuild = require(`./tests/mocks/${env}/build.json`);
             const stateManger = require('./lib/state/state-manager');
             const storageManager = require('@hkube/storage-manager');
             const fse = require('fs-extra');
-            const { buildId } = mockBuildNodejs;
-            await stateManger.insertBuild(mockBuildNodejs);
-            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
+            const { buildId } = mockBuild;
+            await stateManger.insertBuild(mockBuild);
+            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
             config.buildId = buildId;
         }
     }
