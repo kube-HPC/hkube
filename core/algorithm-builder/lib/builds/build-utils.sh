@@ -24,16 +24,25 @@ dockerBuildKaniko() {
   workspace=${4:-/workspace}
   commands=${5:-/commands}
   pullRegistry=$6
-  packagesRegistry=$7
-  packagesToken=$8
-  baseVersion=$9
+  baseVersion=$7
+  packagesRegistry=$8
+  packagesToken=$9
 
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
   cp -r ${buildPath}/* ${workspace}
   # echo copy docker creds
   # cp ~/.docker/config.json ${commands}/
-  echo "/kaniko/executor --dockerfile ./docker/DockerfileTemplate --insecure --insecure-pull --build-arg pullRegistry=${pullRegistry} --build-arg packagesRegistry=${packagesRegistry} --build-arg packagesToken=${packagesToken} --build-arg baseVersion=${baseVersion} --context dir:///workspace/ --destination $image" > ${commands}/run
+  echo "/kaniko/executor \
+  --dockerfile ./docker/DockerfileTemplate \
+  --insecure --insecure-pull \
+  --build-arg pullRegistry=${pullRegistry} \
+  --build-arg packagesRegistry=${packagesRegistry} \
+  --build-arg packagesToken=${packagesToken} \
+  --build-arg baseVersion=${baseVersion} \
+  --context dir:///workspace/ \
+  --destination $image" > ${commands}/run
+
   chmod +x ${commands}/run
   # cat ${commands}/run
   touch ${commands}/start

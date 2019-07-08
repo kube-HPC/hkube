@@ -8,7 +8,7 @@ PACKAGES_TOKEN=$2
 if [[ ${PACKAGES_REGISTRY} != "" ]] && [[ ${PACKAGES_TOKEN} != "" ]]; then
     echo "found npm registry ${PACKAGES_REGISTRY} and token ...."
     echo "//${PACKAGES_REGISTRY}/:_authToken=${PACKAGES_TOKEN}" > .npmrc && \
-    npm install && \
+    npm install --registry=${PACKAGES_REGISTRY} && \
     rm -f .npmrc
 else
      echo "no npm credentials found"
