@@ -1,19 +1,18 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
+const { NodesMap, NodeStates, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
 const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
 const Progress = require('../progress/nodes-progress');
-const NodesMap = require('../nodes/nodes-map');
-const NodeStates = require('../state/NodeStates');
 const DriverStates = require('../state/DriverStates');
 const Events = require('../consts/Events');
-const { Node, Batch } = require('../nodes');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 
+const { Node, Batch } = NodeTypes;
 let log;
 
 class TaskRunner extends EventEmitter {
