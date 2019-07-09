@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "fileExt": "gz",
     "status": "pending",
+    "baseImage": "base-node:v1.1.1",
     "error": null,
     "stack": null,
     "result": null,

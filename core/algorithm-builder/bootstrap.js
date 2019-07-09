@@ -4,7 +4,7 @@ const { main, logger } = configIt.load();
 const config = main;
 const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/components').MAIN;
-const dockerBuild = require('./lib/builds/docker-builder');
+const dockerBuilder = require('./lib/builds/docker-builder');
 
 const modules = [
     require('@hkube/storage-manager'),
@@ -18,7 +18,7 @@ class Bootstrap {
             log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
             await Promise.all(modules.map(m => m.init(config)));
             await this._initTestMode(config);
-            const response = await dockerBuild(config);
+            const response = await dockerBuilder.runBuild(config);
             console.log(response.result.data);
             console.log(response.result.warning || 'No Warnings');
             console.log(response.result.errors || 'No Errors');

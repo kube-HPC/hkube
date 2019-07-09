@@ -7,8 +7,6 @@ source $PWD/lib/builds/build-utils.sh
 
 #myVar=$(sed -n '/^nodejs=\(.*\)$/s//\1/p' base-versions)
 
-DOCKER_FILE="__DockerFile__"
-
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -26,8 +24,14 @@ case $key in
     shift
     ;;
 
-    --baseVersion)
-    BASE_VERSION="$2"
+    --baseImage)
+    BASE_IMAGE="$2"
+    shift
+    shift
+    ;;
+
+    --defaultBaseImage)
+    DEFAULT_BASE_IMAGE="$2"
     shift
     shift
     ;;
@@ -114,7 +118,8 @@ TMP_FOLDER=${TMP_FOLDER:-/tmp}
 echo
 echo IMAGE_NAME=${IMAGE_NAME}
 echo BUILD_PATH=${BUILD_PATH}
-echo BASE_VERSION=${BASE_VERSION}
+echo BASE_IMAGE=${BASE_IMAGE}
+echo DEFAULT_BASE_IMAGE=${DEFAULT_BASE_IMAGE}
 echo DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY}
 echo DOCKER_PUSH_REGISTRY=${DOCKER_PUSH_REGISTRY}
 echo PACKAGES_REGISTRY=${PACKAGES_REGISTRY}
@@ -123,7 +128,7 @@ echo TMP_FOLDER=${TMP_FOLDER}
 echo
 
 echo
-dockerBuildKaniko ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE} ${TMP_FOLDER}/workspace ${TMP_FOLDER}/commands ${DOCKER_PULL_REGISTRY} ${BASE_VERSION} ${PACKAGES_REGISTRY} ${PACKAGES_TOKEN}
+dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${DOCKER_PULL_REGISTRY}" "${BASE_IMAGE}" "${DEFAULT_BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}"
 ret=${exit_code}
 echo build finished with code $ret
 echo

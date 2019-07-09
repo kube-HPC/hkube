@@ -83,7 +83,7 @@ const _runBash = ({ command, args }) => {
         });
         build.on('close', (code) => {
             if (code) {
-                error += `Exit with code ${code}`
+                error += `Exit with code ${code}`;
             }
             return resolve({ data, error, code });
         });
@@ -136,27 +136,27 @@ const _removeFolder = async ({ folder }) => {
 };
 
 const _argsHelper = (args, key, value) => {
-    if (value !== "") {
+    if (value) {
         args.push(key);
         args.push(value);
     }
     return args;
-}
+};
 
 const _dockerCredentialsHelper = (registryOrig, user, password) => {
-    log.info('creating docker creds')
+    log.info('creating docker creds');
     if (!user || !password) {
         return null;
     }
     const dockerHubRegistry = 'https://index.docker.io/v1/';
     let registry = registryOrig;
     if (!registry || registry.includes('docker.io')) {
-        log.info(`found docker hub. using ${dockerHubRegistry}`)
+        log.info(`found docker hub. using ${dockerHubRegistry}`);
         registry = dockerHubRegistry;
     }
     const auth = Buffer.from(`${user}:${password}`).toString('base64');
-    return { registry, auth }
-}
+    return { registry, auth };
+};
 
 const _createDockerCredentials = (pullRegistry, pushRegistry) => {
     const creds = {
@@ -177,57 +177,57 @@ const _createDockerCredentials = (pullRegistry, pushRegistry) => {
         }
     }
     return creds;
-}
+};
 
 const _getBaseImageVersion = async (env) => {
     const data = await fse.readFile(`${process.cwd()}/lib/builds/base-versions`, 'utf8');
-    let splitted = data.split('\n');
-    let obj = Object.create(null);
-    splitted.forEach(s => {
-        let line = s.split('=');
+    const splitted = data.split('\n');
+    const obj = Object.create(null);
+    splitted.forEach((s) => {
+        const line = s.split('=');
         obj[line[0]] = line[1];
-    })
-    return obj[env];
-}
+    });
+    const baseVersion = obj[env];
+    if (!baseVersion) {
+        throw new Error(`unable to find base version for ${env} env`);
+    }
+    return baseVersion;
+};
 
-const _buildDocker = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, tmpFolder, packagesRepo }) => {
+const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo }) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
     const baseVersion = await _getBaseImageVersion(env);
     const packages = packagesRepo[env];
-
-    if (!baseVersion) {
-        throw new Error(`unable to find base version for image ${algorithmImage}`);
-    }
-
-    if (buildMode === KANIKO) {
-        const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
-        await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
-    }
+    const defaultBaseImage = `base-algorithm-${env}:${baseVersion}`;
 
     const args = [
-        "--img", algorithmImage,
-        "--rmi", rmi,
-        "--buildPath", buildPath,
-        "--baseVersion", baseVersion
-    ]
+        '--img', algorithmImage,
+        '--rmi', rmi,
+        '--buildPath', buildPath,
+        '--baseImage', baseImage || defaultBaseImage,
+        '--defaultBaseImage', defaultBaseImage
+    ];
+
     // docker pull
-    _argsHelper(args, "--dplr", pullRegistry);
-    _argsHelper(args, "--dplu", docker.pull.user);
-    _argsHelper(args, "--dplp", docker.pull.pass);
+    _argsHelper(args, '--dplr', pullRegistry);
+    _argsHelper(args, '--dplu', docker.pull.user);
+    _argsHelper(args, '--dplp', docker.pull.pass);
 
     // docker push
-    _argsHelper(args, "--dphr", pushRegistry);
-    _argsHelper(args, "--dphu", docker.push.user);
-    _argsHelper(args, "--dphp", docker.push.pass);
+    _argsHelper(args, '--dphr', pushRegistry);
+    _argsHelper(args, '--dphu', docker.push.user);
+    _argsHelper(args, '--dphp', docker.push.pass);
 
     // packages
-    _argsHelper(args, "--pckr", packages.registry);
-    _argsHelper(args, "--pckt", packages.token);
+    _argsHelper(args, '--pckr', packages.registry);
+    _argsHelper(args, '--pckt', packages.token);
 
     if (buildMode === KANIKO) {
-        _argsHelper(args, "--tmpFolder", tmpFolder);
+        _argsHelper(args, '--tmpFolder', tmpFolder);
+        const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
+        await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
     }
 
     const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
@@ -239,7 +239,7 @@ const _createURL = (options) => {
 };
 
 const _fixUrl = (url) => {
-    return url.replace(/\/+$/, "");
+    return url.replace(/\/+$/, '');
 };
 
 const _isWarning = (error) => {
@@ -255,8 +255,8 @@ const _analyzeErrors = (output, error) => {
 };
 
 const _analyzeError = (output) => {
-    const e = output.error || '';
-    const error = e.replace(/^\s*[\r\n]/gm, '').split('\n');
+    const err = output.error || '';
+    const error = err.replace(/^\s*[\r\n]/gm, '').split('\n');
     const warnings = error.filter(e => _isWarning(e)).join(',');
     const errors = error.filter(e => !_isWarning(e)).join(',');
     return { data: output.data, warnings, errors };
@@ -272,8 +272,8 @@ const _progress = (progress) => {
             prog = PROGRESS[status];
         }
         return prog;
-    }
-}
+    };
+};
 
 const runBuild = async (options) => {
     let build;
@@ -295,8 +295,8 @@ const runBuild = async (options) => {
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
 
         const overwrite = true;
-        const { env, version, fileExt } = build;
-        const { docker, buildDirs } = options;
+        const { env, version, fileExt, baseImage } = build;
+        const { docker, buildDirs, buildMode, tmpFolder, packagesRepo } = options;
         algorithmName = build.algorithmName;
         const src = `${buildDirs.ZIP}/${algorithmName}`;
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
@@ -309,7 +309,7 @@ const runBuild = async (options) => {
         await _downloadFile({ buildId, src, dest, fileExt, overwrite });
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        result = await _buildDocker({ buildMode: options.buildMode, env, docker, algorithmName, version, buildPath, rmi: "True", tmpFolder: options.tmpFolder, packagesRepo: options.packagesRepo });
+        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, version, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo });
     }
     catch (e) {
         error = e.message;
@@ -325,5 +325,7 @@ const runBuild = async (options) => {
     return { buildId, error, status, result: { data, warnings, errors } };
 };
 
-module.exports = runBuild;
-module.exports.buildDocker = _buildDocker;
+module.exports = {
+    runBuild,
+    buildAlgorithmImage
+};

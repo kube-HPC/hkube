@@ -1,6 +1,7 @@
 # First build
-ARG baseVersion
-FROM ${pullRegistry}/base-algorithm-nodejs:${baseVersion} AS build
+ARG baseImage
+ARG defaultBaseImage
+FROM ${pullRegistry}/${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"
 ARG packagesRegistry
 ARG packagesToken
@@ -11,7 +12,7 @@ WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 RUN ../docker/requirements.sh ${packagesRegistry} ${packagesToken}
 
 # Second build
-FROM ${pullRegistry}/base-algorithm-nodejs:${baseVersion}
+FROM ${pullRegistry}/${defaultBaseImage}
 COPY --from=build /hkube/algorithm-runner /hkube/algorithm-runner
 
 WORKDIR /hkube/algorithm-runner

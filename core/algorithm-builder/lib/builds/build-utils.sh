@@ -20,11 +20,11 @@ dockerLogin() {
 dockerBuildKaniko() {
   image=$1
   buildPath=$2
-  dockerFile=$3
-  workspace=${4:-/workspace}
-  commands=${5:-/commands}
-  pullRegistry=$6
-  baseVersion=$7
+  workspace=${3:-/workspace}
+  commands=${4:-/commands}
+  pullRegistry=$5
+  baseImage=$6
+  defaultBaseImage=$7
   packagesRegistry=$8
   packagesToken=$9
 
@@ -39,10 +39,11 @@ dockerBuildKaniko() {
   --build-arg pullRegistry=${pullRegistry} \
   --build-arg packagesRegistry=${packagesRegistry} \
   --build-arg packagesToken=${packagesToken} \
-  --build-arg baseVersion=${baseVersion} \
+  --build-arg baseImage=${baseImage} \
+  --build-arg defaultBaseImage=${defaultBaseImage} \
   --context dir:///workspace/ \
   --destination $image" > ${commands}/run
-
+  
   chmod +x ${commands}/run
   # cat ${commands}/run
   touch ${commands}/start
