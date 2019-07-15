@@ -25,10 +25,13 @@ class JobConsumer {
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-        persistence.on('job-stop', async (job) => {
-            const { jobId } = job;
-            const pipeline = await persistence.getExecution({ jobId });
-            await this._stopJob(jobId, pipeline, job.reason);
+        persistence.on('job-stopped', (job) => {
+            const { jobId, status } = job;
+            this._cleanJob(jobId, status);
+        });
+        persistence.on('job-paused', (job) => {
+            const { jobId, status } = job;
+            this._cleanJob(jobId, status);
         });
     }
 
@@ -39,10 +42,9 @@ class JobConsumer {
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
             }
-            const watchState = await persistence.getJobState({ jobId });
-            if (watchState && watchState.state === jobState.STOP) {
-                log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
-                await this._stopJob(jobId, pipeline, watchState.reason);
+            const jobStatus = await persistence.getJobStatus({ jobId });
+            if (jobStatus.status === jobState.STOPPED || jobStatus.status === jobState.PAUSED) {
+                await this._cleanJob(jobId, jobStatus.status);
             }
             else {
                 await this._queueJob(pipeline, jobId, spanId);
@@ -57,14 +59,9 @@ class JobConsumer {
         }
     }
 
-    async _stopJob(jobId, pipeline, reason) {
-        const jobs = queueRunner.queue.remove(jobId);
-        if (jobs.length > 0) {
-            const status = jobState.STOPPED;
-            await persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, level: 'info' });
-            await persistence.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason, status });
-            await persistence.deleteTasksState({ jobId });
-        }
+    async _cleanJob(jobId, status) {
+        log.info(`job ${status} ${jobId}`, { component });
+        queueRunner.queue.remove(jobId);
     }
 
     async _queueJob(pipeline, jobId, spanId) {

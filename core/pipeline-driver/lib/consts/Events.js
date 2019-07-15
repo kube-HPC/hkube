@@ -1,15 +1,10 @@
 
 module.exports = {
     JOBS: {
-        STOP: 'job-stop',
-        WAITING: 'job-waiting',
-        ACTIVE: 'job-active',
-        FAILED: 'job-failed',
-        STALLED: 'job-stalled',
-        CRASHED: 'job-crashed'
+        STOPPED: 'job-stopped',
+        PAUSED: 'job-paused'
     },
     TASKS: {
-        WAITING: 'task-waiting',
         ACTIVE: 'task-active',
         SUCCEED: 'task-succeed',
         FAILED: 'task-failed',

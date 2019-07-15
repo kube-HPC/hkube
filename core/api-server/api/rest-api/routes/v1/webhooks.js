@@ -9,32 +9,23 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.all('/results/:jobId?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/results/:jobId?', methods(['GET']), logger(), async (req, res, next) => {
         const { jobId } = req.params;
-        WebhooksService.getWebhooksResults({ jobId }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await WebhooksService.getWebhooksResults({ jobId });
+        res.json(response);
+        next();
     });
-    router.all('/status/:jobId?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/status/:jobId?', methods(['GET']), logger(), async (req, res, next) => {
         const { jobId } = req.params;
-        WebhooksService.getWebhooksStatus({ jobId }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await WebhooksService.getWebhooksStatus({ jobId });
+        res.json(response);
+        next();
     });
-    router.all('/:jobId?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/:jobId?', methods(['GET']), logger(), async (req, res, next) => {
         const { jobId } = req.params;
-        WebhooksService.getWebhooks({ jobId }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await WebhooksService.getWebhooks({ jobId });
+        res.json(response);
+        next();
     });
     return router;
 };

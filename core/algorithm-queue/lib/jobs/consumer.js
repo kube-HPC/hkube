@@ -20,7 +20,7 @@ class JobConsumer extends EventEmitter {
         const { etcd, serviceName, algorithmType } = options;
         this._options = options;
         this.etcd = new Etcd({ ...etcd, serviceName });
-        await this.etcd.jobs.state.watch();
+        await this.etcd.jobs.status.watch();
         await this.etcd.algorithms.executions.watch();
 
         log.info(`registering for job ${options.algorithmType}`, { component });
@@ -29,8 +29,8 @@ class JobConsumer extends EventEmitter {
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-        this.etcd.jobs.state.on('change', (data) => {
-            if (data && data.state === 'stop') {
+        this.etcd.jobs.status.on('change', (data) => {
+            if (data && data.status === 'stopped') {
                 const { jobId } = data;
                 queueRunner.queue.removeJobs([{ jobId }]);
             }
@@ -47,8 +47,8 @@ class JobConsumer extends EventEmitter {
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
-            const data = await this.etcd.jobs.state.get({ jobId });
-            if (data && data.state === 'stop') {
+            const data = await this.etcd.jobs.status.get({ jobId });
+            if (data && data.status === 'stopped') {
                 log.warning(`job arrived with state stop therefore will not added to queue : ${jobId}`, { component });
                 queueRunner.queue.removeJobs([{ jobId }]);
             }

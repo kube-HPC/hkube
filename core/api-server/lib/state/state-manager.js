@@ -4,8 +4,9 @@ const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const States = require('./States');
 
-const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
+const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING, States.RESUMING, States.PAUSED];
 const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
+const PausedState = [States.PAUSED];
 
 class StateManager extends EventEmitter {
     async init(options) {
@@ -20,6 +21,10 @@ class StateManager extends EventEmitter {
 
     isCompletedState(state) {
         return CompletedState.includes(state);
+    }
+
+    isPausedState(state) {
+        return PausedState.includes(state);
     }
 
     setExecution(options) {
@@ -159,10 +164,6 @@ class StateManager extends EventEmitter {
 
     deleteJobStatus(options) {
         return this._etcd.jobs.status.delete(options);
-    }
-
-    stopJob(options) {
-        return this._etcd.jobs.state.set({ jobId: options.jobId, state: 'stop', reason: options.reason });
     }
 
     async getResultFromStorage(options) {

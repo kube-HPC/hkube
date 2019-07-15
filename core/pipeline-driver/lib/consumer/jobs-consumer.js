@@ -39,7 +39,7 @@ class JobConsumer {
         this._consumer = new Consumer(options);
         this._consumer.register(options);
         this._consumer.on('job', (job) => {
-            this._taskRunner.start(job);
+            this._taskRunner.pipelineStarted(job);
         });
         this._handleTaskRunner(option);
     }

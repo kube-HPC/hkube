@@ -36,7 +36,7 @@ class InternalService {
         };
         const jobID = this._createSubPipelineJobID(pipeline);
         const { jobId, taskId, ...option } = pipeline;
-        return execution._run(option, jobID);
+        return execution._run({ pipeline: option, jobId: jobID });
     }
 
     _createCronJobID(options, uuid) {

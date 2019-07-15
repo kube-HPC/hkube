@@ -5,7 +5,7 @@ const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
 
-const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED];
+const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
 
 class StateManager extends EventEmitter {
     constructor(option) {
@@ -26,8 +26,8 @@ class StateManager extends EventEmitter {
         this._etcd.jobs.tasks.on('change', (data) => {
             this.emit(`task-${data.status}`, data);
         });
-        this._etcd.jobs.state.on('change', (data) => {
-            this.emit(`job-${data.state}`, data);
+        this._etcd.jobs.status.on('change', (data) => {
+            this.emit(`job-${data.status}`, data);
         });
         this._etcd.drivers.on('change', (data) => {
             this.emit(data.status.command, data);
@@ -100,10 +100,6 @@ class StateManager extends EventEmitter {
         return this._etcd.jobs.status.set(options);
     }
 
-    getJobStatus(options) {
-        return this._etcd.jobs.status.get(options);
-    }
-
     async tasksList(options) {
         const list = await this._etcd.jobs.tasks.list(options);
         const results = new Map();
@@ -134,15 +130,15 @@ class StateManager extends EventEmitter {
     }
 
     stopJob(options) {
-        return this._etcd.jobs.state.set({ jobId: options.jobId, state: 'stop', reason: options.reason });
+        return this._etcd.jobs.status.set({ jobId: options.jobId, state: 'stop', reason: options.reason });
     }
 
-    watchJobState(options) {
-        return this._etcd.jobs.state.watch(options);
+    watchJobStatus(options) {
+        return this._etcd.jobs.status.watch(options);
     }
 
-    unWatchJobState(options) {
-        return this._etcd.jobs.state.unwatch(options);
+    unWatchJobStatus(options) {
+        return this._etcd.jobs.status.unwatch(options);
     }
 
     _watchDrivers() {

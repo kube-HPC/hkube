@@ -32,6 +32,10 @@ priority:
   $ref: ./priority.yaml
 stopRequest:
   $ref: ./stopRequest.yaml
+pauseRequest:
+  $ref: ./pauseRequest.yaml
+resumeRequest:
+  $ref: ./resumeRequest.yaml
 storedPipeline:
   $ref: ./storedPipeline.yaml
 triggers:

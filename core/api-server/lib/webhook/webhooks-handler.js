@@ -1,4 +1,5 @@
 const request = require('requestretry');
+const HttpStatus = require('http-status-codes');
 const { metrics, utils } = require('@hkube/metrics');
 const levels = require('@hkube/logger').Levels;
 const log = require('@hkube/logger').GetLogFromContainer();
@@ -103,7 +104,7 @@ class WebhooksHandler {
                 retryDelay: this._options.webhooks.retryStrategy.retryDelay,
                 retryStrategy: request.RetryStrategies.HTTPOrNetworkError
             }).then((response) => {
-                data.responseStatus = response.statusCode >= 400 ? States.FAILED : States.SUCCEED;
+                data.responseStatus = response.statusCode >= HttpStatus.BAD_REQUEST ? States.FAILED : States.SUCCEED;
                 data.httpResponse = { statusCode: response.statusCode, statusMessage: response.statusMessage };
                 log.debug(`${type} webhook has been sent with status ${response.statusCode} ${response.statusMessage}, attempts: ${response.attempts}`, { component, jobId });
                 return resolve(data);

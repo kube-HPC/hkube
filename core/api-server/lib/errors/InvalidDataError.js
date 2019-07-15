@@ -1,7 +1,9 @@
+const HttpStatus = require('http-status-codes');
+
 class InvalidDataError extends Error {
     constructor(message) {
         super(message);
-        this.status = 400;
+        this.status = HttpStatus.BAD_REQUEST;
     }
 }
 

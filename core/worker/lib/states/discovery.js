@@ -34,10 +34,10 @@ class EtcdDiscovery extends EventEmitter {
         });
         this.watch({ jobId: 'hookWatch' });
 
-        this._etcd.jobs.state.on('change', (res) => {
+        this._etcd.jobs.status.on('change', (res) => {
             log.info(JSON.stringify(res), { component });
-            switch (res.state) {
-                case WATCH_STATE.STOP:
+            switch (res.status) {
+                case WATCH_STATE.STOPPED:
                     this.emit(res.state, res);
                     break;
                 default:

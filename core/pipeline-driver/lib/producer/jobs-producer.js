@@ -1,9 +1,8 @@
 const EventEmitter = require('events');
 const Validator = require('ajv');
-const { Producer, Events } = require('@hkube/producer-consumer');
+const { Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const schema = require('./schema');
-const { TASKS } = require('../consts/Events');
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 
 class JobProducer extends EventEmitter {
@@ -22,17 +21,6 @@ class JobProducer extends EventEmitter {
         }
         setting.tracer = tracer;
         this._producer = new Producer({ setting });
-        this._producer.on(Events.WAITING, (data) => {
-            this.emit(TASKS.WAITING, data.jobId);
-        }).on(Events.COMPLETED, (data) => {
-            this.emit(TASKS.SUCCEED, data.jobId);
-        }).on(Events.ACTIVE, (data) => {
-            this.emit(TASKS.ACTIVE, data.jobId);
-        }).on(Events.STALLED, (data) => {
-            this.emit(TASKS.STALLED, data.jobId);
-        }).on(Events.CRASHED, (data) => {
-            this.emit(TASKS.CRASHED, { taskId: data.jobId, error: data.error });
-        });
     }
 
     async createJob(options) {

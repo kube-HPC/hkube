@@ -5,7 +5,7 @@ const jobState = {
     FAILED: 'failed',
     STALLED: 'stalled',
     STOPPED: 'stopped',
-    STOP: 'stop'
+    PAUSED: 'pause'
 };
 
 module.exports = jobState;

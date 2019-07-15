@@ -62,7 +62,7 @@ class JobConsumer extends EventEmitter {
         this._jobProvider.on('job', async (job) => {
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await etcd.watch({ jobId: job.data.jobId });
-            if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
+            if (watchState && watchState.state === constants.WATCH_STATE.STOPPED) {
                 await this._stopJob(job);
                 return;
             }
@@ -78,7 +78,7 @@ class JobConsumer extends EventEmitter {
 
             if (this._execId) {
                 const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
-                if (watchExecutionState && watchExecutionState.state === constants.WATCH_STATE.STOP) {
+                if (watchExecutionState && watchExecutionState.state === constants.WATCH_STATE.STOPPED) {
                     await this.finishJob();
                     return;
                 }

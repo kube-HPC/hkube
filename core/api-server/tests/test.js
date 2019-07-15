@@ -4,9 +4,11 @@ const request = require('request');
 const querystring = require('querystring');
 const fse = require('fs-extra');
 const clone = require('clone');
+const HttpStatus = require('http-status-codes');
 const bootstrap = require('../bootstrap');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../lib/state/state-manager');
+const swagger = require('../api/rest-api/swagger.json')
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms, pipelines, triggersTree, webhookStub, workerStub } = require('./mocks');
 const converter = require('@hkube/units-converter');
@@ -44,22 +46,29 @@ describe('Rest', () => {
             before(() => {
                 restUrl = `${baseUrl}/${config.rest.prefix}/${v}`;
             });
-            describe('Execution', () => {
-                describe('/exec/raw', () => {
-                    let restPath = null;
-                    before(() => {
-                        restPath = `${restUrl}/exec/raw`;
-                    });
-                    it('should throw Method Not Allowed', async () => {
+            describe('Method Not Allowed', () => {
+                Object.entries(swagger.paths).filter(([k, v]) => Object.keys(v).length === 1 && k !== '/store/algorithms/apply').forEach(([k, v]) => {
+                    it(`${k} - should throw Method Not Allowed`, async () => {
+                        const met = Object.keys(v)[0].toUpperCase();
+                        const method = met === 'GET' ? 'POST' : 'GET';
+                        const uri = `${restUrl}${k}`;
                         const options = {
-                            method: 'GET',
-                            uri: restPath,
+                            method,
+                            uri,
                             body: {}
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
                         expect(response.body.error.code).to.equal(405);
                         expect(response.body.error.message).to.equal('Method Not Allowed');
+                    });
+                })
+            });
+            describe('Execution', () => {
+                describe('/exec/raw', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/raw`;
                     });
                     it('should throw validation error of required property name', async () => {
                         const options = {
@@ -68,7 +77,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of data.name should be string', async () => {
@@ -80,7 +89,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should be string');
                     });
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -92,7 +101,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
                     });
                     it('should throw validation error of required property nodes', async () => {
@@ -104,7 +113,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'nodes'");
                     });
                     it('should throw validation error of required property nodes.nodeName', async () => {
@@ -124,7 +133,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'nodeName'");
                     });
                     it('should throw validation error of required property nodes.algorithmName', async () => {
@@ -144,7 +153,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                     });
                     it('should throw validation error of nodes.input should be array', async () => {
@@ -163,7 +172,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                     });
                     it('should throw validation error of data should NOT have additional properties', async () => {
                         const options = {
@@ -185,7 +194,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data should NOT have additional properties');
                     });
                     it('should throw validation error of duplicate node', async () => {
@@ -209,7 +218,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('found duplicate node dup');
                     });
                     it('should throw validation error priority range', async () => {
@@ -229,7 +238,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.priority should be <= 5');
                     });
                     const invalidStartAndEndChars = ['/', '*', '#', '"', '%'];
@@ -250,7 +259,7 @@ describe('Rest', () => {
                             };
                             const response = await _request(options);
                             expect(response.body).to.have.property('error');
-                            expect(response.body.error.code).to.equal(400);
+                            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                             expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
                         });
                         it(`should throw validation error pipeline name start with ${v}`, async () => {
@@ -269,7 +278,7 @@ describe('Rest', () => {
                             };
                             const response = await _request(options);
                             expect(response.body).to.have.property('error');
-                            expect(response.body.error.code).to.equal(400);
+                            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                             expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
                         });
                     });
@@ -296,17 +305,6 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/exec/stored`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            method: 'GET',
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw validation error of required property name', async () => {
                         const options = {
                             uri: restPath,
@@ -314,7 +312,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of data.name should be string', async () => {
@@ -326,7 +324,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should be string');
                     });
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -338,7 +336,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
                     });
                     it('should throw validation error of data should NOT have additional properties', async () => {
@@ -357,7 +355,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data should NOT have additional properties');
                     });
                     it('should throw pipeline not found', async () => {
@@ -369,7 +367,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline not_found Not Found');
                     });
                     it('should throw validation error pipeline name', async () => {
@@ -381,7 +379,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
                     });
                     it('should succeed and return job id', async () => {
@@ -400,33 +398,22 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/exec/stop`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            method: 'GET',
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw validation error of required property jobId', async () => {
                         const options = {
                             uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                     });
-                    it('should throw validation error of data.name should be string', async () => {
+                    it('should throw validation error of jobId Not Found', async () => {
                         const options = {
                             uri: restPath,
                             body: { jobId: 'no_such_id' }
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
                     });
                     it('should succeed to stop', async () => {
@@ -444,20 +431,108 @@ describe('Rest', () => {
                         expect(response.body.message).to.equal('OK');
                     });
                 });
-                describe('/exec/status', () => {
+                describe('/exec/pause', () => {
                     let restPath = null;
                     before(() => {
-                        restPath = `${restUrl}/exec/status`;
+                        restPath = `${restUrl}/exec/pause`;
                     });
-                    it('should throw Method Not Allowed', async () => {
+                    it('should throw validation error of required property jobId', async () => {
                         const options = {
                             uri: restPath,
                             body: {}
                         };
                         const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                        expect(response.body.error.message).to.equal("data should have required property 'jobId'");
+                    });
+                    it('should throw validation error of jobId Not Found', async () => {
+                        const options = {
+                            uri: restPath,
+                            body: { jobId: 'no_such_id' }
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+                        expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
+                    });
+                    it('should not succeed to pause completed pipeline', async () => {
+                        const pipeline = 'flow1';
+                        const runStored = {
+                            uri: restUrl + '/exec/stored',
+                            body: { name: pipeline }
+                        };
+                        const status = 'completed';
+                        const stored = await _request(runStored);
+                        const jobId = stored.body.jobId;
+                        await stateManager.setJobStatus({ jobId, status, pipeline });
+                        const response = await _request({ uri: restPath, body: { jobId } });
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                        expect(response.body.error.message).to.equal(`unable to pause pipeline ${pipeline} because its in ${status} status`);
+                    });
+                    it('should succeed to pause', async () => {
+                        const runStored = {
+                            uri: restUrl + '/exec/stored',
+                            body: { name: 'flow1' }
+                        };
+                        const stored = await _request(runStored);
+                        const optionsStop = {
+                            uri: restPath,
+                            body: { jobId: stored.body.jobId }
+                        };
+                        const response = await _request(optionsStop);
+                        expect(response.body).to.have.property('message');
+                        expect(response.body.message).to.equal('OK');
+                    });
+                });
+                describe('/exec/resume', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/resume`;
+                    });
+                    it('should throw validation error of required property jobId', async () => {
+                        const options = {
+                            uri: restPath,
+                            body: {}
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                        expect(response.body.error.message).to.equal("data should have required property 'jobId'");
+                    });
+                    it('should throw validation error of jobId Not Found', async () => {
+                        const options = {
+                            uri: restPath,
+                            body: { jobId: 'no_such_id' }
+                        };
+                        const response = await _request(options);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+                        expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
+                    });
+                    it('should succeed to resume', async () => {
+                        const stored = {
+                            uri: restUrl + '/exec/stored',
+                            body: { name: 'flow1' }
+                        };
+                        const res1 = await _request(stored);
+                        const { jobId } = res1.body;
+
+                        const pause = {
+                            uri: restUrl + '/exec/pause',
+                            body: { jobId }
+                        };
+                        await _request(pause);
+
+                        const resume = {
+                            uri: restPath,
+                            body: { jobId }
+                        };
+                        const response = await _request(resume);
+                        expect(response.body).to.have.property('message');
+                        expect(response.body.message).to.equal('OK');
+                    });
+                });
+                describe('/exec/status', () => {
+                    let restPath = null;
+                    before(() => {
+                        restPath = `${restUrl}/exec/status`;
                     });
                     it('should throw status Not Found with params', async () => {
                         const options = {
@@ -465,7 +540,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('status no_such_id Not Found');
                     });
                     it('should throw validation error of required property execution id', async () => {
@@ -474,7 +549,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                     });
                     it('should succeed to get status', async () => {
@@ -490,7 +565,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body).to.have.property('jobId');
                         expect(response.body).to.have.property('level');
                         expect(response.body).to.have.property('pipeline');
@@ -503,23 +578,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/exec/results`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('status no_such_id Not Found');
                     });
                     it('should throw validation error of required property execution id', async () => {
@@ -528,7 +593,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'jobId'");
                     });
                     it('should succeed to get results', async () => {
@@ -556,7 +621,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
 
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body.data).to.equal(data);
                         expect(response.body).to.have.property('jobId');
                         expect(response.body).to.have.property('data');
@@ -602,23 +667,13 @@ describe('Rest', () => {
                             uri: restPath + `/${uuidv4()}`
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.deep.equal(404);
+                        expect(response.response.statusCode).to.deep.equal(HttpStatus.NOT_FOUND);
                     });
                 });
                 describe('/exec/pipelines', () => {
                     let restPath = null;
                     before(() => {
                         restPath = `${restUrl}/exec/pipelines`;
-                    });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath + '/job',
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
                     });
                     it('should throw validation error of required property name', async () => {
                         const options = {
@@ -627,7 +682,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal("pipeline not_exists Not Found");
                     });
                     it('should throw validation error if algorithmName not exists', async () => {
@@ -646,7 +701,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal("algorithm dummy Not Found");
                     });
                     it('should succeed and return job id', async () => {
@@ -707,23 +762,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/pipelines/results/stored`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline results no_such_id Not Found');
                     });
                     it('should throw validation error of required property name', async () => {
@@ -732,7 +777,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of order property', async () => {
@@ -742,7 +787,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
                     });
                     it('should throw validation error of sort property', async () => {
@@ -752,7 +797,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
                     });
                     it('should throw validation error of limit should be >= 1', async () => {
@@ -762,7 +807,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be >= 1");
                     });
                     it('should throw validation error of limit should be integer', async () => {
@@ -772,7 +817,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be integer");
                     });
                     it('should succeed to get pipelines results', async () => {
@@ -794,7 +839,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         const result = response.body.map(r => r.data).sort();
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(result).to.deep.equal(data);
                         expect(response.body[0]).to.have.property('jobId');
                         expect(response.body[0]).to.have.property('data');
@@ -809,23 +854,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/pipelines/results/raw`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline results no_such_id Not Found');
                     });
                     it('should throw validation error of required property name', async () => {
@@ -834,7 +869,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of order property', async () => {
@@ -844,7 +879,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
                     });
                     it('should throw validation error of sort property', async () => {
@@ -854,7 +889,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
                     });
                     it('should throw validation error of limit should be >= 1', async () => {
@@ -864,7 +899,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be >= 1");
                     });
                     it('should throw validation error of limit should be integer', async () => {
@@ -874,7 +909,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be integer");
                     });
                     it('should succeed to get pipelines results', async () => {
@@ -903,7 +938,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         const result = response.body.map(r => r.data).sort();
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(result).to.deep.equal(data);
                         expect(response.body[0]).to.have.property('jobId');
                         expect(response.body[0]).to.have.property('data');
@@ -918,23 +953,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/pipelines/status/stored`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline status no_such_id Not Found');
                     });
                     it('should throw validation error of required property name', async () => {
@@ -943,7 +968,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of order property', async () => {
@@ -953,7 +978,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
                     });
                     it('should throw validation error of sort property', async () => {
@@ -963,7 +988,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
                     });
                     it('should throw validation error of limit should be >= 1', async () => {
@@ -973,7 +998,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be >= 1");
                     });
                     it('should throw validation error of limit should be integer', async () => {
@@ -983,7 +1008,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be integer");
                     });
                     it('should succeed to get pipelines status', async () => {
@@ -1003,7 +1028,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body).to.have.lengthOf(limit)
                         expect(response.body[0]).to.have.property('jobId');
                         expect(response.body[0]).to.have.property('level');
@@ -1017,24 +1042,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/pipelines/status/raw`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline status no_such_id Not Found');
                     });
                     it('should throw validation error of required property name', async () => {
@@ -1043,7 +1057,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of order property', async () => {
@@ -1053,7 +1067,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
                     });
                     it('should throw validation error of sort property', async () => {
@@ -1063,7 +1077,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
                     });
                     it('should throw validation error of limit should be >= 1', async () => {
@@ -1073,7 +1087,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be >= 1");
                     });
                     it('should throw validation error of limit should be integer', async () => {
@@ -1083,7 +1097,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be integer");
                     });
                     it('should succeed to get pipelines statuses', async () => {
@@ -1110,7 +1124,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body).to.have.lengthOf(limit)
                         expect(response.body[0]).to.have.property('jobId');
                         expect(response.body[0]).to.have.property('level');
@@ -1126,23 +1140,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/builds/status`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('build no_such_id Not Found');
                     });
                     it('should throw validation error of required property buildId', async () => {
@@ -1151,7 +1155,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'buildId'");
                     });
                     it('should succeed to get build status', async () => {
@@ -1177,7 +1181,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body).to.have.property('status');
                         expect(response.body).to.have.property('startTime');
                         expect(response.body.status).to.equal('pending');
@@ -1188,17 +1192,6 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/builds/stop`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            method: 'GET',
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath,
@@ -1207,7 +1200,7 @@ describe('Rest', () => {
                             }
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('build no_such_id Not Found');
                     });
                     it('should throw validation error of required property buildId', async () => {
@@ -1215,7 +1208,7 @@ describe('Rest', () => {
                             uri: restPath
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'buildId'");
                     });
                     it('should succeed to stop build', async () => {
@@ -1241,7 +1234,7 @@ describe('Rest', () => {
                             body: { buildId: res.body.buildId }
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body.message).to.equal('OK');
                     })
                 });
@@ -1249,17 +1242,6 @@ describe('Rest', () => {
                     let restPath = null;
                     before(() => {
                         restPath = `${restUrl}/builds/rerun`;
-                    });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            method: 'GET',
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
                     });
                     it('should throw status Not Found with params', async () => {
                         const options = {
@@ -1269,7 +1251,7 @@ describe('Rest', () => {
                             }
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('build no_such_id Not Found');
                     });
                     it('should throw validation error of required property buildId', async () => {
@@ -1277,7 +1259,7 @@ describe('Rest', () => {
                             uri: restPath
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'buildId'");
                     });
                     it('should succeed to rerun build', async () => {
@@ -1303,7 +1285,7 @@ describe('Rest', () => {
                             body: { buildId: res.body.buildId }
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(400);
+                        expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('unable to rerun build because its in pending status');
                     })
                 });
@@ -1312,23 +1294,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/builds/list`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw validation error of required property name', async () => {
                         const options = {
                             uri: restPath,
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of order property', async () => {
@@ -1338,7 +1310,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
                     });
                     it('should throw validation error of sort property', async () => {
@@ -1348,7 +1320,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
                     });
                     it('should throw validation error of limit should be >= 1', async () => {
@@ -1358,7 +1330,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be >= 1");
                     });
                     it('should throw validation error of limit should be integer', async () => {
@@ -1368,7 +1340,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be integer");
                     });
                     it('should succeed to get build list', async () => {
@@ -1409,7 +1381,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body).to.have.lengthOf(limit);
                         expect(response.body[0]).to.have.property('status');
                         expect(response.body[0]).to.have.property('startTime');
@@ -1427,23 +1399,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/cron/results`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('cron results no_such_id Not Found');
                     });
                     it('should throw validation error of required property name', async () => {
@@ -1452,7 +1414,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of order property', async () => {
@@ -1462,7 +1424,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
                     });
                     it('should throw validation error of sort property', async () => {
@@ -1472,7 +1434,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
                     });
                     it('should throw validation error of limit should be >= 1', async () => {
@@ -1482,7 +1444,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be >= 1");
                     });
                     it('should throw validation error of limit should be integer', async () => {
@@ -1492,7 +1454,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be integer");
                     });
                     it('should succeed to get cron results', async () => {
@@ -1514,7 +1476,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         const result = response.body.map(r => r.data).sort();
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(result).to.deep.equal(data);
                         expect(response.body[0]).to.have.property('jobId');
                         expect(response.body[0]).to.have.property('data');
@@ -1529,23 +1491,13 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/cron/status`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath + '/no_such_id',
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('cron status no_such_id Not Found');
                     });
                     it('should throw validation error of required property name', async () => {
@@ -1554,7 +1506,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of order property', async () => {
@@ -1564,7 +1516,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
                     });
                     it('should throw validation error of sort property', async () => {
@@ -1574,7 +1526,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
                     });
                     it('should throw validation error of limit should be >= 1', async () => {
@@ -1584,7 +1536,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be >= 1");
                     });
                     it('should throw validation error of limit should be integer', async () => {
@@ -1594,7 +1546,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.limit should be integer");
                     });
                     it('should succeed to get cron status', async () => {
@@ -1614,7 +1566,7 @@ describe('Rest', () => {
                             method: 'GET'
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body[0]).to.have.property('jobId');
                         expect(response.body[0]).to.have.property('level');
                         expect(response.body[0]).to.have.property('pipeline');
@@ -1627,17 +1579,6 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/cron/start`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            method: 'GET',
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath,
@@ -1646,7 +1587,7 @@ describe('Rest', () => {
                             }
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline no_such_name Not Found');
                     });
                     it('should throw validation error of required property name', async () => {
@@ -1654,7 +1595,7 @@ describe('Rest', () => {
                             uri: restPath
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal(`data should have required property 'name'`);
                     });
                     it('should throw validation error of invalid cron', async () => {
@@ -1666,7 +1607,7 @@ describe('Rest', () => {
                             }
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal(`data.pattern should match format "cron"`);
                     });
                     it('should success to start cron', async () => {
@@ -1696,17 +1637,6 @@ describe('Rest', () => {
                     before(() => {
                         restPath = `${restUrl}/cron/stop`;
                     });
-                    it('should throw Method Not Allowed', async () => {
-                        const options = {
-                            method: 'GET',
-                            uri: restPath,
-                            body: {}
-                        };
-                        const response = await _request(options);
-                        expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(405);
-                        expect(response.body.error.message).to.equal('Method Not Allowed');
-                    });
                     it('should throw status Not Found with params', async () => {
                         const options = {
                             uri: restPath,
@@ -1715,7 +1645,7 @@ describe('Rest', () => {
                             }
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline no_such_name Not Found');
                     });
                     it('should throw validation error of required property name', async () => {
@@ -1724,7 +1654,7 @@ describe('Rest', () => {
                             method
                         };
                         const response = await _request(options);
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal(`data should have required property 'name'`);
                     });
                     it('should success to stop cron', async () => {
@@ -1760,7 +1690,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
                     });
                     it('should return specific algorithm', async () => {
@@ -1795,7 +1725,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
                     });
                     xit('should delete specific algorithm', async () => {
@@ -1836,7 +1766,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of data.name should be string', async () => {
@@ -1848,7 +1778,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should be string');
                     });
                     it('should throw validation error of memory min 4 Mi', async () => {
@@ -1864,7 +1794,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
                     });
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -1876,7 +1806,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
                     });
                     it('should throw conflict error', async () => {
@@ -1905,7 +1835,7 @@ describe('Rest', () => {
                             };
                             const response = await _request(options);
                             expect(response.body).to.have.property('error');
-                            expect(response.response.statusCode).to.equal(400);
+                            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                             expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
                         });
                     });
@@ -1921,7 +1851,7 @@ describe('Rest', () => {
                             };
                             const response = await _request(options);
                             expect(response.body).to.have.property('error');
-                            expect(response.response.statusCode).to.equal(400);
+                            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                             expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
                         });
                         it(`should throw invalid if algorithm name if end with ${v}`, async () => {
@@ -1934,7 +1864,7 @@ describe('Rest', () => {
                             };
                             const response = await _request(options);
                             expect(response.body).to.have.property('error');
-                            expect(response.response.statusCode).to.equal(400);
+                            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                             expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
                         });
                     });
@@ -1950,7 +1880,7 @@ describe('Rest', () => {
                             body
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(201);
+                        expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
                         body.memReadable = body.mem;
                         body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal({
@@ -1975,7 +1905,7 @@ describe('Rest', () => {
                             body
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(201);
+                        expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
                         body.memReadable = body.mem;
                         body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal({
@@ -1996,7 +1926,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of data.name should be string', async () => {
@@ -2007,7 +1937,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should be string');
                     });
                     it('should throw validation error of memory min 4 Mi', async () => {
@@ -2024,7 +1954,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
                     });
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -2035,7 +1965,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
                     });
                     it('should throw validation invalid env', async () => {
@@ -2053,7 +1983,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain('data.env should be equal to one of the allowed values');
                     });
                     it('should throw validation invalid fileExt', async () => {
@@ -2073,9 +2003,9 @@ describe('Rest', () => {
                             formData
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(400);
+                        expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.contain('data.fileExt should be equal to one of the allowed values');
                     });
                     it('should throw error of missing image and file', async () => {
@@ -2093,7 +2023,7 @@ describe('Rest', () => {
                         };
 
                         const response = await _request(options)
-                        expect(response.response.statusCode).to.equal(400);
+                        expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
                     });
                     it('should throw error of having image and file', async () => {
@@ -2114,7 +2044,7 @@ describe('Rest', () => {
                         };
 
                         const response = await _request(options)
-                        expect(response.response.statusCode).to.equal(400);
+                        expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal(MESSAGES.FILE_AND_IMAGE);
                     });
                     it('should succeed to apply algorithm with first build', async () => {
@@ -2134,7 +2064,7 @@ describe('Rest', () => {
                             formData
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body).to.have.property('buildId');
                         expect(response.body).to.have.property('messages');
                         expect(response.body.messages[0]).to.equal(MESSAGES.FIRST_BUILD);
@@ -2194,7 +2124,7 @@ describe('Rest', () => {
 
                         // apply algorithm again
                         const response = await _request(options2);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body).to.not.have.property('buildId');
                         expect(response.body.messages[0]).to.equal(MESSAGES.NO_TRIGGER_FOR_BUILD);
                     });
@@ -2243,7 +2173,7 @@ describe('Rest', () => {
 
                         // apply algorithm again
                         const response = await _request(options2);
-                        expect(response.response.statusCode).to.equal(200);
+                        expect(response.response.statusCode).to.equal(HttpStatus.OK);
                         expect(response.body).to.have.property('buildId');
                         expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
                     });
@@ -2285,7 +2215,7 @@ describe('Rest', () => {
 
                         // apply algorithm again
                         const response = await _request(options2);
-                        expect(response.response.statusCode).to.equal(400);
+                        expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body).to.not.have.property('buildId');
                         expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
                     });
@@ -2301,7 +2231,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
                     });
                     it('should succeed to update algorithm', async () => {
@@ -2331,7 +2261,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
                     });
                     it('should return specific pipeline', async () => {
@@ -2352,7 +2282,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
                     });
                     it('should delete specific pipeline', async () => {
@@ -2391,7 +2321,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'name'");
                     });
                     it('should throw validation error of data.name should be string', async () => {
@@ -2403,7 +2333,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should be string');
                     });
                     it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -2415,7 +2345,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
                     });
                     it('should throw validation error of required property nodes', async () => {
@@ -2427,7 +2357,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data should have required property 'nodes'");
                     });
                     it('should throw validation error of required property nodes.nodeName', async () => {
@@ -2447,7 +2377,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'nodeName'");
                     });
                     it('should throw validation error of cron trigger', async () => {
@@ -2463,7 +2393,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.triggers.cron.pattern should match format "cron"');
                     });
                     it('should throw validation error of pipelines trigger should be array', async () => {
@@ -2478,7 +2408,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.triggers.pipelines should be array');
                     });
                     it('should throw validation error of pipelines trigger should NOT be shorter than 1 characters', async () => {
@@ -2492,7 +2422,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.triggers.pipelines[0] should NOT be shorter than 1 characters');
                     });
                     it('should throw validation error of required property nodes.algorithmName', async () => {
@@ -2512,7 +2442,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
                     });
                     it('should throw validation error of nodes.input should be array', async () => {
@@ -2531,7 +2461,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                     });
                     it('should throw validation error of data should NOT have additional properties', async () => {
                         const options = {
@@ -2553,7 +2483,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data should NOT have additional properties');
                     });
                     it('should throw conflict error', async () => {
@@ -2590,7 +2520,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('found duplicate node dup');
                     });
                     it('should throw validation error of invalid reserved name flowInput', async () => {
@@ -2609,7 +2539,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
                     });
                     it('should throw validation error of node depend on not exists node', async () => {
@@ -2620,7 +2550,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
                     });
                     it('should throw validation error of cyclic nodes', async () => {
@@ -2631,7 +2561,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('pipeline cyclicNodes has cyclic nodes');
                     });
                     it('should throw validation error of flowInput not exist', async () => {
@@ -2651,7 +2581,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
                     });
                     it('should throw validation error if algorithmName not exists', async () => {
@@ -2665,7 +2595,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
                     });
                     it('should succeed to store pipeline and add defaults', async () => {
@@ -2686,7 +2616,7 @@ describe('Rest', () => {
                             }
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(201);
+                        expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
                         expect(response.body).to.have.property('name');
                         expect(response.body).to.have.property('nodes');
                         expect(response.body).to.have.property('options');
@@ -2709,7 +2639,7 @@ describe('Rest', () => {
                             body: pipeline
                         };
                         const response = await _request(options);
-                        expect(response.response.statusCode).to.equal(201);
+                        expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
                         expect(response.body).to.deep.equal(pipeline);
                     });
                 });
@@ -2736,7 +2666,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(404);
+                        expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
                         expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
                     });
                 });
@@ -2773,7 +2703,7 @@ describe('Rest', () => {
                                 jobId,
                                 status: 'completed',
                                 level: 'info',
-                                data: [{ res1: 400 }, { res2: 500 }]
+                                data: [{ res1: 123456 }, { res2: 123456789 }]
                             }
                             await stateManager.setJobStatus(results);
                             let link = await storageManager.hkubeResults.put({ jobId, data: results.data })
@@ -2801,7 +2731,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.webhooks.result should match format "url"');
                     });
                     it('should throw webhooks validation error of NOT have additional properties', async () => {
@@ -2823,7 +2753,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
                     });
                     it('should succeed to store pipeline with webhooks', async () => {
@@ -2858,7 +2788,7 @@ describe('Rest', () => {
                             jobId,
                             status: 'completed',
                             level: 'info',
-                            data: [{ res1: 400 }, { res2: 500 }]
+                            data: [{ res1: 123456 }, { res2: 123456789 }]
                         }
                         await stateManager.setJobStatus(results);
                         let link = await storageManager.hkubeResults.put({ jobId, data: results.data })
@@ -2926,7 +2856,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.webhooks.progress should match format "url"');
                     });
                     it('should throw webhooks validation error of NOT have additional properties', async () => {
@@ -2948,7 +2878,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         expect(response.body).to.have.property('error');
-                        expect(response.body.error.code).to.equal(400);
+                        expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                         expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
                     });
                     it('should succeed to store pipeline with webhooks', async () => {
@@ -3230,7 +3160,7 @@ describe('Rest', () => {
                 method: 'GET'
             };
             const response = await _request(opt);
-            expect(response.response.statusCode).to.equal(200);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.have.lengthOf(limit);
             expect(response.body[0]).to.have.property('jobId');
             expect(response.body[0]).to.have.property('data');

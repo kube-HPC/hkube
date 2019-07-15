@@ -6,6 +6,7 @@ module.exports = {
         SUCCEED: 'succeed'
     },
     WATCH_STATE: {
-        STOP: 'stop'
+        STOP: 'stop',
+        STOPPED: 'stopped'
     }
 };

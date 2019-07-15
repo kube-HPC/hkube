@@ -9,5 +9,6 @@ module.exports = {
     STALLED: 'stalled',
     RECOVERING: 'recovering',
     STOPPED: 'stopped',
-    STOPPING: 'stopping'
+    PAUSED: 'paused',
+    RESUMING: 'resuming'
 };

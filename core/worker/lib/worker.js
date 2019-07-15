@@ -52,7 +52,7 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(EventMessages.STOP, async (res) => {
+        discovery.on(EventMessages.STOPPED, async (res) => {
             log.info(`got stop: ${res.reason}`, { component });
             const reason = `parent pipeline stopped: ${res.reason}`;
             const { jobId } = jobConsumer.jobData;
