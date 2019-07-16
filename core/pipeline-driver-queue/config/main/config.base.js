@@ -37,8 +37,7 @@ config.persistence = {
     type: 'pipeline-driver'
 };
 
-config.checkQueueInterval = 500;
-config.updateStateInterval = 1000;
+config.intervalMs = 1000;
 
 config.heuristicsWeights = {
     [heuristicsNames.PRIORITY]: 0.5,

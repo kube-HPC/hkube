@@ -162,6 +162,10 @@ class StateManager extends EventEmitter {
         return this._etcd.jobs.status.set(options);
     }
 
+    updateJobStatus(options) {
+        return this._etcd.jobs.status.update(options);
+    }
+
     deleteJobStatus(options) {
         return this._etcd.jobs.status.delete(options);
     }

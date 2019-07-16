@@ -208,9 +208,10 @@ class TaskRunner extends EventEmitter {
             log.error(`unable to move pipeline to ${status} status, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
+            await graphStore.stop();
             await this._deletePipeline(status);
             await this._unWatchJob();
-            await this._cleanJob(error);
+            this._cleanJob(error);
             pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
         }
     }
@@ -302,8 +303,7 @@ class TaskRunner extends EventEmitter {
         return discoveryInfo;
     }
 
-    async _cleanJob(error) {
-        await graphStore.stop();
+    _cleanJob(error) {
         this._nodes = null;
         this._job && this._job.done(error && error.message);
         this._job = null;

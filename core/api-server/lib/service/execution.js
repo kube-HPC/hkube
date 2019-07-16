@@ -191,7 +191,7 @@ class ExecutionService {
             throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
         const pipeline = await stateManager.getExecution({ jobId });
-        await stateManager.setJobStatus({ jobId, pipeline: jobStatus.pipeline, status: States.STOPPED, level: levels.INFO.name });
+        await stateManager.updateJobStatus({ jobId, status: States.STOPPED, level: levels.INFO.name });
         await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: States.COMPLETED });
     }
 
@@ -206,7 +206,7 @@ class ExecutionService {
             throw new InvalidDataError(`unable to pause pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
         const pipeline = await stateManager.getExecution({ jobId });
-        await stateManager.setJobStatus({ jobId, pipeline: jobStatus.pipeline, status: States.PAUSED, level: levels.INFO.name });
+        await stateManager.updateJobStatus({ jobId, status: States.PAUSED, level: levels.INFO.name });
         await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: States.PAUSED });
     }
 

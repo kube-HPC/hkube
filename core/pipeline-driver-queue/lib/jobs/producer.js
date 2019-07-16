@@ -2,7 +2,7 @@ const isEqual = require('lodash.isequal');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { componentName, jobState } = require('../consts');
+const { componentName, jobState, queueEvents } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
@@ -11,49 +11,49 @@ class JobProducer {
     constructor() {
         this._lastData = [];
         this._pendingAmount = 0;
-        this._checkQueue = this._checkQueue.bind(this);
-        this._updateState = this._updateState.bind(this);
+        this._interval = this._interval.bind(this);
     }
 
     async init(options) {
         this._jobType = options.producer.jobType;
         this._producer = new Producer({ setting: { redis: options.redis, prefix: options.producer.prefix, tracer } });
         this._producer._createQueue(this._jobType);
-        this._checkQueueInterval = options.checkQueueInterval;
-        this._updateStateInterval = options.updateStateInterval;
+        this._intervalMs = options.intervalMs;
 
         this._producerEventRegistry();
-        this._checkQueue();
-        this._updateState();
+        this._interval();
+
+        queueRunner.queue.on(queueEvents.REMOVE, () => {
+            this._pendingAmount -= 1;
+        });
+    }
+
+    async _interval() {
+        try {
+            await Promise.all([
+                this._checkQueue(),
+                this._updateState()
+            ]);
+        }
+        catch (e) {
+            log.throttle.error(e.message, { component }, e);
+        }
+        finally {
+            setTimeout(this._interval, this._intervalMs);
+        }
     }
 
     async _checkQueue() {
-        try {
-            if (this._pendingAmount <= 0 && queueRunner.queue.get.length > 0) {
-                await this.createJob();
-            }
-        }
-        catch (error) {
-            log.error(error.message, { component });
-        }
-        finally {
-            setTimeout(this._checkQueue, this._checkQueueInterval);
+        if (this._pendingAmount <= 0 && queueRunner.queue.get.length > 0) {
+            await this.createJob();
         }
     }
 
     async _updateState() {
-        try {
-            const queue = [...queueRunner.queue.get];
-            if (!isEqual(queue, this._lastData)) {
-                await queueRunner.queue.persistenceStore(queue);
-                this._lastData = queue;
-            }
-        }
-        catch (error) {
-            log.error(error.message, { component });
-        }
-        finally {
-            setTimeout(this._updateState, this._updateStateInterval);
+        const queue = [...queueRunner.queue.get];
+        if (!isEqual(queue, this._lastData)) {
+            await queueRunner.queue.persistenceStore(queue);
+            this._lastData = queue;
         }
     }
 
