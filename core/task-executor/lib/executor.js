@@ -31,10 +31,24 @@ class Executor {
         });
         this._interval = this._interval.bind(this);
         this._driversSettings = this._prepareDriversData(options);
+        this._lastIntervalTime = null;
         await this._interval(options);
     }
 
+    checkHealth(maxDiff) {
+        log.debug('health-checks');
+        if (!this._lastIntervalTime) {
+            return true;
+        }
+        const diff = Date.now() - this._lastIntervalTime;
+        log.debug(`diff = ${diff}`);
+
+        return (diff < maxDiff);
+    }
+
     async _interval(options) {
+        log.debug('interval start');
+        this._lastIntervalTime = Date.now();
         try {
             const [{ versions, registry, clusterOptions }, resources] = await Promise.all([
                 kubernetes.getVersionsConfigMap(),
@@ -56,6 +70,7 @@ class Executor {
             log.throttle.error(e.message, { component }, e);
         }
         finally {
+            log.debug('interval end');
             setTimeout(this._interval, this._intervalMs, options);
         }
     }
