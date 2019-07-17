@@ -1,5 +1,6 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
+const { rest: healthcheck } = require('@hkube/healthchecks');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const component = require('./lib/consts/componentNames').MAIN;
@@ -19,6 +20,8 @@ class Bootstrap {
             this._handleErrors();
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
             await Promise.all(modules.map(m => m.init(main)));
+            await healthcheck.init({ port: main.healthchecks.port });
+            healthcheck.start(main.healthchecks.path, () => operator.checkHealth(main.healthchecks.maxDiff), 'health');
         }
         catch (error) {
             this._onInitFailed(error);
