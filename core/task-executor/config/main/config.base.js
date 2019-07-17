@@ -1,5 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
-const formatter = require(process.cwd() + '/lib/helpers/formatters');
+const formatter = require('../../lib/helpers/formatters');
 const config = module.exports = {};
 
 config.serviceName = packageJson.name;
@@ -53,4 +53,5 @@ config.healthchecks = {
     path: process.env.HEALTHCHECK_PATH || '/healthz',
     port: process.env.HEALTHCHECK_PORT || '5000',
     maxDiff: process.env.HEALTHCHECK_MAX_DIFF || '10000',
+    logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true)
 }

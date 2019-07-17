@@ -1,5 +1,6 @@
 const Logger = require('@hkube/logger');
 const { metrics } = require('@hkube/metrics');
+const { logWrappers } = require('./helpers/tracing');
 const { metricsNames, components } = require('./consts');
 const component = components.EXECUTOR;
 const etcd = require('./helpers/etcd');
@@ -29,6 +30,11 @@ class Executor {
             name: metricsNames.TASK_EXECUTOR_JOB_PAUSED,
             labels: ['algorithmName']
         });
+        if (options.healthchecks.logExternalRequests) {
+            logWrappers([
+                '_interval',
+            ], this, log);
+        }
         this._interval = this._interval.bind(this);
         this._driversSettings = this._prepareDriversData(options);
         this._lastIntervalTime = null;
@@ -47,7 +53,6 @@ class Executor {
     }
 
     async _interval(options) {
-        log.debug('interval start');
         this._lastIntervalTime = Date.now();
         try {
             const [{ versions, registry, clusterOptions }, resources] = await Promise.all([
@@ -70,7 +75,6 @@ class Executor {
             log.throttle.error(e.message, { component }, e);
         }
         finally {
-            log.debug('interval end');
             setTimeout(this._interval, this._intervalMs, options);
         }
     }
@@ -102,7 +106,7 @@ class Executor {
         Object.entries(reconcilerResults).forEach(([alg, val]) => {
             const totalForAlg = Object.values(val).reduce((sum, current) => sum + current);
             if (totalForAlg) {
-                log.debug(`newConfig: ${alg} => ${JSON.stringify(val, null, 2)}`, { component });
+                log.trace(`newConfig: ${alg} => ${JSON.stringify(val, null, 2)}`, { component });
             }
         });
     }

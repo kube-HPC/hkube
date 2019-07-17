@@ -5,8 +5,15 @@ const logWrapper = (method, instance, log) => {
         log.debug(`${method.name} end`);
         return ret;
     };
-}
+};
+
+const logWrappers = (methods, instance, log) => {
+    methods.forEach((m) => {
+        instance[m] = logWrapper(instance[m], instance, log);
+    });
+};
 
 module.exports = {
-    logWrapper
+    logWrapper,
+    logWrappers
 };

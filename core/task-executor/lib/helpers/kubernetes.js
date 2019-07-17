@@ -2,7 +2,7 @@ const Logger = require('@hkube/logger');
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const objectPath = require('object-path');
 const { components, containers } = require('../consts');
-const { logWrapper } = require('./tracing');
+const { logWrappers } = require('./tracing');
 const component = components.K8S;
 const CONTAINERS = containers;
 let log;
@@ -14,15 +14,15 @@ class KubernetesApi {
         this._isNamespaced = options.kubernetes.isNamespaced;
         this._defaultQuota = options.resources.defaultQuota;
         log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
-        [
-            'getResourcesPerNode',
-            'getWorkerJobs',
-            'getPipelineDriversJobs',
-            'getPodsForJob',
-            'getVersionsConfigMap'
-        ].forEach((m) => {
-            this[m] = logWrapper(this[m], this, log);
-        });        
+        if (options.healthchecks.logExternalRequests) {
+            logWrappers([
+                'getResourcesPerNode',
+                'getWorkerJobs',
+                'getPipelineDriversJobs',
+                'getPodsForJob',
+                'getVersionsConfigMap'
+            ], this, log);
+        }
     }
 
     async createJob({ spec, jobDetails = {} }) {
