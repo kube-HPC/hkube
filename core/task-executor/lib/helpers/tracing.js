@@ -1,7 +1,7 @@
 const logWrapper = (method, instance, log) => {
-    return (...args) => {
+    return async (...args) => {
         log.debug(`${method.name} start`);
-        const ret = method.apply(instance, args);
+        const ret = await method.apply(instance, args);
         log.debug(`${method.name} end`);
         return ret;
     };
