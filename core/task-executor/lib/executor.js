@@ -1,5 +1,6 @@
 const Logger = require('@hkube/logger');
 const { metrics } = require('@hkube/metrics');
+const { logWrappers } = require('./helpers/tracing');
 const { metricsNames, components } = require('./consts');
 const component = components.EXECUTOR;
 const etcd = require('./helpers/etcd');
@@ -29,12 +30,30 @@ class Executor {
             name: metricsNames.TASK_EXECUTOR_JOB_PAUSED,
             labels: ['algorithmName']
         });
+        if (options.healthchecks.logExternalRequests) {
+            logWrappers([
+                '_interval',
+            ], this, log);
+        }
         this._interval = this._interval.bind(this);
         this._driversSettings = this._prepareDriversData(options);
+        this._lastIntervalTime = null;
         await this._interval(options);
     }
 
+    checkHealth(maxDiff) {
+        log.debug('health-checks');
+        if (!this._lastIntervalTime) {
+            return true;
+        }
+        const diff = Date.now() - this._lastIntervalTime;
+        log.debug(`diff = ${diff}`);
+
+        return (diff < maxDiff);
+    }
+
     async _interval(options) {
+        this._lastIntervalTime = Date.now();
         try {
             const [{ versions, registry, clusterOptions }, resources] = await Promise.all([
                 kubernetes.getVersionsConfigMap(),
@@ -87,7 +106,7 @@ class Executor {
         Object.entries(reconcilerResults).forEach(([alg, val]) => {
             const totalForAlg = Object.values(val).reduce((sum, current) => sum + current);
             if (totalForAlg) {
-                log.debug(`newConfig: ${alg} => ${JSON.stringify(val, null, 2)}`, { component });
+                log.trace(`newConfig: ${alg} => ${JSON.stringify(val, null, 2)}`, { component });
             }
         });
     }

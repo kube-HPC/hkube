@@ -1,6 +1,7 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { metrics } = require('@hkube/metrics');
+const { rest: healthcheck } = require('@hkube/healthchecks');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const { components } = require('./lib/consts');
@@ -8,7 +9,6 @@ const component = components.MAIN;
 const etcd = require('./lib/helpers/etcd');
 const kubernetes = require('./lib/helpers/kubernetes');
 const executor = require('./lib/executor');
-
 const modules = [
     etcd,
     kubernetes,
@@ -22,6 +22,8 @@ class Bootstrap {
             await metrics.init(main.metrics);
             await Promise.all(modules.map(m => m.init(main)));
             await executor.init(main);
+            await healthcheck.init({ port: main.healthchecks.port });
+            healthcheck.start(main.healthchecks.path, () => executor.checkHealth(main.healthchecks.maxDiff), 'health');
             return main;
         }
         catch (error) {
