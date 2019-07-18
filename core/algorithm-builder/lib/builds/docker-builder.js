@@ -203,18 +203,28 @@ const _createURL = (options) => {
     return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
 };
 
+function resolveBaseImage(baseImage, registry) {
+    if (!baseImage) {
+        return null;
+    }
+    let baseImageName;
+    const parsedBaseImage = parseImageName(baseImage);
+    if (parsedBaseImage) {
+        baseImageName = parsedBaseImage.name;
+        if (!parsedBaseImage.registry) {
+            baseImageName = path.join(registry, baseImageName);
+        }
+    }
+    return baseImageName;
+}
+
 const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo }) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
     const baseVersion = await _getBaseImageVersion(env);
     const packages = packagesRepo[env];
-
-    const parsedBaseImage = parseImageName(baseImage);
-    let baseImageName = parsedBaseImage.name;
-    if (!parsedBaseImage.registry) {
-        baseImageName = path.join(docker.pull.registry, baseImageName);
-    }
+    const baseImageName = resolveBaseImage(baseImage, docker.pull.registry);
     const defaultBaseImage = `${pullRegistry}/base-algorithm-${env}:${baseVersion}`;
 
     const args = [
@@ -335,3 +345,5 @@ module.exports = {
     runBuild,
     buildAlgorithmImage
 };
+
+
