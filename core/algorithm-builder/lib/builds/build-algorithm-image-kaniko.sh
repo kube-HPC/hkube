@@ -30,12 +30,6 @@ case $key in
     shift
     ;;
 
-    --defaultBaseImage)
-    DEFAULT_BASE_IMAGE="$2"
-    shift
-    shift
-    ;;
-
     --dplr)
     export DOCKER_PULL_REGISTRY="$2"
     shift
@@ -119,7 +113,6 @@ echo
 echo IMAGE_NAME=${IMAGE_NAME}
 echo BUILD_PATH=${BUILD_PATH}
 echo BASE_IMAGE=${BASE_IMAGE}
-echo DEFAULT_BASE_IMAGE=${DEFAULT_BASE_IMAGE}
 echo DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY}
 echo DOCKER_PUSH_REGISTRY=${DOCKER_PUSH_REGISTRY}
 echo PACKAGES_REGISTRY=${PACKAGES_REGISTRY}
@@ -128,7 +121,7 @@ echo TMP_FOLDER=${TMP_FOLDER}
 echo
 
 echo
-dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${DOCKER_PULL_REGISTRY}" "${BASE_IMAGE}" "${DEFAULT_BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}"
+dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${DOCKER_PULL_REGISTRY}" "${BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}"
 ret=${exit_code}
 echo build finished with code $ret
 echo

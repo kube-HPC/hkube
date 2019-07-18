@@ -24,9 +24,8 @@ dockerBuildKaniko() {
   commands=${4:-/commands}
   pullRegistry=$5
   baseImage=$6
-  defaultBaseImage=$7
-  packagesRegistry=$8
-  packagesToken=$9
+  packagesRegistry=$7
+  packagesToken=$8
 
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
@@ -40,7 +39,6 @@ dockerBuildKaniko() {
   --build-arg packagesRegistry=${packagesRegistry} \
   --build-arg packagesToken=${packagesToken} \
   --build-arg baseImage=${baseImage} \
-  --build-arg defaultBaseImage=${defaultBaseImage} \
   --context dir:///workspace/ \
   --destination $image" > ${commands}/run
   

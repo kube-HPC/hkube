@@ -4,6 +4,7 @@ const fse = require('fs-extra');
 const Zip = require('adm-zip');
 const targz = require('targz');
 const { spawn } = require('child_process');
+const { parseImageName } = require('@hkube/kubernetes-client').utils;
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { STATES, PROGRESS } = require('../consts/States');
@@ -194,20 +195,33 @@ const _getBaseImageVersion = async (env) => {
     return baseVersion;
 };
 
+const _fixUrl = (url) => {
+    return url.replace(/\/+$/, '');
+};
+
+const _createURL = (options) => {
+    return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
+};
+
 const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo }) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
     const baseVersion = await _getBaseImageVersion(env);
     const packages = packagesRepo[env];
-    const defaultBaseImage = `base-algorithm-${env}:${baseVersion}`;
+
+    const parsedBaseImage = parseImageName(baseImage);
+    let baseImageName = parsedBaseImage.name;
+    if (!parsedBaseImage.registry) {
+        baseImageName = path.join(docker.pull.registry, baseImageName);
+    }
+    const defaultBaseImage = `${pullRegistry}/base-algorithm-${env}:${baseVersion}`;
 
     const args = [
         '--img', algorithmImage,
         '--rmi', rmi,
         '--buildPath', buildPath,
-        '--baseImage', baseImage || defaultBaseImage,
-        '--defaultBaseImage', defaultBaseImage
+        '--baseImage', baseImageName || defaultBaseImage
     ];
 
     // docker pull
@@ -234,24 +248,9 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     return { output, algorithmImage };
 };
 
-const _createURL = (options) => {
-    return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
-};
-
-const _fixUrl = (url) => {
-    return url.replace(/\/+$/, '');
-};
-
 const _isWarning = (error) => {
     const e = error.toLowerCase();
     return e.includes('warn') || e.includes('docs.docker.com');
-};
-
-const _analyzeErrors = (output, error) => {
-    if (error) {
-        return { data: output.data, errors: error };
-    }
-    return _analyzeError(output);
 };
 
 const _analyzeError = (output) => {
@@ -260,6 +259,13 @@ const _analyzeError = (output) => {
     const warnings = error.filter(e => _isWarning(e)).join(',');
     const errors = error.filter(e => !_isWarning(e)).join(',');
     return { data: output.data, warnings, errors };
+};
+
+const _analyzeErrors = (output, error) => {
+    if (error) {
+        return { data: output.data, errors: error };
+    }
+    return _analyzeError(output);
 };
 
 const _progress = (progress) => {

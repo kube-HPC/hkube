@@ -1,7 +1,6 @@
 # First build
 ARG baseImage
-ARG defaultBaseImage
-FROM ${pullRegistry}/${baseImage} AS build
+FROM ${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"
 ARG packagesRegistry
 ARG packagesToken
@@ -13,7 +12,7 @@ WORKDIR /hkube/algorithm-runner
 RUN ./docker/requirements.sh ${packagesRegistry} ${packagesToken}
 
 # Second build
-FROM ${pullRegistry}/${defaultBaseImage}
+FROM ${baseImage} 
 COPY --from=build /hkube/algorithm-runner /hkube/algorithm-runner
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
