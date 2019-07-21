@@ -69,7 +69,6 @@ const createBuildJobSpec = ({ buildId, versions, secret, registry, options, reso
     spec = applyEnvToContainer(spec, ALGORITHM_BUILDS, { BUILD_MODE: options.buildMode });
     spec = applySecret(spec, ALGORITHM_BUILDS, secret);
     spec = applyResources(spec, resourcesMain, CONTAINERS.ALGORITHM_BUILDS);
-    spec = applyResources(spec, resourcesBuilder, CONTAINERS.KANIKO);
 
     if (options.buildMode !== 'kaniko') {
         spec = applyVolumes(spec, dockerVolumes.volumes);
@@ -80,6 +79,7 @@ const createBuildJobSpec = ({ buildId, versions, secret, registry, options, reso
         spec = applyVolumes(spec, kanikoVolumes.volumes);
         spec = applyVolumeMounts(spec, ALGORITHM_BUILDS, kanikoVolumes.volumeMounts);
         spec = applyKanikoContainer(spec, versions, registry);
+        spec = applyResources(spec, resourcesBuilder, CONTAINERS.KANIKO);
     }
 
     return spec;
