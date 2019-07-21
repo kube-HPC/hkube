@@ -8,7 +8,7 @@ ARG packagesToken
 COPY . /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 
-# RUN ../docker/requirements.sh ${packagesRegistry} ${packagesToken}
+RUN ../docker/requirements.sh ${packagesRegistry} ${packagesToken}
 
 # Second build
 FROM ${baseImage}
