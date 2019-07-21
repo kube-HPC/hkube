@@ -1,4 +1,4 @@
-const validate = require('djsv');
+const Validator = require('ajv');
 const logger = require('@hkube/logger');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
@@ -6,7 +6,7 @@ const schema = require('./schema');
 const Events = require('../consts/Events');
 const TaskRunner = require('../tasks/task-runner');
 const component = require('../consts/componentNames').JOBS_CONSUMER;
-
+const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
 class JobConsumer {
@@ -28,9 +28,10 @@ class JobConsumer {
                 tracer
             }
         };
-        const res = validate(schema, options);
-        if (!res.valid) {
-            throw new Error(res.error);
+        const valid = validator.validate(schema, options);
+        if (!valid) {
+            const error = validator.errorsText(validator.errors);
+            throw new Error(error);
         }
         this._options = options;
         this._consumerPaused = false;

@@ -5,5 +5,5 @@ config.transport = {
     logstash: false,
     file: false
 };
-config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
+config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 1;
 module.exports = config;

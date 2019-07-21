@@ -20,7 +20,7 @@ module.exports = {
         "no-use-before-define": "warn",
         "object-curly-spacing": "error",
         "no-var": "error",
-        "import/newline-after-import": "error",
+        "import/newline-after-import": "off",
         "max-len": ["error", 200],
         "brace-style": ["error", "stroustrup"],
         "indent": ["warn", 4],
