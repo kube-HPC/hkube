@@ -121,7 +121,7 @@ echo TMP_FOLDER=${TMP_FOLDER}
 echo
 
 echo
-dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${DOCKER_PULL_REGISTRY}" "${BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}"
+dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}"
 ret=${exit_code}
 echo build finished with code $ret
 echo

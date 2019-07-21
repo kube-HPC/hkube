@@ -22,10 +22,9 @@ dockerBuildKaniko() {
   buildPath=$2
   workspace=${3:-/workspace}
   commands=${4:-/commands}
-  pullRegistry=$5
-  baseImage=$6
-  packagesRegistry=$7
-  packagesToken=$8
+  baseImage=$5
+  packagesRegistry=$6
+  packagesToken=$7
 
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
@@ -35,7 +34,6 @@ dockerBuildKaniko() {
   echo "/kaniko/executor \
   --dockerfile ./docker/DockerfileTemplate \
   --insecure --insecure-pull \
-  --build-arg pullRegistry=${pullRegistry} \
   --build-arg packagesRegistry=${packagesRegistry} \
   --build-arg packagesToken=${packagesToken} \
   --build-arg baseImage=${baseImage} \

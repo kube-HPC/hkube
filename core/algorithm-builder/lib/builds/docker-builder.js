@@ -225,7 +225,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     const baseVersion = await _getBaseImageVersion(env);
     const packages = packagesRepo[env];
     const baseImageName = resolveBaseImage(baseImage, docker.pull.registry);
-    const defaultBaseImage = `${pullRegistry}/base-algorithm-${env}:${baseVersion}`;
+    const defaultBaseImage = `${pullRegistry}/${env}-env:${baseVersion}`;
 
     const args = [
         '--img', algorithmImage,

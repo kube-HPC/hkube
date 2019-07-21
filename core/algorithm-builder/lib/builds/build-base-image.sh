@@ -36,7 +36,7 @@ done
 NPM_VERSION=${npm_package_version}
 VERSION="${VER:=${NPM_VERSION}}"
 BUILD_PATH="environments/${ENV}"
-IMAGE_NAME="hkube/base-algorithm-${ENV}:${VERSION}"
+IMAGE_NAME="hkube/${ENV}-env:${VERSION}"
 DOCKER_FILE="Dockerfile"
 
 if [ -z ${ENV} ]; then
