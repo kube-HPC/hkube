@@ -102,6 +102,12 @@ case $key in
     shift
     ;;
 
+     --pushRegistry)
+    PUSH_REGISTRY="$2"
+    shift
+    shift
+    ;;
+
     --help)
     usage
     exit 1
@@ -111,6 +117,7 @@ done
 TMP_FOLDER=${TMP_FOLDER:-/tmp}
 echo
 echo IMAGE_NAME=${IMAGE_NAME}
+echo PUSH_REGISTRY=${PUSH_REGISTRY}
 echo BUILD_PATH=${BUILD_PATH}
 echo BASE_IMAGE=${BASE_IMAGE}
 echo DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY}
@@ -121,7 +128,7 @@ echo TMP_FOLDER=${TMP_FOLDER}
 echo
 
 echo
-dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}" ${DOCKER_PUSH_REGISTRY}
+dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}" ${PUSH_REGISTRY}
 ret=${exit_code}
 echo build finished with code $ret
 echo

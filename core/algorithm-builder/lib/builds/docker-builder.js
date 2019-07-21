@@ -171,7 +171,7 @@ const _dockerCredentialsHelper = (registryOrig, user, password, namespace, insec
                 },
                 basic
             }
-            
+
         }
     };
     return { registry, auth };
@@ -238,13 +238,16 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
+    const algorithmImageParsed = parseImageName(algorithmImage);
+    const algorithmImageBare = `${path.join(algorithmImageParsed.namespace, algorithmImageParsed.repository)}:${algorithmImageParsed.tag}`;
+    const regitryBare = algorithmImageParsed.registry || 'index.docker.io';
     const baseVersion = await _getBaseImageVersion(env);
     const packages = packagesRepo[env];
     const baseImageName = resolveBaseImage(baseImage, docker.pull.registry);
     const defaultBaseImage = `${pullRegistry}/${env}-env:${baseVersion}`;
 
     const args = [
-        '--img', algorithmImage,
+        '--img', (buildMode === KANIKO) ? algorithmImageBare : algorithmImage,
         '--rmi', rmi,
         '--buildPath', buildPath,
         '--baseImage', baseImageName || defaultBaseImage
@@ -266,6 +269,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
 
     if (buildMode === KANIKO) {
         _argsHelper(args, '--tmpFolder', tmpFolder);
+        _argsHelper(args, '--pushRegistry', regitryBare);
         const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
         await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
     }
