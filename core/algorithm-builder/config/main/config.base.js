@@ -12,13 +12,13 @@ config.buildMode = process.env.BUILD_MODE || 'kaniko'
 
 config.docker = {
     pull: {
-        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io/',
+        registry: process.env.DOCKER_PULL_REGISTRY || 'index.docker.io/',
         namespace: process.env.DOCKER_PULL_NAMESPACE || 'hkube',
         user: process.env.DOCKER_PULL_USERNAME || '',
         pass: process.env.DOCKER_PULL_PASSWORD || ''
     },
     push: {
-        registry: process.env.DOCKER_PUSH_REGISTRY || 'docker.io',
+        registry: process.env.DOCKER_PUSH_REGISTRY || 'index.docker.io',
         namespace: process.env.DOCKER_PUSH_NAMESPACE || '',
         user: process.env.DOCKER_PUSH_USERNAME || '',
         pass: process.env.DOCKER_PUSH_PASSWORD || ''
