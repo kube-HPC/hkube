@@ -32,16 +32,27 @@ dockerBuildKaniko() {
   # echo copy docker creds
   # cp ~/.docker/config.json ${commands}/
   # echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ --insecure --insecure-pull --context dir:///workspace/ --destination $image" > ${commands}/run
-  echo "./makisu-internal/makisu build -f ./docker/__DockerFile__ -t $image /workspace/ --modifyfs=true --push ${pushReg} --blacklist /commands,/scripts" > ${commands}/run
+  
+  # echo "./makisu-internal/makisu build \
+  # -f ./docker/__DockerFile__ \
+  # -t $image /workspace/ \
+  # --modifyfs=true \
+  # --push ${pushReg} \
+  # --blacklist /commands,/scripts" > ${commands}/run
 
-  echo "/kaniko/executor \
-  --dockerfile ./docker/DockerfileTemplate \
-  --insecure --insecure-pull \
+  # --insecure --insecure-pull \
+  echo "./makisu-internal/makisu build \
+  -f ./docker/DockerfileTemplate \
   --build-arg packagesRegistry=${packagesRegistry} \
   --build-arg packagesToken=${packagesToken} \
   --build-arg baseImage=${baseImage} \
-  --context dir:///workspace/ \
-  --destination $image" > ${commands}/run
+  -t $image \
+  --blacklist /commands \
+  --blacklist /scripts \
+  --modifyfs=true \
+  --registry-config /commands/config.json \
+  --push ${pushReg} \
+  /workspace" > ${commands}/run
   
   chmod +x ${commands}/run
   # cat ${commands}/run

@@ -1,11 +1,13 @@
 const objectPath = require('object-path');
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { applyEnvToContainer, applyStorage, applyVolumeMounts: applyVolumeMount, applyVolumes: applyVolume, applyPrivileged, applySecret } = require('@hkube/kubernetes-client').utils;
-const { applyImage } = require('../helpers/kubernetes-utils');
+const { applyEnvToContainer, applyStorage, applyVolumeMounts: applyVolumeMount, applyVolumes: applyVolume,
+    applyPrivileged, applySecret, applyResourceRequests } = require('@hkube/kubernetes-client').utils;
+const { applyImage, createContainerResourceByFactor } = require('../helpers/kubernetes-utils');
 const components = require('../consts/componentNames');
 const { ALGORITHM_BUILDS, KANIKO } = require('../consts/containers');
 const { jobTemplate, kanikoContainer, dockerVolumes, kanikoVolumes } = require('../templates/algorithm-builder');
+const CONTAINERS = require('../consts/containers');
 
 const component = components.K8S;
 
@@ -45,7 +47,15 @@ const applyVolumeMounts = (inputSpec, containerName, mounts) => {
     return spec;
 };
 
-const createBuildJobSpec = ({ buildId, versions, secret, registry, options }) => {
+const applyResources = (inputSpec, resources, container) => {
+    let spec = clonedeep(inputSpec);
+    const requests = createContainerResourceByFactor(resources, 1);
+    const limits = createContainerResourceByFactor(resources, 2);
+    spec = applyResourceRequests(spec, { requests, limits }, container);
+    return spec;
+};
+
+const createBuildJobSpec = ({ buildId, versions, secret, registry, options, resourcesMain, resourcesBuilder }) => {
     if (!buildId) {
         const msg = 'Unable to create job spec. buildId is required';
         log.error(msg, { component });
@@ -58,6 +68,8 @@ const createBuildJobSpec = ({ buildId, versions, secret, registry, options }) =>
     spec = applyStorage(spec, options.defaultStorage, ALGORITHM_BUILDS, 'algorithm-operator-configmap');
     spec = applyEnvToContainer(spec, ALGORITHM_BUILDS, { BUILD_MODE: options.buildMode });
     spec = applySecret(spec, ALGORITHM_BUILDS, secret);
+    spec = applyResources(spec, resourcesMain, CONTAINERS.ALGORITHM_BUILDS);
+    spec = applyResources(spec, resourcesBuilder, CONTAINERS.KANIKO);
 
     if (options.buildMode !== 'kaniko') {
         spec = applyVolumes(spec, dockerVolumes.volumes);

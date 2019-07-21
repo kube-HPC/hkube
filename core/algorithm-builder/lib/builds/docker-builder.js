@@ -144,37 +144,53 @@ const _argsHelper = (args, key, value) => {
     return args;
 };
 
-const _dockerCredentialsHelper = (registryOrig, user, password) => {
+const _dockerCredentialsHelper = (registryOrig, user, password, namespace, insecure) => {
     log.info('creating docker creds');
     if (!user || !password) {
         return null;
     }
-    const dockerHubRegistry = 'https://index.docker.io/v1/';
+    const dockerHubRegistry = 'index.docker.io';
     let registry = registryOrig;
     if (!registry || registry.includes('docker.io')) {
         log.info(`found docker hub. using ${dockerHubRegistry}`);
         registry = dockerHubRegistry;
     }
-    const auth = Buffer.from(`${user}:${password}`).toString('base64');
+    // const auth = Buffer.from(`${user}:${password}`).toString('base64');
+    const basic = {
+        username: user,
+        password
+    };
+    const domain = namespace ? `${namespace}/*` : '.*';
+    const auth = {
+        [domain]: {
+            security: {
+                tls: {
+                    client: {
+                        disabled: !!insecure
+                    }
+                },
+                basic
+            }
+            
+        }
+    };
     return { registry, auth };
 };
 
 const _createDockerCredentials = (pullRegistry, pushRegistry) => {
     const creds = {
-        auths: {
 
-        }
     };
     if (pullRegistry) {
-        const auth = _dockerCredentialsHelper(pullRegistry.registry, pullRegistry.user, pullRegistry.pass);
+        const auth = _dockerCredentialsHelper(pullRegistry.registry, pullRegistry.user, pullRegistry.pass, pullRegistry.namespace, pullRegistry.insecure);
         if (auth) {
-            creds.auths[auth.registry] = auth.auth;
+            creds[auth.registry] = { ...creds[auth.registry], ...auth.auth };
         }
     }
     if (pushRegistry) {
-        const auth = _dockerCredentialsHelper(pushRegistry.registry, pushRegistry.user, pushRegistry.pass);
+        const auth = _dockerCredentialsHelper(pushRegistry.registry, pushRegistry.user, pushRegistry.pass, pushRegistry.namespace, pushRegistry.insecure);
         if (auth) {
-            creds.auths[auth.registry] = { auth: auth.auth };
+            creds[auth.registry] = { ...creds[auth.registry], ...auth.auth };
         }
     }
     return creds;

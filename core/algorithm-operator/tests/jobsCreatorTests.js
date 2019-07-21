@@ -29,6 +29,14 @@ describe('jobCreator', () => {
             ...main,
             buildMode: 'kaniko'
         }
+        const resourcesMain = {
+            memory: 256,
+            cpu: 0.2
+        }
+        const resourcesBuilder = {
+            memory: 300,
+            cpu: 0.4
+        }
         const res = createBuildJobSpec({
             buildId, versions: {
                 versions: [
@@ -39,7 +47,9 @@ describe('jobCreator', () => {
                         project: 'kaniko', tag: 'v1.1.0'
                     }]
             },
-            options
+            options,
+            resourcesBuilder,
+            resourcesMain
         });
         expect(res.spec.template.spec.containers).to.be.of.length(2);
         expect(res.spec.template.spec.containers[1].name).to.eql('kaniko');
