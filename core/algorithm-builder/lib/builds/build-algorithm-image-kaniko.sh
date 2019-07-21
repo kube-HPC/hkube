@@ -2,9 +2,10 @@
 
 # This script used to create a specific algorithm image
 set -e
+
 source $PWD/lib/builds/build-utils.sh
 
-DOCKER_FILE="__DockerFile__"
+#myVar=$(sed -n '/^nodejs=\(.*\)$/s//\1/p' base-versions)
 
 while [[ $# -gt 0 ]]
 do
@@ -17,61 +18,91 @@ case $key in
     shift
     ;;
 
-    --buildpath)
+    --buildPath)
     BUILD_PATH="$2"
     shift
     shift
     ;;
 
-     --dplr)
+    --baseImage)
+    BASE_IMAGE="$2"
+    shift
+    shift
+    ;;
+
+    --dplr)
     export DOCKER_PULL_REGISTRY="$2"
     shift
     shift
     ;;
 
-     --dplu)
+    --dplu)
     DOCKER_PULL_USER="$2"
     shift
     shift
     ;;
 
-     --dplp)
+    --dplp)
     DOCKER_PULL_PASS="$2"
     shift
     shift
     ;;
 
-     --dphr)
+    --dphr)
     DOCKER_PUSH_REGISTRY="$2"
     shift
     shift
     ;;
 
-     --dphu)
+    --dphu)
     DOCKER_PUSH_USER="$2"
     shift
     shift
     ;;
 
-     --dphp)
+    --dphp)
     DOCKER_PUSH_PASS="$2"
     shift
     shift
     ;;
 
-     --rmi)
+    --pckr)
+    PACKAGES_REGISTRY="$2"
+    shift
+    shift
+    ;;
+
+    --pckt)
+    PACKAGES_TOKEN="$2"
+    shift
+    shift
+    ;;
+
+    --pcku)
+    PACKAGES_USERNAME="$2"
+    shift
+    shift
+    ;;
+
+    --pckp)
+    PACKAGES_PASSWORD="$2"
+    shift
+    shift
+    ;;
+
+    --rmi)
     REMOVE_IMAGE="$2"
     shift
     shift
     ;;
 
-     --tmpFolder)
+    --tmpFolder)
     TMP_FOLDER="$2"
     shift
     shift
     ;;
 
-     --help)
+    --help)
     usage
     exit 1
 esac
@@ -81,23 +112,16 @@ TMP_FOLDER=${TMP_FOLDER:-/tmp}
 echo
 echo IMAGE_NAME=${IMAGE_NAME}
 echo BUILD_PATH=${BUILD_PATH}
+echo BASE_IMAGE=${BASE_IMAGE}
 echo DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY}
 echo DOCKER_PUSH_REGISTRY=${DOCKER_PUSH_REGISTRY}
+echo PACKAGES_REGISTRY=${PACKAGES_REGISTRY}
 echo REMOVE_IMAGE=${REMOVE_IMAGE}
 echo TMP_FOLDER=${TMP_FOLDER}
 echo
 
-# echo
-# dockerLogin ${DOCKER_PULL_USER} ${DOCKER_PULL_PASS} ${DOCKER_PULL_REGISTRY}
-# dockerLogin ${DOCKER_PUSH_USER} ${DOCKER_PUSH_PASS} ${DOCKER_PUSH_REGISTRY}
-# echo
-
 echo
-envsubst < ${BUILD_PATH}/docker/DockerfileTemplate > ${BUILD_PATH}/docker/${DOCKER_FILE}
-echo
-
-echo
-dockerBuildKaniko ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE} ${TMP_FOLDER}/workspace ${TMP_FOLDER}/commands
+dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}"
 ret=${exit_code}
 echo build finished with code $ret
 echo

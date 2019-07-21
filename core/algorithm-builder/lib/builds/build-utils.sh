@@ -20,17 +20,28 @@ dockerLogin() {
 dockerBuildKaniko() {
   image=$1
   buildPath=$2
-  dockerFile=$3
-  workspace=${4:-/workspace}
-  commands=${5:-/commands}
+  workspace=${3:-/workspace}
+  commands=${4:-/commands}
+  baseImage=$5
+  packagesRegistry=$6
+  packagesToken=$7
+
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
   cp -r ${buildPath}/* ${workspace}
   # echo copy docker creds
   # cp ~/.docker/config.json ${commands}/
-  echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ --insecure --insecure-pull --context dir:///workspace/ --destination $image" > ${commands}/run
+  echo "/kaniko/executor \
+  --dockerfile ./docker/DockerfileTemplate \
+  --insecure --insecure-pull \
+  --build-arg packagesRegistry=${packagesRegistry} \
+  --build-arg packagesToken=${packagesToken} \
+  --build-arg baseImage=${baseImage} \
+  --context dir:///workspace/ \
+  --destination $image" > ${commands}/run
+  
   chmod +x ${commands}/run
-  cat ${commands}/run
+  # cat ${commands}/run
   touch ${commands}/start
   while [ ! -f "${commands}/done" ]; do
     # echo "done file does not exist"

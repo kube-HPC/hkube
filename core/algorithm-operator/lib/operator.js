@@ -53,11 +53,16 @@ class Operator {
     }
 
     async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
-        const jobs = await kubernetes.getJobs({ labelSelector: `type=${CONTAINERS.ALGORITHM_BUILDS}` });
         const builds = await etcd.getPendingBuilds();
+        if (builds.length === 0) {
+            return;
+        }
+        const jobs = await kubernetes.getJobs({ labelSelector: `type=${CONTAINERS.ALGORITHM_BUILDS}` });
+        const secret = await kubernetes.getSecret({ secretName: 'docker-credentials-secret' }); // ? Maybe multiple secrets
         await algorithmBuildsReconciler.reconcile({
             builds,
             jobs,
+            secret,
             versions,
             registry,
             clusterOptions,
