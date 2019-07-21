@@ -11,7 +11,7 @@ const main = async () => {
   yargs.command({
     command: 'build',
     handler: async (argv) => {
-      const ret = await dockerBuild.buildDocker({
+      const ret = await dockerBuild.buildAlgorithmImage({
         docker: config.main.docker,
         algorithmName: argv.a,
         version: argv.v,
