@@ -98,7 +98,7 @@ const _setBuildStatus = async (options) => {
     const { buildId, status, error, progress } = options;
     const prog = progress(status);
     log.info(`update build status to: ${status}, progress: ${prog}  -> ${buildId}. ${error || ''}`, { component });
-    await stateManger.updateBuild({ timestamp: Date.now(), progress: prog, ...options });
+    await stateManger.updateBuild({ ...options, timestamp: Date.now(), progress: prog });
 };
 
 const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) => {
