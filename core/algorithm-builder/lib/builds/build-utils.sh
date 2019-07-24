@@ -23,12 +23,23 @@ dockerBuildKaniko() {
   dockerFile=$3
   workspace=${4:-/workspace}
   commands=${5:-/commands}
+  insecure=${6}
+  insecure_pull=${7}
+  skip_tls_verify=${8}
+  skip_tls_verify_pull=${9}
+
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
   cp -r ${buildPath}/* ${workspace}
   # echo copy docker creds
   # cp ~/.docker/config.json ${commands}/
-  echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ --insecure --insecure-pull --context dir:///workspace/ --destination $image" > ${commands}/run
+  options=""
+  if [[ $insecure == true ]]; then options="${options} --insecure"; fi
+  if [[ $insecure_pull == true ]]; then options="${options} --insecure-pull"; fi
+  if [[ $skip_tls_verify == true ]]; then options="${options} --skip-tls-verify"; fi
+  if [[ $skip_tls_verify_pull == true ]]; then options="${options} --skip-tls-verify-pull"; fi
+  
+  echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ ${options} --context dir:///workspace/ --destination $image" > ${commands}/run
   chmod +x ${commands}/run
   cat ${commands}/run
   touch ${commands}/start

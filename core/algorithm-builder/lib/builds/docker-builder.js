@@ -206,6 +206,11 @@ const _buildDocker = async ({ buildMode, docker, algorithmName, version, buildPa
 
     if (buildMode === KANIKO) {
         _argsHelper(args, "--tmpFolder", tmpFolder);
+        _argsHelper(args, "--insecure_pull", docker.pull.insecure)
+        _argsHelper(args, "--insecure", docker.push.insecure)
+
+        _argsHelper(args, "--skip_tls_verify_pull", docker.pull.skip_tls_verify)
+        _argsHelper(args, "--skip_tls_verify", docker.push.skip_tls_verify)
     }
 
     const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });

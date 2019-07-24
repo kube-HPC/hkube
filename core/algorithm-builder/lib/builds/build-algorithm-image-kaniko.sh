@@ -9,7 +9,6 @@ DOCKER_FILE="__DockerFile__"
 while [[ $# -gt 0 ]]
 do
 key="$1"
-
 case $key in
     --img)
     IMAGE_NAME="$2"
@@ -71,6 +70,30 @@ case $key in
     shift
     ;;
 
+     --insecure_pull)
+    INSECURE_PULL="$2"
+    shift
+    shift
+    ;;
+
+     --insecure)
+    INSECURE="$2"
+    shift
+    shift
+    ;;
+
+     --skip_tls_verify_pull)
+    SKIP_TLS_VERIFY_PULL="$2"
+    shift
+    shift
+    ;;
+
+     --skip_tls_verify)
+    SKIP_TLS_VERIFY="$2"
+    shift
+    shift
+    ;;
+
      --help)
     usage
     exit 1
@@ -82,22 +105,21 @@ echo
 echo IMAGE_NAME=${IMAGE_NAME}
 echo BUILD_PATH=${BUILD_PATH}
 echo DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY}
+echo INSECURE_PULL=${INSECURE_PULL}
+echo SKIP_TLS_VERIFY_PULL=${SKIP_TLS_VERIFY_PULL}
 echo DOCKER_PUSH_REGISTRY=${DOCKER_PUSH_REGISTRY}
+echo SKIP_TLS_VERIFY=${SKIP_TLS_VERIFY}
+echo INSECURE=${INSECURE}
 echo REMOVE_IMAGE=${REMOVE_IMAGE}
 echo TMP_FOLDER=${TMP_FOLDER}
 echo
-
-# echo
-# dockerLogin ${DOCKER_PULL_USER} ${DOCKER_PULL_PASS} ${DOCKER_PULL_REGISTRY}
-# dockerLogin ${DOCKER_PUSH_USER} ${DOCKER_PUSH_PASS} ${DOCKER_PUSH_REGISTRY}
-# echo
 
 echo
 envsubst < ${BUILD_PATH}/docker/DockerfileTemplate > ${BUILD_PATH}/docker/${DOCKER_FILE}
 echo
 
 echo
-dockerBuildKaniko ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE} ${TMP_FOLDER}/workspace ${TMP_FOLDER}/commands
+dockerBuildKaniko ${IMAGE_NAME} ${BUILD_PATH} ${DOCKER_FILE} ${TMP_FOLDER}/workspace ${TMP_FOLDER}/commands ${INSECURE} ${INSECURE_PULL} ${SKIP_TLS_VERIFY} ${SKIP_TLS_VERIFY_PULL}
 ret=${exit_code}
 echo build finished with code $ret
 echo
