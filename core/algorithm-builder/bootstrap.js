@@ -4,7 +4,7 @@ const { main, logger } = configIt.load();
 const config = main;
 const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/components').MAIN;
-const dockerBuild = require('./lib/builds/docker-builder');
+const dockerBuilder = require('./lib/builds/docker-builder');
 
 const modules = [
     require('@hkube/storage-manager'),
@@ -18,7 +18,7 @@ class Bootstrap {
             log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
             await Promise.all(modules.map(m => m.init(config)));
             await this._initTestMode(config);
-            const response = await dockerBuild(config);
+            const response = await dockerBuilder.runBuild(config);
             console.log(response.result.data);
             console.log(response.result.warning || 'No Warnings');
             console.log(response.result.errors || 'No Errors');
@@ -32,14 +32,15 @@ class Bootstrap {
 
     async _initTestMode(config) {
         if (config.testMode) {
-            const mockZip = `${process.cwd()}/tests/mocks/nodejs/sort-alg-nodejs.tar.gz`;
-            const mockBuildNodejs = require('./tests/mocks/nodejs/build.json');
+            const env = config.testModeEnv;
+            const tar = `${process.cwd()}/tests/mocks/${env}/alg.tar.gz`;
+            const mockBuild = require(`./tests/mocks/${env}/build.json`);
             const stateManger = require('./lib/state/state-manager');
             const storageManager = require('@hkube/storage-manager');
             const fse = require('fs-extra');
-            const { buildId } = mockBuildNodejs;
-            await stateManger.insertBuild(mockBuildNodejs);
-            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
+            const { buildId } = mockBuild;
+            await stateManger.insertBuild(mockBuild);
+            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
             config.buildId = buildId;
         }
     }

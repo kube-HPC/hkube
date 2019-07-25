@@ -1,5 +1,6 @@
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
+const { logWrappers } = require('./tracing');
 const utils = require('../utils/utils');
 const { components, containers } = require('../consts');
 const component = components.ETCD;
@@ -18,15 +19,26 @@ class Etcd {
         await this._etcd.jobs.state.watch({ jobId: 'hookWatch' });
         this._workerServiceName = options.workerServiceName || CONTAINERS.WORKER;
         this._pipelineDriverServiceName = options.workerServiceName || CONTAINERS.PIPELINE_DRIVER;
-        const discoveryInfo = {
-
-        };
+        const discoveryInfo = {};
+        if (options.healthchecks.logExternalRequests) {
+            logWrappers([
+                'updateDiscovery',
+                'sendCommandToWorker',
+                'sendCommandToDriver',
+                'getWorkers',
+                'getPipelineDrivers',
+                'getAlgorithmRequests',
+                'getPipelineDriverRequests',
+                'getAlgorithmTemplate',
+                'getDriversTemplate'
+            ], this, log);
+        }
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering discovery for id ${this._etcd.discovery._instanceId}`, { component });
     }
 
     async updateDiscovery(options) {
-        log.debug(`update discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
+        log.trace(`update discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
         await this._etcd.discovery.updateRegisteredData(options);
     }
 

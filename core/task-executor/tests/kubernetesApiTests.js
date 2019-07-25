@@ -23,13 +23,19 @@ const dummyKubeconfig = {
 const options = {
     kubernetes: {
         kubeconfig
-    }
+    },
+    resources: { defaultQuota: {} },
+    healthchecks: { logExternalRequests: false }
+
+
 };
 
 const optionsDummy = {
     kubernetes: {
         kubeconfig: dummyKubeconfig
-    }
+    },
+    resources: { defaultQuota: {} },
+    healthchecks: { logExternalRequests: false }
 };
 
 describe('Kubernetes API', () => {

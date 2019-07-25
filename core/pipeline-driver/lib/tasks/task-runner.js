@@ -1,19 +1,18 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
+const { NodesMap, NodeStates, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
 const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
 const Progress = require('../progress/nodes-progress');
-const NodesMap = require('../nodes/nodes-map');
-const NodeStates = require('../state/NodeStates');
 const DriverStates = require('../state/DriverStates');
 const Events = require('../consts/Events');
-const { Node, Batch } = require('../nodes');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 
+const { Node, Batch } = NodeTypes;
 let log;
 
 class TaskRunner extends EventEmitter {
@@ -59,7 +58,9 @@ class TaskRunner extends EventEmitter {
             this._handleTaskEvent(task);
         });
         this._stateManager.on(Events.TASKS.STALLED, (task) => {
-            this._handleTaskEvent(task);
+            const { error, ...rest } = task;
+            const prevError = error;
+            this._handleTaskEvent({ prevError, ...rest });
         });
         this._stateManager.on(Events.TASKS.CRASHED, (task) => {
             const data = { ...task, status: NodeStates.FAILED };
@@ -468,7 +469,7 @@ class TaskRunner extends EventEmitter {
         if (!task) {
             return;
         }
-        const error = this._checkBatchTolerance(task);
+        const error = this._checkTaskErrors(task);
         if (error) {
             this.stop(error);
         }
@@ -481,7 +482,7 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _checkBatchTolerance(task) {
+    _checkTaskErrors(task) {
         let error;
         if (task.error && !task.execId) {
             if (task.batchIndex) {

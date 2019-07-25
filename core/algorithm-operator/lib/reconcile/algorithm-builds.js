@@ -1,7 +1,7 @@
 const etcd = require('../helpers/etcd');
 const { createBuildJobSpec } = require('../jobs/algorithm-builds');
 const kubernetes = require('../helpers/kubernetes');
-const { normalizeBuildJobs } = require('./normalize');
+const { normalizeBuildJobs, normalizeSecret } = require('./normalize');
 
 const _createBuildJob = async (jobDetails) => {
     const spec = createBuildJobSpec(jobDetails);
@@ -10,10 +10,11 @@ const _createBuildJob = async (jobDetails) => {
 };
 
 // TODO: clean algorithm-builder k8s Jobs
-const reconcile = async ({ builds, jobs, versions, registry, options }) => {
+const reconcile = async ({ builds, jobs, secret, versions, registry, options }) => {
     const normJobs = normalizeBuildJobs(jobs, j => !j.status.succeeded);
+    const normSecret = normalizeSecret(secret);
     const added = builds.filter(a => !normJobs.find(d => d.buildId === a.buildId));
-    await Promise.all(added.map(a => _createBuildJob({ buildId: a.buildId, versions, registry, options })));
+    await Promise.all(added.map(a => _createBuildJob({ buildId: a.buildId, secret: normSecret, versions, registry, options })));
 };
 
 module.exports = {

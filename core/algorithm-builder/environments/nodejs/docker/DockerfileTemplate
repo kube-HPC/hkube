@@ -1,12 +1,19 @@
-FROM ${DOCKER_PULL_REGISTRY}/base-algorithm-nodejs:v1.1.69
-LABEL maintainer="yehiyam@gmail.com"
+# First build
+ARG baseImage
+FROM ${baseImage} AS build
+LABEL maintainer="hkube.dev@gmail.com"
+ARG packagesRegistry
+ARG packagesToken
 
 COPY . /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
 
-RUN ../docker/requirements.sh
+RUN ../docker/requirements.sh ${packagesRegistry} ${packagesToken}
 
-RUN cd /hkube/algorithm-runner
+# Second build
+FROM ${baseImage}
+COPY --from=build /hkube/algorithm-runner /hkube/algorithm-runner
+
 WORKDIR /hkube/algorithm-runner
 
 CMD ["npm", "start"]

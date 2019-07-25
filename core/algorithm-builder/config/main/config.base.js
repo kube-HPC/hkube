@@ -9,11 +9,12 @@ config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.version = packageJson.version;
 config.buildId = process.env.BUILD_ID;
 config.testMode = process.env.TEST_MODE === 'True';
+config.testModeEnv = process.env.TEST_MODE_ENV || 'nodejs';
 config.buildMode = process.env.BUILD_MODE || 'kaniko'
 
 config.docker = {
     pull: {
-        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io/',
+        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io',
         namespace: process.env.DOCKER_PULL_NAMESPACE || 'hkube',
         user: process.env.DOCKER_PULL_USERNAME || '',
         pass: process.env.DOCKER_PULL_PASSWORD || '',
@@ -30,12 +31,23 @@ config.docker = {
     }
 };
 
+config.packagesRepo = {
+    nodejs: {
+        registry: process.env.NPM_REGISTRY || '',
+        token: process.env.NPM_TOKEN || '',
+    },
+    python: {
+        registry: process.env.PIP_REGISTRY || '',
+        token: process.env.PIP_TOKEN || ''
+    }
+};
+
 config.tmpFolder = process.env.TMP_FOLDER || '/tmp';
 
 config.buildDirs = {
     ZIP: 'uploads/zipped',
     UNZIP: 'uploads/unzipped'
-}
+};
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',

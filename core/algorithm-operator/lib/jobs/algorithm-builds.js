@@ -1,7 +1,7 @@
 const objectPath = require('object-path');
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { applyEnvToContainer, applyStorage, applyVolumeMounts: applyVolumeMount, applyVolumes: applyVolume, applyPrivileged } = require('@hkube/kubernetes-client').utils;
+const { applyEnvToContainer, applyStorage, applyVolumeMounts: applyVolumeMount, applyVolumes: applyVolume, applyPrivileged, applySecret } = require('@hkube/kubernetes-client').utils;
 const { applyImage } = require('../helpers/kubernetes-utils');
 const components = require('../consts/componentNames');
 const { ALGORITHM_BUILDS, KANIKO } = require('../consts/containers');
@@ -44,7 +44,8 @@ const applyVolumeMounts = (inputSpec, containerName, mounts) => {
     });
     return spec;
 };
-const createBuildJobSpec = ({ buildId, versions, registry, options }) => {
+
+const createBuildJobSpec = ({ buildId, versions, secret, registry, options }) => {
     if (!buildId) {
         const msg = 'Unable to create job spec. buildId is required';
         log.error(msg, { component });
@@ -56,6 +57,8 @@ const createBuildJobSpec = ({ buildId, versions, registry, options }) => {
     spec = applyBuildId(spec, buildId);
     spec = applyStorage(spec, options.defaultStorage, ALGORITHM_BUILDS, 'algorithm-operator-configmap');
     spec = applyEnvToContainer(spec, ALGORITHM_BUILDS, { BUILD_MODE: options.buildMode });
+    spec = applySecret(spec, ALGORITHM_BUILDS, secret);
+
     if (options.buildMode !== 'kaniko') {
         spec = applyVolumes(spec, dockerVolumes.volumes);
         spec = applyVolumeMounts(spec, ALGORITHM_BUILDS, dockerVolumes.volumeMounts);

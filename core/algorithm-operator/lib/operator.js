@@ -1,6 +1,7 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../lib/consts/componentNames').OPERATOR;
 const etcd = require('./helpers/etcd');
+const { logWrappers } = require('./helpers/tracing');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
@@ -10,11 +11,29 @@ const CONTAINERS = require('./consts/containers');
 class Operator {
     async init(options = {}) {
         this._intervalMs = options.intervalMs;
+        if (options.healthchecks.logExternalRequests) {
+            logWrappers([
+                '_interval',
+            ], this, log);
+        }
         this._interval = this._interval.bind(this);
+        this._lastIntervalTime = null;
         this._interval(options);
     }
 
+    checkHealth(maxDiff) {
+        log.debug('health-checks');
+        if (!this._lastIntervalTime) {
+            return true;
+        }
+        const diff = Date.now() - this._lastIntervalTime;
+        log.debug(`diff = ${diff}`);
+
+        return (diff < maxDiff);
+    }
+
     async _interval(options) {
+        this._lastIntervalTime = Date.now();
         try {
             log.debug('Reconcile interval.', { component });
             const configMap = await kubernetes.getVersionsConfigMap();
@@ -34,11 +53,16 @@ class Operator {
     }
 
     async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
-        const jobs = await kubernetes.getJobs({ labelSelector: `type=${CONTAINERS.ALGORITHM_BUILDS}` });
         const builds = await etcd.getPendingBuilds();
+        if (builds.length === 0) {
+            return;
+        }
+        const jobs = await kubernetes.getJobs({ labelSelector: `type=${CONTAINERS.ALGORITHM_BUILDS}` });
+        const secret = await kubernetes.getSecret({ secretName: 'docker-credentials-secret' }); // ? Maybe multiple secrets
         await algorithmBuildsReconciler.reconcile({
             builds,
             jobs,
+            secret,
             versions,
             registry,
             clusterOptions,

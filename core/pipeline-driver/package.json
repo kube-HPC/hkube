@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.1.80",
+  "version": "1.1.82",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@hkube/config": "^2.0.7",
+    "@hkube/dag": "^1.0.4",
     "@hkube/etcd": "^5.0.3",
     "@hkube/logger": "^1.0.15",
     "@hkube/metrics": "^1.0.33",
@@ -17,13 +18,11 @@
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
     "@hkube/storage-manager": "^1.0.49",
+    "ajv": "^6.10.1",
     "async": "^3.0.0",
     "clone": "^2.1.2",
-    "deep-extend": "^0.6.0",
     "deep-get-set": "^1.1.0",
-    "djsv": "^3.0.5",
     "flat": "^4.1.0",
-    "graphlib": "^2.1.7",
     "lodash.groupby": "^4.6.0",
     "lodash.isequal": "^4.5.0",
     "lodash.merge": "^4.6.1",
