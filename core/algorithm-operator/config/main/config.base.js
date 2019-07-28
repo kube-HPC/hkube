@@ -32,7 +32,7 @@ config.resources = {
     },
     algorithmBuilderBuilder: {
         memory: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_MEMORY) || 256,
-        cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 0.3
+        cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 1
     }
 }
 

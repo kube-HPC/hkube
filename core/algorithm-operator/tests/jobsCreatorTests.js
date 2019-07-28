@@ -44,7 +44,7 @@ describe('jobCreator', () => {
         }
         const resourcesBuilder = {
             memory: 300,
-            cpu: 2
+            cpu: 0.2
         }
         const res = createBuildJobSpec({
             buildId, versions: {
