@@ -173,7 +173,7 @@ class TaskRunner extends EventEmitter {
         try {
             if (err) {
                 if (err.status) {
-                    return null;
+                    return {};
                 }
                 errorMsg = err.message;
                 status = DriverStates.FAILED;

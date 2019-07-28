@@ -147,11 +147,16 @@ class GraphStore {
 
     _handleBatch(node) {
         const { BATCH } = groupTypes;
+        const batchTasks = node.batch.map(b => ({
+            ...this._mapTask(b),
+            batchIndex: b.batchIndex
+        }));
         const calculatedNode = {
             nodeName: node.nodeName,
             algorithmName: node.algorithmName,
             extra: {},
-            group: BATCH.NOT_STARTED
+            group: BATCH.NOT_STARTED,
+            batchTasks
         };
         let completed = 0;
         let group = null;
