@@ -65,40 +65,35 @@ class Metrics {
     }
 
     summarizeMetrics(jobStatus, pipeline, algorithm, jobId, taskId) {
-        try {
-            const pipelineName = formatter.formatPipelineName(pipeline);
-            if (jobStatus === constants.JOB_STATUS.FAILED) {
-                metrics.get(metricsNames.worker_failed).inc({
-                    labelValues: {
-                        pipeline_name: pipelineName,
-                        algorithm_name: algorithm
-                    }
-                });
-            }
-            else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
-                metrics.get(metricsNames.worker_succeeded).inc({
-                    labelValues: {
-                        pipeline_name: pipelineName,
-                        algorithm_name: algorithm
-                    }
-                });
-            }
-            metrics.get(metricsNames.worker_net).end({
-                id: taskId,
+        const pipelineName = formatter.formatPipelineName(pipeline);
+        if (jobStatus === constants.JOB_STATUS.FAILED) {
+            metrics.get(metricsNames.worker_failed).inc({
                 labelValues: {
-                    status: jobStatus
-                }
-            });
-            metrics.get(metricsNames.worker_runtime).end({
-                id: taskId,
-                labelValues: {
-                    status: jobStatus
+                    pipeline_name: pipelineName,
+                    algorithm_name: algorithm
                 }
             });
         }
-        catch (err) {
-            log.error(`failed to report metrics:${jobId} task:${taskId}`, { component }, err);
+        else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
+            metrics.get(metricsNames.worker_succeeded).inc({
+                labelValues: {
+                    pipeline_name: pipelineName,
+                    algorithm_name: algorithm
+                }
+            });
         }
+        metrics.get(metricsNames.worker_net).end({
+            id: taskId,
+            labelValues: {
+                status: jobStatus
+            }
+        });
+        metrics.get(metricsNames.worker_runtime).end({
+            id: taskId,
+            labelValues: {
+                status: jobStatus
+            }
+        });
     }
 }
 

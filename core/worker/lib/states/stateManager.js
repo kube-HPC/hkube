@@ -52,7 +52,7 @@ class StateManager extends EventEmitter {
             methods: {
                 onPendingTransition: (transition, from, to) => { // eslint-disable-line
                 },
-                onInvalidTransition: (transition, from, to) => {
+                onInvalidTransition: (transition, from, to) => { // eslint-disable-line
                     if (!this._debugMode) {
                         log.error(`transition not allowed: ${from} -> ${transition}`, { component });
                         // this.exit();
