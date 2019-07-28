@@ -62,6 +62,10 @@ class WorkerCommunication extends EventEmitter {
      * @memberof WorkerCommunication
      */
     send(message) {
+        if (!this.adapter._socket) {
+            log.error(`Error sending message to algorithm command ${message.command}. error: socket disconnected`, { component });
+            return;
+        }
         this.adapter.send(message);
     }
 }

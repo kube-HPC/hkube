@@ -1,17 +1,16 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
+const { tracer } = require('@hkube/metrics');
 const { Consumer } = require('@hkube/producer-consumer');
-const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components } = require('../consts');
+const { Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
-const JobProvider = require('./job-provider');
-const formatter = require('../helpers/formatters');
 
+const metrics = require('../metrics/metrics');
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
 let log;
@@ -41,33 +40,23 @@ class JobConsumer extends EventEmitter {
             })
         }));
         this._options = Object.assign({}, options);
-        this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
+        this._jobType = this._options.jobConsumer.job.type;
         // create another tracer for the algorithm
         this._algTracer = await tracer.createTracer(this.getAlgorithmType(), options.tracer);
 
         if (this._consumer) {
             this._consumer.removeAllListeners();
+            stateManager.removeAllListeners('job-ready');
             this._consumer = null;
             this._job = null;
         }
         this._hotWorker = this._options.hotWorker;
-        this._registerMetrics();
         this._consumer = new Consumer(this._options.jobConsumer);
-        this._jobProvider = new JobProvider(options);
-        this._jobProvider.init(this._consumer);
         this._consumer.register(this._options.jobConsumer);
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
-
-        this._jobProvider.on('job', async (job) => {
-            log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
-            const watchState = await etcd.watch({ jobId: job.data.jobId });
-            if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
-                await this._stopJob(job);
-                return;
-            }
-
-            this._initMetrics(job);
+        this._consumer.on('job', async (job) => {
+            log.info(`queue job ${job.data.jobId}`, { component });
             this._job = job;
             this._jobId = job.data.jobId;
             this._taskId = job.data.taskId;
@@ -75,6 +64,14 @@ class JobConsumer extends EventEmitter {
             this._batchIndex = job.data.batchIndex;
             this._pipelineName = job.data.pipelineName;
             this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
+
+            const watchState = await etcd.watch({ jobId: job.data.jobId });
+            if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
+                await this._stopJob(job);
+                return;
+            }
+
+            metrics.initMetrics(job, this._jobType);
 
             if (this._execId) {
                 const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
@@ -95,13 +92,17 @@ class JobConsumer extends EventEmitter {
             });
 
             stateManager.setJob(job);
+            stateManager.jobQueued = true;
+        });
+        stateManager.on('job-ready', (job) => {
+            log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
+            stateManager.jobQueued = false;
             stateManager.prepare();
         });
-
         stateManager.on('finish', () => {
             if (this._job) {
                 this._job.done(this._job.error);
-                log.info(`finish job ${this._jobId}`);
+                log.info(`finish job ${this._jobId}`, { component });
             }
             this._job = null;
             this._jobId = undefined;
@@ -117,34 +118,10 @@ class JobConsumer extends EventEmitter {
         job.done();
     }
 
-    _initMetrics(job) {
-        const pipelineName = formatter.formatPipelineName(job.data.pipelineName);
-        metrics.get(metricsNames.worker_started).inc({
-            labelValues: {
-                pipeline_name: pipelineName,
-                algorithm_name: this._options.jobConsumer.job.type
-            }
-        });
-        metrics.get(metricsNames.worker_net).start({
-            id: job.data.taskId,
-            labelValues: {
-                pipeline_name: pipelineName,
-                algorithm_name: this._options.jobConsumer.job.type
-            }
-        });
-        metrics.get(metricsNames.worker_runtime).start({
-            id: job.data.taskId,
-            labelValues: {
-                pipeline_name: pipelineName,
-                algorithm_name: this._options.jobConsumer.job.type
-            }
-        });
-    }
-
     async pause() {
         try {
             this._consumerPaused = true;
-            await this._consumer.pause({ type: this._options.jobConsumer.job.type });
+            await this._consumer.pause({ type: this._jobType });
             log.info('Job consumer paused', { component });
         }
         catch (err) {
@@ -156,7 +133,7 @@ class JobConsumer extends EventEmitter {
     async resume() {
         try {
             this._consumerPaused = false;
-            await this._consumer.resume({ type: this._options.jobConsumer.job.type });
+            await this._consumer.resume({ type: this._jobType });
             log.info('Job consumer resumed', { component });
         }
         catch (err) {
@@ -200,50 +177,16 @@ class JobConsumer extends EventEmitter {
         return discoveryInfo;
     }
 
-    _registerMetrics() {
-        metrics.removeMeasure(metricsNames.worker_net);
-        metrics.addTimeMeasure({
-            name: metricsNames.worker_net,
-            labels: ['pipeline_name', 'algorithm_name', 'status'],
-            description: 'Algorithm runtime histogram',
-            buckets: utils.arithmatcSequence(30, 0, 2)
-                .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
-        });
-        metrics.removeMeasure(metricsNames.worker_succeeded);
-        metrics.addCounterMeasure({
-            name: metricsNames.worker_succeeded,
-            description: 'Number of times the algorithm has completed',
-            labels: ['pipeline_name', 'algorithm_name'],
-        });
-        metrics.removeMeasure(metricsNames.worker_runtime);
-        metrics.addSummary({
-            name: metricsNames.worker_runtime,
-            description: 'Algorithm runtime summary',
-            labels: ['pipeline_name', 'algorithm_name', 'status'],
-            percentiles: [0.5]
-        });
-        metrics.removeMeasure(metricsNames.worker_started);
-        metrics.addCounterMeasure({
-            name: metricsNames.worker_started,
-            description: 'Number of times the algorithm has started',
-            labels: ['pipeline_name', 'algorithm_name'],
-        });
-        metrics.removeMeasure(metricsNames.worker_failed);
-        metrics.addCounterMeasure({
-            name: metricsNames.worker_failed,
-            description: 'Number of times the algorithm has failed',
-            labels: ['pipeline_name', 'algorithm_name'],
-        });
-    }
-
     _getStatus(data) {
         const { state, results } = data;
         const workerStatus = state;
         let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
+        let reason = null;
 
         if (results != null) {
             error = results.error && results.error.message;
+            reason = results.error && results.error.reason;
             status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
         }
 
@@ -252,6 +195,7 @@ class JobConsumer extends EventEmitter {
             workerStatus,
             status,
             error,
+            reason,
             resultData
         };
     }
@@ -281,7 +225,6 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-
     async finishJob(data = {}) {
         if (!this._job) {
             return;
@@ -291,7 +234,7 @@ class JobConsumer extends EventEmitter {
             await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
         let storageResult = {};
-        const { resultData, status, error } = this._getStatus(data);
+        const { resultData, status, error, reason } = this._getStatus(data);
 
         if (!error && status === constants.JOB_STATUS.SUCCEED) {
             storageResult = await this._putResult(resultData);
@@ -300,6 +243,7 @@ class JobConsumer extends EventEmitter {
         const resData = Object.assign({
             status,
             error,
+            reason,
             jobId: this._jobId,
             taskId: this._taskId,
             execId: this._job.data.execId,
@@ -311,42 +255,14 @@ class JobConsumer extends EventEmitter {
         this._job.error = error;
         await etcd.update(resData);
         await this._putMetadata(resData);
-        this._summarizeMetrics(status);
+        this._summarizeMetrics();
         log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
     }
 
-    _summarizeMetrics(jobStatus) {
+    _summarizeMetrics(status) {
         try {
-            const pipelineName = formatter.formatPipelineName(this._pipelineName);
-            if (jobStatus === constants.JOB_STATUS.FAILED) {
-                metrics.get(metricsNames.worker_failed).inc({
-                    labelValues: {
-                        pipeline_name: pipelineName,
-                        algorithm_name: this.getAlgorithmType()
-                    }
-                });
-            }
-            else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
-                metrics.get(metricsNames.worker_succeeded).inc({
-                    labelValues: {
-                        pipeline_name: pipelineName,
-                        algorithm_name: this.getAlgorithmType()
-                    }
-                });
-            }
-            metrics.get(metricsNames.worker_net).end({
-                id: this._taskId,
-                labelValues: {
-                    status: jobStatus
-                }
-            });
-            metrics.get(metricsNames.worker_runtime).end({
-                id: this._taskId,
-                labelValues: {
-                    status: jobStatus
-                }
-            });
+            metrics.summarizeMetrics(status, this._pipelineName, this.getAlgorithmType(), this._jobId, this._taskId);
         }
         catch (err) {
             log.error(`failed to report metrics:${this._jobId} task:${this._taskId}`, { component }, err);
@@ -440,7 +356,7 @@ class JobConsumer extends EventEmitter {
     }
 
     getAlgorithmType() {
-        return this._options.jobConsumer.job.type;
+        return this._jobType;
     }
 
     get algTracer() {

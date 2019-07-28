@@ -3,7 +3,6 @@ const StateMachine = require('javascript-state-machine');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
 const { workerStates, stateEvents, Components } = require('../consts');
-
 const component = Components.STATE_MANAGER;
 let log;
 
@@ -20,6 +19,8 @@ class StateManager extends EventEmitter {
         this._job = null;
         this._results = null;
         this._inactiveTimer = null;
+        this._jobQueued = false;
+        this._isConnected = false;
     }
 
     async init(config) {
@@ -40,9 +41,10 @@ class StateManager extends EventEmitter {
                 { name: 'reset', from: '*', to: workerStates.bootstrap },
                 { name: 'stop', from: '*', to: workerStates.stop },
                 { name: 'bootstrap', from: workerStates.bootstrap, to: workerStates.ready },
+                { name: 'ready', from: '*', to: workerStates.ready },
                 { name: 'prepare', from: workerStates.ready, to: workerStates.init },
                 { name: 'start', from: workerStates.init, to: workerStates.working },
-                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop, workerStates.init], to: workerStates.results },
+                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop, workerStates.init, workerStates.bootstrap, workerStates.ready], to: workerStates.results },
                 { name: 'cleanup', from: workerStates.results, to: workerStates.ready },
                 { name: 'error', from: [workerStates.working, workerStates.init], to: workerStates.error },
                 { name: 'exit', from: '*', to: workerStates.exit }
@@ -52,8 +54,8 @@ class StateManager extends EventEmitter {
                 },
                 onInvalidTransition: (transition, from, to) => {
                     if (!this._debugMode) {
-                        log.error(`transition (${transition}) not allowed from that state: ${from} -> ${to}`, { component });
-                        this.exit();
+                        log.error(`transition not allowed: ${from} -> ${transition}`, { component });
+                        // this.exit();
                     }
                 }
             }
@@ -79,7 +81,7 @@ class StateManager extends EventEmitter {
                     }
                 });
             }
-            else if (this._job && this._job.data && state.to === workerStates.ready) {
+            else if (this._job && this._job.data && state.from === workerStates.results && state.to === workerStates.ready) {
                 this.emit('finish');
             }
             if (state.to === workerStates.bootstrap) {
@@ -115,15 +117,37 @@ class StateManager extends EventEmitter {
         });
     }
 
+    set jobQueued(value) {
+        this._jobQueued = value;
+        this._checkReady();
+    }
+
+    set isConnected(value) {
+        this._isConnected = value;
+        this._checkReady();
+    }
+
+    _checkReady() {
+        const ready = this._job && this._jobQueued && this._isConnected;
+        if (ready) {
+            this.ready();
+            this.emit('job-ready', this._job);
+        }
+    }
+
     get state() {
         return this._stateMachine.state;
     }
 
+    ready() {
+        this._stateMachine.ready();
+    }
+
     /**
-         * transitions from any state to bootstrap
-         *
-         * @memberof StateManager
-         */
+    * transitions from any state to bootstrap
+    *
+    * @memberof StateManager
+    */
     reset() {
         this._stateMachine.reset();
     }
@@ -174,8 +198,9 @@ class StateManager extends EventEmitter {
     /**
      * transitions to exit state.
      */
-    exit() {
+    exit(results) {
         try {
+            this._results = results;
             this._stateMachine.exit();
         }
         catch (error) {
@@ -239,10 +264,10 @@ class StateManager extends EventEmitter {
 
     _startInactiveTimer() {
         if (this._config.timeouts.algorithmDisconnected > 0) {
-            log.info(`starting inactive timeout for algorunner (bootstrap) ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
+            const seconds = `${this._config.timeouts.algorithmDisconnected / 1000} seconds`;
+            log.info(`starting inactive timeout for algorunner (bootstrap) ${seconds}`, { component });
             this._inactiveTimer = setTimeout(() => {
-                log.info(`algorunner is offline for more than ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
-                this.exit();
+                this.emit('disconnect', `algorunner is offline for more than ${seconds}`);
             }, this._config.timeouts.algorithmDisconnected);
         }
     }

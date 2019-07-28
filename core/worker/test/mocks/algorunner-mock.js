@@ -14,6 +14,7 @@ class AlgorunnerMock extends EventEmitter {
         super();
         this._input = {};
         this._stopEmitter = new EventEmitter();
+        this._socket = {};
     }
 
     async init(options) {

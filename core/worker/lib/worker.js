@@ -18,27 +18,19 @@ let log;
 class Worker {
     constructor() {
         this._stopTimeout = null;
-        this._isConnected = false;
-        this._isInit = false;
-        this._isBootstrapped = false;
-    }
-
-    preInit() {
-        log = Logger.GetLogFromContainer();
-        this._registerToConnectionEvents();
     }
 
     async init(options) {
+        log = Logger.GetLogFromContainer();
         this._inTerminationMode = false;
         this._options = options;
         this._debugMode = options.debugMode;
+        this._registerToConnectionEvents();
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
         this._setInactiveTimeout();
-        this._isInit = true;
-        this._doTheBootstrap();
     }
 
     _setInactiveTimeout() {
@@ -90,57 +82,20 @@ class Worker {
         });
     }
 
-    _doTheBootstrap() {
-        if (!this._isConnected) {
-            log.info('not connected yet', { component });
-            return;
-        }
-        if (!this._isInit) {
-            log.info('not init yet', { component });
-            return;
-        }
-        if (this._isBootstrapped) {
-            log.info('already bootstrapped', { component });
-            return;
-        }
-        this._isBootstrapped = true;
-        log.info('starting bootstrap state', { component });
-        stateManager.bootstrap();
-        log.info('finished bootstrap state', { component });
-    }
-
     _registerToConnectionEvents() {
         algoRunnerCommunication.on('connection', () => {
-            this._isConnected = true;
-            if (stateManager.state === workerStates.exit) {
-                return;
-            }
-            this._doTheBootstrap();
+            stateManager.isConnected = true;
         });
         algoRunnerCommunication.on('disconnect', async (reason) => {
+            stateManager.isConnected = false;
             if (stateManager.state === workerStates.exit) {
                 return;
             }
-            log.warning(`algorithm runner has disconnected, reason: ${reason}`, { component });
-            if (!this._debugMode) {
-                const type = jobConsumer.getAlgorithmType();
-                const containerStatus = await this._getAlgorunnerContainerStatus();
-                const message = {
-                    command: 'errorMessage',
-                    error: {
-                        code: 'Failed',
-                        message: `algorithm ${type} has disconnected, reason: ${reason}. algorithm container status is ${JSON.stringify(containerStatus)}`
-                    }
-                };
-                stateManager.done(message);
-            }
+            await this.algorithmDisconnect(reason);
         });
-    }
-
-    async _getAlgorunnerContainerStatus() {
-        await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER, 1000); // ???
-        const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER); // eslint-disable-line no-await-in-loop
-        return containerStatus;
+        stateManager.on('disconnect', async (reason) => {
+            await this.algorithmDisconnect(reason);
+        });
     }
 
     /**
@@ -148,12 +103,28 @@ class Worker {
      */
     _registerToCommunicationEvents() {
         algoRunnerCommunication.on(messages.incomming.initialized, () => {
+            if (stateManager._stateMachine.cannot('start')) {
+                log.warning(`${messages.incomming.initialized} can be called only as a response to ${messages.outgoing.initialize}`, { component });
+                return;
+            }
+            if (stateManager.state !== workerStates.init) {
+                log.warning(`${messages.incomming.initialized} can be called only as a response to ${messages.outgoing.initialize}`, { component });
+                return;
+            }
             stateManager.start();
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
+            if (stateManager.state !== workerStates.working) {
+                log.warning(`${messages.incomming.done} can be called only as a response to ${messages.outgoing.start}`, { component });
+                return;
+            }
             stateManager.done(message);
         });
         algoRunnerCommunication.on(messages.incomming.stopped, (message) => {
+            if (stateManager.state !== workerStates.stop) {
+                log.warning(`${messages.incomming.done} can be called only as a response to ${messages.outgoing.stop}`, { component });
+                return;
+            }
             if (this._stopTimeout) {
                 clearTimeout(this._stopTimeout);
             }
@@ -165,11 +136,12 @@ class Worker {
             }
         });
         algoRunnerCommunication.on(messages.incomming.error, async (message) => {
+            if (stateManager.state !== workerStates.working && stateManager.state !== workerStates.init) {
+                log.warning(`${messages.incomming.error} can be called only as a response to ${messages.outgoing.initialize}/${messages.outgoing.start}`, { component });
+                return;
+            }
             const errText = message.error && message.error.message;
             log.error(`got error from algorithm: ${errText}`, { component });
-            const { jobId } = jobConsumer.jobData;
-            const reason = `parent algorithm failed: ${errText}`;
-            await this._stopAllPipelinesAndExecutions({ jobId, reason });
             stateManager.done(message);
         });
         algoRunnerCommunication.on(messages.incomming.startSpan, (message) => {
@@ -185,6 +157,23 @@ class Worker {
             subPipeline.stopAllSubPipelines({ reason }),
             execAlgorithms.stopAllExecutions({ jobId })
         ]);
+    }
+
+    async algorithmDisconnect(reason) {
+        if (this._debugMode) {
+            return;
+        }
+        const type = jobConsumer.getAlgorithmType();
+        const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
+        const defaultMessage = `algorithm ${type} has disconnected, reason: ${reason}`;
+        const message = {
+            error: {
+                reason: containerStatus && containerStatus.reason,
+                message: `${defaultMessage}. ${(containerStatus && containerStatus.message)}`
+            }
+        };
+        log.error(message.error.message, { component });
+        stateManager.exit(message);
     }
 
     /**
@@ -271,9 +260,11 @@ class Worker {
             try {
                 log.info(`starting termination mode. Exiting with code ${code}`, { component });
                 const reason = 'parent pipeline exit';
-                await this._stopAllPipelinesAndExecutions({ jobId, reason });
+                if (jobId) {
+                    await this._stopAllPipelinesAndExecutions({ jobId, reason });
+                }
 
-                this._tryToSendCommand({ command: messages.outgoing.exit });
+                algoRunnerCommunication.send({ command: messages.outgoing.exit });
                 const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
                 if (terminated) {
                     log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
@@ -293,16 +284,6 @@ class Worker {
                 this._inTerminationMode = false;
                 process.exit(code);
             }
-        }
-    }
-
-    _tryToSendCommand(message) {
-        try {
-            return algoRunnerCommunication.send(message);
-        }
-        catch (err) {
-            log.error(`Failed to send command ${message.command}`, { component });
-            return err;
         }
     }
 
@@ -339,11 +320,14 @@ class Worker {
             this._handleTimeout(state);
             switch (state) {
                 case workerStates.exit:
+                    await jobConsumer.finishJob(result);
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
-                    reason = `parent algorithm entered state ${state}`;
-                    await this._stopAllPipelinesAndExecutions({ jobId, reason });
+                    if (jobId) {
+                        reason = `parent algorithm entered state ${state}`;
+                        await this._stopAllPipelinesAndExecutions({ jobId, reason });
+                    }
                     await jobConsumer.finishJob(result);
                     pendingTransition = stateManager.cleanup.bind(stateManager);
                     break;

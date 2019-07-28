@@ -1,24 +1,24 @@
 
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const { VerbosityPlugin } = require('@hkube/logger');
 const { tracer, metrics } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
 const storageManager = require('@hkube/storage-manager');
 const component = require('./lib/consts').Components.MAIN;
 const worker = require('./lib/worker');
+const workerCommunication = require('./lib/algorithm-communication/workerCommunication.js');
 let log;
 
 const modules = [
+    require('./lib/metrics/metrics.js'),
     require('./lib/states/stateManager.js'),
     require('./lib/states/discovery.js'),
-    require('./lib/algorithm-communication/workerCommunication.js'),
-    require('./lib/consumer/JobConsumer.js'),
     require('./lib/helpers/kubernetes.js'),
     require('./lib/algorithm-logging/logging-proxy.js'),
     require('./lib/helpers/api-server-client.js'),
     require('./lib/subpipeline/subpipeline.js'),
-    require('./lib/algorithm-execution/algorithm-execution.js')
+    require('./lib/algorithm-execution/algorithm-execution.js'),
+    require('./lib/consumer/JobConsumer.js')
 ];
 
 class Bootstrap {
@@ -28,7 +28,6 @@ class Bootstrap {
             this._handleErrors();
 
             log = new Logger(main.serviceName, logger);
-            log.plugins.use(new VerbosityPlugin(main.redis));
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             monitor.on('ready', (data) => {
@@ -41,12 +40,12 @@ class Bootstrap {
             await metrics.init(main.metrics);
             await tracer.init(main.tracer);
             await storageManager.init(main, log);
-            worker.preInit();
+
             for (const m of modules) {
                 await m.init(main, log);
             }
-
             await worker.init(main);
+            await workerCommunication.init(main);
 
             return main;
         }

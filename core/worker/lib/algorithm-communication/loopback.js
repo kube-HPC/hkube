@@ -8,6 +8,7 @@ class Loopback extends EventEmitter {
         super();
         this._options = null;
         this.LastInput = null;
+        this._socket = {};
     }
 
     async init(option) {

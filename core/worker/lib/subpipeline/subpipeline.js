@@ -348,7 +348,6 @@ class SubPipelineHandler {
             return;
         }
         if (this._jobId2InternalIdMap.size === 0) {
-            log.info('no registered subPipelines to stop', { component });
             return;
         }
         this._stoppingSubpipelines = true;

@@ -120,11 +120,10 @@ class AlgorithmExecution {
             await this._unWatchTasks({ jobId });
 
             if (this._executions.size === 0) {
-                log.info('no registered executions to stop', { component });
                 return;
             }
             log.info(`stopping ${this._executions.size} executions`, { component });
-            await Promise.all([...this._executions.values()].map(e => discovery.stopAlgorithmExecution({ jobId, taskId: e.taskId, reason })));
+            await Promise.all([...this._executions.values()].map(e => discovery.stopAlgorithmExecution({ jobId, taskId: e.taskId })));
         }
         catch (e) {
             log.error(`failed to stop executions: ${e.message}`, { component });

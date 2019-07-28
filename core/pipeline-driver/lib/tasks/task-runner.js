@@ -109,17 +109,12 @@ class TaskRunner extends EventEmitter {
             return;
         }
         this._active = false;
-        try {
-            await this._stopPipeline(error, reason);
-        }
-        catch (e) {
-            log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
-        }
-        finally {
-            await this._deletePipeline();
-            await this._unWatchJob();
-            await this._cleanJob(error);
-        }
+        const result = await this._stopPipeline(error, reason);
+        await this._deletePipeline();
+        await this._unWatchJob();
+        await this._cleanJob(error);
+        const { status, jobId, pipelineName, errorMsg } = result;
+        log.info(`pipeline ${status} ${jobId} ${reason || ''} ${errorMsg || ''}`, { component, jobId, pipelineName });
     }
 
     async _startPipeline(job) {
@@ -175,40 +170,41 @@ class TaskRunner extends EventEmitter {
         let status;
         let errorMsg;
         let data;
-        if (err) {
-            if (err.status) {
-                return;
-            }
-            errorMsg = err.message;
-            status = DriverStates.FAILED;
-            this._error = errorMsg;
-            log.error(`pipeline ${status}. ${errorMsg}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        }
-        else if (reason) {
-            status = DriverStates.STOPPED;
-            log.info(`pipeline ${status} ${this._jobId}. ${reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        }
-        else {
-            status = DriverStates.COMPLETED;
-            log.info(`pipeline ${status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-            data = this._nodes.pipelineResults();
-        }
-        this._jobStatus = status;
-        this._driverStatus = DriverStates.READY;
-        const resultError = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data, reason, error: errorMsg, status });
 
-        if (errorMsg || resultError) {
-            const error = resultError || errorMsg;
-            await this._progressError({ status, error });
-            if (err.batchTolerance) {
-                await this._stateManager.stopJob({ jobId: this._jobId });
+        try {
+            if (err) {
+                if (err.status) {
+                    return null;
+                }
+                errorMsg = err.message;
+                status = DriverStates.FAILED;
+                this._error = errorMsg;
             }
-        }
-        else {
-            await this._progressInfo({ status });
-        }
+            else if (reason) {
+                status = DriverStates.STOPPED;
+            }
+            else {
+                status = DriverStates.COMPLETED;
+                data = this._nodes.pipelineResults();
+            }
+            this._jobStatus = status;
+            this._driverStatus = DriverStates.READY;
+            const resultError = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data, reason, error: errorMsg, status });
 
-        pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
+            if (errorMsg || resultError) {
+                const error = resultError || errorMsg;
+                await this._progressError({ status, error });
+            }
+            else {
+                await this._progressInfo({ status });
+            }
+
+            pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
+        }
+        catch (e) {
+            log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
+        }
+        return { status, jobId: this._jobId, pipelineName: this.pipeline.name, errorMsg };
     }
 
     _runEntryNodes() {
@@ -483,24 +479,29 @@ class TaskRunner extends EventEmitter {
     }
 
     _checkTaskErrors(task) {
-        let error;
-        if (task.error && !task.execId) {
-            if (task.batchIndex) {
+        let err;
+        const { error, nodeName, reason, batchIndex, execId } = task;
+        if (error && !execId) {
+            if (batchIndex) {
                 const { batchTolerance } = this.pipeline.options;
-                const states = this._nodes.getNodeStates(task.nodeName);
+                const states = this._nodes.getNodeStates(nodeName);
                 const failed = states.filter(s => s === NodeStates.FAILED);
                 const percent = ((failed.length / states.length) * 100).toFixed(0);
 
                 if (percent >= batchTolerance) {
-                    error = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${task.error}`);
-                    error.batchTolerance = true;
+                    err = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${error}`);
+                }
+            }
+            else if (reason) {
+                if (reason === 'ImagePullBackOff' || reason === 'ErrImagePull') {
+                    err = new Error(`${reason}. ${error}`);
                 }
             }
             else {
-                error = new Error(task.error);
+                err = new Error(error);
             }
         }
-        return error;
+        return err;
     }
 
     _setTaskState(task) {

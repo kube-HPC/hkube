@@ -9,11 +9,11 @@ const delay = require('delay');
 const { main, logger } = configIt.load();
 log = new Logger(main.serviceName, logger);
 const messages = require('../lib/algorithm-communication/messages');
-const jobConsumer = require('../lib/consumer/JobConsumer');
 const { workerStates, stateEvents, EventMessages } = require('../lib/consts');
 
 let workerCommunication;
 let stateManager;
+let jobConsumer;
 
 /*
  * code snipets for eval algorithm
@@ -123,7 +123,8 @@ function createAlgDataWithConditionalSubPipelines(input, codeArray, conditionCod
  * This suite tests the worker subpipeline support (using algorunner mock).
  */
 describe('worker SubPipeline test', () => {
-    before(async () => {
+    before(async function () {
+        this.timeout(5000);
         mockery.enable({
             warnOnReplace: false,
             warnOnUnregistered: false,
@@ -134,9 +135,9 @@ describe('worker SubPipeline test', () => {
         mockery.registerSubstitute('./states/stateManager', process.cwd() + '/test/mocks/stateManager.js');
         mockery.registerSubstitute('../states/stateManager', process.cwd() + '/test/mocks/stateManager.js'); // from subpipeline.js
 
-
         const bootstrap = require('../bootstrap');
         workerCommunication = require('../lib/algorithm-communication/workerCommunication');
+        jobConsumer = require('../lib/consumer/JobConsumer');
         stateManager = require('./mocks/stateManager');
         if (jobConsumer._algTracer) {
             jobConsumer._algTracer._tracer.close();
@@ -172,7 +173,7 @@ describe('worker SubPipeline test', () => {
         adapter.send({ command: messages.outgoing.initialize, data: algData });
     });
     it('alg with true condition should run trueSubPipeline', function (done) {
-        this.timeout(8000);
+        this.timeout(5000);
         const { adapter } = workerCommunication;
         const input = [10];
         workerCommunication.on(messages.incomming.initialized, (message) => {
@@ -336,10 +337,11 @@ describe('worker SubPipeline test', () => {
         const subPipelineHandler = require('../lib/subpipeline/subpipeline');
         // simulate 2 subPipelines
         const state = workerStates.results;
+        jobConsumer._job = { data: { jobId: 'test-job-id' } };
         const spy = sinon.spy(subPipelineHandler, 'stopAllSubPipelines');
         subPipelineHandler._jobId2InternalIdMap.set('subPipelineJob1', 'sub1').set('subPipelineJob2', 'sub2')
         stateManager.emit(stateEvents.stateEntered, { state });
-        await delay(1000);
+        await delay(500);
 
         const call = spy.getCalls()[0] || {};
         const args = call.args && call.args[0];

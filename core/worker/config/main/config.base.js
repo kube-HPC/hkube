@@ -50,11 +50,10 @@ config.jobConsumer = {
         prefix: 'jobs-workers',
         settings: {
             stalledCheck: false
-        }
+        },
+        redis: config.redis
     }
 };
-
-config.pollingInterval = process.env.POLLING_INTERVAL || 100; // The polling interval is the period of time between jobs in ms.
 
 config.hotWorker = formatter.parseBool(process.env.HOT_WORKER);
 
@@ -115,6 +114,5 @@ config.storageAdapters = {
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
-
 
 module.exports = config;

@@ -59,13 +59,8 @@ class KubernetesApi extends EventEmitter {
     async getPodContainerStatus(podName, containerName) {
         try {
             log.debug(`getPodContainers for pod ${podName}, container ${containerName}`, { component });
-            const pod = await this._client.pods.get({ podName });
-            const statusRaw = objectPath.get(pod, 'body.status.containerStatuses');
-            if (!statusRaw) {
-                return null;
-            }
-            const statuses = statusRaw.filter(r => r.name === containerName).map(this._mapContainerStatus);
-            return statuses[0];
+            const container = await this._client.containers.getStatus({ podName, containerName });
+            return container;
         }
         catch (error) {
             log.throttle.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
