@@ -169,7 +169,7 @@ class Worker {
         const message = {
             error: {
                 reason: containerStatus && containerStatus.reason,
-                message: `${defaultMessage}. ${(containerStatus && containerStatus.message)}`
+                message: `${defaultMessage}. ${(containerStatus && containerStatus.message) || ''}`
             }
         };
         log.error(message.error.message, { component });

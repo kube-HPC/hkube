@@ -492,10 +492,8 @@ class TaskRunner extends EventEmitter {
                     err = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${error}`);
                 }
             }
-            else if (reason) {
-                if (reason === 'ImagePullBackOff' || reason === 'ErrImagePull') {
-                    err = new Error(`${reason}. ${error}`);
-                }
+            else if (reason === 'ImagePullBackOff' || reason === 'ErrImagePull') {
+                err = new Error(`${reason}. ${error}`);
             }
             else {
                 err = new Error(error);
