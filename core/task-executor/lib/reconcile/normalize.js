@@ -3,7 +3,7 @@ const groupBy = require('lodash.groupby');
 const parse = require('@hkube/units-converter');
 const objectPath = require('object-path');
 const { gpuVendors } = require('../consts');
-
+const { settings: globalSettings } = require('../helpers/settings');
 /**
  * normalizes the worker info from discovery
  * input will look like:
@@ -170,6 +170,25 @@ const parseGpu = (gpu) => {
     return parseInt(gpu[gpuVendors.NVIDIA], 10);
 };
 
+const _getRequestsAndLimits = (pod) => {
+    const { useResourceLimits } = globalSettings;
+    const limitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
+    const limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits', 0)));
+    const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0)));
+    const requestCpu = useResourceLimits && limitsCpu
+        ? limitsCpu
+        : sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
+    const requestGpu = useResourceLimits && limitsGpu
+        ? limitsGpu
+        : sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.requests', 0)));
+    const requestMem = useResourceLimits && limitsMem
+        ? limitsMem
+        : sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0)));
+    return {
+        requestCpu, requestGpu, requestMem, limitsCpu, limitsGpu, limitsMem
+    };
+};
+
 const normalizeResources = ({ pods, nodes } = {}) => {
     if (!pods || !nodes) {
         return {
@@ -218,12 +237,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         if (!nodeName || !accumulator[nodeName]) {
             return accumulator;
         }
-        const requestCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
-        const requestGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.requests', 0)));
-        const requestMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0)));
-        const limitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
-        const limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits', 0)));
-        const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0)));
+        const { requestCpu, requestGpu, requestMem, limitsCpu, limitsGpu, limitsMem } = _getRequestsAndLimits(pod);
 
         accumulator[nodeName].requests.cpu += requestCpu;
         accumulator[nodeName].requests.gpu += requestGpu;
