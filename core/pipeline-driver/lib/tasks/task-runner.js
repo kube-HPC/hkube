@@ -11,7 +11,6 @@ const Events = require('../consts/Events');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
-
 const { Node, Batch } = NodeTypes;
 let log;
 
