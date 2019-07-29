@@ -252,6 +252,11 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         _argsHelper(args, '--tmpFolder', tmpFolder);
         const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
         await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
+        _argsHelper(args, '--tmpFolder', tmpFolder);
+        _argsHelper(args, '--insecure_pull', docker.pull.insecure);
+        _argsHelper(args, '--insecure', docker.push.insecure);
+        _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
+        _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
     }
 
     const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
