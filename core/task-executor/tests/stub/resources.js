@@ -89,7 +89,7 @@ const pods = {
                         {
                             resources: {
                                 limits: {
-                                    cpu: '200m',
+                                    cpu: '600m',
                                     memory: '256Mi',
                                     [gpuVendors.NVIDIA]: '1'
                                 },
