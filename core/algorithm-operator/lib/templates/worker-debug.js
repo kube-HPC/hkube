@@ -34,7 +34,7 @@ const deploymentDebugTemplate = (algorithmName = '') => ({
                 containers: [
                     {
                         name: ALGORITHM_DEBUG,
-                        image: 'hkube/worker:latest',
+                        image: 'hkube/worker',
                         env: [
                             {
                                 name: 'NODE_ENV',

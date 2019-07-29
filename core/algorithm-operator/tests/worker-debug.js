@@ -12,9 +12,17 @@ describe('jobCreator', () => {
             expect(() => createKindsSpec({ algorithmName: '', options })).to.throw('Unable to create deployment spec. algorithmName is required');
         });
         it('should apply all required properties', () => {
-            const res = createKindsSpec({ algorithmName: 'myalgo1', options }).deploymentSpec;
+            const versions = {
+                "versions": [
+                    {
+                        "project": "worker",
+                        "tag": "v1.2.3"
+                    }
+                ]
+            };
+            const res = createKindsSpec({ algorithmName: 'myalgo1', options, versions }).deploymentSpec;
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
-            expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:latest' });
+            expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:v1.2.3' });
             expect(res.metadata.name).to.include('myalgo1');
         });
         it('create job with volume', () => {
