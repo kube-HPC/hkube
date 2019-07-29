@@ -298,6 +298,7 @@ const runBuild = async (options) => {
     let trace;
     let buildId;
     let algorithmName;
+    let buildMode;
     let result = { output: {} };
     const progress = _progress(0);
 
@@ -312,7 +313,8 @@ const runBuild = async (options) => {
 
         const overwrite = true;
         const { env, version, fileExt, baseImage } = build;
-        const { docker, buildDirs, buildMode, tmpFolder, packagesRepo } = options;
+        const { docker, buildDirs, tmpFolder, packagesRepo } = options;
+        buildMode = options.buildMode;
         algorithmName = build.algorithmName;
         const src = `${buildDirs.ZIP}/${algorithmName}`;
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
@@ -337,7 +339,7 @@ const runBuild = async (options) => {
     await _removeFolder({ folder: buildPath });
     const status = errors ? STATES.FAILED : STATES.COMPLETED;
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
-    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
+    await _setBuildStatus({ buildId, buildMode, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
     return { buildId, error, status, result: { data, warnings, errors } };
 };
 
