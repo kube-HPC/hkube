@@ -40,7 +40,7 @@ describe('jobCreator', () => {
         }
         const resourcesMain = {
             memory: 256,
-            cpu: 0.2
+            cpu: 0.1
         }
         const resourcesBuilder = {
             memory: 300,
@@ -72,8 +72,8 @@ describe('jobCreator', () => {
         expect(res.spec.template.spec.containers[1].image).to.eql('hkube/kaniko:v1.1.0');
         expect(res.spec.template.spec.containers[1].securityContext).to.not.exist;
         expect(res.spec.template.spec.containers[0].securityContext).to.not.exist;
-        expect(res.spec.template.spec.containers[1].resources.limits).to.eql({cpu: 0.8, memory: "600Mi"});
-        expect(res.spec.template.spec.containers[0].resources.requests).to.eql({cpu: 0.2, memory: "256Mi"});
+        expect(res.spec.template.spec.containers[1].resources.limits).to.eql({cpu: 0.4, memory: "600Mi"});
+        expect(res.spec.template.spec.containers[0].resources.requests).to.eql({cpu: 0.1, memory: "256Mi"});
 
     });
     it('should add kaniko if needed with registry', () => {
