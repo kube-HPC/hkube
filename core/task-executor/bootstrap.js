@@ -9,6 +9,7 @@ const component = components.MAIN;
 const etcd = require('./lib/helpers/etcd');
 const kubernetes = require('./lib/helpers/kubernetes');
 const executor = require('./lib/executor');
+const { setFromConfig } = require('./lib/helpers/settings');
 const modules = [
     etcd,
     kubernetes,
@@ -20,6 +21,7 @@ class Bootstrap {
             this._handleErrors();
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
             await metrics.init(main.metrics);
+            setFromConfig(main);
             await Promise.all(modules.map(m => m.init(main)));
             await executor.init(main);
             await healthcheck.init({ port: main.healthchecks.port });
