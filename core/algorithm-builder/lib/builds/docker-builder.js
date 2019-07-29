@@ -252,6 +252,11 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         _argsHelper(args, '--tmpFolder', tmpFolder);
         const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
         await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
+        _argsHelper(args, '--tmpFolder', tmpFolder);
+        _argsHelper(args, '--insecure_pull', docker.pull.insecure);
+        _argsHelper(args, '--insecure', docker.push.insecure);
+        _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
+        _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
     }
 
     const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
@@ -298,6 +303,7 @@ const runBuild = async (options) => {
     let trace;
     let buildId;
     let algorithmName;
+    let buildMode;
     let result = { output: {} };
     const progress = _progress(0);
 
@@ -312,7 +318,8 @@ const runBuild = async (options) => {
 
         const overwrite = true;
         const { env, version, fileExt, baseImage } = build;
-        const { docker, buildDirs, buildMode, tmpFolder, packagesRepo } = options;
+        const { docker, buildDirs, tmpFolder, packagesRepo } = options;
+        buildMode = options.buildMode;
         algorithmName = build.algorithmName;
         const src = `${buildDirs.ZIP}/${algorithmName}`;
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
@@ -337,7 +344,7 @@ const runBuild = async (options) => {
     await _removeFolder({ folder: buildPath });
     const status = errors ? STATES.FAILED : STATES.COMPLETED;
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
-    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
+    await _setBuildStatus({ buildId, buildMode, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
     return { buildId, error, status, result: { data, warnings, errors } };
 };
 

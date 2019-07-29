@@ -2,7 +2,6 @@
 
 # This script used to create a specific algorithm image
 set -e
-
 source $PWD/lib/builds/build-utils.sh
 
 #myVar=$(sed -n '/^nodejs=\(.*\)$/s//\1/p' base-versions)
@@ -10,7 +9,6 @@ source $PWD/lib/builds/build-utils.sh
 while [[ $# -gt 0 ]]
 do
 key="$1"
-
 case $key in
     --img)
     IMAGE_NAME="$2"
@@ -102,7 +100,31 @@ case $key in
     shift
     ;;
 
-    --help)
+     --insecure_pull)
+    INSECURE_PULL="$2"
+    shift
+    shift
+    ;;
+
+     --insecure)
+    INSECURE="$2"
+    shift
+    shift
+    ;;
+
+     --skip_tls_verify_pull)
+    SKIP_TLS_VERIFY_PULL="$2"
+    shift
+    shift
+    ;;
+
+     --skip_tls_verify)
+    SKIP_TLS_VERIFY="$2"
+    shift
+    shift
+    ;;
+
+     --help)
     usage
     exit 1
 esac
@@ -114,14 +136,18 @@ echo IMAGE_NAME=${IMAGE_NAME}
 echo BUILD_PATH=${BUILD_PATH}
 echo BASE_IMAGE=${BASE_IMAGE}
 echo DOCKER_PULL_REGISTRY=${DOCKER_PULL_REGISTRY}
+echo INSECURE_PULL=${INSECURE_PULL:-"false"}
+echo SKIP_TLS_VERIFY_PULL=${SKIP_TLS_VERIFY_PULL:-"false"}
 echo DOCKER_PUSH_REGISTRY=${DOCKER_PUSH_REGISTRY}
+echo SKIP_TLS_VERIFY=${SKIP_TLS_VERIFY:-"false"}
+echo INSECURE=${INSECURE:-"false"}
 echo PACKAGES_REGISTRY=${PACKAGES_REGISTRY}
 echo REMOVE_IMAGE=${REMOVE_IMAGE}
 echo TMP_FOLDER=${TMP_FOLDER}
 echo
 
 echo
-dockerBuildKaniko "${IMAGE_NAME}" "${BUILD_PATH}" "${TMP_FOLDER}/workspace" "${TMP_FOLDER}/commands" "${BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}"
+dockerBuildKaniko ${IMAGE_NAME} ${BUILD_PATH} ${TMP_FOLDER}/workspace ${TMP_FOLDER}/commands "${BASE_IMAGE}" "${PACKAGES_REGISTRY}" "${PACKAGES_TOKEN}" "${INSECURE}" "${INSECURE_PULL}" "${SKIP_TLS_VERIFY}" "${SKIP_TLS_VERIFY_PULL}"
 ret=${exit_code}
 echo build finished with code $ret
 echo
