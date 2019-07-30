@@ -35,7 +35,7 @@ const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, wo
     deploymentSpec = applyAlgorithmName(deploymentSpec, algorithmName, CONTAINERS.ALGORITHM_DEBUG);
     deploymentSpec = applyStorage(deploymentSpec, options.defaultStorage, CONTAINERS.ALGORITHM_DEBUG, 'algorithm-operator-configmap');
 
-    const ingressSpec = workerIngress(algorithmName);
+    const ingressSpec = workerIngress(algorithmName, clusterOptions);
     const serviceSpec = workerService(algorithmName);
 
     return {
