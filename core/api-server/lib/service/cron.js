@@ -55,7 +55,7 @@ class ExecutionService {
         }
         const pattern = objectPath.get(pipeline, 'triggers.cron.pattern');
         objectPath.set(pipeline, 'triggers.cron.enabled', toggle);
-        objectPath.set(pipeline, 'triggers.cron.pattern', options.pattern || pattern);
+        objectPath.set(pipeline, 'triggers.cron.pattern', options.pattern || pattern || '0 * * * *');
         await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: pipeline });
         await stateManager.setPipeline(pipeline);
         return pipeline;
