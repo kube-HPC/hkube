@@ -25,6 +25,14 @@ config.resources = {
     algorithmQueue: {
         memory: parseFloat(process.env.ALGORITHM_QUEUE_MEMORY) || 256,
         cpu: parseFloat(process.env.ALGORITHM_QUEUE_CPU) || 0.1
+    },
+    algorithmBuilderMain: {
+        memory: parseFloat(process.env.ALGORITHM_BUILDER_MAIN_MEMORY) || 256,
+        cpu: parseFloat(process.env.ALGORITHM_BUILDER_MAIN_CPU) || 0.1
+    },
+    algorithmBuilderBuilder: {
+        memory: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_MEMORY) || 256,
+        cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 1
     }
 }
 
