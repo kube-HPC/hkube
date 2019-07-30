@@ -1689,6 +1689,24 @@ describe('Rest', () => {
                         expect(response2.body.triggers.cron.enabled).to.equal(true);
                         expect(response2.body.triggers.cron.pattern).to.equal(pattern);
                     });
+                    it('should success to start cron with default pattern', async () => {
+                        const pipeline = pipelines.find(p => p.name === 'trigger-no-cron');
+                        const options1 = {
+                            uri: restPath,
+                            body: {
+                                name: pipeline.name,
+                            }
+                        };
+                        const options2 = {
+                            uri: `${restUrl}/store/pipelines/${pipeline.name}`,
+                            method: 'GET'
+                        };
+                        const response1 = await _request(options1);
+                        const response2 = await _request(options2);
+                        expect(response1.body.message).to.equal('OK');
+                        expect(response2.body.triggers.cron.enabled).to.equal(true);
+                        expect(response2.body.triggers.cron.pattern).to.equal('0 * * * *');
+                    });
                 });
                 describe('/cron/stop', () => {
                     let restPath = null;
