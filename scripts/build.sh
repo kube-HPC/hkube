@@ -6,9 +6,11 @@ if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PU
   for REPO in ${CHANGED}
   do
     echo ${REPO} changed. Running build
-    PRIVATE_REGISTRY=docker.io/hkube lerna run --scope $REPO build
-    echo build done for ${REPO}
+    export PRIVATE_REGISTRY=docker.io/hkube
+    lerna run --scope $REPO build
+    echo "build done for ${REPO}"
   done
 else
     echo "version skiped!"
 fi
+echo "all builds done."
