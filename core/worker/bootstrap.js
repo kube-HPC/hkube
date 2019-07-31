@@ -27,8 +27,8 @@ class Bootstrap {
             const { main, logger } = configIt.load();
             this._handleErrors();
 
-            log = new Logger(main.serviceName, logger);
-            log.plugins.use(new VerbosityPlugin(main.redis));
+            // only init the logger if it is not already initialized. Used for testing
+            log = log || new Logger(main.serviceName, logger);
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             monitor.on('ready', (data) => {
