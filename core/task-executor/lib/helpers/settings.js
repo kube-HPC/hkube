@@ -1,6 +1,7 @@
 const settingsFactory = () => (
     {
-        useResourceLimits: false
+        useResourceLimits: false,
+        applyResources: false
     }
 );
 
@@ -12,6 +13,7 @@ const setFromConfig = (config) => {
         return;
     }
     settings.useResourceLimits = config.resources.useResourceLimits;
+    settings.applyResources = config.resources.enable;
 };
 
 module.exports = {

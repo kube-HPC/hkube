@@ -39,6 +39,7 @@ config.metrics = {
 
 
 config.resources = {
+    enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false),
     worker: {
         mem: parseFloat(process.env.WORKER_MEMORY) || 256,
         cpu: parseFloat(process.env.WORKER_CPU) || 0.1

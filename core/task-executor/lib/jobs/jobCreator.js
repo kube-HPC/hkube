@@ -6,8 +6,8 @@ const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImag
 const { components, containers } = require('../consts');
 const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate } = require('../templates');
+const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
-
 const applyAlgorithmResourceRequests = (inputSpec, resourceRequests) => {
     return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.ALGORITHM);
 };
@@ -100,7 +100,9 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyWorkerImage(spec, workerImage);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
-    spec = applyWorkerResourceRequests(spec, workerResourceRequests);
+    if (settings.applyResources) {
+        spec = applyWorkerResourceRequests(spec, workerResourceRequests);
+    }
     spec = applyNodeSelector(spec, nodeSelector, clusterOptions);
     spec = applyHotWorker(spec, hotWorker);
     spec = applyEntryPoint(spec, entryPoint);
