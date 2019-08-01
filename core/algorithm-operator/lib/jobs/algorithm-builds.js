@@ -55,7 +55,7 @@ const applyResources = (inputSpec, resources, container) => {
     return spec;
 };
 
-const createBuildJobSpec = ({ buildId, versions, secret, registry, options, resourcesMain, resourcesBuilder }) => {
+const createBuildJobSpec = ({ buildId, versions, secret, registry, options, resourcesMain, resourcesBuilder, algorithmBuilderResourcesEnable }) => {
     if (!buildId) {
         const msg = 'Unable to create job spec. buildId is required';
         log.error(msg, { component });
@@ -68,7 +68,9 @@ const createBuildJobSpec = ({ buildId, versions, secret, registry, options, reso
     spec = applyStorage(spec, options.defaultStorage, ALGORITHM_BUILDS, 'algorithm-operator-configmap');
     spec = applyEnvToContainer(spec, ALGORITHM_BUILDS, { BUILD_MODE: options.buildMode });
     spec = applySecret(spec, ALGORITHM_BUILDS, secret);
-    spec = applyResources(spec, resourcesMain, CONTAINERS.ALGORITHM_BUILDS);
+    if (algorithmBuilderResourcesEnable) {
+        spec = applyResources(spec, resourcesMain, CONTAINERS.ALGORITHM_BUILDS);
+    }
 
     if (options.buildMode !== 'kaniko') {
         spec = applyVolumes(spec, dockerVolumes.volumes);
@@ -79,7 +81,9 @@ const createBuildJobSpec = ({ buildId, versions, secret, registry, options, reso
         spec = applyVolumes(spec, kanikoVolumes.volumes);
         spec = applyVolumeMounts(spec, ALGORITHM_BUILDS, kanikoVolumes.volumeMounts);
         spec = applyKanikoContainer(spec, versions, registry);
-        spec = applyResources(spec, resourcesBuilder, CONTAINERS.KANIKO);
+        if (algorithmBuilderResourcesEnable) {
+            spec = applyResources(spec, resourcesBuilder, CONTAINERS.KANIKO);
+        }
     }
 
     return spec;

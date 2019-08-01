@@ -65,7 +65,8 @@ describe('jobCreator', () => {
             },
             options,
             resourcesBuilder,
-            resourcesMain
+            resourcesMain,
+            algorithmBuilderResourcesEnable: true
         });
         expect(res.spec.template.spec.containers).to.be.of.length(2);
         expect(res.spec.template.spec.containers[1].name).to.eql('kaniko');
@@ -74,6 +75,51 @@ describe('jobCreator', () => {
         expect(res.spec.template.spec.containers[0].securityContext).to.not.exist;
         expect(res.spec.template.spec.containers[1].resources.limits).to.eql({cpu: 0.4, memory: "600Mi"});
         expect(res.spec.template.spec.containers[0].resources.requests).to.eql({cpu: 0.1, memory: "256Mi"});
+
+    });
+
+    it('should add kaniko if needed without resources', () => {
+        const buildId = 'my-alg-12345'
+        const options = {
+            ...main,
+            buildMode: 'kaniko'
+        }
+        const resourcesMain = {
+            memory: 256,
+            cpu: 0.1
+        }
+        const resourcesBuilder = {
+            memory: 300,
+            cpu: 0.2
+        }
+        const res = createBuildJobSpec({
+            buildId, versions: {
+                versions: [
+                    {
+                        project: 'algorithm-builder', tag: 'v1.2'
+                    },
+                    {
+                        project: 'kaniko', tag: 'v1.1.0'
+                    }]
+            }, secret: {
+                metadata: {
+                    name: 'test'
+                },
+                data: {
+                    
+                }
+            },
+            options,
+            resourcesBuilder,
+            resourcesMain,
+            algorithmBuilderResourcesEnable: false
+        });
+        expect(res.spec.template.spec.containers).to.be.of.length(2);
+        expect(res.spec.template.spec.containers[1].name).to.eql('kaniko');
+        expect(res.spec.template.spec.containers[1].image).to.eql('hkube/kaniko:v1.1.0');
+        expect(res.spec.template.spec.containers[1].securityContext).to.not.exist;
+        expect(res.spec.template.spec.containers[0].securityContext).to.not.exist;
+        expect(res.spec.template.spec.containers[1].resources).to.not.exist;
 
     });
     it('should add kaniko if needed with registry', () => {

@@ -28,17 +28,18 @@ config.resources = {
     },
     algorithmBuilderMain: {
         memory: parseFloat(process.env.ALGORITHM_BUILDER_MAIN_MEMORY) || 256,
-        cpu: parseFloat(process.env.ALGORITHM_BUILDER_MAIN_CPU) || 0.1
+        cpu: parseFloat(process.env.ALGORITHM_BUILDER_MAIN_CPU) || 0.1,
     },
     algorithmBuilderBuilder: {
         memory: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_MEMORY) || 256,
         cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 1
-    }
-}
+    },
+    algorithmBuilderResourcesEnable: formatter.parseBool(process.env.ALGORITHM_BUILDER_RESOURCES_ENABLE, false)
+};
 
 config.healthchecks = {
     path: process.env.HEALTHCHECK_PATH || '/healthz',
     port: process.env.HEALTHCHECK_PORT || '5000',
     maxDiff: process.env.HEALTHCHECK_MAX_DIFF || '30000',
     logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true)
-}
+};
