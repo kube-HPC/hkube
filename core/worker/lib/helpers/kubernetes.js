@@ -41,31 +41,16 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
-    _mapContainerStatus(status) {
-        const containerStatus = {
-            name: status.name,
-            running: !!status.state.running,
-            terminated: !!status.state.terminated
-        };
-        if (containerStatus.terminated) {
-            containerStatus.terminationDetails = {
-                reason: status.state.terminated.reason,
-                exitCode: status.state.terminated.exitCode
-            };
-        }
-        return containerStatus;
-    }
-
     async getPodContainerStatus(podName, containerName) {
+        let container = null;
         try {
             log.debug(`getPodContainers for pod ${podName}, container ${containerName}`, { component });
-            const container = await this._client.containers.getStatus({ podName, containerName });
-            return container;
+            container = await this._client.containers.getStatus({ podName, containerName });
         }
         catch (error) {
             log.throttle.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
-            return null;
         }
+        return container;
     }
 
     async waitForTerminatedState(podName, containerName, timeout = 20000) {
@@ -75,7 +60,7 @@ class KubernetesApi extends EventEmitter {
         do {
             const containerStatus = await this.getPodContainerStatus(podName, containerName); // eslint-disable-line no-await-in-loop
             log.throttle.debug(`waitForTerminatedState for pod ${podName}, container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
-            if (containerStatus && containerStatus.terminated) {
+            if (containerStatus && containerStatus.status === 'terminated') {
                 return true;
             }
             await delay(1000); // eslint-disable-line no-await-in-loop

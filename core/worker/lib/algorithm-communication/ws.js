@@ -63,7 +63,7 @@ class WsWorkerCommunication extends EventEmitter {
             this.emit(payload.command, payload);
         });
         socket.on('close', (code) => {
-            const reason = code === 1006 ? 'CLOSE_ABNORMAL' : 'N/A';
+            const reason = code === 1006 ? 'CLOSE_ABNORMAL' : `${code}`;
             this._socket = null;
             this.emit('disconnect', reason);
         });
