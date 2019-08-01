@@ -34,7 +34,7 @@ config.resources = {
         memory: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_MEMORY) || 256,
         cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 1
     },
-    algorithmBuilderResourcesEnable: formatter.parseBool(process.env.ALGORITHM_BUILDER_RESOURCES_ENABLE, false)
+    enable: formatter.parseBool(process.env.ALGORITHM_BUILDER_RESOURCES_ENABLE, false)
 };
 
 config.healthchecks = {
