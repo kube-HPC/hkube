@@ -2,6 +2,8 @@ algorithm:
   $ref: ./algorithm.yaml
 algorithmApplyResponse:
   $ref: ./algorithmApplyResponse.yaml
+buildId:
+  $ref: ./buildId.yaml
 caching:
   $ref: ./caching.yaml
 cronPattern:

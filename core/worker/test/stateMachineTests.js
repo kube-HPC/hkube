@@ -16,7 +16,6 @@ describe('state machine', () => {
         const { main, logger } = await configIt.load();
         await storageManager.init(main, null, true);
         await bootstrap.init();
-        log = new Logger(main.serviceName, logger);
         etcd = new Etcd({ ...main.etcd, serviceName: main.serviceName });
         await stateMachine.init(main);
     });

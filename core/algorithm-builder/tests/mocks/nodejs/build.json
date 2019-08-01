@@ -2,7 +2,7 @@
     "buildId": "build-123456",
     "algorithmName": "sort-alg",
     "env": "nodejs",
-    "version": "1.0.0",
+    "version": "5.0.0",
     "fileExt": "gz",
     "status": "pending",
     "baseImage": "hkubedev/debug:v1.0.1",

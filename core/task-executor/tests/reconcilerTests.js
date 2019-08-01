@@ -15,6 +15,8 @@ const s3EndpointUrl = { name: 'S3_ENDPOINT_URL', valueFrom: { secretKeyRef: { na
 const fsVolumes = { name: 'storage-volume', persistentVolumeClaim: { claimName: 'hkube-storage-pvc' } };
 const fsVolumeMounts = { name: 'storage-volume', mountPath: '/hkubedata' };
 const { logVolumes, logVolumeMounts } = require('../lib/templates/index');
+const { settings: globalSettings } = require('../lib/helpers/settings');
+
 const resources = require('./stub/resources');
 const drivers = require('./stub/drivers');
 const options = main;
@@ -52,6 +54,7 @@ describe('reconciler', () => {
         clearCount();
         reconciler._clearCreatedJobsList(Date.now() + 100000, options);
         normResources = normalizeResources(resources);
+        globalSettings.useResourceLimits=false
     });
     describe('reconcile algorithms tests', () => {
         it('should work with no params', async () => {
@@ -583,6 +586,44 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
             .to.deep.include({ limits: { cpu: 0.2, memory: '512Mi' } });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
+            .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
+        });
+
+        it('should add worker resources useLimits', async () => {
+            globalSettings.useResourceLimits=true
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+            };
+
+            const testOptions = { ...options, defaultStorage: 's3' };
+
+            const res = await reconciler.reconcile({
+                options: testOptions,
+                workerResources: testOptions.resources.worker,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
+            .to.deep.include({ limits: { cpu: 0.1, memory: '256Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
             .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
         });

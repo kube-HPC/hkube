@@ -45,8 +45,9 @@ config.resources = {
     },
     defaultQuota: {
         'limits.cpu': parseFloat(process.env.DEFAULT_QUOTA_CPU) || 30,
-        'limits.mem': process.env.DEFAULT_QUOTA_MEM || '20Gi'
-    }
+        'limits.memory': process.env.DEFAULT_QUOTA_MEM || '20Gi'
+    },
+    useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
 }
 
 config.healthchecks = {

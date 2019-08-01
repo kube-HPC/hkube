@@ -63,7 +63,13 @@ class Executor {
             const { pods } = resources;
             const normResources = normalizeResources(resources);
             const data = {
-                versions, normResources, options, registry, clusterOptions, pods, workerResources: options.resources.worker
+                versions,
+                normResources,
+                options,
+                registry,
+                clusterOptions,
+                pods,
+                workerResources: options.resources.worker
             };
 
             await Promise.all([

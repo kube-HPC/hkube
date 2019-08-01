@@ -1,4 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
+const { parseBool } = require('../../lib/utils/formatters');
 const config = {};
 config.serviceName = packageJson.name;
 
@@ -16,13 +17,17 @@ config.docker = {
         registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io',
         namespace: process.env.DOCKER_PULL_NAMESPACE || 'hkube',
         user: process.env.DOCKER_PULL_USERNAME || '',
-        pass: process.env.DOCKER_PULL_PASSWORD || ''
+        pass: process.env.DOCKER_PULL_PASSWORD || '',
+        insecure: parseBool(process.env.DOCKER_PULL_INSECURE, false),
+        skip_tls_verify: parseBool(process.env.DOCKER_PULL_SKIP_TLS_VERIFY, false)
     },
     push: {
         registry: process.env.DOCKER_PUSH_REGISTRY || 'docker.io',
         namespace: process.env.DOCKER_PUSH_NAMESPACE || '',
         user: process.env.DOCKER_PUSH_USERNAME || '',
-        pass: process.env.DOCKER_PUSH_PASSWORD || ''
+        pass: process.env.DOCKER_PUSH_PASSWORD || '',
+        insecure: parseBool(process.env.DOCKER_PUSH_INSECURE, false),
+        skip_tls_verify: parseBool(process.env.DOCKER_PUSH_SKIP_TLS_VERIFY, false)
     }
 };
 
