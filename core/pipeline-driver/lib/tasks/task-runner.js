@@ -350,6 +350,9 @@ class TaskRunner extends EventEmitter {
         try {
             log.info(`node ${nodeName} is ready to run`, { component });
             const node = this._nodes.getNode(nodeName);
+
+            await this._checkPreschedule(nodeName);
+
             const parse = {
                 flowInput: this.pipeline.flowInput,
                 nodeInput: node.input,
@@ -384,6 +387,20 @@ class TaskRunner extends EventEmitter {
         }
     }
 
+    async _checkPreschedule(nodeName) {
+        const childs = this._nodes._childs(nodeName);
+        await Promise.all(childs.map(c => this._sendPreschedule(c)));
+    }
+
+    async _sendPreschedule(nodeName) {
+        const graphNode = this._nodes.getNode(nodeName);
+        const options = { node: graphNode };
+        const node = new Node(graphNode);
+        this._nodes.setNode(node);
+        this._setTaskState(node);
+        await this._createJob(options, null, 'Preschedule');
+    }
+
     async _runWaitAny(options) {
         if (options.index === -1) {
             this._skipBatchNode(options);
@@ -398,7 +415,7 @@ class TaskRunner extends EventEmitter {
             const batch = [waitAny];
             this._nodes.addBatch(waitAny);
             this._setTaskState(waitAny);
-            await this._createJob(options, batch);
+            await this._createJob(options, batch, 'WaitAny');
         }
     }
 
@@ -415,7 +432,7 @@ class TaskRunner extends EventEmitter {
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch);
-            this._createJob(batch);
+            this._createJob(batch, null, 'WaitAny');
         });
     }
 
@@ -427,7 +444,7 @@ class TaskRunner extends EventEmitter {
         });
         this._nodes.setNode(node);
         this._setTaskState(node);
-        await this._createJob(options);
+        await this._createJob(options, null, 'Single');
     }
 
     async _runNodeBatch(options) {
@@ -445,7 +462,7 @@ class TaskRunner extends EventEmitter {
                 this._nodes.addBatch(batch);
                 this._setTaskState(batch);
             });
-            await this._createJob(options, options.node.batch);
+            await this._createJob(options, options.node.batch, 'Batch');
         }
     }
 
@@ -524,7 +541,7 @@ class TaskRunner extends EventEmitter {
         pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: NodeStates.ACTIVE });
     }
 
-    _createJob(options, batch) {
+    _createJob(options, batch, nodeType) {
         let tasks = [];
         if (batch) {
             tasks = batch.map(b => ({ taskId: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
@@ -536,6 +553,7 @@ class TaskRunner extends EventEmitter {
             type: options.node.algorithmName,
             data: {
                 tasks,
+                nodeType,
                 jobId: this._jobId,
                 nodeName: options.node.nodeName,
                 pipelineName: this.pipeline.name,
