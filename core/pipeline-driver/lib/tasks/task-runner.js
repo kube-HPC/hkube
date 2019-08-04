@@ -12,6 +12,13 @@ const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 
+const NODES_TYPES = {
+    SINGLE: 'Single',
+    BATCH: 'Batch',
+    PRESCHEDULE: 'Preschedule',
+    WAITANY: 'WaitAny'
+};
+
 const { Node, Batch } = NodeTypes;
 let log;
 
@@ -398,7 +405,8 @@ class TaskRunner extends EventEmitter {
         const node = new Node(graphNode);
         this._nodes.setNode(node);
         this._setTaskState(node);
-        await this._createJob(options, null, 'Preschedule');
+        log.info(`${NODES_TYPES.PRESCHEDULE} node ${nodeName} is ready to run`, { component });
+        await this._createJob(options, null, NODES_TYPES.PRESCHEDULE);
     }
 
     async _runWaitAny(options) {
@@ -415,7 +423,7 @@ class TaskRunner extends EventEmitter {
             const batch = [waitAny];
             this._nodes.addBatch(waitAny);
             this._setTaskState(waitAny);
-            await this._createJob(options, batch, 'WaitAny');
+            await this._createJob(options, batch, NODES_TYPES.WAITANY);
         }
     }
 
@@ -432,7 +440,7 @@ class TaskRunner extends EventEmitter {
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch);
-            this._createJob(batch, null, 'WaitAny');
+            this._createJob(batch, null, NODES_TYPES.WAITANY);
         });
     }
 
@@ -444,7 +452,7 @@ class TaskRunner extends EventEmitter {
         });
         this._nodes.setNode(node);
         this._setTaskState(node);
-        await this._createJob(options, null, 'Single');
+        await this._createJob(options, null, NODES_TYPES.SINGLE);
     }
 
     async _runNodeBatch(options) {
@@ -462,7 +470,7 @@ class TaskRunner extends EventEmitter {
                 this._nodes.addBatch(batch);
                 this._setTaskState(batch);
             });
-            await this._createJob(options, options.node.batch, 'Batch');
+            await this._createJob(options, options.node.batch, NODES_TYPES.BATCH);
         }
     }
 
