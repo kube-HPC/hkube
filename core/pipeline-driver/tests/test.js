@@ -262,6 +262,8 @@ describe('Test', function () {
             await stateManager.setExecution({ jobId, ...pipeline });
             await taskRunner.start(job);
 
+            await delay(500);
+
             const tasks = taskRunner._nodes._getNodesAsFlat();
 
             for (let i = 0; i < 4; i++) {

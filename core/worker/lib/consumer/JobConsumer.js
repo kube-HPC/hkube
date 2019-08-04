@@ -60,6 +60,11 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
         this._jobProvider.on('job', async (job) => {
+            if (job.data.nodeType === 'Preschedule') {
+                log.info(`job ${job.data.jobId} is in ${job.nodeType} mode, calling done...`);
+                job.done();
+                return;
+            }
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await etcd.watch({ jobId: job.data.jobId });
             if (watchState && watchState.state === constants.WATCH_STATE.STOP) {

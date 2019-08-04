@@ -6,6 +6,7 @@ const metricsName = require('./metrics-name');
 const metricsTypes = require('./metrics-types');
 const jobState = require('./job-state');
 const taskStatus = require('./task-status');
+const nodeTypes = require('./node-types');
 
 module.exports = {
     componentName,
@@ -15,5 +16,6 @@ module.exports = {
     metricsName,
     metricsTypes,
     jobState,
-    taskStatus
+    taskStatus,
+    nodeTypes
 };

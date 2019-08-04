@@ -73,6 +73,7 @@ class Queue extends events {
      * @param {Array} tasks
      */
     async add(tasks) {
+        this._removeDuplicates(tasks);
         if (this.scoreHeuristic) {
             const calculatedTasks = await aigle.map(tasks, task => this.scoreHeuristic(task));
             if (this.isScoreDuringUpdate) {
@@ -85,6 +86,12 @@ class Queue extends events {
         else {
             log.warning('score heuristic is not defined', { component: components.QUEUE });
         }
+    }
+
+    _removeDuplicates(tasks) {
+        tasks.forEach((t) => {
+            _.remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId);
+        });
     }
 
     /**

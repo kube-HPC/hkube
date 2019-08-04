@@ -154,7 +154,7 @@ class AggregationMetricsFactory {
             });
             this._metrics[metricsName.TOTAL_SCORE].instance[0].retroactive({
                 labelValues,
-                time: task.calculated.score
+                time: task.calculated.score || 0.00001
             });
         }
         catch (error) {
