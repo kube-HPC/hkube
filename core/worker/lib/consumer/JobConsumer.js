@@ -62,7 +62,6 @@ class JobConsumer extends EventEmitter {
         this._jobProvider.on('job', async (job) => {
             if (job.data.nodeType === 'Preschedule') {
                 log.info(`job ${job.data.jobId} is in ${job.nodeType} mode, calling done...`);
-                stateManager.done();
                 job.done();
                 return;
             }

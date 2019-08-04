@@ -42,7 +42,7 @@ class StateManager extends EventEmitter {
                 { name: 'bootstrap', from: workerStates.bootstrap, to: workerStates.ready },
                 { name: 'prepare', from: workerStates.ready, to: workerStates.init },
                 { name: 'start', from: workerStates.init, to: workerStates.working },
-                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop, workerStates.init, workerStates.ready], to: workerStates.results },
+                { name: 'done', from: [workerStates.shutdown, workerStates.working, workerStates.stop, workerStates.init], to: workerStates.results },
                 { name: 'cleanup', from: workerStates.results, to: workerStates.ready },
                 { name: 'error', from: [workerStates.working, workerStates.init], to: workerStates.error },
                 { name: 'exit', from: '*', to: workerStates.exit }
