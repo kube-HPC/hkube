@@ -7,26 +7,20 @@
     },
     {
         "name": "green-alg",
-        "algorithmImage": "hkube/algorithm-example-python:v1.0.3",
+        "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.1,
         "mem": "1024Mi"
     },
     {
         "name": "yellow-alg",
-        "algorithmImage": "hkube/algorithm-example-python:v1.0.3",
+        "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 1,
         "mem": "256Mi"
     },
     {
         "name": "black-alg",
-        "algorithmImage": "hkube/algorithm-example-python:v1.0.3",
+        "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.5,
-        "mem": "256Mi"
-    },
-    {
-        "name": "cpu-load",
-        "algorithmImage": "hkube/cpu-load-algorithm",
-        "cpu": 1,
         "mem": "256Mi"
     }
 ]
