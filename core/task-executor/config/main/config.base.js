@@ -41,8 +41,8 @@ config.metrics = {
 config.resources = {
     enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false),
     worker: {
-        mem: parseFloat(process.env.WORKER_MEMORY) || 256,
-        cpu: parseFloat(process.env.WORKER_CPU) || 0.1
+        mem: parseFloat(process.env.WORKER_MEMORY) || 512,
+        cpu: parseFloat(process.env.WORKER_CPU) || 0.5
     },
     defaultQuota: {
         'limits.cpu': parseFloat(process.env.DEFAULT_QUOTA_CPU) || 30,
