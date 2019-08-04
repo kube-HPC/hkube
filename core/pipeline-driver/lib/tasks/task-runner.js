@@ -401,6 +401,7 @@ class TaskRunner extends EventEmitter {
 
     async _sendPreschedule(nodeName) {
         const graphNode = this._nodes.getNode(nodeName);
+        graphNode.status = NODES_TYPES.PRESCHEDULE;
         const options = { node: graphNode };
         const node = new Node(graphNode);
         this._nodes.setNode(node);
@@ -445,10 +446,12 @@ class TaskRunner extends EventEmitter {
     }
 
     async _runNodeSimple(options) {
+        const graphNode = this._nodes.getNode(options.node.nodeName);
         const node = new Node({
             ...options.node,
             storage: options.storage,
-            input: options.input
+            input: options.input,
+            taskId: graphNode.taskId
         });
         this._nodes.setNode(node);
         this._setTaskState(node);

@@ -3,7 +3,7 @@ const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
-const { jobPrefix } = require('../consts/index');
+const { jobPrefix, heuristicsName } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
@@ -66,7 +66,11 @@ class JobConsumer extends EventEmitter {
     }
 
     pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
-        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId } = jobData;
+        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId, nodeType } = jobData;
+        const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
+            acc[cur] = 0.00001;
+            return acc;
+        }, {});
         const batchIndex = taskData.batchIndex || 1;
         const entranceTime = Date.now();
         return {
@@ -76,15 +80,18 @@ class JobConsumer extends EventEmitter {
             priority,
             info,
             spanId,
+            nodeType,
             nodeName,
             entranceTime,
             attempts: 0,
             initialBatchLength,
             calculated: {
-                latestScores: {},
+                latestScores,
                 //  score: '1-100',
                 entranceTime,
-                enrichment: {}
+                enrichment: {
+                    batchIndex: {}
+                }
             },
             ...taskData,
             batchIndex
