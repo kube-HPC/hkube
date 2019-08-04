@@ -4,7 +4,7 @@ config.transport = {
     fluentd: false,
     logstash: false,
     file: false,
-    redis: false
+    redis: true
 };
 config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
 module.exports = config;

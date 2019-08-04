@@ -356,6 +356,7 @@ class TaskRunner extends EventEmitter {
                 parentOutput: node.parentOutput || parentOutput,
                 index
             };
+            this.runNextNodeWithInit(node)
             const result = parser.parse(parse);
             const paths = this._nodes.extractPaths(nodeName);
 
@@ -382,6 +383,11 @@ class TaskRunner extends EventEmitter {
         catch (error) {
             this.stop(error);
         }
+    }
+
+    runNextNodeWithInit(node){
+        const childs = this._nodes._childs(node.nodeName);
+        childs.forEach(c=>this._createJob)
     }
 
     async _runWaitAny(options) {
@@ -545,6 +551,25 @@ class TaskRunner extends EventEmitter {
                     extraData: options.node.extraData,
                     savePaths: options.paths,
                     lastRunResult: this.pipeline.lastRunResult
+                }
+            }
+        };
+        return producer.createJob(jobOptions);
+    }
+
+    _createInitJob(node) {
+        const jobOptions = {
+            type: node.algorithmName,
+            data: {
+                jobId: this._jobId,
+                nodeName: node.nodeName,
+                pipelineName: this.pipeline.name,
+                priority: this.pipeline.priority,
+                algorithmName: node.algorithmName,
+                info: {
+                    // extraData: node.extraData,
+                    //savePaths: options.paths,
+                    //lastRunResult: this.pipeline.lastRunResult
                 }
             }
         };

@@ -52,21 +52,21 @@ class JobConsumer extends EventEmitter {
                 log.warning(`job arrived with state stop therefore will not added to queue : ${jobId}`, { component });
                 queueRunner.queue.removeJobs([{ jobId }]);
             }
-            else {
+ else {
                 log.info(`job arrived with inputs amount: ${job.data.tasks.length}`, { component });
                 this.queueTasksBuilder(job);
             }
         }
-        catch (error) {
+ catch (error) {
             job.done(error);
         }
-        finally {
+ finally {
             job.done();
         }
     }
 
     pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
-        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId } = jobData;
+        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId, nodeType } = jobData;
         const batchIndex = taskData.batchIndex || 1;
         const entranceTime = Date.now();
         return {
@@ -76,6 +76,7 @@ class JobConsumer extends EventEmitter {
             priority,
             info,
             spanId,
+            nodeType,
             nodeName,
             entranceTime,
             attempts: 0,
