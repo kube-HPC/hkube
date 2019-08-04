@@ -3,12 +3,16 @@ const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
+const { settings } = require('../lib/helpers/settings');
 
 const { expect } = require('chai');
 const { createDeploymentSpec, applyAlgorithmName, applyNodeSelector } = require('../lib/deployments/algorithm-queue');
 const { algorithmQueueTemplate } = require('./stub/deploymentTemplates');
 
 describe('deploymentCreator', () => {
+    beforeEach(() => {
+        settings.applyResourceLimits = false;
+    });
     describe('applyAlgorithmName', () => {
         it('should replace image name in spec', () => {
             const res = applyAlgorithmName(algorithmQueueTemplate, 'myAlgo1', 'algorithm-queue');
@@ -52,6 +56,7 @@ describe('deploymentCreator', () => {
     });
 
     it('should apply resources', () => {
+        settings.applyResourceLimits = true;
         const resources = {
             memory: 256,
             cpu: 0.2
@@ -63,4 +68,12 @@ describe('deploymentCreator', () => {
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.requests.cpu': 0.2 });
     });
 
+    it('should not apply resources', () => {
+        const resources = {
+            memory: 256,
+            cpu: 0.2
+        }
+        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam', resources });
+        expect(res.spec.template.spec.containers[0].resources).to.not.exist;
+    });
 });

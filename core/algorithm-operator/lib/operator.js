@@ -39,7 +39,7 @@ class Operator {
             const configMap = await kubernetes.getVersionsConfigMap();
             const algorithms = await etcd.getAlgorithmTemplates();
             await Promise.all([
-                this._algorithmBuilds({ ...configMap, resourcesMain: options.resources.algorithmBuilderMain, resourcesBuilder: options.resources.algorithmBuilderBuilder }, options),
+                this._algorithmBuilds({ ...configMap }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options)
             ]);
@@ -52,7 +52,7 @@ class Operator {
         }
     }
 
-    async _algorithmBuilds({ versions, registry, clusterOptions, resourcesMain, resourcesBuilder }, options) {
+    async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
         const builds = await etcd.getPendingBuilds();
         if (builds.length === 0) {
             return;
@@ -67,8 +67,6 @@ class Operator {
             registry,
             clusterOptions,
             options,
-            resourcesMain,
-            resourcesBuilder
         });
     }
 

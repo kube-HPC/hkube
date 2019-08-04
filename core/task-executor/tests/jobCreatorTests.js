@@ -7,6 +7,7 @@ const options = main;
 const { expect } = require('chai');
 const { applyAlgorithmImage, applyAlgorithmName, applyWorkerImage, createJobSpec, applyHotWorker } = require('../lib/jobs/jobCreator'); // eslint-disable-line object-curly-newline
 const { jobTemplate } = require('./stub/jobTemplates');
+const { settings: globalSettings } = require('../lib/helpers/settings');
 
 describe('jobCreator', () => {
     describe('applyAlgorithmName', () => {
@@ -55,6 +56,9 @@ describe('jobCreator', () => {
         });
     });
     describe('jobSpec', () => {
+        beforeEach(() => {
+            globalSettings.applyResources = false;
+        });
         it('should throw if no image name', () => {
             expect(() => createJobSpec({ algorithmName: 'myalgo1', options })).to.throw('Unable to create job spec. algorithmImage is required');
         });
@@ -77,6 +81,8 @@ describe('jobCreator', () => {
             expect(res.metadata.name).to.include('myalgo1-');
         });
         it('should apply with worker and resources', () => {
+            globalSettings.applyResources = true;
+
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
                 algorithmName: 'myalgo1',

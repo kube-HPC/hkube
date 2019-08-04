@@ -6,8 +6,12 @@ const log = new Logger(main.serviceName, logger);
 const { expect } = require('chai');
 const { createBuildJobSpec, applyName } = require('../lib/jobs/algorithm-builds');
 const { jobTemplate } = require('../lib/templates/algorithm-builder');
+const { settings } = require('../lib/helpers/settings');
 
 describe('jobCreator', () => {
+    beforeEach(() => {
+        settings.applyResourceLimits = false;
+    });
     it('should replace image name in spec', () => {
         const res = applyName(jobTemplate, 'myAlgo1');
         expect(res).to.nested.include({ 'metadata.name': 'build-myAlgo1' });
@@ -23,7 +27,7 @@ describe('jobCreator', () => {
                     name: 'test'
                 },
                 data: {
-                    
+
                 }
             }, options: main
         });
@@ -33,6 +37,51 @@ describe('jobCreator', () => {
         expect(res).to.nested.include({ 'metadata.labels.type': 'algorithm-builder' });
     });
     it('should add kaniko if needed', () => {
+        settings.applyResourceLimits = true;
+        settings.resourcesMain = {
+            memory: 256,
+            cpu: 0.1
+        }
+        settings.resourcesBuilder = {
+            memory: 300,
+            cpu: 0.2
+        }
+        const buildId = 'my-alg-12345'
+        const options = {
+            ...main,
+            buildMode: 'kaniko'
+        }
+        
+        const res = createBuildJobSpec({
+            buildId, versions: {
+                versions: [
+                    {
+                        project: 'algorithm-builder', tag: 'v1.2'
+                    },
+                    {
+                        project: 'kaniko', tag: 'v1.1.0'
+                    }]
+            }, secret: {
+                metadata: {
+                    name: 'test'
+                },
+                data: {
+
+                }
+            },
+            options,
+        });
+        expect(res.spec.template.spec.containers).to.be.of.length(2);
+        expect(res.spec.template.spec.containers[1].name).to.eql('kaniko');
+        expect(res.spec.template.spec.containers[1].image).to.eql('hkube/kaniko:v1.1.0');
+        expect(res.spec.template.spec.containers[1].securityContext).to.not.exist;
+        expect(res.spec.template.spec.containers[0].securityContext).to.not.exist;
+        expect(res.spec.template.spec.containers[1].resources.limits).to.eql({ cpu: 0.4, memory: "600Mi" });
+        expect(res.spec.template.spec.containers[0].resources.requests).to.eql({ cpu: 0.1, memory: "256Mi" });
+
+    });
+
+    it('should add kaniko if needed without resources', () => {
         const buildId = 'my-alg-12345'
         const options = {
             ...main,
@@ -60,20 +109,20 @@ describe('jobCreator', () => {
                     name: 'test'
                 },
                 data: {
-                    
+
                 }
             },
             options,
             resourcesBuilder,
-            resourcesMain
+            resourcesMain,
+            algorithmBuilderResourcesEnable: false
         });
         expect(res.spec.template.spec.containers).to.be.of.length(2);
         expect(res.spec.template.spec.containers[1].name).to.eql('kaniko');
         expect(res.spec.template.spec.containers[1].image).to.eql('hkube/kaniko:v1.1.0');
         expect(res.spec.template.spec.containers[1].securityContext).to.not.exist;
         expect(res.spec.template.spec.containers[0].securityContext).to.not.exist;
-        expect(res.spec.template.spec.containers[1].resources.limits).to.eql({cpu: 0.4, memory: "600Mi"});
-        expect(res.spec.template.spec.containers[0].resources.requests).to.eql({cpu: 0.1, memory: "256Mi"});
+        expect(res.spec.template.spec.containers[1].resources).to.not.exist;
 
     });
     it('should add kaniko if needed with registry', () => {
@@ -100,7 +149,7 @@ describe('jobCreator', () => {
                     name: 'test'
                 },
                 data: {
-                    
+
                 }
             }
         });
@@ -116,14 +165,16 @@ describe('jobCreator', () => {
             ...main,
             buildMode: 'docker'
         }
-        const res = createBuildJobSpec({ buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, secret: {
-            metadata: {
-                name: 'test'
-            },
-            data: {
-                
-            }
-        }, options });
+        const res = createBuildJobSpec({
+            buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, secret: {
+                metadata: {
+                    name: 'test'
+                },
+                data: {
+
+                }
+            }, options
+        });
         expect(res.spec.template.spec.containers).to.be.of.length(1);
         expect(res.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
     });

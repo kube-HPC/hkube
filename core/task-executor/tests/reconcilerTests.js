@@ -54,7 +54,8 @@ describe('reconciler', () => {
         clearCount();
         reconciler._clearCreatedJobsList(Date.now() + 100000, options);
         normResources = normalizeResources(resources);
-        globalSettings.useResourceLimits=false
+        globalSettings.useResourceLimits = false
+        globalSettings.applyResources = false
     });
     describe('reconcile algorithms tests', () => {
         it('should work with no params', async () => {
@@ -554,6 +555,7 @@ describe('reconciler', () => {
         });
 
         it('should add worker resources', async () => {
+            globalSettings.applyResources = true
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
@@ -585,13 +587,50 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
-            .to.deep.include({ limits: { cpu: 0.2, memory: '512Mi' } });
+                .to.deep.include({ limits: { cpu: 0.2, memory: '512Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
-            .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
+                .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
         });
 
+        it('should not add worker resources', async () => {
+            globalSettings.applyResources = false
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+            };
+
+            const testOptions = { ...options, defaultStorage: 's3' };
+
+            const res = await reconciler.reconcile({
+                options: testOptions,
+                workerResources: testOptions.resources.worker,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.not.exist
+        });
+
+
         it('should add worker resources useLimits', async () => {
-            globalSettings.useResourceLimits=true
+            globalSettings.useResourceLimits = true
+            globalSettings.applyResources = true
+            
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
@@ -623,9 +662,9 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
-            .to.deep.include({ limits: { cpu: 0.1, memory: '256Mi' } });
+                .to.deep.include({ limits: { cpu: 0.1, memory: '256Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
-            .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
+                .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
         });
     });
     describe('reconcile drivers tests', () => {
