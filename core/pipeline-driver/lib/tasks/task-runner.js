@@ -415,6 +415,7 @@ class TaskRunner extends EventEmitter {
             this._skipBatchNode(options);
         }
         else {
+            // TODO: do we need to remove taskId (as in batch)
             const waitAny = new Batch({
                 ...options.node,
                 batchIndex: options.index,
@@ -463,9 +464,11 @@ class TaskRunner extends EventEmitter {
             this._skipBatchNode(options);
         }
         else {
+            // remove taskId from node so the batch will generate new ids
+            const { taskId, ...nodeBatch } = options.node;
             options.input.forEach((inp, ind) => {
                 const batch = new Batch({
-                    ...options.node,
+                    ...nodeBatch,
                     batchIndex: (ind + 1),
                     input: inp.input,
                     storage: inp.storage
