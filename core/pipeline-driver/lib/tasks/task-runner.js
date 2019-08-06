@@ -512,24 +512,28 @@ class TaskRunner extends EventEmitter {
     }
 
     _checkTaskErrors(task) {
-        let error;
-        if (task.error && !task.execId) {
-            if (task.batchIndex) {
+        let err;
+        const { error, nodeName, reason, batchIndex, execId } = task;
+        if (error && !execId) {
+            // in case off image pull error, we want to fail the pipeline.
+            if (reason === 'ImagePullBackOff' || reason === 'ErrImagePull') {
+                err = new Error(`${reason}. ${error}`);
+            }
+            else if (batchIndex) {
                 const { batchTolerance } = this.pipeline.options;
-                const states = this._nodes.getNodeStates(task.nodeName);
+                const states = this._nodes.getNodeStates(nodeName);
                 const failed = states.filter(s => s === NodeStates.FAILED);
                 const percent = ((failed.length / states.length) * 100).toFixed(0);
 
                 if (percent >= batchTolerance) {
-                    error = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${task.error}`);
-                    error.batchTolerance = true;
+                    err = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${error}`);
                 }
             }
             else {
-                error = new Error(task.error);
+                err = new Error(error);
             }
         }
-        return error;
+        return err;
     }
 
     _setTaskState(task) {

@@ -87,7 +87,7 @@ class EtcdDiscovery extends EventEmitter {
         if (options.taskId && !this.previousTaskIds.find(taskId => taskId === options.taskId)) {
             this.previousTaskIds.push(options.taskId);
         }
-        log.info(`update worker discovery for id ${this._workerId} with data ${JSON.stringify(options)}`, { component });
+        log.info(`update worker discovery for id ${this._workerId}`, { component });
         await this._etcd.discovery.updateRegisteredData({ ...options, workerId: this._workerId, previousTaskIds: this.previousTaskIds });
     }
 
