@@ -1,7 +1,7 @@
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const { logWrappers } = require('./tracing');
-const utils = require('../utils/utils');
+const { cacheResults, arrayToMap } = require('../utils/utils');
 const { components, containers } = require('../consts');
 const component = components.ETCD;
 const CONTAINERS = containers;
@@ -35,6 +35,10 @@ class Etcd {
         }
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering discovery for id ${this._etcd.discovery._instanceId}`, { component });
+        this.getAlgorithmTemplate = cacheResults(this.getAlgorithmTemplate.bind(this), 2000);
+        this.getDriversTemplate = cacheResults(this.getDriversTemplate.bind(this), 5000);
+        this.getPipelineDrivers = cacheResults(this.getPipelineDrivers.bind(this), 1000);
+        this.getWorkers = cacheResults(this.getWorkers.bind(this), 1000);
     }
 
     async updateDiscovery(options) {
@@ -82,12 +86,12 @@ class Etcd {
 
     async getAlgorithmTemplate() {
         const templates = await this._etcd.algorithms.store.list();
-        return utils.arrayToMap(templates);
+        return arrayToMap(templates);
     }
 
     async getDriversTemplate() {
         const templates = await this._etcd.pipelineDrivers.store.list();
-        return utils.arrayToMap(templates);
+        return arrayToMap(templates);
     }
 }
 
