@@ -121,26 +121,29 @@ class Worker {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
-            log.warning(`algorithm runner has disconnected, reason: ${reason}`, { component });
-            if (!this._debugMode) {
-                const type = jobConsumer.getAlgorithmType();
-                const containerStatus = await this._getAlgorunnerContainerStatus();
-                const message = {
-                    command: 'errorMessage',
-                    error: {
-                        code: 'Failed',
-                        message: `algorithm ${type} has disconnected, reason: ${reason}. algorithm container status is ${JSON.stringify(containerStatus)}`
-                    }
-                };
-                stateManager.done(message);
-            }
+            await this.algorithmDisconnect(reason);
+        });
+
+        stateManager.on('disconnect', async (reason) => {
+            await this.algorithmDisconnect(reason);
         });
     }
 
-    async _getAlgorunnerContainerStatus() {
-        await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER, 1000); // ???
-        const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER); // eslint-disable-line no-await-in-loop
-        return containerStatus;
+    async algorithmDisconnect(reason) {
+        if (this._debugMode) {
+            return;
+        }
+        const type = jobConsumer.getAlgorithmType();
+        const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
+        const defaultMessage = `algorithm ${type} has disconnected, reason: ${reason}`;
+        const message = {
+            error: {
+                reason: containerStatus && containerStatus.reason,
+                message: `${defaultMessage}. ${(containerStatus && containerStatus.message) || ''}`
+            }
+        };
+        log.error(message.error.message, { component });
+        stateManager.exit(message);
     }
 
     /**
@@ -339,6 +342,7 @@ class Worker {
             this._handleTimeout(state);
             switch (state) {
                 case workerStates.exit:
+                    await jobConsumer.finishJob(result);
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
