@@ -70,8 +70,6 @@ class JobConsumer extends EventEmitter {
                 return;
             }
 
-            this._initMetrics(job);
-
             this._job = job;
             this._jobId = job.data.jobId;
             this._taskId = job.data.taskId;
