@@ -40,8 +40,8 @@ class Operator {
             const algorithms = await etcd.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
-                this._algorithmDebug(configMap, algorithms, options),
-                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options)
+                //this._algorithmDebug(configMap, algorithms, options),
+                //this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options)
             ]);
         }
         catch (e) {
@@ -53,7 +53,7 @@ class Operator {
     }
 
     async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
-        const builds = await etcd.getPendingBuilds();
+        const builds = await etcd.getBuilds();
         if (builds.length === 0) {
             return;
         }
