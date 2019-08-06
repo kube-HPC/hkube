@@ -587,9 +587,9 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
-                .to.deep.include({ limits: { cpu: 0.2, memory: '512Mi' } });
+                .to.deep.include({ limits: { cpu: 1, memory: '1024Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
-                .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
+                .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
 
         it('should not add worker resources', async () => {
@@ -662,9 +662,9 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources).to.exist
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
-                .to.deep.include({ limits: { cpu: 0.1, memory: '256Mi' } });
+                .to.deep.include({ limits: { cpu: 0.5, memory: '512Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
-                .to.deep.include({ requests: { cpu: 0.1, memory: '256Mi' } });
+                .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
     });
     describe('reconcile drivers tests', () => {
