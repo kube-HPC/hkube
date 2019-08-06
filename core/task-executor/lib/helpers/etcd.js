@@ -35,10 +35,12 @@ class Etcd {
         }
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering discovery for id ${this._etcd.discovery._instanceId}`, { component });
-        this.getAlgorithmTemplate = cacheResults(this.getAlgorithmTemplate.bind(this), 2000);
-        this.getDriversTemplate = cacheResults(this.getDriversTemplate.bind(this), 5000);
-        this.getPipelineDrivers = cacheResults(this.getPipelineDrivers.bind(this), 1000);
-        this.getWorkers = cacheResults(this.getWorkers.bind(this), 1000);
+        if ((options.cacheResults || {}).enabled) {
+            this.getAlgorithmTemplate = cacheResults(this.getAlgorithmTemplate.bind(this), 2000);
+            this.getDriversTemplate = cacheResults(this.getDriversTemplate.bind(this), 5000);
+            this.getPipelineDrivers = cacheResults(this.getPipelineDrivers.bind(this), 1000);
+            this.getWorkers = cacheResults(this.getWorkers.bind(this), 1000);
+        }
     }
 
     async updateDiscovery(options) {

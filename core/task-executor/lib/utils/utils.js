@@ -14,7 +14,7 @@ const cacheResults = (fn, ttl) => {
         updating: false
     };
 
-    return async () => {
+    const wrapped = async (...args) => {
         const now = Date.now();
         if (cache.lastUpdated && (now - cache.lastUpdated) < ttl) {
             return cache.data;
@@ -24,7 +24,7 @@ const cacheResults = (fn, ttl) => {
         }
         cache.updating = true;
         try {
-            cache.data = await fn();
+            cache.data = await fn(...args);
             cache.lastUpdated = Date.now();
             return cache.data;
         }
@@ -32,6 +32,12 @@ const cacheResults = (fn, ttl) => {
             cache.updating = false;
         }
     };
+    wrapped._clearCache = () => {
+        cache.data = null;
+        cache.lastUpdated = null;
+        cache.updating = false;
+    };
+    return wrapped;
 };
 
 module.exports = {

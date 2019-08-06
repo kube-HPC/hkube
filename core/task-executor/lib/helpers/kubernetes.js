@@ -24,10 +24,12 @@ class KubernetesApi {
                 'getVersionsConfigMap'
             ], this, log);
         }
-        this.getVersionsConfigMap = cacheResults(this.getVersionsConfigMap.bind(this), 5000);
-        this.getResourcesPerNode = cacheResults(this.getResourcesPerNode.bind(this), 1000);
-        this.getWorkerJobs = cacheResults(this.getWorkerJobs.bind(this), 1000);
-        this.getPipelineDriversJobs = cacheResults(this.getPipelineDriversJobs.bind(this), 1000);
+        if ((options.cacheResults || {}).enabled) {
+            this.getVersionsConfigMap = cacheResults(this.getVersionsConfigMap.bind(this), 5000);
+            this.getResourcesPerNode = cacheResults(this.getResourcesPerNode.bind(this), 1000);
+            this.getWorkerJobs = cacheResults(this.getWorkerJobs.bind(this), 1000);
+            this.getPipelineDriversJobs = cacheResults(this.getPipelineDriversJobs.bind(this), 1000);
+        }
     }
 
     async createJob({ spec, jobDetails = {} }) {
