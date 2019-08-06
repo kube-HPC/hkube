@@ -1,6 +1,7 @@
 const Etcd = require('@hkube/etcd');
 const { Events } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
+const uuidv4 = require('uuid/v4');
 const producerSingleton = require('./producer-singleton');
 const { componentName, jobState, taskStatus } = require('../consts/index');
 const queueRunner = require('../queue-runner');
@@ -85,7 +86,7 @@ class JobProducer {
         const { calculated, initialBatchLength, ...taskData } = task;
         return {
             job: {
-                id: task.taskId,
+                id: `${task.taskId}-${uuidv4()}`,
                 type: task.algorithmName,
                 data: taskData
             },

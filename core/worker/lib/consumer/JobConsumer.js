@@ -55,8 +55,23 @@ class JobConsumer extends EventEmitter {
         this._consumer = new Consumer(this._options.jobConsumer);
         this._consumer.register(this._options.jobConsumer);
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
+
         this._consumer.on('job', async (job) => {
             log.info(`queue job ${job.data.jobId}`, { component });
+            if (job.data.nodeType === 'Preschedule') {
+                log.info(`job ${job.data.jobId} is in ${job.data.nodeType} mode, calling done...`);
+                job.done();
+                return;
+            }
+            log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
+            const watchState = await etcd.watch({ jobId: job.data.jobId });
+            if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
+                await this._stopJob(job);
+                return;
+            }
+
+            this._initMetrics(job);
+
             this._job = job;
             this._jobId = job.data.jobId;
             this._taskId = job.data.taskId;
@@ -64,12 +79,6 @@ class JobConsumer extends EventEmitter {
             this._batchIndex = job.data.batchIndex;
             this._pipelineName = job.data.pipelineName;
             this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
-
-            const watchState = await etcd.watch({ jobId: job.data.jobId });
-            if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
-                await this._stopJob(job);
-                return;
-            }
 
             metrics.initMetrics(job, this._jobType);
 

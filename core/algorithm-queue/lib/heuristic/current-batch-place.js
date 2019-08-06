@@ -5,10 +5,6 @@ const heuristicsNames = require('../consts/heuristics-name');
 const currentBatchPlaceHeuristic = {
     name: heuristicsNames.CURRENT_BATCH_PLACE,
     algorithm: weight => (job) => {
-        if (!job.calculated.enrichment.batchIndex) {
-            job.calculated.enrichment.batchIndex = {};
-        }
-
         const { currentBatchPlace, currentBatchLength } = job.calculated.enrichment.batchIndex;
         // use abs in order to give more wight to jobs in the Front
         const score = currentBatchPlace != null ? weight * (Math.abs(currentBatchPlace - (currentBatchLength + 1)) / currentBatchLength) : 0;

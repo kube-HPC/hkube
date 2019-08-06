@@ -20,7 +20,7 @@ config.etcd = {
 config.algorithmType = process.env.ALGORITHM_TYPE;
 
 config.producer = {
-    checkStalledJobsInterval: 15000,
+    checkStalledJobsInterval: process.env.STALLED_JOB_INTERVAL || 15000,
     prefix: 'jobs-workers'
 };
 
@@ -29,7 +29,7 @@ config.consumer = {
 };
 
 config.queue = {
-    updateInterval: 1000
+    updateInterval: process.env.INTERVAL || 1000
 };
 
 config.heuristicsWeights = {

@@ -11,6 +11,14 @@ const Events = require('../consts/Events');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
+
+const NODES_TYPES = {
+    SINGLE: 'Single',
+    BATCH: 'Batch',
+    PRESCHEDULE: 'Preschedule',
+    WAITANY: 'WaitAny'
+};
+
 const { Node, Batch } = NodeTypes;
 let log;
 
@@ -345,6 +353,9 @@ class TaskRunner extends EventEmitter {
         try {
             log.info(`node ${nodeName} is ready to run`, { component });
             const node = this._nodes.getNode(nodeName);
+
+            await this._checkPreschedule(nodeName);
+
             const parse = {
                 flowInput: this.pipeline.flowInput,
                 nodeInput: node.input,
@@ -379,11 +390,28 @@ class TaskRunner extends EventEmitter {
         }
     }
 
+    async _checkPreschedule(nodeName) {
+        const childs = this._nodes._childs(nodeName);
+        await Promise.all(childs.map(c => this._sendPreschedule(c)));
+    }
+
+    async _sendPreschedule(nodeName) {
+        const graphNode = this._nodes.getNode(nodeName);
+        graphNode.status = NODES_TYPES.PRESCHEDULE;
+        const options = { node: graphNode };
+        const node = new Node(graphNode);
+        this._nodes.setNode(node);
+        this._setTaskState(node);
+        log.info(`${NODES_TYPES.PRESCHEDULE} node ${nodeName} is ready to run`, { component });
+        await this._createJob(options, null, NODES_TYPES.PRESCHEDULE);
+    }
+
     async _runWaitAny(options) {
         if (options.index === -1) {
             this._skipBatchNode(options);
         }
         else {
+            // TODO: do we need to remove taskId (as in batch)
             const waitAny = new Batch({
                 ...options.node,
                 batchIndex: options.index,
@@ -393,7 +421,7 @@ class TaskRunner extends EventEmitter {
             const batch = [waitAny];
             this._nodes.addBatch(waitAny);
             this._setTaskState(waitAny);
-            await this._createJob(options, batch);
+            await this._createJob(options, batch, NODES_TYPES.WAITANY);
         }
     }
 
@@ -410,7 +438,7 @@ class TaskRunner extends EventEmitter {
             });
             this._nodes.addBatch(batch);
             this._setTaskState(batch);
-            this._createJob(batch);
+            this._createJob(batch, null, NODES_TYPES.WAITANY);
         });
     }
 
@@ -422,7 +450,7 @@ class TaskRunner extends EventEmitter {
         });
         this._nodes.setNode(node);
         this._setTaskState(node);
-        await this._createJob(options);
+        await this._createJob(options, null, NODES_TYPES.SINGLE);
     }
 
     async _runNodeBatch(options) {
@@ -430,9 +458,11 @@ class TaskRunner extends EventEmitter {
             this._skipBatchNode(options);
         }
         else {
+            // remove taskId from node so the batch will generate new ids
+            const { taskId, ...nodeBatch } = options.node;
             options.input.forEach((inp, ind) => {
                 const batch = new Batch({
-                    ...options.node,
+                    ...nodeBatch,
                     batchIndex: (ind + 1),
                     input: inp.input,
                     storage: inp.storage
@@ -440,7 +470,7 @@ class TaskRunner extends EventEmitter {
                 this._nodes.addBatch(batch);
                 this._setTaskState(batch);
             });
-            await this._createJob(options, options.node.batch);
+            await this._createJob(options, options.node.batch, NODES_TYPES.BATCH);
         }
     }
 
@@ -522,7 +552,7 @@ class TaskRunner extends EventEmitter {
         pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: NodeStates.ACTIVE });
     }
 
-    _createJob(options, batch) {
+    _createJob(options, batch, nodeType) {
         let tasks = [];
         if (batch) {
             tasks = batch.map(b => ({ taskId: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
@@ -534,6 +564,7 @@ class TaskRunner extends EventEmitter {
             type: options.node.algorithmName,
             data: {
                 tasks,
+                nodeType,
                 jobId: this._jobId,
                 nodeName: options.node.nodeName,
                 pipelineName: this.pipeline.name,

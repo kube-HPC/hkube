@@ -24,8 +24,10 @@ class Bootstrap {
             setFromConfig(main);
             await Promise.all(modules.map(m => m.init(main)));
             await executor.init(main);
-            await healthcheck.init({ port: main.healthchecks.port });
-            healthcheck.start(main.healthchecks.path, () => executor.checkHealth(main.healthchecks.maxDiff), 'health');
+            if (main.healthchecks.enabled) {
+                await healthcheck.init({ port: main.healthchecks.port });
+                healthcheck.start(main.healthchecks.path, () => executor.checkHealth(main.healthchecks.maxDiff), 'health');
+            }
             return main;
         }
         catch (error) {

@@ -37,7 +37,7 @@ module.exports = {
         templatesStore: {
             enable: true,
             mandatory: true,
-            cacheTTL: 0
+            cacheTTL: 300
         }
     }
 };

@@ -61,6 +61,15 @@ const algorithmQueueTemplate = {
                                         fieldPath: 'status.hostIP'
                                     }
                                 }
+                            },
+                            {
+                                name: 'INTERVAL',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'ALGORITHM_QUEUE_INTERVAL'
+                                    }
+                                }
                             }
                         ]
                     }
