@@ -447,12 +447,10 @@ class TaskRunner extends EventEmitter {
     }
 
     async _runNodeSimple(options) {
-        const graphNode = this._nodes.getNode(options.node.nodeName);
         const node = new Node({
             ...options.node,
             storage: options.storage,
-            input: options.input,
-            taskId: graphNode.taskId
+            input: options.input
         });
         this._nodes.setNode(node);
         this._setTaskState(node);
