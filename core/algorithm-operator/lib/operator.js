@@ -53,7 +53,7 @@ class Operator {
     }
 
     async _algorithmBuilds({ versions, registry, clusterOptions }, options) {
-        const builds = await etcd.getPendingBuilds();
+        const builds = await etcd.getBuilds();
         if (builds.length === 0) {
             return;
         }

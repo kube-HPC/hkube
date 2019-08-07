@@ -20,7 +20,7 @@ class Etcd extends EventEmitter {
                 'getAlgorithmTemplates',
                 'storeAlgorithmData',
                 'removeAlgorithmData',
-                'getPendingBuilds',
+                'getBuilds',
                 'setBuild'
             ], this, log);
         }
@@ -43,16 +43,11 @@ class Etcd extends EventEmitter {
         return this._etcd.algorithms.debug.delete({ name });
     }
 
-    async getPendingBuilds() {
-        const list = await this._etcd.algorithms.builds.list({ sort: 'desc' });
-        return list.filter(b => b.status === 'pending');
+    async getBuilds() {
+        return this._etcd.algorithms.builds.list({ sort: 'desc' });
     }
 
     async setBuild(options) {
-        const { buildId } = options;
-        if (!buildId) {
-            return;
-        }
         await this._etcd.algorithms.builds.update(options);
     }
 }
