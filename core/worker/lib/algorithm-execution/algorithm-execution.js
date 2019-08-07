@@ -127,7 +127,7 @@ class AlgorithmExecution {
             await Promise.all([...this._executions.values()].map(e => discovery.stopAlgorithmExecution({ jobId, taskId: e.taskId })));
         }
         catch (e) {
-            log.error(`failed to stop executions: ${e.message}`, { component });
+            log.warning(`failed to stop executions: ${e.message}`, { component });
         }
         finally {
             this._executions.clear();

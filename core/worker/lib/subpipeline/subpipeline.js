@@ -166,7 +166,7 @@ class SubPipelineHandler {
      * @param {string} subPipelineId internal algorothm subpipeline Id
      */
     async _handleJobError(error, subPipelineId) {
-        log.error(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
+        log.warning(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
         algoRunnerCommunication.send({
             command: messages.outgoing.subPipelineError,
             data: {
@@ -228,7 +228,7 @@ class SubPipelineHandler {
             jobConsumer.algTracer.startSpan(spanOptions);
         }
         catch (error) {
-            log.error(`error while staring subpipeline span: ${error.message}`);
+            log.warning(`error while staring subpipeline span: ${error.message}`);
         }
     }
 

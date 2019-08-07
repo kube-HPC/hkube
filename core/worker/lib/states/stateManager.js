@@ -52,7 +52,7 @@ class StateManager extends EventEmitter {
                 },
                 onInvalidTransition: (transition, from, to) => {
                     if (!this._debugMode) {
-                        log.error(`transition (${transition}) not allowed from that state: ${from} -> ${to}`, { component });
+                        log.warning(`transition (${transition}) not allowed from that state: ${from} -> ${to}`, { component });
                         this.exit();
                     }
                 }
@@ -167,7 +167,7 @@ class StateManager extends EventEmitter {
             this._stateMachine.stop();
         }
         catch (error) {
-            log.error(error, { component });
+            log.warning(error, { component });
         }
     }
 
@@ -180,7 +180,7 @@ class StateManager extends EventEmitter {
             this._stateMachine.exit();
         }
         catch (error) {
-            log.error(error, { component });
+            log.warning(error, { component });
         }
     }
 
@@ -197,7 +197,7 @@ class StateManager extends EventEmitter {
             this._stateMachine.done();
         }
         catch (error) {
-            log.error(error, { component });
+            log.warning(error, { component });
         }
     }
 
@@ -212,7 +212,7 @@ class StateManager extends EventEmitter {
             this._stateMachine.cleanup();
         }
         catch (error) {
-            log.error(error, { component });
+            log.warning(error, { component });
         }
     }
 

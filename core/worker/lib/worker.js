@@ -169,7 +169,7 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.error, async (message) => {
             const errText = message.error && message.error.message;
-            log.error(`got error from algorithm: ${errText}`, { component });
+            log.info(`got error from algorithm: ${errText}`, { component });
             const { jobId } = jobConsumer.jobData;
             const reason = `parent algorithm failed: ${errText}`;
             await this._stopAllPipelinesAndExecutions({ jobId, reason });
@@ -215,7 +215,7 @@ class Worker {
         }
         const { data } = message;
         if (!data || !data.name) {
-            log.error(`invalid startSpan message: ${JSON.stringify(message, 2, null)}`);
+            log.warning(`invalid startSpan message: ${JSON.stringify(message, 2, null)}`);
             return;
         }
         const spanOptions = {
@@ -290,7 +290,7 @@ class Worker {
                 }
             }
             catch (error) {
-                log.error(`failed to handle exit: ${error}`, { component });
+                log.warning(`failed to handle exit: ${error}`, { component });
             }
             finally {
                 this._inTerminationMode = false;
@@ -304,7 +304,7 @@ class Worker {
             return algoRunnerCommunication.send(message);
         }
         catch (err) {
-            log.error(`Failed to send command ${message.command}`, { component });
+            log.warning(`Failed to send command ${message.command}`, { component });
             return err;
         }
     }
@@ -343,6 +343,7 @@ class Worker {
             switch (state) {
                 case workerStates.exit:
                     await jobConsumer.finishJob(result);
+                    jobConsumer.finishBullJob(result);
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
@@ -374,7 +375,7 @@ class Worker {
                     break;
                 case workerStates.stop:
                     this._stopTimeout = setTimeout(() => {
-                        log.error('Timeout exceeded trying to stop algorithm.', { component });
+                        log.warning('Timeout exceeded trying to stop algorithm.', { component });
                         stateManager.done('Timeout exceeded trying to stop algorithm');
                         this.handleExit(0, jobId);
                     }, this._stopTimeoutMs);

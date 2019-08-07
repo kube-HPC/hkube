@@ -102,16 +102,20 @@ class JobConsumer extends EventEmitter {
         });
 
         stateManager.on('finish', () => {
-            if (this._job) {
-                this._job.done(this._job.error);
-                log.info(`finish job ${this._jobId}`);
-            }
-            this._job = null;
-            this._jobId = undefined;
-            this._taskId = undefined;
-            this._pipelineName = undefined;
-            this._jobData = undefined;
+            this.finishBullJob();
         });
+    }
+
+    finishBullJob() {
+        if (this._job) {
+            this._job.done(this._job.error);
+            log.info(`finish job ${this._jobId}`);
+        }
+        this._job = null;
+        this._jobId = undefined;
+        this._taskId = undefined;
+        this._pipelineName = undefined;
+        this._jobData = undefined;
     }
 
     _setJob(job) {
@@ -365,7 +369,7 @@ class JobConsumer extends EventEmitter {
             });
         }
         catch (err) {
-            log.error(`failed to report metrics:${this._jobId} task:${this._taskId}`, { component }, err);
+            log.warning(`failed to report metrics:${this._jobId} task:${this._taskId}`, { component }, err);
         }
     }
 
