@@ -3,6 +3,7 @@ const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const objectPath = require('object-path');
 const { components, containers } = require('../consts');
 const { logWrappers } = require('./tracing');
+const { cacheResults } = require('../utils/utils');
 const component = components.K8S;
 const CONTAINERS = containers;
 let log;
@@ -22,6 +23,12 @@ class KubernetesApi {
                 'getPodsForJob',
                 'getVersionsConfigMap'
             ], this, log);
+        }
+        if ((options.cacheResults || {}).enabled) {
+            this.getVersionsConfigMap = cacheResults(this.getVersionsConfigMap.bind(this), 5000);
+            this.getResourcesPerNode = cacheResults(this.getResourcesPerNode.bind(this), 1000);
+            this.getWorkerJobs = cacheResults(this.getWorkerJobs.bind(this), 1000);
+            this.getPipelineDriversJobs = cacheResults(this.getPipelineDriversJobs.bind(this), 1000);
         }
     }
 

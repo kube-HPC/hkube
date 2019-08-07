@@ -73,13 +73,7 @@ class JobConsumer extends EventEmitter {
             }
 
             this._initMetrics(job);
-            this._job = job;
-            this._jobId = job.data.jobId;
-            this._taskId = job.data.taskId;
-            this._execId = job.data.execId;
-            this._batchIndex = job.data.batchIndex;
-            this._pipelineName = job.data.pipelineName;
-            this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
+            this._setJob(job);
 
             if (this._execId) {
                 const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
@@ -103,6 +97,10 @@ class JobConsumer extends EventEmitter {
             stateManager.prepare();
         });
 
+        this._jobProvider.on('job-queue', async (job) => {
+            this._setJob(job);
+        });
+
         stateManager.on('finish', () => {
             if (this._job) {
                 this._job.done(this._job.error);
@@ -114,6 +112,16 @@ class JobConsumer extends EventEmitter {
             this._pipelineName = undefined;
             this._jobData = undefined;
         });
+    }
+
+    _setJob(job) {
+        this._job = job;
+        this._jobId = job.data.jobId;
+        this._taskId = job.data.taskId;
+        this._execId = job.data.execId;
+        this._batchIndex = job.data.batchIndex;
+        this._pipelineName = job.data.pipelineName;
+        this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
     }
 
     async _stopJob(job) {
@@ -246,9 +254,11 @@ class JobConsumer extends EventEmitter {
         const workerStatus = state;
         let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
+        let reason = null;
 
         if (results != null) {
             error = results.error && results.error.message;
+            reason = results.error && results.error.reason;
             status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
         }
 
@@ -257,6 +267,7 @@ class JobConsumer extends EventEmitter {
             workerStatus,
             status,
             error,
+            reason,
             resultData
         };
     }
@@ -286,7 +297,6 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-
     async finishJob(data = {}) {
         if (!this._job) {
             return;
@@ -296,7 +306,7 @@ class JobConsumer extends EventEmitter {
             await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
         let storageResult = {};
-        const { resultData, status, error } = this._getStatus(data);
+        const { resultData, status, error, reason } = this._getStatus(data);
 
         if (!error && status === constants.JOB_STATUS.SUCCEED) {
             storageResult = await this._putResult(resultData);
@@ -305,6 +315,7 @@ class JobConsumer extends EventEmitter {
         const resData = Object.assign({
             status,
             error,
+            reason,
             jobId: this._jobId,
             taskId: this._taskId,
             execId: this._job.data.execId,

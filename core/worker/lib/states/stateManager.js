@@ -174,8 +174,9 @@ class StateManager extends EventEmitter {
     /**
      * transitions to exit state.
      */
-    exit() {
+    exit(results) {
         try {
+            this._results = results;
             this._stateMachine.exit();
         }
         catch (error) {
@@ -239,10 +240,11 @@ class StateManager extends EventEmitter {
 
     _startInactiveTimer() {
         if (this._config.timeouts.algorithmDisconnected > 0) {
-            log.info(`starting inactive timeout for algorunner (bootstrap) ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
+            const seconds = `${this._config.timeouts.algorithmDisconnected / 1000} seconds`;
+            log.info(`starting inactive timeout for algorunner (bootstrap) ${seconds}`, { component });
             this._inactiveTimer = setTimeout(() => {
-                log.info(`algorunner is offline for more than ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
-                this.exit();
+                // this.exit(); instead of exit the process, we will emit event
+                this.emit('disconnect', `algorunner is offline for more than ${seconds}`);
             }, this._config.timeouts.algorithmDisconnected);
         }
     }
