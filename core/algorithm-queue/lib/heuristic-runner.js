@@ -2,7 +2,7 @@ const Logger = require('@hkube/logger');
 const aigle = require('aigle');
 const _ = require('lodash');
 const components = require('./consts/component-name');
-const { nodeTypes } = require('./consts/index');
+const { taskStatus } = require('./consts/index');
 
 const log = Logger.GetLogFromContainer();
 
@@ -31,7 +31,7 @@ class heuristicRunner {
 
     async run(job) {
         let score = 0;
-        if (job.nodeType !== nodeTypes.PRESCHEDULE) {
+        if (job.status !== taskStatus.PRESCHEDULE) {
             log.debug('start running heuristic for ', { component: components.HEURISTIC_RUNNER });
             score = await this.heuristicMap.reduce((result, algorithm) => {
                 const heuristicScore = algorithm.heuristic(job);

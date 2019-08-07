@@ -49,14 +49,6 @@
                 "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
             }
         },
-        "webhooks": {
-            "progressHook": {
-                "url": "http://webhook-stub-ui:30002/webhook/progress"
-            },
-            "resultHook": {
-                "url": "http://webhook-stub-ui:30002/webhook/result"
-            }
-        },
         "options": {
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
@@ -106,14 +98,6 @@
                 "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
             }
         },
-        "webhooks": {
-            "progressHook": {
-                "url": "http://localhost:3002/webhook/progress"
-            },
-            "resultHook": {
-                "url": "http://localhost:3002/webhook/result"
-            }
-        },
         "options": {
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
@@ -160,14 +144,6 @@
             "storageInfo": {
                 "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
                 "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
-            }
-        },
-        "webhooks": {
-            "progressHook": {
-                "url": "http://webhook-stub-ui:3002/webhook/progress"
-            },
-            "resultHook": {
-                "url": "http://webhook-stub-ui:3002/webhook/result"
             }
         },
         "options": {
@@ -341,10 +317,6 @@
         "options": {
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
-        },
-        "webhooks": {
-            "progress": "http://localhost:3003/webhook/progress",
-            "result": "http://localhost:3003/webhook/result"
         }
     },
     {
@@ -368,7 +340,6 @@
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
-                    "@green",
                     "*@green",
                     "*@yellow"
                 ]
@@ -384,7 +355,7 @@
                 },
                 "flowInput.files.links": {
                     "type": "array",
-                    "size": 5
+                    "size": 2
                 }
             },
             "storageInfo": {
@@ -395,10 +366,6 @@
         "options": {
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
-        },
-        "webhooks": {
-            "progress": "http://localhost:3003/webhook/progress",
-            "result": "http://localhost:3003/webhook/result"
         }
     },
     {
@@ -448,10 +415,6 @@
         "options": {
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
-        },
-        "webhooks": {
-            "progress": "http://localhost:3003/webhook/progress",
-            "result": "http://localhost:3003/webhook/result"
         }
     },
     {
