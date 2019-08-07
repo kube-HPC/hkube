@@ -68,14 +68,14 @@ class JobProducer {
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.COMPLETED });
         }).on(Events.FAILED, (data) => {
-            log.error(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
+            log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
         }).on(Events.STALLED, (data) => {
             this._pendingAmount += 1;
-            log.error(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.STALLED });
+            log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.STALLED });
         }).on(Events.CRASHED, async (data) => {
             const { jobId, error } = data;
             const status = jobState.FAILED;
-            log.error(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
+            log.warning(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
             const pipeline = await persistence.getExecution({ jobId });
             persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
             persistence.setJobResults({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
