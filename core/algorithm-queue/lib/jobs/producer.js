@@ -75,7 +75,9 @@ class JobProducer {
             calculated: {
                 latestScores: {},
                 entranceTime: taskData.entranceTime,
-                enrichment: {}
+                enrichment: {
+                    batchIndex: {}
+                }
             },
             ...taskData,
             attempts: taskData.attempts + 1
