@@ -6,7 +6,7 @@ const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components } = require('../consts');
+const { metricsNames, Components, Status } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
@@ -60,8 +60,8 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
         this._jobProvider.on('job', async (job) => {
-            if (job.data.nodeType === 'Preschedule') {
-                log.info(`job ${job.data.jobId} is in ${job.data.nodeType} mode, calling done...`);
+            if (job.data.status === Status.PRESCHEDULE) {
+                log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
                 job.done();
                 return;
             }
