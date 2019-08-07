@@ -71,7 +71,7 @@ class EtcdDiscovery extends EventEmitter {
             await this._etcd.algorithms.executions.unwatch(options);
         }
         catch (error) {
-            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
+            log.warning(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
         }
     }
 
@@ -118,7 +118,7 @@ class EtcdDiscovery extends EventEmitter {
             log.debug('end unwatch', { component });
         }
         catch (error) {
-            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
+            log.warning(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
         }
     }
 }

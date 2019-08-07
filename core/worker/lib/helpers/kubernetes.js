@@ -36,7 +36,7 @@ class KubernetesApi extends EventEmitter {
             return objectPath.get(pod, 'body.metadata.labels.job-name');
         }
         catch (error) {
-            log.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
+            log.warning(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
             return null;
         }
     }
@@ -48,7 +48,7 @@ class KubernetesApi extends EventEmitter {
             container = await this._client.containers.getStatus({ podName, containerName });
         }
         catch (error) {
-            log.throttle.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
+            log.throttle.warning(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
         }
         return container;
     }
@@ -79,7 +79,7 @@ class KubernetesApi extends EventEmitter {
             return res;
         }
         catch (error) {
-            log.error(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
+            log.warning(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
         }
         return null;
     }

@@ -82,7 +82,7 @@ class SocketWorkerCommunication extends EventEmitter {
     send(message) {
         if (!this._socket) {
             const error = new Error('trying to send without a connected socket');
-            log.error(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
+            log.warning(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
         this._socket.emit(message.command, message);
