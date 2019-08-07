@@ -348,7 +348,7 @@ describe('Test', function () {
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0].message).to.equal(error);
         });
-        it.only('should throw exception and stop pipeline', async function () {
+        it('should wait any', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const job = {
                 data: { jobId },
@@ -357,9 +357,21 @@ describe('Test', function () {
             const pipeline = pipelines.find(p => p.name === 'simple-wait-any');
             await stateManager.setExecution({ jobId, ...pipeline });
             const res = await taskRunner.start(job);
+            await delay(300);
+            const options = { type: 'test-job' };
+            const workerStub = new WorkerStub(options);
+            const status = 'succeed';
+            const result = 42;
+            const green = taskRunner._nodes.getNode('green');
+            const yellow = taskRunner._nodes.getNode('yellow');
+            const black = taskRunner._nodes.getNode('black');
+            await workerStub.done({ jobId, taskId: green.batch[0].taskId, status, result });
+            await workerStub.done({ jobId, taskId: yellow.batch[0].taskId, status, result });
 
-            expect(res1.name).to.equal('two-nodes');
-            expect(res2).to.be.null;
+            await delay(300);
+
+            expect(black.status).to.equals('preschedule');
+            expect(black.batch[0].input).to.lengthOf(2);
         });
     });
     describe('Progress', function () {

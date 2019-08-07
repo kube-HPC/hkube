@@ -340,7 +340,6 @@
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
-                    "@green",
                     "*@green",
                     "*@yellow"
                 ]
@@ -356,7 +355,7 @@
                 },
                 "flowInput.files.links": {
                     "type": "array",
-                    "size": 5
+                    "size": 2
                 }
             },
             "storageInfo": {

@@ -1,4 +1,5 @@
 const Status = {
+    PRESCHEDULE: 'preschedule',
     COMPLETED: 'completed',
     FAILED: 'failed',
     STOPPED: 'stopped'
