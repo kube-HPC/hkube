@@ -82,6 +82,19 @@ class KubernetesApi extends EventEmitter {
         return null;
     }
 
+    async deleteJob(jobName) {
+        log.info(`Deleting job ${jobName}`, { component });
+        try {
+            const res = await this._client.jobs.delete({ jobName });
+            return res;
+        }
+        catch (error) {
+            log.error(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
+        }
+        return null;
+    }
+
+
     async getVersionsConfigMap() {
         try {
             const res = await this._client.configMaps.get({ name: 'hkube-versions' });
