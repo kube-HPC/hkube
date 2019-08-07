@@ -158,7 +158,7 @@ class AggregationMetricsFactory {
             });
         }
         catch (error) {
-            log.error(`cant init metrics ${error}`, { component: componentName.AGGREGATION_METRIC });
+            log.warning(`cant init metrics ${error}`, { component: componentName.AGGREGATION_METRIC });
         }
     }
 

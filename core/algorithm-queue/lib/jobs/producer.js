@@ -44,7 +44,7 @@ class JobProducer {
             log.debug(`${Events.COMPLETED} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
-            log.error(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.FAILED });
+            log.info(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
             const { jobId, taskId, nodeName } = job.options;
@@ -64,7 +64,7 @@ class JobProducer {
                 queueRunner.queue.add([task]);
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${MAX_JOB_ATTEMPTS}`;
-            log.error(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
+            log.warning(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
             await this.etcd.jobs.tasks.set({ jobId, taskId, status, error, retries: attempts });
         });
     }

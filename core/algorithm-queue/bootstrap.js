@@ -69,7 +69,7 @@ class Bootstrap {
         });
         process.on('unhandledRejection', (error, reason) => {
             log.error('unhandledRejection: ' + error, { component: componentName.MAIN }, error);
-            log.error('unhandledRejection:reson ' + JSON.stringify(reason), { component: componentName.MAIN }, reason);
+            log.error('unhandledRejection:reason ' + JSON.stringify(reason), { component: componentName.MAIN }, reason);
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);
