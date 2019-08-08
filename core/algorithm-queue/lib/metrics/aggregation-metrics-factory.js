@@ -170,23 +170,27 @@ class AggregationMetricsFactory {
      */
     _histogram(metric, task, metricOperation) {
         const metricData = {
-            id: task.taskId,
+            id: `${task.taskId}-${task.status}`,
             labelValues: {
                 pipeline_name: formatPipelineName(task.pipelineName),
                 algorithm_name: task.algorithmName,
                 node_name: task.nodeName
             }
         };
+        try {
+            if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.start) {
+                metric.start(metricData);
+            }
+            else if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.end) {
+                metric.end(metricData);
+            }
 
-        if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.start) {
-            metric.start(metricData);
+            else if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.retroActive) {
+                metric.retroactive({ labelValues: metricData.labelValues });
+            }
         }
-        else if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.end) {
-            metric.end(metricData);
-        }
-
-        else if (metricOperation === metricsTypes.HISTOGRAM_OPERATION.retroActive) {
-            metric.retroactive({ labelValues: metricData.labelValues });
+        catch (error) {
+            log.warning(`metrics error ${error}`, { component: componentName.AGGREGATION_METRIC });
         }
     }
 
