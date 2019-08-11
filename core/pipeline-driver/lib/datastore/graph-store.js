@@ -126,8 +126,8 @@ class GraphStore {
     _mapTask(task) {
         return {
             taskId: task.taskId,
-            input: this._parseInput(task),
-            output: task.result,
+            // input: this._parseInput(task),
+            // output: task.result,
             status: task.status,
             error: task.error,
             prevErrors: task.prevErrors,
