@@ -35,7 +35,7 @@ class JobProducer {
             }
         }
         catch (error) {
-            log.error(error.message, { component });
+            log.throttle.error(error.message, { component });
         }
         finally {
             setTimeout(this._checkQueue, this._checkQueueInterval);
@@ -51,7 +51,7 @@ class JobProducer {
             }
         }
         catch (error) {
-            log.error(error.message, { component });
+            log.throttle.error(error.message, { component });
         }
         finally {
             setTimeout(this._updateState, this._updateStateInterval);
@@ -64,7 +64,6 @@ class JobProducer {
             log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.WAITING });
         }).on(Events.ACTIVE, (data) => {
             this._pendingAmount -= 1;
-            queueRunner.queue.dequeue();
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.ACTIVE });
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.COMPLETED });
@@ -103,7 +102,7 @@ class JobProducer {
     }
 
     async createJob() {
-        const pipeline = queueRunner.queue.peek();
+        const pipeline = queueRunner.queue.dequeue();
         log.debug(`creating new job ${pipeline.jobId}, calculated score: ${pipeline.score}`, { component });
         const job = this._pipelineToJob(pipeline);
         await this._producer.createJob(job);

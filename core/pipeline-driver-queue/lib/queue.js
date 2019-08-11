@@ -42,7 +42,7 @@ class Queue extends Events {
         log.debug('try to store data to persistent storage', { component });
         try {
             await this.persistence.store(data);
-            log.debug('successfully store data to storage succeed', { component });
+            log.debug('successfully store data to storage', { component });
         }
         catch (e) {
             log.error(`failed to store data to persistent storage, ${e.message}`, { component });
