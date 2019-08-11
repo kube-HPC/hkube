@@ -18,7 +18,8 @@ class LoggingProxy {
         }
         const { algorunnerLogFileName, baseLogsPath, disable } = this._createLogPath({
             ...options.algorunnerLogging,
-            podId: options.kubernetes.podId
+            podId: options.kubernetes.podId,
+            podName: options.kubernetes.pod_name
         });
         if (disable || !algorunnerLogFileName || !baseLogsPath) {
             log.warning('Algorunner logging proxy not started.', { component });
@@ -31,7 +32,7 @@ class LoggingProxy {
         this._startWatch();
     }
 
-    _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId }) {
+    _createLogPath({ algorunnerLogFileName, baseLogsPath, disable, podId, podName }) {
         if (disable) {
             return { disable };
         }
@@ -39,7 +40,16 @@ class LoggingProxy {
             return { algorunnerLogFileName, baseLogsPath };
         }
         const kubeVersion = kubernetes.kubeVersion || {};
-        if (kubeVersion.major > 1 || (kubeVersion.major === 1 && kubeVersion.minor >= 12)) {
+        const namespace = kubernetes.namespace || 'default';
+        if (kubeVersion.major > 1 || (kubeVersion.major === 1 && kubeVersion.minor >= 14)) {
+            // logs are in /var/log/pods/default_podName_podid/container_name/0.log
+
+            return {
+                algorunnerLogFileName: '0.log',
+                baseLogsPath: `/var/log/pods/${namespace}_${podName}_${podId}/algorunner`
+            };
+        }
+        if (kubeVersion.major === 1 && kubeVersion.minor >= 12) {
             // logs are in /var/log/pods/podid/container_name/0.log
 
             return {
