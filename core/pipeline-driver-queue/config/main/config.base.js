@@ -20,12 +20,7 @@ config.etcd = {
 config.consumer = {
     prefix: 'pipeline-driver-queue',
     jobType: 'pipeline-job',
-    concurrency: 10000,
-    stalled: {
-        maxStalledCount: 1,
-        lockDuration: 10000,
-        stalledInterval: 10000
-    }
+    concurrency: 10000
 };
 
 config.producer = {
@@ -38,7 +33,7 @@ config.persistence = {
 };
 
 config.checkQueueInterval = 500;
-config.updateStateInterval = 1000;
+config.updateStateInterval = 5000;
 
 config.heuristicsWeights = {
     [heuristicsNames.PRIORITY]: 0.5,

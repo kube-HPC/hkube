@@ -12,7 +12,6 @@ class Queue extends Events {
         this.queue = [];
         this.isIntervalRunning = true;
         this.persistence = persistence;
-        this.persistencyLoad();
     }
 
     flush() {

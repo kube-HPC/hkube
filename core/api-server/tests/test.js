@@ -3065,6 +3065,34 @@ describe('Rest', () => {
             const response = await _request(options);
             expect(response.body).to.have.property('jobId');
         });
+        it.skip('should succeed and return job id', async () => {
+            const requests = 5;
+            const uri = `${restUrl}/exec/stored/pipeline`;
+
+            for (let i = 0; i < requests; i++) {
+                const options1 = {
+                    uri,
+                    body: {
+                        name: 'simple',
+                        parentJobId: 'jobid1'
+                    }
+                };
+                const response1 = await _request(options1);
+                expect(response1.body).to.have.property('jobId');
+            }
+
+            for (let i = 0; i < requests; i++) {
+                const options2 = {
+                    uri,
+                    body: {
+                        name: 'simple',
+                        parentJobId: 'jobid2'
+                    }
+                };
+                const response2 = await _request(options2);
+                expect(response2.body).to.have.property('jobId');
+            }
+        });
         it('should succeed without reaching too many request', async () => {
             const requests = 10;
             const promises = [];
