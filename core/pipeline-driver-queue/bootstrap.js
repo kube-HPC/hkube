@@ -7,10 +7,10 @@ const component = require('./lib/consts').componentName.MAIN;
 const { tracer } = require('@hkube/metrics');
 
 const modules = [
+    require('./lib/metrics/aggregation-metrics-factory'),
     require('./lib/queue-runner'),
     require('./lib/jobs/consumer'),
-    require('./lib/jobs/producer'),
-    require('./lib/metrics/aggregation-metrics-factory')
+    require('./lib/jobs/producer')
 ];
 
 class Bootstrap {
@@ -24,7 +24,7 @@ class Bootstrap {
             monitor.on('close', (data) => {
                 log.error(data.error.message, { component });
             });
-            monitor.check(main.redis);
+            await monitor.check(main.redis);
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }

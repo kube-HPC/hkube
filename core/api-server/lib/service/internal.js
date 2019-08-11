@@ -13,7 +13,7 @@ class InternalService {
             if (results && results.data) {
                 pipeline = {
                     ...pipeline,
-                    flowInput: results.data.map(r => r.result)
+                    flowInput: results // flowInput must be object
                 };
             }
         }

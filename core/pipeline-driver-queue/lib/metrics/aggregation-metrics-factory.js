@@ -110,7 +110,14 @@ class AggregationMetricsFactory {
     }
 
     getMetric(type) {
-        return (job, metricOperation) => this._metrics[type].method(this._metrics[type].instance[0], job, metricOperation);
+        return (job, metricOperation) => {
+            try {
+                this._metrics[type].method(this._metrics[type].instance[0], job, metricOperation);
+            }
+            catch (error) {
+                log.throttle.warning(`metrics error ${error}`, { component: componentName.AGGREGATION_METRIC });
+            }
+        };
     }
 
     scoreHistogram(queue) {
