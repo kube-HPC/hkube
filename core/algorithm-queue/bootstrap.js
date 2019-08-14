@@ -67,9 +67,9 @@ class Bootstrap {
             log.info('SIGTERM', { component: componentName.MAIN });
             process.exit(1);
         });
-        process.on('unhandledRejection', (error, reason) => {
+        process.on('unhandledRejection', (error) => {
             log.error('unhandledRejection: ' + error, { component: componentName.MAIN }, error);
-            log.error('unhandledRejection:reason ' + JSON.stringify(reason), { component: componentName.MAIN }, reason);
+            process.exit(1);
         });
         process.on('uncaughtException', (error) => {
             log.error('uncaughtException: ' + error.message, { component: componentName.MAIN }, error);

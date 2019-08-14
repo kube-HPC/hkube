@@ -21,10 +21,11 @@ class JobProducer {
     // should handle cases where there is currently not any active job and new job added to queue
     _checkWorkingStatusInterval() {
         setInterval(async () => {
-            // maybe check if queue.get.length > 0 first and than getWaitingCount from redis
-            const waitingCount = await this.bullQueue.getWaitingCount();
-            if (waitingCount === 0 && queueRunner.queue.get.length > 0) {
-                await this.createJob();
+            if (queueRunner.queue.get.length > 0) {
+                const waitingCount = await this.bullQueue.getWaitingCount();
+                if (waitingCount === 0) {
+                    await this.createJob();
+                }
             }
         }, 1000);
     }

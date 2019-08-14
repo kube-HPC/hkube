@@ -49,13 +49,8 @@ class Queue extends events {
     async persistenceStore() {
         log.debug('try to store data to  storage', { component: components.QUEUE });
         if (this.persistence) {
-            try {
-                await this.persistence.store(this.queue);
-                log.debug('store data to storage succeed', { component: components.QUEUE });
-            }
-            catch (e) {
-                log.error(`fail to store data. error is: ${e.message}`, { component: components.QUEUE }, e);
-            }
+            await this.persistence.store(this.queue);
+            log.debug('store data to storage succeed', { component: components.QUEUE });
         }
         else {
             log.warning('persistent storage not set', { component: components.QUEUE });
@@ -89,9 +84,14 @@ class Queue extends events {
     }
 
     _removeDuplicates(tasks) {
-        tasks.forEach((t) => {
-            _.remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId);
-        });
+        if (this.queue.length > 0) {
+            tasks.forEach((t) => {
+                const res = _.remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId);
+                res.forEach((r) => {
+                    log.warning(`found duplicate task ${r.taskId} with status ${r.status}, new task status: ${t.status}`, { component: components.QUEUE });
+                });
+            });
+        }
     }
 
     /**
