@@ -84,9 +84,14 @@ class Queue extends events {
     }
 
     _removeDuplicates(tasks) {
-        tasks.forEach((t) => {
-            _.remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId);
-        });
+        if (this.queue.length > 0) {
+            tasks.forEach((t) => {
+                const res = _.remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId);
+                res.forEach((r) => {
+                    log.warning(`found duplicate task ${r.taskId} with status ${r.status}, new task status: ${t.status}`, { component: components.QUEUE });
+                });
+            });
+        }
     }
 
     /**
