@@ -58,7 +58,7 @@
         "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
         "start": "node app",
         "build": "./dockerfile/build.sh api-server",
-        "build-swagger": "./api/rest-api/swagger-builder.js"
+        "build-swagger": "node ./api/rest-api/swagger-builder.js"
     },
     "pre-commit": {
         "run": [
