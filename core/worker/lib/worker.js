@@ -342,6 +342,7 @@ class Worker {
             this._handleTimeout(state);
             switch (state) {
                 case workerStates.exit:
+                    await jobConsumer.pause();
                     await jobConsumer.finishJob(result);
                     jobConsumer.finishBullJob(result);
                     this.handleExit(0, jobId);
