@@ -200,7 +200,7 @@ class TaskRunner extends EventEmitter {
         if (errorMsg || resultError) {
             const error = resultError || errorMsg;
             await this._progressError({ status, error });
-            if (err.batchTolerance) {
+            if (err && err.batchTolerance) {
                 await this._stateManager.stopJob({ jobId: this._jobId });
             }
         }
