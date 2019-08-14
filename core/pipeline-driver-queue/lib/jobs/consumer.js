@@ -48,7 +48,7 @@ class JobConsumer {
             }
         }
         catch (error) {
-            log.error(error.message, { component });
+            log.error(error.message, { component }, error);
             job.done(error);
         }
         finally {
