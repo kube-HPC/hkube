@@ -189,7 +189,7 @@ class Queue extends events {
                 this.isScoreDuringUpdate = false;
             }
             catch (error) {
-                log.throttle.error(`fail on queue interval ${error}`, { component: components.QUEUE });
+                log.throttle.error(`fail on queue interval ${error}`, { component: components.QUEUE }, error);
             }
             finally {
                 if (this.isIntervalRunning) {

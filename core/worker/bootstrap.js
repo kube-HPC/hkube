@@ -1,7 +1,6 @@
 
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const { VerbosityPlugin } = require('@hkube/logger');
 const { tracer, metrics } = require('@hkube/metrics');
 const monitor = require('@hkube/redis-utils').Monitor;
 const storageManager = require('@hkube/storage-manager');
@@ -58,7 +57,6 @@ class Bootstrap {
     _onInitFailed(error) {
         if (log) {
             log.error(error.message, { component }, error);
-            log.error(error);
         }
         else {
             console.error(error.message);
@@ -81,12 +79,10 @@ class Bootstrap {
         });
         process.on('unhandledRejection', (error) => {
             log.error(`unhandledRejection: ${error.message}`, { component }, error);
-            log.error(error);
             worker.handleExit(1);
         });
         process.on('uncaughtException', (error) => {
             log.error(`uncaughtException: ${error.message}`, { component }, error);
-            log.error(error);
             worker.handleExit(1);
         });
     }
