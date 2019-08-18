@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.1.172",
+    "version": "1.1.173",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -46,11 +46,7 @@
     "description": "Find out more about Hkube",
     "url": "http://hkube.io"
   },
-  "servers": [
-    {
-      "url": "/api/v1"
-    }
-  ],
+  "servers": [],
   "paths": {
     "/exec/raw": {
       "post": {
