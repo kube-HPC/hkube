@@ -14,7 +14,7 @@ class PipelinesUpdater {
             }
         }
         catch (error) {
-            log.error(`failed to upload default algorithms. ${error.message}`);
+            log.warning(`failed to upload default algorithms. ${error.message}`);
         }
 
         try {
@@ -24,7 +24,7 @@ class PipelinesUpdater {
             }));
         }
         catch (error) {
-            log.error(`failed to upload default algorithms. ${error.message}`);
+            log.warning(`failed to upload default drivers. ${error.message}`);
         }
 
         try {
@@ -43,7 +43,7 @@ class PipelinesUpdater {
             }));
         }
         catch (error) {
-            log.error(`failed to upload default algorithms. ${error.message}`);
+            log.warning(`failed to upload default pipelines. ${error.message}`);
         }
     }
 }

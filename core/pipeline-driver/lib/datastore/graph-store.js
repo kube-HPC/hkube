@@ -71,7 +71,7 @@ class GraphStore {
             }
         }
         catch (error) {
-            log.error(error, { component: components.GRAPH_STORE });
+            log.error(error.message, { component: components.GRAPH_STORE }, error);
         }
     }
 

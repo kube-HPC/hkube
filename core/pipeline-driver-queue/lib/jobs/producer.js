@@ -36,7 +36,7 @@ class JobProducer {
             }
         }
         catch (error) {
-            log.throttle.error(error.message, { component });
+            log.throttle.error(error.message, { component }, error);
         }
         finally {
             setTimeout(this._checkQueue, this._checkQueueInterval);
@@ -52,7 +52,7 @@ class JobProducer {
             }
         }
         catch (error) {
-            log.throttle.error(error.message, { component });
+            log.throttle.error(error.message, { component }, error);
         }
         finally {
             setTimeout(this._updateState, this._updateStateInterval);
