@@ -21,6 +21,7 @@ config.algorithmType = process.env.ALGORITHM_TYPE;
 
 config.producer = {
     checkStalledJobsInterval: process.env.STALLED_JOB_INTERVAL || 15000,
+    enableCheckStalledJobs: true,
     prefix: 'jobs-workers'
 };
 
