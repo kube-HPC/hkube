@@ -273,8 +273,8 @@ class Worker {
             this._inTerminationMode = true;
             try {
                 log.info(`starting termination mode. Exiting with code ${code}`, { component });
-                const reason = 'parent pipeline exit';
-                await this._stopAllPipelinesAndExecutions({ jobId, reason });
+                await this._tryDeleteWorkerState();
+                await this._stopAllPipelinesAndExecutions({ jobId, reason: 'parent pipeline exit' });
 
                 this._tryToSendCommand({ command: messages.outgoing.exit });
                 const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
@@ -296,6 +296,16 @@ class Worker {
                 this._inTerminationMode = false;
                 process.exit(code);
             }
+        }
+    }
+
+    _tryDeleteWorkerState() {
+        try {
+            return discovery.deleteWorkerState();
+        }
+        catch (err) {
+            log.warning(`Failed to delete worker states ${err}`, { component });
+            return err;
         }
     }
 

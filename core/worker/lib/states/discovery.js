@@ -56,7 +56,6 @@ class EtcdDiscovery extends EventEmitter {
         });
     }
 
-
     async stopAlgorithmExecution(options) {
         return this._etcd.algorithms.executions.stop(options);
     }
@@ -109,6 +108,10 @@ class EtcdDiscovery extends EventEmitter {
 
     async watchWorkerStates() {
         return this._etcd.workers.watch({ workerId: this._workerId });
+    }
+
+    async deleteWorkerState() {
+        return this._etcd.workers.delete({ workerId: this._workerId });
     }
 
     async unwatch(options) {
