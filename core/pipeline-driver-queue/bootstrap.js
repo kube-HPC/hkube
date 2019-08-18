@@ -39,7 +39,6 @@ class Bootstrap {
 
     _onInitFailed(error) {
         log.error(error.message, { component }, error);
-        log.error(error);
         process.exit(1);
     }
 
@@ -61,7 +60,6 @@ class Bootstrap {
         });
         process.on('uncaughtException', (error) => {
             log.error(`uncaughtException: ${error.message}`, { component }, error);
-            log.error(error);
             process.exit(1);
         });
     }

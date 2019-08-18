@@ -31,7 +31,7 @@ class Queue extends Events {
             log.info('successfully load data from persistent storage', { component });
         }
         catch (e) {
-            log.error(`failed to load data from persistent storage, ${e.message}`, { component });
+            log.error(`failed to load data from persistent storage, ${e.message}`, { component }, e);
         }
     }
 
@@ -45,7 +45,7 @@ class Queue extends Events {
             log.debug('successfully store data to storage', { component });
         }
         catch (e) {
-            log.error(`failed to store data to persistent storage, ${e.message}`, { component });
+            log.error(`failed to store data to persistent storage, ${e.message}`, { component }, e);
         }
     }
 

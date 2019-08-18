@@ -378,7 +378,7 @@ class JobConsumer extends EventEmitter {
             await storageManager.hkubeMetadata.put({ jobId: this._jobId, taskId: this._taskId, data: metadata });
         }
         catch (err) {
-            log.error(`failed to store Metadata job:${this._jobId} task:${this._taskId}`, { component }, err);
+            log.error(`failed to store Metadata job:${this._jobId} task:${this._taskId}, ${err}`, { component }, err);
         }
     }
 
@@ -402,7 +402,7 @@ class JobConsumer extends EventEmitter {
             };
         }
         catch (err) {
-            log.error(`failed to store data job:${this._jobId} task:${this._taskId}`, { component }, err);
+            log.error(`failed to store data job:${this._jobId} task:${this._taskId}, ${err}`, { component }, err);
             error = err.message;
             status = constants.JOB_STATUS.FAILED;
         }
