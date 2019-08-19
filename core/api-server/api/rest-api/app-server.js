@@ -11,7 +11,6 @@ const swaggerLoader = require('./swagger-loader.js');
 const validator = require('../../lib/validation/api-validator');
 const component = require('../../lib/consts/componentNames').REST_API;
 const afterRequest = require('./middlewares/after-request');
-
 const log = Logger.GetLogFromContanier();
 const rest = new RestServer();
 

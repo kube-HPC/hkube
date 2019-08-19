@@ -3,7 +3,6 @@ const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const States = require('./States');
-
 const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
 const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
 

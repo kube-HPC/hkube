@@ -4,7 +4,6 @@ const HttpStatus = require('http-status-codes');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
 const logger = require('../../middlewares/logger');
-
 const upload = multer({ dest: 'uploads/zipped/' });
 
 const routes = (options) => {
