@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const HttpStatus = require('http-status-codes');
 const logger = require('../../middlewares/logger');
 const readme = require('../../../../lib/service/readme');
 
@@ -9,81 +10,58 @@ const upload = multer({ storage, fileSize: 100000 });
 const routes = () => {
     const router = express.Router();
     // pipelines
-    router.get('/pipelines/:name', logger(), (req, res, next) => {
+    router.get('/pipelines/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        readme.getPipeline({ name }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await readme.getPipeline({ name });
+        res.json(response);
+        next();
     });
-    router.post('/pipelines/:name', upload.single('README.md'), logger(), (req, res, next) => {
+    router.post('/pipelines/:name', upload.single('README.md'), logger(), async (req, res, next) => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
-        readme.insertPipeline({ name, data }).then((response) => {
-            res.status(201).json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await readme.insertPipeline({ name, data });
+        res.status(HttpStatus.CREATED).json(response);
+        next();
     });
     router.put('/pipelines/:name', upload.single('README.md'), logger(), async (req, res, next) => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
-        readme.updatePipeline({ name, data }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await readme.updatePipeline({ name, data });
+        res.json(response);
+        next();
     });
     router.delete('/pipelines/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        readme.deletePipeline({ name }).then(() => {
-            res.json({ message: 'OK' });
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await readme.deletePipeline({ name });
+        res.json({ message: 'OK' });
+        next();
     });
     // algorithms
-    router.get('/algorithms/:name', logger(), (req, res, next) => {
+    router.get('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        readme.getAlgorithm({ name }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await readme.getAlgorithm({ name });
+        res.json(response);
+        next();
     });
     router.post('/algorithms/:name', upload.single('README.md'), logger(), async (req, res, next) => {
         const { name } = req.params;
-        readme.insertAlgorithm({ name }).then((response) => {
-            res.status(201).json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const data = req.file.buffer.toString();
+        const response = await readme.insertAlgorithm({ name, data });
+        res.status(HttpStatus.CREATED).json(response);
+        next();
     });
     router.put('/algorithms/:name', upload.single('README.md'), logger(), async (req, res, next) => {
         const { name } = req.params;
         const data = req.file.buffer.toString();
-        readme.updateAlgorithm({ name, data }).then((response) => {
-            res.status(201).json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await readme.updateAlgorithm({ name, data });
+        res.status(HttpStatus.CREATED).json(response);
+        next();
     });
     router.delete('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        readme.deleteAlgorithm({ name }).then(() => {
-            res.json({ message: 'OK' });
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await readme.deleteAlgorithm({ name });
+        res.json({ message: 'OK' });
+        next();
     });
     return router;
 };

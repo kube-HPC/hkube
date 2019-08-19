@@ -4,6 +4,8 @@ const swaggerParser = require('swagger-parser');
 const RestServer = require('@hkube/rest-server');
 const Logger = require('@hkube/logger');
 const { metrics } = require('@hkube/metrics');
+require('express-async-errors');
+const HttpStatus = require('http-status-codes');
 const internal = require('./internal/index');
 const swaggerLoader = require('./swagger-loader.js');
 const validator = require('../../lib/validation/api-validator');
@@ -19,7 +21,7 @@ class AppServer {
             const error = data.error || data.message || {};
             const { route, jobId, pipelineName } = (data.res && data.res._internalMetadata) || {};
             const status = data.status || data.code;
-            if (status >= 500) {
+            if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
                 log.error(`Error response, status=${status}, message=${error}`, { component, route, jobId, pipelineName, httpStatus: status });
             }
             else {

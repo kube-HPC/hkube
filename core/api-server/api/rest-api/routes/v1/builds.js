@@ -9,42 +9,30 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.all('/status/:buildId?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/status/:buildId?', methods(['GET']), logger(), async (req, res, next) => {
         const { buildId } = req.params;
-        builds.getBuild({ buildId }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await builds.getBuild({ buildId });
+        res.json(response);
+        next();
     });
-    router.all('/list/:name?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/list/:name?', methods(['GET']), logger(), async (req, res, next) => {
         const { name } = req.params;
         const { sort, order, limit } = req.query;
-        builds.getBuilds({ name, sort, order, limit }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await builds.getBuilds({ name, sort, order, limit });
+        res.json(response);
+        next();
     });
-    router.all('/stop', methods(['POST']), logger(), (req, res, next) => {
+    router.all('/stop', methods(['POST']), logger(), async (req, res, next) => {
         const { buildId } = req.body;
-        builds.stopBuild({ buildId }).then(() => {
-            res.json({ message: 'OK' });
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await builds.stopBuild({ buildId });
+        res.json({ message: 'OK' });
+        next();
     });
-    router.all('/rerun', methods(['POST']), logger(), (req, res, next) => {
+    router.all('/rerun', methods(['POST']), logger(), async (req, res, next) => {
         const { buildId } = req.body;
-        builds.rerunBuild({ buildId }).then(() => {
-            res.json({ message: 'OK' });
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await builds.rerunBuild({ buildId });
+        res.json({ message: 'OK' });
+        next();
     });
     return router;
 };
