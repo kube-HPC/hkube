@@ -77,6 +77,11 @@ build_secret:
     namespace: '' # registry namespace - usually your username
     username: ''
     password: ''
+task_executor:
+  env:
+  # need to set the "size" of the cluster since hkube does not have the required permissions
+    default_quota_cpu: 20
+    default_quota_mem: 30Gi    
 ```
 3. add hkube helm chart repository
 ```shell
