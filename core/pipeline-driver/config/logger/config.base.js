@@ -10,7 +10,8 @@ config.transport = {
     console: false,
     logstash: false,
     fluentd: false,
-    file: false
+    file: false,
+    redis: false
 };
 config.logstash = {
     logstashURL: '127.0.0.1',

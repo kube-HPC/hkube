@@ -33,11 +33,6 @@ describe('Test', function () {
         consumer = require('../lib/consumer/jobs-consumer');
     });
     describe('Producer', function () {
-        describe('Validation', function () {
-            it('should not throw validation error', function () {
-                producer.init(null);
-            });
-        });
         describe('CreateJob', function () {
             it('should create job and return job id', function (done) {
                 const options = {
