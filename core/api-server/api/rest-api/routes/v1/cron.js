@@ -9,56 +9,41 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.all('/results/:name?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/results/:name?', methods(['GET']), logger(), async (req, res, next) => {
         const { name } = req.params;
         const { sort, order, limit } = req.query;
-        Cron.getCronResult({ name, sort, order, limit }).then((response) => {
-            res.json(response);
-            res.name = name;
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await Cron.getCronResult({ name, sort, order, limit });
+        res.json(response);
+        res.name = name;
+        next();
     });
-    router.all('/status/:name?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/status/:name?', methods(['GET']), logger(), async (req, res, next) => {
         const { name } = req.params;
         const { sort, order, limit } = req.query;
-        Cron.getCronStatus({ name, sort, order, limit }).then((response) => {
-            res.json(response);
-            res.name = name;
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await Cron.getCronStatus({ name, sort, order, limit });
+        res.json(response);
+        res.name = name;
+        next();
     });
-    router.all('/list/:name?', methods(['GET']), logger(), (req, res, next) => {
+    router.all('/list/:name?', methods(['GET']), logger(), async (req, res, next) => {
         const { sort, order, limit } = req.query;
-        Cron.getCronList({ sort, order, limit }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await Cron.getCronList({ sort, order, limit });
+        res.json(response);
+        next();
     });
-    router.all('/start', methods(['POST']), logger(), (req, res, next) => {
+    router.all('/start', methods(['POST']), logger(), async (req, res, next) => {
         const { name, pattern } = req.body;
-        Cron.startCronJob({ name, pattern }).then(() => {
-            res.json({ message: 'OK' });
-            res.name = name;
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await Cron.startCronJob({ name, pattern });
+        res.json({ message: 'OK' });
+        res.name = name;
+        next();
     });
-    router.all('/stop', methods(['POST']), logger(), (req, res, next) => {
+    router.all('/stop', methods(['POST']), logger(), async (req, res, next) => {
         const { name, pattern } = req.body;
-        Cron.stopCronJob({ name, pattern }).then(() => {
-            res.json({ message: 'OK' });
-            res.name = name;
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await Cron.stopCronJob({ name, pattern });
+        res.json({ message: 'OK' });
+        res.name = name;
+        next();
     });
     return router;
 };

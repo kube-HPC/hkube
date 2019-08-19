@@ -3,7 +3,7 @@
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ResourceExistsError } = require('../errors');
+const { ResourceNotFoundError } = require('../errors');
 
 class Readme {
     async getPipeline(options) {
@@ -13,7 +13,17 @@ class Readme {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        const result = await storageManager.hkubeStore.get({ type: 'readme/pipeline', name });
+        let result;
+        let error;
+        try {
+            result = await storageManager.hkubeStore.get({ type: 'readme/pipeline', name });
+        }
+        catch (e) {
+            error = e.message;
+        }
+        if (error) {
+            throw new ResourceNotFoundError('readme', options.name, error);
+        }
         return result;
     }
 
@@ -57,17 +67,26 @@ class Readme {
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        const result = await storageManager.hkubeStore.get({ type: 'readme/algorithms', name });
+        let result;
+        let error;
+        try {
+            result = await storageManager.hkubeStore.get({ type: 'readme/algorithms', name });
+        }
+        catch (e) {
+            error = e.message;
+        }
+        if (error) {
+            throw new ResourceNotFoundError('readme', options.name, error);
+        }
         return result;
     }
 
     async insertAlgorithm(options) {
         const { name, data } = options;
         validator.validateUpdateAlgorithm(options);
-        await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
         const algorithm = await stateManager.getAlgorithm(options);
-        if (algorithm) {
-            throw new ResourceExistsError('algorithm', options.name);
+        if (!algorithm) {
+            throw new ResourceNotFoundError('algorithm', options.name);
         }
         const result = await storageManager.hkubeStore.put({ type: 'readme/algorithms', name, data: { readme: data } });
         return result;
