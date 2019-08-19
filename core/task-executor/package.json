@@ -34,7 +34,7 @@
     "@hkube/healthchecks": "^1.0.0",
     "@hkube/kubernetes-client": "^1.0.18",
     "@hkube/logger": "^1.0.24",
-    "@hkube/metrics": "^1.0.33",
+    "@hkube/metrics": "^1.0.34",
     "@hkube/rest-server": "^1.0.12",
     "@hkube/units-converter": "^1.0.11",
     "express": "^4.17.0",
