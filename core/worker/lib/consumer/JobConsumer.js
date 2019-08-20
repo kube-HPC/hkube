@@ -90,6 +90,7 @@ class JobConsumer extends EventEmitter {
                 execId: this._job.data.execId,
                 nodeName: this._job.data.nodeName,
                 algorithmName: this._job.data.algorithmName,
+                podName: this._options.kubernetes.pod_name,
                 startTime: Date.now()
             });
 
