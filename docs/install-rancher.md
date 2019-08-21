@@ -81,7 +81,8 @@ task_executor:
   env:
   # need to set the "size" of the cluster since hkube does not have the required permissions
     default_quota_cpu: 20
-    default_quota_mem: 30Gi    
+    default_quota_mem: 30Gi   
+    pipeline_drivers_amount: 5 
 ```
 3. add hkube helm chart repository
 ```shell
