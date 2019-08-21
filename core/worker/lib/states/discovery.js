@@ -11,7 +11,6 @@ class EtcdDiscovery extends EventEmitter {
     constructor() {
         super();
         this._etcd = null;
-        this.previousTaskIds = [];
     }
 
     async init(options) {
@@ -21,8 +20,7 @@ class EtcdDiscovery extends EventEmitter {
         const discoveryInfo = {
             workerId: this._workerId,
             algorithmName: options.jobConsumer.job.type,
-            podName: options.kubernetes.pod_name,
-            previousTaskIds: []
+            podName: options.kubernetes.pod_name
         };
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering worker discovery for id ${this._workerId}`, { component });
@@ -83,11 +81,8 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async updateDiscovery(options) {
-        if (options.taskId && !this.previousTaskIds.find(taskId => taskId === options.taskId)) {
-            this.previousTaskIds.push(options.taskId);
-        }
         log.info(`update worker discovery for id ${this._workerId}`, { component });
-        await this._etcd.discovery.updateRegisteredData({ ...options, workerId: this._workerId, previousTaskIds: this.previousTaskIds });
+        await this._etcd.discovery.updateRegisteredData({ ...options, workerId: this._workerId });
     }
 
     async update(options) {
