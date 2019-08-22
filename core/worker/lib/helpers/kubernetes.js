@@ -36,41 +36,21 @@ class KubernetesApi extends EventEmitter {
             return objectPath.get(pod, 'body.metadata.labels.job-name');
         }
         catch (error) {
-            log.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
+            log.warning(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
             return null;
         }
-    }
-
-    _mapContainerStatus(status) {
-        const containerStatus = {
-            name: status.name,
-            running: !!status.state.running,
-            terminated: !!status.state.terminated
-        };
-        if (containerStatus.terminated) {
-            containerStatus.terminationDetails = {
-                reason: status.state.terminated.reason,
-                exitCode: status.state.terminated.exitCode
-            };
-        }
-        return containerStatus;
     }
 
     async getPodContainerStatus(podName, containerName) {
+        let container = null;
         try {
             log.debug(`getPodContainers for pod ${podName}, container ${containerName}`, { component });
-            const pod = await this._client.pods.get({ podName });
-            const statusRaw = objectPath.get(pod, 'body.status.containerStatuses');
-            if (!statusRaw) {
-                return null;
-            }
-            const statuses = statusRaw.filter(r => r.name === containerName).map(this._mapContainerStatus);
-            return statuses[0];
+            container = await this._client.containers.getStatus({ podName, containerName });
         }
         catch (error) {
-            log.throttle.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
-            return null;
+            log.throttle.warning(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
         }
+        return container;
     }
 
     async waitForTerminatedState(podName, containerName, timeout = 20000) {
@@ -80,7 +60,7 @@ class KubernetesApi extends EventEmitter {
         do {
             const containerStatus = await this.getPodContainerStatus(podName, containerName); // eslint-disable-line no-await-in-loop
             log.throttle.debug(`waitForTerminatedState for pod ${podName}, container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
-            if (containerStatus && containerStatus.terminated) {
+            if (containerStatus && containerStatus.status === 'terminated') {
                 return true;
             }
             await delay(1000); // eslint-disable-line no-await-in-loop
@@ -99,7 +79,7 @@ class KubernetesApi extends EventEmitter {
             return res;
         }
         catch (error) {
-            log.error(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
+            log.warning(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
         }
         return null;
     }

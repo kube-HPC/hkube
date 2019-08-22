@@ -9,13 +9,10 @@ const routes = () => {
         res.json({ message: 'internal api' });
         next();
     });
-    router.all('/algorithms/queue', methods(['GET']), logger(), (req, res, next) => {
-        Algorithms.getAlgorithmsQueueList().then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+    router.all('/algorithms/queue', methods(['GET']), logger(), async (req, res, next) => {
+        const response = await Algorithms.getAlgorithmsQueueList();
+        res.json(response);
+        next();
     });
     return router;
 };

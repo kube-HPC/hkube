@@ -1,12 +1,12 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
 const { consts, gpuVendors } = require('../../lib/consts');
-const { CPU_RATIO_PRESURE, GPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE, MAX_JOBS_PER_TICK } = consts;
+const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory) => {
-    const freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESURE));
-    const freeGpu = node.free.gpu - (node.total.gpu * (1 - GPU_RATIO_PRESURE));
-    const freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESURE));
+    const freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESSURE));
+    const freeGpu = node.free.gpu - (node.total.gpu * (1 - GPU_RATIO_PRESSURE));
+    const freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
     return requestedCpu < freeCpu && requestedMemory < freeMemory && requestedGpu <= freeGpu;
 };
 

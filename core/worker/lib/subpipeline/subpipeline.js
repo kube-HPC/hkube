@@ -166,7 +166,7 @@ class SubPipelineHandler {
      * @param {string} subPipelineId internal algorothm subpipeline Id
      */
     async _handleJobError(error, subPipelineId) {
-        log.error(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
+        log.warning(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
         algoRunnerCommunication.send({
             command: messages.outgoing.subPipelineError,
             data: {
@@ -228,7 +228,7 @@ class SubPipelineHandler {
             jobConsumer.algTracer.startSpan(spanOptions);
         }
         catch (error) {
-            log.error(`error while staring subpipeline span: ${error.message}`);
+            log.warning(`error while staring subpipeline span: ${error.message}`);
         }
     }
 
@@ -261,7 +261,6 @@ class SubPipelineHandler {
         const data = message && message.data;
         const subPipeline = data && data.subPipeline;
         const subPipelineId = data && data.subPipelineId;
-        log.info(`got startSubPipeline ${subPipeline.name} from algorithm`, { component });
         if (!this._validateWorkingState('start subPipeline')) {
             return;
         }
@@ -273,6 +272,7 @@ class SubPipelineHandler {
             this._handleJobError("bad 'startSubPipeline' message: 'subPipelineId' is missing", subPipelineId);
             return;
         }
+        log.info(`got startSubPipeline ${subPipeline.name} from algorithm`, { component });
 
         // send subPipelineStarted to alg
         algoRunnerCommunication.send({

@@ -62,10 +62,10 @@ class WsWorkerCommunication extends EventEmitter {
             log.debug(`got message ${payload.command}`, { component });
             this.emit(payload.command, payload);
         });
-        socket.on('close', () => {
-            log.info('socket disconnected', { component });
+        socket.on('close', (code) => {
+            const reason = code === 1006 ? 'CLOSE_ABNORMAL' : `${code}`;
             this._socket = null;
-            this.emit('disconnect');
+            this.emit('disconnect', reason);
         });
         log.debug('finish _registerSocketMessages', { component });
     }
@@ -80,7 +80,7 @@ class WsWorkerCommunication extends EventEmitter {
     send(message) {
         if (!this._socket) {
             const error = new Error('trying to send without a connected socket');
-            log.error(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
+            log.warning(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
         this._socket.send(JSON.stringify(message));

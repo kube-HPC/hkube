@@ -11,7 +11,6 @@ class EtcdDiscovery extends EventEmitter {
     constructor() {
         super();
         this._etcd = null;
-        this.previousTaskIds = [];
     }
 
     async init(options) {
@@ -21,8 +20,7 @@ class EtcdDiscovery extends EventEmitter {
         const discoveryInfo = {
             workerId: this._workerId,
             algorithmName: options.jobConsumer.job.type,
-            podName: options.kubernetes.pod_name,
-            previousTaskIds: []
+            podName: options.kubernetes.pod_name
         };
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering worker discovery for id ${this._workerId}`, { component });
@@ -56,7 +54,6 @@ class EtcdDiscovery extends EventEmitter {
         });
     }
 
-
     async stopAlgorithmExecution(options) {
         return this._etcd.algorithms.executions.stop(options);
     }
@@ -71,7 +68,7 @@ class EtcdDiscovery extends EventEmitter {
             await this._etcd.algorithms.executions.unwatch(options);
         }
         catch (error) {
-            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
+            log.warning(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
         }
     }
 
@@ -84,11 +81,8 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async updateDiscovery(options) {
-        if (options.taskId && !this.previousTaskIds.find(taskId => taskId === options.taskId)) {
-            this.previousTaskIds.push(options.taskId);
-        }
-        log.info(`update worker discovery for id ${this._workerId} with data ${JSON.stringify(options)}`, { component });
-        await this._etcd.discovery.updateRegisteredData({ ...options, workerId: this._workerId, previousTaskIds: this.previousTaskIds });
+        log.info(`update worker discovery for id ${this._workerId}`, { component });
+        await this._etcd.discovery.updateRegisteredData({ ...options, workerId: this._workerId });
     }
 
     async update(options) {
@@ -111,6 +105,10 @@ class EtcdDiscovery extends EventEmitter {
         return this._etcd.workers.watch({ workerId: this._workerId });
     }
 
+    async deleteWorkerState() {
+        return this._etcd.workers.delete({ workerId: this._workerId });
+    }
+
     async unwatch(options) {
         try {
             log.debug('start unwatch', { component });
@@ -118,7 +116,7 @@ class EtcdDiscovery extends EventEmitter {
             log.debug('end unwatch', { component });
         }
         catch (error) {
-            log.error(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
+            log.warning(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
         }
     }
 }

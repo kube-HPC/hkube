@@ -6,7 +6,7 @@ const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components } = require('../consts');
+const { metricsNames, Components, Status } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
@@ -60,6 +60,11 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
         this._jobProvider.on('job', async (job) => {
+            if (job.data.status === Status.PRESCHEDULE) {
+                log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
+                job.done();
+                return;
+            }
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await etcd.watch({ jobId: job.data.jobId });
             if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
@@ -68,13 +73,7 @@ class JobConsumer extends EventEmitter {
             }
 
             this._initMetrics(job);
-            this._job = job;
-            this._jobId = job.data.jobId;
-            this._taskId = job.data.taskId;
-            this._execId = job.data.execId;
-            this._batchIndex = job.data.batchIndex;
-            this._pipelineName = job.data.pipelineName;
-            this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
+            this._setJob(job);
 
             if (this._execId) {
                 const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
@@ -91,6 +90,7 @@ class JobConsumer extends EventEmitter {
                 execId: this._job.data.execId,
                 nodeName: this._job.data.nodeName,
                 algorithmName: this._job.data.algorithmName,
+                podName: this._options.kubernetes.pod_name,
                 startTime: Date.now()
             });
 
@@ -98,17 +98,35 @@ class JobConsumer extends EventEmitter {
             stateManager.prepare();
         });
 
-        stateManager.on('finish', () => {
-            if (this._job) {
-                this._job.done(this._job.error);
-                log.info(`finish job ${this._jobId}`);
-            }
-            this._job = null;
-            this._jobId = undefined;
-            this._taskId = undefined;
-            this._pipelineName = undefined;
-            this._jobData = undefined;
+        this._jobProvider.on('job-queue', async (job) => {
+            this._setJob(job);
         });
+
+        stateManager.on('finish', () => {
+            this.finishBullJob();
+        });
+    }
+
+    finishBullJob() {
+        if (this._job) {
+            this._job.done(this._job.error);
+            log.info(`finish job ${this._jobId}`);
+        }
+        this._job = null;
+        this._jobId = undefined;
+        this._taskId = undefined;
+        this._pipelineName = undefined;
+        this._jobData = undefined;
+    }
+
+    _setJob(job) {
+        this._job = job;
+        this._jobId = job.data.jobId;
+        this._taskId = job.data.taskId;
+        this._execId = job.data.execId;
+        this._batchIndex = job.data.batchIndex;
+        this._pipelineName = job.data.pipelineName;
+        this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
     }
 
     async _stopJob(job) {
@@ -241,9 +259,11 @@ class JobConsumer extends EventEmitter {
         const workerStatus = state;
         let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
+        let reason = null;
 
         if (results != null) {
             error = results.error && results.error.message;
+            reason = results.error && results.error.reason;
             status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
         }
 
@@ -252,6 +272,7 @@ class JobConsumer extends EventEmitter {
             workerStatus,
             status,
             error,
+            reason,
             resultData
         };
     }
@@ -281,7 +302,6 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-
     async finishJob(data = {}) {
         if (!this._job) {
             return;
@@ -291,7 +311,7 @@ class JobConsumer extends EventEmitter {
             await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
         let storageResult = {};
-        const { resultData, status, error } = this._getStatus(data);
+        const { resultData, status, error, reason } = this._getStatus(data);
 
         if (!error && status === constants.JOB_STATUS.SUCCEED) {
             storageResult = await this._putResult(resultData);
@@ -300,6 +320,7 @@ class JobConsumer extends EventEmitter {
         const resData = Object.assign({
             status,
             error,
+            reason,
             jobId: this._jobId,
             taskId: this._taskId,
             execId: this._job.data.execId,
@@ -349,7 +370,7 @@ class JobConsumer extends EventEmitter {
             });
         }
         catch (err) {
-            log.error(`failed to report metrics:${this._jobId} task:${this._taskId}`, { component }, err);
+            log.warning(`failed to report metrics:${this._jobId} task:${this._taskId}`, { component }, err);
         }
     }
 
@@ -358,7 +379,7 @@ class JobConsumer extends EventEmitter {
             await storageManager.hkubeMetadata.put({ jobId: this._jobId, taskId: this._taskId, data: metadata });
         }
         catch (err) {
-            log.error(`failed to store Metadata job:${this._jobId} task:${this._taskId}`, { component }, err);
+            log.error(`failed to store Metadata job:${this._jobId} task:${this._taskId}, ${err}`, { component }, err);
         }
     }
 
@@ -382,7 +403,7 @@ class JobConsumer extends EventEmitter {
             };
         }
         catch (err) {
-            log.error(`failed to store data job:${this._jobId} task:${this._taskId}`, { component }, err);
+            log.error(`failed to store data job:${this._jobId} task:${this._taskId}, ${err}`, { component }, err);
             error = err.message;
             status = constants.JOB_STATUS.FAILED;
         }

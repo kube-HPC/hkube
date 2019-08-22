@@ -260,6 +260,21 @@
         }
     },
     {
+        "name": "trigger-no-cron",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "flowInput"
+                ]
+            }
+        ],
+        "triggers": {
+            
+        }
+    },
+    {
         "name": "concurrentPipelines",
         "nodes": [
             {

@@ -8,6 +8,7 @@ const { algorithmQueueTemplate } = require('../templates/algorithm-queue');
 const { isValidDeploymentName } = require('../helpers/images');
 const { createContainerResourceByFactor } = require('../helpers/kubernetes-utils');
 const CONTAINERS = require('../consts/containers');
+const { settings } = require('../helpers/settings');
 
 const applyAlgorithmName = (inputSpec, algorithmName, containerName) => {
     const spec = clonedeep(inputSpec);
@@ -56,7 +57,10 @@ const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOption
     spec = applyAlgorithmName(spec, algorithmName, CONTAINERS.ALGORITHM_QUEUE);
     spec = applyImage(spec, CONTAINERS.ALGORITHM_QUEUE, versions, registry);
     spec = applyNodeSelector(spec, clusterOptions);
-    spec = applyResources(spec, resources);
+    if (settings.applyResourceLimits) {
+        spec = applyResources(spec, resources);
+    }
+
     return spec;
 };
 

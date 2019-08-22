@@ -31,5 +31,10 @@ const kubeconfig = {
 config.kubernetes = {
     kubeconfig
 };
-
+config.healthchecks = {
+    enabled: false
+}
+config.cacheResults = {
+    enabled: false
+}
 module.exports = config;

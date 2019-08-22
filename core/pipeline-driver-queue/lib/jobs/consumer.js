@@ -17,8 +17,7 @@ class JobConsumer {
             setting: {
                 redis: options.redis,
                 tracer,
-                prefix: options.consumer.prefix,
-                settings: options.consumer.stalled
+                prefix: options.consumer.prefix
             }
         });
         this._consumer.register({ job: { type: options.consumer.jobType, concurrency: options.consumer.concurrency } });
@@ -49,7 +48,7 @@ class JobConsumer {
             }
         }
         catch (error) {
-            log.error(error.message, { component });
+            log.error(error.message, { component }, error);
             job.done(error);
         }
         finally {

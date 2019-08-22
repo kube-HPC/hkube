@@ -1,19 +1,18 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
+const { NodesMap, NodeStates, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
 const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
 const Progress = require('../progress/nodes-progress');
-const NodesMap = require('../nodes/nodes-map');
-const NodeStates = require('../state/NodeStates');
 const DriverStates = require('../state/DriverStates');
 const Events = require('../consts/Events');
-const { Node, Batch } = require('../nodes');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 
+const { Node, Batch } = NodeTypes;
 let log;
 
 class TaskRunner extends EventEmitter {
@@ -183,7 +182,7 @@ class TaskRunner extends EventEmitter {
             errorMsg = err.message;
             status = DriverStates.FAILED;
             this._error = errorMsg;
-            log.error(`pipeline ${status}. ${errorMsg}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
+            log.info(`pipeline ${status}. ${errorMsg}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
         }
         else if (reason) {
             status = DriverStates.STOPPED;
@@ -201,7 +200,7 @@ class TaskRunner extends EventEmitter {
         if (errorMsg || resultError) {
             const error = resultError || errorMsg;
             await this._progressError({ status, error });
-            if (err.batchTolerance) {
+            if (err && err.batchTolerance) {
                 await this._stateManager.stopJob({ jobId: this._jobId });
             }
         }
@@ -351,6 +350,9 @@ class TaskRunner extends EventEmitter {
         try {
             log.info(`node ${nodeName} is ready to run`, { component });
             const node = this._nodes.getNode(nodeName);
+
+            this._checkPreschedule(nodeName);
+
             const parse = {
                 flowInput: this.pipeline.flowInput,
                 nodeInput: node.input,
@@ -385,13 +387,30 @@ class TaskRunner extends EventEmitter {
         }
     }
 
+    async _checkPreschedule(nodeName) {
+        const childs = this._nodes._childs(nodeName);
+        await Promise.all(childs.map(c => this._sendPreschedule(c)));
+    }
+
+    async _sendPreschedule(nodeName) {
+        const graphNode = this._nodes.getNode(nodeName);
+        const node = new Node({ ...graphNode, status: NodeStates.PRESCHEDULE });
+        const options = { node };
+        this._nodes.setNode(node);
+        this._setTaskState(node);
+        log.info(`node ${nodeName} is in ${NodeStates.PRESCHEDULE}`, { component });
+        await this._createJob(options);
+    }
+
     async _runWaitAny(options) {
         if (options.index === -1) {
             this._skipBatchNode(options);
         }
         else {
+            const { taskId, ...nodeBatch } = options.node;
             const waitAny = new Batch({
-                ...options.node,
+                ...nodeBatch,
+                status: NodeStates.CREATING,
                 batchIndex: options.index,
                 input: options.input,
                 storage: options.storage
@@ -412,6 +431,7 @@ class TaskRunner extends EventEmitter {
                 batchIndex: (ind + 1),
                 algorithmName: waitNode.algorithmName,
                 extraData: waitNode.extraData,
+                status: NodeStates.CREATING,
                 input: inp
             });
             this._nodes.addBatch(batch);
@@ -423,6 +443,7 @@ class TaskRunner extends EventEmitter {
     async _runNodeSimple(options) {
         const node = new Node({
             ...options.node,
+            status: NodeStates.CREATING,
             storage: options.storage,
             input: options.input
         });
@@ -436,9 +457,12 @@ class TaskRunner extends EventEmitter {
             this._skipBatchNode(options);
         }
         else {
+            // remove taskId from node so the batch will generate new ids
+            const { taskId, ...nodeBatch } = options.node;
             options.input.forEach((inp, ind) => {
                 const batch = new Batch({
-                    ...options.node,
+                    ...nodeBatch,
+                    status: NodeStates.CREATING,
                     batchIndex: (ind + 1),
                     input: inp.input,
                     storage: inp.storage
@@ -484,24 +508,28 @@ class TaskRunner extends EventEmitter {
     }
 
     _checkTaskErrors(task) {
-        let error;
-        if (task.error && !task.execId) {
-            if (task.batchIndex) {
+        let err;
+        const { error, nodeName, reason, batchIndex, execId } = task;
+        if (error && !execId) {
+            // in case off image pull error, we want to fail the pipeline.
+            if (reason === 'ImagePullBackOff' || reason === 'ErrImagePull') {
+                err = new Error(`${reason}. ${error}`);
+            }
+            else if (batchIndex) {
                 const { batchTolerance } = this.pipeline.options;
-                const states = this._nodes.getNodeStates(task.nodeName);
+                const states = this._nodes.getNodeStates(nodeName);
                 const failed = states.filter(s => s === NodeStates.FAILED);
                 const percent = ((failed.length / states.length) * 100).toFixed(0);
 
                 if (percent >= batchTolerance) {
-                    error = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${task.error}`);
-                    error.batchTolerance = true;
+                    err = new Error(`${failed.length}/${states.length} (${percent}%) failed tasks, batch tolerance is ${batchTolerance}%, error: ${error}`);
                 }
             }
             else {
-                error = new Error(task.error);
+                err = new Error(error);
             }
         }
-        return error;
+        return err;
     }
 
     _setTaskState(task) {
@@ -513,25 +541,27 @@ class TaskRunner extends EventEmitter {
             this._nodes.updateAlgorithmExecution(task);
         }
         else {
-            this._nodes.updateTaskState(taskId, task);
+            this._updateTaskState(taskId, task);
         }
-        if (error) {
-            log.error(`task ${status} ${taskId}. error: ${error}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
-        }
-        else {
-            log.debug(`task ${status} ${taskId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
-        }
+
+        log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
         pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: NodeStates.ACTIVE });
+    }
+
+    _updateTaskState(taskId, task) {
+        const { status, result, error, reason, podName, prevError, retries, startTime, endTime } = task;
+        const state = { status, result, error, reason, podName, prevError, retries, startTime, endTime };
+        this._nodes.updateTaskState(taskId, state);
     }
 
     _createJob(options, batch) {
         let tasks = [];
         if (batch) {
-            tasks = batch.map(b => ({ taskId: b.taskId, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
+            tasks = batch.map(b => ({ taskId: b.taskId, status: b.status, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
         }
         else {
-            tasks.push({ taskId: options.node.taskId, input: options.node.input, storage: options.storage });
+            tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });
         }
         const jobOptions = {
             type: options.node.algorithmName,

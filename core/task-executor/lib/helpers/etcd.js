@@ -1,6 +1,7 @@
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
-const utils = require('../utils/utils');
+const { logWrappers } = require('./tracing');
+const { cacheResults, arrayToMap } = require('../utils/utils');
 const { components, containers } = require('../consts');
 const component = components.ETCD;
 const CONTAINERS = containers;
@@ -18,15 +19,32 @@ class Etcd {
         await this._etcd.jobs.state.watch({ jobId: 'hookWatch' });
         this._workerServiceName = options.workerServiceName || CONTAINERS.WORKER;
         this._pipelineDriverServiceName = options.workerServiceName || CONTAINERS.PIPELINE_DRIVER;
-        const discoveryInfo = {
-
-        };
+        const discoveryInfo = {};
+        if (options.healthchecks.logExternalRequests) {
+            logWrappers([
+                'updateDiscovery',
+                'sendCommandToWorker',
+                'sendCommandToDriver',
+                'getWorkers',
+                'getPipelineDrivers',
+                'getAlgorithmRequests',
+                'getPipelineDriverRequests',
+                'getAlgorithmTemplate',
+                'getDriversTemplate'
+            ], this, log);
+        }
         await this._etcd.discovery.register({ data: discoveryInfo });
         log.info(`registering discovery for id ${this._etcd.discovery._instanceId}`, { component });
+        if ((options.cacheResults || {}).enabled) {
+            this.getAlgorithmTemplate = cacheResults(this.getAlgorithmTemplate.bind(this), 2000);
+            this.getDriversTemplate = cacheResults(this.getDriversTemplate.bind(this), 5000);
+            this.getPipelineDrivers = cacheResults(this.getPipelineDrivers.bind(this), 1000);
+            this.getWorkers = cacheResults(this.getWorkers.bind(this), 1000);
+        }
     }
 
     async updateDiscovery(options) {
-        log.debug(`update discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
+        log.trace(`update discovery for id ${this._etcd.discovery._instanceId} with data ${JSON.stringify(options)}`, { component });
         await this._etcd.discovery.updateRegisteredData(options);
     }
 
@@ -70,12 +88,12 @@ class Etcd {
 
     async getAlgorithmTemplate() {
         const templates = await this._etcd.algorithms.store.list();
-        return utils.arrayToMap(templates);
+        return arrayToMap(templates);
     }
 
     async getDriversTemplate() {
         const templates = await this._etcd.pipelineDrivers.store.list();
-        return utils.arrayToMap(templates);
+        return arrayToMap(templates);
     }
 }
 

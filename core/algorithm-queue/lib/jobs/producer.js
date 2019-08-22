@@ -1,6 +1,7 @@
 const Etcd = require('@hkube/etcd');
 const { Events } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
+const uuidv4 = require('uuid/v4');
 const producerSingleton = require('./producer-singleton');
 const { componentName, jobState, taskStatus } = require('../consts/index');
 const queueRunner = require('../queue-runner');
@@ -20,9 +21,11 @@ class JobProducer {
     // should handle cases where there is currently not any active job and new job added to queue
     _checkWorkingStatusInterval() {
         setInterval(async () => {
-            const waitingCount = await this.bullQueue.getWaitingCount();
-            if (waitingCount === 0 && queueRunner.queue.get.length > 0) {
-                await this.createJob();
+            if (queueRunner.queue.get.length > 0) {
+                const waitingCount = await this.bullQueue.getWaitingCount();
+                if (waitingCount === 0) {
+                    await this.createJob();
+                }
             }
         }, 1000);
     }
@@ -43,7 +46,7 @@ class JobProducer {
             log.debug(`${Events.COMPLETED} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
-            log.error(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.FAILED });
+            log.info(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
             const { jobId, taskId, nodeName } = job.options;
@@ -63,7 +66,7 @@ class JobProducer {
                 queueRunner.queue.add([task]);
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${MAX_JOB_ATTEMPTS}`;
-            log.error(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
+            log.warning(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
             await this.etcd.jobs.tasks.set({ jobId, taskId, status, error, retries: attempts });
         });
     }
@@ -74,7 +77,9 @@ class JobProducer {
             calculated: {
                 latestScores: {},
                 entranceTime: taskData.entranceTime,
-                enrichment: {}
+                enrichment: {
+                    batchIndex: {}
+                }
             },
             ...taskData,
             attempts: taskData.attempts + 1
@@ -85,7 +90,7 @@ class JobProducer {
         const { calculated, initialBatchLength, ...taskData } = task;
         return {
             job: {
-                id: task.taskId,
+                id: `${task.taskId}-${uuidv4()}`,
                 type: task.algorithmName,
                 data: taskData
             },

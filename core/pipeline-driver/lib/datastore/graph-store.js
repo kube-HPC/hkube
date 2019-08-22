@@ -71,7 +71,7 @@ class GraphStore {
             }
         }
         catch (error) {
-            log.error(error, { component: components.GRAPH_STORE });
+            log.error(error.message, { component: components.GRAPH_STORE }, error);
         }
     }
 
@@ -104,16 +104,14 @@ class GraphStore {
     }
 
     _filterData(graph) {
-        const adaptedGraph = {
+        return {
             jobId: this._currentJobID,
             graph: {
-                edges: [],
-                nodes: [],
+                timestamp: Date.now(),
+                edges: graph.edges.map(e => this._formatEdge(e)),
+                nodes: graph.nodes.map(n => this._handleNode(n.value))
             }
         };
-        adaptedGraph.graph.edges = graph.edges.map(e => this._formatEdge(e));
-        adaptedGraph.graph.nodes = graph.nodes.map(n => this._handleNode(n.value));
-        return adaptedGraph;
     }
 
     _handleNode(node) {
@@ -126,8 +124,9 @@ class GraphStore {
     _mapTask(task) {
         return {
             taskId: task.taskId,
-            input: this._parseInput(task),
-            output: task.result,
+            // input: this._parseInput(task),
+            // output: task.result,
+            podName: task.podName,
             status: task.status,
             error: task.error,
             prevErrors: task.prevErrors,

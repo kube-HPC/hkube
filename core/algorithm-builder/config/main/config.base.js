@@ -1,4 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
+const { parseBool } = require('../../lib/utils/formatters');
 const config = {};
 config.serviceName = packageJson.name;
 
@@ -8,20 +9,36 @@ config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.version = packageJson.version;
 config.buildId = process.env.BUILD_ID;
 config.testMode = process.env.TEST_MODE === 'True';
+config.testModeEnv = process.env.TEST_MODE_ENV || 'nodejs';
 config.buildMode = process.env.BUILD_MODE || 'kaniko'
 
 config.docker = {
     pull: {
-        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io/',
+        registry: process.env.DOCKER_PULL_REGISTRY || 'docker.io',
         namespace: process.env.DOCKER_PULL_NAMESPACE || 'hkube',
         user: process.env.DOCKER_PULL_USERNAME || '',
-        pass: process.env.DOCKER_PULL_PASSWORD || ''
+        pass: process.env.DOCKER_PULL_PASSWORD || '',
+        insecure: parseBool(process.env.DOCKER_PULL_INSECURE, false),
+        skip_tls_verify: parseBool(process.env.DOCKER_PULL_SKIP_TLS_VERIFY, false)
     },
     push: {
         registry: process.env.DOCKER_PUSH_REGISTRY || 'docker.io',
         namespace: process.env.DOCKER_PUSH_NAMESPACE || '',
         user: process.env.DOCKER_PUSH_USERNAME || '',
-        pass: process.env.DOCKER_PUSH_PASSWORD || ''
+        pass: process.env.DOCKER_PUSH_PASSWORD || '',
+        insecure: parseBool(process.env.DOCKER_PUSH_INSECURE, false),
+        skip_tls_verify: parseBool(process.env.DOCKER_PUSH_SKIP_TLS_VERIFY, false)
+    }
+};
+
+config.packagesRepo = {
+    nodejs: {
+        registry: process.env.NPM_REGISTRY || '',
+        token: process.env.NPM_TOKEN || '',
+    },
+    python: {
+        registry: process.env.PIP_REGISTRY || '',
+        token: process.env.PIP_TOKEN || ''
     }
 };
 
@@ -30,7 +47,7 @@ config.tmpFolder = process.env.TMP_FOLDER || '/tmp';
 config.buildDirs = {
     ZIP: 'uploads/zipped',
     UNZIP: 'uploads/unzipped'
-}
+};
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',

@@ -20,17 +20,37 @@ dockerLogin() {
 dockerBuildKaniko() {
   image=$1
   buildPath=$2
-  dockerFile=$3
-  workspace=${4:-/workspace}
-  commands=${5:-/commands}
+  workspace=${3:-/workspace}
+  commands=${4:-/commands}
+  baseImage=$5
+  packagesRegistry=$6
+  packagesToken=$7
+  insecure=${8}
+  insecure_pull=${9}
+  skip_tls_verify=${10}
+  skip_tls_verify_pull=${11}
+
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
   cp -r ${buildPath}/* ${workspace}
   # echo copy docker creds
   # cp ~/.docker/config.json ${commands}/
-  echo "/kaniko/executor --dockerfile ./docker/__DockerFile__ --insecure --insecure-pull --context dir:///workspace/ --destination $image" > ${commands}/run
+  options=""
+  if [[ $insecure == true ]]; then options="${options} --insecure"; fi
+  if [[ $insecure_pull == true ]]; then options="${options} --insecure-pull"; fi
+  if [[ $skip_tls_verify == true ]]; then options="${options} --skip-tls-verify"; fi
+  if [[ $skip_tls_verify_pull == true ]]; then options="${options} --skip-tls-verify-pull"; fi
+  
+  echo "/kaniko/executor \
+    --dockerfile ./docker/DockerfileTemplate \
+    ${options} --context dir:///workspace/ \
+    --build-arg packagesRegistry=${packagesRegistry} \
+    --build-arg packagesToken=${packagesToken} \
+    --build-arg baseImage=${baseImage} \
+    --destination $image" > ${commands}/run
+  
   chmod +x ${commands}/run
-  cat ${commands}/run
+  # cat ${commands}/run
   touch ${commands}/start
   while [ ! -f "${commands}/done" ]; do
     # echo "done file does not exist"

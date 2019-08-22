@@ -1,6 +1,6 @@
 ARG DOCKER_REGISTRY=""
 FROM ${DOCKER_REGISTRY}python:3
-LABEL maintainer="yehiyam@gmail.com"
+LABEL maintainer="hkube.dev@gmail.com"
 LABEL description="This is a base algorithm for Python env"
 
 RUN mkdir /hkube

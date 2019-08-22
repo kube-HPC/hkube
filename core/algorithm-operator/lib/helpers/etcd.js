@@ -2,6 +2,8 @@ const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../lib/consts/componentNames').ETCD;
+const { logWrappers } = require('./tracing');
+
 
 class Etcd extends EventEmitter {
     constructor() {
@@ -12,6 +14,16 @@ class Etcd extends EventEmitter {
     async init(options) {
         this._etcd = new EtcdClient(options.etcd);
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
+        if (options.healthchecks.logExternalRequests) {
+            logWrappers([
+                'getAlgorithmTemplate',
+                'getAlgorithmTemplates',
+                'storeAlgorithmData',
+                'removeAlgorithmData',
+                'getBuilds',
+                'setBuild'
+            ], this, log);
+        }
         await this._etcd.jobs.state.watch({ jobId: 'hookWatch' });
     }
 
@@ -31,16 +43,11 @@ class Etcd extends EventEmitter {
         return this._etcd.algorithms.debug.delete({ name });
     }
 
-    async getPendingBuilds() {
-        const list = await this._etcd.algorithms.builds.list({ sort: 'desc' });
-        return list.filter(b => b.status === 'pending');
+    async getBuilds() {
+        return this._etcd.algorithms.builds.list({ sort: 'desc' });
     }
 
     async setBuild(options) {
-        const { buildId } = options;
-        if (!buildId) {
-            return;
-        }
         await this._etcd.algorithms.builds.update(options);
     }
 }

@@ -18,7 +18,7 @@ const { normalizeWorkers,
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
 const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
-const { CPU_RATIO_PRESURE, MEMORY_RATIO_PRESURE } = consts;
+const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
 const MIN_AGE_FOR_STOP = 10 * 1000;
@@ -75,13 +75,13 @@ const _clearCreatedJobsList = (now, options) => {
     const newCreatedJobsList = createdJobsList.filter(j => (now || Date.now()) - j.createdTime < options.createdJobsTTL);
     const items = createdJobsList.length - newCreatedJobsList.length;
     if (items > 0) {
-        log.debug(`removed ${items} items from jobCreated list`, { component });
+        log.trace(`removed ${items} items from jobCreated list`, { component });
     }
     createdJobsList = newCreatedJobsList;
 };
 
 const _processAllRequests = (
-    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources },
+    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources, useResourceLimits },
     { createPromises, createDetails, reconcileResult }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
@@ -115,8 +115,8 @@ const _processAllRequests = (
         const algorithmTemplate = algorithmTemplates[algorithmName];
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
-        const resourceRequests = createContainerResource(algorithmTemplate);
-        const workerResourceRequests = createContainerResource(workerResources);
+        const resourceRequests = createContainerResource(algorithmTemplate, useResourceLimits);
+        const workerResourceRequests = createContainerResource(workerResources, useResourceLimits);
 
         const { workerEnv, algorithmEnv, nodeSelector, entryPoint } = algorithmTemplate;
 
@@ -321,12 +321,10 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const coolDownWorkers = normalizeColdWorkers(normWorkers, algorithmTemplates);
     const totalRequests = normalizeHotRequests(normRequests, algorithmTemplates);
 
-    // log.debug(JSON.stringify(normResources.allNodes, null, 2));
-
-    const isCpuPresure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESURE;
-    const isMemoryPresure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESURE;
-    if (isCpuPresure || isMemoryPresure) {
-        log.debug(`isCpuPresure: ${isCpuPresure}, isMemoryPresure: ${isMemoryPresure}`, { component });
+    const isCpuPressure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESSURE;
+    const isMemoryPressure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESSURE;
+    if (isCpuPressure || isMemoryPressure) {
+        log.trace(`isCpuPressure: ${isCpuPressure}, isMemoryPressure: ${isMemoryPressure}`, { component });
     }
     const createDetails = [];
     const createPromises = [];
@@ -374,7 +372,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     );
 
     if (created.length > 0) {
-        log.debug(`creating ${created.length} algorithms....`, { component });
+        log.trace(`creating ${created.length} algorithms....`, { component });
     }
     const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
@@ -392,9 +390,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         reconcileResult,
         actual: _calaStats(normWorkers),
         resourcePressure: {
-            cpu: consts.CPU_RATIO_PRESURE,
-            gpu: consts.GPU_RATIO_PRESURE,
-            mem: consts.MEMORY_RATIO_PRESURE
+            cpu: consts.CPU_RATIO_PRESSURE,
+            gpu: consts.GPU_RATIO_PRESSURE,
+            mem: consts.MEMORY_RATIO_PRESSURE
         },
         nodes: _getNodeStats(normResources, merged.mergedWorkers)
     });

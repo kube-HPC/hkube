@@ -65,6 +65,10 @@
   $ref: ./builds/status.yaml
 /builds/list/{name}:
   $ref: ./builds/list.yaml
+/builds/stop:
+  $ref: ./builds/stop.yaml
+/builds/rerun:
+  $ref: ./builds/rerun.yaml
 
 # readme
 /readme/algorithms/{name}:

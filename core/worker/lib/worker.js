@@ -121,26 +121,29 @@ class Worker {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
-            log.warning(`algorithm runner has disconnected, reason: ${reason}`, { component });
-            if (!this._debugMode) {
-                const type = jobConsumer.getAlgorithmType();
-                const containerStatus = await this._getAlgorunnerContainerStatus();
-                const message = {
-                    command: 'errorMessage',
-                    error: {
-                        code: 'Failed',
-                        message: `algorithm ${type} has disconnected, reason: ${reason}. algorithm container status is ${JSON.stringify(containerStatus)}`
-                    }
-                };
-                stateManager.done(message);
-            }
+            await this.algorithmDisconnect(reason);
+        });
+
+        stateManager.on('disconnect', async (reason) => {
+            await this.algorithmDisconnect(reason);
         });
     }
 
-    async _getAlgorunnerContainerStatus() {
-        await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER, 1000); // ???
-        const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER); // eslint-disable-line no-await-in-loop
-        return containerStatus;
+    async algorithmDisconnect(reason) {
+        if (this._debugMode) {
+            return;
+        }
+        const type = jobConsumer.getAlgorithmType();
+        const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
+        const defaultMessage = `algorithm ${type} has disconnected, reason: ${reason}`;
+        const message = {
+            error: {
+                reason: containerStatus && containerStatus.reason,
+                message: `${defaultMessage}. ${(containerStatus && containerStatus.message) || ''}`
+            }
+        };
+        log.error(message.error.message, { component });
+        stateManager.exit(message);
     }
 
     /**
@@ -166,7 +169,7 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.error, async (message) => {
             const errText = message.error && message.error.message;
-            log.error(`got error from algorithm: ${errText}`, { component });
+            log.info(`got error from algorithm: ${errText}`, { component });
             const { jobId } = jobConsumer.jobData;
             const reason = `parent algorithm failed: ${errText}`;
             await this._stopAllPipelinesAndExecutions({ jobId, reason });
@@ -212,7 +215,7 @@ class Worker {
         }
         const { data } = message;
         if (!data || !data.name) {
-            log.error(`invalid startSpan message: ${JSON.stringify(message, 2, null)}`);
+            log.warning(`invalid startSpan message: ${JSON.stringify(message, 2, null)}`);
             return;
         }
         const spanOptions = {
@@ -270,8 +273,8 @@ class Worker {
             this._inTerminationMode = true;
             try {
                 log.info(`starting termination mode. Exiting with code ${code}`, { component });
-                const reason = 'parent pipeline exit';
-                await this._stopAllPipelinesAndExecutions({ jobId, reason });
+                await this._tryDeleteWorkerState();
+                await this._stopAllPipelinesAndExecutions({ jobId, reason: 'parent pipeline exit' });
 
                 this._tryToSendCommand({ command: messages.outgoing.exit });
                 const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
@@ -287,7 +290,7 @@ class Worker {
                 }
             }
             catch (error) {
-                log.error(`failed to handle exit: ${error}`, { component });
+                log.warning(`failed to handle exit: ${error}`, { component });
             }
             finally {
                 this._inTerminationMode = false;
@@ -296,12 +299,22 @@ class Worker {
         }
     }
 
+    _tryDeleteWorkerState() {
+        try {
+            return discovery.deleteWorkerState();
+        }
+        catch (err) {
+            log.warning(`Failed to delete worker states ${err}`, { component });
+            return err;
+        }
+    }
+
     _tryToSendCommand(message) {
         try {
             return algoRunnerCommunication.send(message);
         }
         catch (err) {
-            log.error(`Failed to send command ${message.command}`, { component });
+            log.warning(`Failed to send command ${message.command}`, { component });
             return err;
         }
     }
@@ -339,6 +352,9 @@ class Worker {
             this._handleTimeout(state);
             switch (state) {
                 case workerStates.exit:
+                    await jobConsumer.pause();
+                    await jobConsumer.finishJob(result);
+                    jobConsumer.finishBullJob(result);
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
@@ -370,7 +386,7 @@ class Worker {
                     break;
                 case workerStates.stop:
                     this._stopTimeout = setTimeout(() => {
-                        log.error('Timeout exceeded trying to stop algorithm.', { component });
+                        log.warning('Timeout exceeded trying to stop algorithm.', { component });
                         stateManager.done('Timeout exceeded trying to stop algorithm');
                         this.handleExit(0, jobId);
                     }, this._stopTimeoutMs);

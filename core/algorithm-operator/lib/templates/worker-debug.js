@@ -34,7 +34,7 @@ const deploymentDebugTemplate = (algorithmName = '') => ({
                 containers: [
                     {
                         name: ALGORITHM_DEBUG,
-                        image: 'hkube/worker:latest',
+                        image: 'hkube/worker',
                         env: [
                             {
                                 name: 'NODE_ENV',
@@ -161,7 +161,7 @@ const workerService = (algorithmName = '') => ({
     }
 });
 
-const workerIngress = (algorithmName = '') => ({
+const workerIngress = (algorithmName = '', { ingressHost, ingressPrefix = '' } = {}) => ({
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
@@ -181,13 +181,15 @@ const workerIngress = (algorithmName = '') => ({
             {
                 http: {
                     paths: [{
-                        path: `/hkube/debug/${algorithmName}`,
+                        path: `${ingressPrefix}/hkube/debug/${algorithmName}`,
                         backend: {
                             serviceName: `worker-service-${algorithmName}`,
                             servicePort: 80
                         }
                     }]
-                }
+
+                },
+                host: ingressHost || undefined
             }
         ]
     }
