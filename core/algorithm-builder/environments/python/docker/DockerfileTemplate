@@ -2,8 +2,6 @@
 ARG baseImage
 FROM ${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"
-ARG packagesRegistry
-ARG packagesToken
 
 COPY . /hkube/algorithm-runner
 RUN cd /hkube/algorithm-runner
@@ -11,6 +9,8 @@ WORKDIR /hkube/algorithm-runner
 
 # Second build
 FROM ${baseImage} 
+ARG packagesRegistry
+ARG packagesToken
 COPY --from=build /hkube/algorithm-runner /hkube/algorithm-runner
 RUN ./docker/requirements.sh ${packagesRegistry} ${packagesToken}
 
