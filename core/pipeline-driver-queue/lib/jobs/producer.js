@@ -15,8 +15,15 @@ class JobProducer {
     }
 
     async init(options) {
-        this._jobType = options.producer.jobType;
-        this._producer = new Producer({ setting: { redis: options.redis, prefix: options.producer.prefix, tracer } });
+        const { jobType, ...producer } = options.producer;
+        this._jobType = jobType;
+        this._producer = new Producer({
+            setting: {
+                tracer,
+                redis: options.redis,
+                ...producer
+            }
+        });
         this._redisQueue = this._producer._createQueue(this._jobType);
         this._checkQueueInterval = options.checkQueueInterval;
         this._updateStateInterval = options.updateStateInterval;

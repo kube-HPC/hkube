@@ -19,6 +19,7 @@ config.rest = {
         delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0
     }
 };
+
 config.cachingServer = {
     protocol: 'http',
     host: process.env.CACHING_SERVICE_SERVICE_HOST || 'localhost',
@@ -34,6 +35,14 @@ config.swagger = {
     port: process.env.BASE_URL_PORT || config.rest.port,
     path: (process.env.BASE_URL_PATH || '')
 };
+
+config.jobs = {
+    producer: {
+        enableCheckStalledJobs: false,
+        prefix: 'pipeline-driver-queue',
+        jobType: 'pipeline-job'
+    }
+}
 
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',

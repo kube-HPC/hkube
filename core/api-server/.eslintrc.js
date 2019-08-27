@@ -31,6 +31,7 @@ module.exports = {
         "newline-per-chained-call": "off",
         "arrow-body-style": "off",
         "class-methods-use-this": "off",
-        "no-unused-expressions": 0
+        "no-unused-expressions": 0,
+        "arrow-parens": "off"
     }
 };

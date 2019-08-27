@@ -24,6 +24,7 @@ config.consumer = {
 };
 
 config.producer = {
+    enableCheckStalledJobs: false,
     prefix: 'pipeline-driver',
     jobType: 'pipeline-job'
 };
