@@ -3,7 +3,7 @@ const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
-const { jobPrefix, heuristicsName } = require('../consts/index');
+const { heuristicsName } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
@@ -25,7 +25,7 @@ class JobConsumer extends EventEmitter {
 
         log.info(`registering for job ${options.algorithmType}`, { component });
 
-        this._consumer = new Consumer({ setting: { redis: options.redis, tracer, prefix: jobPrefix.JOB_PREFIX } });
+        this._consumer = new Consumer({ setting: { redis: options.redis, tracer, prefix: options.consumer.prefix } });
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });

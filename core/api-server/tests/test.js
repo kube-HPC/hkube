@@ -5,6 +5,7 @@ const querystring = require('querystring');
 const fse = require('fs-extra');
 const clone = require('clone');
 const bootstrap = require('../bootstrap');
+const builds = require('../lib/service/builds');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../lib/state/state-manager');
 const { MESSAGES } = require('../lib/consts/builds');
@@ -1429,6 +1430,17 @@ describe('API-Server', () => {
                                 expect(response.body[1]).to.have.property('startTime');
                                 expect(response.body[1].status).to.equal('pending');
                             })
+                        });
+                        describe('/builds/fileInfo', () => {
+                            it('should success to extract fileInfo', async () => {
+                                const fileInfo = await builds._fileInfo({ name: 'algorithm.tar.gz', path: 'tests/mocks/algorithm.tar.gz' });
+                                expect(fileInfo).to.have.property('fileExt');
+                                expect(fileInfo).to.have.property('checksum');
+                                expect(fileInfo).to.have.property('fileSize');
+                                expect(fileInfo.fileExt).to.equal('gz');
+                                expect(fileInfo.checksum).to.be.string;
+                                expect(fileInfo.fileSize).to.equal(740);
+                            });
                         });
                     });
                     describe('Cron', () => {

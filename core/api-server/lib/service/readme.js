@@ -1,5 +1,3 @@
-
-
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');

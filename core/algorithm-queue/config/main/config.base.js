@@ -26,7 +26,8 @@ config.producer = {
 };
 
 config.consumer = {
-    concurrency: 10000
+    concurrency: 10000,
+    prefix: 'algorithm-queue'
 };
 
 config.queue = {

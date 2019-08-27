@@ -348,9 +348,12 @@ class TaskRunner extends EventEmitter {
 
     async _runNode(nodeName, parentOutput, index) {
         try {
-            log.info(`node ${nodeName} is ready to run`, { component });
             const node = this._nodes.getNode(nodeName);
-
+            // TODO: resolve this issue in a better way
+            if (node.status !== NodeStates.CREATING && node.status !== NodeStates.PRESCHEDULE) {
+                return;
+            }
+            log.info(`node ${nodeName} is ready to run`, { component });
             this._checkPreschedule(nodeName);
 
             const parse = {

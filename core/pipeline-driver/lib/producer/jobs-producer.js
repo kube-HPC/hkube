@@ -13,8 +13,8 @@ class JobProducer extends EventEmitter {
         const options = option || {};
         this._producer = new Producer({
             setting: {
-                redis: options.redis,
                 tracer,
+                redis: options.redis,
                 ...options.jobs.producer
             }
         });

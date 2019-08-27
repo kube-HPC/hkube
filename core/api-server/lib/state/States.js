@@ -1,5 +1,4 @@
 
-
 module.exports = {
     PENDING: 'pending',
     WAITING: 'waiting',
