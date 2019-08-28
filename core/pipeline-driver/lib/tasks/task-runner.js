@@ -211,6 +211,33 @@ class TaskRunner extends EventEmitter {
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
     }
 
+    async _recoverPipeline() {
+        if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
+        }
+        else {
+            const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
+            if (tasks.size > 0) {
+                const tasksGraph = this._nodes._getNodesAsFlat();
+                tasksGraph.forEach((g) => {
+                    const task = tasks.get(g.taskId);
+                    if (task && task.status !== g.status) {
+                        const t = {
+                            ...g,
+                            result: task.result,
+                            status: task.status,
+                            error: task.error
+                        };
+                        this._handleTaskEvent(t);
+                    }
+                });
+            }
+            else {
+                this._runEntryNodes();
+            }
+        }
+    }
+
     _runEntryNodes() {
         const entryNodes = this._nodes.findEntryNodes();
         if (entryNodes.length === 0) {
@@ -317,33 +344,6 @@ class TaskRunner extends EventEmitter {
         this._error = null;
         this._driverStatus = null;
         this._jobStatus = null;
-    }
-
-    async _recoverPipeline() {
-        if (this._nodes.isAllNodesCompleted()) {
-            this.stop();
-        }
-        else {
-            const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
-            if (tasks.size > 0) {
-                const tasksGraph = this._nodes._getNodesAsFlat();
-                tasksGraph.forEach((g) => {
-                    const task = tasks.get(g.taskId);
-                    if (task && task.status !== g.status) {
-                        const t = {
-                            ...g,
-                            result: task.result,
-                            status: task.status,
-                            error: task.error
-                        };
-                        this._handleTaskEvent(t);
-                    }
-                });
-            }
-            else {
-                this._runEntryNodes();
-            }
-        }
     }
 
     async _runNode(nodeName, parentOutput, index) {
