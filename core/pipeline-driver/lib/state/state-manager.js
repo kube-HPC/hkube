@@ -105,7 +105,7 @@ class StateManager extends EventEmitter {
     }
 
     async tasksList(options) {
-        const list = await this._etcd.jobs.tasks.list(options);
+        const list = await this._etcd.jobs.tasks.list({ ...options, limit: 100000 });
         const results = new Map();
         list.forEach((v) => {
             results.set(v.taskId, v);
