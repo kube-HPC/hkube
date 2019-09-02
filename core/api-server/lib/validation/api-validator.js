@@ -75,6 +75,10 @@ class ApiValidator {
         this._validate(this._definitionsInternal.algorithmBuild, algorithm);
     }
 
+    validateAlgorithmBuildFromGit(algorithm) {
+        this._validate(this._definitionsInternal.algorithmBuildGit, algorithm);
+    }
+
     validateApplyAlgorithm(algorithm) {
         this._validate(this._definitions.algorithm, algorithm, true);
         this._validateMemory(algorithm);

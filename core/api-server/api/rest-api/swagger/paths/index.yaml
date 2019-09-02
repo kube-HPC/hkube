@@ -69,6 +69,8 @@
   $ref: ./builds/stop.yaml
 /builds/rerun:
   $ref: ./builds/rerun.yaml
+/builds/webhook/github: 
+ $ref: ./builds/webhook.yaml 
 
 # readme
 /readme/algorithms/{name}:

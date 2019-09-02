@@ -38,6 +38,52 @@ properties:
         description: pending algorithm
         default: false
     default: {}
+  gitRepository:
+    type: object
+    properties:
+      url:
+        type: string
+        description: a url for the git repository
+      commit:
+        type: object
+        description: commit details
+        properties:
+          id:
+            type: string
+            description: commit id
+            default: ""
+          timestamp:
+            type: string
+            description: commit time
+            default: ""
+          message:
+            type: string
+            description: commit message
+            default: ""
+        default: {}
+        required:
+          - id
+      branchName:
+        type: string
+        description: the branch name you wish to create a build from
+        default: ""
+      tag:
+        type: string
+        description: a specific tag which will trigger the build
+        default: ""
+      token:
+        type: string
+        description: a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line
+        default: ""
+      gitKind:
+        type: string
+        enum:
+          - github
+          - gitlab
+          - none
+        default: none
+    required:
+      - url
   entryPoint:
     type: string
   version:
@@ -58,5 +104,13 @@ properties:
     description: key value labels for nodes constraint
     additionalProperties:
       type: string
+  type:
+    type: string
+    description: type of algorithm code resource
+    enum:
+      - Git
+      - Code
+      - Image
+    default: "Image"
 required:
   - name

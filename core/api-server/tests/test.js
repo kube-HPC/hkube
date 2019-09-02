@@ -10,6 +10,8 @@ const stateManager = require('../lib/state/state-manager');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms, pipelines, triggersTree, webhookStub, workerStub } = require('./mocks');
 const converter = require('@hkube/units-converter');
+
+const githubSample = require('./mocks/github-sample.json')
 let config, baseUrl;
 const delay = d => new Promise(r => setTimeout(r, d));
 
@@ -1421,6 +1423,53 @@ describe('Rest', () => {
                     })
                 });
             });
+            describe('Git', () => {
+                let webhookPath = null;
+                let applyPath = null;
+                before(() => {
+                    webhookPath = `${restUrl}/builds/webhook/github`;
+                    applyPath = `${restUrl}/store/algorithms/apply`;
+                });
+                describe('Github', () => {
+                    it('should run simple push webhook', async () => {
+                        const options = {
+                            uri: webhookPath,
+                            body: { payload: JSON.stringify(githubSample) },
+                            method: 'POST'
+
+                        };
+                        const { body, response } = await _request(options);
+                        expect(body.buildId).to.contain('green-alg')
+                    })
+                    it('should create build with last commit data', async () => {
+
+                        const name = uuidv4();
+                        const body = {
+                            name,
+                            mem: "6000Mi",
+                            cpu: 1,
+                            gitRepository: {
+                                url: "https://github.com/maty21/statistisc",
+                                branchName: "master",
+                                gitKind: "github"
+                            },
+                            env: "nodejs",
+                            type: "Git"
+                        }
+                        const payload = JSON.stringify(body);
+                        const options = {
+                            uri: applyPath,
+                            body: { payload }
+                        };
+                        const _res = await _request(options);
+                        expect(_res.body.buildId).to.contain(name)
+
+                    });
+                })
+
+
+            })
+
             describe('Cron', () => {
                 describe('/cron/results', () => {
                     let restPath = null;
@@ -1977,7 +2026,8 @@ describe('Rest', () => {
                             options: {
                                 debug: false,
                                 pending: false
-                            }
+                            },
+                            type: 'Image'
                         });
                     });
                     it('should succeed to store algorithm', async () => {
@@ -2002,7 +2052,9 @@ describe('Rest', () => {
                             options: {
                                 debug: false,
                                 pending: false
-                            }
+                            },
+                            type: 'Image'
+
                         });
                     });
                 });
@@ -2265,7 +2317,7 @@ describe('Rest', () => {
                         expect(response.body).to.have.property('buildId');
                         expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
                     });
-                    it('should succeed to apply algorithm without buildId in response', async () => {
+                    it('should succeed to apply algorithm without buildId in response c', async () => {
                         const body = {
                             name: `my-alg-${uuidv4()}`,
                             mem: "50Mi",
@@ -2312,6 +2364,7 @@ describe('Rest', () => {
                     it('should throw validation error of memory min 4 Mi', async () => {
                         const body = Object.assign({}, algorithms[0]);
                         body.mem = '3900Ki';
+
                         const options = {
                             method: 'PUT',
                             uri: restPath,
@@ -2331,6 +2384,7 @@ describe('Rest', () => {
                         };
                         const response = await _request(options);
                         body.memReadable = body.mem;
+                        body.type = 'Image'
                         body.mem = converter.getMemoryInMi(body.mem);
                         expect(response.body).to.deep.equal(body);
                     });

@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
+const { BUILD_TYPES } = require('../../../../lib/consts/builds');
 const logger = require('../../middlewares/logger');
 
 const upload = multer({ dest: 'uploads/zipped/' });
@@ -122,9 +123,11 @@ const routes = (options) => {
     });
     router.post('/algorithms/apply', upload.single('file'), logger(), (req, res, next) => {
         const body = (req.body.payload) || null;
-        const file = req.file || {};
         const payload = JSON.parse(body);
-        algorithmStore.applyAlgorithm({ payload, file: { path: file.path, name: file.originalname } }).then((response) => {
+        // eslint-disable-next-line no-nested-ternary
+        const type = req.file ? BUILD_TYPES.CODE : (payload && payload.gitRepository ? BUILD_TYPES.GIT : BUILD_TYPES.IMAGE);
+        const file = req.file || {};
+        algorithmStore.applyAlgorithm({ payload: { ...payload, type }, file: { path: file.path, name: file.originalname } }).then((response) => {
             res.json(response);
             next();
         }).catch((error) => {

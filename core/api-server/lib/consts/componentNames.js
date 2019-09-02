@@ -8,6 +8,7 @@ const Components = {
     WEBHOOK_HANDLER: 'Webhook-Handler',
     JOBS_PRODUCER: 'Jobs-Producer',
     EXECUTION_SERVICE: 'Execution-Service',
+    GITHUB_WEBHOOK: 'Github-Webhook'
 };
 
 module.exports = Components;

@@ -9,7 +9,17 @@
         "name": "green-alg",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.1,
-        "mem": "1024Mi"
+        "mem": "1024Mi",
+        "gitRepository": {
+            "url": "https://github.com/maty21/statistisc",
+            "branchName": "master",
+            "tag": "",
+            "token": "",
+            "gitKind": "github"
+        },
+        "entryPoint": "./app.js",
+        "env": "node.js",
+        "type": "Git"
     },
     {
         "name": "yellow-alg",

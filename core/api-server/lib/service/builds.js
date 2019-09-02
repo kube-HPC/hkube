@@ -88,6 +88,16 @@ class Builds {
         return { algorithm, buildId, messages };
     }
 
+    async createBuildFromGitRepository(payload) {
+        const messages = [];
+        const version = payload.gitRepository.commit.id;
+        const buildId = this._createBuildID(payload.name);
+        const { env, name, gitRepository, entryPoint } = payload;
+        validator.validateAlgorithmBuildFromGit({ env });
+        await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, entryPoint });
+        return { payload, buildId, messages };
+    }
+
     async _newAlgorithm(file, oldAlgorithm, newAlgorithm) {
         const fileInfo = await this._fileInfo(file);
         const env = this._resolveEnv(oldAlgorithm, newAlgorithm);
@@ -96,7 +106,7 @@ class Builds {
     }
 
     async removeFile(file) {
-        if (file.path) {
+        if (file && file.path) {
             await fse.remove(file.path);
         }
     }
