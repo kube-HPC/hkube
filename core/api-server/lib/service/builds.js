@@ -82,8 +82,8 @@ class Builds {
             buildId = this._createBuildID(algorithm.name);
             const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
             merge(algorithm, { version, fileInfo: { path: putStream.path } });
-            const { env, name, fileInfo } = algorithm;
-            await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt });
+            const { env, name, fileInfo, type } = algorithm;
+            await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt, type });
         }
         return { algorithm, buildId, messages };
     }
@@ -92,9 +92,9 @@ class Builds {
         const messages = [];
         const version = payload.gitRepository.commit.id;
         const buildId = this._createBuildID(payload.name);
-        const { env, name, gitRepository, entryPoint } = payload;
+        const { env, name, gitRepository, entryPoint, type } = payload;
         validator.validateAlgorithmBuildFromGit({ env });
-        await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, entryPoint });
+        await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, entryPoint, type });
         return { payload, buildId, messages };
     }
 

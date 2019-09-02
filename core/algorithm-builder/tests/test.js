@@ -10,6 +10,7 @@ const dockerBuilder = require('../lib/builds/docker-builder');
 const storageManager = require('@hkube/storage-manager');
 const stateManger = require('../lib/state/state-manager');
 const mockBuildNodejs = require('./mocks/nodejs/build.json');
+const mockBuildNodejsFromGit = require('./mocks/nodejs/build-from-git');
 const mockBuildPython = require('./mocks/python/build.json');
 
 describe('Test', function () {
@@ -43,6 +44,18 @@ describe('Test', function () {
             const { buildId } = mockBuildNodejs;
             await stateManger.insertBuild(mockBuildNodejs);
             await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(mockZip) });
+            config.buildId = buildId;
+            const response = await dockerBuilder.runBuild(config);
+            expect(response.status).to.equal('completed');
+            expect(response).to.have.property('buildId');
+            expect(response.result).to.contain('docker version')
+            expect(response).to.have.property('status');
+            expect(response).to.have.property('result');
+        });
+        it('NODEJS: should succeed to build docker from git', async function () {
+            this.timeout(50000);
+            const { buildId } = mockBuildNodejsFromGit;
+            await stateManger.insertBuild(mockBuildNodejsFromGit);
             config.buildId = buildId;
             const response = await dockerBuilder.runBuild(config);
             expect(response.status).to.equal('completed');
