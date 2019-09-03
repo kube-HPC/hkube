@@ -17,19 +17,27 @@ class gitWebhookListener {
         if (!gitDetails) {
             throw new ResourceNotFoundError('algorithm', '');
         }
-        const algorithm = await this._checkRegistration(gitDetails.repository.url);
-        if (!algorithm) {
+        const _algorithms = await this._checkRegistration(gitDetails.repository.url);
+        if (!_algorithms.length) {
             throw new ResourceNotFoundError('algorithm', gitDetails.repository.url);
         }
-        return this._storeBuildData({ ...algorithm, mem: algorithm.memReadable, gitRepository: { ...algorithm.gitRepository, commit: gitDetails.commit } });
+        const res = await Promise.all(_algorithms.map(algorithm => this._storeBuildData(
+            {
+                ...algorithm,
+                mem: algorithm.memReadable,
+                gitRepository: { ...algorithm.gitRepository, commit: gitDetails.commit }
+            }
+        )));
+        return res;
     }
 
 
     async _checkRegistration(url) {
+        // TODO:add branch for filter
         const algorithmList = await stateManager.getAlgorithms();
-        const algorithm = algorithmList.find(a => url === (a.gitRepository && a.gitRepository.url));
+        const _algorithms = algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.url));
 
-        return algorithm;
+        return _algorithms;
     }
 
     async _storeBuildData(data) {

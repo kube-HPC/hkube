@@ -1,26 +1,22 @@
-const Validator = require('ajv');
 const log = require('@hkube/logger').GetLogFromContainer();
 const levels = require('@hkube/logger').Levels;
 const { tracer } = require('@hkube/metrics');
 const { Producer, Events } = require('@hkube/producer-consumer');
-const schema = require('../../lib/producer/schema');
 const stateManager = require('../state/state-manager');
 const component = require('../../lib/consts/componentNames').JOBS_PRODUCER;
 const States = require('../state/States');
 
-const validator = new Validator({ useDefaults: true, coerceTypes: true });
-const JOB_TYPE = 'pipeline-job';
-
 class JobProducer {
     init(options) {
-        const setting = Object.assign({}, { redis: options.redis });
-        const valid = validator.validate(schema.properties.setting, setting);
-        if (!valid) {
-            const error = validator.errorsText(validator.errors);
-            throw new Error(error);
-        }
-        setting.tracer = tracer;
-        this._producer = new Producer({ setting });
+        const { jobType, ...producer } = options.jobs.producer;
+        this._jobType = jobType;
+        this._producer = new Producer({
+            setting: {
+                tracer,
+                redis: options.redis,
+                ...producer
+            }
+        });
         this._producer.on(Events.WAITING, (event) => {
             log.info(`${Events.WAITING} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: States.WAITING });
         }).on(Events.ACTIVE, (event) => {
@@ -45,7 +41,7 @@ class JobProducer {
         const opt = {
             job: {
                 id: options.jobId,
-                type: JOB_TYPE,
+                type: this._jobType,
                 data: {
                     jobId: options.jobId
                 }
@@ -62,7 +58,7 @@ class JobProducer {
 
     async stopJob(options) {
         const option = {
-            type: JOB_TYPE,
+            type: this._jobType,
             jobId: options.jobId
         };
         return this._producer.stopJob(option);

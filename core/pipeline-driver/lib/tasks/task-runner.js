@@ -211,6 +211,33 @@ class TaskRunner extends EventEmitter {
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
     }
 
+    async _recoverPipeline() {
+        if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
+        }
+        else {
+            const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
+            if (tasks.size > 0) {
+                const tasksGraph = this._nodes._getNodesAsFlat();
+                tasksGraph.forEach((g) => {
+                    const task = tasks.get(g.taskId);
+                    if (task && task.status !== g.status) {
+                        const t = {
+                            ...g,
+                            result: task.result,
+                            status: task.status,
+                            error: task.error
+                        };
+                        this._handleTaskEvent(t);
+                    }
+                });
+            }
+            else {
+                this._runEntryNodes();
+            }
+        }
+    }
+
     _runEntryNodes() {
         const entryNodes = this._nodes.findEntryNodes();
         if (entryNodes.length === 0) {
@@ -319,38 +346,14 @@ class TaskRunner extends EventEmitter {
         this._jobStatus = null;
     }
 
-    async _recoverPipeline() {
-        if (this._nodes.isAllNodesCompleted()) {
-            this.stop();
-        }
-        else {
-            const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
-            if (tasks.size > 0) {
-                const tasksGraph = this._nodes._getNodesAsFlat();
-                tasksGraph.forEach((g) => {
-                    const task = tasks.get(g.taskId);
-                    if (task && task.status !== g.status) {
-                        const t = {
-                            ...g,
-                            result: task.result,
-                            status: task.status,
-                            error: task.error
-                        };
-                        this._handleTaskEvent(t);
-                    }
-                });
-            }
-            else {
-                this._runEntryNodes();
-            }
-        }
-    }
-
     async _runNode(nodeName, parentOutput, index) {
         try {
-            log.info(`node ${nodeName} is ready to run`, { component });
             const node = this._nodes.getNode(nodeName);
-
+            // TODO: resolve this issue in a better way
+            if (node.status !== NodeStates.CREATING && node.status !== NodeStates.PRESCHEDULE) {
+                return;
+            }
+            log.info(`node ${nodeName} is ready to run`, { component });
             this._checkPreschedule(nodeName);
 
             const parse = {
@@ -541,12 +544,18 @@ class TaskRunner extends EventEmitter {
             this._nodes.updateAlgorithmExecution(task);
         }
         else {
-            this._nodes.updateTaskState(taskId, task);
+            this._updateTaskState(taskId, task);
         }
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
         pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: NodeStates.ACTIVE });
+    }
+
+    _updateTaskState(taskId, task) {
+        const { status, result, error, reason, podName, prevError, retries, startTime, endTime } = task;
+        const state = { status, result, error, reason, podName, prevError, retries, startTime, endTime };
+        this._nodes.updateTaskState(taskId, state);
     }
 
     _createJob(options, batch) {

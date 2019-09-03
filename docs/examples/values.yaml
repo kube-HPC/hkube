@@ -1,0 +1,41 @@
+global:
+  clusterName: cluster.local
+  registry: ''
+  registry_namespace: hkube
+  registry_username: ''
+  registry_password: ''
+  storage:
+    minio:
+      access_key: hkubeminiokey
+      secret_key: hkubeminiosecret
+      url: 'http://hkube-storage-minio:9000'
+  production: true
+  ingress_controller_enable: false
+  k8senv: k8s
+  namespaced: true
+  isPrivileged: false
+ingress:
+  hostname: ''
+env:
+  default_storage: s3
+  node_env: production
+build_secret:
+  # pull secret is only needed if docker hub is not accessible
+  pull:
+    registry: ''
+    namespace: ''
+    username: ''
+    password: ''
+  # enter your docker hub / other registry credentials
+  push:
+    registry: '' # can be left empty for docker hub
+    namespace: '' # registry namespace - usually your username
+    username: ''
+    password: ''
+
+task_executor:
+  env:
+  # need to set the "size" of the cluster since hkube does not have the required permissions
+    default_quota_cpu: 20
+    default_quota_mem: 30Gi
+    pipeline_drivers_amount: 5

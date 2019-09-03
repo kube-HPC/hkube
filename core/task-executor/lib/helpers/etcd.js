@@ -62,7 +62,7 @@ class Etcd {
 
     async getWorkers(options = {}) {
         const serviceName = options.workerServiceName || this._workerServiceName;
-        const workers = await this._etcd.discovery.list({ serviceName });
+        const workers = await this._etcd.discovery.list({ serviceName, limit: 10000 });
         return workers;
     }
 

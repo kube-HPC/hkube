@@ -47,7 +47,6 @@ class Bootstrap {
     _onInitFailed(error) {
         if (log) {
             log.error(error.message, { component }, error);
-            log.error(error);
         }
         else {
             console.error(error.message);
@@ -74,8 +73,6 @@ class Bootstrap {
         });
         process.on('uncaughtException', (error) => {
             log.error(`uncaughtException: ${error.message}`, { component }, error);
-            log.error(error);
-            console.error(error);
             process.exit(1);
         });
     }

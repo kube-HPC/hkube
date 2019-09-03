@@ -37,7 +37,7 @@ class Runner {
     }
 
     _onError(error) {
-        log.throttle.error(error.message, { component });
+        log.throttle.error(error.message, { component }, error);
     }
 
     /**

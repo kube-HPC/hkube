@@ -123,7 +123,7 @@ class AlgorithmStore {
                 throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
             }
 
-            newAlgorithm = Object.assign({}, oldAlgorithm, newAlgorithm);
+            newAlgorithm = { ...oldAlgorithm, ...newAlgorithm };
             if (!newAlgorithm.algorithmImage && !(options.file && options.file.path) && !newAlgorithm.gitRepository) {
                 throw new InvalidDataError(MESSAGES.APPLY_ERROR);
             }

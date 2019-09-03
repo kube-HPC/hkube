@@ -6,7 +6,6 @@ const { parser } = require('@hkube/parsers');
 const regex = require('../../lib/consts/regex');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
-
 const validator = new Validator({ useDefaults: false, coerceTypes: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
 const MIN_MEMORY = 4;

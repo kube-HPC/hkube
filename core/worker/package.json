@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "1.1.137",
+    "version": "1.2.1",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -28,9 +28,9 @@
         "@hkube/etcd": "^5.0.3",
         "@hkube/kubernetes-client": "^1.0.24",
         "@hkube/logger": "^1.0.24",
-        "@hkube/metrics": "^1.0.33",
+        "@hkube/metrics": "^1.0.34",
         "@hkube/parsers": "^1.0.20",
-        "@hkube/producer-consumer": "^1.0.44",
+        "@hkube/producer-consumer": "^1.0.46",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.12",
         "@hkube/storage-manager": "^1.0.49",

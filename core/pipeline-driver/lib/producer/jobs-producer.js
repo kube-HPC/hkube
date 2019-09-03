@@ -1,10 +1,7 @@
 const EventEmitter = require('events');
-const Validator = require('ajv');
 const { Producer, Events } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const schema = require('./schema');
 const { TASKS } = require('../consts/Events');
-const validator = new Validator({ useDefaults: true, coerceTypes: true });
 
 class JobProducer extends EventEmitter {
     constructor() {
@@ -14,14 +11,13 @@ class JobProducer extends EventEmitter {
 
     async init(option) {
         const options = option || {};
-        const setting = Object.assign({}, { redis: options.redis });
-        const valid = validator.validate(schema.properties.setting, setting);
-        if (!valid) {
-            const error = validator.errorsText(validator.errors);
-            throw new Error(error);
-        }
-        setting.tracer = tracer;
-        this._producer = new Producer({ setting });
+        this._producer = new Producer({
+            setting: {
+                tracer,
+                redis: options.redis,
+                ...options.jobs.producer
+            }
+        });
         this._producer.on(Events.WAITING, (data) => {
             this.emit(TASKS.WAITING, data.jobId);
         }).on(Events.COMPLETED, (data) => {

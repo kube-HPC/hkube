@@ -20,7 +20,7 @@ module.exports = {
         "no-use-before-define": "warn",
         "object-curly-spacing": "error",
         "no-var": "error",
-        "import/newline-after-import": "error",
+        "import/newline-after-import": "off",
         "max-len": ["error", 200],
         "brace-style": ["error", "stroustrup"],
         "indent": ["warn", 4],
@@ -31,6 +31,7 @@ module.exports = {
         "newline-per-chained-call": "off",
         "arrow-body-style": "off",
         "class-methods-use-this": "off",
-        "no-unused-expressions": 0
+        "no-unused-expressions": 0,
+        "arrow-parens": "off"
     }
 };

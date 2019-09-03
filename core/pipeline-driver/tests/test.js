@@ -33,11 +33,6 @@ describe('Test', function () {
         consumer = require('../lib/consumer/jobs-consumer');
     });
     describe('Producer', function () {
-        describe('Validation', function () {
-            it('should not throw validation error', function () {
-                producer.init(null);
-            });
-        });
         describe('CreateJob', function () {
             it('should create job and return job id', function (done) {
                 const options = {
@@ -295,6 +290,45 @@ describe('Test', function () {
             await taskRunner.start(job)
 
             expect(spy.calledOnce).to.equal(true);
+        });
+        it('should recover big pipeline', async function () {
+            this.timeout(10000);
+            const jobId = `jobid-recovery-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const options = {
+                type: 'eval-alg'
+            }
+
+            const workerStub = new WorkerStub(options, true);
+            const pipeline = pipelines.find(p => p.name === 'randomPipeStored');
+            const taskRunner = new TaskRunner(config);
+            const nodesMap = new NodesMap(pipeline);
+            const node1 = new Node(pipeline.nodes[0]);
+            const node2 = new Node(pipeline.nodes[1]);
+            const node3 = new Node(pipeline.nodes[2]);
+            nodesMap.setNode(node1);
+            nodesMap.setNode(node2);
+            nodesMap.setNode(node3);
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
+
+            await stateManager.setExecution({ jobId, ...pipeline });
+            await graphStore.start(jobId, nodesMap);
+            await taskRunner.start(job);
+
+            await delay(1000);
+            expect(taskRunner._active).to.equal(true);
+            expect(taskRunner._driverStatus).to.equal('recovering');
+            expect(taskRunner._jobStatus).to.equal('active');
+
+            await delay(5000);
+            expect(taskRunner._active).to.equal(false);
+            expect(taskRunner._driverStatus).to.equal('ready');
+            expect(taskRunner._jobStatus).to.equal('completed');
         });
         it('should create job and handle success after stalled status', async function () {
             const jobId = `jobid-stalled-event-${uuidv4()}`;
