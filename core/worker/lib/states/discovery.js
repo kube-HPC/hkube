@@ -14,6 +14,11 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async init(options) {
+        if (this._etcd) {
+            this._etcd.removeAllListeners();
+            this._etcd = null;
+            this.removeAllListeners();
+        }
         log = Logger.GetLogFromContainer();
         this._etcd = new Etcd(options.etcd);
         this._workerId = this._etcd.discovery._instanceId;
@@ -55,7 +60,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async stopAlgorithmExecution(options) {
-        return this._etcd.algorithms.executions.stop(options);
+        return this._etcd.algorithms.executions.set({ ...options, state: 'stop' });
     }
 
     async watchAlgorithmExecutions(options) {
