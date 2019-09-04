@@ -14,7 +14,7 @@ class GitWebhookListener {
         if (!gitDetails) {
             throw new ResourceNotFoundError('algorithm', '');
         }
-        const _algorithms = await this._checkRegistration(gitDetails.repository.url);
+        const _algorithms = await this._checkRegistration(gitDetails.repository);
         if (!_algorithms.length) {
             throw new ResourceNotFoundError('algorithm', gitDetails.repository.url);
         }
@@ -29,10 +29,10 @@ class GitWebhookListener {
     }
 
 
-    async _checkRegistration(url) {
+    async _checkRegistration({ url, branchName }) {
         // TODO:add branch for filter
         const algorithmList = await stateManager.getAlgorithms();
-        const storedAlgorithms = algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.url));
+        const storedAlgorithms = algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.url) && branchName === (a.gitRepository && a.gitRepository.branchName));
         return storedAlgorithms;
     }
 

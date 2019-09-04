@@ -30,6 +30,7 @@ class GitDataAdapter {
             lastCommit = await octokit.repos.listCommits({
                 owner,
                 repo,
+                sha: payload.gitRepository.branchName,
                 per_page: 1,
                 page: 1
             });
@@ -48,25 +49,30 @@ class GitDataAdapter {
                         timestamp: lastCommit.data[0].commit.committer.date,
                         message: lastCommit.data[0].commit.message
                     }],
-                repository: { url: payload.gitRepository.url }
+                repository: { url: payload.gitRepository.url, branchName: payload.gitRepository.branchName }
             })
 
         };
     }
 
-    _githubAdapter({ commits, repository }) {
+    _githubAdapter({ ref, commits, repository }) {
+        const branchName = repository.branchName ? repository.branchName : this._refParse(ref);
         if (!commits || commits.length === 0) {
             log.warning(`commit is not defined for webhook url ${repository.url}`, { component: component.GITHUB_WEBHOOK });
             return null;
             // this._progress(data);
         }
-        return this._adapter(commits[0].id, commits[0].timestamp, commits[0].message, repository.url, WEBHOOKS.GITHUB);
+        return this._adapter(commits[0].id, commits[0].timestamp, commits[0].message, branchName, repository.url, WEBHOOKS.GITHUB);
     }
 
-    _adapter(commitId, timestamp, message, repositoryUrl, webhookType) {
+    _refParse(ref) {
+        return ref.split('/')[2];
+    }
+
+    _adapter(commitId, timestamp, message, branchName, repositoryUrl, webhookType) {
         return {
             commit: { id: commitId, timestamp, message },
-            repository: { url: repositoryUrl },
+            repository: { url: repositoryUrl, branchName },
             webhookType,
             type: BUILD_TYPES.GIT
         };
