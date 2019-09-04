@@ -12,14 +12,24 @@
     },
     {
         "name": "green-alg",
-        "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
-        "mem": "600Ki",
+        "mem": 600,
+        "memReadable": "6000Mi",
         "minHotWorkers": 0,
         "options": {
             "debug": false,
             "pending": false
-        }
+        },
+        "gitRepository": {
+            "url": "https://github.com/maty21/statistisc",
+            "branchName": "master",
+            "tag": "",
+            "token": "",
+            "gitKind": "github"
+        },
+        "env": "nodejs",
+        "entryPoint": "./app.js",
+        "type": "Git"
     },
     {
         "name": "yellow-alg",

@@ -5,7 +5,8 @@ const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const builds = require('./builds');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
-const { MESSAGES } = require('../consts/builds');
+const { MESSAGES, BUILD_TYPES } = require('../consts/builds');
+const gitDataAdapter = require('./githooks/git-data-adapter');
 
 class AlgorithmStore {
     async updateAlgorithm(options) {
@@ -88,7 +89,7 @@ class AlgorithmStore {
     }
 
     async applyAlgorithm(options) {
-        const { payload, file } = options;
+        const { payload } = options;
         let buildId;
         const messages = [];
         try {
@@ -96,11 +97,20 @@ class AlgorithmStore {
             const oldAlgorithm = await stateManager.getAlgorithm(payload);
             let newAlgorithm = payload;
 
-            if (file.path) {
-                const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
+            if (options.file && options.file.path) {
+                const result = await builds.createBuild(options.file, oldAlgorithm, newAlgorithm);
                 buildId = result.buildId; // eslint-disable-line
                 messages.push(...result.messages);
                 newAlgorithm = result.algorithm;
+            }
+            else if (payload.type === BUILD_TYPES.GIT) {
+                let updatedPayload = payload;
+                if (!oldAlgorithm) {
+                    updatedPayload = await gitDataAdapter.getInfoAndAdapt(options);
+                }
+                const result = await builds.createBuildFromGitRepository({ ...updatedPayload });
+                buildId = result.buildId; // eslint-disable-line
+                messages.push(...result.messages);
             }
             else {
                 messages.push(MESSAGES.NO_FILE_FOR_BUILD);
@@ -111,7 +121,7 @@ class AlgorithmStore {
             }
 
             newAlgorithm = { ...oldAlgorithm, ...newAlgorithm };
-            if (!newAlgorithm.algorithmImage && !file.path) {
+            if (!newAlgorithm.algorithmImage && !(options.file && options.file.path) && !newAlgorithm.gitRepository) {
                 throw new InvalidDataError(MESSAGES.APPLY_ERROR);
             }
             if (!newAlgorithm.algorithmImage && buildId) {
@@ -121,7 +131,7 @@ class AlgorithmStore {
             await stateManager.setAlgorithm(newAlgorithm);
         }
         finally {
-            builds.removeFile(file);
+            builds.removeFile(options.file);
         }
         return { buildId, messages };
     }

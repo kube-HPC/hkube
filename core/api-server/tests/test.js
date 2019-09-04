@@ -11,6 +11,8 @@ const stateManager = require('../lib/state/state-manager');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms, pipelines, triggersTree, webhookStub, workerStub } = require('./mocks');
 const converter = require('@hkube/units-converter');
+
+const githubSample = require('./mocks/github-sample.json')
 let config, baseUrl;
 const delay = d => new Promise(r => setTimeout(r, d));
 
@@ -30,7 +32,7 @@ const _request = (options) => {
     });
 }
 
-const storageAdapters = ['s3', 'fs'];
+const storageAdapters = ['fs', 's3',];
 
 describe('API-Server', () => {
     before(async () => {
@@ -1785,6 +1787,7 @@ describe('API-Server', () => {
                             });
                         });
                     });
+
                     describe('Store/Algorithms', () => {
                         let restPath = null;
                         let applyPath = null;
@@ -1999,7 +2002,8 @@ describe('API-Server', () => {
                                     options: {
                                         debug: false,
                                         pending: false
-                                    }
+                                    },
+                                    type: "Image"
                                 });
                             });
                             it('should succeed to store algorithm', async () => {
@@ -2007,7 +2011,8 @@ describe('API-Server', () => {
                                     name: uuidv4(),
                                     algorithmImage: "image",
                                     mem: "50Mi",
-                                    cpu: 1
+                                    cpu: 1,
+                                    type: "Image"
                                 }
                                 const options = {
                                     uri: restPath,
@@ -2345,7 +2350,7 @@ describe('API-Server', () => {
                                 expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
                             });
                             it('should succeed to update algorithm', async () => {
-                                const body = Object.assign({}, algorithms[0]);
+                                const body = { ...algorithms[0], type: "Image" };
                                 const options = {
                                     uri: restPath,
                                     method: 'PUT',
@@ -2357,6 +2362,52 @@ describe('API-Server', () => {
                                 expect(response.body).to.deep.equal(body);
                             });
                         });
+                        describe('Git', () => {
+                            let webhookPath = null;
+                            let applyPath = null;
+                            before(() => {
+                                webhookPath = `${restUrl}/builds/webhook/github`;
+                                applyPath = `${restUrl}/store/algorithms/apply`;
+                            });
+                            describe('Github', () => {
+                                it('should run simple push webhook', async () => {
+                                    const options = {
+                                        uri: webhookPath,
+                                        body: { payload: JSON.stringify(githubSample) },
+                                        method: 'POST'
+
+                                    };
+                                    const res = await _request(options);
+                                    const filterdRes = res.body.find(r=>r.buildId.includes('green-alg'))
+                                    expect(filterdRes).to.not.be.null
+                                })
+                                it('should create build with last commit data', async () => {
+
+                                    const name = uuidv4();
+                                    const body = {
+                                        name,
+                                        mem: "6000Mi",
+                                        cpu: 1,
+                                        gitRepository: {
+                                            url: "https://github.com/maty21/statistisc",
+                                            branchName: "master",
+                                            gitKind: "github"
+                                        },
+                                        env: "nodejs",
+                                        type: "Git"
+                                    }
+                                    const payload = JSON.stringify(body);
+                                    const options = {
+                                        uri: applyPath,
+                                        body: { payload }
+                                    };
+                                    const _res = await _request(options);
+                                    expect(_res.body.buildId).to.contain(name)
+
+                                });
+                            })
+
+                        })
                     });
                     describe('Store/Pipelines', () => {
                         let restPath = null;

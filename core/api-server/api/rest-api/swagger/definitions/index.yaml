@@ -42,3 +42,5 @@ webhookResult:
   $ref: ./webhookResult.yaml
 webhooks:
   $ref: ./webhooks.yaml
+githubWebhook:
+  $ref: ./githubWebhook.yaml

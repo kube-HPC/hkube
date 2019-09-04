@@ -1,0 +1,10 @@
+type: object
+properties:
+  env:
+    type: string
+    enum:
+      - nodejs
+      - python
+      - jvm
+required:
+  - env

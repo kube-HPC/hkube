@@ -1,16 +1,22 @@
 const path = require('path');
 const Stream = require('stream');
+const { promisify } = require('util');
 const fse = require('fs-extra');
 const Zip = require('adm-zip');
 const targz = require('targz');
+const _clone = require('git-clone');
 const { spawn } = require('child_process');
 const { parseImageName } = require('@hkube/kubernetes-client').utils;
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { STATES, PROGRESS } = require('../consts/States');
+const buildType = require('../consts/buildType');
 const component = require('../consts/components').DOCKER_BUILDER;
 const { KANIKO } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
+
+
+const gitClone = promisify(_clone);
 
 const _ensureDirs = async (dirs) => {
     await Promise.all(Object.values(dirs).map(d => fse.ensureDir(d)));
@@ -122,7 +128,9 @@ const _downloadFile = async ({ buildId, src, dest, fileExt, overwrite }) => {
     await _extractFile({ src, dest, fileExt, overwrite });
     await fse.remove(src);
 };
-
+const _downloadFromGit = async ({ dest, gitRepository }) => {
+    await _gitClone({ url: gitRepository.repository.url, commitId: gitRepository.commit.id, dest });
+};
 const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     const envr = `environments/${env}`;
     await fse.ensureDir(buildPath);
@@ -130,6 +138,14 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     await fse.move(dest, `${buildPath}/algorithm_unique_folder`, { overwrite });
 };
 
+const _gitClone = async ({ url, commitId, dest }) => {
+    try {
+        const res = await gitClone(url, dest, { checkout: commitId });
+    }
+    catch (error) {
+        log.error(`error on cloning from ${url} - ${error}`, { component });
+    }
+};
 const _removeFolder = async ({ folder }) => {
     if (folder) {
         await fse.remove(folder);
@@ -317,7 +333,7 @@ const runBuild = async (options) => {
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
 
         const overwrite = true;
-        const { env, version, fileExt, baseImage } = build;
+        const { env, version, fileExt, baseImage, type, gitRepository } = build;
         const { docker, buildDirs, tmpFolder, packagesRepo } = options;
         buildMode = options.buildMode;
         algorithmName = build.algorithmName;
@@ -329,7 +345,12 @@ const runBuild = async (options) => {
 
         await _ensureDirs(buildDirs);
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        await _downloadFile({ buildId, src, dest, fileExt, overwrite });
+        if (type === buildType.GIT) {
+            await _downloadFromGit({ dest, gitRepository });
+        }
+        else {
+            await _downloadFile({ buildId, src, dest, fileExt, overwrite });
+        }
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
         result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, version, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo });

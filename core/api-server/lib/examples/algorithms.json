@@ -9,7 +9,9 @@
         "name": "green-alg",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.1,
-        "mem": "1024Mi"
+        "mem": "1024Mi",
+        "entryPoint": "./app.js",
+        "env": "node.js"
     },
     {
         "name": "yellow-alg",

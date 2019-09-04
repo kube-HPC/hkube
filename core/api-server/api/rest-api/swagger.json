@@ -2746,6 +2746,67 @@
                       },
                       "default": {}
                     },
+                    "gitRepository": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "description": "a url for the git repository"
+                        },
+                        "commit": {
+                          "type": "object",
+                          "description": "commit details",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "description": "commit id",
+                              "default": ""
+                            },
+                            "timestamp": {
+                              "type": "string",
+                              "description": "commit time",
+                              "default": ""
+                            },
+                            "message": {
+                              "type": "string",
+                              "description": "commit message",
+                              "default": ""
+                            }
+                          },
+                          "default": {},
+                          "required": [
+                            "id"
+                          ]
+                        },
+                        "branchName": {
+                          "type": "string",
+                          "description": "the branch name you wish to create a build from",
+                          "default": ""
+                        },
+                        "tag": {
+                          "type": "string",
+                          "description": "a specific tag which will trigger the build",
+                          "default": ""
+                        },
+                        "token": {
+                          "type": "string",
+                          "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                          "default": ""
+                        },
+                        "gitKind": {
+                          "type": "string",
+                          "enum": [
+                            "github",
+                            "gitlab",
+                            "none"
+                          ],
+                          "default": "none"
+                        }
+                      },
+                      "required": [
+                        "url"
+                      ]
+                    },
                     "entryPoint": {
                       "type": "string"
                     },
@@ -2772,6 +2833,16 @@
                       "additionalProperties": {
                         "type": "string"
                       }
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "type of algorithm code resource",
+                      "enum": [
+                        "Git",
+                        "Code",
+                        "Image"
+                      ],
+                      "default": "Image"
                     }
                   },
                   "required": [
@@ -3008,6 +3079,67 @@
                         },
                         "default": {}
                       },
+                      "gitRepository": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "a url for the git repository"
+                          },
+                          "commit": {
+                            "type": "object",
+                            "description": "commit details",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "commit id",
+                                "default": ""
+                              },
+                              "timestamp": {
+                                "type": "string",
+                                "description": "commit time",
+                                "default": ""
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "commit message",
+                                "default": ""
+                              }
+                            },
+                            "default": {},
+                            "required": [
+                              "id"
+                            ]
+                          },
+                          "branchName": {
+                            "type": "string",
+                            "description": "the branch name you wish to create a build from",
+                            "default": ""
+                          },
+                          "tag": {
+                            "type": "string",
+                            "description": "a specific tag which will trigger the build",
+                            "default": ""
+                          },
+                          "token": {
+                            "type": "string",
+                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                            "default": ""
+                          },
+                          "gitKind": {
+                            "type": "string",
+                            "enum": [
+                              "github",
+                              "gitlab",
+                              "none"
+                            ],
+                            "default": "none"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
                       "entryPoint": {
                         "type": "string"
                       },
@@ -3034,6 +3166,16 @@
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "type of algorithm code resource",
+                        "enum": [
+                          "Git",
+                          "Code",
+                          "Image"
+                        ],
+                        "default": "Image"
                       }
                     },
                     "required": [
@@ -3126,6 +3268,67 @@
                     },
                     "default": {}
                   },
+                  "gitRepository": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "description": "a url for the git repository"
+                      },
+                      "commit": {
+                        "type": "object",
+                        "description": "commit details",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "commit id",
+                            "default": ""
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "description": "commit time",
+                            "default": ""
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "commit message",
+                            "default": ""
+                          }
+                        },
+                        "default": {},
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "branchName": {
+                        "type": "string",
+                        "description": "the branch name you wish to create a build from",
+                        "default": ""
+                      },
+                      "tag": {
+                        "type": "string",
+                        "description": "a specific tag which will trigger the build",
+                        "default": ""
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                        "default": ""
+                      },
+                      "gitKind": {
+                        "type": "string",
+                        "enum": [
+                          "github",
+                          "gitlab",
+                          "none"
+                        ],
+                        "default": "none"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  },
                   "entryPoint": {
                     "type": "string"
                   },
@@ -3152,6 +3355,16 @@
                     "additionalProperties": {
                       "type": "string"
                     }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "type of algorithm code resource",
+                    "enum": [
+                      "Git",
+                      "Code",
+                      "Image"
+                    ],
+                    "default": "Image"
                   }
                 },
                 "required": [
@@ -3299,6 +3512,67 @@
                     },
                     "default": {}
                   },
+                  "gitRepository": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "description": "a url for the git repository"
+                      },
+                      "commit": {
+                        "type": "object",
+                        "description": "commit details",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "commit id",
+                            "default": ""
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "description": "commit time",
+                            "default": ""
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "commit message",
+                            "default": ""
+                          }
+                        },
+                        "default": {},
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "branchName": {
+                        "type": "string",
+                        "description": "the branch name you wish to create a build from",
+                        "default": ""
+                      },
+                      "tag": {
+                        "type": "string",
+                        "description": "a specific tag which will trigger the build",
+                        "default": ""
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                        "default": ""
+                      },
+                      "gitKind": {
+                        "type": "string",
+                        "enum": [
+                          "github",
+                          "gitlab",
+                          "none"
+                        ],
+                        "default": "none"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  },
                   "entryPoint": {
                     "type": "string"
                   },
@@ -3325,6 +3599,16 @@
                     "additionalProperties": {
                       "type": "string"
                     }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "type of algorithm code resource",
+                    "enum": [
+                      "Git",
+                      "Code",
+                      "Image"
+                    ],
+                    "default": "Image"
                   }
                 },
                 "required": [
@@ -3458,6 +3742,67 @@
                         },
                         "default": {}
                       },
+                      "gitRepository": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "a url for the git repository"
+                          },
+                          "commit": {
+                            "type": "object",
+                            "description": "commit details",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "commit id",
+                                "default": ""
+                              },
+                              "timestamp": {
+                                "type": "string",
+                                "description": "commit time",
+                                "default": ""
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "commit message",
+                                "default": ""
+                              }
+                            },
+                            "default": {},
+                            "required": [
+                              "id"
+                            ]
+                          },
+                          "branchName": {
+                            "type": "string",
+                            "description": "the branch name you wish to create a build from",
+                            "default": ""
+                          },
+                          "tag": {
+                            "type": "string",
+                            "description": "a specific tag which will trigger the build",
+                            "default": ""
+                          },
+                          "token": {
+                            "type": "string",
+                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                            "default": ""
+                          },
+                          "gitKind": {
+                            "type": "string",
+                            "enum": [
+                              "github",
+                              "gitlab",
+                              "none"
+                            ],
+                            "default": "none"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
                       "entryPoint": {
                         "type": "string"
                       },
@@ -3484,6 +3829,16 @@
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "type of algorithm code resource",
+                        "enum": [
+                          "Git",
+                          "Code",
+                          "Image"
+                        ],
+                        "default": "Image"
                       }
                     },
                     "required": [
@@ -3566,6 +3921,67 @@
                           },
                           "default": {}
                         },
+                        "gitRepository": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string",
+                              "description": "a url for the git repository"
+                            },
+                            "commit": {
+                              "type": "object",
+                              "description": "commit details",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "commit id",
+                                  "default": ""
+                                },
+                                "timestamp": {
+                                  "type": "string",
+                                  "description": "commit time",
+                                  "default": ""
+                                },
+                                "message": {
+                                  "type": "string",
+                                  "description": "commit message",
+                                  "default": ""
+                                }
+                              },
+                              "default": {},
+                              "required": [
+                                "id"
+                              ]
+                            },
+                            "branchName": {
+                              "type": "string",
+                              "description": "the branch name you wish to create a build from",
+                              "default": ""
+                            },
+                            "tag": {
+                              "type": "string",
+                              "description": "a specific tag which will trigger the build",
+                              "default": ""
+                            },
+                            "token": {
+                              "type": "string",
+                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                              "default": ""
+                            },
+                            "gitKind": {
+                              "type": "string",
+                              "enum": [
+                                "github",
+                                "gitlab",
+                                "none"
+                              ],
+                              "default": "none"
+                            }
+                          },
+                          "required": [
+                            "url"
+                          ]
+                        },
                         "entryPoint": {
                           "type": "string"
                         },
@@ -3592,6 +4008,16 @@
                           "additionalProperties": {
                             "type": "string"
                           }
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "type of algorithm code resource",
+                          "enum": [
+                            "Git",
+                            "Code",
+                            "Image"
+                          ],
+                          "default": "Image"
                         }
                       },
                       "required": [
@@ -5359,6 +5785,67 @@
                           },
                           "default": {}
                         },
+                        "gitRepository": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string",
+                              "description": "a url for the git repository"
+                            },
+                            "commit": {
+                              "type": "object",
+                              "description": "commit details",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "commit id",
+                                  "default": ""
+                                },
+                                "timestamp": {
+                                  "type": "string",
+                                  "description": "commit time",
+                                  "default": ""
+                                },
+                                "message": {
+                                  "type": "string",
+                                  "description": "commit message",
+                                  "default": ""
+                                }
+                              },
+                              "default": {},
+                              "required": [
+                                "id"
+                              ]
+                            },
+                            "branchName": {
+                              "type": "string",
+                              "description": "the branch name you wish to create a build from",
+                              "default": ""
+                            },
+                            "tag": {
+                              "type": "string",
+                              "description": "a specific tag which will trigger the build",
+                              "default": ""
+                            },
+                            "token": {
+                              "type": "string",
+                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                              "default": ""
+                            },
+                            "gitKind": {
+                              "type": "string",
+                              "enum": [
+                                "github",
+                                "gitlab",
+                                "none"
+                              ],
+                              "default": "none"
+                            }
+                          },
+                          "required": [
+                            "url"
+                          ]
+                        },
                         "entryPoint": {
                           "type": "string"
                         },
@@ -5385,6 +5872,16 @@
                           "additionalProperties": {
                             "type": "string"
                           }
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "type of algorithm code resource",
+                          "enum": [
+                            "Git",
+                            "Code",
+                            "Image"
+                          ],
+                          "default": "Image"
                         }
                       },
                       "required": [
@@ -5569,6 +6066,67 @@
                             },
                             "default": {}
                           },
+                          "gitRepository": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string",
+                                "description": "a url for the git repository"
+                              },
+                              "commit": {
+                                "type": "object",
+                                "description": "commit details",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "description": "commit id",
+                                    "default": ""
+                                  },
+                                  "timestamp": {
+                                    "type": "string",
+                                    "description": "commit time",
+                                    "default": ""
+                                  },
+                                  "message": {
+                                    "type": "string",
+                                    "description": "commit message",
+                                    "default": ""
+                                  }
+                                },
+                                "default": {},
+                                "required": [
+                                  "id"
+                                ]
+                              },
+                              "branchName": {
+                                "type": "string",
+                                "description": "the branch name you wish to create a build from",
+                                "default": ""
+                              },
+                              "tag": {
+                                "type": "string",
+                                "description": "a specific tag which will trigger the build",
+                                "default": ""
+                              },
+                              "token": {
+                                "type": "string",
+                                "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                                "default": ""
+                              },
+                              "gitKind": {
+                                "type": "string",
+                                "enum": [
+                                  "github",
+                                  "gitlab",
+                                  "none"
+                                ],
+                                "default": "none"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          },
                           "entryPoint": {
                             "type": "string"
                           },
@@ -5595,6 +6153,16 @@
                             "additionalProperties": {
                               "type": "string"
                             }
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "type of algorithm code resource",
+                            "enum": [
+                              "Git",
+                              "Code",
+                              "Image"
+                            ],
+                            "default": "Image"
                           }
                         },
                         "required": [
@@ -5838,6 +6406,90 @@
           },
           "404": {
             "description": "build Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/builds/webhook/github": {
+      "post": {
+        "tags": [
+          "Builds"
+        ],
+        "summary": "Insert webhook for automating build after push",
+        "description": "webhook for automating  build algorithm directly from github",
+        "requestBody": {
+          "content": {
+            "application/x-www-from-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "github": {
+                    "type": "object",
+                    "description": "github object which received after push for more information https://developer.github.com/webhooks/"
+                  }
+                },
+                "required": [
+                  "github"
+                ]
+              }
+            }
+          },
+          "description": "github webhook data",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "webhook created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -6636,6 +7288,67 @@
             },
             "default": {}
           },
+          "gitRepository": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "a url for the git repository"
+              },
+              "commit": {
+                "type": "object",
+                "description": "commit details",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "commit id",
+                    "default": ""
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "description": "commit time",
+                    "default": ""
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "commit message",
+                    "default": ""
+                  }
+                },
+                "default": {},
+                "required": [
+                  "id"
+                ]
+              },
+              "branchName": {
+                "type": "string",
+                "description": "the branch name you wish to create a build from",
+                "default": ""
+              },
+              "tag": {
+                "type": "string",
+                "description": "a specific tag which will trigger the build",
+                "default": ""
+              },
+              "token": {
+                "type": "string",
+                "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                "default": ""
+              },
+              "gitKind": {
+                "type": "string",
+                "enum": [
+                  "github",
+                  "gitlab",
+                  "none"
+                ],
+                "default": "none"
+              }
+            },
+            "required": [
+              "url"
+            ]
+          },
           "entryPoint": {
             "type": "string"
           },
@@ -6662,6 +7375,16 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "type": {
+            "type": "string",
+            "description": "type of algorithm code resource",
+            "enum": [
+              "Git",
+              "Code",
+              "Image"
+            ],
+            "default": "Image"
           }
         },
         "required": [
@@ -6727,6 +7450,67 @@
                 },
                 "default": {}
               },
+              "gitRepository": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "a url for the git repository"
+                  },
+                  "commit": {
+                    "type": "object",
+                    "description": "commit details",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "commit id",
+                        "default": ""
+                      },
+                      "timestamp": {
+                        "type": "string",
+                        "description": "commit time",
+                        "default": ""
+                      },
+                      "message": {
+                        "type": "string",
+                        "description": "commit message",
+                        "default": ""
+                      }
+                    },
+                    "default": {},
+                    "required": [
+                      "id"
+                    ]
+                  },
+                  "branchName": {
+                    "type": "string",
+                    "description": "the branch name you wish to create a build from",
+                    "default": ""
+                  },
+                  "tag": {
+                    "type": "string",
+                    "description": "a specific tag which will trigger the build",
+                    "default": ""
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line",
+                    "default": ""
+                  },
+                  "gitKind": {
+                    "type": "string",
+                    "enum": [
+                      "github",
+                      "gitlab",
+                      "none"
+                    ],
+                    "default": "none"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              },
               "entryPoint": {
                 "type": "string"
               },
@@ -6753,6 +7537,16 @@
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "type": {
+                "type": "string",
+                "description": "type of algorithm code resource",
+                "enum": [
+                  "Git",
+                  "Code",
+                  "Image"
+                ],
+                "default": "Image"
               }
             },
             "required": [
@@ -7355,6 +8149,18 @@
           }
         },
         "additionalProperties": false
+      },
+      "githubWebhook": {
+        "type": "object",
+        "properties": {
+          "github": {
+            "type": "object",
+            "description": "github object which received after push for more information https://developer.github.com/webhooks/"
+          }
+        },
+        "required": [
+          "github"
+        ]
       }
     }
   }
