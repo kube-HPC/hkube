@@ -36,19 +36,19 @@ class AlgorithmExecution {
     _registerToEtcdEvents() {
         discovery.on(taskEvents.SUCCEED, (task) => {
             this._sendDoneToAlgorithm(task);
-            this._deleteExecutions(task.execId);
+            this._deleteExecution(task.execId);
         });
         discovery.on(taskEvents.FAILED, (task) => {
             this._sendErrorToAlgorithm(task);
-            this._deleteExecutions(task.execId);
+            this._deleteExecution(task.execId);
         });
         discovery.on(taskEvents.STALLED, (task) => {
             this._sendErrorToAlgorithm(task);
-            this._deleteExecutions(task.execId);
+            this._deleteExecution(task.execId);
         });
         discovery.on(taskEvents.CRASHED, (task) => {
             this._sendErrorToAlgorithm(task);
-            this._deleteExecutions(task.execId);
+            this._deleteExecution(task.execId);
         });
     }
 
@@ -61,7 +61,7 @@ class AlgorithmExecution {
         });
     }
 
-    _deleteExecutions(execId) {
+    _deleteExecution(execId) {
         this._executions.delete(execId);
     }
 
@@ -109,8 +109,9 @@ class AlgorithmExecution {
     }
 
     async stopAllExecutions({ jobId }) {
+        let response = null;
         if (this._stopping) {
-            return;
+            return response;
         }
         try {
             this._stopping = true;
@@ -121,10 +122,10 @@ class AlgorithmExecution {
 
             if (this._executions.size === 0) {
                 log.info('no registered executions to stop', { component });
-                return;
+                return response;
             }
             log.info(`stopping ${this._executions.size} executions`, { component });
-            await Promise.all([...this._executions.values()].map(e => discovery.stopAlgorithmExecution({ jobId, taskId: e.taskId })));
+            response = await Promise.all([...this._executions.values()].map(e => discovery.stopAlgorithmExecution({ jobId, taskId: e.taskId })));
         }
         catch (e) {
             log.warning(`failed to stop executions: ${e.message}`, { component });
@@ -133,6 +134,7 @@ class AlgorithmExecution {
             this._executions.clear();
             this._stopping = false;
         }
+        return response;
     }
 
     async _stopAlgorithmExecution(message) {
@@ -205,10 +207,7 @@ class AlgorithmExecution {
                 pipelineName: jobData.pipelineName,
                 priority: jobData.priority,
                 algorithmName,
-                info: {
-                    extraData: jobData.extraData,
-                    lastRunResult: jobData.lastRunResult
-                }
+                info: jobData.info
             }
         };
         return jobOptions;
