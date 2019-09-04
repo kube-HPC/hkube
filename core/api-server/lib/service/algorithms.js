@@ -108,9 +108,6 @@ class AlgorithmStore {
                 if (!oldAlgorithm) {
                     updatedPayload = await gitDataAdapter.getInfoAndAdapt(options);
                 }
-                // else {
-                //     gitDetails = gitDataAdapter.adapt(options);
-                // }
                 const result = await builds.createBuildFromGitRepository({ ...updatedPayload });
                 buildId = result.buildId; // eslint-disable-line
                 messages.push(...result.messages);

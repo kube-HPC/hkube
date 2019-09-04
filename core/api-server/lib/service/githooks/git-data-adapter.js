@@ -1,13 +1,10 @@
 const Octokit = require('@octokit/rest');
 const Logger = require('@hkube/logger');
-const stateManager = require('../../state/state-manager');
 const component = require('../../consts/componentNames');
-const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../../errors');
 const { WEBHOOKS, BUILD_TYPES } = require('../../consts/builds');
-const algorithms = require('../algorithms');
 
 const log = Logger.GetLogFromContanier();
-class gitDataAdapter {
+class GitDataAdapter {
     constructor() {
         this.adapterRegister = {
             [WEBHOOKS.GITHUB]: this._githubAdapter.bind(this)
@@ -38,7 +35,7 @@ class gitDataAdapter {
             });
         }
         catch (error) {
-            console.log(error);
+            log.error(`faild to get commit info for url ${payload.gitRepository.url}- ${error}`, { component: component.GITHUB_WEBHOOK });
         }
 
 
@@ -84,4 +81,4 @@ class gitDataAdapter {
     }
 }
 
-module.exports = new gitDataAdapter();
+module.exports = new GitDataAdapter();

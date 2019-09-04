@@ -2,16 +2,13 @@
 //     commit: { id: null, timestamp: null, message: null }
 //     repository: { utl: null }
 // }
-const Logger = require('@hkube/logger');
 const stateManager = require('../../state/state-manager');
-const component = require('../../consts/componentNames');
-const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../../errors');
+const { ResourceNotFoundError } = require('../../errors');
 const { WEBHOOKS, BUILD_TYPES } = require('../../consts/builds');
 const gitDataAdapter = require('./git-data-adapter');
 const algorithms = require('../algorithms');
 
-const log = Logger.GetLogFromContanier();
-class gitWebhookListener {
+class GitWebhookListener {
     async listen(data) {
         const gitDetails = gitDataAdapter.adapt({ type: WEBHOOKS.GITHUB, data });
         if (!gitDetails) {
@@ -35,9 +32,8 @@ class gitWebhookListener {
     async _checkRegistration(url) {
         // TODO:add branch for filter
         const algorithmList = await stateManager.getAlgorithms();
-        const _algorithms = algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.url));
-
-        return _algorithms;
+        const storedAlgorithms = algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.url));
+        return storedAlgorithms;
     }
 
     async _storeBuildData(data) {
@@ -45,4 +41,4 @@ class gitWebhookListener {
     }
 }
 
-module.exports = new gitWebhookListener();
+module.exports = new GitWebhookListener();

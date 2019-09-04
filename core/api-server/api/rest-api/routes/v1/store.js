@@ -86,11 +86,14 @@ const routes = (options) => {
         next();
     });
     router.post('/algorithms/apply', upload.single('file'), logger(), async (req, res, next) => {
-        const body = (req.body.payload) || null;
+        const body = (req.body.payload) || '{}';
         const payload = JSON.parse(body);
-        // eslint-disable-next-line no-nested-ternary
-        const type = req.file ? BUILD_TYPES.CODE : (payload && payload.gitRepository ? BUILD_TYPES.GIT : BUILD_TYPES.IMAGE);
+        let { type } = payload;
         const file = req.file || {};
+        if (!type) {
+            // eslint-disable-next-line no-nested-ternary
+            type = req.file ? BUILD_TYPES.CODE : (payload && payload.gitRepository ? BUILD_TYPES.GIT : BUILD_TYPES.IMAGE);
+        }
         const response = await algorithmStore.applyAlgorithm({ payload: { ...payload, type }, file: { path: file.path, name: file.originalname } });
         res.json(response);
         next();
