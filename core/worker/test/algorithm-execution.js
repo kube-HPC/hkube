@@ -2,16 +2,17 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const mockery = require('mockery');
 const delay = require('delay');
-const configIt = require('@hkube/config');
+const Logger = require('@hkube/logger');
+const { main: config, logger } = require('@hkube/config').load();
 const uuid = require('uuid/v4');
 const storageManager = require('@hkube/storage-manager');
-const bootstrap = require('../bootstrap');
-const config = configIt.load().main;
 const execAlgorithm = require('../lib/algorithm-execution/algorithm-execution');
+const algoRunnerCommunication = require('../lib/algorithm-communication/workerCommunication');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 const etcd = require('../lib/states/discovery');
+const log = new Logger(config.serviceName, logger);
 
-describe('AlgorithmExecutions', () => {
+describe.only('AlgorithmExecutions', () => {
     let spy;
     before(async () => {
         mockery.enable({
@@ -19,13 +20,16 @@ describe('AlgorithmExecutions', () => {
             warnOnUnregistered: false,
             useCleanCache: true
         });
-        await storageManager.init(config, true);
+        await storageManager.init(config, log, true);
+        await execAlgorithm.init(config);
+        await algoRunnerCommunication.init(config);
+        await etcd.init(config);
     });
     after(async () => {
         mockery.resetCache();
     });
     afterEach(function () {
-        spy.restore();
+        spy && spy.restore();
         execAlgorithm._watching = false;
         execAlgorithm._executions.clear();
     });
@@ -325,6 +329,7 @@ describe('AlgorithmExecutions', () => {
         expect(args.taskId).equals(task.taskId);
     });
     it('should handle stop all executions', async function () {
+        const size = 5;
         const jobData = {
             jobId: `job-${uuid()}`,
             nodeName: 'white',
@@ -337,7 +342,7 @@ describe('AlgorithmExecutions', () => {
             }
         };
         jobConsumer._job = { data: jobData };
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < size; i++) {
             const data = {
                 execId: `execId-${uuid()}`,
                 algorithmName: 'black-alg',
@@ -345,7 +350,8 @@ describe('AlgorithmExecutions', () => {
             };
             await execAlgorithm._startAlgorithmExecution({ data });
         }
-        await execAlgorithm.stopAllExecutions({ reason: 'cancel all...' });
+        const response = await execAlgorithm.stopAllExecutions({ jobId: jobData.jobId });
+        expect(response).to.have.lengthOf(size);
         expect(execAlgorithm._executions.size).to.equal(0);
     });
 });
