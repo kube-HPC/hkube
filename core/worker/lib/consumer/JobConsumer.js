@@ -103,12 +103,12 @@ class JobConsumer extends EventEmitter {
         });
 
         stateManager.on('finish', () => {
-            this.finishBullJob({ results: { shouldNormalExit: true } });
+            this.finishBullJob({ shouldNormalExit: true });
         });
     }
 
-    finishBullJob(result) {
-        const shouldNormalExit = result && result.results.shouldNormalExit;
+    finishBullJob(options) {
+        const { shouldNormalExit } = options;
         if (this._job && shouldNormalExit) {
             this._job.done(this._job.error);
             log.info(`finish job ${this._jobId}`);

@@ -338,7 +338,7 @@ class Worker {
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {
                         log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
-                        stateManager.exit();
+                        stateManager.exit({ shouldNormalExit: true });
                     }
                 }, this._inactiveTimeoutMs);
             }
@@ -362,7 +362,7 @@ class Worker {
                 case workerStates.exit:
                     await jobConsumer.pause();
                     await jobConsumer.finishJob(result);
-                    jobConsumer.finishBullJob(result);
+                    jobConsumer.finishBullJob({ shouldNormalExit: results.shouldNormalExit });
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
