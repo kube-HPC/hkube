@@ -1,5 +1,6 @@
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
+const delay = require('delay');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
@@ -133,14 +134,21 @@ class Worker {
         if (this._debugMode) {
             return;
         }
+        await delay(2000);
         const type = jobConsumer.getAlgorithmType();
         const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
-        const defaultMessage = `algorithm ${type} has disconnected, reason: ${reason}`;
+        const container = containerStatus || {};
+        const containerReason = container.reason || '';
+        const workerState = stateManager.state;
+        const containerMessage = Object.entries(container).map(([k, v]) => `${k}: ${v}`);
+        const defaultMessage = `algorithm ${type} has disconnected while in ${workerState} state, reason: ${reason}.`;
+        const shouldNormalExit = workerState !== workerStates.working && workerState !== workerStates.bootstrap;
         const message = {
             error: {
-                reason: containerStatus && containerStatus.reason,
-                message: `${defaultMessage}. ${(containerStatus && containerStatus.message) || ''}`
-            }
+                reason: containerReason,
+                message: `${defaultMessage} ${containerMessage}`,
+            },
+            shouldNormalExit
         };
         log.error(message.error.message, { component });
         stateManager.exit(message);
