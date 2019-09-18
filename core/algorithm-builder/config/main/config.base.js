@@ -31,6 +31,11 @@ config.docker = {
     }
 };
 
+config.kubernetes = {
+    isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
+    namespace: process.env.NAMESPACE || 'default'
+};
+
 config.packagesRepo = {
     nodejs: {
         registry: process.env.NPM_REGISTRY || '',
