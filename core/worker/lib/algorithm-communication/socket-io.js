@@ -2,11 +2,11 @@ const EventEmitter = require('events');
 const http = require('http');
 const socketio = require('socket.io');
 const Logger = require('@hkube/logger');
-const djsv = require('djsv');
+const Validator = require('ajv');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const messages = require('./messages');
 const component = require('../consts').Components.COMMUNICATIONS;
-
+const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
 class SocketWorkerCommunication extends EventEmitter {
@@ -22,13 +22,9 @@ class SocketWorkerCommunication extends EventEmitter {
         return new Promise((resolve, reject) => { // eslint-disable-line consistent-return
             try {
                 const options = option || {};
-                const validator = djsv(schema);
-                const validatedOptions = validator(options);
-                if (validatedOptions.valid) {
-                    this._options = validatedOptions.instance;
-                }
-                else {
-                    return reject(new Error(validatedOptions.errors[0]));
+                const valid = validator.validate(schema, options);
+                if (!valid) {
+                    return reject(new Error(validator.errorsText(validator.errors)));
                 }
                 const server = this._options.httpServer || http.createServer();
                 this._socketServer = socketio.listen(server, {

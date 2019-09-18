@@ -2,10 +2,10 @@ const EventEmitter = require('events');
 const http = require('http');
 const WebSocket = require('ws');
 const Logger = require('@hkube/logger');
-const djsv = require('djsv');
+const Validator = require('ajv');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const component = require('../consts').Components.COMMUNICATIONS;
-
+const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
 class WsWorkerCommunication extends EventEmitter {
@@ -21,13 +21,9 @@ class WsWorkerCommunication extends EventEmitter {
         return new Promise((resolve, reject) => { // eslint-disable-line consistent-return
             try {
                 const options = option || {};
-                const validator = djsv(schema);
-                const validatedOptions = validator(options);
-                if (validatedOptions.valid) {
-                    this._options = validatedOptions.instance;
-                }
-                else {
-                    return reject(new Error(validatedOptions.errors[0]));
+                const valid = validator.validate(schema, options);
+                if (!valid) {
+                    return reject(new Error(validator.errorsText(validator.errors)));
                 }
                 const server = this._options.httpServer || http.createServer();
                 this._socketServer = new WebSocket.Server({ server, maxPayload: this._options.maxPayload });

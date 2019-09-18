@@ -1,5 +1,5 @@
 const uuidv4 = require('uuid/v4');
-const validate = require('djsv');
+const Validator = require('ajv');
 const { consts } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
@@ -10,7 +10,7 @@ const messages = require('../algorithm-communication/messages');
 const { Components, taskEvents } = require('../consts');
 const jobConsumer = require('../consumer/JobConsumer');
 const { producerSchema, startAlgorithmSchema, stopAlgorithmSchema } = require('./schema');
-
+const validator = new Validator({ useDefaults: true, coerceTypes: false });
 const component = Components.ALGORITHM_EXECUTION;
 let log;
 
@@ -19,6 +19,10 @@ class AlgorithmExecution {
         log = Logger.GetLogFromContainer();
         this._watching = false;
         this._executions = new Map();
+        this._producerSchema = validator.compile(producerSchema);
+        this._startAlgorithmSchema = validator.compile(startAlgorithmSchema);
+        this._stopAlgorithmSchema = validator.compile(stopAlgorithmSchema);
+
         this._initProducer(options);
         this._registerToEtcdEvents();
         this._registerToAlgorithmEvents();
@@ -26,9 +30,9 @@ class AlgorithmExecution {
 
     _initProducer(options) {
         const setting = Object.assign({}, { redis: options.redis });
-        const res = validate(producerSchema, setting);
-        if (!res.valid) {
-            throw new Error(res.error);
+        const valid = this._producerSchema(setting);
+        if (!valid) {
+            throw new Error(validator.errorsText(this._producerSchema.errors));
         }
         this._producer = new Producer({ setting });
     }
@@ -140,10 +144,10 @@ class AlgorithmExecution {
     async _stopAlgorithmExecution(message) {
         let execId;
         try {
-            const data = message && message.data;
-            const res = validate(stopAlgorithmSchema, data);
-            if (!res.valid) {
-                throw new Error(res.error);
+            const data = (message && message.data) || {};
+            const valid = this._stopAlgorithmSchema(data);
+            if (!valid) {
+                throw new Error(validator.errorsText(this._stopAlgorithmSchema.errors));
             }
             execId = data.execId; // eslint-disable-line
             if (!this._executions.has(execId)) {
@@ -161,10 +165,10 @@ class AlgorithmExecution {
     async _startAlgorithmExecution(message) {
         let execId;
         try {
-            const data = message && message.data;
-            const res = validate(startAlgorithmSchema, data);
-            if (!res.valid) {
-                throw new Error(res.error);
+            const data = (message && message.data) || {};
+            const valid = this._startAlgorithmSchema(data);
+            if (!valid) {
+                throw new Error(validator.errorsText(this._startAlgorithmSchema.errors));
             }
             execId = data.execId; // eslint-disable-line
             if (this._executions.has(execId)) {
