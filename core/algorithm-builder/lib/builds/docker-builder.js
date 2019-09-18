@@ -6,7 +6,6 @@ const Zip = require('adm-zip');
 const targz = require('targz');
 const _clone = require('git-clone');
 const { spawn } = require('child_process');
-const { parseImageName } = require('@hkube/kubernetes-client').utils;
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { STATES, PROGRESS } = require('../consts/States');
@@ -14,6 +13,7 @@ const buildType = require('../consts/buildType');
 const component = require('../consts/components').DOCKER_BUILDER;
 const { KANIKO } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
+const kubernetes = require('../helpers/kubernetes');
 
 
 const gitClone = promisify(_clone);
@@ -140,7 +140,7 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
 
 const _gitClone = async ({ url, commitId, dest }) => {
     try {
-        const res = await gitClone(url, dest, { checkout: commitId });
+        await gitClone(url, dest, { checkout: commitId });
     }
     catch (error) {
         log.error(`error on cloning from ${url} - ${error}`, { component });
@@ -196,19 +196,12 @@ const _createDockerCredentials = (pullRegistry, pushRegistry) => {
     return creds;
 };
 
-const _getBaseImageVersion = async (env) => {
-    const data = await fse.readFile(`${process.cwd()}/lib/builds/base-versions`, 'utf8');
-    const splitted = data.split('\n');
-    const obj = Object.create(null);
-    splitted.forEach((s) => {
-        const line = s.split('=');
-        obj[line[0]] = line[1];
-    });
-    const baseVersion = obj[env];
-    if (!baseVersion) {
-        throw new Error(`unable to find base version for ${env} env`);
+const _getBaseImageVersion = async (baseImage) => {
+    const imageName = await kubernetes.createImageName(baseImage);
+    if (!imageName) {
+        throw new Error(`unable to find base version for ${baseImage} env`);
     }
-    return baseVersion;
+    return imageName;
 };
 
 const _fixUrl = (url) => {
@@ -219,35 +212,19 @@ const _createURL = (options) => {
     return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
 };
 
-function resolveBaseImage(baseImage, registry) {
-    if (!baseImage) {
-        return null;
-    }
-    let baseImageName;
-    const parsedBaseImage = parseImageName(baseImage);
-    if (parsedBaseImage) {
-        baseImageName = parsedBaseImage.name;
-        if (!parsedBaseImage.registry) {
-            baseImageName = path.join(registry, baseImageName);
-        }
-    }
-    return baseImageName;
-}
 
 const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo }) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
-    const baseVersion = await _getBaseImageVersion(env);
+    const baseImageName = await _getBaseImageVersion(baseImage || `hkube/${env}-env`);
     const packages = packagesRepo[env];
-    const baseImageName = resolveBaseImage(baseImage, docker.pull.registry);
-    const defaultBaseImage = `${pullRegistry}/${env}-env:${baseVersion}`;
 
     const args = [
         '--img', algorithmImage,
         '--rmi', rmi,
         '--buildPath', buildPath,
-        '--baseImage', baseImageName || defaultBaseImage
+        '--baseImage', baseImageName
     ];
 
     // docker pull

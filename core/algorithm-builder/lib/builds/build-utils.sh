@@ -42,7 +42,7 @@ dockerBuildKaniko() {
   if [[ $skip_tls_verify_pull == true ]]; then options="${options} --skip-tls-verify-pull"; fi
   
   echo "/kaniko/executor \
-    --dockerfile ./docker/DockerfileTemplate \
+    --dockerfile ./dockerfile/DockerfileTemplate \
     ${options} --context dir:///workspace/ \
     --build-arg packagesRegistry=${packagesRegistry} \
     --build-arg packagesToken=${packagesToken} \
@@ -76,7 +76,7 @@ dockerBuild() {
   --force-rm \
   --network=host \
   -t ${image} \
-  -f ${buildPath}/docker/${dockerFile} ${buildPath}
+  -f ${buildPath}/dockerfile/${dockerFile} ${buildPath}
 }
 
 dockerPush() {

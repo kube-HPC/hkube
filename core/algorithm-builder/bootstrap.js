@@ -5,10 +5,12 @@ const config = main;
 const log = new Logger(config.serviceName, logger);
 const component = require('./lib/consts/components').MAIN;
 const dockerBuilder = require('./lib/builds/docker-builder');
+const kubernetes = require('./lib/helpers/kubernetes');
 
 const modules = [
     require('@hkube/storage-manager'),
-    require('./lib/state/state-manager')
+    require('./lib/state/state-manager'),
+    kubernetes
 ];
 
 class Bootstrap {

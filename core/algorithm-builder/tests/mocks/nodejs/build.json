@@ -5,7 +5,6 @@
     "version": "5.0.0",
     "fileExt": "gz",
     "status": "pending",
-    "baseImage": "hkubedev/debug:v1.0.1",
     "error": null,
     "stack": null,
     "result": null,
