@@ -20,6 +20,7 @@ const jobTemplate = {
                 }
             },
             spec: {
+                serviceAccountName: 'algorithm-builder-serviceaccount',
                 containers: [
                     {
                         name: ALGORITHM_BUILDS,
