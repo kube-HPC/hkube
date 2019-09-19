@@ -11,7 +11,6 @@ let log;
 class WsWorkerCommunication extends EventEmitter {
     constructor() {
         super();
-        this._options = null;
         this._socketServer = null;
         this._socket = null;
     }
@@ -25,8 +24,8 @@ class WsWorkerCommunication extends EventEmitter {
                 if (!valid) {
                     return reject(new Error(validator.errorsText(validator.errors)));
                 }
-                const server = this._options.httpServer || http.createServer();
-                this._socketServer = new WebSocket.Server({ server, maxPayload: this._options.maxPayload });
+                const server = options.httpServer || http.createServer();
+                this._socketServer = new WebSocket.Server({ server, maxPayload: options.maxPayload });
 
                 this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!', { component });
@@ -39,8 +38,8 @@ class WsWorkerCommunication extends EventEmitter {
                 this._socketServer.on('listening', () => {
                     log.debug('listening', { component });
                 });
-                if (!this._options.httpServer) {
-                    server.listen(this._options.connection.port, () => {
+                if (!options.httpServer) {
+                    server.listen(options.connection.port, () => {
                         return resolve();
                     });
                 }

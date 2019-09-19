@@ -306,6 +306,19 @@ class JobConsumer extends EventEmitter {
         }
     }
 
+    async sendWarning(warning) {
+        const data = {
+            warning,
+            status: constants.JOB_STATUS.WARNING,
+            jobId: this._jobId,
+            taskId: this._taskId,
+            execId: this._job.data.execId,
+            nodeName: this._job.data.nodeName,
+            algorithmName: this._job.data.algorithmName,
+        };
+        await etcd.update(data);
+    }
+
     async finishJob(data = {}) {
         if (!this._job) {
             return;
