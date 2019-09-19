@@ -86,7 +86,7 @@ describe.only('AlgorithmExecutions', () => {
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('execId');
         expect(args).to.have.property('error');
-        expect(args.error).equals('data.algorithmName should NOT be shorter than 1 characters');
+        expect(args.error).equals('data.algorithmName should be string');
     });
     it('should fail with execution cannot start in this state', async function () {
         const data = {

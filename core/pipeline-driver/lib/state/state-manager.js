@@ -25,6 +25,7 @@ class StateManager extends EventEmitter {
     _subscribe() {
         this._etcd.jobs.tasks.on('change', (data) => {
             this.emit(`task-${data.status}`, data);
+            this.emit('task-*', data);
         });
         this._etcd.jobs.state.on('change', (data) => {
             this.emit(`job-${data.state}`, data);

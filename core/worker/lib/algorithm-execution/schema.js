@@ -19,10 +19,6 @@ const startAlgorithmSchema = {
             type: 'string',
             minLength: 1
         },
-        nodeName: {
-            type: 'string',
-            minLength: 1
-        },
         input: {
             type: 'array'
         }

@@ -103,12 +103,13 @@ class JobConsumer extends EventEmitter {
         });
 
         stateManager.on('finish', () => {
-            this.finishBullJob();
+            this.finishBullJob({ shouldNormalExit: true });
         });
     }
 
-    finishBullJob() {
-        if (this._job) {
+    finishBullJob(options) {
+        const { shouldNormalExit } = options;
+        if (this._job && shouldNormalExit) {
             this._job.done(this._job.error);
             log.info(`finish job ${this._jobId}`);
         }
@@ -260,11 +261,13 @@ class JobConsumer extends EventEmitter {
         let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
         let reason = null;
+        let shouldNormalExit = true;
 
         if (results != null) {
             error = results.error && results.error.message;
             reason = results.error && results.error.reason;
             status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
+            shouldNormalExit = results.shouldNormalExit === undefined ? true : results.shouldNormalExit;
         }
 
         const resultData = results && results.data;
@@ -273,7 +276,8 @@ class JobConsumer extends EventEmitter {
             status,
             error,
             reason,
-            resultData
+            resultData,
+            shouldNormalExit
         };
     }
 
@@ -302,6 +306,19 @@ class JobConsumer extends EventEmitter {
         }
     }
 
+    async sendWarning(warning) {
+        const data = {
+            warning,
+            status: constants.JOB_STATUS.WARNING,
+            jobId: this._jobId,
+            taskId: this._taskId,
+            execId: this._job.data.execId,
+            nodeName: this._job.data.nodeName,
+            algorithmName: this._job.data.algorithmName,
+        };
+        await etcd.update(data);
+    }
+
     async finishJob(data = {}) {
         if (!this._job) {
             return;
@@ -311,29 +328,30 @@ class JobConsumer extends EventEmitter {
             await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
         let storageResult = {};
-        const { resultData, status, error, reason } = this._getStatus(data);
+        const { resultData, status, error, reason, shouldNormalExit } = this._getStatus(data);
 
-        if (!error && status === constants.JOB_STATUS.SUCCEED) {
-            storageResult = await this._putResult(resultData);
+        if (shouldNormalExit) {
+            if (!error && status === constants.JOB_STATUS.SUCCEED) {
+                storageResult = await this._putResult(resultData);
+            }
+            const resData = Object.assign({
+                status,
+                error,
+                reason,
+                jobId: this._jobId,
+                taskId: this._taskId,
+                execId: this._job.data.execId,
+                nodeName: this._job.data.nodeName,
+                algorithmName: this._job.data.algorithmName,
+                endTime: Date.now()
+            }, storageResult);
+
+            this._job.error = error;
+            await etcd.update(resData);
+            await this._putMetadata(resData);
+            log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
-
-        const resData = Object.assign({
-            status,
-            error,
-            reason,
-            jobId: this._jobId,
-            taskId: this._taskId,
-            execId: this._job.data.execId,
-            nodeName: this._job.data.nodeName,
-            algorithmName: this._job.data.algorithmName,
-            endTime: Date.now()
-        }, storageResult);
-
-        this._job.error = error;
-        await etcd.update(resData);
-        await this._putMetadata(resData);
         this._summarizeMetrics(status);
-        log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
     }
 

@@ -1,7 +1,8 @@
 const EventEmitter = require('events');
-const djsv = require('djsv');
+const Validator = require('ajv');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const messages = require('./messages');
+const validator = new Validator({ useDefaults: true, coerceTypes: true });
 
 class Loopback extends EventEmitter {
     constructor() {
@@ -12,13 +13,10 @@ class Loopback extends EventEmitter {
 
     async init(option) {
         const options = option || {};
-        const validator = djsv(schema);
-        const validatadOptions = validator(options);
-        if (validatadOptions.valid) {
-            this._options = validatadOptions.instance;
-        }
-        else {
-            throw new Error(validatadOptions.errorDescription);
+        const valid = validator.validate(schema, options);
+
+        if (!valid) {
+            throw new Error(validator.errorsText(validator.errors));
         }
     }
 

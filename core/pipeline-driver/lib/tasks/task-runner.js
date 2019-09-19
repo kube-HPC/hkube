@@ -48,31 +48,31 @@ class TaskRunner extends EventEmitter {
         this._stateManager.on(Events.JOBS.STOP, (data) => {
             this.stop(null, data.reason);
         });
-        this._stateManager.on(Events.TASKS.ACTIVE, (task) => {
+        this._stateManager.on('task-*', (task) => {
             this._handleTaskEvent(task);
-        });
-        this._stateManager.on(Events.TASKS.SUCCEED, (task) => {
-            this._handleTaskEvent(task);
-        });
-        this._stateManager.on(Events.TASKS.FAILED, (task) => {
-            this._handleTaskEvent(task);
-        });
-        this._stateManager.on(Events.TASKS.STALLED, (task) => {
-            const { error, ...rest } = task;
-            const prevError = error;
-            this._handleTaskEvent({ prevError, ...rest });
-        });
-        this._stateManager.on(Events.TASKS.CRASHED, (task) => {
-            const data = { ...task, status: NodeStates.FAILED };
-            this._handleTaskEvent(data);
         });
     }
 
     _handleTaskEvent(task) {
         switch (task.status) {
-            case NodeStates.STALLED:
-                this._setTaskState(task);
+            case NodeStates.STALLED: {
+                const { error, ...rest } = task;
+                const prevError = error;
+                this._setTaskState({ prevError, ...rest });
                 break;
+            }
+            case NodeStates.CRASHED: {
+                const data = { ...task, endTime: Date.now(), status: NodeStates.FAILED };
+                this._setTaskState(data);
+                this._taskComplete(task.taskId);
+                break;
+            }
+            case NodeStates.WARNING: {
+                const { warning, ...rest } = task;
+                const prevError = warning;
+                this._setTaskState({ prevError, ...rest });
+                break;
+            }
             case NodeStates.ACTIVE:
                 this._setTaskState(task);
                 break;

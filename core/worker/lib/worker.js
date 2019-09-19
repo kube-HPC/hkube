@@ -134,16 +134,24 @@ class Worker {
             return;
         }
         const type = jobConsumer.getAlgorithmType();
-        const containerStatus = await kubernetes.getPodContainerStatus(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
-        const defaultMessage = `algorithm ${type} has disconnected, reason: ${reason}`;
-        const message = {
+        const containerStatus = await kubernetes.waitForExitState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
+        const container = containerStatus || {};
+        const containerReason = container.reason || '';
+        const workerState = stateManager.state;
+        const containerMessage = Object.entries(container).map(([k, v]) => `${k}: ${v}`);
+        const defaultMessage = `algorithm ${type} has disconnected while in ${workerState} state, reason: ${reason}.`;
+        const shouldNormalExit = workerState !== workerStates.working && workerState !== workerStates.bootstrap;
+        const data = {
             error: {
-                reason: containerStatus && containerStatus.reason,
-                message: `${defaultMessage}. ${(containerStatus && containerStatus.message) || ''}`
-            }
+                reason: containerReason,
+                message: `${defaultMessage} ${containerMessage}`,
+            },
+            shouldNormalExit
         };
-        log.error(message.error.message, { component });
-        stateManager.exit(message);
+        const error = data.error.message;
+        log.error(error, { component });
+        await jobConsumer.sendWarning(error);
+        stateManager.exit(data);
     }
 
     /**
@@ -330,7 +338,7 @@ class Worker {
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {
                         log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
-                        stateManager.exit();
+                        stateManager.exit({ shouldNormalExit: true });
                     }
                 }, this._inactiveTimeoutMs);
             }
@@ -354,7 +362,7 @@ class Worker {
                 case workerStates.exit:
                     await jobConsumer.pause();
                     await jobConsumer.finishJob(result);
-                    jobConsumer.finishBullJob(result);
+                    jobConsumer.finishBullJob({ shouldNormalExit: results.shouldNormalExit });
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:

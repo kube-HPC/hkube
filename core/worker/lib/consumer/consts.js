@@ -3,7 +3,8 @@ module.exports = {
         WORKING: 'working',
         ACTIVE: 'active',
         FAILED: 'failed',
-        SUCCEED: 'succeed'
+        SUCCEED: 'succeed',
+        WARNING: 'warning'
     },
     WATCH_STATE: {
         STOP: 'stop'
