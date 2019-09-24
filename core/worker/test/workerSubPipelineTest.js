@@ -326,7 +326,7 @@ describe('worker SubPipeline test', () => {
             // stop pipeline
             const discovery = require('../lib/states/discovery');
             const subPipelineJobId = subPipelineHandler.getSubPipelineJobId('trueSubPipeline');
-            discovery.emit(EventMessages.STOP, { jobId: jobConsumer.jobId, reason: 'test' });
+            discovery.emit(EventMessages.STOPPED, { jobId: jobConsumer.jobId, reason: 'test' });
             // ensure subPipeline was stopped
             expect(apiServerMock.isStopped(subPipelineJobId));
             done();

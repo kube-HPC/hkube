@@ -191,7 +191,7 @@ describe('Test', function () {
                 const taskRunner = new TaskRunner(config);
                 const spy = sinon.spy(taskRunner, "_cleanJob");
 
-                await stateManager.setJobStatus({ jobId, status });
+                await stateManager._etcd.jobs.status.set({ jobId, status });
                 await taskRunner.start(job);
 
                 const call = spy.getCalls()[0];
@@ -545,7 +545,7 @@ describe('Test', function () {
         it('setJobStatus', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const data = { status: 'completed' };
-            await stateManager.setJobStatus({ jobId, data });
+            await stateManager._etcd.jobs.status.set({ jobId, data });
             const response = await stateManager._etcd.jobs.status.get({ jobId });
             expect(response.data).to.deep.equal(data);
         });
@@ -572,76 +572,43 @@ describe('Test', function () {
                 }, 1000)
             });
         });
-        it('watchJobState', function () {
+        it('watchJobStatus', function () {
             return new Promise(async (resolve, reject) => {
                 const jobId = `jobid-${uuidv4()}`;
-                await stateManager.watchJobState({ jobId });
-                stateManager.on(Events.JOBS.STOP, (response) => {
+                const status = 'stopped';
+                await stateManager.watchJobStatus({ jobId });
+                stateManager.on(Events.JOBS.STOPPED, (response) => {
                     if (response.jobId === jobId) {
                         expect(response.jobId).to.equal(jobId);
-                        expect(response.state).to.equal('stop');
+                        expect(response.status).to.equal(status);
                         resolve();
                     }
                 });
-                await stateManager._etcd.jobs.state.set({ jobId, state: 'stop' });
+                await stateManager._etcd.jobs.status.set({ jobId, status });
             });
         });
         it('unWatchJobState', function () {
             return new Promise(async (resolve, reject) => {
                 const jobId = `jobid-${uuidv4()}`;
-                await stateManager.watchJobState({ jobId });
-                stateManager.on(Events.JOBS.STOP, (response) => {
+                await stateManager.watchJobStatus({ jobId });
+                stateManager.on(Events.JOBS.STOPPED, (response) => {
                     throw new Error('failed');
                 });
-                await stateManager.unWatchJobState({ jobId });
-                await stateManager._etcd.jobs.state.set({ jobId, state: 'stop' });
+                await stateManager.unWatchJobStatus({ jobId });
+                await stateManager._etcd.jobs.status.set({ jobId, status: 'stopped' });
                 setTimeout(() => {
                     resolve();
                 }, 1000)
             });
         });
     });
-    xdescribe('Consumer', function () {
+    describe('Consumer', function () {
         it('should pause', async function () {
-            const spy = sinon.spy(consumer, "_pause");
-            await stateFactory._etcd.discovery.set({ serviceName: main.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'stopProcessing' } });
-            await delay(500);
-            expect(spy.calledOnce).to.equal(true);
-        });
-        it('should resume', async function () {
-            const spy = sinon.spy(consumer, "_resume");
-            await stateFactory._etcd.discovery.set({ serviceName: main.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'startProcessing' } });
-            await delay(500);
-            expect(spy.calledOnce).to.equal(true);
-        });
-    });
-    xdescribe('State Factory', function () {
-        it('should get state', async function () {
-            this.timeout(5000);
-            const jobId = `jobid-${uuidv4()}`;
-            const setting = {
-                prefix: 'pipeline-driver'
-            };
-            const options = {
-                job: {
-                    type: 'pipeline-job',
-                    data: {
-                        jobId
-                    }
-                }
-            };
-            const pipeline = pipelines[0];
-            await stateManager.setExecution({ jobId, ...pipeline });
-            await stateFactory._etcd.discovery.set({ serviceName: main.serviceName, instanceId: stateFactory._etcd.discovery._instanceId, data: { status: 'startProcessing' } });
-            const producer = new Producer({ setting });
-            await producer.createJob(options);
-            await delay(500);
-            const state = stateFactory.getState();
-            expect(state.paused).to.equal(false);
-            expect(state.driverStatus).to.equal('active');
-            expect(state.jobStatus).to.equal('active');
-            expect(state.jobId).to.equal(jobId);
-            expect(state.pipelineName).to.equal('simple-flow');
+            const spy = sinon.spy(consumer, "_stopProcessing");
+            await delay(200);
+            await stateManager._etcd.drivers.set({ driverId: stateManager._driverId, status: { command: 'stopProcessing' } });
+            await delay(200);
+            expect(spy.called).to.equal(true);
         });
     });
 });

@@ -7,6 +7,6 @@ module.exports = {
         WARNING: 'warning'
     },
     WATCH_STATE: {
-        STOP: 'stop'
+        STOPPED: 'stopped'
     }
 };

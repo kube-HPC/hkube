@@ -187,8 +187,10 @@ class ExecutionService {
         if (!stateManager.isActiveState(jobStatus.status)) {
             throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, status: States.STOPPING, level: levels.INFO.name });
-        await stateManager.stopJob({ jobId: options.jobId, reason: options.reason });
+        const { jobId } = options;
+        const pipeline = await stateManager.getExecution({ jobId });
+        await stateManager.updateJobStatus({ jobId, status: States.STOPPED, reason: options.reason, level: levels.INFO.name });
+        await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: States.COMPLETED });
     }
 
     async getTree(options) {
@@ -205,7 +207,7 @@ class ExecutionService {
         await Promise.all([
             storageManager.hkubeIndex.delete({ jobId }),
             storageManager.hkubeExecutions.delete({ jobId }),
-            stateManager.stopJob({ jobId: options.jobId, reason: 'clean job' }),
+            stateManager.setJobStatus({ jobId: options.jobId, status: States.STOPPED, reason: 'clean job' }),
             stateManager.deleteRunningPipeline({ jobId }),
             stateManager.deleteExecution({ jobId }),
             stateManager.deleteJobResults({ jobId }),

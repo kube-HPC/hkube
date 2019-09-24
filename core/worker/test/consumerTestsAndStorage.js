@@ -83,7 +83,7 @@ describe('consumer tests', () => {
     });
     it('if job already stopped return and finish job', (done) => {
         let config = getConfig();
-        etcd._etcd.jobs.state.set({ jobId: config.jobId, state: 'stop' }).then(() => {
+        etcd._etcd.jobs.status.set({ jobId: config.jobId, status: 'stopped' }).then(() => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     const spy = sinon.spy(consumer, '_stopJob');

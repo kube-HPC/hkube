@@ -11,9 +11,9 @@ class Persistence extends EventEmitter {
         const { etcd, persistence, serviceName } = options;
         this.queueName = persistence.type;
         this.client = new Client({ ...etcd, serviceName });
-        await this.watchJobState();
-        this.client.jobs.state.on('change', (data) => {
-            this.emit(`job-${data.state}`, data);
+        await this.watchJobStatus();
+        this.client.jobs.status.on('change', (data) => {
+            this.emit(`job-${data.status}`, data);
         });
         return this;
     }
@@ -24,10 +24,6 @@ class Persistence extends EventEmitter {
 
     get() {
         return this.client.pipelineDrivers.queue.get({ name: this.queueName });
-    }
-
-    deleteTasksState(options) {
-        return this.client.jobs.state.delete(options);
     }
 
     getExecution(options) {
@@ -42,12 +38,12 @@ class Persistence extends EventEmitter {
         return this.client.jobs.results.set(options);
     }
 
-    watchJobState(options) {
-        return this.client.jobs.state.watch(options);
+    watchJobStatus(options) {
+        return this.client.jobs.status.watch(options);
     }
 
-    getJobState(options) {
-        return this.client.jobs.state.get(options);
+    getJobStatus(options) {
+        return this.client.jobs.status.get(options);
     }
 }
 

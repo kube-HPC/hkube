@@ -157,12 +157,12 @@ class StateManager extends EventEmitter {
         return this._etcd.jobs.status.set(options);
     }
 
-    deleteJobStatus(options) {
-        return this._etcd.jobs.status.delete(options);
+    updateJobStatus(options) {
+        return this._etcd.jobs.status.update(options);
     }
 
-    stopJob(options) {
-        return this._etcd.jobs.state.set({ jobId: options.jobId, state: 'stop', reason: options.reason });
+    deleteJobStatus(options) {
+        return this._etcd.jobs.status.delete(options);
     }
 
     async getResultFromStorage(options) {

@@ -24,7 +24,7 @@ class Etcd extends EventEmitter {
                 'setBuild'
             ], this, log);
         }
-        await this._etcd.jobs.state.watch({ jobId: 'hookWatch' });
+        await this._etcd.jobs.status.watch({ jobId: 'hookWatch' });
     }
 
     getAlgorithmTemplate({ name }) {
