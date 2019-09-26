@@ -350,32 +350,46 @@ describe('worker SubPipeline test', () => {
         expect(args.reason).equals(`parent algorithm entered state ${state}`, 'expect args to be correct');
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after state ready');
     });
-    it('enter ready state should clear subPipelines data', async function () {
+    it('should return error required property subPipelineId on start subpipeline', async function () {
         const spy = sinon.spy(subPipeline, '_handleJobError');
         await subPipeline._handleStartSubPipeline({ data: null });
         const call = spy.getCalls()[0] || {};
         const args = call.args && call.args[0];
         expect(args).equals(`data should have required property 'subPipelineId'`);
     });
-    it('enter ready state should clear subPipelines data', async function () {
+    it('enter should return error subPipelineId should be string on start subpipeline', async function () {
         const spy = sinon.spy(subPipeline, '_handleJobError');
         await subPipeline._handleStartSubPipeline({ data: { subPipelineId: 777 } });
         const call = spy.getCalls()[0] || {};
         const args = call.args && call.args[0];
         expect(args).equals('data.subPipelineId should be string');
     });
-    it('enter ready state should clear subPipelines data', async function () {
+    it('should return error subPipeline should be object on start subpipeline', async function () {
         const spy = sinon.spy(subPipeline, '_handleJobError');
         await subPipeline._handleStartSubPipeline({ data: { subPipelineId: '777', subPipeline: null } });
         const call = spy.getCalls()[0] || {};
         const args = call.args && call.args[0];
         expect(args).equals('data.subPipeline should be object');
     });
-    it('enter ready state should clear subPipelines data', async function () {
+    it('should not return error on start subpipeline on start subpipeline', async function () {
         const spy = sinon.spy(subPipeline, '_handleJobError');
         await subPipeline._handleStartSubPipeline({ data: { subPipelineId: '777', subPipeline: { name: 'bla' } } });
         const call = spy.getCalls()[0] || {};
         const args = call.args && call.args[0];
         expect(args).to.be.undefined;
+    });
+    it('should return error required property subPipelineId on stop subpipeline', async function () {
+        const spy = sinon.spy(subPipeline, '_handleJobError');
+        await subPipeline._handleStopSubPipeline({ data: null });
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).equals(`data should have required property 'subPipelineId'`);
+    });
+    it('enter should return error subPipelineId should be string on stop subpipeline', async function () {
+        const spy = sinon.spy(subPipeline, '_handleJobError');
+        await subPipeline._handleStopSubPipeline({ data: { subPipelineId: 777 } });
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).equals('data.subPipelineId should be string');
     });
 });
