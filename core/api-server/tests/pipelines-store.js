@@ -7,7 +7,6 @@ let restUrl, restPath;
 
 describe('Store/Pipelines', () => {
     before(() => {
-        config = global.testParams.config;
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/store/pipelines`;
     });

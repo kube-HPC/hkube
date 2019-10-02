@@ -6,7 +6,6 @@ let restUrl;
 
 describe('Pipelines', () => {
     before(() => {
-        config = global.testParams.config;
         restUrl = global.testParams.restUrl;
     });
     describe('/pipelines/results/stored', () => {

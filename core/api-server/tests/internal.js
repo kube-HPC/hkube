@@ -8,7 +8,6 @@ let restUrl, internalUrl;
 
 describe('Internal', () => {
     before(() => {
-        config = global.testParams.config;
         restUrl = global.testParams.restUrl;
         internalUrl = global.testParams.internalUrl;
     });

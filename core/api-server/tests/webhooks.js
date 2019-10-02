@@ -7,7 +7,6 @@ let restUrl;
 
 describe('Webhooks', () => {
     before(() => {
-        config = global.testParams.config;
         restUrl = global.testParams.restUrl;
     });
     describe('Results', () => {
