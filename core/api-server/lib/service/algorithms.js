@@ -26,6 +26,7 @@ class AlgorithmStore {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
         await this._checkAlgorithmDependencies(options.name);
+        await storageManager.hkubeStore.delete({ type: 'algorithm', name: options.name });
         return stateManager.deleteAlgorithm(options);
     }
 
