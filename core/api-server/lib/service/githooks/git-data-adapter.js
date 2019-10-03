@@ -2,7 +2,7 @@ const Octokit = require('@octokit/rest');
 const Logger = require('@hkube/logger');
 const component = require('../../consts/componentNames');
 const { WEBHOOKS, BUILD_TYPES } = require('../../consts/builds');
-
+const { ResourceNotFoundError } = require('../../errors');
 const log = Logger.GetLogFromContanier();
 class GitDataAdapter {
     constructor() {
@@ -36,7 +36,8 @@ class GitDataAdapter {
             });
         }
         catch (error) {
-            log.error(`faild to get commit info for url ${payload.gitRepository.url}- ${error}`, { component: component.GITHUB_WEBHOOK });
+            log.error(`failed to get commit info for url ${payload.gitRepository.url}- ${error}`, { component: component.GITHUB_WEBHOOK });
+            throw new ResourceNotFoundError(`algorithm ${payload.name}`, `failed to get commit info for url ${payload.gitRepository.url}`, ` ${error}`);
         }
 
 
@@ -82,7 +83,7 @@ class GitDataAdapter {
         const splittedUrl = url.split('/');
         return {
             owner: splittedUrl[3],
-            repo: splittedUrl[4]
+            repo: splittedUrl[4].split('.')[0]
         };
     }
 }
