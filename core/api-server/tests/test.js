@@ -2378,7 +2378,7 @@ describe('API-Server', () => {
 
                                     };
                                     const res = await _request(options);
-                                    const filterdRes = res.body.find(r=>r.buildId.includes('green-alg'))
+                                    const filterdRes = res.body.find(r => r.buildId.includes('green-alg'))
                                     expect(filterdRes).to.not.be.null
                                 })
                                 it('should create build with last commit data', async () => {
@@ -3415,7 +3415,7 @@ describe('API-Server', () => {
                     expect(jobs.every(j => j.includes(pipeline))).to.equal(true);
                 });
                 it('should run triggered pipelines and the executions tree', async function () {
-                    this.timeout(5000);
+                    this.timeout(10000);
                     const requests = 10;
                     const pipeline = 'trigger-test';
                     const results = [];

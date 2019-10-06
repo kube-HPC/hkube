@@ -15,6 +15,7 @@ class AlgorithmStore {
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
+        await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
         await stateManager.setAlgorithm(options);
         return options;
     }
@@ -76,11 +77,11 @@ class AlgorithmStore {
 
     async insertAlgorithm(options) {
         validator.validateUpdateAlgorithm(options);
-        await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
         const algorithm = await stateManager.getAlgorithm(options);
         if (algorithm) {
             throw new ResourceExistsError('algorithm', options.name);
         }
+        await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
         await stateManager.setAlgorithm(options);
         return options;
     }
@@ -129,6 +130,7 @@ class AlgorithmStore {
                 newAlgorithm.options.pending = true;
             }
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
+            await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
             await stateManager.setAlgorithm(newAlgorithm);
         }
         finally {
