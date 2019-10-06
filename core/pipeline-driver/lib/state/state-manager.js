@@ -4,7 +4,6 @@ const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
-const events = require('../helpers/events');
 
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED];
 
@@ -32,7 +31,7 @@ class StateManager extends EventEmitter {
             this.emit(`job-${data.status}`, data);
         });
         this._etcd.drivers.on('change', (data) => {
-            events.emit(data.status.command, data);
+            this.emit(data.status.command, data);
         });
     }
 

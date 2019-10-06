@@ -42,6 +42,9 @@ class TaskRunner extends EventEmitter {
             podName: options.kubernetes.podName,
             discoveryMethod: this._getDiscoveryData.bind(this)
         });
+        this._stateManager.on(Events.COMMANDS.stopProcessing, (data) => {
+            this.emit(Events.COMMANDS.stopProcessing, data);
+        });
         this._stateManager.on(Events.JOBS.STOPPED, (data) => {
             log.info(`pipeline ${data.status} ${this._jobId}. ${data.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
             this._jobStatus = data.status;
