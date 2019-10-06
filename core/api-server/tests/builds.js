@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
 const uuidv4 = require('uuid/v4');
+const HttpStatus = require('http-status-codes');
 const querystring = require('querystring');
 const builds = require('../lib/service/builds');
 const { request } = require('./utils');
@@ -15,23 +16,13 @@ describe('Builds', () => {
         before(() => {
             restPath = `${restUrl}/builds/status`;
         });
-        it('should throw Method Not Allowed', async () => {
-            const options = {
-                uri: restPath,
-                body: {}
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(405);
-            expect(response.body.error.message).to.equal('Method Not Allowed');
-        });
         it('should throw status Not Found with params', async () => {
             const options = {
                 uri: restPath + '/no_such_id',
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('build no_such_id Not Found');
         });
         it('should throw validation error of required property buildId', async () => {
@@ -40,7 +31,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'buildId'");
         });
         it('should succeed to get build status', async () => {
@@ -66,7 +57,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(200);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.have.property('status');
             expect(response.body).to.have.property('startTime');
             expect(response.body.status).to.equal('pending');
@@ -77,17 +68,6 @@ describe('Builds', () => {
         before(() => {
             restPath = `${restUrl}/builds/stop`;
         });
-        it('should throw Method Not Allowed', async () => {
-            const options = {
-                uri: restPath,
-                method: 'GET',
-                body: {}
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(405);
-            expect(response.body.error.message).to.equal('Method Not Allowed');
-        });
         it('should throw status Not Found with params', async () => {
             const options = {
                 uri: restPath,
@@ -96,7 +76,7 @@ describe('Builds', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('build no_such_id Not Found');
         });
         it('should throw validation error of required property buildId', async () => {
@@ -104,7 +84,7 @@ describe('Builds', () => {
                 uri: restPath
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'buildId'");
         });
         it('should succeed to stop build', async () => {
@@ -130,7 +110,7 @@ describe('Builds', () => {
                 body: { buildId: res.body.buildId }
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(200);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.message).to.equal('OK');
         })
     });
@@ -138,17 +118,6 @@ describe('Builds', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/builds/rerun`;
-        });
-        it('should throw Method Not Allowed', async () => {
-            const options = {
-                uri: restPath,
-                method: 'GET',
-                body: {}
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(405);
-            expect(response.body.error.message).to.equal('Method Not Allowed');
         });
         it('should throw status Not Found with params', async () => {
             const options = {
@@ -158,7 +127,7 @@ describe('Builds', () => {
                 }
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('build no_such_id Not Found');
         });
         it('should throw validation error of required property buildId', async () => {
@@ -166,7 +135,7 @@ describe('Builds', () => {
                 uri: restPath
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'buildId'");
         });
         it('should succeed to rerun build', async () => {
@@ -192,7 +161,7 @@ describe('Builds', () => {
                 body: { buildId: res.body.buildId }
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(400);
+            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('unable to rerun build because its in pending status');
         })
     });
@@ -201,23 +170,13 @@ describe('Builds', () => {
         before(() => {
             restPath = `${restUrl}/builds/list`;
         });
-        it('should throw Method Not Allowed', async () => {
-            const options = {
-                uri: restPath,
-                body: {}
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(405);
-            expect(response.body.error.message).to.equal('Method Not Allowed');
-        });
         it('should throw validation error of required property name', async () => {
             const options = {
                 uri: restPath,
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of order property', async () => {
@@ -227,7 +186,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
         });
         it('should throw validation error of sort property', async () => {
@@ -237,7 +196,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
         });
         it('should throw validation error of limit should be >= 1', async () => {
@@ -247,7 +206,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data.limit should be >= 1");
         });
         it('should throw validation error of limit should be integer', async () => {
@@ -257,7 +216,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data.limit should be integer");
         });
         it('should succeed to get build list', async () => {
@@ -298,7 +257,7 @@ describe('Builds', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(200);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.have.lengthOf(limit);
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('startTime');

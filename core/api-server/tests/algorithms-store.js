@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
 const uuidv4 = require('uuid/v4');
+const HttpStatus = require('http-status-codes');
 const converter = require('@hkube/units-converter');
 const { MESSAGES } = require('../lib/consts/builds');
 const githubSample = require('./mocks/github-sample.json')
@@ -22,7 +23,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
         });
         it('should return specific algorithm', async () => {
@@ -57,7 +58,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
         });
         it('should delete specific algorithm', async () => {
@@ -98,7 +99,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of data.name should be string', async () => {
@@ -110,7 +111,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should be string');
         });
         it('should throw validation error of memory min 4 Mi', async () => {
@@ -126,7 +127,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
         });
         it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -138,7 +139,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
         });
         it('should throw conflict error', async () => {
@@ -167,7 +168,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(400);
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
             });
         });
@@ -183,7 +184,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(400);
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
             });
             it(`should throw invalid if algorithm name if end with ${v}`, async () => {
@@ -196,7 +197,7 @@ describe('Store/Algorithms', () => {
                 };
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
-                expect(response.response.statusCode).to.equal(400);
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
             });
         });
@@ -212,7 +213,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(201);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             body.memReadable = body.mem;
             body.mem = converter.getMemoryInMi(body.mem);
             expect(response.body).to.deep.equal({
@@ -239,7 +240,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(201);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             body.memReadable = body.mem;
             body.mem = converter.getMemoryInMi(body.mem);
             expect(response.body).to.deep.equal({
@@ -260,7 +261,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of data.name should be string', async () => {
@@ -271,7 +272,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should be string');
         });
         it('should throw validation error of memory min 4 Mi', async () => {
@@ -288,7 +289,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
         });
         it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -299,7 +300,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
         });
         it('should throw validation invalid env', async () => {
@@ -317,7 +318,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain('data.env should be equal to one of the allowed values');
         });
         it('should throw validation invalid fileExt', async () => {
@@ -337,9 +338,9 @@ describe('Store/Algorithms', () => {
                 formData
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(400);
+            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain('data.fileExt should be equal to one of the allowed values');
         });
         it('should throw error of missing image and file', async () => {
@@ -357,7 +358,7 @@ describe('Store/Algorithms', () => {
             };
 
             const response = await request(options)
-            expect(response.response.statusCode).to.equal(400);
+            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
         });
         it('should throw error of having image and file', async () => {
@@ -378,7 +379,7 @@ describe('Store/Algorithms', () => {
             };
 
             const response = await request(options)
-            expect(response.response.statusCode).to.equal(400);
+            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(MESSAGES.FILE_AND_IMAGE);
         });
         it('should succeed to apply algorithm with first build', async () => {
@@ -398,7 +399,7 @@ describe('Store/Algorithms', () => {
                 formData
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(200);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.have.property('buildId');
             expect(response.body).to.have.property('messages');
             expect(response.body.messages[0]).to.equal(MESSAGES.FIRST_BUILD);
@@ -458,7 +459,7 @@ describe('Store/Algorithms', () => {
 
             // apply algorithm again
             const response = await request(options2);
-            expect(response.response.statusCode).to.equal(200);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.not.have.property('buildId');
             expect(response.body.messages[0]).to.equal(MESSAGES.NO_TRIGGER_FOR_BUILD);
         });
@@ -507,7 +508,7 @@ describe('Store/Algorithms', () => {
 
             // apply algorithm again
             const response = await request(options2);
-            expect(response.response.statusCode).to.equal(200);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.have.property('buildId');
             expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
         });
@@ -549,7 +550,7 @@ describe('Store/Algorithms', () => {
 
             // apply algorithm again
             const response = await request(options2);
-            expect(response.response.statusCode).to.equal(400);
+            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body).to.not.have.property('buildId');
             expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
         });
@@ -565,7 +566,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
         });
         it('should succeed to update algorithm', async () => {
@@ -625,6 +626,5 @@ describe('Store/Algorithms', () => {
 
             });
         })
-
     })
 });

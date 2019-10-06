@@ -1,5 +1,6 @@
 const clone = require('clone');
 const { expect } = require('chai');
+const HttpStatus = require('http-status-codes');
 const uuidv4 = require('uuid/v4');
 const querystring = require('querystring');
 const { pipelines, workerStub } = require('./mocks');
@@ -248,7 +249,7 @@ describe('Internal', () => {
             method: 'GET'
         };
         const response = await request(opt);
-        expect(response.response.statusCode).to.equal(200);
+        expect(response.response.statusCode).to.equal(HttpStatus.OK);
         expect(response.body).to.have.lengthOf(limit);
         expect(response.body[0]).to.have.property('jobId');
         expect(response.body[0]).to.have.property('data');

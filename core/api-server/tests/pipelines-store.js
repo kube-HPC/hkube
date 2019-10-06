@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const uuidv4 = require('uuid/v4');
+const HttpStatus = require('http-status-codes');
 const clone = require('clone');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
@@ -18,7 +19,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
         });
         it('should return specific pipeline', async () => {
@@ -39,7 +40,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline not_exists Not Found');
         });
         it('should delete specific pipeline', async () => {
@@ -78,7 +79,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
         it('should throw validation error of data.name should be string', async () => {
@@ -90,7 +91,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should be string');
         });
         it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
@@ -102,7 +103,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
         });
         it('should throw validation error of required property nodes', async () => {
@@ -114,7 +115,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'nodes'");
         });
         it('should throw validation error of required property nodes.nodeName', async () => {
@@ -134,7 +135,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'nodeName'");
         });
         it('should throw validation error of cron trigger', async () => {
@@ -150,7 +151,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.triggers.cron.pattern should match format "cron"');
         });
         it('should throw validation error of pipelines trigger should be array', async () => {
@@ -165,7 +166,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.triggers.pipelines should be array');
         });
         it('should throw validation error of pipelines trigger should NOT be shorter than 1 characters', async () => {
@@ -179,7 +180,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.triggers.pipelines[0] should NOT be shorter than 1 characters');
         });
         it('should throw validation error of required property nodes.algorithmName', async () => {
@@ -199,7 +200,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data.nodes[0] should have required property 'algorithmName'");
         });
         it('should throw validation error of nodes.input should be array', async () => {
@@ -218,7 +219,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
         });
         it('should throw validation error of data should NOT have additional properties', async () => {
             const options = {
@@ -240,7 +241,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data should NOT have additional properties');
         });
         it('should throw conflict error', async () => {
@@ -277,7 +278,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('found duplicate node dup');
         });
         it('should throw validation error of invalid reserved name flowInput', async () => {
@@ -296,7 +297,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
         });
         it('should throw validation error of node depend on not exists node', async () => {
@@ -307,7 +308,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
         });
         it('should throw validation error of cyclic nodes', async () => {
@@ -318,7 +319,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('pipeline cyclicNodes has cyclic nodes');
         });
         it('should throw validation error of flowInput not exist', async () => {
@@ -338,7 +339,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(400);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('unable to find flowInput.notExist');
         });
         it('should throw validation error if algorithmName not exists', async () => {
@@ -352,7 +353,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
         });
         it('should succeed to store pipeline and add defaults', async () => {
@@ -373,7 +374,7 @@ describe('Store/Pipelines', () => {
                 }
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(201);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(response.body).to.have.property('name');
             expect(response.body).to.have.property('nodes');
             expect(response.body).to.have.property('options');
@@ -396,7 +397,7 @@ describe('Store/Pipelines', () => {
                 body: pipeline
             };
             const response = await request(options);
-            expect(response.response.statusCode).to.equal(201);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(response.body).to.deep.equal(pipeline);
         });
     });
@@ -423,7 +424,7 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(404);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
         });
     });
