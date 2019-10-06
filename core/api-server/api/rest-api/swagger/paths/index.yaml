@@ -7,6 +7,10 @@
   $ref: ./exec/caching.yaml
 /exec/stop:
   $ref: ./exec/stop.yaml
+/exec/pause:
+  $ref: ./exec/pause.yaml
+/exec/resume:
+  $ref: ./exec/resume.yaml
 /exec/pipelines/{jobId}:
   $ref: ./exec/pipelines_jobId.yaml
 /exec/pipeline/list:
@@ -69,8 +73,8 @@
   $ref: ./builds/stop.yaml
 /builds/rerun:
   $ref: ./builds/rerun.yaml
-/builds/webhook/github: 
- $ref: ./builds/webhook.yaml 
+/builds/webhook/github:
+  $ref: ./builds/webhook.yaml
 
 # readme
 /readme/algorithms/{name}:

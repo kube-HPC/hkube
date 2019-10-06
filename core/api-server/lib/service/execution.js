@@ -66,7 +66,7 @@ class ExecutionService {
         return this._run(pipe, jobId);
     }
 
-    async _run(pipeLine, jobID, alreadyExecuted = false) {
+    async _run(pipeLine, jobID, alreadyExecuted = false, state) {
         let pipeline = pipeLine;
         let jobId = jobID;
         if (!jobId) {
@@ -89,11 +89,13 @@ class ExecutionService {
                 };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
+            const startTime = Date.now();
+            const status = state || States.PENDING;
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await storageManager.hkubeExecutions.put({ jobId, data: pipeline }, tracer.startSpan.bind(tracer, { name: 'storage-put-exeuctions', parent: span.context() }));
-            await stateManager.setExecution({ jobId, ...pipeline, startTime: Date.now(), lastRunResult });
-            await stateManager.setRunningPipeline({ jobId, ...pipeline, startTime: Date.now(), lastRunResult });
-            await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: States.PENDING, level: levels.INFO.name });
+            await stateManager.setExecution({ jobId, ...pipeline, startTime, lastRunResult });
+            await stateManager.setRunningPipeline({ jobId, ...pipeline, startTime, lastRunResult });
+            await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status, level: levels.INFO.name });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return jobId;
@@ -189,6 +191,37 @@ class ExecutionService {
         }
         await stateManager.setJobStatus({ jobId: options.jobId, pipeline: jobStatus.pipeline, status: States.STOPPING, level: levels.INFO.name });
         await stateManager.stopJob({ jobId: options.jobId, reason: options.reason });
+    }
+
+
+    async pauseJob(options) {
+        validator.validateJobID(options);
+        const { jobId } = options;
+        const jobStatus = await stateManager.getJobStatus({ jobId });
+        if (!jobStatus) {
+            throw new ResourceNotFoundError('jobId', jobId);
+        }
+        if (!stateManager.isActiveState(jobStatus.status)) {
+            throw new InvalidDataError(`unable to pause pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
+        }
+        await stateManager.updateJobStatus({ jobId, status: States.PAUSED, level: levels.INFO.name });
+    }
+
+    async resumeJob(options) {
+        validator.validateJobID(options);
+        const { jobId } = options;
+        const jobStatus = await stateManager.getJobStatus({ jobId });
+        if (!jobStatus) {
+            throw new ResourceNotFoundError('jobId', jobId);
+        }
+        if (!stateManager.isPausedState(jobStatus.status)) {
+            throw new InvalidDataError(`unable to resume pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
+        }
+        const pipeline = await stateManager.getExecution({ jobId });
+        if (!pipeline) {
+            throw new ResourceNotFoundError('pipeline', options.name);
+        }
+        return this._run(pipeline, jobId, true, States.RESUMED);
     }
 
     async getTree(options) {

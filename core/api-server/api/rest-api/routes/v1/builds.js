@@ -35,10 +35,8 @@ const routes = (options) => {
         res.json({ message: 'OK' });
         next();
     });
-    router.post('/webhook/github', methods(['POST']), logger(), async (req, res, next) => {
-        // req.body.payload;
+    router.all('/webhook/github', methods(['POST']), logger(), async (req, res, next) => {
         const response = await gitListener.listen(JSON.parse(req.body.payload));
-        //  Algorithms.getAlgorithmsQueueList().then((response) => {
         res.json(response);
         next();
     });
