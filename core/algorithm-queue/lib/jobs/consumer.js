@@ -3,7 +3,7 @@ const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
-const { heuristicsName } = require('../consts/index');
+const { heuristicsName, jobState } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
@@ -20,7 +20,7 @@ class JobConsumer extends EventEmitter {
         const { etcd, serviceName, algorithmType } = options;
         this._options = options;
         this.etcd = new Etcd({ ...etcd, serviceName });
-        await this.etcd.jobs.state.watch();
+        await this.etcd.jobs.status.watch();
         await this.etcd.algorithms.executions.watch();
 
         log.info(`registering for job ${options.algorithmType}`, { component });
@@ -29,14 +29,14 @@ class JobConsumer extends EventEmitter {
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-        this.etcd.jobs.state.on('change', (data) => {
-            if (data && data.state === 'stop') {
+        this.etcd.jobs.status.on('change', (data) => {
+            if (data && data.status === jobState.STOPPED) {
                 const { jobId } = data;
                 queueRunner.queue.removeJobs([{ jobId }]);
             }
         });
         this.etcd.algorithms.executions.on('change', (data) => {
-            if (data && data.state === 'stop') {
+            if (data && data.status === jobState.STOPPED) {
                 const { jobId, taskId } = data;
                 queueRunner.queue.removeJobs([{ jobId, taskId }]);
             }
@@ -47,9 +47,9 @@ class JobConsumer extends EventEmitter {
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
-            const data = await this.etcd.jobs.state.get({ jobId });
-            if (data && data.state === 'stop') {
-                log.warning(`job arrived with state stop therefore will not added to queue : ${jobId}`, { component });
+            const data = await this.etcd.jobs.status.get({ jobId });
+            if (data && data.status === jobState.STOPPED) {
+                log.warning(`job arrived with state stopped therefore will not added to queue : ${jobId}`, { component });
                 queueRunner.queue.removeJobs([{ jobId }]);
             }
             else {
