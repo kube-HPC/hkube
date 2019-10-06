@@ -15,7 +15,6 @@ class EtcdDiscovery extends EventEmitter {
 
     async init(options) {
         if (this._etcd) {
-            this._etcd.removeAllListeners();
             this._etcd = null;
             this.removeAllListeners();
         }
