@@ -12,7 +12,7 @@ const jobConsumer = require('../lib/consumer/JobConsumer');
 const etcd = require('../lib/states/discovery');
 const log = new Logger(config.serviceName, logger);
 
-describe.only('AlgorithmExecutions', () => {
+describe('AlgorithmExecutions', () => {
     let spy;
     before(async () => {
         mockery.enable({
@@ -27,6 +27,7 @@ describe.only('AlgorithmExecutions', () => {
     });
     after(async () => {
         mockery.resetCache();
+        mockery.disable();
     });
     afterEach(function () {
         spy && spy.restore();

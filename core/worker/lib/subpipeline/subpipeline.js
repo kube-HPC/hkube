@@ -1,4 +1,5 @@
 const Logger = require('@hkube/logger');
+const Validator = require('ajv');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const algoRunnerCommunication = require('../algorithm-communication/workerCommunication');
@@ -8,8 +9,8 @@ const { Status, EventMessages, ApiServerPostTypes, workerStates, Components } = 
 const apiServerClient = require('../helpers/api-server-client');
 const jobConsumer = require('../consumer/JobConsumer');
 const stateManager = require('../states/stateManager');
-
-
+const { startSubPipeline, stopSubPipeline } = require('./schema');
+const validator = new Validator({ useDefaults: true, coerceTypes: false });
 const component = Components.WORKER;
 let log;
 
@@ -20,7 +21,8 @@ class SubPipelineHandler {
         // subpipeline IDs mapping: jobId => internal alg subpipeline Id
         this._jobId2InternalIdMap = new Map();
         this._stoppingSubpipelines = false;
-
+        this._startSubPipelineSchema = validator.compile(startSubPipeline);
+        this._stopSubPipelineSchema = validator.compile(stopSubPipeline);
         this._registerToEtcdEvents();
         this._registerToAlgEvents();
     }
@@ -181,20 +183,27 @@ class SubPipelineHandler {
      * @param {object} message
      */
     _handleStopSubPipeline(message) {
-        const data = message && message.data;
-        const subPipelineId = data && data.subPipelineId;
-        const subPipelineJobId = this.getSubPipelineJobId(subPipelineId);
-        log.info(`got stopSubPipeline for alg subPipelineId ${subPipelineId} - subPipeline jobId: ${subPipelineJobId}`, { component });
-        if (!this._validateWorkingState('stop subPipeline')) {
-            return;
+        let subPipelineId;
+        try {
+            const data = (message && message.data) || {};
+            const valid = this._stopSubPipelineSchema(data);
+            if (!valid || !this._validateWorkingState('stop subPipeline')) {
+                throw new Error(validator.errorsText(this._stopSubPipelineSchema.errors));
+            }
+            subPipelineId = data.subPipelineId; // eslint-disable-line
+            const subPipelineJobId = this.getSubPipelineJobId(subPipelineId);
+            log.info(`got stopSubPipeline for alg subPipelineId ${subPipelineId} - subPipeline jobId: ${subPipelineJobId}`, { component });
+
+            if (!subPipelineJobId) {
+                log.warning(`ignore stopSubPipeline: alg subPipelineId ${subPipelineId} not found`, { component });
+                throw new Error(`cannot stop subPipeline - not found: ${subPipelineId}`);
+            }
+            const reason = `stopped by algorithm: ${data && data.reason}`;
+            this._stopSubPipeline(subPipelineJobId, reason);
         }
-        if (!subPipelineJobId) {
-            log.warning(`ignore stopSubPipeline: alg subPipelineId ${subPipelineId} not found`, { component });
-            this._handleJobError(`cannot stop subPipeline - not found: ${subPipelineId}`, subPipelineId);
-            return;
+        catch (e) {
+            this._handleJobError(e.message, subPipelineId);
         }
-        const reason = `stopped by algorithm: ${data && data.reason}`;
-        this._stopSubPipeline(subPipelineJobId, reason);
     }
 
     /**
@@ -258,32 +267,26 @@ class SubPipelineHandler {
      * @param {string} subPipelineType
      */
     async _handleStartSubPipeline(message, subPipelineType) {
-        const data = message && message.data;
-        const subPipeline = data && data.subPipeline;
-        const subPipelineId = data && data.subPipelineId;
-        if (!this._validateWorkingState('start subPipeline')) {
-            return;
-        }
-        if (!subPipeline) {
-            this._handleJobError("bad 'startSubPipeline' message: 'subPipeline' object is missing", subPipelineId);
-            return;
-        }
-        if (!subPipelineId) {
-            this._handleJobError("bad 'startSubPipeline' message: 'subPipelineId' is missing", subPipelineId);
-            return;
-        }
-        log.info(`got startSubPipeline ${subPipeline.name} from algorithm`, { component });
-
-        // send subPipelineStarted to alg
-        algoRunnerCommunication.send({
-            command: messages.outgoing.subPipelineStarted,
-            data: {
-                subPipelineId
-            }
-        });
-
-        // post subPipeline
+        let subPipelineId;
         try {
+            const data = (message && message.data) || {};
+            const valid = this._startSubPipelineSchema(data);
+            if (!valid || !this._validateWorkingState('start subPipeline')) {
+                throw new Error(validator.errorsText(this._startSubPipelineSchema.errors));
+            }
+            subPipelineId = data.subPipelineId; // eslint-disable-line
+            const subPipeline = data.subPipeline; // eslint-disable-line
+            log.info(`got startSubPipeline ${subPipeline.name} from algorithm`, { component });
+
+            // send subPipelineStarted to alg
+            algoRunnerCommunication.send({
+                command: messages.outgoing.subPipelineStarted,
+                data: {
+                    subPipelineId
+                }
+            });
+
+            // post subPipeline
             const { jobId, taskId } = jobConsumer;
             const subPipelineToPost = { ...subPipeline, jobId, taskId }; // add jobId, taskId
             const response = await apiServerClient.postSubPipeline(subPipelineToPost, subPipelineType);
@@ -318,8 +321,8 @@ class SubPipelineHandler {
                 throw new Error('post subPipeline got no response');
             }
         }
-        catch (error) {
-            this._handleJobError(error.message, subPipelineId);
+        catch (e) {
+            this._handleJobError(e.message, subPipelineId);
         }
     }
 
