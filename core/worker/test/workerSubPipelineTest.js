@@ -4,7 +4,6 @@ const chai = require('chai');
 const mockery = require('mockery');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
-const storageManager = require('@hkube/storage-manager');
 const delay = require('delay');
 const { main, logger } = configIt.load();
 log = new Logger(main.serviceName, logger);
@@ -127,22 +126,19 @@ describe('worker SubPipeline test', () => {
         mockery.enable({
             warnOnReplace: false,
             warnOnUnregistered: false,
-            useCleanCache: true
+            useCleanCache: false
         });
         mockery.registerSubstitute('./loopback', process.cwd() + '/test/mocks/algorunner-mock.js');
         mockery.registerSubstitute('../helpers/api-server-client', process.cwd() + '/test/mocks/api-server-mock.js');
         mockery.registerSubstitute('./states/stateManager', process.cwd() + '/test/mocks/stateManager.js');
         mockery.registerSubstitute('../states/stateManager', process.cwd() + '/test/mocks/stateManager.js'); // from subpipeline.js
 
-
-        const bootstrap = require('../bootstrap');
         workerCommunication = require('../lib/algorithm-communication/workerCommunication');
         stateManager = require('./mocks/stateManager');
         if (jobConsumer._algTracer) {
             jobConsumer._algTracer._tracer.close();
         }
-        await storageManager.init(main, null, true);
-        await bootstrap.init();
+
     });
     beforeEach(() => {
         workerCommunication.removeAllListeners(messages.incomming.done);

@@ -1,4 +1,3 @@
-const bootstrap = require('../bootstrap');
 const Consumer = require('../lib/consumer/JobConsumer');
 const { Producer } = require('@hkube/producer-consumer');
 const stateManager = require('../lib/states/stateManager.js');
@@ -9,7 +8,6 @@ const sinon = require('sinon');
 const uuid = require('uuid/v4');
 const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
-const mockery = require('mockery');
 const delay = require('delay');
 const etcd = require('../lib/states/discovery');
 
@@ -65,17 +63,8 @@ function getConfig() {
 
 describe('consumer tests', () => {
     beforeEach(async () => {
-        mockery.enable({
-            warnOnReplace: false,
-            warnOnUnregistered: false,
-            useCleanCache: true
-        });
-        mockery.resetCache();
-        let config = getConfig();
-        await storageManager.init(config, null, true);
         worker._isConnected = false;
         worker._isBootstrapped = false;
-        await bootstrap.init();
         consumer = Consumer;
         if (consumer._algTracer) {
             consumer._algTracer._tracer.close();
