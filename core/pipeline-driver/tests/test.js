@@ -8,6 +8,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const { Producer } = require('@hkube/producer-consumer');
 const Events = require('../lib/consts/Events');
+const DriverStates = require('../lib/state/DriverStates');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const { Node } = NodeTypes;
 const bootstrap = require('../bootstrap');
@@ -575,7 +576,7 @@ describe('Test', function () {
         it('watchJobStatus', function () {
             return new Promise(async (resolve, reject) => {
                 const jobId = `jobid-${uuidv4()}`;
-                const status = 'stopped';
+                const status = DriverStates.STOPPED;
                 await stateManager.watchJobStatus({ jobId });
                 stateManager.on(Events.JOBS.STOPPED, (response) => {
                     if (response.jobId === jobId) {
@@ -595,7 +596,7 @@ describe('Test', function () {
                     throw new Error('failed');
                 });
                 await stateManager.unWatchJobStatus({ jobId });
-                await stateManager._etcd.jobs.status.set({ jobId, status: 'stopped' });
+                await stateManager._etcd.jobs.status.set({ jobId, status: DriverStates.STOPPED });
                 setTimeout(() => {
                     resolve();
                 }, 1000)

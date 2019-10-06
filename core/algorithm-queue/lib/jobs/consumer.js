@@ -3,7 +3,7 @@ const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
-const { heuristicsName } = require('../consts/index');
+const { heuristicsName, jobState } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
@@ -30,13 +30,13 @@ class JobConsumer extends EventEmitter {
             this._handleJob(job);
         });
         this.etcd.jobs.status.on('change', (data) => {
-            if (data && data.status === 'stopped') {
+            if (data && data.status === jobState.STOPPED) {
                 const { jobId } = data;
                 queueRunner.queue.removeJobs([{ jobId }]);
             }
         });
         this.etcd.algorithms.executions.on('change', (data) => {
-            if (data && data.status === 'stopped') {
+            if (data && data.status === jobState.STOPPED) {
                 const { jobId, taskId } = data;
                 queueRunner.queue.removeJobs([{ jobId, taskId }]);
             }
@@ -48,7 +48,7 @@ class JobConsumer extends EventEmitter {
         try {
             const { jobId } = job.data;
             const data = await this.etcd.jobs.status.get({ jobId });
-            if (data && data.status === 'stopped') {
+            if (data && data.status === jobState.STOPPED) {
                 log.warning(`job arrived with state stopped therefore will not added to queue : ${jobId}`, { component });
                 queueRunner.queue.removeJobs([{ jobId }]);
             }
