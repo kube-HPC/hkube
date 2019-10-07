@@ -640,7 +640,7 @@ describe('Store/Algorithms', () => {
                     mem: "6000Mi",
                     cpu: 1,
                     gitRepository: {
-                        url: "https://github.com/maty21/statistisc",
+                        url: "https://github.com/maty21/statistisc.git",
                         branchName: "master",
                         gitKind: "github"
                     },

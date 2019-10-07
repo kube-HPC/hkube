@@ -14,7 +14,7 @@ class GitWebhookListener {
         if (!gitDetails) {
             throw new ResourceNotFoundError('algorithm', '');
         }
-        const _algorithms = await this._checkRegistration(`${gitDetails.repository.url}.git`);
+        const _algorithms = await this._checkRegistration({ url: `${gitDetails.repository.url}.git`, branchName: gitDetails.repository.branchName });
         if (!_algorithms.length) {
             throw new ResourceNotFoundError('algorithm', gitDetails.repository.url);
         }
@@ -22,7 +22,7 @@ class GitWebhookListener {
             {
                 ...algorithm,
                 mem: algorithm.memReadable,
-                gitRepository: { ...algorithm.gitRepository, url: `${algorithm.gitRepository.url}.git`, commit: gitDetails.commit }
+                gitRepository: { ...algorithm.gitRepository, commit: gitDetails.commit }
             }
         )));
         return res;
