@@ -98,7 +98,12 @@ class StateManager extends EventEmitter {
 
     async setJobStatus(options) {
         await this._updateDiscovery();
-        return this._etcd.jobs.status.update(options, s => s.status !== DriverStates.STOPPED);
+        return this._etcd.jobs.status.update(options, (oldItem) => {
+            if (oldItem.status !== DriverStates.STOPPED) {
+                return { ...oldItem, ...options };
+            }
+            return null;
+        });
     }
 
     getJobStatus(options) {
