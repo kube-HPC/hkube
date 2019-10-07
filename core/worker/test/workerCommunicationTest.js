@@ -1,4 +1,3 @@
-const bootstrap = require('../bootstrap');
 const stateManager = require('../lib/states/stateManager');
 global.stateManager = stateManager;
 const messages = require('../lib/algorithm-communication/messages');
@@ -14,7 +13,6 @@ const config = {
 };
 describe('worker communication', () => {
     before(async () => {
-        await bootstrap.init();
         await workerCommunication.init(config);
     });
     it('should create loopback adapter', async () => {
@@ -29,7 +27,6 @@ describe('worker communication', () => {
         expect(spy.callCount).to.eq(1);
         expect(spy.getCall(0).args[0]).to.eql(['1', '2']);
     });
-
     xit('should pass message.command events', async () => {
         const spy = sinon.spy();
         expect(stateManager.state).to.equal('bootstrap');

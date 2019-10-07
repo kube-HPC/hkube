@@ -1,34 +1,13 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
-const mockery = require('mockery');
 const delay = require('delay');
-const Logger = require('@hkube/logger');
-const { main: config, logger } = require('@hkube/config').load();
 const uuid = require('uuid/v4');
-const storageManager = require('@hkube/storage-manager');
 const execAlgorithm = require('../lib/algorithm-execution/algorithm-execution');
-const algoRunnerCommunication = require('../lib/algorithm-communication/workerCommunication');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 const etcd = require('../lib/states/discovery');
-const log = new Logger(config.serviceName, logger);
 
 describe('AlgorithmExecutions', () => {
     let spy;
-    before(async () => {
-        mockery.enable({
-            warnOnReplace: false,
-            warnOnUnregistered: false,
-            useCleanCache: true
-        });
-        await storageManager.init(config, log, true);
-        await execAlgorithm.init(config);
-        await algoRunnerCommunication.init(config);
-        await etcd.init(config);
-    });
-    after(async () => {
-        mockery.resetCache();
-        mockery.disable();
-    });
     afterEach(function () {
         spy && spy.restore();
         execAlgorithm._watching = false;

@@ -54,7 +54,7 @@ class Loopback extends EventEmitter {
     sendCommandWithDelay(message) {
         setTimeout(() => {
             this._simulateSend({ command: message.command, data: this._lastInput });
-        }, 1000);
+        }, 500);
     }
 
     _simulateSend(message) {
