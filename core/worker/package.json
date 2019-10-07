@@ -51,7 +51,6 @@
         "ws": "^7.0.0"
     },
     "devDependencies": {
-        "await-delay": "^1.0.0",
         "chai": "^4.2.0",
         "coveralls": "^3.0.3",
         "eslint": "^5.16.0",
@@ -62,7 +61,6 @@
         "mockery": "^2.1.0",
         "nyc": "^14.1.1",
         "pre-commit": "^1.2.2",
-        "sinon": "^7.3.2",
-        "socket.io-client": "^2.2.0"
+        "sinon": "^7.3.2"
     }
 }
