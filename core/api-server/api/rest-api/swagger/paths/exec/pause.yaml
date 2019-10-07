@@ -1,0 +1,36 @@
+post:
+  tags:
+    - Execution
+  summary: Pause pipeline
+  description: Call to pause pipeline execution
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/pauseRequest"
+    required: true
+  responses:
+    "200":
+      description: the OK string
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

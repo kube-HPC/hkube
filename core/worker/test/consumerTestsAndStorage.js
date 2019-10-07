@@ -10,6 +10,7 @@ const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
 const delay = require('delay');
 const etcd = require('../lib/states/discovery');
+const { Status } = require('../lib/consts');
 
 let consumer, producer;
 
@@ -72,7 +73,7 @@ describe('consumer tests', () => {
     });
     it('if job already stopped return and finish job', (done) => {
         let config = getConfig();
-        etcd._etcd.jobs.state.set({ jobId: config.jobId, state: 'stop' }).then(() => {
+        etcd._etcd.jobs.status.set({ jobId: config.jobId, status: Status.STOPPED }).then(() => {
             consumer.init(config).then(() => {
                 stateManager.once('stateEnteredready', async () => {
                     const spy = sinon.spy(consumer, '_stopJob');
@@ -84,7 +85,7 @@ describe('consumer tests', () => {
                                 jobId: config.jobId,
                                 taskId: config.taskId,
                                 input: ['test-param', true, 12345],
-                                pipelineName: 'stopped',
+                                pipelineName: Status.STOPPED,
                             }
                         }
                     }).then(async () => {

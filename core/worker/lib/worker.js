@@ -52,7 +52,7 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(EventMessages.STOP, async (res) => {
+        discovery.on(EventMessages.STOPPED, async (res) => {
             log.info(`got stop: ${res.reason}`, { component });
             const reason = `parent pipeline stopped: ${res.reason}`;
             const { jobId } = jobConsumer.jobData;
@@ -140,13 +140,13 @@ class Worker {
         const workerState = stateManager.state;
         const containerMessage = Object.entries(container).map(([k, v]) => `${k}: ${v}`);
         const defaultMessage = `algorithm ${type} has disconnected while in ${workerState} state, reason: ${reason}.`;
-        const shouldNormalExit = workerState !== workerStates.working && workerState !== workerStates.bootstrap;
+        const shouldCompleteJob = workerState !== workerStates.working && workerState !== workerStates.bootstrap;
         const data = {
             error: {
                 reason: containerReason,
                 message: `${defaultMessage} ${containerMessage}`,
             },
-            shouldNormalExit
+            shouldCompleteJob
         };
         const error = data.error.message;
         log.error(error, { component });
@@ -338,7 +338,7 @@ class Worker {
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {
                         log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
-                        stateManager.exit({ shouldNormalExit: true });
+                        stateManager.exit();
                     }
                 }, this._inactiveTimeoutMs);
             }
@@ -362,7 +362,7 @@ class Worker {
                 case workerStates.exit:
                     await jobConsumer.pause();
                     await jobConsumer.finishJob(result);
-                    jobConsumer.finishBullJob({ shouldNormalExit: results.shouldNormalExit });
+                    jobConsumer.finishBullJob(results);
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:

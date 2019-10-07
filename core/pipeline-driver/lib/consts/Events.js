@@ -1,7 +1,7 @@
 
 module.exports = {
     JOBS: {
-        STOP: 'job-stop',
+        STOPPED: 'job-stopped',
         WAITING: 'job-waiting',
         ACTIVE: 'job-active',
         FAILED: 'job-failed',

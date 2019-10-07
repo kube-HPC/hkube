@@ -27,8 +27,8 @@ class StateManager extends EventEmitter {
             this.emit(`task-${data.status}`, data);
             this.emit('task-*', data);
         });
-        this._etcd.jobs.state.on('change', (data) => {
-            this.emit(`job-${data.state}`, data);
+        this._etcd.jobs.status.on('change', (data) => {
+            this.emit(`job-${data.status}`, data);
         });
         this._etcd.drivers.on('change', (data) => {
             this.emit(data.status.command, data);
@@ -98,7 +98,7 @@ class StateManager extends EventEmitter {
 
     async setJobStatus(options) {
         await this._updateDiscovery();
-        return this._etcd.jobs.status.set(options);
+        return this._etcd.jobs.status.update(options, s => s.status !== DriverStates.STOPPED);
     }
 
     getJobStatus(options) {
@@ -135,15 +135,15 @@ class StateManager extends EventEmitter {
     }
 
     stopJob(options) {
-        return this._etcd.jobs.state.set({ jobId: options.jobId, state: 'stop', reason: options.reason });
+        return this._etcd.jobs.status.set({ jobId: options.jobId, status: DriverStates.STOPPED });
     }
 
-    watchJobState(options) {
-        return this._etcd.jobs.state.watch(options);
+    watchJobStatus(options) {
+        return this._etcd.jobs.status.watch(options);
     }
 
-    unWatchJobState(options) {
-        return this._etcd.jobs.state.unwatch(options);
+    unWatchJobStatus(options) {
+        return this._etcd.jobs.status.unwatch(options);
     }
 
     _watchDrivers() {

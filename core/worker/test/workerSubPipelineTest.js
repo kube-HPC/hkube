@@ -10,7 +10,7 @@ log = new Logger(main.serviceName, logger);
 const messages = require('../lib/algorithm-communication/messages');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 const { workerStates, stateEvents, EventMessages } = require('../lib/consts');
-
+let subPipeline;
 let workerCommunication;
 let stateManager;
 
@@ -122,7 +122,8 @@ function createAlgDataWithConditionalSubPipelines(input, codeArray, conditionCod
  * This suite tests the worker subpipeline support (using algorunner mock).
  */
 describe('worker SubPipeline test', () => {
-    before(async () => {
+    before(function () {
+        this.timeout(5000);
         mockery.enable({
             warnOnReplace: false,
             warnOnUnregistered: false,
@@ -135,12 +136,13 @@ describe('worker SubPipeline test', () => {
 
         workerCommunication = require('../lib/algorithm-communication/workerCommunication');
         stateManager = require('./mocks/stateManager');
+        subPipeline = require('../lib/subpipeline/subpipeline');
         if (jobConsumer._algTracer) {
             jobConsumer._algTracer._tracer.close();
         }
-
     });
     beforeEach(() => {
+        sinon.restore();
         workerCommunication.removeAllListeners(messages.incomming.done);
         workerCommunication.removeAllListeners(messages.incomming.error);
         workerCommunication.removeAllListeners(messages.incomming.initialized);
@@ -322,7 +324,7 @@ describe('worker SubPipeline test', () => {
             // stop pipeline
             const discovery = require('../lib/states/discovery');
             const subPipelineJobId = subPipelineHandler.getSubPipelineJobId('trueSubPipeline');
-            discovery.emit(EventMessages.STOP, { jobId: jobConsumer.jobId, reason: 'test' });
+            discovery.emit(EventMessages.STOPPED, { jobId: jobConsumer.jobId, reason: 'test' });
             // ensure subPipeline was stopped
             expect(apiServerMock.isStopped(subPipelineJobId));
             done();
@@ -341,5 +343,47 @@ describe('worker SubPipeline test', () => {
         const args = call.args && call.args[0];
         expect(args.reason).equals(`parent algorithm entered state ${state}`, 'expect args to be correct');
         expect(subPipelineHandler._jobId2InternalIdMap.size).equals(0, 'expect no registered subpiplines after state ready');
+    });
+    it('should return error required property subPipelineId on start subpipeline', async function () {
+        const spy = sinon.spy(subPipeline, '_handleJobError');
+        await subPipeline._handleStartSubPipeline({ data: null });
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).equals(`data should have required property 'subPipelineId'`);
+    });
+    it('enter should return error subPipelineId should be string on start subpipeline', async function () {
+        const spy = sinon.spy(subPipeline, '_handleJobError');
+        await subPipeline._handleStartSubPipeline({ data: { subPipelineId: 777 } });
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).equals('data.subPipelineId should be string');
+    });
+    it('should return error subPipeline should be object on start subpipeline', async function () {
+        const spy = sinon.spy(subPipeline, '_handleJobError');
+        await subPipeline._handleStartSubPipeline({ data: { subPipelineId: '777', subPipeline: null } });
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).equals('data.subPipeline should be object');
+    });
+    it('should not return error on start subpipeline on start subpipeline', async function () {
+        const spy = sinon.spy(subPipeline, '_handleJobError');
+        await subPipeline._handleStartSubPipeline({ data: { subPipelineId: '777', subPipeline: { name: 'bla' } } });
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).to.be.undefined;
+    });
+    it('should return error required property subPipelineId on stop subpipeline', async function () {
+        const spy = sinon.spy(subPipeline, '_handleJobError');
+        await subPipeline._handleStopSubPipeline({ data: null });
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).equals(`data should have required property 'subPipelineId'`);
+    });
+    it('enter should return error subPipelineId should be string on stop subpipeline', async function () {
+        const spy = sinon.spy(subPipeline, '_handleJobError');
+        await subPipeline._handleStopSubPipeline({ data: { subPipelineId: 777 } });
+        const call = spy.getCalls()[0] || {};
+        const args = call.args && call.args[0];
+        expect(args).equals('data.subPipelineId should be string');
     });
 });

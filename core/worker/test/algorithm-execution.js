@@ -6,7 +6,7 @@ const execAlgorithm = require('../lib/algorithm-execution/algorithm-execution');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 const etcd = require('../lib/states/discovery');
 
-describe.only('AlgorithmExecutions', () => {
+describe('AlgorithmExecutions', () => {
     let spy;
     afterEach(function () {
         spy && spy.restore();

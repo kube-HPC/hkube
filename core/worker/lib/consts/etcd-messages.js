@@ -1,7 +1,7 @@
 
 const EventMessages = {
     JOB_RESULT: 'job-result',
-    STOP: 'stop'
+    STOPPED: 'stopped'
 };
 
 module.exports = EventMessages;

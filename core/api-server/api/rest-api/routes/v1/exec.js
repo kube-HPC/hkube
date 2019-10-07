@@ -34,6 +34,20 @@ const routes = (options) => {
         res.jobId = jobId;
         next();
     });
+    router.all('/pause', methods(['POST']), logger(), async (req, res, next) => {
+        const { jobId } = req.body;
+        await Execution.pauseJob({ jobId });
+        res.json({ message: 'OK' });
+        res.jobId = jobId;
+        next();
+    });
+    router.all('/resume', methods(['POST']), logger(), async (req, res, next) => {
+        const { jobId } = req.body;
+        await Execution.resumeJob({ jobId });
+        res.json({ message: 'OK' });
+        res.jobId = jobId;
+        next();
+    });
     router.all('/pipelines/:jobId?', methods(['GET']), logger(), async (req, res, next) => {
         const { jobId } = req.params;
         const response = await Execution.getPipeline({ jobId });
