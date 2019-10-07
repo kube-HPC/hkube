@@ -57,6 +57,10 @@ class GitDataAdapter {
     }
 
     _githubAdapter({ ref, commits, repository }) {
+        if (!repository.url.includes('.git')) {
+            // eslint-disable-next-line no-param-reassign
+            repository.url = `${repository.url}.git`;
+        }
         const branchName = repository.branchName ? repository.branchName : this._refParse(ref);
         if (!commits || commits.length === 0) {
             log.warning(`commit is not defined for webhook url ${repository.url}`, { component: component.GITHUB_WEBHOOK });
