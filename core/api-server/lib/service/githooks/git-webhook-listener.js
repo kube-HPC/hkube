@@ -14,7 +14,8 @@ class GitWebhookListener {
         if (!gitDetails) {
             throw new ResourceNotFoundError('algorithm', '');
         }
-        const _algorithms = await this._checkRegistration({ url: `${gitDetails.repository.url}.git`, branchName: gitDetails.repository.branchName });
+        // { url: `${gitDetails.repository.url}.git`, branchName: gitDetails.repository.branchName }
+        const _algorithms = await this._checkRegistration(gitDetails.repository);
         if (!_algorithms.length) {
             throw new ResourceNotFoundError('algorithm', gitDetails.repository.url);
         }
