@@ -101,7 +101,7 @@ describe.only('consumer tests', () => {
             expect(args.results.input).to.eql(['test-param', true, 12345, 'deep']);
         });
     });
-    it.only('received array with null from algorithm', async () => {
+    it('received array with null from algorithm', async () => {
         let config = getConfig();
         const spy = sinon.spy(consumer, 'finishJob');
         consumer._jobProvider.emit('job', {
@@ -117,14 +117,11 @@ describe.only('consumer tests', () => {
         await delay(1000);
         const call = spy.getCalls()[0];
         const args = call.args[0];
-        expect(args.results.input[0]).to.eql(null);
-        expect(args.results.input[1]).to.eql(1);
-        expect(args.results.input[2]).to.eql(null);
+        expect(args.results.input).to.eql([null, 1, undefined]);
 
-    }).timeout(5000);
+    });
     it('received empty array from algorithm', (done) => {
         let config = getConfig();
-        console.log(config.jobId);
         consumer.init(config).then(() => {
             stateManager.once('stateEnteredready', async () => {
                 producer = new Producer(config.jobConsumer);
@@ -143,7 +140,7 @@ describe.only('consumer tests', () => {
                 });
                 Object.keys(workerStates).forEach(element => {
                     stateManager.once('stateEntered' + element, async (job) => {
-                        console.log(`recevied [${job.job.data.jobId}]${element}`)
+
                         if (element === 'working') {
                             workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
                         }
