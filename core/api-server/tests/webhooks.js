@@ -290,7 +290,7 @@ describe('Webhooks', () => {
             expect(response2.body).to.have.property('pipelineStatus');
             expect(response2.body).to.have.property('responseStatus');
         });
-        it('should succeed and return webhooks progress', async function () {
+        it('should succeed and return webhook by jobId', async function () {
             this.timeout(5000);
             const options1 = {
                 uri: restUrl + '/exec/stored',
@@ -311,12 +311,12 @@ describe('Webhooks', () => {
 
             const options2 = {
                 method: 'GET',
-                uri: `${restUrl}/webhooks/${jobId}`
+                uri: `${restUrl}/webhooks/webhookFlow?limit=3`
             };
             const response2 = await request(options2);
-
-            expect(response2.body).to.have.property('result');
-            expect(response2.body).to.have.property('progress');
+            expect(response2.body[0]).to.have.property('jobId');
+            expect(response2.body[0]).to.have.property('result');
+            expect(response2.body[0]).to.have.property('progress');
         });
     });
 });

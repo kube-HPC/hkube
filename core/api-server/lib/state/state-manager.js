@@ -73,7 +73,8 @@ class StateManager extends EventEmitter {
     }
 
     getAlgorithms(options) {
-        return this._etcd.algorithms.store.list(options);
+        const { limit } = options || {};
+        return this._etcd.algorithms.store.list({ ...options, limit: limit || 1000 });
     }
 
     deleteAlgorithm(options) {

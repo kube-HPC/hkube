@@ -71,8 +71,8 @@ class AlgorithmStore {
         return algorithm;
     }
 
-    async getAlgorithms() {
-        return stateManager.getAlgorithms();
+    async getAlgorithms(options) {
+        return stateManager.getAlgorithms(options);
     }
 
     async insertAlgorithm(options) {
@@ -130,7 +130,7 @@ class AlgorithmStore {
                 newAlgorithm.options.pending = true;
             }
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
-            await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
+            await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: newAlgorithm });
             await stateManager.setAlgorithm(newAlgorithm);
         }
         finally {

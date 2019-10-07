@@ -3,12 +3,12 @@ const querystring = require('querystring');
 const HttpStatus = require('http-status-codes');
 const { pipelines, workerStub } = require('./mocks');
 const { request } = require('./utils');
-let restUrl, baseUrl;
+let restUrl, internalUrl;
 
 describe('Cron', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
-        baseUrl = global.testParams.baseUrl;
+        internalUrl = global.testParams.internalUrl;
     });
     describe('/cron/results', () => {
         let restPath = null;
@@ -76,7 +76,7 @@ describe('Cron', () => {
         it('should succeed to get cron results', async () => {
             const pipeline = 'flow1';
             const optionsRun = {
-                uri: `${baseUrl}/internal/v1/exec/stored/cron`,
+                uri: `${internalUrl}/exec/stored/cron`,
                 body: {
                     name: pipeline
                 }
@@ -168,7 +168,7 @@ describe('Cron', () => {
         it('should succeed to get cron status', async () => {
             const pipeline = 'flow1';
             const optionsRun = {
-                uri: `${baseUrl}/internal/v1/exec/stored/cron`,
+                uri: `${internalUrl}/exec/stored/cron`,
                 body: {
                     name: pipeline
                 }

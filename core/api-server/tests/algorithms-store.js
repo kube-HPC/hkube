@@ -82,7 +82,7 @@ describe('Store/Algorithms', () => {
         });
     });
     describe('/store/algorithms GET', () => {
-        it('should throw validation error of required property jobId', async () => {
+        it('should success to get list of algorithms', async () => {
             const options = {
                 uri: restPath,
                 method: 'GET'
@@ -226,6 +226,38 @@ describe('Store/Algorithms', () => {
                 type: "Image"
             });
         });
+        it('should succeed to store and get multiple algorithms', async function () {
+            this.timeout(5000);
+            const limit = 350;
+            const keys = Array.from(Array(limit).keys());
+            const algorithms = keys.map(k => ({
+                name: `stress-${k}-${uuidv4()}`,
+                algorithmImage: "image",
+                mem: "50Mi",
+                cpu: k,
+                minHotWorkers: 0,
+                options: {
+                    debug: false,
+                    pending: false
+                },
+                type: 'Image'
+            }));
+
+            const result = await Promise.all(algorithms.map(a => request({ uri: restPath, body: a })));
+
+            result.forEach((r, i) => {
+                const { mem, memReadable, ...rest } = r.body;
+                rest.mem = memReadable;
+                expect(rest).to.deep.equal(algorithms[i]);
+            });
+
+            const options = {
+                uri: `${restPath}?name=stress&limit=${limit}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.has.lengthOf(limit);
+        });
         it('should succeed to store algorithm', async () => {
             const body = {
                 name: uuidv4(),
@@ -236,7 +268,6 @@ describe('Store/Algorithms', () => {
             }
             const options = {
                 uri: restPath,
-
                 body
             };
             const response = await request(options);

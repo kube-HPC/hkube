@@ -73,8 +73,8 @@ describe('Internal', () => {
         expect(jobs.every(j => j.includes(pipeline))).to.equal(true);
     });
     it('should run triggered pipelines and the executions tree', async function () {
-        this.timeout(5000);
-        const requests = 10;
+        this.timeout(15000);
+        const requests = 5;
         const pipeline = 'trigger-test';
         const results = [];
 
@@ -203,8 +203,8 @@ describe('Internal', () => {
         expect(response.body.message).to.equal('OK');
     });
     it('should run triggered cron pipelines and get the results', async () => {
-        const requests = 10;
-        const limit = 5;
+        const requests = 5;
+        const limit = 3;
         const pipeline = 'cron-test';
         const results = [];
         const options = {
@@ -257,5 +257,5 @@ describe('Internal', () => {
         expect(response.body[0]).to.have.property('status');
         expect(response.body[0]).to.have.property('timeTook');
         expect(response.body[0]).to.have.property('timestamp');
-    }).timeout(10000);
+    }).timeout(15000);
 });

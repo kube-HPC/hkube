@@ -47,8 +47,8 @@ const routes = (options) => {
 
     // algorithms
     router.get('/algorithms', logger(), async (req, res, next) => {
-        const { sort } = req.query;
-        const response = await algorithmStore.getAlgorithms({ sort });
+        const { name, sort, limit } = req.query;
+        const response = await algorithmStore.getAlgorithms({ name, sort, limit });
         res.json(response);
         next();
     });
