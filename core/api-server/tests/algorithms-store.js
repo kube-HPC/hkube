@@ -613,7 +613,7 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.deep.equal(body);
         });
     });
-    describe('Git', () => {
+    xdescribe('Git', () => {
         let webhookPath = null;
         let applyPath = null;
         before(() => {
@@ -633,7 +633,6 @@ describe('Store/Algorithms', () => {
                 expect(filterdRes).to.not.be.null
             })
             it('should create build with last commit data', async () => {
-
                 const name = uuidv4();
                 const body = {
                     name,
