@@ -3,7 +3,7 @@ const stateManager = require('../lib/state/state-manager');
 const { algorithms, pipelines, webhookStub } = require('./mocks');
 
 before(async function () {
-    this.timeout(5000);
+    this.timeout(10000);
     const config = await bootstrap.init();
     await Promise.all(pipelines.map(p => stateManager.setPipeline(p)));
     await Promise.all(algorithms.map(p => stateManager.setAlgorithm(p)));
