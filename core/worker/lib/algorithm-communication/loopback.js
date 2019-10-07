@@ -31,7 +31,7 @@ class Loopback extends EventEmitter {
                 this._simulateSend({ command: messages.incomming.initialized, data: message.data });
                 break;
             case messages.outgoing.start:
-                this.sendCommandWithDelay({ command: messages.incomming.done, data: message.data });
+                this._simulateSend({ command: messages.incomming.started, data: message.data });
                 break;
             case messages.outgoing.cleanup:
                 this._simulateSend({ command: messages.incomming.done, data: message.data });
