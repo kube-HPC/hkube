@@ -63,9 +63,8 @@ class GitDataAdapter {
             return null;
             // this._progress(data);
         }
-        // add url in order to able to  clone it from the build
-        const url = `${repository.url}.git`;
-        return this._adapter(commits[0].id, commits[0].timestamp, commits[0].message, branchName, url, WEBHOOKS.GITHUB);
+
+        return this._adapter(commits[0].id, commits[0].timestamp, commits[0].message, branchName, repository.url, WEBHOOKS.GITHUB);
     }
 
     _refParse(ref) {
