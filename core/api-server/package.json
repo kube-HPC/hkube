@@ -1,6 +1,6 @@
 {
     "name": "api-server",
-    "version": "1.2.4",
+    "version": "1.2.8",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
@@ -57,7 +57,7 @@
     "scripts": {
         "lint": "./node_modules/eslint/bin/eslint.js .",
         "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --colors --recursive --exit",
-        "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --exclude=bootstrap.js --reporter=html --reporter=text --reporter=lcov mocha tests --colors --recursive --exit",
+        "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha tests --colors --recursive --exit",
         "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
         "start": "node app",
         "build": "./dockerfile/build.sh api-server",
@@ -67,6 +67,13 @@
         "run": [
             "lint",
             "test"
+        ]
+    },
+    "nyc": {
+        "exclude": [
+            "bootstrap.js",
+            "tests",
+            "lib/producer"
         ]
     },
     "author": "Hkube",

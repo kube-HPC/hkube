@@ -67,7 +67,7 @@ class JobConsumer extends EventEmitter {
             }
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await etcd.watch({ jobId: job.data.jobId });
-            if (watchState && watchState.state === constants.WATCH_STATE.STOP) {
+            if (watchState && watchState.status === constants.WATCH_STATE.STOPPED) {
                 await this._stopJob(job);
                 return;
             }
@@ -77,7 +77,7 @@ class JobConsumer extends EventEmitter {
 
             if (this._execId) {
                 const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
-                if (watchExecutionState && watchExecutionState.state === constants.WATCH_STATE.STOP) {
+                if (watchExecutionState && watchExecutionState.status === constants.WATCH_STATE.STOPPED) {
                     await this.finishJob();
                     return;
                 }
@@ -103,13 +103,18 @@ class JobConsumer extends EventEmitter {
         });
 
         stateManager.on('finish', () => {
-            this.finishBullJob({ shouldNormalExit: true });
+            this.finishBullJob();
         });
     }
 
+    _shouldNormalExit(options) {
+        const { shouldCompleteJob } = options || {};
+        return shouldCompleteJob === undefined ? true : shouldCompleteJob;
+    }
+
     finishBullJob(options) {
-        const { shouldNormalExit } = options;
-        if (this._job && shouldNormalExit) {
+        const shouldCompleteJob = this._shouldNormalExit(options);
+        if (this._job && shouldCompleteJob) {
             this._job.done(this._job.error);
             log.info(`finish job ${this._jobId}`);
         }
@@ -261,13 +266,12 @@ class JobConsumer extends EventEmitter {
         let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
         let reason = null;
-        let shouldNormalExit = true;
+        const shouldCompleteJob = this._shouldNormalExit(results);
 
         if (results != null) {
             error = results.error && results.error.message;
             reason = results.error && results.error.reason;
             status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
-            shouldNormalExit = results.shouldNormalExit === undefined ? true : results.shouldNormalExit;
         }
 
         const resultData = results && results.data;
@@ -277,7 +281,7 @@ class JobConsumer extends EventEmitter {
             error,
             reason,
             resultData,
-            shouldNormalExit
+            shouldCompleteJob
         };
     }
 
@@ -328,9 +332,9 @@ class JobConsumer extends EventEmitter {
             await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
         let storageResult = {};
-        const { resultData, status, error, reason, shouldNormalExit } = this._getStatus(data);
+        const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus(data);
 
-        if (shouldNormalExit) {
+        if (shouldCompleteJob) {
             if (!error && status === constants.JOB_STATUS.SUCCEED) {
                 storageResult = await this._putResult(resultData);
             }

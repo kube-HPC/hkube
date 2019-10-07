@@ -16,7 +16,7 @@ class Etcd {
         log = Logger.GetLogFromContainer();
         this._etcd = new EtcdClient(options.etcd);
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
-        await this._etcd.jobs.state.watch({ jobId: 'hookWatch' });
+        await this._etcd.jobs.status.watch({ jobId: 'hookWatch' });
         this._workerServiceName = options.workerServiceName || CONTAINERS.WORKER;
         this._pipelineDriverServiceName = options.workerServiceName || CONTAINERS.PIPELINE_DRIVER;
         const discoveryInfo = {};

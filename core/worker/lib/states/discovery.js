@@ -15,7 +15,6 @@ class EtcdDiscovery extends EventEmitter {
 
     async init(options) {
         if (this._etcd) {
-            this._etcd.removeAllListeners();
             this._etcd = null;
             this.removeAllListeners();
         }
@@ -37,18 +36,18 @@ class EtcdDiscovery extends EventEmitter {
         });
         this.watch({ jobId: 'hookWatch' });
 
-        this._etcd.jobs.state.on('change', (res) => {
+        this._etcd.jobs.status.on('change', (res) => {
             log.info(JSON.stringify(res), { component });
-            switch (res.state) {
-                case WATCH_STATE.STOP:
-                    this.emit(res.state, res);
+            switch (res.status) {
+                case WATCH_STATE.STOPPED:
+                    this.emit(res.status, res);
                     break;
                 default:
                     this.emit('change', res);
             }
         });
         this._etcd.algorithms.executions.on('change', (res) => {
-            this.emit(res.state, res);
+            this.emit(res.status, res);
         });
         this._etcd.jobs.tasks.on('change', (data) => {
             this.emit(`task-${data.status}`, data);
@@ -60,7 +59,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async stopAlgorithmExecution(options) {
-        return this._etcd.algorithms.executions.set({ ...options, state: 'stop' });
+        return this._etcd.algorithms.executions.set({ ...options, status: WATCH_STATE.STOPPED });
     }
 
     async watchAlgorithmExecutions(options) {
@@ -103,7 +102,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async watch(options) {
-        return this._etcd.jobs.state.watch(options);
+        return this._etcd.jobs.status.watch(options);
     }
 
     async watchWorkerStates() {
@@ -117,7 +116,7 @@ class EtcdDiscovery extends EventEmitter {
     async unwatch(options) {
         try {
             log.debug('start unwatch', { component });
-            await this._etcd.jobs.state.unwatch(options);
+            await this._etcd.jobs.status.unwatch(options);
             log.debug('end unwatch', { component });
         }
         catch (error) {
