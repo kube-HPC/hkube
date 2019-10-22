@@ -4,7 +4,6 @@ const algorithms = require('./algorithms.json');
 const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const stateManager = require('../state/state-manager');
-const validator = require('../validation/api-validator');
 
 class PipelinesUpdater {
     async init(options) {
@@ -14,10 +13,7 @@ class PipelinesUpdater {
             if (options.addDefaultAlgorithms !== 'false') {
                 algorithmsStoreList = await this._setDiff('algorithm', algorithms, algorithmsStoreList);
             }
-            const validated = algorithmsStoreList.map(a => {
-                validator.validateUpdateAlgorithm(a); return a;
-            });
-            await Promise.all(validated.map(a => stateManager.setAlgorithm(a)));
+            await Promise.all(algorithmsStoreList.map(a => stateManager.setAlgorithm(a)));
         }
         catch (error) {
             log.warning(`failed to recover algorithms. ${error.message}`);
