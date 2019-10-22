@@ -4,7 +4,7 @@
         "algorithmImage": "hkube/algorunner",
         "cpu": 1,
         "mem": 1024,
-        "memReadable": "1024Mi",
+        "memReadable": "1Gi",
         "options": {
             "debug": false,
             "pending": false
@@ -30,7 +30,7 @@
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 1,
         "mem": 256,
-        "memReadable": "1024Mi",
+        "memReadable": "256Mi",
         "options": {
             "debug": false,
             "pending": false
@@ -43,7 +43,7 @@
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.5,
         "mem": 256,
-        "memReadable": "1024Mi",
+        "memReadable": "256Mi",
         "options": {
             "debug": false,
             "pending": false
