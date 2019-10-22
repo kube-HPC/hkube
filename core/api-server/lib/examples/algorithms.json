@@ -3,24 +3,52 @@
         "name": "eval-alg",
         "algorithmImage": "hkube/algorunner",
         "cpu": 1,
-        "mem": "1Gi"
+        "mem": 1024,
+        "memReadable": "1Gi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     },
     {
         "name": "green-alg",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.1,
-        "mem": "1024Mi"
+        "mem": 1024,
+        "memReadable": "1024Mi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     },
     {
         "name": "yellow-alg",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 1,
-        "mem": "256Mi"
+        "mem": 256,
+        "memReadable": "256Mi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     },
     {
         "name": "black-alg",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.5,
-        "mem": "256Mi"
+        "mem": 256,
+        "memReadable": "256Mi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     }
 ]
