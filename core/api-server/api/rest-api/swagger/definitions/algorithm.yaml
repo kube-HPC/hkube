@@ -25,6 +25,8 @@ properties:
   mem:
     type: string
     description: algorithm memory
+    format: algorithm-memory
+    default: 256Mi
     example: 512Mi
   options:
     type: object

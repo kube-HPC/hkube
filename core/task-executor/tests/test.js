@@ -25,7 +25,7 @@ describe('bootstrap', () => {
         expect(workers).to.eql(discoveryStub);
     });
     it('should get more than 100', async () => {
-        await etcd._etcd._client.delete('/discovery/stub',{isPrefix:true})
+        await etcd._etcd._client.delete('/discovery/stub', { isPrefix: true })
         await Promise.all([...Array(500).keys()].map(d => etcd._etcd._client.put(`/discovery/stub/${d}`, d)));
         let workers = await etcd.getWorkers({ workerServiceName: 'stub' });
         expect(workers).to.have.lengthOf(500)

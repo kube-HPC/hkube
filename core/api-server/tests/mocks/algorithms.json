@@ -4,6 +4,7 @@
         "algorithmImage": "hkube/algorunner",
         "cpu": 1.5,
         "mem": "50Mi",
+        "type": "Image",
         "minHotWorkers": 0,
         "options": {
             "debug": false,
@@ -13,8 +14,7 @@
     {
         "name": "green-alg",
         "cpu": 1,
-        "mem": 600,
-        "memReadable": "6000Mi",
+        "mem": "6000Mi",
         "minHotWorkers": 0,
         "options": {
             "debug": false,

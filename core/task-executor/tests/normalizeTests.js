@@ -216,7 +216,7 @@ describe('normalize', () => {
                     name: 'eval-alg',
                     algorithmImage: 'hkube/algorunner',
                     cpu: 0.5,
-                    mem: 256,
+                    mem: '256Mi',
                     minHotWorkers: 0
                 }
             };
@@ -336,7 +336,7 @@ describe('normalize', () => {
     });
     describe('normalize resources', () => {
         beforeEach(() => {
-            globalSettings.useResourceLimits=false
+            globalSettings.useResourceLimits = false
         });
         it('should work with empty resources array', () => {
             const res = normalizeResources({});
@@ -357,7 +357,7 @@ describe('normalize', () => {
             expect(res.nodeList[2].requests.cpu).to.eq(0);
         });
         it('should return resources by node and totals with useLimits', () => {
-            globalSettings.useResourceLimits=true
+            globalSettings.useResourceLimits = true
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.total.cpu).to.eq(23.4);
             expect(res.allNodes.total.memory).to.eq(98304);
