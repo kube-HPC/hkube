@@ -23,6 +23,7 @@ class ApiValidator {
         validatorInstance.addFormat('cron', this._validateCron);
         validatorInstance.addFormat('pipeline-name', this._validatePipelineName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
+        validatorInstance.addFormat('algorithm-memory', this._validateMemory);
         Object.entries(this._definitions).forEach(([k, v]) => {
             validatorInstance.addSchema(v, `#/components/schemas/${k}`);
         });
@@ -67,7 +68,6 @@ class ApiValidator {
     validateUpdateAlgorithm(algorithm) {
         this._validate(this._definitions.algorithm, algorithm, true);
         this._validateAlgorithmEnvVar(algorithm);
-        this._validateMemory(algorithm);
     }
 
     validateAlgorithmBuild(algorithm) {
@@ -80,7 +80,6 @@ class ApiValidator {
 
     validateApplyAlgorithm(algorithm) {
         this._validate(this._definitions.algorithm, algorithm, true);
-        this._validateMemory(algorithm);
     }
 
     validateName(pipeline) {
@@ -225,26 +224,17 @@ class ApiValidator {
         return true;
     }
 
-    _validateMemory(algorithm) {
-        let memory;
-        const { mem } = algorithm;
-        const memReadable = algorithm.mem;
-        if (!mem) {
-            memory = 4;
-        }
-        else {
-            try {
-                memory = converter.getMemoryInMi(mem);
-                if (memory < MIN_MEMORY) {
-                    throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
-                }
-            }
-            catch (ex) {
-                throw new InvalidDataError(ex.message);
+    _validateMemory(memory) {
+        try {
+            const mem = converter.getMemoryInMi(memory);
+            if (mem < MIN_MEMORY) {
+                throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
             }
         }
-        algorithm.mem = memory;               // eslint-disable-line
-        algorithm.memReadable = memReadable;  // eslint-disable-line
+        catch (ex) {
+            throw new InvalidDataError(ex.message);
+        }
+        return true;
     }
 
     _validateAlgorithmEnvVar(algorithm) {

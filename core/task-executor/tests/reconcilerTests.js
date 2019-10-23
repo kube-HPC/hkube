@@ -630,7 +630,7 @@ describe('reconciler', () => {
         it('should add worker resources useLimits', async () => {
             globalSettings.useResourceLimits = true
             globalSettings.applyResources = true
-            
+
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',

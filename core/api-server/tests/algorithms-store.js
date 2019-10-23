@@ -2,12 +2,20 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const uuidv4 = require('uuid/v4');
 const HttpStatus = require('http-status-codes');
-const converter = require('@hkube/units-converter');
 const { MESSAGES } = require('../lib/consts/builds');
 const githubSample = require('./mocks/github-sample.json')
 const { algorithms } = require('./mocks');
 const { request } = require('./utils');
 let restUrl, restPath, applyPath;
+
+const defaultProps = {
+    minHotWorkers: 0,
+    options: {
+        debug: false,
+        pending: false
+    },
+    type: "Image"
+}
 
 describe('Store/Algorithms', () => {
     before(() => {
@@ -37,16 +45,17 @@ describe('Store/Algorithms', () => {
                 uri: restPath,
                 body
             };
-            await request(options);
+            const r = await request(options);
 
             const getOptions = {
                 uri: restPath + '/test-alg',
                 method: 'GET'
             };
             const response = await request(getOptions);
-            const mem = converter.getMemoryInMi(body.mem);
-            expect(response.body.mem).to.equal(mem);
-            expect(response.body.memReadable).to.equal(body.mem);
+            expect(response.body).to.deep.equal({
+                ...body,
+                ...defaultProps
+            });
         });
     });
     describe('/store/algorithms:name DELETE', () => {
@@ -214,16 +223,9 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
-            body.memReadable = body.mem;
-            body.mem = converter.getMemoryInMi(body.mem);
             expect(response.body).to.deep.equal({
                 ...body,
-                minHotWorkers: 0,
-                options: {
-                    debug: false,
-                    pending: false
-                },
-                type: "Image"
+                ...defaultProps
             });
         });
         it('should succeed to store and get multiple algorithms', async function () {
@@ -235,20 +237,13 @@ describe('Store/Algorithms', () => {
                 algorithmImage: "image",
                 mem: "50Mi",
                 cpu: k,
-                minHotWorkers: 0,
-                options: {
-                    debug: false,
-                    pending: false
-                },
-                type: 'Image'
+                ...defaultProps
             }));
 
             const result = await Promise.all(algorithms.map(a => request({ uri: restPath, body: a })));
 
             result.forEach((r, i) => {
-                const { mem, memReadable, ...rest } = r.body;
-                rest.mem = memReadable;
-                expect(rest).to.deep.equal(algorithms[i]);
+                expect(r.body).to.deep.equal(algorithms[i]);
             });
 
             const options = {
@@ -272,15 +267,9 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
-            body.memReadable = body.mem;
-            body.mem = converter.getMemoryInMi(body.mem);
             expect(response.body).to.deep.equal({
                 ...body,
-                minHotWorkers: 0,
-                options: {
-                    debug: false,
-                    pending: false
-                }
+                ...defaultProps
             });
         });
     });
@@ -601,15 +590,13 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
         });
         it('should succeed to update algorithm', async () => {
-            const body = { ...algorithms[0], type: "Image" };
+            const body = { ...algorithms[0] };
             const options = {
                 uri: restPath,
                 method: 'PUT',
                 body
             };
             const response = await request(options);
-            body.memReadable = body.mem;
-            body.mem = converter.getMemoryInMi(body.mem);
             expect(response.body).to.deep.equal(body);
         });
     });

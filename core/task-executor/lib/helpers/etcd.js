@@ -1,5 +1,6 @@
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
+const parse = require('@hkube/units-converter');
 const { logWrappers } = require('./tracing');
 const { cacheResults, arrayToMap } = require('../utils/utils');
 const { components, containers } = require('../consts');
@@ -87,7 +88,13 @@ class Etcd {
     }
 
     async getAlgorithmTemplate() {
-        const templates = await this._etcd.algorithms.store.list();
+        const algorithms = await this._etcd.algorithms.store.list();
+        const templates = algorithms.map((a) => {
+            if (a.mem) {
+                a.mem = parse.getMemoryInMi(a.mem);
+            }
+            return a;
+        });
         return arrayToMap(templates);
     }
 

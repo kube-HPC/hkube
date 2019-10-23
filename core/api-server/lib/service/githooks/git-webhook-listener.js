@@ -22,7 +22,6 @@ class GitWebhookListener {
         const res = await Promise.all(_algorithms.map(algorithm => this._storeBuildData(
             {
                 ...algorithm,
-                mem: algorithm.memReadable,
                 gitRepository: { ...algorithm.gitRepository, commit: gitDetails.commit }
             }
         )));
