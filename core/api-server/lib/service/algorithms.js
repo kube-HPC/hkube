@@ -1,4 +1,5 @@
 
+const merge = require('lodash.merge');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
@@ -92,38 +93,43 @@ class AlgorithmStore {
 
     async applyAlgorithm(options) {
         const { payload } = options;
+        const file = options.file || {};
         let buildId;
         const messages = [];
         try {
-            validator.validateUpdateAlgorithm(payload);
+            validator.validateApplyAlgorithm(payload);
             const oldAlgorithm = await stateManager.getAlgorithm(payload);
-            let newAlgorithm = payload;
+            if (oldAlgorithm && oldAlgorithm.type !== payload.type) {
+                throw new InvalidDataError(`algorithm type cannot be changed, new type: ${payload.type}, old type: ${oldAlgorithm.type}`);
+            }
 
-            if (options.file && options.file.path) {
-                const result = await builds.createBuild(options.file, oldAlgorithm, newAlgorithm);
-                buildId = result.buildId; // eslint-disable-line
-                messages.push(...result.messages);
-                newAlgorithm = result.algorithm;
+            let newAlgorithm = merge({}, oldAlgorithm, payload);
+            validator.addAlgorithmDefaults(newAlgorithm);
+
+            if (payload.type === BUILD_TYPES.CODE) {
+                if (file.path) {
+                    const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
+                    buildId = result.buildId; // eslint-disable-line
+                    messages.push(...result.messages);
+                    newAlgorithm = result.algorithm;
+                }
             }
             else if (payload.type === BUILD_TYPES.GIT) {
-                let updatedPayload = payload;
-                if (!oldAlgorithm) {
-                    updatedPayload = await gitDataAdapter.getInfoAndAdapt(options);
+                if (newAlgorithm.gitRepository) {
+                    newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
+                    const result = await builds.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
+                    buildId = result.buildId; // eslint-disable-line
+                    messages.push(...result.messages);
                 }
-                const result = await builds.createBuildFromGitRepository({ ...updatedPayload });
-                buildId = result.buildId; // eslint-disable-line
-                messages.push(...result.messages);
             }
             else {
-                messages.push(MESSAGES.NO_FILE_FOR_BUILD);
+                messages.push(MESSAGES.NO_BUILD);
             }
 
             if (buildId && payload.algorithmImage) {
                 throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
             }
-
-            newAlgorithm = { ...oldAlgorithm, ...newAlgorithm };
-            if (!newAlgorithm.algorithmImage && !(options.file && options.file.path) && !newAlgorithm.gitRepository) {
+            if (!newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
                 throw new InvalidDataError(MESSAGES.APPLY_ERROR);
             }
             if (!newAlgorithm.algorithmImage && buildId) {

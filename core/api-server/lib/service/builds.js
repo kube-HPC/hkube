@@ -88,14 +88,20 @@ class Builds {
         return { algorithm, buildId, messages };
     }
 
-    async createBuildFromGitRepository(payload) {
+    async createBuildFromGitRepository(oldAlgorithm, newAlgorithm) {
         const messages = [];
-        const version = payload.gitRepository.commit.id;
-        const buildId = this._createBuildID(payload.name);
-        const { env, name, gitRepository, entryPoint, type } = payload;
-        validator.validateAlgorithmBuildFromGit({ env });
-        await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, entryPoint, type });
-        return { payload, buildId, messages };
+        let buildId;
+        const result = this._shouldBuild(oldAlgorithm, newAlgorithm);
+        messages.push(...result.messages);
+
+        if (result.shouldBuild) {
+            const version = newAlgorithm.gitRepository.commit.id;
+            buildId = this._createBuildID(newAlgorithm.name);
+            const { env, name, gitRepository, type } = newAlgorithm;
+            validator.validateAlgorithmBuildFromGit({ env });
+            await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, type });
+        }
+        return { buildId, messages };
     }
 
     async _newAlgorithm(file, oldAlgorithm, newAlgorithm) {
@@ -166,9 +172,10 @@ class Builds {
     }
 
     _formatDiff(algorithm) {
-        const { fileInfo, env } = algorithm;
+        const { fileInfo, env, gitRepository } = algorithm;
         const checksum = fileInfo && fileInfo.checksum;
-        return { checksum, env };
+        const commit = gitRepository && gitRepository.commit && gitRepository.commit.id;
+        return { checksum, env, commit };
     }
 
     _createBuildID(algorithmName) {

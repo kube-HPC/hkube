@@ -9,8 +9,10 @@ const MESSAGES = {
     ALGORITHM_PUSHED: 'the algorithm {algorithmName} has been successfully pushed to hkube',
     FILE_AND_IMAGE: 'both image and file is not allowed, the current image will be overwritten after build',
     NO_FILE_FOR_BUILD: 'there was no trigger for build, file was not supplied',
+    NO_BUILD: 'there was no trigger for build, file or git repository was not supplied',
+    NO_GIT_REPO_FOR_BUILD: 'there was no trigger for build, git repository was not supplied',
     NO_TRIGGER_FOR_BUILD: `there was no trigger for build, no change in ${BUILD_TRIGGERS.join(',')}`,
-    APPLY_ERROR: 'cannot apply algorithm due to missing image url or build data ',
+    APPLY_ERROR: 'cannot apply algorithm due to missing image url or build data',
 };
 
 const WEBHOOKS = {

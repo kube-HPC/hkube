@@ -3,7 +3,6 @@ const fse = require('fs-extra');
 const uuidv4 = require('uuid/v4');
 const HttpStatus = require('http-status-codes');
 const { MESSAGES } = require('../lib/consts/builds');
-const githubSample = require('./mocks/github-sample.json')
 const { algorithms } = require('./mocks');
 const { request } = require('./utils');
 let restUrl, restPath, applyPath;
@@ -274,305 +273,680 @@ describe('Store/Algorithms', () => {
         });
     });
     describe('/store/algorithms/apply POST', () => {
-        it('should throw validation error of required property name', async () => {
-            const options = {
-                uri: applyPath,
-                formData: {}
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data should have required property 'name'");
-        });
-        it('should throw validation error of data.name should be string', async () => {
-            const payload = JSON.stringify({ name: {} });
-            const options = {
-                uri: applyPath,
-                formData: { payload }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.name should be string');
-        });
-        it('should throw validation error of memory min 4 Mi', async () => {
-            const body = {
-                name: uuidv4(),
-                algorithmImage: "image",
-                mem: "3900Ki",
-                cpu: 1
-            }
-            const payload = JSON.stringify(body);
-            const options = {
-                uri: applyPath,
-                formData: { payload }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
-        });
-        it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
-            const payload = JSON.stringify({ name: '' });
-            const options = {
-                uri: applyPath,
-                formData: { payload }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
-        });
-        it('should throw validation invalid env', async () => {
-            const body = {
-                name: uuidv4(),
-                algorithmImage: "image",
-                mem: "3900Ki",
-                cpu: 1,
-                env: "no_such"
-            }
-            const payload = JSON.stringify(body);
-            const options = {
-                uri: applyPath,
-                formData: { payload }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('data.env should be equal to one of the allowed values');
-        });
-        it('should throw validation invalid fileExt', async () => {
-            const payload = {
-                name: `my-alg-${uuidv4()}`,
-                mem: "50Mi",
-                cpu: 1,
-                version: '1.9.0'
-            }
-            const formData = {
-                payload: JSON.stringify(payload),
-                file: fse.createReadStream('tests/mocks/algorithm.tar')
-            };
-            const options = {
-                uri: restPath + '/apply',
+        describe('Validation', () => {
+            it('should throw validation error of required property name', async () => {
+                const options = {
+                    uri: applyPath,
+                    formData: {}
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal("data should have required property 'name'");
+            });
+            it('should throw validation error of data.name should be string', async () => {
+                const payload = JSON.stringify({ name: {} });
+                const options = {
+                    uri: applyPath,
+                    formData: { payload }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('data.name should be string');
+            });
+            it('should throw validation error of memory min 4 Mi', async () => {
+                const body = {
+                    name: uuidv4(),
+                    algorithmImage: "image",
+                    mem: "3900Ki",
+                    cpu: 1
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    formData: { payload }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
+            });
+            it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
+                const payload = JSON.stringify({ name: '' });
+                const options = {
+                    uri: applyPath,
+                    formData: { payload }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
+            });
+            it('should throw validation invalid env', async () => {
+                const body = {
+                    name: uuidv4(),
+                    algorithmImage: "image",
+                    mem: "3900Ki",
+                    cpu: 1,
+                    env: "no_such"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    formData: { payload }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.contain('data.env should be equal to one of the allowed values');
+            });
+            it('should throw validation invalid fileExt', async () => {
+                const payload = {
+                    name: `my-alg-${uuidv4()}`,
+                    mem: "50Mi",
+                    cpu: 1,
+                    version: '1.9.0'
+                }
+                const formData = {
+                    payload: JSON.stringify(payload),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar')
+                };
+                const options = {
+                    uri: restPath + '/apply',
 
-                formData
-            };
-            const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('data.fileExt should be equal to one of the allowed values');
+                    formData
+                };
+                const response = await request(options);
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.contain('data.fileExt should be equal to one of the allowed values');
+            });
+            it('should throw error of missing image and file', async () => {
+                const body = {
+                    name: `my-alg-${uuidv4()}`,
+                    mem: "50Mi",
+                    cpu: 1
+                };
+                const formData = {
+                    payload: JSON.stringify(body)
+                };
+                const options = {
+                    uri: applyPath,
+                    formData
+                };
+
+                const response = await request(options)
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
+            });
+            it('should throw error of having image and file', async () => {
+                const body = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'image',
+                    mem: "50Mi",
+                    cpu: 1,
+                    env: 'python'
+                };
+                const formData = {
+                    payload: JSON.stringify(body),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const options = {
+                    uri: applyPath,
+                    formData
+                };
+
+                const response = await request(options)
+                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal(MESSAGES.FILE_AND_IMAGE);
+            });
+            it('should not throw error when git repo was not supplied', async () => {
+                const apply = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    type: "Git",
+                    mem: "50Mi",
+                    cpu: 1
+                }
+                const uri = restPath + '/apply';
+                const req = { uri, formData: { payload: JSON.stringify(apply) } };
+                const res = await request(req)
+                expect(res.response.statusCode).to.equal(HttpStatus.OK);
+                expect(res.body).to.not.have.property('buildId');
+            });
+            it('should not throw error when file was not supplied', async () => {
+                const apply = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    type: "Code",
+                    mem: "50Mi",
+                    cpu: 1
+                }
+                const uri = restPath + '/apply';
+                const req = { uri, formData: { payload: JSON.stringify(apply) } };
+                const res = await request(req)
+                expect(res.response.statusCode).to.equal(HttpStatus.OK);
+                expect(res.body).to.not.have.property('buildId');
+            });
         });
-        it('should throw error of missing image and file', async () => {
-            const body = {
-                name: `my-alg-${uuidv4()}`,
-                mem: "50Mi",
-                cpu: 1
-            };
-            const formData = {
-                payload: JSON.stringify(body)
-            };
-            const options = {
-                uri: applyPath,
-                formData
-            };
+        describe('Github', () => {
+            it('should throw error of required property url', async () => {
+                const name = uuidv4();
+                const body = {
+                    name,
+                    gitRepository: {
+                    },
+                    type: "Git"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    body: { payload }
+                };
+                const res = await request(options);
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.equal(`data.gitRepository should have required property 'url'`);
+            });
+            it('should throw error of match format url', async () => {
+                const name = uuidv4();
+                const body = {
+                    name,
+                    gitRepository: {
+                        url: ''
+                    },
+                    type: "Git"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    body: { payload }
+                };
+                const res = await request(options);
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.equal(`data.gitRepository.url should match format "url"`);
+            });
+            it('should throw error of url not found', async () => {
+                const name = uuidv4();
+                const body = {
+                    name,
+                    gitRepository: {
+                        url: 'http://no_such_url'
+                    },
+                    type: "Git"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    body: { payload }
+                };
+                const res = await request(options);
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.equal(`invalid url 'http://no_such_url'`);
+            });
+            it('should throw error of branch not found', async () => {
+                const name = uuidv4();
+                const body = {
+                    name,
+                    gitRepository: {
+                        url: 'http://no_such_url',
+                        branchName: "no_such"
+                    },
+                    type: "Git"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    body: { payload }
+                };
+                const res = await request(options);
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.equal(`invalid url 'http://no_such_url'`);
+            });
+            it.skip('should throw error of git repository is empty', async () => {
+                const name = uuidv4();
+                const body = {
+                    name,
+                    gitRepository: {
+                        url: 'https://github.com/NassiHarel/test',
+                    },
+                    type: "Git"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    body: { payload }
+                };
+                const res = await request(options);
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.equal(`Git Repository is empty. (https://github.com/NassiHarel/test)`);
+            });
+            it('should create build with last commit data', async () => {
+                const name = uuidv4();
+                const body = {
+                    name,
+                    mem: "6000Mi",
+                    cpu: 1,
+                    gitRepository: {
+                        url: "https://github.com/maty21/statistisc.git"
+                    },
+                    env: "nodejs"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    body: { payload }
+                };
+                const res = await request(options);
+                expect(res.body).to.have.property('buildId');
+            });
+            it('should not trigger new build if same commit id', async () => {
+                const body = {
+                    name: uuidv4(),
+                    gitRepository: {
+                        url: "https://github.com/maty21/statistisc"
+                    },
+                    env: "nodejs",
+                    type: "Git"
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const res1 = await request(options);
+                expect(res1.body).to.have.property('buildId');
 
-            const response = await request(options)
-            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
+                const res2 = await request(options);
+                expect(res2.body).to.not.have.property('buildId');
+            });
         });
-        it('should throw error of having image and file', async () => {
-            const body = {
-                name: `my-alg-${uuidv4()}`,
-                algorithmImage: 'image',
-                mem: "50Mi",
-                cpu: 1,
-                env: 'python'
-            };
-            const formData = {
-                payload: JSON.stringify(body),
-                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-            };
-            const options = {
-                uri: applyPath,
-                formData
-            };
+        describe('Code', () => {
+            it('should succeed to apply algorithm with first build', async () => {
+                const payload = {
+                    name: `my-alg-${uuidv4()}`,
+                    mem: "50Mi",
+                    cpu: 1,
+                    version: '1.9.0',
+                    env: 'nodejs'
+                }
+                const formData = {
+                    payload: JSON.stringify(payload),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const options = {
+                    uri: restPath + '/apply',
+                    formData
+                };
+                const response = await request(options);
+                expect(response.response.statusCode).to.equal(HttpStatus.OK);
+                expect(response.body).to.have.property('buildId');
+                expect(response.body).to.have.property('messages');
+                expect(response.body.messages[0]).to.equal(MESSAGES.FIRST_BUILD);
 
-            const response = await request(options)
-            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(MESSAGES.FILE_AND_IMAGE);
-        });
-        it('should succeed to apply algorithm with first build', async () => {
-            const payload = {
-                name: `my-alg-${uuidv4()}`,
-                mem: "50Mi",
-                cpu: 1,
-                version: '1.9.0',
-                env: 'nodejs'
-            }
-            const formData = {
-                payload: JSON.stringify(payload),
-                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-            };
-            const options = {
-                uri: restPath + '/apply',
-                formData
-            };
-            const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body).to.have.property('buildId');
-            expect(response.body).to.have.property('messages');
-            expect(response.body.messages[0]).to.equal(MESSAGES.FIRST_BUILD);
+                const getOptions = {
+                    uri: restPath + '/' + payload.name,
+                    method: 'GET'
+                };
+                const algResponse = await request(getOptions);
+                expect(algResponse.body.fileInfo).to.have.property('fileExt');
+                expect(algResponse.body.fileInfo).to.have.property('checksum');
+                expect(algResponse.body.fileInfo).to.have.property('fileSize');
+            });
+            it('should succeed to apply algorithm without buildId in response', async () => {
+                const body = {
+                    name: `my-alg-${uuidv4()}`,
+                    mem: "50Mi",
+                    cpu: 1
+                }
+                const body1 = {
+                    ...body,
+                    version: '1.8.0',
+                    env: 'nodejs',
+                    type: 'Code'
+                }
+                const body2 = {
+                    ...body,
+                    version: '1.8.0',
+                    env: 'nodejs',
+                    cpu: 2
+                }
+                const options = {
+                    uri: restPath,
+                    body: body1
+                };
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const uri = restPath + '/apply';
+                const options1 = {
+                    uri,
+                    formData: formData1
+                };
+                const options2 = {
+                    uri,
+                    formData: formData2
+                };
+                // insert algorithm
+                await request(options);
 
-            const getOptions = {
-                uri: restPath + '/' + payload.name,
-                method: 'GET'
-            };
-            const algResponse = await request(getOptions);
-            expect(algResponse.body.fileInfo).to.have.property('fileExt');
-            expect(algResponse.body.fileInfo).to.have.property('checksum');
-            expect(algResponse.body.fileInfo).to.have.property('fileSize');
-        });
-        it('should succeed to apply algorithm without buildId in response', async () => {
-            const body = {
-                name: `my-alg-${uuidv4()}`,
-                mem: "50Mi",
-                cpu: 1
-            }
-            const body1 = {
-                ...body,
-                version: '1.8.0',
-                env: 'nodejs'
-            }
-            const body2 = {
-                ...body,
-                version: '1.8.0',
-                env: 'nodejs',
-                cpu: 2
-            }
-            const options = {
-                uri: restPath,
-                body: body1
-            };
-            const formData1 = {
-                payload: JSON.stringify(body1),
-                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-            };
-            const formData2 = {
-                payload: JSON.stringify(body2),
-                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-            };
-            const uri = restPath + '/apply';
-            const options1 = {
-                uri,
-                formData: formData1
-            };
-            const options2 = {
-                uri,
-                formData: formData2
-            };
-            // insert algorithm
-            await request(options);
+                // apply algorithm
+                await request(options1)
 
-            // apply algorithm
-            await request(options1)
+                // apply algorithm again
+                const response = await request(options2);
+                expect(response.response.statusCode).to.equal(HttpStatus.OK);
+                expect(response.body).to.not.have.property('buildId');
+                expect(response.body.messages[0]).to.equal(MESSAGES.NO_TRIGGER_FOR_BUILD);
+            });
+            it('should succeed to apply algorithm with buildId due to change in env', async () => {
+                const body = {
+                    name: `my-alg-${uuidv4()}`,
+                    mem: "50Mi",
+                    cpu: 1
+                }
+                const body1 = {
+                    ...body,
+                    version: '1.8.0',
+                    env: 'nodejs',
+                    type: 'Code'
+                }
+                const body2 = {
+                    ...body,
+                    version: '1.9.0',
+                    env: 'python'
+                }
+                const options = {
+                    uri: restPath,
+                    body: body1
+                };
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const uri = restPath + '/apply';
+                const options1 = {
+                    uri,
+                    formData: formData1
+                };
+                const options2 = {
+                    uri,
+                    formData: formData2
+                };
+                // insert algorithm
+                await request(options);
 
-            // apply algorithm again
-            const response = await request(options2);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body).to.not.have.property('buildId');
-            expect(response.body.messages[0]).to.equal(MESSAGES.NO_TRIGGER_FOR_BUILD);
-        });
-        it('should succeed to apply algorithm with buildId due to change in env', async () => {
-            const body = {
-                name: `my-alg-${uuidv4()}`,
-                mem: "50Mi",
-                cpu: 1
-            }
-            const body1 = {
-                ...body,
-                version: '1.8.0',
-                env: 'nodejs'
-            }
-            const body2 = {
-                ...body,
-                version: '1.9.0',
-                env: 'python'
-            }
-            const options = {
-                uri: restPath,
-                body: body1
-            };
-            const formData1 = {
-                payload: JSON.stringify(body1),
-                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-            };
-            const formData2 = {
-                payload: JSON.stringify(body2),
-                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-            };
-            const uri = restPath + '/apply';
-            const options1 = {
-                uri,
-                formData: formData1
-            };
-            const options2 = {
-                uri,
-                formData: formData2
-            };
-            // insert algorithm
-            await request(options);
+                // apply algorithm
+                await request(options1)
 
-            // apply algorithm
-            await request(options1)
+                // apply algorithm again
+                const response = await request(options2);
+                expect(response.response.statusCode).to.equal(HttpStatus.OK);
+                expect(response.body).to.have.property('buildId');
+                expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
+            });
+            it('should succeed to apply algorithm without buildId in response', async () => {
+                const body = {
+                    name: `my-alg-${uuidv4()}`,
+                    mem: "50Mi",
+                    cpu: 1,
+                    version: '1.8.0',
+                    env: 'nodejs',
+                    type: 'Code'
+                }
+                const body1 = {
+                    ...body,
+                    cpu: 1
+                }
+                const body2 = {
+                    ...body,
+                    cpu: 2
+                }
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2)
+                };
+                const uri = restPath + '/apply';
+                const options1 = {
+                    uri,
+                    formData: formData1
+                };
+                const options2 = {
+                    uri,
+                    formData: formData2
+                };
 
-            // apply algorithm again
-            const response = await request(options2);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body).to.have.property('buildId');
-            expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
-        });
-        it('should succeed to apply algorithm without buildId in response', async () => {
-            const body = {
-                name: `my-alg-${uuidv4()}`,
-                mem: "50Mi",
-                cpu: 1,
-                version: '1.8.0',
-                env: 'nodejs'
-            }
-            const body1 = {
-                ...body,
-                cpu: 1
-            }
-            const body2 = {
-                ...body,
-                cpu: 2
-            }
-            const formData1 = {
-                payload: JSON.stringify(body1),
-                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-            };
-            const formData2 = {
-                payload: JSON.stringify(body2)
-            };
-            const uri = restPath + '/apply';
-            const options1 = {
-                uri,
-                formData: formData1
-            };
-            const options2 = {
-                uri,
-                formData: formData2
-            };
+                // apply algorithm
+                await request(options1)
 
-            // apply algorithm
-            await request(options1)
+                // apply algorithm again
+                const response = await request(options2);
+                expect(response.response.statusCode).to.equal(HttpStatus.OK);
+                expect(response.body).to.not.have.property('buildId');
+            });
+        })
+        describe('Image', () => {
+            it('should succeed to apply algorithm with just algorithmImage change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmImage: 'new-test-algorithmImage'
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
-            // apply algorithm again
-            const response = await request(options2);
-            expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body).to.not.have.property('buildId');
-            expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just cpu change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    cpu: 2
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just gpu change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    gpu: 2
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just mem change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    mem: "1.5Gi"
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just minHotWorkers change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    minHotWorkers: 3
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just algorithmEnv change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    },
+                    algorithmEnv: {
+                        storage: 's3'
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmEnv: {
+                        storage: 'fs'
+                    }
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
         });
     });
     describe('/store/algorithms PUT', () => {
@@ -600,48 +974,4 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.deep.equal(body);
         });
     });
-    xdescribe('Git', () => {
-        let webhookPath = null;
-        let applyPath = null;
-        before(() => {
-            webhookPath = `${restUrl}/builds/webhook/github`;
-            applyPath = `${restUrl}/store/algorithms/apply`;
-        });
-        describe('Github', () => {
-            it('should run simple push webhook', async () => {
-                const options = {
-                    uri: webhookPath,
-                    body: { payload: JSON.stringify(githubSample) },
-                    method: 'POST'
-
-                };
-                const res = await request(options);
-                const filterdRes = res.body.find(r => r.buildId.includes('green-alg'))
-                expect(filterdRes).to.not.be.null
-            })
-            it('should create build with last commit data', async () => {
-                const name = uuidv4();
-                const body = {
-                    name,
-                    mem: "6000Mi",
-                    cpu: 1,
-                    gitRepository: {
-                        url: "https://github.com/maty21/statistisc",
-                        branchName: "master",
-                        gitKind: "github"
-                    },
-                    env: "nodejs",
-                    type: "Git"
-                }
-                const payload = JSON.stringify(body);
-                const options = {
-                    uri: applyPath,
-                    body: { payload }
-                };
-                const _res = await request(options);
-                expect(_res.body.buildId).to.contain(name)
-
-            });
-        })
-    })
 });

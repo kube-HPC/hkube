@@ -140,6 +140,10 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
 
 const _gitClone = async ({ url, commitId, dest }) => {
     try {
+        if (!url.includes('.git')) {
+            // eslint-disable-next-line no-param-reassign
+            url = `${url}.git`;
+        }
         await gitClone(url, dest, { checkout: commitId });
     }
     catch (error) {

@@ -5,13 +5,14 @@ const HttpStatus = require('http-status-codes');
 const querystring = require('querystring');
 const builds = require('../lib/service/builds');
 const { request } = require('./utils');
+const githubSample = require('./mocks/github-sample.json')
 let restUrl;
 
 describe('Builds', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
     });
-    describe('/builds/status', () => {
+    describe('status', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/builds/status`;
@@ -63,7 +64,7 @@ describe('Builds', () => {
             expect(response.body.status).to.equal('pending');
         });
     });
-    describe('/builds/stop', () => {
+    describe('stop', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/builds/stop`;
@@ -114,7 +115,7 @@ describe('Builds', () => {
             expect(response.body.message).to.equal('OK');
         })
     });
-    describe('/builds/rerun', () => {
+    describe('rerun', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/builds/rerun`;
@@ -165,7 +166,7 @@ describe('Builds', () => {
             expect(response.body.error.message).to.equal('unable to rerun build because its in pending status');
         })
     });
-    describe('/builds/list', () => {
+    describe('list', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/builds/list`;
@@ -268,7 +269,7 @@ describe('Builds', () => {
             expect(response.body[1].status).to.equal('pending');
         })
     });
-    describe('/builds/fileInfo', () => {
+    describe('fileInfo', () => {
         it('should success to extract fileInfo', async () => {
             const fileInfo = await builds._fileInfo({ name: 'algorithm.tar.gz', path: 'tests/mocks/algorithm.tar.gz' });
             expect(fileInfo).to.have.property('fileExt');
@@ -278,5 +279,21 @@ describe('Builds', () => {
             expect(fileInfo.checksum).to.be.string;
             expect(fileInfo.fileSize).to.equal(740);
         });
+    });
+    describe('webhhoks/github', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/builds/webhook/github`;
+        });
+        it('should run simple push webhook', async () => {
+            const options = {
+                uri: restPath,
+                body: { payload: JSON.stringify(githubSample) },
+                method: 'POST'
+            };
+            const res = await request(options);
+            const body = res.body[0];
+            expect(body).to.have.property('buildId');
+        })
     });
 });

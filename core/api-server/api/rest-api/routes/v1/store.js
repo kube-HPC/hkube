@@ -92,7 +92,7 @@ const routes = (options) => {
         const file = req.file || {};
         if (!type) {
             // eslint-disable-next-line no-nested-ternary
-            type = req.file ? BUILD_TYPES.CODE : (payload && payload.gitRepository ? BUILD_TYPES.GIT : BUILD_TYPES.IMAGE);
+            type = req.file ? BUILD_TYPES.CODE : (payload.gitRepository ? BUILD_TYPES.GIT : BUILD_TYPES.IMAGE);
         }
         const response = await algorithmStore.applyAlgorithm({ payload: { ...payload, type }, file: { path: file.path, name: file.originalname } });
         res.json(response);
