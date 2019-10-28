@@ -33,6 +33,10 @@ class ApiValidator {
         this._addDefaults(this._definitions.pipeline, pipeline);
     }
 
+    addAlgorithmDefaults(algorithm) {
+        this._addDefaults(this._definitions.algorithm, algorithm);
+    }
+
     validateStoredInternal(pipeline) {
         this._validate(this._definitionsInternal.pipeline, pipeline, false);
     }
@@ -70,16 +74,17 @@ class ApiValidator {
         this._validateAlgorithmEnvVar(algorithm);
     }
 
+    validateApplyAlgorithm(algorithm) {
+        this._validate(this._definitions.algorithm, algorithm, false);
+        this._validateAlgorithmEnvVar(algorithm);
+    }
+
     validateAlgorithmBuild(algorithm) {
         this._validate(this._definitionsInternal.algorithmBuild, algorithm);
     }
 
     validateAlgorithmBuildFromGit(algorithm) {
         this._validate(this._definitionsInternal.algorithmBuildGit, algorithm);
-    }
-
-    validateApplyAlgorithm(algorithm) {
-        this._validate(this._definitions.algorithm, algorithm, true);
     }
 
     validateName(pipeline) {
