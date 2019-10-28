@@ -22,6 +22,7 @@
         },
         "gitRepository": {
             "url": "https://github.com/maty21/statistisc",
+            "webUrl": "https://github.com/maty21/statistisc",
             "branchName": "master"
         },
         "env": "nodejs",

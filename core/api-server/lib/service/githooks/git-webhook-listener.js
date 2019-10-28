@@ -8,26 +8,18 @@ class GitWebhookListener {
     async listen(data) {
         const gitDetails = gitDataAdapter.adapt({ type: WEBHOOKS.GITHUB, data });
         if (!gitDetails) {
-            throw new ResourceNotFoundError('algorithm', '');
+            throw new ResourceNotFoundError('url', '');
         }
         const algorithms = await this._checkRegistration(gitDetails.repository);
         if (!algorithms.length) {
-            throw new ResourceNotFoundError('algorithm', gitDetails.repository.url);
+            throw new ResourceNotFoundError('url', gitDetails.repository.url);
         }
-        const res = await Promise.all(algorithms.map(algorithm => this._storeBuildData(
-            {
-                ...algorithm,
-                gitRepository: { ...algorithm.gitRepository, commit: gitDetails.commit }
-            }
-        )));
-        return res;
+        return Promise.all(algorithms.map(a => this._storeBuildData({ ...a, gitRepository: { ...a.gitRepository, commit: gitDetails.commit } })));
     }
-
 
     async _checkRegistration({ url, branchName }) {
         const algorithmList = await stateManager.getAlgorithms();
-        const storedAlgorithms = algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.webUrl) && branchName === (a.gitRepository && a.gitRepository.branchName));
-        return storedAlgorithms;
+        return algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.webUrl) && branchName === (a.gitRepository && a.gitRepository.branchName));
     }
 
     async _storeBuildData(data) {
