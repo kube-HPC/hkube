@@ -16,6 +16,8 @@ const defaultProps = {
     type: "Image"
 }
 
+const gitRepo = 'https://github.com/kube-HPC/hkube';
+
 describe('Store/Algorithms', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
@@ -504,12 +506,13 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`invalid url 'http://no_such_url'`);
             });
-            it.skip('should throw error of git repository is empty', async () => {
+            it('should throw error of git repository is empty', async () => {
+                const url = 'https://github.com/hkube/empty';
                 const name = uuidv4();
                 const body = {
                     name,
                     gitRepository: {
-                        url: 'https://github.com/NassiHarel/test',
+                        url,
                     },
                     type: "Git"
                 }
@@ -520,7 +523,26 @@ describe('Store/Algorithms', () => {
                 };
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.equal(`Git Repository is empty. (https://github.com/NassiHarel/test)`);
+                expect(res.body.error.message).to.equal(`Git Repository is empty. (${url})`);
+            });
+            it('should create build with last commit data', async () => {
+                const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
+                const name = uuidv4();
+                const body = {
+                    name,
+                    gitRepository: {
+                        url,
+                    },
+                    env: 'nodejs',
+                    type: "Git"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    body: { payload }
+                };
+                const res = await request(options);
+                expect(res.body).to.have.property('buildId');
             });
             it('should create build with last commit data', async () => {
                 const name = uuidv4();
@@ -529,7 +551,7 @@ describe('Store/Algorithms', () => {
                     mem: "6000Mi",
                     cpu: 1,
                     gitRepository: {
-                        url: "https://github.com/maty21/statistisc.git"
+                        url: gitRepo
                     },
                     env: "nodejs"
                 }
@@ -545,7 +567,7 @@ describe('Store/Algorithms', () => {
                 const body = {
                     name: uuidv4(),
                     gitRepository: {
-                        url: "https://github.com/maty21/statistisc"
+                        url: gitRepo
                     },
                     env: "nodejs",
                     type: "Git"

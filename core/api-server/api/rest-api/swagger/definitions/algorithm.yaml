@@ -76,7 +76,6 @@ properties:
         type: string
         enum:
           - github
-          - gitlab
         default: github
     required:
       - url

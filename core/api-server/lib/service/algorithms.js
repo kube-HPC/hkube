@@ -122,9 +122,6 @@ class AlgorithmStore {
                     messages.push(...result.messages);
                 }
             }
-            else {
-                messages.push(MESSAGES.NO_BUILD);
-            }
 
             if (buildId && payload.algorithmImage) {
                 throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
