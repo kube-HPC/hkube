@@ -22,10 +22,8 @@
         },
         "gitRepository": {
             "url": "https://github.com/maty21/statistisc",
-            "branchName": "master",
-            "tag": "",
-            "token": "",
-            "gitKind": "github"
+            "webUrl": "https://github.com/maty21/statistisc",
+            "branchName": "master"
         },
         "env": "nodejs",
         "entryPoint": "./app.js",

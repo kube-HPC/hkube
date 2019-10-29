@@ -15,7 +15,6 @@ const { KANIKO } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
 const kubernetes = require('../helpers/kubernetes');
 
-
 const gitClone = promisify(_clone);
 
 const _ensureDirs = async (dirs) => {
@@ -128,9 +127,11 @@ const _downloadFile = async ({ buildId, src, dest, fileExt, overwrite }) => {
     await _extractFile({ src, dest, fileExt, overwrite });
     await fse.remove(src);
 };
+
 const _downloadFromGit = async ({ dest, gitRepository }) => {
-    await _gitClone({ url: gitRepository.repository.url, commitId: gitRepository.commit.id, dest });
+    await _gitClone({ url: gitRepository.repository.cloneUrl, commitId: gitRepository.commit.id, dest });
 };
+
 const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     const envr = `environments/${env}`;
     await fse.ensureDir(buildPath);
@@ -146,6 +147,7 @@ const _gitClone = async ({ url, commitId, dest }) => {
         log.error(`error on cloning from ${url} - ${error}`, { component });
     }
 };
+
 const _removeFolder = async ({ folder }) => {
     if (folder) {
         await fse.remove(folder);
