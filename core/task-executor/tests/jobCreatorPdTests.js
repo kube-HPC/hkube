@@ -7,6 +7,7 @@ const log = new Logger(main.serviceName, logger);
 const { expect } = require('chai');
 const { applyPipelineDriverImage, createDriverJobSpec, applyNodeSelector,
     applyEnvToContainerFromSecretOrConfigMap } = require('../lib/jobs/jobCreator');
+const { setPipelineDriverImage } = require('../lib/reconcile/createOptions');
 const template = require('../lib/templates').pipelineDriverTemplate;
 const CONTAINERS = require('../lib/consts/containers');
 
@@ -22,6 +23,65 @@ describe('PipelineDriverJobCreator', () => {
             expect(() => applyPipelineDriverImage(missingAlgorunnerSpec, 'registry:5000/myAlgo1Image:v2')).to.throw('unable to find container pipeline-driver');
         });
     });
+    describe('setPipelineDriverImage', () => {
+        it('should use image from versions config map', () => {
+            const versions = {
+                versions: [
+                    {
+                        project: 'pipeline-driver',
+                        tag: 'v1.2.3',
+                        image: 'foo/pd'
+                    }
+                ]
+            }
+            driverTemplate = {
+                "name": "pipeline-driver",
+                "image": "hkube/pipeline-driver",
+                "cpu": 0.1,
+                "mem": 128
+            };
+            const res = setPipelineDriverImage(driverTemplate, versions);
+            expect(res).to.eql('foo/pd:v1.2.3')
+        })
+        it('should use image from template', () => {
+            const versions = {
+                versions: [
+                    {
+                        project: 'pipeline-driver',
+                        tag: 'v1.2.3'
+                    }
+                ]
+            }
+            driverTemplate = {
+                "name": "pipeline-driver",
+                "image": "hkube/pipeline-driver",
+                "cpu": 0.1,
+                "mem": 128
+            };
+            const res = setPipelineDriverImage(driverTemplate, versions);
+            expect(res).to.eql('hkube/pipeline-driver:v1.2.3')
+        })
+        it('should use image from versions config map with registry', () => {
+            const versions = {
+                versions: [
+                    {
+                        project: 'pipeline-driver',
+                        tag: 'v1.2.3',
+                        image: 'foo/pd'
+                    }
+                ]
+            }
+            const registry='localhost:5555/bar'
+            driverTemplate = {
+                "name": "pipeline-driver",
+                "image": "hkube/pipeline-driver",
+                "cpu": 0.1,
+                "mem": 128
+            };
+            const res = setPipelineDriverImage(driverTemplate, versions,{registry});
+            expect(res).to.eql('localhost:5555/bar/foo/pd:v1.2.3')
+        })
+    })
     xdescribe('useNodeSelector', () => {
         it('should remove node selector in spec', () => {
             const res = applyNodeSelector(template, null, { useNodeSelector: false });
