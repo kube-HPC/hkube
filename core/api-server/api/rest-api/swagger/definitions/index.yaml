@@ -1,5 +1,9 @@
 algorithm:
   $ref: ./algorithm.yaml
+algorithmName:
+  $ref: ./algorithmName.yaml
+algorithmVersion:
+  $ref: ./algorithmVersion.yaml
 algorithmApplyResponse:
   $ref: ./algorithmApplyResponse.yaml
 buildId:

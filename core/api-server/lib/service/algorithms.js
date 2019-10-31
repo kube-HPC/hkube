@@ -5,6 +5,7 @@ const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const builds = require('./builds');
+const versions = require('./versions');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES, BUILD_TYPES } = require('../consts/builds');
 const gitDataAdapter = require('./githooks/git-data-adapter');
@@ -99,12 +100,17 @@ class AlgorithmStore {
         try {
             validator.validateApplyAlgorithm(payload);
             const oldAlgorithm = await stateManager.getAlgorithm(payload);
-            if (oldAlgorithm && oldAlgorithm.type !== payload.type) {
-                throw new InvalidDataError(`algorithm type cannot be changed, new type: ${payload.type}, old type: ${oldAlgorithm.type}`);
+            let currentImage = payload.algorithmImage;
+            if (oldAlgorithm) {
+                currentImage = oldAlgorithm.algorithmImage;
+                if (oldAlgorithm.type !== payload.type) {
+                    throw new InvalidDataError(`algorithm type cannot be changed, new type: ${payload.type}, old type: ${oldAlgorithm.type}`);
+                }
             }
 
             let newAlgorithm = merge({}, oldAlgorithm, payload);
             validator.addAlgorithmDefaults(newAlgorithm);
+            newAlgorithm.algorithmImage = currentImage;
 
             if (payload.type === BUILD_TYPES.CODE) {
                 if (file.path) {
@@ -133,6 +139,7 @@ class AlgorithmStore {
                 newAlgorithm.options.pending = true;
             }
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
+            await this._versioning(oldAlgorithm, newAlgorithm);
             await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: newAlgorithm });
             await stateManager.setAlgorithm(newAlgorithm);
         }
@@ -140,6 +147,12 @@ class AlgorithmStore {
             builds.removeFile(options.file);
         }
         return { buildId, messages };
+    }
+
+    async _versioning(oldAlgorithm, newAlgorithm) {
+        if (oldAlgorithm && oldAlgorithm.algorithmImage !== newAlgorithm.algorithmImage) {
+            await stateManager.setAlgorithmVersion(newAlgorithm);
+        }
     }
 }
 

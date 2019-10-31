@@ -1,10 +1,7 @@
 type: object
 properties:
   name:
-    type: string
-    description: Unique identifier representing a specific algorithm
-    minLength: 1
-    format: algorithm-name
+    $ref: "#/components/schemas/algorithmName"
   env:
     type: string
     enum:
@@ -16,6 +13,7 @@ properties:
     description: image name as in the docker registry
   cpu:
     type: number
+    default: 0.1
     minimum: 0
     description: algorithm cpu
   gpu:

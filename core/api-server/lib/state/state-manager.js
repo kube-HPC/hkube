@@ -59,7 +59,6 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.store.set(options);
     }
 
-
     setPipelineDriverTemplate(options) {
         return this._etcd.pipelineDrivers.store.set(options);
     }
@@ -79,6 +78,18 @@ class StateManager extends EventEmitter {
 
     deleteAlgorithm(options) {
         return this._etcd.algorithms.store.delete(options);
+    }
+
+    setAlgorithmVersion(options) {
+        return this._etcd.algorithms.versions.set(options);
+    }
+
+    getAlgorithmVersion(options) {
+        return this._etcd.algorithms.versions.get(options);
+    }
+
+    getAlgorithmVersions(options) {
+        return this._etcd.algorithms.versions.list(options);
     }
 
     setPipeline(options) {

@@ -1,0 +1,10 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/algorithmName"
+  algorithmImage:
+    type: string
+    description: image name as in the docker registry
+required:
+  - name
+  - algorithmImage

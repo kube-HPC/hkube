@@ -81,3 +81,9 @@
   $ref: ./readme/algorithms.yaml
 /readme/pipelines/{name}:
   $ref: ./readme/pipelines.yaml
+
+# versions
+/versions/algorithms/{name}:
+  $ref: ./versions/algorithms.yaml
+/versions/algorithms/apply:
+  $ref: ./versions/apply.yaml
