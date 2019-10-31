@@ -222,7 +222,7 @@ class SubPipelineHandler {
                     subPipelineJobId,
                     subPipelineId,
                     jobId: jobConsumer.jobId,
-                    taskId: jobConsumer.taskId,
+                    taskId: jobConsumer.taskId
                 }
             };
             if (!jobConsumer.algTracer.topSpan(jobConsumer.taskId)) {
@@ -288,7 +288,8 @@ class SubPipelineHandler {
 
             // post subPipeline
             const { jobId, taskId } = jobConsumer;
-            const subPipelineToPost = { ...subPipeline, jobId, taskId }; // add jobId, taskId
+            const rootJobId = jobConsumer._job.data.info.rootJobId
+            const subPipelineToPost = { ...subPipeline, jobId, taskId ,rootJobId}; // add jobId, taskId
             const response = await apiServerClient.postSubPipeline(subPipelineToPost, subPipelineType);
             if (response) {
                 const subPipelineJobId = response.jobId;
