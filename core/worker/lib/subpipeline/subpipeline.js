@@ -288,8 +288,8 @@ class SubPipelineHandler {
 
             // post subPipeline
             const { jobId, taskId } = jobConsumer;
-            const rootJobId = jobConsumer._job.data.info.rootJobId
-            const subPipelineToPost = { ...subPipeline, jobId, taskId ,rootJobId}; // add jobId, taskId
+            const { rootJobId } = jobConsumer._job.data.info.rootJobId;
+            const subPipelineToPost = { ...subPipeline, jobId, taskId, rootJobId }; // add jobId, taskId
             const response = await apiServerClient.postSubPipeline(subPipelineToPost, subPipelineType);
             if (response) {
                 const subPipelineJobId = response.jobId;
@@ -323,8 +323,8 @@ class SubPipelineHandler {
             }
         }
         catch (e) {
-            let message = e.error.error ? e.error.error.message : e.error.message
-            this._handleJobError(message, subPipelineId);
+            const errorMessage = e.error.error ? e.error.error.message : e.error.message;
+            this._handleJobError(errorMessage, subPipelineId);
         }
     }
 
