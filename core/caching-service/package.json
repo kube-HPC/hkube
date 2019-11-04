@@ -1,5 +1,5 @@
 {
-  "name": "cashing-service",
+  "name": "caching-service",
   "version": "1.2.1",
   "description": "",
   "main": "app.js",
