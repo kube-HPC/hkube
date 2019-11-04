@@ -1,7 +1,7 @@
 const express = require('express');
 const Algorithms = require('../../../lib/service/algorithms');
 const methods = require('../middlewares/methods');
-const2 logger = require('../middlewares/logger');
+const logger = require('../middlewares/logger');
 
 const routes = () => {
     const router = express.Router();

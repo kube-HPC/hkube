@@ -1,4 +1,4 @@
 module.exports = {
     KANIKO: 'kaniko',
-    DOCKER: 'docker' 
+    DOCKER: 'docker'
 };
