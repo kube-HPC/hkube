@@ -51,7 +51,6 @@
         "eslint-plugin-import": "^2.18.2",
         "mocha": "^6.2.0",
         "nyc": "^14.1.1",
-        "pre-commit": "^1.2.2",
         "request": "^2.88.0",
         "sinon": "^7.4.1"
     },
