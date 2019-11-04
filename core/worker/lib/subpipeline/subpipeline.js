@@ -323,9 +323,8 @@ class SubPipelineHandler {
             }
         }
         catch (e) {
-            let error = e.error ? e.error : e //check for nested error
-            error = error.error ? e.error : error; // check for nested error within nested error
-            this._handleJobError(error.message, subPipelineId);
+            const errorMessage = (e.error && e.error.error && e.error.error.message) || (e.error && e.error.message) || (e.message);
+            this._handleJobError(errorMessage, subPipelineId);
         }
     }
 
