@@ -23,8 +23,5 @@ script:
   then 
     echo nothing changed
   else 
-    ./scripts/test.sh
-    ./scripts/createVersion.sh
-    ./scripts/build.sh
-    ./scripts/trigger.js
+    ./scripts/runTestAndBuild.sh
   fi

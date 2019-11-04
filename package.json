@@ -5,13 +5,19 @@
   "main": "index.js",
   "scripts": {
     "lerna": "./node_modules/.bin/lerna",
-    "test": "lerna changed 2>/dev/null | xargs -n 1  lerna run test --scope",
-    "lint": "lerna changed 2>/dev/null | xargs -n 1  lerna run lint --scope",
-    "version": "echo $npm_package_version"
+    "test": "lerna exec npm run test --concurrency 1",
+    "lint": "lerna exec npm run lint",
+    "version": "echo $npm_package_version",
+    "pre-commit": "./scripts/test_local.sh"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kube-HPC/hkube.git"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run pre-commit"
+    }
   },
   "keywords": [],
   "author": "",
@@ -21,7 +27,8 @@
   },
   "homepage": "https://github.com/kube-HPC/hkube#readme",
   "devDependencies": {
-    "lerna": "^3.14.1"
+    "husky": "^3.0.9",
+    "lerna": "^3.18.3"
   },
   "dependencies": {
     "@octokit/rest": "^16.27.3",
