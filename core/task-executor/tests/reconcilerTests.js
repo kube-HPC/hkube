@@ -52,7 +52,7 @@ describe('reconciler', () => {
     after(() => {
         mockery.disable();
     });
-    beforeEach(async () => {
+    beforeEach(() => {
         clearCount();
         reconciler._clearCreatedJobsList(Date.now() + 100000, options);
         normResources = normalizeResources(resources);
