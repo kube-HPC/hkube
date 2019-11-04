@@ -41,6 +41,8 @@ describe('reconciler', () => {
         driversReconciler = require('../lib/reconcile/drivers-reconciler');
 
         await etcd.init(main);
+        await etcd._etcd._client.delete('/', { isPrefix: true });
+
         await Promise.all(templateStore.map(d => etcd._etcd.algorithms.store.set(d)));
         await Promise.all(driversTemplateStore.map(d => etcd._etcd.pipelineDrivers.store.set(d)));
 
@@ -50,12 +52,12 @@ describe('reconciler', () => {
     after(() => {
         mockery.disable();
     });
-    beforeEach(() => {
+    beforeEach(async () => {
         clearCount();
         reconciler._clearCreatedJobsList(Date.now() + 100000, options);
         normResources = normalizeResources(resources);
-        globalSettings.useResourceLimits = false
-        globalSettings.applyResources = false
+        globalSettings.useResourceLimits = false;
+        globalSettings.applyResources = false;
     });
     describe('reconcile algorithms tests', () => {
         it('should work with no params', async () => {

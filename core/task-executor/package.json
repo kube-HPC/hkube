@@ -33,7 +33,7 @@
     "@hkube/etcd": "^5.0.8",
     "@hkube/healthchecks": "^1.0.0",
     "@hkube/kubernetes-client": "^1.0.27",
-    "@hkube/logger": "^1.0.24",
+    "@hkube/logger": "^1.0.25",
     "@hkube/metrics": "^1.0.34",
     "@hkube/rest-server": "^1.0.12",
     "@hkube/units-converter": "^1.0.14",

@@ -128,6 +128,15 @@ const _downloadFile = async ({ buildId, src, dest, fileExt, overwrite }) => {
     await fse.remove(src);
 };
 
+const _gitClone = async ({ url, commitId, dest }) => {
+    try {
+        await gitClone(url, dest, { checkout: commitId });
+    }
+    catch (error) {
+        log.error(`error on cloning from ${url} - ${error}`, { component });
+    }
+};
+
 const _downloadFromGit = async ({ dest, gitRepository }) => {
     await _gitClone({ url: gitRepository.repository.cloneUrl, commitId: gitRepository.commit.id, dest });
 };
@@ -139,14 +148,6 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     await fse.move(dest, `${buildPath}/algorithm_unique_folder`, { overwrite });
 };
 
-const _gitClone = async ({ url, commitId, dest }) => {
-    try {
-        await gitClone(url, dest, { checkout: commitId });
-    }
-    catch (error) {
-        log.error(`error on cloning from ${url} - ${error}`, { component });
-    }
-};
 
 const _removeFolder = async ({ folder }) => {
     if (folder) {
