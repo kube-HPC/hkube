@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
-export CHANGED=$(lerna changed)
-echo ${CHANGED}
+export CHANGED=$(git status -s --porcelain=v1 ./core | awk '{print $2}'|cut -f2 -d'/')
+echo changed: ${CHANGED}
 for REPO in ${CHANGED}
 do
   echo ${REPO} changed. Running tests
