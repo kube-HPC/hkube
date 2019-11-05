@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
@@ -11,7 +11,7 @@
     "@hkube/config": "^2.0.7",
     "@hkube/dag": "^1.0.9",
     "@hkube/etcd": "^5.0.8",
-    "@hkube/logger": "^1.0.24",
+    "@hkube/logger": "^1.0.25",
     "@hkube/metrics": "^1.0.34",
     "@hkube/parsers": "^1.0.20",
     "@hkube/producer-consumer": "^1.0.46",
@@ -37,7 +37,6 @@
     "eslint-plugin-import": "^2.17.2",
     "mocha": "^6.1.4",
     "nyc": "^14.1.1",
-    "pre-commit": "^1.2.2",
     "sinon": "^7.3.2"
   },
   "scripts": {

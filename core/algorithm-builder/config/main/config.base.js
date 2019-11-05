@@ -40,10 +40,12 @@ config.packagesRepo = {
     nodejs: {
         registry: process.env.NPM_REGISTRY || '',
         token: process.env.NPM_TOKEN || '',
+        defaultBaseImage: process.env.NODE_DEFAULT_BASE_IMAGE || 'hkube/nodejs-env'
     },
     python: {
         registry: process.env.PIP_REGISTRY || '',
-        token: process.env.PIP_TOKEN || ''
+        token: process.env.PIP_TOKEN || '',
+        defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.7'
     }
 };
 

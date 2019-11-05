@@ -7,8 +7,8 @@ const discovery = require('./states/discovery');
 const { stateEvents, EventMessages, workerStates, workerCommands, Components } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
-const subPipeline = require('./subpipeline/subpipeline');
-const execAlgorithms = require('./algorithm-execution/algorithm-execution');
+const subPipeline = require('./code-api/subpipeline/subpipeline');
+const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
 
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
