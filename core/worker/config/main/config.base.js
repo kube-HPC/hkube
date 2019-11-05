@@ -115,6 +115,8 @@ config.storageAdapters = {
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
-
-
+config.cacheResults = {
+    enabled: formatter.parseBool(process.env.CACHE_RESULTS_ENABLE, true),
+    updateFrequency: formatter.parseInt(process.env.CACHE_UPDATE_FREQUENCY, 5)
+};
 module.exports = config;

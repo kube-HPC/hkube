@@ -115,7 +115,7 @@ describe('worker SubPipeline test', () => {
 
         workerCommunication = require('../lib/algorithm-communication/workerCommunication');
         stateManager = require('./mocks/stateManager');
-        subPipeline = require('../lib/subpipeline/subpipeline');
+        subPipeline = require('../lib/code-api/subpipeline/subpipeline');
         if (jobConsumer._algTracer) {
             jobConsumer._algTracer._tracer.close();
         }
@@ -133,7 +133,7 @@ describe('worker SubPipeline test', () => {
         this.timeout(5000);
         const { adapter } = workerCommunication;
         const apiServerMock = require('./mocks/api-server-mock');
-        const subPipelineHandler = require('../lib/subpipeline/subpipeline');
+        const subPipelineHandler = require('../lib/code-api/subpipeline/subpipeline');
         const input = [10];
         workerCommunication.on(messages.incomming.initialized, (message) => {
             stateManager.state = workerStates.working;

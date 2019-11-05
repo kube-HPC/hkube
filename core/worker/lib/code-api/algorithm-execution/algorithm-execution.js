@@ -4,11 +4,13 @@ const { consts } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
 const { Producer } = require('@hkube/producer-consumer');
-const algoRunnerCommunication = require('../algorithm-communication/workerCommunication');
-const discovery = require('../states/discovery');
-const messages = require('../algorithm-communication/messages');
-const { Components, taskEvents } = require('../consts');
-const jobConsumer = require('../consumer/JobConsumer');
+const Etcd = require('@hkube/etcd');
+const { cacheResults } = require('../../utils');
+const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
+const discovery = require('../../states/discovery');
+const messages = require('../../algorithm-communication/messages');
+const { Components, taskEvents } = require('../../consts');
+const jobConsumer = require('../../consumer/JobConsumer');
 const { producerSchema, startAlgorithmSchema, stopAlgorithmSchema } = require('./schema');
 const validator = new Validator({ useDefaults: true, coerceTypes: false });
 const component = Components.ALGORITHM_EXECUTION;
@@ -17,15 +19,18 @@ let log;
 class AlgorithmExecution {
     init(options) {
         log = Logger.GetLogFromContainer();
+        this._etcd = new Etcd(options.etcd);
         this._watching = false;
         this._executions = new Map();
         this._producerSchema = validator.compile(producerSchema);
         this._startAlgorithmSchema = validator.compile(startAlgorithmSchema);
         this._stopAlgorithmSchema = validator.compile(stopAlgorithmSchema);
-
         this._initProducer(options);
         this._registerToEtcdEvents();
         this._registerToAlgorithmEvents();
+        if (options.cacheResults.enabled) {
+            this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
+        }
     }
 
     _initProducer(options) {
@@ -182,9 +187,12 @@ class AlgorithmExecution {
             const storage = {};
             const { jobId, nodeName } = jobData;
             const { algorithmName, input, resultAsRaw } = data;
+            const algos = await this.getExistingAlgorithms();
+            if (!algos.some(algo => algo.name === algorithmName)) {
+                throw new Error(`Algorithm named '${algorithmName}' does not exist`);
+            }
             const taskId = this._createTaskID({ nodeName, algorithmName });
             this._executions.set(execId, { taskId, resultAsRaw });
-
             const storageInput = await Promise.all(input.map(i => this._mapInputToStorage(i, storage, jobId)));
             const task = { execId, taskId, input: storageInput, storage };
             const job = this._createJobData({ algorithmName, task, jobData });
@@ -233,6 +241,11 @@ class AlgorithmExecution {
 
     _isPrimitive(val) {
         return typeof val === 'boolean' || typeof val === 'number';
+    }
+
+    async getExistingAlgorithms() {
+        const algorithms = await this._etcd.algorithms.store.list();
+        return algorithms;
     }
 }
 
