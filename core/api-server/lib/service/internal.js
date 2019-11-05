@@ -24,7 +24,8 @@ class InternalService {
     async runStoredSubPipeline(options) {
         validator.validateStoredSubPipeline(options);
         const jobID = this._createSubPipelineJobID(options);
-        const { jobId, taskId, ...option } = options;
+        const { jobId, taskId, rootJobId, ...option } = options;
+        option.rootJobId = rootJobId || jobId;
         return execution._runStored(option, jobID);
     }
 

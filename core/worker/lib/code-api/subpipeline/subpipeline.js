@@ -2,13 +2,13 @@ const Logger = require('@hkube/logger');
 const Validator = require('ajv');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
-const algoRunnerCommunication = require('../algorithm-communication/workerCommunication');
-const discovery = require('../states/discovery');
-const messages = require('../algorithm-communication/messages');
-const { Status, EventMessages, ApiServerPostTypes, workerStates, Components } = require('../consts');
-const apiServerClient = require('../helpers/api-server-client');
-const jobConsumer = require('../consumer/JobConsumer');
-const stateManager = require('../states/stateManager');
+const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
+const discovery = require('../../states/discovery');
+const messages = require('../../algorithm-communication/messages');
+const { Status, EventMessages, ApiServerPostTypes, workerStates, Components } = require('../../consts');
+const apiServerClient = require('../../helpers/api-server-client');
+const jobConsumer = require('../../consumer/JobConsumer');
+const stateManager = require('../../states/stateManager');
 const { startSubPipeline, stopSubPipeline } = require('./schema');
 const validator = new Validator({ useDefaults: true, coerceTypes: false });
 const component = Components.WORKER;
@@ -222,7 +222,7 @@ class SubPipelineHandler {
                     subPipelineJobId,
                     subPipelineId,
                     jobId: jobConsumer.jobId,
-                    taskId: jobConsumer.taskId,
+                    taskId: jobConsumer.taskId
                 }
             };
             if (!jobConsumer.algTracer.topSpan(jobConsumer.taskId)) {
@@ -288,7 +288,8 @@ class SubPipelineHandler {
 
             // post subPipeline
             const { jobId, taskId } = jobConsumer;
-            const subPipelineToPost = { ...subPipeline, jobId, taskId }; // add jobId, taskId
+            const { rootJobId } = jobConsumer._job.data.info;
+            const subPipelineToPost = { ...subPipeline, jobId, taskId, rootJobId }; // add jobId, taskId
             const response = await apiServerClient.postSubPipeline(subPipelineToPost, subPipelineType);
             if (response) {
                 const subPipelineJobId = response.jobId;
@@ -322,7 +323,8 @@ class SubPipelineHandler {
             }
         }
         catch (e) {
-            this._handleJobError(e.message, subPipelineId);
+            const errorMessage = (e.error && e.error.error && e.error.error.message) || (e.error && e.error.message) || (e.message);
+            this._handleJobError(errorMessage, subPipelineId);
         }
     }
 

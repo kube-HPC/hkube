@@ -2,12 +2,20 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const delay = require('delay');
 const uuid = require('uuid/v4');
-const execAlgorithm = require('../lib/algorithm-execution/algorithm-execution');
+const execAlgorithm = require('../lib/code-api/algorithm-execution/algorithm-execution');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 const etcd = require('../lib/states/discovery');
 
 describe('AlgorithmExecutions', () => {
     let spy;
+    before(function () {
+        let options = { name: 'black-alg', data: 'bla' };
+        etcd.createAlgorithmType(options);
+    });
+    after(function () {
+        let options = { name: 'black-alg', data: 'bla' };
+        etcd.deleteAlgorithmType(options);
+    });
     afterEach(function () {
         spy && spy.restore();
         execAlgorithm._watching = false;
@@ -81,6 +89,31 @@ describe('AlgorithmExecutions', () => {
         expect(args).to.have.property('error');
         expect(args.execId).equals(data.execId);
         expect(args.error).equals('execution cannot start in this state');
+    });
+    it('should fail executing none existing algorithm', async function () {
+        spy = sinon.spy(execAlgorithm, '_sendErrorToAlgorithm');
+        const jobData = {
+            jobId: `job-${uuid()}`,
+            nodeName: 'white',
+            pipelineName: 'pipeline-exec',
+            priority: 3,
+            algorithmName: 'white-alg',
+            info: {
+                extraData: null,
+                lastRunResult: null
+            }
+        };
+        jobConsumer._job = { data: jobData };
+
+        const data = {
+            execId: `execId-${uuid()}`,
+            algorithmName: 'stam-alg',
+            input: [1, 2, false, [1, 2, 3], { data: 'bla' }]
+        };
+        await execAlgorithm._startAlgorithmExecution({ data });
+        const args = spy.getCalls()[0].args[0];
+        expect(args).to.have.property('error');
+        expect(args.error).equals(`Algorithm named 'stam-alg' does not exist`);
     });
     it('should fail with execution already running', async function () {
         const jobData = {

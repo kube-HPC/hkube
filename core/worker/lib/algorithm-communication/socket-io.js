@@ -12,7 +12,6 @@ let log;
 class SocketWorkerCommunication extends EventEmitter {
     constructor() {
         super();
-        this._options = null;
         this._socketServer = null;
         this._socket = null;
     }
@@ -26,20 +25,20 @@ class SocketWorkerCommunication extends EventEmitter {
                 if (!valid) {
                     return reject(new Error(validator.errorsText(validator.errors)));
                 }
-                const server = this._options.httpServer || http.createServer();
+                const server = options.httpServer || http.createServer();
                 this._socketServer = socketio.listen(server, {
-                    pingTimeout: this._options.pingTimeout,
-                    pingInterval: this._options.pingTimeout * 2,
-                    maxHttpBufferSize: this._options.maxPayload
+                    pingTimeout: options.pingTimeout,
+                    pingInterval: options.pingTimeout * 2,
+                    maxHttpBufferSize: options.maxPayload
                 });
                 this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!', { component });
                     this._registerSocketMessages(socket);
                     this.emit('connection');
                 });
-                if (!this._options.httpServer) {
-                    log.info(`socket-io adapter is listening on port ${this._options.connection.port}`, { component });
-                    server.listen(this._options.connection.port, () => {
+                if (!options.httpServer) {
+                    log.info(`socket-io adapter is listening on port ${options.connection.port}`, { component });
+                    server.listen(options.connection.port, () => {
                         return resolve();
                     });
                 }

@@ -113,6 +113,19 @@ class EtcdDiscovery extends EventEmitter {
         return this._etcd.workers.delete({ workerId: this._workerId });
     }
 
+    async createAlgorithmType(options) {
+        await this._etcd.algorithms.store.set(options);
+    }
+
+    async deleteAlgorithmType(options) {
+        await this._etcd.algorithms.store.delete(options);
+    }
+
+    async getExistingAlgorithms() {
+        const algorithms = await this._etcd.algorithms.store.list();
+        return algorithms;
+    }
+
     async unwatch(options) {
         try {
             log.debug('start unwatch', { component });

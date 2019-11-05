@@ -141,6 +141,7 @@ class AlgorithmStore {
             if (!newAlgorithm.algorithmImage && buildId) {
                 newAlgorithm.options.pending = true;
             }
+
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await this._versioning(oldAlgorithm, newAlgorithm);
             await this.storeAlgorithm(newAlgorithm);

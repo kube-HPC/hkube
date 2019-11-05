@@ -1,6 +1,7 @@
 #!/bin/bash
-set -ev
-echo ${CHANGED}
+set -e
+export CHANGED=$(git status -s --porcelain=v1 ./core | awk '{print $2}'|cut -f2 -d'/'|sort|uniq)
+echo changed: ${CHANGED}
 for REPO in ${CHANGED}
 do
   echo ${REPO} changed. Running tests

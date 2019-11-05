@@ -18,6 +18,9 @@ describe('bootstrap', () => {
     after(() => {
         mockery.disable();
     });
+    beforeEach(async () => {
+        await etcd._etcd._client.delete('/', { isPrefix: true });
+    });
     it('should get', async () => {
         await Promise.all(discoveryStub.map(d => etcd._etcd._client.put(`/discovery/stub/${d.workerId}`, d)));
         let workers = await etcd.getWorkers({ workerServiceName: 'stub' });
