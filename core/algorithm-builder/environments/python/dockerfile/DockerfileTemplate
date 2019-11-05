@@ -1,12 +1,16 @@
-FROM ${baseImage} 
-LABEL maintainer="hkube.dev@gmail.com"
-
+ARG baseImage
 ARG packagesRegistry
 ARG packagesToken
-COPY algorithm_unique_folder/* /hkube/algorithm-runner/algorithm_unique_folder/
+
+FROM ${baseImage} 
+LABEL maintainer="hkube.dev@gmail.com"
+COPY wrapper/ /hkube/algorithm-runner/
+# COPY algorithm_unique_folder/* /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/
+COPY ./packages/* /hkube/packages/
 WORKDIR /hkube/algorithm-runner
+RUN pip install --no-index --find-links /hkube/packages/ -r /hkube/algorithm-runner/requirements.txt
 RUN ./dockerfile/requirements.sh ${packagesRegistry} ${packagesToken}
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
-CMD ["python3", "-u", "app.py"]
+CMD ["python", "-u", "app.py"]
