@@ -12,6 +12,7 @@ before(async function () {
     mockery.registerSubstitute('@octokit/rest', process.cwd() + '/tests/mocks/octokit.js');
     const bootstrap = require('../bootstrap');
     const config = await bootstrap.init();
+    await stateManager._etcd._client.client.delete().all();
     await Promise.all(pipelines.map(p => stateManager.setPipeline(p)));
     await Promise.all(algorithms.map(p => stateManager.setAlgorithm(p)));
     webhookStub.start();

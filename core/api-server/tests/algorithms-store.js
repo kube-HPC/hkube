@@ -2,23 +2,15 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const uuidv4 = require('uuid/v4');
 const HttpStatus = require('http-status-codes');
+const stateManager = require('../lib/state/state-manager');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms } = require('./mocks');
-const { request } = require('./utils');
+const { request, defaultProps } = require('./utils');
 let restUrl, restPath, applyPath;
-
-const defaultProps = {
-    minHotWorkers: 0,
-    options: {
-        debug: false,
-        pending: false
-    },
-    type: "Image"
-}
 
 const gitRepo = 'https://github.com/kube-HPC/hkube';
 
-describe('Store/Algorithms', () => {
+describe.only('Store/Algorithms', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/store/algorithms`;
@@ -46,7 +38,7 @@ describe('Store/Algorithms', () => {
                 uri: restPath,
                 body
             };
-            const r = await request(options);
+            await request(options);
 
             const getOptions = {
                 uri: restPath + '/test-alg',
@@ -54,8 +46,8 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(getOptions);
             expect(response.body).to.deep.equal({
-                ...body,
-                ...defaultProps
+                ...defaultProps,
+                ...body
             });
         });
     });
@@ -211,6 +203,24 @@ describe('Store/Algorithms', () => {
                 expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
             });
         });
+        it('should failed to store algorithm with no name', async () => {
+            const body = {};
+            const options = { uri: restPath, body };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal("data should have required property 'name'");
+        });
+        it('should failed to store algorithm with no image', async () => {
+            const body = {
+                name: uuidv4()
+            }
+            const options = { uri: restPath, body };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
+        });
         it('should succeed to store algorithm name (www.example.com)', async () => {
             const body = {
                 name: '2-www.exam-ple.com' + uuidv4(),
@@ -225,20 +235,20 @@ describe('Store/Algorithms', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(response.body).to.deep.equal({
-                ...body,
-                ...defaultProps
+                ...defaultProps,
+                ...body
             });
         });
         it('should succeed to store and get multiple algorithms', async function () {
-            this.timeout(5000);
-            const limit = 350;
+            this.timeout(10000);
+            const limit = 5;
             const keys = Array.from(Array(limit).keys());
             const algorithms = keys.map(k => ({
+                ...defaultProps,
                 name: `stress-${k}-${uuidv4()}`,
                 algorithmImage: "image",
                 mem: "50Mi",
-                cpu: k,
-                ...defaultProps
+                cpu: k
             }));
 
             const result = await Promise.all(algorithms.map(a => request({ uri: restPath, body: a })));
@@ -253,6 +263,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.has.lengthOf(limit);
+            await stateManager._etcd.algorithms.store.delete({ name: 'stress' }, { isPrefix: true })
         });
         it('should succeed to store algorithm', async () => {
             const body = {
@@ -269,8 +280,8 @@ describe('Store/Algorithms', () => {
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(response.body).to.deep.equal({
-                ...body,
-                ...defaultProps
+                ...defaultProps,
+                ...body
             });
         });
     });
@@ -760,7 +771,7 @@ describe('Store/Algorithms', () => {
             });
         })
         describe('Image', () => {
-            it('should succeed to apply algorithm with just algorithmImage change', async () => {
+            it('should not take affect on algorithmImage change', async () => {
                 const apply1 = {
                     name: `my-alg-${uuidv4()}`,
                     algorithmImage: 'test-algorithmImage',
@@ -776,6 +787,41 @@ describe('Store/Algorithms', () => {
                 const apply2 = {
                     name: apply1.name,
                     algorithmImage: 'new-test-algorithmImage'
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1 });
+            });
+            it('should take affect on algorithmImage change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuidv4()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmImage: 'new-test-algorithmImage',
+                    overrideImage: true
                 }
                 const uri = restPath + '/apply';
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
@@ -826,7 +872,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to apply algorithm with just gpu change', async () => {
                 const apply1 = {
@@ -860,7 +906,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to apply algorithm with just mem change', async () => {
                 const apply1 = {
@@ -894,7 +940,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to apply algorithm with just minHotWorkers change', async () => {
                 const apply1 = {
@@ -928,7 +974,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to apply algorithm with just algorithmEnv change', async () => {
                 const apply1 = {
@@ -967,7 +1013,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
         });
     });
@@ -993,7 +1039,29 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            expect(response.body).to.deep.equal(body);
+            expect(response.body).to.eql({ ...defaultProps, overrideImage: true, ...body });
+        });
+        it('should failed to update algorithm', async () => {
+            const body = { ...algorithms[0], algorithmImage: '' };
+            const options = {
+                uri: restPath,
+                method: 'PUT',
+                body
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
+        });
+        it('should succeed to update algorithm', async () => {
+            const body = { ...algorithms[0], algorithmImage: 'new-image' };
+            const options = {
+                uri: restPath,
+                method: 'PUT',
+                body
+            };
+            const response = await request(options);
+            expect(response.body).to.eql({ ...defaultProps, overrideImage: true, ...body });
         });
     });
 });

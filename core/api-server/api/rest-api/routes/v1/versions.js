@@ -16,15 +16,28 @@ const routes = (options) => {
         res.json(response);
         next();
     });
+    router.get('/algorithms/:name/:image', logger(), async (req, res, next) => {
+        const { name, image } = req.params;
+        const { sort, order, limit } = req.query;
+        const response = await versionsService.getVersions({ name, algorithmImage: image, sort, order, limit });
+        res.json(response);
+        next();
+    });
     router.post('/algorithms/apply', logger(), async (req, res, next) => {
-        const response = await versionsService.apply(req.body);
+        const response = await versionsService.applyVersion(req.body);
         res.status(HttpStatus.CREATED).json(response);
         next();
     });
     router.delete('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        await versionsService.deleteAlgorithm({ name });
-        res.json({ message: 'OK' });
+        const response = await versionsService.deleteVersion({ name });
+        res.json(response);
+        next();
+    });
+    router.delete('/algorithms/:name/:image', logger(), async (req, res, next) => {
+        const { name, image } = req.params;
+        const response = await versionsService.deleteVersion({ name, algorithmImage: image });
+        res.json(response);
         next();
     });
 

@@ -1,25 +1,24 @@
 
 const merge = require('lodash.merge');
+const clone = require('clone');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const builds = require('./builds');
-const versions = require('./versions');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES, BUILD_TYPES } = require('../consts/builds');
 const gitDataAdapter = require('./githooks/git-data-adapter');
 
 class AlgorithmStore {
     async updateAlgorithm(options) {
-        validator.validateUpdateAlgorithm(options);
-        const algorithm = await stateManager.getAlgorithm(options);
-        if (!algorithm) {
+        validator.validateAlgorithmName(options);
+        const alg = await stateManager.getAlgorithm(options);
+        if (!alg) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
-        await stateManager.setAlgorithm(options);
-        return options;
+        const { algorithm } = await this.applyAlgorithm({ payload: { ...options, overrideImage: true } });
+        return algorithm;
     }
 
     async deleteAlgorithm(options) {
@@ -77,15 +76,19 @@ class AlgorithmStore {
         return stateManager.getAlgorithms(options);
     }
 
-    async insertAlgorithm(options) {
-        validator.validateUpdateAlgorithm(options);
-        const algorithm = await stateManager.getAlgorithm(options);
-        if (algorithm) {
-            throw new ResourceExistsError('algorithm', options.name);
-        }
+    async storeAlgorithm(options) {
         await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
         await stateManager.setAlgorithm(options);
-        return options;
+    }
+
+    async insertAlgorithm(options) {
+        validator.validateAlgorithmName(options);
+        const alg = await stateManager.getAlgorithm(options);
+        if (alg) {
+            throw new ResourceExistsError('algorithm', options.name);
+        }
+        const { algorithm } = await this.applyAlgorithm({ payload: options });
+        return algorithm;
     }
 
     async getAlgorithmsQueueList() {
@@ -96,23 +99,25 @@ class AlgorithmStore {
         const { payload } = options;
         const file = options.file || {};
         let buildId;
+        let newAlgorithm;
         const messages = [];
+
         try {
-            validator.validateApplyAlgorithm(payload);
-            const oldAlgorithm = await stateManager.getAlgorithm(payload);
-            let currentImage = payload.algorithmImage;
+            newAlgorithm = clone(payload);
+            validator.validateApplyAlgorithm(newAlgorithm);
+            const oldAlgorithm = await stateManager.getAlgorithm(newAlgorithm);
             if (oldAlgorithm) {
-                currentImage = oldAlgorithm.algorithmImage;
-                if (oldAlgorithm.type !== payload.type) {
-                    throw new InvalidDataError(`algorithm type cannot be changed, new type: ${payload.type}, old type: ${oldAlgorithm.type}`);
+                newAlgorithm.algorithmImage = newAlgorithm.overrideImage ? newAlgorithm.algorithmImage : oldAlgorithm.algorithmImage;
+                if (oldAlgorithm.type !== newAlgorithm.type) {
+                    throw new InvalidDataError(`algorithm type cannot be changed, new type: ${newAlgorithm.type}, old type: ${oldAlgorithm.type}`);
                 }
             }
 
-            let newAlgorithm = payload;
-            newAlgorithm.algorithmImage = currentImage;
+            newAlgorithm = merge({}, oldAlgorithm, newAlgorithm);
+            validator.addAlgorithmDefaults(newAlgorithm);
 
-            if (payload.type === BUILD_TYPES.CODE && file.path) {
-                if (payload.algorithmImage) {
+            if (newAlgorithm.type === BUILD_TYPES.CODE && file.path) {
+                if (newAlgorithm.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
                 }
                 const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
@@ -120,8 +125,8 @@ class AlgorithmStore {
                 messages.push(...result.messages);
                 newAlgorithm = result.algorithm;
             }
-            else if (payload.type === BUILD_TYPES.GIT && payload.gitRepository) {
-                if (payload.algorithmImage) {
+            else if (newAlgorithm.type === BUILD_TYPES.GIT && newAlgorithm.gitRepository) {
+                if (newAlgorithm.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
                 }
                 newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
@@ -130,12 +135,6 @@ class AlgorithmStore {
                 messages.push(...result.messages);
             }
 
-            newAlgorithm = merge({}, oldAlgorithm, newAlgorithm, payload);
-            validator.addAlgorithmDefaults(newAlgorithm);
-
-            if (buildId && payload.algorithmImage) {
-                throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
-            }
             if (!newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
                 throw new InvalidDataError(MESSAGES.APPLY_ERROR);
             }
@@ -144,71 +143,17 @@ class AlgorithmStore {
             }
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await this._versioning(oldAlgorithm, newAlgorithm);
-            await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: newAlgorithm });
-            await stateManager.setAlgorithm(newAlgorithm);
+            await this.storeAlgorithm(newAlgorithm);
         }
         finally {
             builds.removeFile(options.file);
         }
-        return { buildId, messages };
-    }
-
-    async applyAlgorithmx(options) {
-        const { payload } = options;
-        const file = options.file || {};
-        let buildId;
-        const messages = [];
-        try {
-            validator.validateApplyAlgorithm(payload);
-            const oldAlgorithm = await stateManager.getAlgorithm(payload);
-            if (oldAlgorithm && oldAlgorithm.type !== payload.type) {
-                throw new InvalidDataError(`algorithm type cannot be changed, new type: ${payload.type}, old type: ${oldAlgorithm.type}`);
-            }
-
-            let newAlgorithm = payload;
-
-            if (payload.type === BUILD_TYPES.CODE && file.path) {
-                if (payload.algorithmImage) {
-                    throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
-                }
-                const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
-                buildId = result.buildId; // eslint-disable-line
-                messages.push(...result.messages);
-                newAlgorithm = result.algorithm;
-            }
-            else if (payload.type === BUILD_TYPES.GIT && payload.gitRepository) {
-                if (payload.algorithmImage) {
-                    throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
-                }
-                newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
-                const result = await builds.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
-                buildId = result.buildId; // eslint-disable-line
-                messages.push(...result.messages);
-            }
-
-            newAlgorithm = merge({}, oldAlgorithm, newAlgorithm, payload);
-            validator.addAlgorithmDefaults(newAlgorithm);
-
-            if (!newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
-                throw new InvalidDataError(MESSAGES.APPLY_ERROR);
-            }
-            if (!newAlgorithm.algorithmImage && buildId) {
-                newAlgorithm.options.pending = true;
-            }
-
-            messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
-            await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: newAlgorithm });
-            await stateManager.setAlgorithm(newAlgorithm);
-        }
-        finally {
-            builds.removeFile(options.file);
-        }
-        return { buildId, messages };
+        return { buildId, messages, algorithm: newAlgorithm };
     }
 
     async _versioning(oldAlgorithm, newAlgorithm) {
-        if (oldAlgorithm && oldAlgorithm.algorithmImage !== newAlgorithm.algorithmImage) {
-            await stateManager.setAlgorithmVersion(newAlgorithm);
+        if (newAlgorithm.overrideImage && oldAlgorithm && oldAlgorithm.algorithmImage !== newAlgorithm.algorithmImage) {
+            await stateManager.setAlgorithmVersion(oldAlgorithm);
         }
     }
 }

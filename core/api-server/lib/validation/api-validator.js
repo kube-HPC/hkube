@@ -38,7 +38,7 @@ class ApiValidator {
     }
 
     validateAlgorithmName(algorithm) {
-        this._validate(this._definitions.algorithmName, algorithm, false);
+        this._validate(this._definitionsInternal.algorithmName, algorithm);
     }
 
     validateStoredInternal(pipeline) {

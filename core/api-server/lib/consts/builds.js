@@ -8,6 +8,7 @@ const MESSAGES = {
     TRIGGER_BUILD: `a build was triggered due to change in {triggers}. ${BUILD_GUIDE}`,
     ALGORITHM_PUSHED: 'the algorithm {algorithmName} has been successfully pushed to hkube',
     FILE_AND_IMAGE: 'both image and file is not allowed, the current image will be overwritten after build',
+    GIT_AND_IMAGE: 'both image and git repo is not allowed, the current image will be overwritten after build',
     NO_TRIGGER_FOR_BUILD: `there was no trigger for build, no change in ${BUILD_TRIGGERS.join(',')}`,
     APPLY_ERROR: 'cannot apply algorithm due to missing image url or build data',
 };

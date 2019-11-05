@@ -2919,8 +2919,14 @@
                       "type": "string",
                       "description": "image name as in the docker registry"
                     },
+                    "overrideImage": {
+                      "type": "boolean",
+                      "description": "should replace the current image with this image",
+                      "default": false
+                    },
                     "cpu": {
                       "type": "number",
+                      "default": 0.1,
                       "minimum": 0,
                       "description": "algorithm cpu"
                     },
@@ -3247,8 +3253,14 @@
                         "type": "string",
                         "description": "image name as in the docker registry"
                       },
+                      "overrideImage": {
+                        "type": "boolean",
+                        "description": "should replace the current image with this image",
+                        "default": false
+                      },
                       "cpu": {
                         "type": "number",
+                        "default": 0.1,
                         "minimum": 0,
                         "description": "algorithm cpu"
                       },
@@ -3431,8 +3443,14 @@
                     "type": "string",
                     "description": "image name as in the docker registry"
                   },
+                  "overrideImage": {
+                    "type": "boolean",
+                    "description": "should replace the current image with this image",
+                    "default": false
+                  },
                   "cpu": {
                     "type": "number",
+                    "default": 0.1,
                     "minimum": 0,
                     "description": "algorithm cpu"
                   },
@@ -3670,8 +3688,14 @@
                     "type": "string",
                     "description": "image name as in the docker registry"
                   },
+                  "overrideImage": {
+                    "type": "boolean",
+                    "description": "should replace the current image with this image",
+                    "default": false
+                  },
                   "cpu": {
                     "type": "number",
+                    "default": 0.1,
                     "minimum": 0,
                     "description": "algorithm cpu"
                   },
@@ -3895,8 +3919,14 @@
                         "type": "string",
                         "description": "image name as in the docker registry"
                       },
+                      "overrideImage": {
+                        "type": "boolean",
+                        "description": "should replace the current image with this image",
+                        "default": false
+                      },
                       "cpu": {
                         "type": "number",
+                        "default": 0.1,
                         "minimum": 0,
                         "description": "algorithm cpu"
                       },
@@ -4069,8 +4099,14 @@
                           "type": "string",
                           "description": "image name as in the docker registry"
                         },
+                        "overrideImage": {
+                          "type": "boolean",
+                          "description": "should replace the current image with this image",
+                          "default": false
+                        },
                         "cpu": {
                           "type": "number",
+                          "default": 0.1,
                           "minimum": 0,
                           "description": "algorithm cpu"
                         },
@@ -5928,8 +5964,14 @@
                           "type": "string",
                           "description": "image name as in the docker registry"
                         },
+                        "overrideImage": {
+                          "type": "boolean",
+                          "description": "should replace the current image with this image",
+                          "default": false
+                        },
                         "cpu": {
                           "type": "number",
+                          "default": 0.1,
                           "minimum": 0,
                           "description": "algorithm cpu"
                         },
@@ -6204,8 +6246,14 @@
                             "type": "string",
                             "description": "image name as in the docker registry"
                           },
+                          "overrideImage": {
+                            "type": "boolean",
+                            "description": "should replace the current image with this image",
+                            "default": false
+                          },
                           "cpu": {
                             "type": "number",
+                            "default": 0.1,
                             "minimum": 0,
                             "description": "algorithm cpu"
                           },
@@ -7408,10 +7456,13 @@
           {
             "name": "name",
             "in": "path",
-            "description": "pipeline name",
+            "description": "algorithm name",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "format": "algorithm-name"
             }
           },
           {
@@ -7467,8 +7518,14 @@
                         "type": "string",
                         "description": "image name as in the docker registry"
                       },
+                      "overrideImage": {
+                        "type": "boolean",
+                        "description": "should replace the current image with this image",
+                        "default": false
+                      },
                       "cpu": {
                         "type": "number",
+                        "default": 0.1,
                         "minimum": 0,
                         "description": "algorithm cpu"
                       },
@@ -7658,6 +7715,486 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Versions"
+        ],
+        "summary": "Delete algorithm versions",
+        "description": "Delete existing algorithm version.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "algorithm name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "format": "algorithm-name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions/algorithms/{name}/{image}": {
+      "get": {
+        "tags": [
+          "Versions"
+        ],
+        "summary": "Get algorithm specific version",
+        "description": "returns list of algorithm versions.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "algorithm name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "format": "algorithm-name"
+            }
+          },
+          {
+            "name": "image",
+            "in": "path",
+            "description": "algorithm image",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "sort by asc or desc",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "order by",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "format": "algorithm-name"
+                      },
+                      "env": {
+                        "type": "string",
+                        "enum": [
+                          "nodejs",
+                          "python",
+                          "jvm"
+                        ]
+                      },
+                      "algorithmImage": {
+                        "type": "string",
+                        "description": "image name as in the docker registry"
+                      },
+                      "overrideImage": {
+                        "type": "boolean",
+                        "description": "should replace the current image with this image",
+                        "default": false
+                      },
+                      "cpu": {
+                        "type": "number",
+                        "default": 0.1,
+                        "minimum": 0,
+                        "description": "algorithm cpu"
+                      },
+                      "gpu": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "algorithm gpu"
+                      },
+                      "mem": {
+                        "type": "string",
+                        "description": "algorithm memory",
+                        "format": "algorithm-memory",
+                        "default": "256Mi",
+                        "example": "512Mi"
+                      },
+                      "options": {
+                        "type": "object",
+                        "properties": {
+                          "debug": {
+                            "type": "boolean",
+                            "description": "debug algorithm locally",
+                            "default": false
+                          },
+                          "pending": {
+                            "type": "boolean",
+                            "description": "pending algorithm",
+                            "default": false
+                          }
+                        },
+                        "default": {}
+                      },
+                      "gitRepository": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "a url for the git repository",
+                            "format": "url"
+                          },
+                          "commit": {
+                            "type": "object",
+                            "description": "commit details",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "commit id"
+                              },
+                              "timestamp": {
+                                "type": "string",
+                                "description": "commit time"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "commit message"
+                              }
+                            },
+                            "required": [
+                              "id"
+                            ]
+                          },
+                          "branchName": {
+                            "type": "string",
+                            "default": "master",
+                            "description": "the branch name you wish to create a build from"
+                          },
+                          "tag": {
+                            "type": "string",
+                            "description": "a specific tag which will trigger the build"
+                          },
+                          "token": {
+                            "type": "string",
+                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                          },
+                          "gitKind": {
+                            "type": "string",
+                            "enum": [
+                              "github"
+                            ],
+                            "default": "github"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "entryPoint": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "minHotWorkers": {
+                        "type": "integer",
+                        "description": "how many live algorithm instances will always run",
+                        "minimum": 0,
+                        "default": 0
+                      },
+                      "algorithmEnv": {
+                        "type": "object",
+                        "description": "key value environment variables for algorithm"
+                      },
+                      "workerEnv": {
+                        "type": "object",
+                        "description": "key value environment variables for worker"
+                      },
+                      "nodeSelector": {
+                        "type": "object",
+                        "description": "key value labels for nodes constraint",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "type of algorithm code resource",
+                        "enum": [
+                          "Git",
+                          "Code",
+                          "Image"
+                        ],
+                        "default": "Image"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "algorithm Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Versions"
+        ],
+        "summary": "Delete algorithm specific version",
+        "description": "Delete existing algorithm version.",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "algorithm name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "format": "algorithm-name"
+            }
+          },
+          {
+            "name": "image",
+            "in": "path",
+            "description": "algorithm image",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/versions/algorithms/apply": {
@@ -7794,8 +8331,14 @@
             "type": "string",
             "description": "image name as in the docker registry"
           },
+          "overrideImage": {
+            "type": "boolean",
+            "description": "should replace the current image with this image",
+            "default": false
+          },
           "cpu": {
             "type": "number",
+            "default": 0.1,
             "minimum": 0,
             "description": "algorithm cpu"
           },
@@ -7976,8 +8519,14 @@
                 "type": "string",
                 "description": "image name as in the docker registry"
               },
+              "overrideImage": {
+                "type": "boolean",
+                "description": "should replace the current image with this image",
+                "default": false
+              },
               "cpu": {
                 "type": "number",
+                "default": 0.1,
                 "minimum": 0,
                 "description": "algorithm cpu"
               },

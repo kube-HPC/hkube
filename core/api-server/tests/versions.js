@@ -1,17 +1,8 @@
 const { expect } = require('chai');
 const uuidv4 = require('uuid/v4');
 const HttpStatus = require('http-status-codes');
-const { request } = require('./utils');
+const { request, defaultProps } = require('./utils');
 let restUrl, restPath;
-const defaultProps = {
-    minHotWorkers: 0,
-    options: {
-        debug: false,
-        pending: false
-    },
-    mem: "256Mi",
-    type: "Image"
-}
 
 describe('Versions/Algorithms', () => {
     before(() => {
@@ -39,7 +30,8 @@ describe('Versions/Algorithms', () => {
             }
             const applyPayload2 = {
                 name,
-                algorithmImage: 'new-test-algorithmImage'
+                algorithmImage: 'new-test-algorithmImage',
+                overrideImage: true
             }
             const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
             const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
@@ -47,21 +39,24 @@ describe('Versions/Algorithms', () => {
             await request(applyReq1);
             await request(applyReq2);
             const res = await request(versionReq);
-            expect(res.body[0]).to.eql({ applyPayload1, ...defaultProps });
+            expect(res.body[0]).to.eql({ ...defaultProps, ...applyPayload1 });
         });
-        it.only('should succeed to apply algorithm version', async () => {
+        it('should succeed to overrideImage', async () => {
             const name = `my-alg-${uuidv4()}`;
             const applyPayload1 = {
                 name,
-                algorithmImage: 'test-algorithmImage-1'
+                algorithmImage: 'test-algorithmImage-1',
+                overrideImage: true
             }
             const applyPayload2 = {
                 name,
-                algorithmImage: 'test-algorithmImage-2'
+                algorithmImage: 'test-algorithmImage-2',
+                overrideImage: true
             }
             const applyPayload3 = {
                 name,
-                algorithmImage: 'test-algorithmImage-3'
+                algorithmImage: 'test-algorithmImage-3',
+                overrideImage: true
             }
             const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
             const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
@@ -79,7 +74,92 @@ describe('Versions/Algorithms', () => {
             const res2 = await request(versionReq2);
             const res3 = await request(versionReq3);
 
-            expect(res1.body).to.eql({ applyPayload1, ...defaultProps });
+            expect(res1.body).to.eql({ ...defaultProps, ...applyPayload1, });
+            expect(res2.body).to.eql({ ...defaultProps, ...applyPayload2 });
+            expect(res3.body.error.message).to.eql(`algorithmVersion ${applyPayload3.algorithmImage} Not Found`);
+        });
+        it('should succeed to delete specific version', async () => {
+            const name = `my-alg-${uuidv4()}`;
+            const applyPayload1 = {
+                name,
+                algorithmImage: 'test-algorithmImage-1',
+                overrideImage: true
+            }
+            const applyPayload2 = {
+                name,
+                algorithmImage: 'test-algorithmImage-2',
+                overrideImage: true
+            }
+            const applyPayload3 = {
+                name,
+                algorithmImage: 'test-algorithmImage-3',
+                overrideImage: true
+            }
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload3) } };
+            const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
+            const deleteReq = { uri: `${restPath}/${name}/${applyPayload2.algorithmImage}`, method: 'DELETE' };
+
+            await request(applyReq1);
+            await request(applyReq2);
+            await request(applyReq3);
+
+            const res1 = await request(versionReq);
+            const res2 = await request(deleteReq);
+            const res3 = await request(versionReq);
+
+            expect(res1.body).to.have.lengthOf(2);
+            expect(res2.body).to.eql({ deleted: 1 });
+            expect(res3.body).to.have.lengthOf(1);
+        });
+        it('should succeed to delete all versions', async () => {
+            const name = `my-alg-${uuidv4()}`;
+            const applyPayload1 = {
+                name,
+                algorithmImage: 'test-algorithmImage-1',
+                overrideImage: true
+            }
+            const applyPayload2 = {
+                name,
+                algorithmImage: 'test-algorithmImage-2',
+                overrideImage: true
+            }
+            const applyPayload3 = {
+                name,
+                algorithmImage: 'test-algorithmImage-3',
+                overrideImage: true
+            }
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload3) } };
+            const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
+            const deleteReq = { uri: `${restPath}/${name}`, method: 'DELETE' };
+
+            await request(applyReq1);
+            await request(applyReq2);
+            await request(applyReq3);
+
+            const res1 = await request(versionReq);
+            const res2 = await request(deleteReq);
+            const res3 = await request(versionReq);
+
+            expect(res1.body).to.have.lengthOf(2);
+            expect(res2.body).to.eql({ deleted: 2 });
+            expect(res3.body).to.have.lengthOf(0);
+        });
+        it('should failed to apply algorithm version', async () => {
+            const name = `my-alg-${uuidv4()}`;
+            for (let i = 0; i < 3; i++) {
+                const applyPayload = { name, algorithmImage: `test-algorithmImage-${i}` }
+                const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload) } };
+                const versionReq = { uri: `${restPath}/apply`, body: applyPayload };
+                await request(applyReq);
+                const res1 = await request(versionReq);
+                expect(res1.body).to.have.property('error');
+                expect(res1.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+                expect(res1.body.error.message).to.eql(`algorithmVersion ${applyPayload.algorithmImage} Not Found`);
+            }
         });
     });
     describe('apply', () => {

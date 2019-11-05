@@ -6,10 +6,10 @@ get:
   parameters:
     - name: name
       in: path
-      description: pipeline name
+      description: algorithm name
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/algorithmName"
     - name: sort
       in: query
       description: sort by asc or desc
@@ -42,6 +42,43 @@ get:
             $ref: "#/components/schemas/error"
     "404":
       description: algorithm Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+delete:
+  tags:
+    - Versions
+  summary: Delete algorithm versions
+  description: Delete existing algorithm version.
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name
+      required: true
+      schema:
+        $ref: "#/components/schemas/algorithmName"
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
       content:
         application/json:
           schema:

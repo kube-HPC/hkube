@@ -1,17 +1,16 @@
-
-const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
+const algorithms = require('./algorithms');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
+const { ResourceNotFoundError } = require('../errors');
 
 class AlgorithmVersions {
     async getVersions(options) {
-        validator.validateAlgorithmName(options.name);
+        validator.validateAlgorithmName(options);
         const algorithmVersion = await stateManager.getAlgorithmVersions(options);
         return algorithmVersion;
     }
 
-    async apply(options) {
+    async applyVersion(options) {
         validator.validateAlgorithmVersion(options);
         const algorithm = await stateManager.getAlgorithm(options);
         if (!algorithm) {
@@ -21,28 +20,14 @@ class AlgorithmVersions {
         if (!algorithmVersion) {
             throw new ResourceNotFoundError('algorithmVersion', options.algorithmImage);
         }
-        await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: algorithmVersion });
-        await stateManager.setAlgorithm(algorithmVersion);
+        await algorithms.storeAlgorithm(algorithmVersion);
         return algorithmVersion;
     }
 
-    async deleteAlgorithm(options) {
-        validator.validateName(options);
-        const algorithm = await stateManager.getAlgorithm(options);
-        if (!algorithm) {
-            throw new ResourceNotFoundError('algorithm', options.name);
-        }
-        await this._checkAlgorithmDependencies(options.name);
-        await storageManager.hkubeStore.delete({ type: 'algorithm', name: options.name });
-        return stateManager.deleteAlgorithm(options);
-    }
-
-    _versioning(oldAlgorithm, newAlgorithm) {
-        const versions = newAlgorithm.versions || [];
-        if (oldAlgorithm && oldAlgorithm.algorithmImage !== newAlgorithm.algorithmImage) {
-            versions.push(oldAlgorithm);
-        }
-        return { ...newAlgorithm, versions };
+    async deleteVersion(options) {
+        const res = await stateManager.deleteAlgorithmVersion(options, { isPrefix: !options.algorithmImage });
+        const deleted = parseInt(res.deleted, 10);
+        return { deleted };
     }
 }
 
