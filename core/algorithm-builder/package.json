@@ -13,7 +13,8 @@
     "build": "./dockerfile/build.sh algorithm-builder",
     "build-env-python": "./lib/builds/build-base-image.sh --env python",
     "build-env-nodejs": "./lib/builds/build-base-image.sh --env nodejs",
-    "build-algorithm": "./lib/builds/build-algorithm-image-docker.sh"
+    "build-algorithm": "./lib/builds/build-algorithm-image-docker.sh",
+    "download-python-packages": "pip3 download hkube-python-wrapper -d ./environments/python/packages"
   },
   "pre-commit": {
     "run": [
