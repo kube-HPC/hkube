@@ -104,13 +104,13 @@
 <path fill="none" stroke="#757575" d="M182.336,-499.216C355.913,-492.215 986.15,-466.793 1230.12,-456.953"/>
 <polygon fill="#757575" stroke="#757575" points="1230.54,-460.439 1240.39,-456.538 1230.26,-453.444 1230.54,-460.439"/>
 </g>
-<!-- lib/code-api/subpipeline/subpipeline.js -->
-<g id="node11" class="node"><title>lib/code-api/subpipeline/subpipeline.js</title>
+<!-- lib/subpipeline/subpipeline.js -->
+<g id="node11" class="node"><title>lib/subpipeline/subpipeline.js</title>
 <path fill="none" stroke="#c6c5fe" d="M432.333,-541.524C432.333,-541.524 249.667,-541.524 249.667,-541.524 245.833,-541.524 242,-537.691 242,-533.858 242,-533.858 242,-526.191 242,-526.191 242,-522.358 245.833,-518.524 249.667,-518.524 249.667,-518.524 432.333,-518.524 432.333,-518.524 436.167,-518.524 440,-522.358 440,-526.191 440,-526.191 440,-533.858 440,-533.858 440,-537.691 436.167,-541.524 432.333,-541.524"/>
-<text text-anchor="middle" x="341" y="-526.324" font-family="Arial" font-size="14.00" fill="#c6c5fe">lib/code-api/subpipeline/subpipeline.js</text>
+<text text-anchor="middle" x="341" y="-526.324" font-family="Arial" font-size="14.00" fill="#c6c5fe">lib/subpipeline/subpipeline.js</text>
 </g>
-<!-- bootstrap.js&#45;&gt;lib/code-api/subpipeline/subpipeline.js -->
-<g id="edge10" class="edge"><title>bootstrap.js&#45;&gt;lib/code-api/subpipeline/subpipeline.js</title>
+<!-- bootstrap.js&#45;&gt;lib/subpipeline/subpipeline.js -->
+<g id="edge10" class="edge"><title>bootstrap.js&#45;&gt;lib/subpipeline/subpipeline.js</title>
 <path fill="none" stroke="#757575" d="M182.19,-507.425C202.063,-510.271 226.217,-513.73 249.591,-517.077"/>
 <polygon fill="#757575" stroke="#757575" points="249.15,-520.55 259.546,-518.503 250.143,-513.62 249.15,-520.55"/>
 </g>
@@ -359,38 +359,38 @@
 <path fill="none" stroke="#757575" d="M1365.8,-464.578C1420,-481.827 1522.05,-514.305 1581.59,-533.255"/>
 <polygon fill="#757575" stroke="#757575" points="1580.89,-536.705 1591.48,-536.403 1583.02,-530.035 1580.89,-536.705"/>
 </g>
-<!-- lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/algorithm&#45;communication/workerCommunication.js -->
-<g id="edge51" class="edge"><title>lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/algorithm&#45;communication/workerCommunication.js</title>
+<!-- lib/subpipeline/subpipeline.js&#45;&gt;lib/algorithm&#45;communication/workerCommunication.js -->
+<g id="edge51" class="edge"><title>lib/subpipeline/subpipeline.js&#45;&gt;lib/algorithm&#45;communication/workerCommunication.js</title>
 <path fill="none" stroke="#757575" d="M356.476,-541.752C383.404,-563.138 443.593,-608.943 500,-638.024 540.271,-658.787 588.864,-676.067 624.451,-687.416"/>
 <polygon fill="#757575" stroke="#757575" points="623.536,-690.798 634.126,-690.458 625.636,-684.12 623.536,-690.798"/>
 </g>
-<!-- lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/consts/index.js -->
-<g id="edge52" class="edge"><title>lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/consts/index.js</title>
+<!-- lib/subpipeline/subpipeline.js&#45;&gt;lib/consts/index.js -->
+<g id="edge52" class="edge"><title>lib/subpipeline/subpipeline.js&#45;&gt;lib/consts/index.js</title>
 <path fill="none" stroke="#757575" d="M440.186,-532.707C459.988,-533.192 480.659,-533.66 500,-534.024 897.855,-541.529 1374.72,-545.94 1554.57,-547.441"/>
 <polygon fill="#757575" stroke="#757575" points="1554.67,-550.942 1564.7,-547.525 1554.73,-543.942 1554.67,-550.942"/>
 </g>
-<!-- lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/consumer/JobConsumer.js -->
-<g id="edge53" class="edge"><title>lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/consumer/JobConsumer.js</title>
+<!-- lib/subpipeline/subpipeline.js&#45;&gt;lib/consumer/JobConsumer.js -->
+<g id="edge53" class="edge"><title>lib/subpipeline/subpipeline.js&#45;&gt;lib/consumer/JobConsumer.js</title>
 <path fill="none" stroke="#757575" d="M361.774,-518.47C418.037,-485.593 579.199,-391.421 645.243,-352.828"/>
 <polygon fill="#757575" stroke="#757575" points="647.042,-355.831 653.91,-347.764 643.51,-349.787 647.042,-355.831"/>
 </g>
-<!-- lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/helpers/api&#45;server&#45;client.js -->
-<g id="edge54" class="edge"><title>lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/helpers/api&#45;server&#45;client.js</title>
+<!-- lib/subpipeline/subpipeline.js&#45;&gt;lib/helpers/api&#45;server&#45;client.js -->
+<g id="edge54" class="edge"><title>lib/subpipeline/subpipeline.js&#45;&gt;lib/helpers/api&#45;server&#45;client.js</title>
 <path fill="none" stroke="#757575" d="M349.909,-541.772C375.91,-580.017 459.395,-699.78 500,-722.024 519.643,-732.785 542.375,-739.094 564.796,-742.621"/>
 <polygon fill="#757575" stroke="#757575" points="564.329,-746.09 574.718,-744.01 565.299,-739.158 564.329,-746.09"/>
 </g>
-<!-- lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/states/discovery.js -->
-<g id="edge55" class="edge"><title>lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/states/discovery.js</title>
+<!-- lib/subpipeline/subpipeline.js&#45;&gt;lib/states/discovery.js -->
+<g id="edge55" class="edge"><title>lib/subpipeline/subpipeline.js&#45;&gt;lib/states/discovery.js</title>
 <path fill="none" stroke="#757575" d="M355.248,-518.227C379.406,-496.168 431.149,-446.342 464,-396.024 485.537,-363.037 469.991,-340.548 500,-315.024 622.518,-210.818 714.68,-309.962 850,-223.024 871.258,-209.367 864.316,-191.995 886,-179.024 900.6,-170.292 917.563,-164.418 934.389,-160.484"/>
 <polygon fill="#757575" stroke="#757575" points="935.208,-163.889 944.262,-158.386 933.753,-157.042 935.208,-163.889"/>
 </g>
-<!-- lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/states/stateManager.js -->
-<g id="edge56" class="edge"><title>lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/states/stateManager.js</title>
+<!-- lib/subpipeline/subpipeline.js&#45;&gt;lib/states/stateManager.js -->
+<g id="edge56" class="edge"><title>lib/subpipeline/subpipeline.js&#45;&gt;lib/states/stateManager.js</title>
 <path fill="none" stroke="#757575" d="M440.175,-528.936C593.217,-526.288 897.708,-517.2 1154,-486.024 1191.65,-481.445 1233.43,-473.585 1266.55,-466.686"/>
 <polygon fill="#757575" stroke="#757575" points="1267.47,-470.068 1276.54,-464.58 1266.03,-463.218 1267.47,-470.068"/>
 </g>
-<!-- lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/algorithm&#45;communication/messages.js -->
-<g id="edge50" class="edge"><title>lib/code-api/subpipeline/subpipeline.js&#45;&gt;lib/algorithm&#45;communication/messages.js</title>
+<!-- lib/subpipeline/subpipeline.js&#45;&gt;lib/algorithm&#45;communication/messages.js -->
+<g id="edge50" class="edge"><title>lib/subpipeline/subpipeline.js&#45;&gt;lib/algorithm&#45;communication/messages.js</title>
 <path fill="none" stroke="#757575" d="M440.061,-540.353C448.219,-541.977 456.289,-543.854 464,-546.024 480.854,-550.767 483.122,-557.367 500,-562.024 732.052,-626.058 1011.94,-649.097 1179.51,-657.381"/>
 <polygon fill="#757575" stroke="#757575" points="1179.48,-660.884 1189.64,-657.871 1179.82,-653.892 1179.48,-660.884"/>
 </g>
@@ -481,3 +481,4 @@
 </g>
 </g>
 </svg>
+

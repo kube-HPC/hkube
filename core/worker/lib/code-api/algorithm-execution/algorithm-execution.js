@@ -4,7 +4,6 @@ const { consts } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
 const { Producer } = require('@hkube/producer-consumer');
-const Etcd = require('@hkube/etcd');
 const { cacheResults } = require('../../utils');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const discovery = require('../../states/discovery');
@@ -19,7 +18,6 @@ let log;
 class AlgorithmExecution {
     init(options) {
         log = Logger.GetLogFromContainer();
-        this._etcd = new Etcd(options.etcd);
         this._watching = false;
         this._executions = new Map();
         this._producerSchema = validator.compile(producerSchema);
@@ -187,8 +185,8 @@ class AlgorithmExecution {
             const storage = {};
             const { jobId, nodeName } = jobData;
             const { algorithmName, input, resultAsRaw } = data;
-            const algos = await this.getExistingAlgorithms();
-            if (!algos.some(algo => algo.name === algorithmName)) {
+            const algos = await discovery.getExistingAlgorithms();
+            if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }
             const taskId = this._createTaskID({ nodeName, algorithmName });
@@ -241,11 +239,6 @@ class AlgorithmExecution {
 
     _isPrimitive(val) {
         return typeof val === 'boolean' || typeof val === 'number';
-    }
-
-    async getExistingAlgorithms() {
-        const algorithms = await this._etcd.algorithms.store.list();
-        return algorithms;
     }
 }
 
