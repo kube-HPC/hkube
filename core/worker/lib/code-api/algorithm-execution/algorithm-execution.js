@@ -27,7 +27,7 @@ class AlgorithmExecution {
         this._registerToEtcdEvents();
         this._registerToAlgorithmEvents();
         if (options.cacheResults.enabled) {
-            this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
+            this.getExistingAlgorithms = cacheResults(discovery.getExistingAlgorithms.bind(discovery), options.cacheResults.updateFrequency);
         }
     }
 
@@ -185,7 +185,7 @@ class AlgorithmExecution {
             const storage = {};
             const { jobId, nodeName } = jobData;
             const { algorithmName, input, resultAsRaw } = data;
-            const algos = await discovery.getExistingAlgorithms();
+            const algos = await this.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }

@@ -5,14 +5,14 @@ module.exports = {
         }
         return pipelineName;
     },
-    parseBool(value) {
+    parseBool(value, defaultValue) {
         if (typeof value === 'boolean') {
             return value;
         }
-        if (typeof value === 'string' && value.toLowerCase() === 'true') {
-            return true;
+        if (typeof value === 'string') {
+            return value.toLowerCase() === 'true';
         }
-        return false;
+        return defaultValue || false;
     },
     parseInt(value, defaultValue) {
         if (typeof value === 'number') {
