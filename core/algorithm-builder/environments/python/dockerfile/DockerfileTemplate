@@ -9,8 +9,8 @@ COPY wrapper/ /hkube/algorithm-runner/
 COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/
 COPY ./packages/* /hkube/packages/
 WORKDIR /hkube/algorithm-runner
-RUN pip3 install --find-links /hkube/packages/ -r /hkube/algorithm-runner/requirements.txt
+RUN pip install --no-index --find-links /hkube/packages/ -r /hkube/algorithm-runner/requirements.txt
 RUN ./dockerfile/requirements.sh ${packagesRegistry} ${packagesToken}
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
-CMD ["python3", "-u", "app.py"]
+CMD ["python", "-u", "app.py"]
