@@ -220,8 +220,8 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
-    const baseImageName = await _getBaseImageVersion(baseImage || `hkube/${env}-env`);
     const packages = packagesRepo[env];
+    const baseImageName = await _getBaseImageVersion(baseImage || packages.defaultBaseImage);
 
     const args = [
         '--img', algorithmImage,

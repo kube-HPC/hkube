@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "fileExt": "gz",
     "status": "pending",
-    "baseImage": "python:3.7",
+    "baseImage": "",
     "error": null,
     "stack": null,
     "result": null,
