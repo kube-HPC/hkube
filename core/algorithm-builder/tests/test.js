@@ -33,7 +33,7 @@ describe('Test', function () {
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
         });
-        it('should succeed to build docker', async function () {
+        it.only('should succeed to build docker', async function () {
             this.timeout(5000)
             const env = config.testModeEnv;
             const tar = `${process.cwd()}/tests/mocks/${env}/alg.tar.gz`;
