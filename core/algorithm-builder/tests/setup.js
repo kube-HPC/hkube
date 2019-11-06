@@ -1,4 +1,5 @@
 const mockery = require('mockery');
+const fse = require('fs-extra');
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
 const { main: config, logger } = configIt.load();
@@ -25,6 +26,7 @@ before(async () => {
         warnOnUnregistered: false,
         useCleanCache: false
     });
+    await fse.mkdirp('/tmp/commands');
     mockery.registerSubstitute('child_process', process.cwd() + '/tests/mocks/child_process.js');
     await KubernetesApi.init(options);
     await kubernetesServerMock.start({ port: 9001 });
