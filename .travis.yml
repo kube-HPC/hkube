@@ -11,7 +11,7 @@ branches:
 before_install: ./scripts/beforeInstall.sh
 install:
 - npm i
-- export CHANGED=$(lerna changed)
+- export CHANGED=$(lerna changed --includeMergedTags)
 - echo ${CHANGED}
 - export CHANGED=${CHANGED:-$(lerna list)}
 - echo ${CHANGED}

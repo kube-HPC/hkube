@@ -1,5 +1,5 @@
 #!/bin/bash
-set -vx
+set -eo pipefail
 if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
   echo ${DOCKER_HUB_PASS} | docker login --username yehiyam --password-stdin
   echo ${CHANGED}
