@@ -122,8 +122,8 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async getExistingAlgorithms() {
-        const algorithms = await this._etcd.algorithms.store.list();
-        return algorithms;
+        return this._etcd.algorithms.store.list();
+
     }
 
     async unwatch(options) {

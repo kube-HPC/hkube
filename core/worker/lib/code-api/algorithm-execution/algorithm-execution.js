@@ -29,6 +29,9 @@ class AlgorithmExecution {
         if (options.cacheResults.enabled) {
             this.getExistingAlgorithms = cacheResults(discovery.getExistingAlgorithms.bind(discovery), options.cacheResults.updateFrequency);
         }
+        else {
+            this.getExistingAlgorithms = discovery.getExistingAlgorithms.bind(discovery);
+        }
     }
 
     _initProducer(options) {
