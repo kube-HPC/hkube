@@ -103,35 +103,37 @@ class AlgorithmStore {
                 throw new InvalidDataError(`algorithm type cannot be changed, new type: ${payload.type}, old type: ${oldAlgorithm.type}`);
             }
 
-            let newAlgorithm = merge({}, oldAlgorithm, payload);
+            let newAlgorithm = payload;
+
+            if (payload.type === BUILD_TYPES.CODE && file.path) {
+                if (payload.algorithmImage) {
+                    throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
+                }
+                const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
+                buildId = result.buildId; // eslint-disable-line
+                messages.push(...result.messages);
+                newAlgorithm = result.algorithm;
+            }
+            else if (payload.type === BUILD_TYPES.GIT && payload.gitRepository) {
+                if (payload.algorithmImage) {
+                    throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
+                }
+                newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
+                const result = await builds.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
+                buildId = result.buildId; // eslint-disable-line
+                messages.push(...result.messages);
+            }
+
+            newAlgorithm = merge({}, oldAlgorithm, newAlgorithm, payload);
             validator.addAlgorithmDefaults(newAlgorithm);
 
-            if (payload.type === BUILD_TYPES.CODE) {
-                if (file.path) {
-                    const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
-                    buildId = result.buildId; // eslint-disable-line
-                    messages.push(...result.messages);
-                    newAlgorithm = result.algorithm;
-                }
-            }
-            else if (payload.type === BUILD_TYPES.GIT) {
-                if (newAlgorithm.gitRepository) {
-                    newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
-                    const result = await builds.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
-                    buildId = result.buildId; // eslint-disable-line
-                    messages.push(...result.messages);
-                }
-            }
-
-            if (buildId && payload.algorithmImage) {
-                throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
-            }
             if (!newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
                 throw new InvalidDataError(MESSAGES.APPLY_ERROR);
             }
             if (!newAlgorithm.algorithmImage && buildId) {
                 newAlgorithm.options.pending = true;
             }
+
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: newAlgorithm });
             await stateManager.setAlgorithm(newAlgorithm);
