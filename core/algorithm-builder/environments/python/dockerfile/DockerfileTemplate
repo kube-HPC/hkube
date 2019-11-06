@@ -5,7 +5,7 @@ ARG packagesToken
 FROM ${baseImage} 
 LABEL maintainer="hkube.dev@gmail.com"
 COPY wrapper/ /hkube/algorithm-runner/
-# COPY algorithm_unique_folder/* /hkube/algorithm-runner/algorithm_unique_folder/
+COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/
 COPY ./packages/* /hkube/packages/
 WORKDIR /hkube/algorithm-runner

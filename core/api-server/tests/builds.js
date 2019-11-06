@@ -280,7 +280,7 @@ describe('Builds', () => {
             expect(fileInfo.fileSize).to.equal(740);
         });
     });
-    describe('webhhoks/github', () => {
+    xdescribe('webhhoks/github', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/builds/webhook/github`;
