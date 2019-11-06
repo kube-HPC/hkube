@@ -444,7 +444,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body).to.not.have.property('buildId');
             });
         });
-        xdescribe('Github', () => {
+        describe('Github', () => {
             it('should throw error of required property url', async () => {
                 const name = uuidv4();
                 const body = {
