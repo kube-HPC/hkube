@@ -1,0 +1,6 @@
+type: object
+properties:
+  overrideImage:
+    type: boolean
+    description: should replace the current image with this image
+    default: false
