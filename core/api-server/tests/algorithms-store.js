@@ -769,6 +769,34 @@ describe.only('Store/Algorithms', () => {
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
             });
+            it('should succeed to apply algorithm with version inc', async () => {
+                const body = {
+                    name: `my-alg-${uuidv4()}`,
+                    mem: "50Mi",
+                    cpu: 1,
+                    env: 'nodejs'
+                }
+                const payload = JSON.stringify(body);
+                const formData1 = {
+                    payload,
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload,
+                    file: fse.createReadStream('tests/mocks/algorithm.zip')
+                };
+                const uri = restPath + '/apply';
+                const options1 = { uri, formData: formData1 };
+                const options2 = { uri, formData: formData2 };
+                const getRequest = { uri: restPath + '/' + body.name, method: 'GET' };
+
+                await request(options1)
+                const res1 = await request(getRequest);
+                await request(options2);
+                const res2 = await request(getRequest);
+                expect(res1.body.version).to.equal('1.0.0');
+                expect(res2.body.version).to.equal('1.0.1');
+            });
         })
         describe('Image', () => {
             it('should not take affect on algorithmImage change', async () => {
