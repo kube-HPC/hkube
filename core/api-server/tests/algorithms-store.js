@@ -10,7 +10,7 @@ let restUrl, restPath, applyPath;
 
 const gitRepo = 'https://github.com/kube-HPC/hkube';
 
-describe.only('Store/Algorithms', () => {
+describe('Store/Algorithms', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/store/algorithms`;
@@ -848,12 +848,11 @@ describe.only('Store/Algorithms', () => {
                 }
                 const apply2 = {
                     name: apply1.name,
-                    algorithmImage: 'new-test-algorithmImage',
-                    overrideImage: true
+                    algorithmImage: 'new-test-algorithmImage'
                 }
                 const uri = restPath + '/apply';
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(apply2) } };
 
                 // apply algorithm
                 await request(request1)
@@ -1067,7 +1066,7 @@ describe.only('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            expect(response.body).to.eql({ ...defaultProps, overrideImage: true, ...body });
+            expect(response.body).to.eql({ ...defaultProps, ...body });
         });
         it('should failed to update algorithm', async () => {
             const body = { ...algorithms[0], algorithmImage: '' };
@@ -1089,7 +1088,7 @@ describe.only('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            expect(response.body).to.eql({ ...defaultProps, overrideImage: true, ...body });
+            expect(response.body).to.eql({ ...defaultProps, ...body });
         });
     });
 });

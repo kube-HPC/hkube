@@ -17,7 +17,7 @@ class AlgorithmStore {
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        const { algorithm } = await this.applyAlgorithm({ payload: { ...options, overrideImage: true } });
+        const { algorithm } = await this.applyAlgorithm({ payload: options, options: { overrideImage: true } });
         return algorithm;
     }
 
@@ -95,35 +95,37 @@ class AlgorithmStore {
         return stateManager.getAlgorithmsQueueList();
     }
 
-    async applyAlgorithm(options) {
-        const { payload } = options;
-        const file = options.file || {};
+    async applyAlgorithm(data) {
+        const { payload, options } = data;
+        const file = data.file || {};
         let buildId;
         let newAlgorithm;
+        let algorithmImage;
         const messages = [];
 
         try {
-            newAlgorithm = clone(payload);
-            validator.validateApplyAlgorithm(newAlgorithm);
-            const oldAlgorithm = await stateManager.getAlgorithm(newAlgorithm);
+            const { overrideImage } = options || {};
+            validator.validateApplyAlgorithm(payload);
+
+            const oldAlgorithm = await stateManager.getAlgorithm(payload);
             if (oldAlgorithm) {
-                newAlgorithm.algorithmImage = newAlgorithm.overrideImage ? newAlgorithm.algorithmImage : oldAlgorithm.algorithmImage;
-                if (oldAlgorithm.type !== newAlgorithm.type) {
-                    throw new InvalidDataError(`algorithm type cannot be changed, new type: ${newAlgorithm.type}, old type: ${oldAlgorithm.type}`);
+                algorithmImage = overrideImage ? payload.algorithmImage : oldAlgorithm.algorithmImage;
+                if (oldAlgorithm.type !== payload.type) {
+                    throw new InvalidDataError(`algorithm type cannot be changed, new type: ${payload.type}, old type: ${oldAlgorithm.type}`);
                 }
             }
 
-            newAlgorithm = merge({}, oldAlgorithm, newAlgorithm);
+            newAlgorithm = merge({}, oldAlgorithm, payload, { algorithmImage });
             validator.addAlgorithmDefaults(newAlgorithm);
 
             if (newAlgorithm.type === BUILD_TYPES.CODE && file.path) {
-                if (newAlgorithm.algorithmImage) {
+                if (payload.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
                 }
-                const result = await builds.createBuild(file, oldAlgorithm, newAlgorithm);
+                const result = await builds.createBuild(file, oldAlgorithm, payload);
                 buildId = result.buildId; // eslint-disable-line
                 messages.push(...result.messages);
-                newAlgorithm = result.algorithm;
+                newAlgorithm = merge({}, newAlgorithm, result.algorithm);
             }
             else if (newAlgorithm.type === BUILD_TYPES.GIT && newAlgorithm.gitRepository) {
                 if (newAlgorithm.algorithmImage) {
@@ -133,6 +135,7 @@ class AlgorithmStore {
                 const result = await builds.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
                 buildId = result.buildId; // eslint-disable-line
                 messages.push(...result.messages);
+                newAlgorithm = merge({}, newAlgorithm, result.algorithm);
             }
 
             if (!newAlgorithm.algorithmImage && !newAlgorithm.fileInfo && !newAlgorithm.gitRepository) {
@@ -143,18 +146,23 @@ class AlgorithmStore {
             }
 
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
-            await this._versioning(oldAlgorithm, newAlgorithm);
+            await this._versioning(overrideImage, oldAlgorithm, newAlgorithm);
             await this.storeAlgorithm(newAlgorithm);
         }
         finally {
-            builds.removeFile(options.file);
+            builds.removeFile(data.file);
         }
         return { buildId, messages, algorithm: newAlgorithm };
     }
 
-    async _versioning(oldAlgorithm, newAlgorithm) {
-        if (newAlgorithm.overrideImage && oldAlgorithm && oldAlgorithm.algorithmImage !== newAlgorithm.algorithmImage) {
-            await stateManager.setAlgorithmVersion(oldAlgorithm);
+    async _versioning(overrideImage, oldAlgorithm, newAlgorithm) {
+        if (oldAlgorithm && oldAlgorithm.algorithmImage !== newAlgorithm.algorithmImage) {
+            if (overrideImage) {
+                await stateManager.setAlgorithmVersion(oldAlgorithm);
+            }
+            else {
+                await stateManager.setAlgorithmVersion(newAlgorithm);
+            }
         }
     }
 }

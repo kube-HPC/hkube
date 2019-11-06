@@ -11,10 +11,6 @@ properties:
   algorithmImage:
     type: string
     description: image name as in the docker registry
-  overrideImage:
-    type: boolean
-    description: should replace the current image with this image
-    default: false
   cpu:
     type: number
     default: 0.1

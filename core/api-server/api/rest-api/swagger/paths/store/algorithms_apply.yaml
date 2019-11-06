@@ -11,6 +11,8 @@ post:
           properties:
             payload:
               $ref: "#/components/schemas/algorithm"
+            options:
+              $ref: "#/components/schemas/algorithmApplyOptions"
             file:
               type: string
               format: binary

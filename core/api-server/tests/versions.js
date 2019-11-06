@@ -30,11 +30,10 @@ describe('Versions/Algorithms', () => {
             }
             const applyPayload2 = {
                 name,
-                algorithmImage: 'new-test-algorithmImage',
-                overrideImage: true
+                algorithmImage: 'new-test-algorithmImage'
             }
             const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload2) } };
             const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
             await request(applyReq1);
             await request(applyReq2);
@@ -45,22 +44,19 @@ describe('Versions/Algorithms', () => {
             const name = `my-alg-${uuidv4()}`;
             const applyPayload1 = {
                 name,
-                algorithmImage: 'test-algorithmImage-1',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-1'
             }
             const applyPayload2 = {
                 name,
-                algorithmImage: 'test-algorithmImage-2',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-2'
             }
             const applyPayload3 = {
                 name,
-                algorithmImage: 'test-algorithmImage-3',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-3'
             }
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload3) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload1) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload2) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload3) } };
 
             const versionReq1 = { uri: `${restPath}/apply`, body: applyPayload1 };
             const versionReq2 = { uri: `${restPath}/apply`, body: applyPayload2 };
@@ -82,22 +78,19 @@ describe('Versions/Algorithms', () => {
             const name = `my-alg-${uuidv4()}`;
             const applyPayload1 = {
                 name,
-                algorithmImage: 'test-algorithmImage-1',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-1'
             }
             const applyPayload2 = {
                 name,
-                algorithmImage: 'test-algorithmImage-2',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-2'
             }
             const applyPayload3 = {
                 name,
-                algorithmImage: 'test-algorithmImage-3',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-3'
             }
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload3) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload1) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload2) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload3) } };
             const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
             const deleteReq = { uri: `${restPath}/${name}/${applyPayload2.algorithmImage}`, method: 'DELETE' };
 
@@ -117,22 +110,19 @@ describe('Versions/Algorithms', () => {
             const name = `my-alg-${uuidv4()}`;
             const applyPayload1 = {
                 name,
-                algorithmImage: 'test-algorithmImage-1',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-1'
             }
             const applyPayload2 = {
                 name,
-                algorithmImage: 'test-algorithmImage-2',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-2'
             }
             const applyPayload3 = {
                 name,
-                algorithmImage: 'test-algorithmImage-3',
-                overrideImage: true
+                algorithmImage: 'test-algorithmImage-3'
             }
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload3) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload1) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload2) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(applyPayload3) } };
             const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
             const deleteReq = { uri: `${restPath}/${name}`, method: 'DELETE' };
 

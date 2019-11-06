@@ -4,6 +4,8 @@ algorithmName:
   $ref: ./algorithmName.yaml
 algorithmVersion:
   $ref: ./algorithmVersion.yaml
+algorithmApplyOptions:
+  $ref: ./algorithmApplyOptions.yaml
 algorithmApplyResponse:
   $ref: ./algorithmApplyResponse.yaml
 buildId:

@@ -5,7 +5,6 @@ const defaultProps = {
     cpu: 0.1,
     type: "Image",
     minHotWorkers: 0,
-    overrideImage: false,
     options: {
         debug: false,
         pending: false

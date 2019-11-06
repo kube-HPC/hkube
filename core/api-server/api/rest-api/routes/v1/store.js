@@ -7,10 +7,10 @@ const { BUILD_TYPES } = require('../../../../lib/consts/builds');
 const logger = require('../../middlewares/logger');
 const upload = multer({ dest: 'uploads/zipped/' });
 
-const routes = (options) => {
+const routes = (option) => {
     const router = express.Router();
     router.get('/', (req, res, next) => {
-        res.json({ message: `${options.version} ${options.file} api` });
+        res.json({ message: `${option.version} ${option.file} api` });
         next();
     });
 
@@ -86,15 +86,17 @@ const routes = (options) => {
         next();
     });
     router.post('/algorithms/apply', upload.single('file'), logger(), async (req, res, next) => {
-        const body = (req.body.payload) || '{}';
-        const payload = JSON.parse(body);
+        const bodyPayload = (req.body.payload) || '{}';
+        const bodyOptions = (req.body.options) || '{}';
+        const payload = JSON.parse(bodyPayload);
+        const options = JSON.parse(bodyOptions);
         let { type } = payload;
         const file = req.file || {};
         if (!type) {
             // eslint-disable-next-line no-nested-ternary
             type = req.file ? BUILD_TYPES.CODE : (payload.gitRepository ? BUILD_TYPES.GIT : BUILD_TYPES.IMAGE);
         }
-        const response = await algorithmStore.applyAlgorithm({ payload: { ...payload, type }, file: { path: file.path, name: file.originalname } });
+        const response = await algorithmStore.applyAlgorithm({ options, payload: { ...payload, type }, file: { path: file.path, name: file.originalname } });
         res.json(response);
         next();
     });
