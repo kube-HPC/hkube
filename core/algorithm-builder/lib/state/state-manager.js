@@ -35,7 +35,8 @@ class StateManger {
         if (!algorithmImage) {
             return;
         }
-        await this._etcd.algorithms.store.update({ name: algorithmName, ...{ algorithmImage, options: { pending: false } } });
+        const currentVersion = await this._etcd.algorithms.store.get({ name: algorithmName });
+        await this._etcd.algorithms.versions.set({ ...currentVersion, algorithmImage, options: { pending: false } });
     }
 }
 
