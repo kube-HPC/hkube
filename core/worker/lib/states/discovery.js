@@ -1,3 +1,4 @@
+const { cacheResults } = require('../utils');
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
@@ -17,6 +18,9 @@ class EtcdDiscovery extends EventEmitter {
         if (this._etcd) {
             this._etcd = null;
             this.removeAllListeners();
+        }
+        if (options.cacheResults.enabled) {
+            this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
         }
         log = Logger.GetLogFromContainer();
         this._etcd = new Etcd(options.etcd);

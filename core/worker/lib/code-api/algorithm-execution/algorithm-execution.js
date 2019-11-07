@@ -4,7 +4,6 @@ const { consts } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
 const { Producer } = require('@hkube/producer-consumer');
-const { cacheResults } = require('../../utils');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const discovery = require('../../states/discovery');
 const messages = require('../../algorithm-communication/messages');
@@ -26,12 +25,6 @@ class AlgorithmExecution {
         this._initProducer(options);
         this._registerToEtcdEvents();
         this._registerToAlgorithmEvents();
-        if (options.cacheResults.enabled) {
-            this.getExistingAlgorithms = cacheResults(discovery.getExistingAlgorithms.bind(discovery), options.cacheResults.updateFrequency);
-        }
-        else {
-            this.getExistingAlgorithms = discovery.getExistingAlgorithms.bind(discovery);
-        }
     }
 
     _initProducer(options) {
@@ -188,7 +181,7 @@ class AlgorithmExecution {
             const storage = {};
             const { jobId, nodeName } = jobData;
             const { algorithmName, input, resultAsRaw } = data;
-            const algos = await this.getExistingAlgorithms();
+            const algos = await discovery.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }
