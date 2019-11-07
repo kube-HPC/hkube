@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
@@ -9,7 +9,7 @@ TRUSTED_HOST=pypi.python.org
 
 if [ -f ${REQUIRMENTS} ]; then
      echo "found requirements.txt"
-     if [[ ${PACKAGES_REGISTRY} != "" ]]; then
+     if [ ! -z ${PACKAGES_REGISTRY} ]; then
           PACKAGES_REGISTRY_HOST=$(echo $PACKAGES_REGISTRY | sed -e "s/[^/]*\/\/\([^@]*@\)\?\([^:/]*\).*/\2/")
           echo "found pip registry ${PACKAGES_REGISTRY}. Setting trusted host to ${PACKAGES_REGISTRY_HOST}"
           pip install --trusted-host ${PACKAGES_REGISTRY_HOST} --index-url ${PACKAGES_REGISTRY} -r ${REQUIRMENTS}
