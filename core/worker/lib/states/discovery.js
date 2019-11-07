@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
+const { cacheResults } = require('../utils');
 const { EventMessages, Components } = require('../consts');
 const { WATCH_STATE } = require('../consumer/consts');
 
@@ -17,6 +18,9 @@ class EtcdDiscovery extends EventEmitter {
         if (this._etcd) {
             this._etcd = null;
             this.removeAllListeners();
+        }
+        if (options.cacheResults.enabled) {
+            this.getExistingAlgorithms = cacheResults(this.getExistingAlgorithms.bind(this), options.cacheResults.updateFrequency);
         }
         log = Logger.GetLogFromContainer();
         this._etcd = new Etcd(options.etcd);
@@ -122,8 +126,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async getExistingAlgorithms() {
-        const algorithms = await this._etcd.algorithms.store.list();
-        return algorithms;
+        return this._etcd.algorithms.store.list();
     }
 
     async unwatch(options) {
