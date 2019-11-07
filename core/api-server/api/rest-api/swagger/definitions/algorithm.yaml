@@ -79,6 +79,9 @@ properties:
       - url
   entryPoint:
     type: string
+  baseImage:
+    type: string
+    description: Custom docker image to be used as base to the newly built algorithm image
   version:
     type: string
   minHotWorkers:
