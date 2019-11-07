@@ -1,6 +1,5 @@
 
 const merge = require('lodash.merge');
-const clone = require('clone');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
