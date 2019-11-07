@@ -2,6 +2,7 @@ const Logger = require('@hkube/logger');
 const aigle = require('aigle');
 const _ = require('lodash');
 const components = require('./consts/component-name');
+const { taskStatus } = require('./consts/index');
 
 const log = Logger.GetLogFromContainer();
 
@@ -29,14 +30,20 @@ class heuristicRunner {
     }
 
     async run(job) {
-        log.debug('start running heuristic for ', { component: components.HEURISTIC_RUNNER });
-        const score = await this.heuristicMap.reduce((result, algorithm) => {
-            const heuristicScore = algorithm.heuristic(job);
-            job.calculated.latestScores[algorithm.name] = heuristicScore; // eslint-disable-line 
-            log.debug(`during score calculation for ${algorithm.name} in ${job.jobId} 
-                    score:${heuristicScore} calculated:${result + heuristicScore}`, { component: components.HEURISTIC_RUNNER });
-            return result + heuristicScore;
-        }, 0);
+        let score = 0;
+        if (job.status !== taskStatus.PRESCHEDULE) {
+            log.debug('start running heuristic for ', { component: components.HEURISTIC_RUNNER });
+            score = await this.heuristicMap.reduce((result, algorithm) => {
+                const heuristicScore = algorithm.heuristic(job);
+                job.calculated.latestScores[algorithm.name] = heuristicScore; // eslint-disable-line
+                log.debug(
+                    `during score calculation for ${algorithm.name} in ${job.jobId} 
+                    score:${heuristicScore} calculated:${result + heuristicScore}`,
+                    { component: components.HEURISTIC_RUNNER }
+                );
+                return result + heuristicScore;
+            }, 0);
+        }
         return { ...job, calculated: { ...job.calculated, score } };
     }
 }

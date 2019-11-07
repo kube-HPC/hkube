@@ -6,7 +6,6 @@ const { parser } = require('@hkube/parsers');
 const regex = require('../../lib/consts/regex');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
-
 const validator = new Validator({ useDefaults: false, coerceTypes: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
 const MIN_MEMORY = 4;
@@ -24,6 +23,7 @@ class ApiValidator {
         validatorInstance.addFormat('cron', this._validateCron);
         validatorInstance.addFormat('pipeline-name', this._validatePipelineName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
+        validatorInstance.addFormat('algorithm-memory', this._validateMemory);
         Object.entries(this._definitions).forEach(([k, v]) => {
             validatorInstance.addSchema(v, `#/components/schemas/${k}`);
         });
@@ -31,6 +31,10 @@ class ApiValidator {
 
     addPipelineDefaults(pipeline) {
         this._addDefaults(this._definitions.pipeline, pipeline);
+    }
+
+    addAlgorithmDefaults(algorithm) {
+        this._addDefaults(this._definitions.algorithm, algorithm);
     }
 
     validateStoredInternal(pipeline) {
@@ -68,16 +72,19 @@ class ApiValidator {
     validateUpdateAlgorithm(algorithm) {
         this._validate(this._definitions.algorithm, algorithm, true);
         this._validateAlgorithmEnvVar(algorithm);
-        this._validateMemory(algorithm);
+    }
+
+    validateApplyAlgorithm(algorithm) {
+        this._validate(this._definitions.algorithm, algorithm, false);
+        this._validateAlgorithmEnvVar(algorithm);
     }
 
     validateAlgorithmBuild(algorithm) {
         this._validate(this._definitionsInternal.algorithmBuild, algorithm);
     }
 
-    validateApplyAlgorithm(algorithm) {
-        this._validate(this._definitions.algorithm, algorithm, true);
-        this._validateMemory(algorithm);
+    validateAlgorithmBuildFromGit(algorithm) {
+        this._validate(this._definitionsInternal.algorithmBuildGit, algorithm);
     }
 
     validateName(pipeline) {
@@ -222,26 +229,17 @@ class ApiValidator {
         return true;
     }
 
-    _validateMemory(algorithm) {
-        let memory;
-        const { mem } = algorithm;
-        const memReadable = algorithm.mem;
-        if (!mem) {
-            memory = 4;
-        }
-        else {
-            try {
-                memory = converter.getMemoryInMi(mem);
-                if (memory < MIN_MEMORY) {
-                    throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
-                }
-            }
-            catch (ex) {
-                throw new InvalidDataError(ex.message);
+    _validateMemory(memory) {
+        try {
+            const mem = converter.getMemoryInMi(memory);
+            if (mem < MIN_MEMORY) {
+                throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
             }
         }
-        algorithm.mem = memory;               // eslint-disable-line
-        algorithm.memReadable = memReadable;  // eslint-disable-line
+        catch (ex) {
+            throw new InvalidDataError(ex.message);
+        }
+        return true;
     }
 
     _validateAlgorithmEnvVar(algorithm) {

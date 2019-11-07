@@ -1,5 +1,7 @@
 algorithmBuild:
   $ref: ./algorithmBuild.yaml
+algorithmBuildGit:
+  $ref: ./algorithmBuildGit.yaml
 buildId:
   $ref: ./buildId.yaml
 kubernetesValueFrom:

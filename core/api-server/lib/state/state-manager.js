@@ -3,9 +3,9 @@ const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const States = require('./States');
-
-const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING];
+const ActiveState = [States.PENDING, States.ACTIVE, States.RECOVERING, States.RESUMED, States.PAUSED];
 const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
+const PausedState = [States.PAUSED];
 
 class StateManager extends EventEmitter {
     async init(options) {
@@ -20,6 +20,10 @@ class StateManager extends EventEmitter {
 
     isCompletedState(state) {
         return CompletedState.includes(state);
+    }
+
+    isPausedState(state) {
+        return PausedState.includes(state);
     }
 
     setExecution(options) {
@@ -55,6 +59,7 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.store.set(options);
     }
 
+
     setPipelineDriverTemplate(options) {
         return this._etcd.pipelineDrivers.store.set(options);
     }
@@ -68,7 +73,8 @@ class StateManager extends EventEmitter {
     }
 
     getAlgorithms(options) {
-        return this._etcd.algorithms.store.list(options);
+        const { limit } = options || {};
+        return this._etcd.algorithms.store.list({ ...options, limit: limit || 1000 });
     }
 
     deleteAlgorithm(options) {
@@ -157,12 +163,12 @@ class StateManager extends EventEmitter {
         return this._etcd.jobs.status.set(options);
     }
 
-    deleteJobStatus(options) {
-        return this._etcd.jobs.status.delete(options);
+    updateJobStatus(options) {
+        return this._etcd.jobs.status.update(options);
     }
 
-    stopJob(options) {
-        return this._etcd.jobs.state.set({ jobId: options.jobId, state: 'stop', reason: options.reason });
+    deleteJobStatus(options) {
+        return this._etcd.jobs.status.delete(options);
     }
 
     async getResultFromStorage(options) {

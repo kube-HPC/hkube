@@ -1,5 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
-const formatter = require(process.cwd() + '/lib/helpers/formatters');
+const formatter = require('../../lib/helpers/formatters');
 const config = module.exports = {};
 
 config.serviceName = packageJson.name;
@@ -39,8 +39,26 @@ config.metrics = {
 
 
 config.resources = {
+    enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false),
     worker: {
-        mem: parseFloat(process.env.WORKER_MEMORY) || 256,
-        cpu: parseFloat(process.env.WORKER_CPU) || 0.1
-    }
+        mem: parseFloat(process.env.WORKER_MEMORY) || 512,
+        cpu: parseFloat(process.env.WORKER_CPU) || 0.5
+    },
+    defaultQuota: {
+        'limits.cpu': parseFloat(process.env.DEFAULT_QUOTA_CPU) || 30,
+        'limits.memory': process.env.DEFAULT_QUOTA_MEM || '20Gi'
+    },
+    useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
+}
+
+config.healthchecks = {
+    path: process.env.HEALTHCHECK_PATH || '/healthz',
+    port: process.env.HEALTHCHECK_PORT || '5000',
+    maxDiff: process.env.HEALTHCHECK_MAX_DIFF || '10000',
+    logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true),
+    enabled: formatter.parseBool(process.env.HEALTHCHECKS_ENABLE, true)
+}
+
+config.cacheResults = {
+    enabled: formatter.parseBool(process.env.CACHE_RESULTS_ENABLE, true)
 }

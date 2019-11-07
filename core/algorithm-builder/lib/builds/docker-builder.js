@@ -1,15 +1,21 @@
 const path = require('path');
 const Stream = require('stream');
+const { promisify } = require('util');
 const fse = require('fs-extra');
 const Zip = require('adm-zip');
 const targz = require('targz');
+const _clone = require('git-clone');
 const { spawn } = require('child_process');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
-const States = require('../consts/States');
+const { STATES, PROGRESS } = require('../consts/States');
+const buildType = require('../consts/buildType');
 const component = require('../consts/components').DOCKER_BUILDER;
-const { KANIKO, DOCKER } = require('../consts/buildModes');
+const { KANIKO } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
+const kubernetes = require('../helpers/kubernetes');
+
+const gitClone = promisify(_clone);
 
 const _ensureDirs = async (dirs) => {
     await Promise.all(Object.values(dirs).map(d => fse.ensureDir(d)));
@@ -83,7 +89,7 @@ const _runBash = ({ command, args }) => {
         });
         build.on('close', (code) => {
             if (code) {
-                error += `Exit with code ${code}`
+                error += `Exit with code ${code}`;
             }
             return resolve({ data, error, code });
         });
@@ -94,13 +100,14 @@ const _runBash = ({ command, args }) => {
 };
 
 const _setBuildStatus = async (options) => {
-    const { buildId, status, error } = options;
-    log.info(`update build status to: ${status} -> ${buildId}. ${error || ''}`, { component });
-    await stateManger.updateBuild({ timestamp: Date.now(), ...options });
+    const { buildId, status, error, progress } = options;
+    const prog = progress(status);
+    log.info(`update build status to: ${status}, progress: ${prog}  -> ${buildId}. ${error || ''}`, { component });
+    await stateManger.updateBuild({ ...options, timestamp: Date.now(), progress: prog });
 };
 
 const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) => {
-    if (status === States.COMPLETED) {
+    if (status === STATES.COMPLETED) {
         log.info(`update algorithm image, name=${algorithmName}, image=${algorithmImage}`, { component });
         await stateManger.updateAlgorithmImage({ algorithmName, algorithmImage });
     }
@@ -121,12 +128,26 @@ const _downloadFile = async ({ buildId, src, dest, fileExt, overwrite }) => {
     await fse.remove(src);
 };
 
+const _gitClone = async ({ url, commitId, dest }) => {
+    try {
+        await gitClone(url, dest, { checkout: commitId });
+    }
+    catch (error) {
+        log.error(`error on cloning from ${url} - ${error}`, { component });
+    }
+};
+
+const _downloadFromGit = async ({ dest, gitRepository }) => {
+    await _gitClone({ url: gitRepository.repository.cloneUrl, commitId: gitRepository.commit.id, dest });
+};
+
 const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     const envr = `environments/${env}`;
     await fse.ensureDir(buildPath);
     await fse.copy(envr, buildPath);
     await fse.move(dest, `${buildPath}/algorithm_unique_folder`, { overwrite });
 };
+
 
 const _removeFolder = async ({ folder }) => {
     if (folder) {
@@ -135,27 +156,27 @@ const _removeFolder = async ({ folder }) => {
 };
 
 const _argsHelper = (args, key, value) => {
-    if (value !== "") {
+    if (value) {
         args.push(key);
         args.push(value);
     }
     return args;
-}
+};
 
 const _dockerCredentialsHelper = (registryOrig, user, password) => {
-    log.info('creating docker creds')
+    log.info('creating docker creds');
     if (!user || !password) {
         return null;
     }
     const dockerHubRegistry = 'https://index.docker.io/v1/';
     let registry = registryOrig;
     if (!registry || registry.includes('docker.io')) {
-        log.info(`found docker hub. using ${dockerHubRegistry}`)
+        log.info(`found docker hub. using ${dockerHubRegistry}`);
         registry = dockerHubRegistry;
     }
     const auth = Buffer.from(`${user}:${password}`).toString('base64');
-    return { registry, auth }
-}
+    return { registry, auth };
+};
 
 const _createDockerCredentials = (pullRegistry, pushRegistry) => {
     const creds = {
@@ -176,53 +197,79 @@ const _createDockerCredentials = (pullRegistry, pushRegistry) => {
         }
     }
     return creds;
-}
+};
 
-const _buildDocker = async ({ buildMode, docker, algorithmName, version, buildPath, rmi, tmpFolder }) => {
-    const pullRegistry = _createURL(docker.pull);
-    const pushRegistry = _createURL(docker.push);
-
-    const baseImage = path.join(pushRegistry, algorithmName);
-    const algorithmImage = `${baseImage}:v${version}`;
-    if (buildMode === KANIKO) {
-        const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
-        await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
+const _getBaseImageVersion = async (baseImage) => {
+    const imageName = await kubernetes.createImageName(baseImage);
+    if (!imageName) {
+        throw new Error(`unable to find base version for ${baseImage} env`);
     }
-    const args = [
-        "--img", algorithmImage,
-        "--rmi", rmi,
-        "--buildpath", buildPath,
-    ]
-    // docker pull
-    _argsHelper(args, "--dplr", pullRegistry);
-    _argsHelper(args, "--dplu", docker.pull.user);
-    _argsHelper(args, "--dplp", docker.pull.pass);
+    return imageName;
+};
 
-
-    // docker push
-    _argsHelper(args, "--dphr", pushRegistry);
-    _argsHelper(args, "--dphu", docker.push.user);
-    _argsHelper(args, "--dphp", docker.push.pass);
-
-    if (buildMode === KANIKO) {
-        _argsHelper(args, "--tmpFolder", tmpFolder);
-    }
-
-    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
-    return { output, algorithmImage };
+const _fixUrl = (url) => {
+    return url.replace(/\/+$/, '');
 };
 
 const _createURL = (options) => {
     return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
 };
 
-const _fixUrl = (url) => {
-    return url.replace(/\/+$/, "");
+
+const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo }) => {
+    const pullRegistry = _createURL(docker.pull);
+    const pushRegistry = _createURL(docker.push);
+    const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
+    const packages = packagesRepo[env];
+    const baseImageName = await _getBaseImageVersion(baseImage || packages.defaultBaseImage);
+
+    const args = [
+        '--img', algorithmImage,
+        '--rmi', rmi,
+        '--buildPath', buildPath,
+        '--baseImage', baseImageName
+    ];
+
+    // docker pull
+    _argsHelper(args, '--dplr', pullRegistry);
+    _argsHelper(args, '--dplu', docker.pull.user);
+    _argsHelper(args, '--dplp', docker.pull.pass);
+
+    // docker push
+    _argsHelper(args, '--dphr', pushRegistry);
+    _argsHelper(args, '--dphu', docker.push.user);
+    _argsHelper(args, '--dphp', docker.push.pass);
+
+    // packages
+    _argsHelper(args, '--pckr', packages.registry);
+    _argsHelper(args, '--pckt', packages.token);
+
+    if (buildMode === KANIKO) {
+        _argsHelper(args, '--tmpFolder', tmpFolder);
+        const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
+        await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
+        _argsHelper(args, '--tmpFolder', tmpFolder);
+        _argsHelper(args, '--insecure_pull', docker.pull.insecure);
+        _argsHelper(args, '--insecure', docker.push.insecure);
+        _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
+        _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
+    }
+
+    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
+    return { output, algorithmImage };
 };
 
 const _isWarning = (error) => {
     const e = error.toLowerCase();
     return e.includes('warn') || e.includes('docs.docker.com');
+};
+
+const _analyzeError = (output) => {
+    const err = output.error || '';
+    const error = err.replace(/^\s*[\r\n]/gm, '').split('\n');
+    const warnings = error.filter(e => _isWarning(e)).join(',');
+    const errors = error.filter(e => !_isWarning(e)).join(',');
+    return { data: output.data, warnings, errors };
 };
 
 const _analyzeErrors = (output, error) => {
@@ -232,12 +279,17 @@ const _analyzeErrors = (output, error) => {
     return _analyzeError(output);
 };
 
-const _analyzeError = (output) => {
-    const e = output.error || '';
-    const error = e.replace(/^\s*[\r\n]/gm, '').split('\n');
-    const warnings = error.filter(e => _isWarning(e)).join(',');
-    const errors = error.filter(e => !_isWarning(e)).join(',');
-    return { data: output.data, warnings, errors };
+const _progress = (progress) => {
+    let prog = progress;
+    return (status) => {
+        if (status === STATES.ACTIVE) {
+            prog += PROGRESS[status];
+        }
+        else {
+            prog = PROGRESS[status];
+        }
+        return prog;
+    };
 };
 
 const runBuild = async (options) => {
@@ -247,7 +299,9 @@ const runBuild = async (options) => {
     let trace;
     let buildId;
     let algorithmName;
+    let buildMode;
     let result = { output: {} };
+    const progress = _progress(0);
 
     try {
         buildId = options.buildId;
@@ -256,11 +310,12 @@ const runBuild = async (options) => {
         }
         log.info(`build started -> ${buildId}`, { component });
         build = await _getBuild({ buildId });
-        await _setBuildStatus({ buildId, progress: 10, status: States.ACTIVE });
+        await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
 
         const overwrite = true;
-        const { env, version, fileExt } = build;
-        const { docker, buildDirs } = options;
+        const { env, version, fileExt, baseImage, type, gitRepository } = build;
+        const { docker, buildDirs, tmpFolder, packagesRepo } = options;
+        buildMode = options.buildMode;
         algorithmName = build.algorithmName;
         const src = `${buildDirs.ZIP}/${algorithmName}`;
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
@@ -269,11 +324,16 @@ const runBuild = async (options) => {
         log.info(`starting build for algorithm=${algorithmName}, version=${version}, env=${env} -> ${buildId}`, { component });
 
         await _ensureDirs(buildDirs);
-        await _setBuildStatus({ buildId, progress: 30, status: States.ACTIVE });
-        await _downloadFile({ buildId, src, dest, fileExt, overwrite });
+        await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
+        if (type === buildType.GIT) {
+            await _downloadFromGit({ dest, gitRepository });
+        }
+        else {
+            await _downloadFile({ buildId, src, dest, fileExt, overwrite });
+        }
         await _prepareBuild({ buildPath, env, dest, overwrite });
-        await _setBuildStatus({ buildId, progress: 50, status: States.ACTIVE });
-        result = await _buildDocker({ buildMode: options.buildMode, docker, algorithmName, version, buildPath, rmi: "True", tmpFolder: options.tmpFolder });
+        await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
+        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, version, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo });
     }
     catch (e) {
         error = e.message;
@@ -282,14 +342,14 @@ const runBuild = async (options) => {
     }
 
     const { data, warnings, errors } = _analyzeErrors(result.output, error);
-
     await _removeFolder({ folder: buildPath });
-    const status = errors ? States.FAILED : States.COMPLETED;
-    const progress = error ? 80 : 100;
+    const status = errors ? STATES.FAILED : STATES.COMPLETED;
     await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
-    await _setBuildStatus({ buildId, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
+    await _setBuildStatus({ buildId, buildMode, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
     return { buildId, error, status, result: { data, warnings, errors } };
 };
 
-module.exports = runBuild;
-module.exports.buildDocker = _buildDocker;
+module.exports = {
+    runBuild,
+    buildAlgorithmImage
+};

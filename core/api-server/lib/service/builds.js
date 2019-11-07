@@ -82,10 +82,26 @@ class Builds {
             buildId = this._createBuildID(algorithm.name);
             const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
             merge(algorithm, { version, fileInfo: { path: putStream.path } });
-            const { env, name, fileInfo } = algorithm;
-            await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt });
+            const { env, name, fileInfo, type, baseImage } = algorithm;
+            await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt, type, baseImage });
         }
         return { algorithm, buildId, messages };
+    }
+
+    async createBuildFromGitRepository(oldAlgorithm, newAlgorithm) {
+        const messages = [];
+        let buildId;
+        const result = this._shouldBuild(oldAlgorithm, newAlgorithm);
+        messages.push(...result.messages);
+
+        if (result.shouldBuild) {
+            const version = newAlgorithm.gitRepository.commit.id;
+            buildId = this._createBuildID(newAlgorithm.name);
+            const { env, name, gitRepository, type } = newAlgorithm;
+            validator.validateAlgorithmBuildFromGit({ env });
+            await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, type });
+        }
+        return { buildId, messages };
     }
 
     async _newAlgorithm(file, oldAlgorithm, newAlgorithm) {
@@ -96,7 +112,7 @@ class Builds {
     }
 
     async removeFile(file) {
-        if (file.path) {
+        if (file && file.path) {
             await fse.remove(file.path);
         }
     }
@@ -156,9 +172,10 @@ class Builds {
     }
 
     _formatDiff(algorithm) {
-        const { fileInfo, env } = algorithm;
+        const { fileInfo, env, gitRepository } = algorithm;
         const checksum = fileInfo && fileInfo.checksum;
-        return { checksum, env };
+        const commit = gitRepository && gitRepository.commit && gitRepository.commit.id;
+        return { checksum, env, commit };
     }
 
     _createBuildID(algorithmName) {

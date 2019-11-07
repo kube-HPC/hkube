@@ -166,7 +166,7 @@ We want to solve the next problem with given input and a desired output:
 - _Input:_ Two numbers `N`, `k`.
 - _Desired Output:_ A number `M` so: <div style="text-align:center"><img src="https://latex.codecogs.com/svg.latex?M&space;=&space;\sum_{i=1}^N&space;k\cdot&space;i" title="M = \sum_{i=1}^N k\cdot i" /></div>
 
-For example: `N=3`, `k=5` will result: <div style="text-align:center"><img src="https://latex.codecogs.com/svg.latex?2\cdot1&plus;2\cdot&space;2&space;&plus;&space;2\cdot&space;3&space;&plus;&space;2\cdot&space;4&space;&plus;&space;2\cdot&space;5&space;=&space;2&space;&plus;&space;4&space;&plus;6&plus;8&plus;10&space;=&space;30&space;=&space;M" title="2\cdot1+2\cdot 2 + 2\cdot 3 + 2\cdot 4 + 2\cdot 5 = 2 + 4 +6+8+10 = 30 = M" /></div>
+For example: `N=5`, `k=2` will result: <div style="text-align:center"><img src="https://latex.codecogs.com/svg.latex?2\cdot1&plus;2\cdot&space;2&space;&plus;&space;2\cdot&space;3&space;&plus;&space;2\cdot&space;4&space;&plus;&space;2\cdot&space;5&space;=&space;2&space;&plus;&space;4&space;&plus;6&plus;8&plus;10&space;=&space;30&space;=&space;M" title="2\cdot1+2\cdot 2 + 2\cdot 3 + 2\cdot 4 + 2\cdot 5 = 2 + 4 +6+8+10 = 30 = M" /></div>
 
 ### Solution
 

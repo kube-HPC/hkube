@@ -25,9 +25,10 @@ class StateManager extends EventEmitter {
     _subscribe() {
         this._etcd.jobs.tasks.on('change', (data) => {
             this.emit(`task-${data.status}`, data);
+            this.emit('task-*', data);
         });
-        this._etcd.jobs.state.on('change', (data) => {
-            this.emit(`job-${data.state}`, data);
+        this._etcd.jobs.status.on('change', (data) => {
+            this.emit(`job-${data.status}`, data);
         });
         this._etcd.drivers.on('change', (data) => {
             this.emit(data.status.command, data);
@@ -97,7 +98,12 @@ class StateManager extends EventEmitter {
 
     async setJobStatus(options) {
         await this._updateDiscovery();
-        return this._etcd.jobs.status.set(options);
+        return this._etcd.jobs.status.update(options, (oldItem) => {
+            if (oldItem.status !== DriverStates.STOPPED) {
+                return { ...oldItem, ...options };
+            }
+            return null;
+        });
     }
 
     getJobStatus(options) {
@@ -105,7 +111,7 @@ class StateManager extends EventEmitter {
     }
 
     async tasksList(options) {
-        const list = await this._etcd.jobs.tasks.list(options);
+        const list = await this._etcd.jobs.tasks.list({ ...options, limit: 100000 });
         const results = new Map();
         list.forEach((v) => {
             results.set(v.taskId, v);
@@ -134,15 +140,15 @@ class StateManager extends EventEmitter {
     }
 
     stopJob(options) {
-        return this._etcd.jobs.state.set({ jobId: options.jobId, state: 'stop', reason: options.reason });
+        return this._etcd.jobs.status.set({ jobId: options.jobId, status: DriverStates.STOPPED });
     }
 
-    watchJobState(options) {
-        return this._etcd.jobs.state.watch(options);
+    watchJobStatus(options) {
+        return this._etcd.jobs.status.watch(options);
     }
 
-    unWatchJobState(options) {
-        return this._etcd.jobs.state.unwatch(options);
+    unWatchJobStatus(options) {
+        return this._etcd.jobs.status.unwatch(options);
     }
 
     _watchDrivers() {

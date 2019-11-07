@@ -9,7 +9,13 @@ config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.jobs = {
     consumer: {
-        maxStalledCount: 3
+        maxStalledCount: 3,
+        type: 'pipeline-job',
+        prefix: 'pipeline-driver'
+    },
+    producer: {
+        enableCheckStalledJobs: false,
+        prefix: 'algorithm-queue'
     }
 };
 

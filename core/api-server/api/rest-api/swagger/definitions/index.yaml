@@ -2,6 +2,8 @@ algorithm:
   $ref: ./algorithm.yaml
 algorithmApplyResponse:
   $ref: ./algorithmApplyResponse.yaml
+buildId:
+  $ref: ./buildId.yaml
 caching:
   $ref: ./caching.yaml
 cronPattern:
@@ -32,6 +34,10 @@ priority:
   $ref: ./priority.yaml
 stopRequest:
   $ref: ./stopRequest.yaml
+pauseRequest:
+  $ref: ./pauseRequest.yaml
+resumeRequest:
+  $ref: ./resumeRequest.yaml
 storedPipeline:
   $ref: ./storedPipeline.yaml
 triggers:
@@ -40,3 +46,5 @@ webhookResult:
   $ref: ./webhookResult.yaml
 webhooks:
   $ref: ./webhooks.yaml
+githubWebhook:
+  $ref: ./githubWebhook.yaml

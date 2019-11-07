@@ -48,8 +48,16 @@ const normalizeBuildJobs = (jobsRaw, predicate = () => true) => {
     return jobs;
 };
 
+const normalizeSecret = (secret) => {
+    if (!secret || !secret.body) {
+        return {};
+    }
+    return secret.body;
+};
+
 module.exports = {
     normalizeDeployments,
     normalizeAlgorithms,
-    normalizeBuildJobs
+    normalizeBuildJobs,
+    normalizeSecret
 };

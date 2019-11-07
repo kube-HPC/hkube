@@ -2,17 +2,16 @@ const EventEmitter = require('events');
 const http = require('http');
 const socketio = require('socket.io');
 const Logger = require('@hkube/logger');
-const djsv = require('djsv');
+const Validator = require('ajv');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const messages = require('./messages');
 const component = require('../consts').Components.COMMUNICATIONS;
-
+const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
 class SocketWorkerCommunication extends EventEmitter {
     constructor() {
         super();
-        this._options = null;
         this._socketServer = null;
         this._socket = null;
     }
@@ -22,28 +21,24 @@ class SocketWorkerCommunication extends EventEmitter {
         return new Promise((resolve, reject) => { // eslint-disable-line consistent-return
             try {
                 const options = option || {};
-                const validator = djsv(schema);
-                const validatedOptions = validator(options);
-                if (validatedOptions.valid) {
-                    this._options = validatedOptions.instance;
+                const valid = validator.validate(schema, options);
+                if (!valid) {
+                    return reject(new Error(validator.errorsText(validator.errors)));
                 }
-                else {
-                    return reject(new Error(validatedOptions.errors[0]));
-                }
-                const server = this._options.httpServer || http.createServer();
+                const server = options.httpServer || http.createServer();
                 this._socketServer = socketio.listen(server, {
-                    pingTimeout: this._options.pingTimeout,
-                    pingInterval: this._options.pingTimeout * 2,
-                    maxHttpBufferSize: this._options.maxPayload
+                    pingTimeout: options.pingTimeout,
+                    pingInterval: options.pingTimeout * 2,
+                    maxHttpBufferSize: options.maxPayload
                 });
                 this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!', { component });
                     this._registerSocketMessages(socket);
                     this.emit('connection');
                 });
-                if (!this._options.httpServer) {
-                    log.info(`socket-io adapter is listening on port ${this._options.connection.port}`, { component });
-                    server.listen(this._options.connection.port, () => {
+                if (!options.httpServer) {
+                    log.info(`socket-io adapter is listening on port ${options.connection.port}`, { component });
+                    server.listen(options.connection.port, () => {
                         return resolve();
                     });
                 }
@@ -82,7 +77,7 @@ class SocketWorkerCommunication extends EventEmitter {
     send(message) {
         if (!this._socket) {
             const error = new Error('trying to send without a connected socket');
-            log.error(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
+            log.warning(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
         this._socket.emit(message.command, message);

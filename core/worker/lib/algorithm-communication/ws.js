@@ -2,16 +2,15 @@ const EventEmitter = require('events');
 const http = require('http');
 const WebSocket = require('ws');
 const Logger = require('@hkube/logger');
-const djsv = require('djsv');
+const Validator = require('ajv');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const component = require('../consts').Components.COMMUNICATIONS;
-
+const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
 class WsWorkerCommunication extends EventEmitter {
     constructor() {
         super();
-        this._options = null;
         this._socketServer = null;
         this._socket = null;
     }
@@ -21,16 +20,12 @@ class WsWorkerCommunication extends EventEmitter {
         return new Promise((resolve, reject) => { // eslint-disable-line consistent-return
             try {
                 const options = option || {};
-                const validator = djsv(schema);
-                const validatedOptions = validator(options);
-                if (validatedOptions.valid) {
-                    this._options = validatedOptions.instance;
+                const valid = validator.validate(schema, options);
+                if (!valid) {
+                    return reject(new Error(validator.errorsText(validator.errors)));
                 }
-                else {
-                    return reject(new Error(validatedOptions.errors[0]));
-                }
-                const server = this._options.httpServer || http.createServer();
-                this._socketServer = new WebSocket.Server({ server, maxPayload: this._options.maxPayload });
+                const server = options.httpServer || http.createServer();
+                this._socketServer = new WebSocket.Server({ server, maxPayload: options.maxPayload });
 
                 this._socketServer.on('connection', (socket) => {
                     log.info('Connected!!!', { component });
@@ -43,8 +38,8 @@ class WsWorkerCommunication extends EventEmitter {
                 this._socketServer.on('listening', () => {
                     log.debug('listening', { component });
                 });
-                if (!this._options.httpServer) {
-                    server.listen(this._options.connection.port, () => {
+                if (!options.httpServer) {
+                    server.listen(options.connection.port, () => {
                         return resolve();
                     });
                 }
@@ -62,10 +57,10 @@ class WsWorkerCommunication extends EventEmitter {
             log.debug(`got message ${payload.command}`, { component });
             this.emit(payload.command, payload);
         });
-        socket.on('close', () => {
-            log.info('socket disconnected', { component });
+        socket.on('close', (code) => {
+            const reason = code === 1006 ? 'CLOSE_ABNORMAL' : `${code}`;
             this._socket = null;
-            this.emit('disconnect');
+            this.emit('disconnect', reason);
         });
         log.debug('finish _registerSocketMessages', { component });
     }
@@ -80,7 +75,7 @@ class WsWorkerCommunication extends EventEmitter {
     send(message) {
         if (!this._socket) {
             const error = new Error('trying to send without a connected socket');
-            log.error(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
+            log.warning(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
         this._socket.send(JSON.stringify(message));

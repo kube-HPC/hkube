@@ -3,30 +3,48 @@
         "name": "eval-alg",
         "algorithmImage": "hkube/algorunner",
         "cpu": 1,
-        "mem": "1Gi"
+        "mem": "1Gi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     },
     {
         "name": "green-alg",
-        "algorithmImage": "hkube/algorithm-example-python:v1.0.3",
+        "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.1,
-        "mem": "1024Mi"
+        "mem": "1024Mi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     },
     {
         "name": "yellow-alg",
-        "algorithmImage": "hkube/algorithm-example-python:v1.0.3",
+        "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 1,
-        "mem": "256Mi"
+        "mem": "256Mi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     },
     {
         "name": "black-alg",
-        "algorithmImage": "hkube/algorithm-example-python:v1.0.3",
+        "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.5,
-        "mem": "256Mi"
-    },
-    {
-        "name": "cpu-load",
-        "algorithmImage": "hkube/cpu-load-algorithm",
-        "cpu": 1,
-        "mem": "256Mi"
+        "mem": "256Mi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
     }
 ]

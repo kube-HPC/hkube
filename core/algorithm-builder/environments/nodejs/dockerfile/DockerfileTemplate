@@ -1,0 +1,22 @@
+# First build
+ARG baseImage
+ARG packagesRegistry
+ARG packagesToken
+
+FROM ${baseImage} AS build
+LABEL maintainer="hkube.dev@gmail.com"
+
+COPY ./algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
+COPY ./dockerfile /hkube/algorithm-runner/dockerfile
+WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
+RUN ../dockerfile/requirements.sh ${packagesRegistry} ${packagesToken}
+
+# Second build
+FROM ${baseImage}
+COPY ./wrapper /hkube/algorithm-runner
+COPY ./packages/ /hkube/algorithm-runner/
+COPY --from=build /hkube/algorithm-runner/algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
+
+WORKDIR /hkube/algorithm-runner
+
+CMD ["npm", "start"]

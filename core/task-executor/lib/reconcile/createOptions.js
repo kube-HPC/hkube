@@ -1,5 +1,6 @@
 const { createImage } = require('@hkube/kubernetes-client').utils;
 const { gpuVendors } = require('../consts');
+const { settings } = require('../helpers/settings');
 
 const setWorkerImage = (template, versions, registry) => {
     const image = template.workerImage || 'hkube/worker';
@@ -25,7 +26,8 @@ const _createContainerResourceByFactor = ({ cpu, mem, gpu } = {}, factor = 1) =>
 
 const createContainerResource = (template) => {
     const requests = _createContainerResourceByFactor(template || {}, 1);
-    const limits = _createContainerResourceByFactor(template || {}, 2);
+    const limitFactor = settings.useResourceLimits ? 1 : 2;
+    const limits = _createContainerResourceByFactor(template || {}, limitFactor);
     return { requests, limits };
 };
 

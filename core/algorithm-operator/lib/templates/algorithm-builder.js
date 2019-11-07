@@ -20,6 +20,7 @@ const jobTemplate = {
                 }
             },
             spec: {
+                serviceAccountName: 'algorithm-builder-serviceaccount',
                 containers: [
                     {
                         name: ALGORITHM_BUILDS,
@@ -60,78 +61,6 @@ const jobTemplate = {
                                     configMapKeyRef: {
                                         name: 'algorithm-operator-configmap',
                                         key: 'CLUSTER_NAME'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'DOCKER_PULL_REGISTRY',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 'docker-credentials-secret',
-                                        key: 'pull-registry'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'DOCKER_PULL_NAMESPACE',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 'docker-credentials-secret',
-                                        key: 'pull-namespace'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'DOCKER_PULL_USERNAME',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 'docker-credentials-secret',
-                                        key: 'pull-username'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'DOCKER_PULL_PASSWORD',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 'docker-credentials-secret',
-                                        key: 'pull-password'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'DOCKER_PUSH_REGISTRY',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 'docker-credentials-secret',
-                                        key: 'push-registry'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'DOCKER_PUSH_NAMESPACE',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 'docker-credentials-secret',
-                                        key: 'push-namespace'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'DOCKER_PUSH_USERNAME',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 'docker-credentials-secret',
-                                        key: 'push-username'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'DOCKER_PUSH_PASSWORD',
-                                valueFrom: {
-                                    secretKeyRef: {
-                                        name: 'docker-credentials-secret',
-                                        key: 'push-password'
                                     }
                                 }
                             }

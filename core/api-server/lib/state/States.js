@@ -1,5 +1,4 @@
 
-
 module.exports = {
     PENDING: 'pending',
     WAITING: 'waiting',
@@ -9,5 +8,7 @@ module.exports = {
     STALLED: 'stalled',
     RECOVERING: 'recovering',
     STOPPED: 'stopped',
-    STOPPING: 'stopping'
+    STOPPING: 'stopping',
+    PAUSED: 'paused',
+    RESUMED: 'resumed'
 };

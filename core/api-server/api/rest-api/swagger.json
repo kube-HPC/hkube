@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.1.155",
+    "version": "1.2.21",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -46,11 +46,7 @@
     "description": "Find out more about Hkube",
     "url": "http://hkube.io"
   },
-  "servers": [
-    {
-      "url": "/api/v1"
-    }
-  ],
+  "servers": [],
   "paths": {
     "/exec/raw": {
       "post": {
@@ -626,6 +622,210 @@
                     "type": "string",
                     "default": "requested by user",
                     "description": "reason for stop pipeline"
+                  }
+                },
+                "required": [
+                  "jobId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "the OK string",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "jobId Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exec/pause": {
+      "post": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Pause pipeline",
+        "description": "Call to pause pipeline execution",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobId": {
+                    "type": "string",
+                    "description": "Unique identifier representing pipeline execution"
+                  }
+                },
+                "required": [
+                  "jobId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "the OK string",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "jobId Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exec/resume": {
+      "post": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Resume pipeline",
+        "description": "Call to resume pipeline execution",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobId": {
+                    "type": "string",
+                    "description": "Unique identifier representing pipeline execution"
                   }
                 },
                 "required": [
@@ -2732,6 +2932,8 @@
                     "mem": {
                       "type": "string",
                       "description": "algorithm memory",
+                      "format": "algorithm-memory",
+                      "default": "256Mi",
                       "example": "512Mi"
                     },
                     "options": {
@@ -2750,8 +2952,66 @@
                       },
                       "default": {}
                     },
+                    "gitRepository": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "description": "a url for the git repository",
+                          "format": "url"
+                        },
+                        "commit": {
+                          "type": "object",
+                          "description": "commit details",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "description": "commit id"
+                            },
+                            "timestamp": {
+                              "type": "string",
+                              "description": "commit time"
+                            },
+                            "message": {
+                              "type": "string",
+                              "description": "commit message"
+                            }
+                          },
+                          "required": [
+                            "id"
+                          ]
+                        },
+                        "branchName": {
+                          "type": "string",
+                          "default": "master",
+                          "description": "the branch name you wish to create a build from"
+                        },
+                        "tag": {
+                          "type": "string",
+                          "description": "a specific tag which will trigger the build"
+                        },
+                        "token": {
+                          "type": "string",
+                          "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                        },
+                        "gitKind": {
+                          "type": "string",
+                          "enum": [
+                            "github"
+                          ],
+                          "default": "github"
+                        }
+                      },
+                      "required": [
+                        "url"
+                      ]
+                    },
                     "entryPoint": {
                       "type": "string"
+                    },
+                    "baseImage": {
+                      "type": "string",
+                      "description": "Custom docker image to be used as base to the newly built algorithm image"
                     },
                     "version": {
                       "type": "string"
@@ -2776,6 +3036,16 @@
                       "additionalProperties": {
                         "type": "string"
                       }
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "type of algorithm code resource",
+                      "enum": [
+                        "Git",
+                        "Code",
+                        "Image"
+                      ],
+                      "default": "Image"
                     }
                   },
                   "required": [
@@ -2994,6 +3264,8 @@
                       "mem": {
                         "type": "string",
                         "description": "algorithm memory",
+                        "format": "algorithm-memory",
+                        "default": "256Mi",
                         "example": "512Mi"
                       },
                       "options": {
@@ -3012,8 +3284,66 @@
                         },
                         "default": {}
                       },
+                      "gitRepository": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "a url for the git repository",
+                            "format": "url"
+                          },
+                          "commit": {
+                            "type": "object",
+                            "description": "commit details",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "commit id"
+                              },
+                              "timestamp": {
+                                "type": "string",
+                                "description": "commit time"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "commit message"
+                              }
+                            },
+                            "required": [
+                              "id"
+                            ]
+                          },
+                          "branchName": {
+                            "type": "string",
+                            "default": "master",
+                            "description": "the branch name you wish to create a build from"
+                          },
+                          "tag": {
+                            "type": "string",
+                            "description": "a specific tag which will trigger the build"
+                          },
+                          "token": {
+                            "type": "string",
+                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                          },
+                          "gitKind": {
+                            "type": "string",
+                            "enum": [
+                              "github"
+                            ],
+                            "default": "github"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
                       "entryPoint": {
                         "type": "string"
+                      },
+                      "baseImage": {
+                        "type": "string",
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "version": {
                         "type": "string"
@@ -3038,6 +3368,16 @@
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "type of algorithm code resource",
+                        "enum": [
+                          "Git",
+                          "Code",
+                          "Image"
+                        ],
+                        "default": "Image"
                       }
                     },
                     "required": [
@@ -3112,6 +3452,8 @@
                   "mem": {
                     "type": "string",
                     "description": "algorithm memory",
+                    "format": "algorithm-memory",
+                    "default": "256Mi",
                     "example": "512Mi"
                   },
                   "options": {
@@ -3130,8 +3472,66 @@
                     },
                     "default": {}
                   },
+                  "gitRepository": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "description": "a url for the git repository",
+                        "format": "url"
+                      },
+                      "commit": {
+                        "type": "object",
+                        "description": "commit details",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "commit id"
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "description": "commit time"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "commit message"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "branchName": {
+                        "type": "string",
+                        "default": "master",
+                        "description": "the branch name you wish to create a build from"
+                      },
+                      "tag": {
+                        "type": "string",
+                        "description": "a specific tag which will trigger the build"
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                      },
+                      "gitKind": {
+                        "type": "string",
+                        "enum": [
+                          "github"
+                        ],
+                        "default": "github"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  },
                   "entryPoint": {
                     "type": "string"
+                  },
+                  "baseImage": {
+                    "type": "string",
+                    "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
                   "version": {
                     "type": "string"
@@ -3156,6 +3556,16 @@
                     "additionalProperties": {
                       "type": "string"
                     }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "type of algorithm code resource",
+                    "enum": [
+                      "Git",
+                      "Code",
+                      "Image"
+                    ],
+                    "default": "Image"
                   }
                 },
                 "required": [
@@ -3285,6 +3695,8 @@
                   "mem": {
                     "type": "string",
                     "description": "algorithm memory",
+                    "format": "algorithm-memory",
+                    "default": "256Mi",
                     "example": "512Mi"
                   },
                   "options": {
@@ -3303,8 +3715,66 @@
                     },
                     "default": {}
                   },
+                  "gitRepository": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "description": "a url for the git repository",
+                        "format": "url"
+                      },
+                      "commit": {
+                        "type": "object",
+                        "description": "commit details",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "commit id"
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "description": "commit time"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "commit message"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "branchName": {
+                        "type": "string",
+                        "default": "master",
+                        "description": "the branch name you wish to create a build from"
+                      },
+                      "tag": {
+                        "type": "string",
+                        "description": "a specific tag which will trigger the build"
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                      },
+                      "gitKind": {
+                        "type": "string",
+                        "enum": [
+                          "github"
+                        ],
+                        "default": "github"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  },
                   "entryPoint": {
                     "type": "string"
+                  },
+                  "baseImage": {
+                    "type": "string",
+                    "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
                   "version": {
                     "type": "string"
@@ -3329,6 +3799,16 @@
                     "additionalProperties": {
                       "type": "string"
                     }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "type of algorithm code resource",
+                    "enum": [
+                      "Git",
+                      "Code",
+                      "Image"
+                    ],
+                    "default": "Image"
                   }
                 },
                 "required": [
@@ -3444,6 +3924,8 @@
                       "mem": {
                         "type": "string",
                         "description": "algorithm memory",
+                        "format": "algorithm-memory",
+                        "default": "256Mi",
                         "example": "512Mi"
                       },
                       "options": {
@@ -3462,8 +3944,66 @@
                         },
                         "default": {}
                       },
+                      "gitRepository": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "a url for the git repository",
+                            "format": "url"
+                          },
+                          "commit": {
+                            "type": "object",
+                            "description": "commit details",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "commit id"
+                              },
+                              "timestamp": {
+                                "type": "string",
+                                "description": "commit time"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "commit message"
+                              }
+                            },
+                            "required": [
+                              "id"
+                            ]
+                          },
+                          "branchName": {
+                            "type": "string",
+                            "default": "master",
+                            "description": "the branch name you wish to create a build from"
+                          },
+                          "tag": {
+                            "type": "string",
+                            "description": "a specific tag which will trigger the build"
+                          },
+                          "token": {
+                            "type": "string",
+                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                          },
+                          "gitKind": {
+                            "type": "string",
+                            "enum": [
+                              "github"
+                            ],
+                            "default": "github"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
                       "entryPoint": {
                         "type": "string"
+                      },
+                      "baseImage": {
+                        "type": "string",
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "version": {
                         "type": "string"
@@ -3488,6 +4028,16 @@
                         "additionalProperties": {
                           "type": "string"
                         }
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "type of algorithm code resource",
+                        "enum": [
+                          "Git",
+                          "Code",
+                          "Image"
+                        ],
+                        "default": "Image"
                       }
                     },
                     "required": [
@@ -3552,6 +4102,8 @@
                         "mem": {
                           "type": "string",
                           "description": "algorithm memory",
+                          "format": "algorithm-memory",
+                          "default": "256Mi",
                           "example": "512Mi"
                         },
                         "options": {
@@ -3570,8 +4122,66 @@
                           },
                           "default": {}
                         },
+                        "gitRepository": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string",
+                              "description": "a url for the git repository",
+                              "format": "url"
+                            },
+                            "commit": {
+                              "type": "object",
+                              "description": "commit details",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "commit id"
+                                },
+                                "timestamp": {
+                                  "type": "string",
+                                  "description": "commit time"
+                                },
+                                "message": {
+                                  "type": "string",
+                                  "description": "commit message"
+                                }
+                              },
+                              "required": [
+                                "id"
+                              ]
+                            },
+                            "branchName": {
+                              "type": "string",
+                              "default": "master",
+                              "description": "the branch name you wish to create a build from"
+                            },
+                            "tag": {
+                              "type": "string",
+                              "description": "a specific tag which will trigger the build"
+                            },
+                            "token": {
+                              "type": "string",
+                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                            },
+                            "gitKind": {
+                              "type": "string",
+                              "enum": [
+                                "github"
+                              ],
+                              "default": "github"
+                            }
+                          },
+                          "required": [
+                            "url"
+                          ]
+                        },
                         "entryPoint": {
                           "type": "string"
+                        },
+                        "baseImage": {
+                          "type": "string",
+                          "description": "Custom docker image to be used as base to the newly built algorithm image"
                         },
                         "version": {
                           "type": "string"
@@ -3596,6 +4206,16 @@
                           "additionalProperties": {
                             "type": "string"
                           }
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "type of algorithm code resource",
+                          "enum": [
+                            "Git",
+                            "Code",
+                            "Image"
+                          ],
+                          "default": "Image"
                         }
                       },
                       "required": [
@@ -5345,6 +5965,8 @@
                         "mem": {
                           "type": "string",
                           "description": "algorithm memory",
+                          "format": "algorithm-memory",
+                          "default": "256Mi",
                           "example": "512Mi"
                         },
                         "options": {
@@ -5363,8 +5985,66 @@
                           },
                           "default": {}
                         },
+                        "gitRepository": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string",
+                              "description": "a url for the git repository",
+                              "format": "url"
+                            },
+                            "commit": {
+                              "type": "object",
+                              "description": "commit details",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "commit id"
+                                },
+                                "timestamp": {
+                                  "type": "string",
+                                  "description": "commit time"
+                                },
+                                "message": {
+                                  "type": "string",
+                                  "description": "commit message"
+                                }
+                              },
+                              "required": [
+                                "id"
+                              ]
+                            },
+                            "branchName": {
+                              "type": "string",
+                              "default": "master",
+                              "description": "the branch name you wish to create a build from"
+                            },
+                            "tag": {
+                              "type": "string",
+                              "description": "a specific tag which will trigger the build"
+                            },
+                            "token": {
+                              "type": "string",
+                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                            },
+                            "gitKind": {
+                              "type": "string",
+                              "enum": [
+                                "github"
+                              ],
+                              "default": "github"
+                            }
+                          },
+                          "required": [
+                            "url"
+                          ]
+                        },
                         "entryPoint": {
                           "type": "string"
+                        },
+                        "baseImage": {
+                          "type": "string",
+                          "description": "Custom docker image to be used as base to the newly built algorithm image"
                         },
                         "version": {
                           "type": "string"
@@ -5389,6 +6069,16 @@
                           "additionalProperties": {
                             "type": "string"
                           }
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "type of algorithm code resource",
+                          "enum": [
+                            "Git",
+                            "Code",
+                            "Image"
+                          ],
+                          "default": "Image"
                         }
                       },
                       "required": [
@@ -5555,6 +6245,8 @@
                           "mem": {
                             "type": "string",
                             "description": "algorithm memory",
+                            "format": "algorithm-memory",
+                            "default": "256Mi",
                             "example": "512Mi"
                           },
                           "options": {
@@ -5573,8 +6265,66 @@
                             },
                             "default": {}
                           },
+                          "gitRepository": {
+                            "type": "object",
+                            "properties": {
+                              "url": {
+                                "type": "string",
+                                "description": "a url for the git repository",
+                                "format": "url"
+                              },
+                              "commit": {
+                                "type": "object",
+                                "description": "commit details",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "description": "commit id"
+                                  },
+                                  "timestamp": {
+                                    "type": "string",
+                                    "description": "commit time"
+                                  },
+                                  "message": {
+                                    "type": "string",
+                                    "description": "commit message"
+                                  }
+                                },
+                                "required": [
+                                  "id"
+                                ]
+                              },
+                              "branchName": {
+                                "type": "string",
+                                "default": "master",
+                                "description": "the branch name you wish to create a build from"
+                              },
+                              "tag": {
+                                "type": "string",
+                                "description": "a specific tag which will trigger the build"
+                              },
+                              "token": {
+                                "type": "string",
+                                "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                              },
+                              "gitKind": {
+                                "type": "string",
+                                "enum": [
+                                  "github"
+                                ],
+                                "default": "github"
+                              }
+                            },
+                            "required": [
+                              "url"
+                            ]
+                          },
                           "entryPoint": {
                             "type": "string"
+                          },
+                          "baseImage": {
+                            "type": "string",
+                            "description": "Custom docker image to be used as base to the newly built algorithm image"
                           },
                           "version": {
                             "type": "string"
@@ -5599,6 +6349,16 @@
                             "additionalProperties": {
                               "type": "string"
                             }
+                          },
+                          "type": {
+                            "type": "string",
+                            "description": "type of algorithm code resource",
+                            "enum": [
+                              "Git",
+                              "Code",
+                              "Image"
+                            ],
+                            "default": "Image"
                           }
                         },
                         "required": [
@@ -5638,6 +6398,294 @@
           },
           "404": {
             "description": "build Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/builds/stop": {
+      "post": {
+        "tags": [
+          "Builds"
+        ],
+        "summary": "Stop build",
+        "description": "stop build",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "buildId": {
+                    "type": "string",
+                    "description": "Unique identifier representing build id"
+                  }
+                },
+                "required": [
+                  "buildId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "stop build response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "build Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/builds/rerun": {
+      "post": {
+        "tags": [
+          "Builds"
+        ],
+        "summary": "Rerun build",
+        "description": "rerun build",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "buildId": {
+                    "type": "string",
+                    "description": "Unique identifier representing build id"
+                  }
+                },
+                "required": [
+                  "buildId"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "stop build response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "build Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/builds/webhook/github": {
+      "post": {
+        "tags": [
+          "Builds"
+        ],
+        "summary": "Insert webhook for automating build after push",
+        "description": "webhook for automating  build algorithm directly from github",
+        "requestBody": {
+          "content": {
+            "application/x-www-from-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "github": {
+                    "type": "object",
+                    "description": "github object which received after push for more information https://developer.github.com/webhooks/"
+                  }
+                },
+                "required": [
+                  "github"
+                ]
+              }
+            }
+          },
+          "description": "github webhook data",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "webhook created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -6418,6 +7466,8 @@
           "mem": {
             "type": "string",
             "description": "algorithm memory",
+            "format": "algorithm-memory",
+            "default": "256Mi",
             "example": "512Mi"
           },
           "options": {
@@ -6436,8 +7486,66 @@
             },
             "default": {}
           },
+          "gitRepository": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "a url for the git repository",
+                "format": "url"
+              },
+              "commit": {
+                "type": "object",
+                "description": "commit details",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "commit id"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "description": "commit time"
+                  },
+                  "message": {
+                    "type": "string",
+                    "description": "commit message"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              },
+              "branchName": {
+                "type": "string",
+                "default": "master",
+                "description": "the branch name you wish to create a build from"
+              },
+              "tag": {
+                "type": "string",
+                "description": "a specific tag which will trigger the build"
+              },
+              "token": {
+                "type": "string",
+                "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+              },
+              "gitKind": {
+                "type": "string",
+                "enum": [
+                  "github"
+                ],
+                "default": "github"
+              }
+            },
+            "required": [
+              "url"
+            ]
+          },
           "entryPoint": {
             "type": "string"
+          },
+          "baseImage": {
+            "type": "string",
+            "description": "Custom docker image to be used as base to the newly built algorithm image"
           },
           "version": {
             "type": "string"
@@ -6462,6 +7570,16 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "type": {
+            "type": "string",
+            "description": "type of algorithm code resource",
+            "enum": [
+              "Git",
+              "Code",
+              "Image"
+            ],
+            "default": "Image"
           }
         },
         "required": [
@@ -6509,6 +7627,8 @@
               "mem": {
                 "type": "string",
                 "description": "algorithm memory",
+                "format": "algorithm-memory",
+                "default": "256Mi",
                 "example": "512Mi"
               },
               "options": {
@@ -6527,8 +7647,66 @@
                 },
                 "default": {}
               },
+              "gitRepository": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "description": "a url for the git repository",
+                    "format": "url"
+                  },
+                  "commit": {
+                    "type": "object",
+                    "description": "commit details",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "commit id"
+                      },
+                      "timestamp": {
+                        "type": "string",
+                        "description": "commit time"
+                      },
+                      "message": {
+                        "type": "string",
+                        "description": "commit message"
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
+                  },
+                  "branchName": {
+                    "type": "string",
+                    "default": "master",
+                    "description": "the branch name you wish to create a build from"
+                  },
+                  "tag": {
+                    "type": "string",
+                    "description": "a specific tag which will trigger the build"
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                  },
+                  "gitKind": {
+                    "type": "string",
+                    "enum": [
+                      "github"
+                    ],
+                    "default": "github"
+                  }
+                },
+                "required": [
+                  "url"
+                ]
+              },
               "entryPoint": {
                 "type": "string"
+              },
+              "baseImage": {
+                "type": "string",
+                "description": "Custom docker image to be used as base to the newly built algorithm image"
               },
               "version": {
                 "type": "string"
@@ -6553,6 +7731,16 @@
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "type": {
+                "type": "string",
+                "description": "type of algorithm code resource",
+                "enum": [
+                  "Git",
+                  "Code",
+                  "Image"
+                ],
+                "default": "Image"
               }
             },
             "required": [
@@ -6566,6 +7754,18 @@
             "type": "string"
           }
         }
+      },
+      "buildId": {
+        "type": "object",
+        "properties": {
+          "buildId": {
+            "type": "string",
+            "description": "Unique identifier representing build id"
+          }
+        },
+        "required": [
+          "buildId"
+        ]
       },
       "caching": {
         "type": "object",
@@ -6947,6 +8147,30 @@
           "jobId"
         ]
       },
+      "pauseRequest": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          }
+        },
+        "required": [
+          "jobId"
+        ]
+      },
+      "resumeRequest": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
+          }
+        },
+        "required": [
+          "jobId"
+        ]
+      },
       "storedPipeline": {
         "type": "object",
         "properties": {
@@ -7143,6 +8367,18 @@
           }
         },
         "additionalProperties": false
+      },
+      "githubWebhook": {
+        "type": "object",
+        "properties": {
+          "github": {
+            "type": "object",
+            "description": "github object which received after push for more information https://developer.github.com/webhooks/"
+          }
+        },
+        "required": [
+          "github"
+        ]
       }
     }
   }

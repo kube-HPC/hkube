@@ -5,6 +5,7 @@ const utils = require('../lib/utils/utils');
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
 const { nodes, pods } = require('./stub/resources');
 let templateStore = require('./stub/templateStore');
+const { settings: globalSettings } = require('../lib/helpers/settings');
 templateStore = templateStore.map(t => ({ ...t, minHotWorkers: 10 }));
 const algorithmTemplates = utils.arrayToMap(templateStore);
 
@@ -215,7 +216,7 @@ describe('normalize', () => {
                     name: 'eval-alg',
                     algorithmImage: 'hkube/algorunner',
                     cpu: 0.5,
-                    mem: 256,
+                    mem: '256Mi',
                     minHotWorkers: 0
                 }
             };
@@ -334,6 +335,9 @@ describe('normalize', () => {
         });
     });
     describe('normalize resources', () => {
+        beforeEach(() => {
+            globalSettings.useResourceLimits = false
+        });
         it('should work with empty resources array', () => {
             const res = normalizeResources({});
             expect(res.allNodes.ratio.cpu).to.eq(0);
@@ -352,7 +356,15 @@ describe('normalize', () => {
             expect(res.nodeList[1].requests.cpu).to.eq(0.25);
             expect(res.nodeList[2].requests.cpu).to.eq(0);
         });
-
+        it('should return resources by node and totals with useLimits', () => {
+            globalSettings.useResourceLimits = true
+            const res = normalizeResources({ pods, nodes });
+            expect(res.allNodes.total.cpu).to.eq(23.4);
+            expect(res.allNodes.total.memory).to.eq(98304);
+            expect(res.nodeList[0].requests.cpu).to.eq(0.2);
+            expect(res.nodeList[1].requests.cpu).to.eq(0.7);
+            expect(res.nodeList[2].requests.cpu).to.eq(0);
+        });
         it('should return resources free resources by node', () => {
             const res = normalizeResources({ pods, nodes });
             expect(res.allNodes.free.cpu).to.eq(22.95);

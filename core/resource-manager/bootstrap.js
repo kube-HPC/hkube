@@ -27,14 +27,7 @@ class Bootstrap {
     }
 
     _onInitFailed(error) {
-        if (log) {
-            log.error(error.message, { component }, error);
-            log.error(error);
-        }
-        else {
-            console.error(error.message);
-            console.error(error);
-        }
+        log.error(error.message, { component }, error);
         process.exit(1);
     }
 
@@ -52,11 +45,9 @@ class Bootstrap {
         });
         process.on('unhandledRejection', (error) => {
             log.error(`Unhandled Rejection: ${error.message}`, { component }, error);
-            log.error(error);
         });
         process.on('uncaughtException', (error) => {
             log.error(`Uncaught Exception: ${error.message}`, { component }, error);
-            log.error(error);
             process.exit(1);
         });
     }

@@ -3,10 +3,19 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const component = require('../../lib/consts/componentNames').K8S;
 const { WORKER, SERVICE, INGRESS } = require('../../lib/consts/kubernetes-kind-prefix');
+const { logWrappers } = require('./tracing');
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
         this._client = new KubernetesClient(options.kubernetes);
+        if (options.healthchecks.logExternalRequests) {
+            logWrappers([
+                'getDeployments',
+                'getJobs',
+                'getVersionsConfigMap',
+                'getAlgorithmForDebug'
+            ], this, log);
+        }
         log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
     }
 
@@ -56,6 +65,11 @@ class KubernetesApi extends EventEmitter {
         return jobsRaw;
     }
 
+    async getSecret({ secretName }) {
+        const secretsRaw = await this._client.secrets.get({ secretName });
+        return secretsRaw;
+    }
+
     async createJob({ spec }) {
         log.info(`Creating job ${spec.metadata.name}`, { component });
         try {
@@ -67,6 +81,19 @@ class KubernetesApi extends EventEmitter {
         }
         return null;
     }
+
+    async deleteJob(jobName) {
+        log.info(`Deleting job ${jobName}`, { component });
+        try {
+            const res = await this._client.jobs.delete({ jobName });
+            return res;
+        }
+        catch (error) {
+            log.error(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
+        }
+        return null;
+    }
+
 
     async getVersionsConfigMap() {
         try {

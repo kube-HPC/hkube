@@ -1,0 +1,7 @@
+type: object
+properties:
+  buildId:
+    type: string
+    description: Unique identifier representing build id
+required:
+  - buildId

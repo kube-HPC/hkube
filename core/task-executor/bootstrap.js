@@ -1,6 +1,7 @@
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { metrics } = require('@hkube/metrics');
+const { rest: healthcheck } = require('@hkube/healthchecks');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const { components } = require('./lib/consts');
@@ -8,7 +9,7 @@ const component = components.MAIN;
 const etcd = require('./lib/helpers/etcd');
 const kubernetes = require('./lib/helpers/kubernetes');
 const executor = require('./lib/executor');
-
+const { setFromConfig } = require('./lib/helpers/settings');
 const modules = [
     etcd,
     kubernetes,
@@ -20,8 +21,13 @@ class Bootstrap {
             this._handleErrors();
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
             await metrics.init(main.metrics);
+            setFromConfig(main);
             await Promise.all(modules.map(m => m.init(main)));
             await executor.init(main);
+            if (main.healthchecks.enabled) {
+                await healthcheck.init({ port: main.healthchecks.port });
+                healthcheck.start(main.healthchecks.path, () => executor.checkHealth(main.healthchecks.maxDiff), 'health');
+            }
             return main;
         }
         catch (error) {
@@ -31,7 +37,6 @@ class Bootstrap {
 
     _onInitFailed(error) {
         log.error(error.message, { component }, error);
-        log.error(error);
         process.exit(1);
     }
 
@@ -53,7 +58,6 @@ class Bootstrap {
         });
         process.on('uncaughtException', (error) => {
             log.error(`uncaughtException: ${error.message}`, { component }, error);
-            log.error(error);
             process.exit(1);
         });
     }

@@ -18,11 +18,20 @@ describe('bootstrap', () => {
     after(() => {
         mockery.disable();
     });
+    beforeEach(async () => {
+        await etcd._etcd._client.delete('/', { isPrefix: true });
+    });
     it('should get', async () => {
         await Promise.all(discoveryStub.map(d => etcd._etcd._client.put(`/discovery/stub/${d.workerId}`, d)));
         let workers = await etcd.getWorkers({ workerServiceName: 'stub' });
         workers = workers.sort((a, b) => a.workerId - b.workerId)
         expect(workers).to.eql(discoveryStub);
+    });
+    it('should get more than 100', async () => {
+        await etcd._etcd._client.delete('/discovery/stub', { isPrefix: true })
+        await Promise.all([...Array(500).keys()].map(d => etcd._etcd._client.put(`/discovery/stub/${d}`, d)));
+        let workers = await etcd.getWorkers({ workerServiceName: 'stub' });
+        expect(workers).to.have.lengthOf(500)
     });
     it('should get no workers', async () => {
         await Promise.all(discoveryStub.map(d => etcd._etcd._client.put(`/discovery/stub/${d.workerId}`, d)));

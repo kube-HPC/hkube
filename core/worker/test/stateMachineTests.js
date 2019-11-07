@@ -1,26 +1,12 @@
-const configIt = require('@hkube/config');
-const Logger = require('@hkube/logger');
-const storageManager = require('@hkube/storage-manager');
 const stateMachine = require('../lib/states/stateManager');
 const { stateEvents, workerStates } = require('../lib/consts');
-const delay = require('await-delay');
+const delay = require('delay');
 const { expect } = require('chai');
 const sinon = require('sinon');
-const bootstrap = require('../bootstrap');
-const Etcd = require('@hkube/etcd');
+const etcd = require('../lib/states/discovery');
 const jobConsumer = require('../lib/consumer/JobConsumer');
-let etcd;
 
 describe('state machine', () => {
-    before(async () => {
-        const { main, logger } = await configIt.load();
-        await storageManager.init(main, null, true);
-        await bootstrap.init();
-        log = new Logger(main.serviceName, logger);
-        etcd = new Etcd({ ...main.etcd, serviceName: main.serviceName });
-        await stateMachine.init(main);
-    });
-
     beforeEach(() => {
         stateMachine._initStateMachine();
     });
@@ -49,7 +35,6 @@ describe('state machine', () => {
         stateMachine.done();
         expect(stateMachine.state).to.eql(workerStates.results);
     });
-
     it('should transition from results to ready', () => {
         stateMachine.bootstrap();
         stateMachine.prepare();
@@ -58,7 +43,6 @@ describe('state machine', () => {
         stateMachine.cleanup();
         expect(stateMachine.state).to.eql(workerStates.ready);
     });
-
     it('should raise event on state enter', () => {
         stateMachine.bootstrap();
         const spy = sinon.spy();

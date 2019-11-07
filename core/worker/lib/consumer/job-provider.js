@@ -35,6 +35,7 @@ class JobProvider extends EventEmitter {
         this._consumer.on('job', async (job) => {
             log.info(`Job ${job.data.jobId} arrived --> Enqueue`, { component });
             this._job = job;
+            this.emit('job-queue', this._job);
         });
 
         setInterval(() => {

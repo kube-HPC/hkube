@@ -1,7 +1,7 @@
 
 module.exports = {
     JOBS: {
-        STOP: 'job-stop',
+        STOPPED: 'job-stopped',
         WAITING: 'job-waiting',
         ACTIVE: 'job-active',
         FAILED: 'job-failed',
@@ -14,7 +14,8 @@ module.exports = {
         SUCCEED: 'task-succeed',
         FAILED: 'task-failed',
         STALLED: 'task-stalled',
-        CRASHED: 'task-crashed'
+        CRASHED: 'task-crashed',
+        WARNING: 'task-warning'
     },
     COMMANDS: {
         stopProcessing: 'stopProcessing'

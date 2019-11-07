@@ -25,6 +25,8 @@ properties:
   mem:
     type: string
     description: algorithm memory
+    format: algorithm-memory
+    default: 256Mi
     example: 512Mi
   options:
     type: object
@@ -38,8 +40,50 @@ properties:
         description: pending algorithm
         default: false
     default: {}
+  gitRepository:
+    type: object
+    properties:
+      url:
+        type: string
+        description: a url for the git repository
+        format: url
+      commit:
+        type: object
+        description: commit details
+        properties:
+          id:
+            type: string
+            description: commit id
+          timestamp:
+            type: string
+            description: commit time
+          message:
+            type: string
+            description: commit message
+        required:
+          - id
+      branchName:
+        type: string
+        default: master
+        description: the branch name you wish to create a build from
+      tag:
+        type: string
+        description: a specific tag which will trigger the build
+      token:
+        type: string
+        description: a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line
+      gitKind:
+        type: string
+        enum:
+          - github
+        default: github
+    required:
+      - url
   entryPoint:
     type: string
+  baseImage:
+    type: string
+    description: Custom docker image to be used as base to the newly built algorithm image
   version:
     type: string
   minHotWorkers:
@@ -58,5 +102,13 @@ properties:
     description: key value labels for nodes constraint
     additionalProperties:
       type: string
+  type:
+    type: string
+    description: type of algorithm code resource
+    enum:
+      - Git
+      - Code
+      - Image
+    default: "Image"
 required:
   - name

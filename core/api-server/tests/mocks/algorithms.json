@@ -4,6 +4,7 @@
         "algorithmImage": "hkube/algorunner",
         "cpu": 1.5,
         "mem": "50Mi",
+        "type": "Image",
         "minHotWorkers": 0,
         "options": {
             "debug": false,
@@ -12,14 +13,21 @@
     },
     {
         "name": "green-alg",
-        "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
-        "mem": "600Ki",
+        "mem": "6000Mi",
         "minHotWorkers": 0,
         "options": {
             "debug": false,
             "pending": false
-        }
+        },
+        "gitRepository": {
+            "url": "https://github.com/maty21/statistisc",
+            "webUrl": "https://github.com/maty21/statistisc",
+            "branchName": "master"
+        },
+        "env": "nodejs",
+        "entryPoint": "./app.js",
+        "type": "Git"
     },
     {
         "name": "yellow-alg",

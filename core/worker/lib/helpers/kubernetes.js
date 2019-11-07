@@ -36,60 +36,88 @@ class KubernetesApi extends EventEmitter {
             return objectPath.get(pod, 'body.metadata.labels.job-name');
         }
         catch (error) {
-            log.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
+            log.warning(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
             return null;
         }
-    }
-
-    _mapContainerStatus(status) {
-        const containerStatus = {
-            name: status.name,
-            running: !!status.state.running,
-            terminated: !!status.state.terminated
-        };
-        if (containerStatus.terminated) {
-            containerStatus.terminationDetails = {
-                reason: status.state.terminated.reason,
-                exitCode: status.state.terminated.exitCode
-            };
-        }
-        return containerStatus;
     }
 
     async getPodContainerStatus(podName, containerName) {
+        let container = null;
         try {
             log.debug(`getPodContainers for pod ${podName}, container ${containerName}`, { component });
-            const pod = await this._client.pods.get({ podName });
-            const statusRaw = objectPath.get(pod, 'body.status.containerStatuses');
-            if (!statusRaw) {
-                return null;
-            }
-            const statuses = statusRaw.filter(r => r.name === containerName).map(this._mapContainerStatus);
-            return statuses[0];
+            container = await this._client.containers.getStatus({ podName, containerName });
         }
         catch (error) {
-            log.throttle.error(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
-            return null;
+            log.throttle.warning(`unable to get pod details ${podName}. error: ${error.message}`, { component }, error);
         }
+        return container;
     }
 
     async waitForTerminatedState(podName, containerName, timeout = 20000) {
-        log.info('waiting for pod termination', { component });
-        const start = Date.now();
+        log.info('waiting for container termination', { component });
 
+        return new Promise((resolve) => {
+            this.waitForContainerStatus({
+                podName,
+                containerName,
+                timeout,
+                predicate: containerStatus => containerStatus && containerStatus.status === 'terminated',
+                onStatus: (containerStatus) => {
+                    log.throttle.debug(`waiting for container ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
+                },
+                onSuccess: () => {
+                    resolve(true);
+                },
+                onFailed: () => {
+                    log.info(`timeout waiting terminated state for container: ${containerName}`, { component });
+                    resolve(false);
+                }
+            });
+        });
+    }
+
+    async waitForExitState(podName, containerName) {
+        log.info('waiting for container exit state', { component });
+
+        return new Promise((resolve) => {
+            this.waitForContainerStatus({
+                podName,
+                containerName,
+                predicate: containerStatus => containerStatus && containerStatus.status !== 'running',
+                onStatus: (containerStatus) => {
+                    log.throttle.debug(`waiting for container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
+                },
+                onSuccess: (containerStatus) => {
+                    resolve(containerStatus);
+                },
+                onFailed: (containerStatus) => {
+                    log.info(`timeout waiting exit state for container: ${containerName}`, { component });
+                    resolve(containerStatus);
+                }
+            });
+        });
+    }
+
+    async waitForContainerStatus({ podName, containerName, predicate, onStatus, onSuccess, onFailed, interval = 1000, timeout = 5000 }) {
+        const start = Date.now();
+        let containerStatus;
         do {
-            const containerStatus = await this.getPodContainerStatus(podName, containerName); // eslint-disable-line no-await-in-loop
-            log.throttle.debug(`waitForTerminatedState for pod ${podName}, container: ${containerName}, status: ${JSON.stringify(containerStatus)}`, { component });
-            if (containerStatus && containerStatus.terminated) {
-                return true;
+            containerStatus = await this.getPodContainerStatus(podName, containerName); // eslint-disable-line no-await-in-loop
+            if (onStatus) {
+                onStatus(containerStatus);
             }
-            await delay(1000); // eslint-disable-line no-await-in-loop
+            if (onSuccess && predicate) {
+                const res = predicate(containerStatus);
+                if (res) {
+                    return onSuccess(containerStatus);
+                }
+            }
+
+            await delay(interval); // eslint-disable-line no-await-in-loop
         }
         while (Date.now() - start < timeout);
 
-        log.info(`waitForTerminatedState for pod ${podName}, container: ${containerName} timeout waiting for terminated state`, { component });
-
-        return false;
+        return onFailed && onFailed(containerStatus);
     }
 
     async deleteJob(jobName) {
@@ -99,7 +127,7 @@ class KubernetesApi extends EventEmitter {
             return res;
         }
         catch (error) {
-            log.error(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
+            log.warning(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
         }
         return null;
     }

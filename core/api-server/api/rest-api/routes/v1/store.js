@@ -1,9 +1,10 @@
 const express = require('express');
 const multer = require('multer');
+const HttpStatus = require('http-status-codes');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
+const { BUILD_TYPES } = require('../../../../lib/consts/builds');
 const logger = require('../../middlewares/logger');
-
 const upload = multer({ dest: 'uploads/zipped/' });
 
 const routes = (options) => {
@@ -14,124 +15,91 @@ const routes = (options) => {
     });
 
     // pipelines
-    router.get('/pipelines', logger(), (req, res, next) => {
+    router.get('/pipelines', logger(), async (req, res, next) => {
         const { sort } = req.query;
-        pipelineStore.getPipelines({ sort }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await pipelineStore.getPipelines({ sort });
+        res.json(response);
+        next();
     });
-    router.get('/pipelines/:name', logger(), (req, res, next) => {
+    router.get('/pipelines/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        pipelineStore.getPipeline({ name }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await pipelineStore.getPipeline({ name });
+        res.json(response);
+        next();
     });
-    router.post('/pipelines', logger(), (req, res, next) => {
-        pipelineStore.insertPipeline(req.body).then((response) => {
-            res.status(201).json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+    router.post('/pipelines', logger(), async (req, res, next) => {
+        const response = await pipelineStore.insertPipeline(req.body);
+        res.status(HttpStatus.CREATED).json(response);
+        next();
     });
-    router.put('/pipelines', logger(), (req, res, next) => {
-        pipelineStore.updatePipeline(req.body).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+    router.put('/pipelines', logger(), async (req, res, next) => {
+        const response = await pipelineStore.updatePipeline(req.body);
+        res.json(response);
+        next();
     });
-    router.delete('/pipelines/:name', logger(), (req, res, next) => {
+    router.delete('/pipelines/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        pipelineStore.deletePipeline({ name }).then(() => {
-            res.json({ message: 'OK' });
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await pipelineStore.deletePipeline({ name });
+        res.json({ message: 'OK' });
+        next();
     });
     // pipelines
 
     // algorithms
-    router.get('/algorithms', logger(), (req, res, next) => {
-        const { sort } = req.query;
-        algorithmStore.getAlgorithms({ sort }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+    router.get('/algorithms', logger(), async (req, res, next) => {
+        const { name, sort, limit } = req.query;
+        const response = await algorithmStore.getAlgorithms({ name, sort, limit });
+        res.json(response);
+        next();
     });
-    router.get('/algorithms/:name', logger(), (req, res, next) => {
+    router.get('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        algorithmStore.getAlgorithm({ name }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        const response = await algorithmStore.getAlgorithm({ name });
+        res.json(response);
+        next();
     });
-    router.post('/algorithms', logger(), (req, res, next) => {
-        algorithmStore.insertAlgorithm(req.body).then((response) => {
-            res.status(201).json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+    router.post('/algorithms', logger(), async (req, res, next) => {
+        const response = await algorithmStore.insertAlgorithm(req.body);
+        res.status(HttpStatus.CREATED).json(response);
+        next();
     });
-    router.post('/algorithms/debug', logger(), (req, res, next) => {
-        algorithmStore.insertAlgorithm({ ...req.body, options: { debug: true } }).then((response) => {
-            res.status(201).json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+    router.post('/algorithms/debug', logger(), async (req, res, next) => {
+        const response = await algorithmStore.insertAlgorithm({ ...req.body, options: { debug: true } });
+        res.status(HttpStatus.CREATED).json(response);
+        next();
     });
-    router.put('/algorithms', logger(), (req, res, next) => {
-        algorithmStore.updateAlgorithm(req.body).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+    router.put('/algorithms', logger(), async (req, res, next) => {
+        const response = await algorithmStore.updateAlgorithm(req.body);
+        res.json(response);
+        next();
     });
-    router.delete('/algorithms/:name', logger(), (req, res, next) => {
+    router.delete('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        algorithmStore.deleteAlgorithm({ name }).then(() => {
-            res.json({ message: 'OK' });
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await algorithmStore.deleteAlgorithm({ name });
+        res.json({ message: 'OK' });
+        next();
     });
-    router.delete('/algorithms/debug/:name', logger(), (req, res, next) => {
+    router.delete('/algorithms/debug/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        algorithmStore.deleteAlgorithm({ name }).then(() => {
-            res.json({ message: 'OK' });
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        await algorithmStore.deleteAlgorithm({ name });
+        res.json({ message: 'OK' });
+        next();
     });
-    router.post('/algorithms/apply', upload.single('file'), logger(), (req, res, next) => {
-        const body = (req.body.payload) || null;
-        const file = req.file || {};
+    router.post('/algorithms/apply', upload.single('file'), logger(), async (req, res, next) => {
+        const body = (req.body.payload) || '{}';
         const payload = JSON.parse(body);
-        algorithmStore.applyAlgorithm({ payload, file: { path: file.path, name: file.originalname } }).then((response) => {
-            res.json(response);
-            next();
-        }).catch((error) => {
-            return next(error);
-        });
+        let { type } = payload;
+        const file = req.file || {};
+        if (!type) {
+            // eslint-disable-next-line no-nested-ternary
+            type = req.file ? BUILD_TYPES.CODE : (payload.gitRepository ? BUILD_TYPES.GIT : BUILD_TYPES.IMAGE);
+        }
+        const response = await algorithmStore.applyAlgorithm({ payload: { ...payload, type }, file: { path: file.path, name: file.originalname } });
+        res.json(response);
+        next();
     });
     // algorithms
+
 
     return router;
 };

@@ -52,7 +52,7 @@ class StateManager extends EventEmitter {
                 },
                 onInvalidTransition: (transition, from, to) => {
                     if (!this._debugMode) {
-                        log.error(`transition (${transition}) not allowed from that state: ${from} -> ${to}`, { component });
+                        log.warning(`transition (${transition}) not allowed from that state: ${from} -> ${to}`, { component });
                         this.exit();
                     }
                 }
@@ -167,19 +167,20 @@ class StateManager extends EventEmitter {
             this._stateMachine.stop();
         }
         catch (error) {
-            log.error(error, { component });
+            log.warning(error, { component });
         }
     }
 
     /**
      * transitions to exit state.
      */
-    exit() {
+    exit(results) {
         try {
+            this._results = results;
             this._stateMachine.exit();
         }
         catch (error) {
-            log.error(error, { component });
+            log.warning(error, { component });
         }
     }
 
@@ -196,7 +197,7 @@ class StateManager extends EventEmitter {
             this._stateMachine.done();
         }
         catch (error) {
-            log.error(error, { component });
+            log.warning(error, { component });
         }
     }
 
@@ -211,7 +212,7 @@ class StateManager extends EventEmitter {
             this._stateMachine.cleanup();
         }
         catch (error) {
-            log.error(error, { component });
+            log.warning(error, { component });
         }
     }
 
@@ -239,10 +240,11 @@ class StateManager extends EventEmitter {
 
     _startInactiveTimer() {
         if (this._config.timeouts.algorithmDisconnected > 0) {
-            log.info(`starting inactive timeout for algorunner (bootstrap) ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
+            const seconds = `${this._config.timeouts.algorithmDisconnected / 1000} seconds`;
+            log.info(`starting inactive timeout for algorunner (bootstrap) ${seconds}`, { component });
             this._inactiveTimer = setTimeout(() => {
-                log.info(`algorunner is offline for more than ${this._config.timeouts.algorithmDisconnected / 1000} seconds`, { component });
-                this.exit();
+                // this.exit(); instead of exit the process, we will emit event
+                this.emit('disconnect', `algorunner is offline for more than ${seconds}`);
             }, this._config.timeouts.algorithmDisconnected);
         }
     }

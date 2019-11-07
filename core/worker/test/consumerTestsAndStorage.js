@@ -1,5 +1,4 @@
-const bootstrap = require('../bootstrap');
-const Consumer = require('../lib/consumer/JobConsumer');
+const consumer = require('../lib/consumer/JobConsumer');
 const { Producer } = require('@hkube/producer-consumer');
 const stateManager = require('../lib/states/stateManager.js');
 const { expect } = require('chai');
@@ -9,11 +8,11 @@ const sinon = require('sinon');
 const uuid = require('uuid/v4');
 const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
-const mockery = require('mockery');
 const delay = require('delay');
 const etcd = require('../lib/states/discovery');
+const { Status } = require('../lib/consts');
 
-let consumer, producer;
+let spy, producer;
 
 function getConfig() {
     const jobId = 'jobId:' + uuid();
@@ -24,7 +23,7 @@ function getConfig() {
         defaultStorage: 's3',
         jobConsumer: {
             job: {
-                type: 'test-job' + uuid(),
+                type: 'test-job',
                 data: {
                     jobId
                 }
@@ -64,202 +63,105 @@ function getConfig() {
 }
 
 describe('consumer tests', () => {
-    beforeEach(async () => {
-        mockery.enable({
-            warnOnReplace: false,
-            warnOnUnregistered: false,
-            useCleanCache: true
-        });
-        mockery.resetCache();
-        let config = getConfig();
-        await storageManager.init(config, null, true);
-        worker._isConnected = false;
-        worker._isBootstrapped = false;
-        await bootstrap.init();
-        consumer = Consumer;
-        if (consumer._algTracer) {
-            consumer._algTracer._tracer.close();
-        }
+    afterEach(async function () {
+        spy && spy.restore();
+        // stateManager.reset();
+        // await delay(500);
+        // stateManager.bootstrap();
+        // await delay(500);
     });
-    it('if job already stopped return and finish job', (done) => {
-        let config = getConfig();
-        etcd._etcd.jobs.state.set({ jobId: config.jobId, state: 'stop' }).then(() => {
-            consumer.init(config).then(() => {
-                stateManager.once('stateEnteredready', async () => {
-                    const spy = sinon.spy(consumer, '_stopJob');
-                    producer = new Producer(config.jobConsumer);
-                    producer.createJob({
-                        job: {
-                            type: config.jobConsumer.job.type,
-                            data: {
-                                jobId: config.jobId,
-                                taskId: config.taskId,
-                                input: ['test-param', true, 12345],
-                                pipelineName: 'stopped',
-                            }
-                        }
-                    }).then(async () => {
-                        await delay(500);
-                        expect(spy.callCount).to.eq(1);
-                        done();
-                    })
-                });
-                worker._registerToConnectionEvents();
-                workerCommunication.adapter.start();
-            });
-        })
-    }).timeout(5000);
-    it('store data and validate result from algorithm', (done) => {
-        let config = getConfig();
-        storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then((link) => {
-            consumer.init(config).then(() => {
-                stateManager.once('stateEnteredready', async () => {
-
-                    producer = new Producer(config.jobConsumer);
-                    let x = await producer.createJob({
-                        job: {
-                            type: config.jobConsumer.job.type,
-                            data: {
-                                jobId: config.jobId,
-                                taskId: config.taskId,
-                                input: ['test-param', true, 12345, '$$guid-5'],
-                                storage: {
-                                    'guid-5': { storageInfo: link, path: 'data.engine' }
-                                },
-                                pipelineName: 'xxx',
-                                info: { savePaths: [] }
-
-                            },
-                        }
-                    });
-                    Object.keys(workerStates).forEach(element => {
-                        stateManager.once('stateEntered' + element, async (job) => {
-                            if (element === 'working') {
-                                workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
-                            }
-                            else if (element === 'results') {
-                                expect(job.results.input).to.eql(['test-param', true, 12345, 'deep']);
-                                await delay(1000);
-                                done();
-                            }
-                        });
-                    });
-                });
-                worker._registerToConnectionEvents();
-                workerCommunication.adapter.start();
-            })
+    it('if job already stopped return and finish job', async () => {
+        const config = getConfig();
+        await etcd._etcd.jobs.status.set({ jobId: config.jobId, status: Status.STOPPED });
+        spy = sinon.spy(consumer, '_stopJob');
+        consumer._jobProvider.emit('job', {
+            data: {
+                jobId: config.jobId,
+                taskId: config.taskId,
+                input: ['test-param', true, 12345],
+                pipelineName: Status.STOPPED
+            }
         });
-    }).timeout(5000);
-    it('received array with null from algorithm', (done) => {
-        let config = getConfig();
-        consumer.init(config).then(() => {
-            stateManager.once('stateEnteredready', async () => {
-                producer = new Producer(config.jobConsumer);
-                await producer.createJob({
-                    job: {
-                        type: config.jobConsumer.job.type,
-                        data: {
-                            jobId: config.jobId,
-                            taskId: config.taskId,
-                            input: [null, 1, undefined],
-                            pipelineName: 'xxx',
-                            info: { savePaths: [] }
-
-                        }
-                    }
-                });
-                Object.keys(workerStates).forEach(element => {
-                    stateManager.once('stateEntered' + element, async (job) => {
-                        if (element === 'working') {
-                            workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
-                        }
-                        else if (element === 'results') {
-                            expect(job.results.input[0]).to.eql(null);
-                            expect(job.results.input[1]).to.eql(1);
-                            expect(job.results.input[2]).to.eql(null);
-                            await delay(1000);
-                            done();
-                        }
-                    });
-                });
+        await delay(1000);
+        expect(spy.callCount).to.eq(1);
+    });
+    it('store data and validate result from algorithm', async () => {
+        const config = getConfig();
+        storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } }).then(async (link) => {
+            spy = sinon.spy(consumer, 'finishJob');
+            consumer._jobProvider.emit('job', {
+                data: {
+                    jobId: config.jobId,
+                    taskId: config.taskId,
+                    input: ['test-param', true, 12345, '$$guid-5'],
+                    storage: {
+                        'guid-5': { storageInfo: link, path: 'data.engine' }
+                    },
+                    pipelineName: 'xxx',
+                    info: { savePaths: [] }
+                }
             });
-            worker._registerToConnectionEvents();
-            workerCommunication.adapter.start();
+            await delay(1000);
+            const call = spy.getCalls()[0];
+            const args = call.args[0];
+            expect(args.results.input).to.eql(['test-param', true, 12345, 'deep']);
         });
-    }).timeout(5000);
-    it('received empty array from algorithm', (done) => {
-        let config = getConfig();
-        console.log(config.jobId);
-        consumer.init(config).then(() => {
-            stateManager.once('stateEnteredready', async () => {
-                producer = new Producer(config.jobConsumer);
-                await producer.createJob({
-                    job: {
-                        type: config.jobConsumer.job.type,
-                        data: {
-                            jobId: config.jobId,
-                            taskId: config.taskId,
-                            input: [],
-                            pipelineName: 'xxx',
-                            info: { savePaths: [] }
-                        },
-
-                    }
-                });
-                Object.keys(workerStates).forEach(element => {
-                    stateManager.once('stateEntered' + element, async (job) => {
-                        console.log(`recevied [${job.job.data.jobId}]${element}`)
-                        if (element === 'working') {
-                            workerCommunication.adapter.sendCommandWithDelay({ command: 'done' })
-                        }
-                        else if (element === 'results') {
-                            expect(job.results.input).to.eql([]);
-                            await delay(1000);
-                            done();
-                        }
-                    });
-                });
-            });
-            worker._registerToConnectionEvents();
-            workerCommunication.adapter.start();
+    });
+    xit('received array with null from algorithm', async () => {
+        const config = getConfig();
+        spy = sinon.spy(consumer, 'finishJob');
+        consumer._jobProvider.emit('job', {
+            data: {
+                jobId: config.jobId,
+                taskId: config.taskId,
+                input: [null, 1, undefined],
+                pipelineName: 'null_array',
+                info: { savePaths: [] }
+            }
         });
-    }).timeout(5000);
-    it('finish job if failed to store data', (done) => {
-        let config = getConfig();
-        consumer.init(config).then(() => {
-            stateManager.once('stateEnteredready', async () => {
-                producer = new Producer(config.jobConsumer);
-                await producer.createJob({
-                    job: {
-                        type: config.jobConsumer.job.type,
-                        data: {
-                            jobId: config.jobId,
-                            taskId: config.taskId,
-                            input: ['$$guid-5'],
-                            storage: {
-                                'guid-5': { storageInfo: { path: 'bucket-not-exists/test123/err' }, path: 'data.engine.inputs.raw' }
-                            },
-                            pipelineName: 'xxx',
-                            info: { savePaths: [] }
-
-                        },
-                    }
-                });
-                Object.keys(workerStates).forEach(element => {
-                    stateManager.once('stateEntered' + element, async (job) => {
-                        if (element === 'results') {
-                            expect(job.results.error.code).to.eql('NoSuchBucket');
-                            await delay(1000);
-                            done();
-                        }
-                    });
-                });
-            });
-            worker._registerToConnectionEvents();
-            workerCommunication.adapter.start();
+        await delay(1000);
+        const call = spy.getCalls()[0];
+        const args = call.args[0];
+        expect(args.results.input).to.eql([null, 1, undefined]);
+    });
+    xit('received empty array from algorithm', async () => {
+        const config = getConfig();
+        spy = sinon.spy(consumer, 'finishJob');
+        consumer._jobProvider.emit('job', {
+            data: {
+                jobId: config.jobId,
+                taskId: config.taskId,
+                input: [],
+                pipelineName: 'empty_array',
+                info: { savePaths: [] }
+            }
         });
-    }).timeout(5000);
-    it('finish job and store data - object with path', () => {
+        await delay(1000);
+        const call = spy.getCalls()[0];
+        const args = call.args[0];
+        expect(args.results.input).to.eql([]);
+    });
+    xit('finish job if failed to store data', async () => {
+        const config = getConfig();
+        spy = sinon.spy(consumer, 'finishJob');
+        consumer._jobProvider.emit('job', {
+            data: {
+                jobId: config.jobId,
+                taskId: config.taskId,
+                input: ['$$guid-5'],
+                storage: {
+                    'guid-5': { storageInfo: { path: 'bucket-not-exists/test123/err' }, path: 'data.engine.inputs.raw' }
+                },
+                pipelineName: 'xxx',
+                info: { savePaths: [] }
+            }
+        });
+        await delay(1000);
+        const call = spy.getCalls()[0];
+        const args = call.args[0];
+        expect(args.results.error.code).to.eql('NoSuchBucket');
+    });
+    xit('finish job and store data - object with path', () => {
         return (new Promise(async function (resolve, reject) {
             let config = getConfig();
             const arr = [];

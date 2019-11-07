@@ -7,6 +7,8 @@ const options = main;
 const { expect } = require('chai');
 const { applyAlgorithmImage, applyAlgorithmName, applyWorkerImage, createJobSpec, applyHotWorker } = require('../lib/jobs/jobCreator'); // eslint-disable-line object-curly-newline
 const { jobTemplate } = require('./stub/jobTemplates');
+const { settings: globalSettings } = require('../lib/helpers/settings');
+const { setWorkerImage } = require('../lib/reconcile/createOptions');
 
 describe('jobCreator', () => {
     describe('applyAlgorithmName', () => {
@@ -21,6 +23,65 @@ describe('jobCreator', () => {
             expect(() => applyAlgorithmName(missingWorkerSpec, 'myAlgo1')).to.throw('unable to find container worker');
         });
     });
+    describe('setWorkerImage', () => {
+        it('should use image from versions config map', () => {
+            const versions = {
+                versions: [
+                    {
+                        project: 'worker',
+                        tag: 'v1.2.3',
+                        image: 'foo/wkr'
+                    }
+                ]
+            }
+            workerTemplate = {
+                "name": "worker",
+                "image": "hkube/worker",
+                "cpu": 0.1,
+                "mem": 128
+            };
+            const res = setWorkerImage(workerTemplate, versions);
+            expect(res).to.eql('foo/wkr:v1.2.3')
+        })
+        it('should use image from template', () => {
+            const versions = {
+                versions: [
+                    {
+                        project: 'worker',
+                        tag: 'v1.2.3'
+                    }
+                ]
+            }
+            workerTemplate = {
+                "name": "worker",
+                "image": "hkube/worker",
+                "cpu": 0.1,
+                "mem": 128
+            };
+            const res = setWorkerImage(workerTemplate, versions);
+            expect(res).to.eql('hkube/worker:v1.2.3')
+        })
+        it('should use image from versions config map with registry', () => {
+            const versions = {
+                versions: [
+                    {
+                        project: 'worker',
+                        tag: 'v1.2.3',
+                        image: 'foo/wkr'
+                    }
+                ]
+            }
+            const registry='localhost:5555/bar'
+            workerTemplate = {
+                "name": "worker",
+                "image": "hkube/worker",
+                "cpu": 0.1,
+                "mem": 128
+            };
+            const res = setWorkerImage(workerTemplate, versions,{registry});
+            expect(res).to.eql('localhost:5555/bar/foo/wkr:v1.2.3')
+        })
+    })
     describe('applyImageName', () => {
         it('should replace algorithm image name in spec', () => {
             const res = applyAlgorithmImage(jobTemplate, 'registry:5000/myAlgo1Image:v2');
@@ -55,6 +116,9 @@ describe('jobCreator', () => {
         });
     });
     describe('jobSpec', () => {
+        beforeEach(() => {
+            globalSettings.applyResources = false;
+        });
         it('should throw if no image name', () => {
             expect(() => createJobSpec({ algorithmName: 'myalgo1', options })).to.throw('Unable to create job spec. algorithmImage is required');
         });
@@ -77,6 +141,8 @@ describe('jobCreator', () => {
             expect(res.metadata.name).to.include('myalgo1-');
         });
         it('should apply with worker and resources', () => {
+            globalSettings.applyResources = true;
+
             const res = createJobSpec({
                 algorithmImage: 'myImage1',
                 algorithmName: 'myalgo1',
