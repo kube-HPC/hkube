@@ -61,7 +61,35 @@ describe('Builds', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body).to.have.property('status');
             expect(response.body).to.have.property('startTime');
+            expect(response.body).not.to.have.property('baseImage');
             expect(response.body.status).to.equal('pending');
+        });
+        it('should succeed to get baseImage', async () => {
+            const payload = {
+                name: `my-alg-${uuidv4()}`,
+                mem: "50Mi",
+                cpu: 1,
+                version: '1.9.0',
+                env: 'nodejs',
+                baseImage: 'userOwnBaseImage'
+            }
+            const formData = {
+                payload: JSON.stringify(payload),
+                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+            };
+            const opt = {
+                uri: restUrl + '/store/algorithms/apply',
+                formData
+            };
+            const res = await request(opt);
+
+            const options = {
+                uri: restPath + `/${res.body.buildId}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.body.baseImage).to.equal('userOwnBaseImage');
         });
     });
     describe('stop', () => {
