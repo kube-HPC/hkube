@@ -1,7 +1,7 @@
-const { cacheResults } = require('../utils');
 const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
+const { cacheResults } = require('../utils');
 const { EventMessages, Components } = require('../consts');
 const { WATCH_STATE } = require('../consumer/consts');
 
