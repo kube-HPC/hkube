@@ -22,7 +22,7 @@ describe('Versions/Algorithms', () => {
             const res = await request(versionReq);
             expect(res.body).to.have.lengthOf(0);
         });
-        it('should succeed to get list of two versions', async () => {
+        it('should succeed to get versions', async () => {
             const name = `my-alg-${uuidv4()}`;
             const applyPayload1 = {
                 name,
@@ -39,6 +39,7 @@ describe('Versions/Algorithms', () => {
             await request(applyReq2);
             const res = await request(versionReq);
             expect(res.body[0]).to.eql({ ...defaultProps, ...applyPayload1 });
+            expect(res.body[0].algorithmImage).to.eql(applyPayload1.algorithmImage);
         });
         it('should succeed to overrideImage', async () => {
             const name = `my-alg-${uuidv4()}`;
@@ -139,17 +140,35 @@ describe('Versions/Algorithms', () => {
             expect(res3.body).to.have.lengthOf(0);
         });
         it('should failed to apply algorithm version', async () => {
-            const name = `my-alg-${uuidv4()}`;
             for (let i = 0; i < 3; i++) {
-                const applyPayload = { name, algorithmImage: `test-algorithmImage-${i}` }
+                const applyPayload = { name: `my-alg-${uuidv4()}`, algorithmImage: `my-image-${uuidv4()}` };
                 const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload) } };
                 const versionReq = { uri: `${restPath}/apply`, body: applyPayload };
                 await request(applyReq);
-                const res1 = await request(versionReq);
-                expect(res1.body).to.have.property('error');
-                expect(res1.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-                expect(res1.body.error.message).to.eql(`algorithmVersion ${applyPayload.algorithmImage} Not Found`);
+                const res = await request(versionReq);
+                expect(res.body).to.have.property('error');
+                expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+                expect(res.body.error.message).to.eql(`algorithmVersion ${applyPayload.algorithmImage} Not Found`);
             }
+        });
+        it('should succeed to apply algorithm version without overrideImage', async () => {
+            const name = `my-alg-${uuidv4()}`;
+            const applyPayload1 = {
+                name,
+                algorithmImage: 'test-algorithmImage'
+            }
+            const applyPayload2 = {
+                name,
+                algorithmImage: 'new-test-algorithmImage'
+            }
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload1) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload2) } };
+            const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
+            await request(applyReq1);
+            await request(applyReq2);
+            const res = await request(versionReq);
+            expect(res.body[0]).to.eql({ ...defaultProps, ...applyPayload2 });
+            expect(res.body[0].algorithmImage).to.eql(applyPayload2.algorithmImage);
         });
     });
     describe('apply', () => {

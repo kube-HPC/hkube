@@ -114,10 +114,10 @@ class AlgorithmStore {
                 }
             }
 
-            newAlgorithm = merge({}, oldAlgorithm, payload, { algorithmImage });
+            newAlgorithm = merge({}, oldAlgorithm, payload);
             validator.addAlgorithmDefaults(newAlgorithm);
 
-            if (newAlgorithm.type === BUILD_TYPES.CODE && file.path) {
+            if (payload.type === BUILD_TYPES.CODE && file.path) {
                 if (payload.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
                 }
@@ -126,8 +126,8 @@ class AlgorithmStore {
                 messages.push(...result.messages);
                 newAlgorithm = merge({}, newAlgorithm, result.algorithm);
             }
-            else if (newAlgorithm.type === BUILD_TYPES.GIT && newAlgorithm.gitRepository) {
-                if (newAlgorithm.algorithmImage) {
+            else if (payload.type === BUILD_TYPES.GIT && payload.gitRepository) {
+                if (payload.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
                 }
                 newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
@@ -145,7 +145,8 @@ class AlgorithmStore {
             }
 
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
-            await this._versioning(overrideImage, oldAlgorithm, newAlgorithm);
+            await this._versioning(overrideImage, oldAlgorithm, newAlgorithm, payload);
+            newAlgorithm = merge({}, newAlgorithm, { algorithmImage });
             await this.storeAlgorithm(newAlgorithm);
         }
         finally {
@@ -154,8 +155,8 @@ class AlgorithmStore {
         return { buildId, messages, algorithm: newAlgorithm };
     }
 
-    async _versioning(overrideImage, oldAlgorithm, newAlgorithm) {
-        if (oldAlgorithm && oldAlgorithm.algorithmImage !== newAlgorithm.algorithmImage) {
+    async _versioning(overrideImage, oldAlgorithm, newAlgorithm, payload) {
+        if (oldAlgorithm && oldAlgorithm.algorithmImage !== payload.algorithmImage) {
             if (overrideImage) {
                 await stateManager.setAlgorithmVersion(oldAlgorithm);
             }

@@ -443,6 +443,35 @@ describe('Store/Algorithms', () => {
                 expect(res.response.statusCode).to.equal(HttpStatus.OK);
                 expect(res.body).to.not.have.property('buildId');
             });
+            it('should throw validation error of algorithm type cannot be changed', async () => {
+                const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
+                const body1 = {
+                    name: uuidv4(),
+                    gitRepository: {
+                        url,
+                    },
+                    env: 'nodejs',
+                    type: "Git"
+                }
+                const body2 = {
+                    ...body1,
+                    type: "Code"
+                }
+                const options1 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body1) }
+                };
+                const options2 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body2) }
+                };
+                const res1 = await request(options1);
+                const res2 = await request(options2);
+                expect(res1.body).to.have.property('buildId');
+                expect(res2.body).to.have.property('error');
+                expect(res2.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res2.body.error.message).to.contain(`algorithm type cannot be changed, new type: ${body2.type}, old type: ${body1.type}`);
+            });
         });
         describe('Github', () => {
             it('should throw error of required property url', async () => {
@@ -535,6 +564,26 @@ describe('Store/Algorithms', () => {
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`Git Repository is empty. (${url})`);
+            });
+            it('should throw error of both image and git is not allowed', async () => {
+                const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
+                const body = {
+                    name: uuidv4(),
+                    algorithmImage: 'my-image',
+                    gitRepository: {
+                        url
+                    },
+                    env: 'nodejs',
+                    type: "Git"
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const res = await request(options);
+                expect(res.body).to.have.property('error');
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.equal(MESSAGES.GIT_AND_IMAGE);
             });
             it('should create build with last commit data', async () => {
                 const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
