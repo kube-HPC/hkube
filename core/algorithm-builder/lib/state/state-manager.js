@@ -29,7 +29,7 @@ class StateManger {
         if (!buildId) {
             return;
         }
-        await this._etcd.algorithms.builds.update({ buildId: options.buildId, ...options });
+        await this._etcd.algorithms.builds.update(options);
     }
 
     async updateAlgorithmImage({ algorithmName, algorithmImage }) {
