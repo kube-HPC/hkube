@@ -50,15 +50,15 @@ dockerBuildKaniko() {
     --destination $image" > ${commands}/run
   
   chmod +x ${commands}/run
-  # cat ${commands}/run
+  touch ${commands}/output
   touch ${commands}/start
+  tail -f ${commands}/output& PID=$!
   while [ ! -f "${commands}/done" ]; do
-    # echo "done file does not exist"
     sleep 1s
   done
+
+  kill $PID
   echo build done
-  cat ${commands}/output
-  # >&2 cat ${commands}/errors
   if [ -f "${commands}/code_ok" ]; then
     exit_code=0
   else
