@@ -75,9 +75,8 @@ class ExecutionService {
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name } });
         try {
             validator.addPipelineDefaults(pipeline, validateNodes);
-            await validator.validateAlgorithmName(pipeline);
+            await validator.validateAlgorithmExists(pipeline);
             await validator.validateConcurrentPipelines(pipeline, jobId);
-
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },

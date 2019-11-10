@@ -16,3 +16,5 @@ rawSubPipeline:
   $ref: ./rawSubPipeline.yaml
 storedSubPipeline:
   $ref: ./storedSubPipeline.yaml
+algorithmName:
+  $ref: ./algorithmName.yaml

@@ -1,3 +1,4 @@
+const merge = require('lodash.merge');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const component = require('../consts/components').ETCD;
@@ -35,7 +36,12 @@ class StateManger {
         if (!algorithmImage) {
             return;
         }
-        await this._etcd.algorithms.store.update({ name: algorithmName, ...{ algorithmImage, options: { pending: false } } });
+        const currentVersion = await this._etcd.algorithms.store.get({ name: algorithmName });
+        if (!currentVersion) {
+            throw new Error(`unable to find algorithm -> ${algorithmName}`);
+        }
+        const newAlgorithm = merge({}, currentVersion, { algorithmImage, options: { pending: false } });
+        await this._etcd.algorithms.versions.set(newAlgorithm);
     }
 }
 
