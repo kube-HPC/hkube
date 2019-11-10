@@ -37,6 +37,10 @@ class ApiValidator {
         this._addDefaults(this._definitions.algorithm, algorithm);
     }
 
+    validateAlgorithmName(algorithm) {
+        this._validate(this._definitionsInternal.algorithmName, algorithm);
+    }
+
     validateStoredInternal(pipeline) {
         this._validate(this._definitionsInternal.pipeline, pipeline, false);
     }
@@ -79,6 +83,10 @@ class ApiValidator {
         this._validateAlgorithmEnvVar(algorithm);
     }
 
+    validateAlgorithmVersion(algorithm) {
+        this._validate(this._definitions.algorithmVersion, algorithm, false);
+    }
+
     validateAlgorithmBuild(algorithm) {
         this._validate(this._definitionsInternal.algorithmBuild, algorithm);
     }
@@ -111,7 +119,7 @@ class ApiValidator {
         this._validate(this._definitions.jobId, pipeline, false);
     }
 
-    async validateAlgorithmName(pipeline) {
+    async validateAlgorithmExists(pipeline) {
         const result = await stateManager.getAlgorithms();
         const algorithms = new Set(result.map(x => x.name));
         pipeline.nodes.forEach((node) => {

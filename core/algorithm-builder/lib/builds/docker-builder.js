@@ -74,7 +74,7 @@ const _extractFile = async ({ src, dest, fileExt, overwrite }) => {
     });
 };
 
-const _runBash = ({ command, args }) => {
+const runBash = ({ command, args }) => {
     return new Promise((resolve, reject) => {
         log.info(`running ${command}`, { component });
         const build = spawn(command, args);
@@ -255,7 +255,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
     }
 
-    const output = await _runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
+    const output = await runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
     return { output, algorithmImage };
 };
 
@@ -351,5 +351,6 @@ const runBuild = async (options) => {
 
 module.exports = {
     runBuild,
+    runBash,
     buildAlgorithmImage
 };

@@ -1,0 +1,12 @@
+{
+    "name": "sort-alg",
+    "algorithmImage": "hkube/sort-alg",
+    "cpu": 1.5,
+    "mem": "50Mi",
+    "type": "Code",
+    "minHotWorkers": 0,
+    "options": {
+        "debug": false,
+        "pending": true
+    }
+}

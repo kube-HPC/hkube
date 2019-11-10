@@ -1,5 +1,16 @@
 const requestClient = require('request');
 
+const defaultProps = {
+    mem: "256Mi",
+    cpu: 0.1,
+    type: "Image",
+    minHotWorkers: 0,
+    options: {
+        debug: false,
+        pending: false
+    }
+}
+
 const delay = d => new Promise(r => setTimeout(r, d));
 
 const request = (options) => {
@@ -20,5 +31,6 @@ const request = (options) => {
 
 module.exports = {
     delay,
-    request
+    request,
+    defaultProps
 }

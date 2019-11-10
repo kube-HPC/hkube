@@ -1,49 +1,17 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
 const uuid = require('uuid');
-const Logger = require('@hkube/logger');
-const configIt = require('@hkube/config');
-const { main, logger } = configIt.load();
-const config = main;
-const log = new Logger(main.serviceName, logger);
-const dockerBuilder = require('../lib/builds/docker-builder');
 const storageManager = require('@hkube/storage-manager');
 const stateManger = require('../lib/state/state-manager');
 const mockBuildNodejs = require('./mocks/nodejs/build.json');
 const mockBuildNodejsFromGit = require('./mocks/nodejs/build-from-git');
 const mockBuildPython = require('./mocks/python/build.json');
-const kubernetesServerMock = require('./mocks/kubernetes-server.mock');
-const KubernetesApi = require('../lib/helpers/kubernetes');
+let config, dockerBuilder;
 
-const kubeconfig = main.kubernetes.kubeconfig;
-
-const dummyKubeconfig = {
-    ...kubeconfig,
-    clusters: [{
-        name: 'test',
-        cluster: {
-            server: "no.such.url"
-        }
-    }]
-};
-
-const options = {
-    kubernetes: {
-        kubeconfig
-    },
-    resources: { defaultQuota: {} },
-    healthchecks: { logExternalRequests: false }
-
-
-};
 describe('Test', function () {
     before(async () => {
-        await kubernetesServerMock.start({ port: 9001 });
-        await storageManager.init(main, log, true);
-        await stateManger.init(main);
-    });
-    beforeEach(async () => {
-        KubernetesApi.init(options);
+        config = global.testParams.config;
+        dockerBuilder = require('../lib/builds/docker-builder');
     });
     describe('Docker', function () {
         it('should failed to build docker when no build id', async function () {
@@ -64,6 +32,24 @@ describe('Test', function () {
             expect(response).to.have.property('error');
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
+        });
+        it('should succeed to build docker', async function () {
+            this.timeout(5000)
+            const env = config.testModeEnv;
+            const tar = `${process.cwd()}/tests/mocks/${env}/alg.tar.gz`;
+            const mockBuild = require(`./mocks/${env}/build.json`);
+            const mockAlg = require(`./mocks/${env}/algorithm.json`);
+
+            const { buildId } = mockBuild;
+            await stateManger._etcd.algorithms.store.set(mockAlg);
+            await stateManger.insertBuild(mockBuild);
+            await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(tar) });
+            config.buildId = buildId;
+
+            await dockerBuilder.runBuild(config);
+            const response = await stateManger._etcd.algorithms.versions.list({ name: mockAlg.name });
+            expect(response[0].algorithmImage).to.contain(mockBuild.algorithmName);
+            expect(response[0].algorithmImage).to.contain(mockBuild.version);
         });
         xit('NODEJS: should succeed to build docker', async function () {
             this.timeout(50000);
