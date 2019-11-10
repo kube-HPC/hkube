@@ -4,6 +4,7 @@ ARG packagesToken
 
 FROM ${baseImage} 
 LABEL maintainer="hkube.dev@gmail.com"
+RUN mkdir -p /hkube-logs
 COPY wrapper/ /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/
@@ -13,4 +14,4 @@ RUN pip install --no-index --find-links /hkube/packages/ -r /hkube/algorithm-run
 RUN ./dockerfile/requirements.sh ${packagesRegistry} ${packagesToken}
 
 ENV PYTHONPATH=$PYTHONPATH:/hkube/algorithm-runner/algorithm_unique_folder
-CMD ["python", "-u", "app.py"]
+CMD ["/bin/sh", "-c", "python -u app.py 2>&1 |tee /hkube-logs/stdout.log"]
