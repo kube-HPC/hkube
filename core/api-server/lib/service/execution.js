@@ -54,7 +54,7 @@ class ExecutionService {
         }
         log.debug(`get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
         const cacheJobId = this._createJobIdForCaching(jobId);
-        return this._run(response.body, cacheJobId, true);
+        return this._run(response.body, cacheJobId, true, undefined, false);
     }
 
     async _runStored(options, jobId) {
@@ -66,7 +66,7 @@ class ExecutionService {
         return this._run(pipe, jobId);
     }
 
-    async _run(pipeLine, jobID, alreadyExecuted = false, state) {
+    async _run(pipeLine, jobID, alreadyExecuted = false, state, validateNodes = true) {
         let pipeline = pipeLine;
         let jobId = jobID;
         if (!jobId) {
@@ -74,7 +74,7 @@ class ExecutionService {
         }
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name } });
         try {
-            validator.addPipelineDefaults(pipeline);
+            validator.addPipelineDefaults(pipeline, validateNodes);
             await validator.validateAlgorithmName(pipeline);
             await validator.validateConcurrentPipelines(pipeline, jobId);
 

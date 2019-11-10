@@ -9,6 +9,7 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const validator = new Validator({ useDefaults: false, coerceTypes: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
 const MIN_MEMORY = 4;
+const formatMessages = new Map();
 
 class ApiValidator {
     init(schemas, schemasInternal) {
@@ -19,18 +20,21 @@ class ApiValidator {
     }
 
     _prepare(validatorInstance) {
+        validatorInstance.errorsText = this.wrap(validatorInstance.errorsText.bind(validatorInstance)).bind(this);// eslint-disable-line
         validatorInstance.addFormat('url', this._validateUrl);
         validatorInstance.addFormat('cron', this._validateCron);
         validatorInstance.addFormat('pipeline-name', this._validatePipelineName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
         validatorInstance.addFormat('algorithm-memory', this._validateMemory);
+        formatMessages.set('pipeline-name', 'pipeline name must contain only alphanumeric, dash, dot or underscore');
+        formatMessages.set('algorithm-name', 'algorithm name must contain only lower-case alphanumeric, dash or dot');
         Object.entries(this._definitions).forEach(([k, v]) => {
             validatorInstance.addSchema(v, `#/components/schemas/${k}`);
         });
     }
 
-    addPipelineDefaults(pipeline) {
-        this._addDefaults(this._definitions.pipeline, pipeline);
+    addPipelineDefaults(pipeline, validateNodes) {
+        this._addDefaults(this._definitions.pipeline, pipeline, validateNodes);
     }
 
     addAlgorithmDefaults(algorithm) {
@@ -136,14 +140,14 @@ class ApiValidator {
 
     _validate(schema, object, useDefaults, options) {
         if (useDefaults) {
-            this._validateInner(defaulter, schema, object, options);
+            this._validateInner(defaulter, schema, object, options, true);
         }
         else {
-            this._validateInner(validator, schema, object, options);
+            this._validateInner(validator, schema, object, options, true);
         }
     }
 
-    _validateInner(validatorInstance, schema, obj, options) {
+    _validateInner(validatorInstance, schema, obj, options, validateNodes) {
         const object = obj || {};
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
@@ -154,13 +158,13 @@ class ApiValidator {
             }
             throw new InvalidDataError(error);
         }
-        if (object.nodes) {
+        if (validateNodes && object.nodes) {
             this._validateNodes(object, options);
         }
     }
 
-    _addDefaults(schema, object) {
-        defaulter.validate(schema, object);
+    _addDefaults(schema, object, validateNodes) {
+        this._validateInner(defaulter, schema, object, undefined, validateNodes);
     }
 
     _validateNodes(pipeline, opt) {
@@ -217,14 +221,14 @@ class ApiValidator {
 
     _validatePipelineName(name) {
         if (!regex.PIPELINE_NAME_REGEX.test(name)) {
-            throw new InvalidDataError('pipeline name must contain only alphanumeric, dash, dot or underscore');
+            return false;
         }
         return true;
     }
 
     _validateAlgorithmName(name) {
         if (!regex.ALGORITHM_NAME_REGEX.test(name)) {
-            throw new InvalidDataError('algorithm name must contain only lower-case alphanumeric, dash or dot');
+            return false;
         }
         return true;
     }
@@ -278,6 +282,24 @@ class ApiValidator {
             result = false;
         }
         return result;
+    }
+
+    wrap(wrappedFn) {
+        return function errorsText(errors) {
+            let message;
+            if (errors) {
+                message = this.getCustomMessage(errors[0]);
+            }
+            return message || wrappedFn(errors);
+        };
+    }
+
+
+    getCustomMessage(e) {
+        if (e.keyword === 'format') {
+            return formatMessages.get(e.params.format);
+        }
+        return undefined;
     }
 }
 
