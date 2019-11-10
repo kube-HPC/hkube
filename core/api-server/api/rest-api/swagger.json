@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.17",
+    "version": "1.2.21",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -3015,6 +3015,10 @@
                     "entryPoint": {
                       "type": "string"
                     },
+                    "baseImage": {
+                      "type": "string",
+                      "description": "Custom docker image to be used as base to the newly built algorithm image"
+                    },
                     "version": {
                       "type": "string"
                     },
@@ -3349,6 +3353,10 @@
                       "entryPoint": {
                         "type": "string"
                       },
+                      "baseImage": {
+                        "type": "string",
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
+                      },
                       "version": {
                         "type": "string"
                       },
@@ -3538,6 +3546,10 @@
                   },
                   "entryPoint": {
                     "type": "string"
+                  },
+                  "baseImage": {
+                    "type": "string",
+                    "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
                   "version": {
                     "type": "string"
@@ -3784,6 +3796,10 @@
                   "entryPoint": {
                     "type": "string"
                   },
+                  "baseImage": {
+                    "type": "string",
+                    "description": "Custom docker image to be used as base to the newly built algorithm image"
+                  },
                   "version": {
                     "type": "string"
                   },
@@ -4015,6 +4031,10 @@
                       "entryPoint": {
                         "type": "string"
                       },
+                      "baseImage": {
+                        "type": "string",
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
+                      },
                       "version": {
                         "type": "string"
                       },
@@ -4194,6 +4214,10 @@
                         },
                         "entryPoint": {
                           "type": "string"
+                        },
+                        "baseImage": {
+                          "type": "string",
+                          "description": "Custom docker image to be used as base to the newly built algorithm image"
                         },
                         "version": {
                           "type": "string"
@@ -6060,6 +6084,10 @@
                         "entryPoint": {
                           "type": "string"
                         },
+                        "baseImage": {
+                          "type": "string",
+                          "description": "Custom docker image to be used as base to the newly built algorithm image"
+                        },
                         "version": {
                           "type": "string"
                         },
@@ -6341,6 +6369,10 @@
                           },
                           "entryPoint": {
                             "type": "string"
+                          },
+                          "baseImage": {
+                            "type": "string",
+                            "description": "Custom docker image to be used as base to the newly built algorithm image"
                           },
                           "version": {
                             "type": "string"
@@ -8427,6 +8459,10 @@
           "entryPoint": {
             "type": "string"
           },
+          "baseImage": {
+            "type": "string",
+            "description": "Custom docker image to be used as base to the newly built algorithm image"
+          },
           "version": {
             "type": "string"
           },
@@ -8614,6 +8650,10 @@
               },
               "entryPoint": {
                 "type": "string"
+              },
+              "baseImage": {
+                "type": "string",
+                "description": "Custom docker image to be used as base to the newly built algorithm image"
               },
               "version": {
                 "type": "string"

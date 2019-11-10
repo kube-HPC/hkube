@@ -82,8 +82,8 @@ class Builds {
             buildId = this._createBuildID(algorithm.name);
             const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
             merge(algorithm, { version, fileInfo: { path: putStream.path } });
-            const { env, name, fileInfo, type } = algorithm;
-            await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt, type });
+            const { env, name, fileInfo, type, baseImage } = algorithm;
+            await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt, type, baseImage });
         }
         return { algorithm, buildId, messages };
     }
