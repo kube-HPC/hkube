@@ -23,6 +23,8 @@ config.etcd = {
 
 config.debugMode = formatter.parseBool(process.env.DEBUG_MODE);
 config.clusterName = process.env.CLUSTER_NAME || 'local';
+config.workerImage = process.env.WORKER_IMAGE;
+config.algorithmImage = process.env.ALGORITHM_IMAGE;
 
 config.apiServer = {
     protocol: 'http',

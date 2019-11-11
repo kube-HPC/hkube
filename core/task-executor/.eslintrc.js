@@ -32,7 +32,7 @@ module.exports = {
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2,
         "object-curly-newline": ["error", {
-            "ObjectExpression": { "minProperties": 4, "multiline": true, "consistent": true },
+            "ObjectExpression": { "minProperties": 5, "multiline": true, "consistent": true },
             "ObjectPattern": "never",
             "ImportDeclaration": "never"
         }],

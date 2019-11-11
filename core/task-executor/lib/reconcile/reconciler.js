@@ -9,6 +9,7 @@ const { commands, components, consts, gpuVendors } = require('../../lib/consts')
 const component = components.RECONCILER;
 
 const { normalizeWorkers,
+    normalizeWorkerImages,
     normalizeHotRequests,
     normalizeHotWorkers,
     normalizeColdWorkers,
@@ -68,6 +69,12 @@ const _coolDownWorker = (worker) => {
 const _warmUpWorker = (worker) => {
     return etcd.sendCommandToWorker({
         workerId: worker.id, command: commands.warmUp, algorithmName: worker.algorithmName, podName: worker.podName
+    });
+};
+
+const _exitWorker = (worker) => {
+    return etcd.sendCommandToWorker({
+        workerId: worker.id, command: commands.exit, message: worker.message, algorithmName: worker.algorithmName, podName: worker.podName
     });
 };
 
@@ -317,6 +324,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const normJobs = normalizeJobs(jobs, pods, j => !j.status.succeeded);
     const merged = mergeWorkers(normWorkers, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
+    const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
     const warmUpWorkers = normalizeHotWorkers(normWorkers, algorithmTemplates);
     const coolDownWorkers = normalizeColdWorkers(normWorkers, algorithmTemplates);
     const totalRequests = normalizeHotRequests(normRequests, algorithmTemplates);
@@ -374,12 +382,13 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     if (created.length > 0) {
         log.trace(`creating ${created.length} algorithms....`, { component });
     }
+    const exitWorkersPromises = exitWorkers.map(r => _exitWorker(r));
     const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
     const stopPromises = toStop.map(r => _stopWorker(r));
     createPromises.push(created.map(r => _createJob(r, options)));
 
-    await Promise.all([...createPromises, ...stopPromises, ...warmUpPromises, ...coolDownPromises]);
+    await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises]);
     // add created and skipped info
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;

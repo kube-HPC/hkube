@@ -211,8 +211,6 @@ class JobConsumer extends EventEmitter {
             taskId: this._taskId,
             pipelineName: this._pipelineName,
             jobData: this._jobData,
-            algorithmName: this.getAlgorithmType(),
-            podName: this._options.kubernetes.pod_name,
             workerStatus,
             jobStatus,
             workerStartingTime: this.workerStartingTime,
@@ -311,6 +309,9 @@ class JobConsumer extends EventEmitter {
     }
 
     async sendWarning(warning) {
+        if (!this._jobId) {
+            return;
+        }
         const data = {
             warning,
             status: constants.JOB_STATUS.WARNING,
