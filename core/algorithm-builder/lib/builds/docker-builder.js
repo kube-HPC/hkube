@@ -74,15 +74,16 @@ const _extractFile = async ({ src, dest, fileExt, overwrite }) => {
     });
 };
 
-const runBash = ({ command, args }) => {
+const runBash = ({ command, args, resultUpdater = () => { } }) => {
     return new Promise((resolve, reject) => {
         log.info(`running ${command}`, { component });
         const build = spawn(command, args);
         let data = '';
         let error = '';
 
-        build.stdout.on('data', (d) => {
+        build.stdout.on('data',async (d) => {
             data += d.toString();
+            await resultUpdater({ data });
         });
         build.stderr.on('data', (d) => {
             error += d.toString();
@@ -216,7 +217,7 @@ const _createURL = (options) => {
 };
 
 
-const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo }) => {
+const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
@@ -254,8 +255,16 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
         _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
     }
-
-    const output = await runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args });
+    let updating=false
+    const resultUpdater = async (result) => {
+        if (updating){
+            return
+        }
+        updating=true
+        await stateManger.updateBuild({ buildId, result, timestamp: Date.now() });
+        updating=false
+    }
+    const output = await runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args, resultUpdater });
     return { output, algorithmImage };
 };
 
@@ -333,7 +342,7 @@ const runBuild = async (options) => {
         }
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, version, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo });
+        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, version, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo, buildId });
     }
     catch (e) {
         error = e.message;

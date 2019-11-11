@@ -68,6 +68,20 @@ const applyLogging = (inputSpec, options) => {
     let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
     if (!isPrivileged) {
+        spec = applyVolumeMounts(spec, CONTAINERS.WORKER, {
+            name: 'logs',
+            mountPath: '/hkube-logs/'
+        });
+        spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
+            name: 'logs',
+            mountPath: '/hkube-logs/'
+        });
+        spec = applyVolumes(spec, {
+            name: 'logs',
+            emptyDir: {}
+        });
+        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, {ALGORITHM_LOG_FILE_NAME: 'stdout.log'});
+        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, {BASE_LOGS_PATH: '/hkube-logs/'});
         return spec;
     }
 

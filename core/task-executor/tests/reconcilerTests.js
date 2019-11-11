@@ -477,6 +477,21 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(logVolumes[1]);
 
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext).to.not.exist;
+
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include({
+                name: 'logs',
+                emptyDir: {}
+            });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include({
+                name: 'logs',
+                mountPath: '/hkube-logs/'
+            });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].volumeMounts).to.deep.include({
+                name: 'logs',
+                mountPath: '/hkube-logs/'
+            });
+
+
         })
         it('should add env param, volume, volumeMount if fs is defaultStorage', async () => {
             const algorithm = 'green-alg';
