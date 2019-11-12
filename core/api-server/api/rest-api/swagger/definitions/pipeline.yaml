@@ -13,12 +13,6 @@ properties:
   flowInput:
     type: object
     description: input object
-  flowInputOrig:
-    type: object
-    description: input origin
-  rootJobId:
-    type: string
-    description: root job id  
   webhooks:
     $ref: "#/components/schemas/webhooks"
   options:

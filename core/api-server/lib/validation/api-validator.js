@@ -5,6 +5,7 @@ const { Graph, alg } = require('graphlib');
 const { parser } = require('@hkube/parsers');
 const regex = require('../../lib/consts/regex');
 const stateManager = require('../state/state-manager');
+const validationMessages = require('../consts/validationMessages');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const validator = new Validator({ useDefaults: false, coerceTypes: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
@@ -20,21 +21,21 @@ class ApiValidator {
     }
 
     _prepare(validatorInstance) {
-        validatorInstance.errorsText = this.wrap(validatorInstance.errorsText.bind(validatorInstance)).bind(this);// eslint-disable-line
+        validatorInstance.errorsText = this.wrapErrorMessageFn(validatorInstance.errorsText.bind(validatorInstance)).bind(this);// eslint-disable-line
         validatorInstance.addFormat('url', this._validateUrl);
         validatorInstance.addFormat('cron', this._validateCron);
         validatorInstance.addFormat('pipeline-name', this._validatePipelineName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
         validatorInstance.addFormat('algorithm-memory', this._validateMemory);
-        formatMessages.set('pipeline-name', 'pipeline name must contain only alphanumeric, dash, dot or underscore');
-        formatMessages.set('algorithm-name', 'algorithm name must contain only lower-case alphanumeric, dash or dot');
+        formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
+        formatMessages.set('algorithm-name', validationMessages.ALGORITHM_NAME_FORMAT);
         Object.entries(this._definitions).forEach(([k, v]) => {
             validatorInstance.addSchema(v, `#/components/schemas/${k}`);
         });
     }
 
-    addPipelineDefaults(pipeline, validateNodes) {
-        this._addDefaults(this._definitions.pipeline, pipeline, validateNodes);
+    addPipelineDefaults(pipeline) {
+        this._addDefaults(this._definitions.pipeline, pipeline);
     }
 
     addAlgorithmDefaults(algorithm) {
@@ -148,14 +149,14 @@ class ApiValidator {
 
     _validate(schema, object, useDefaults, options) {
         if (useDefaults) {
-            this._validateInner(defaulter, schema, object, options, true);
+            this._validateInner(defaulter, schema, object, options);
         }
         else {
-            this._validateInner(validator, schema, object, options, true);
+            this._validateInner(validator, schema, object, options);
         }
     }
 
-    _validateInner(validatorInstance, schema, obj, options, validateNodes) {
+    _validateInner(validatorInstance, schema, obj, options) {
         const object = obj || {};
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
@@ -166,13 +167,13 @@ class ApiValidator {
             }
             throw new InvalidDataError(error);
         }
-        if (validateNodes && object.nodes) {
+        if (object.nodes) {
             this._validateNodes(object, options);
         }
     }
 
-    _addDefaults(schema, object, validateNodes) {
-        this._validateInner(defaulter, schema, object, undefined, validateNodes);
+    _addDefaults(schema, object) {
+        defaulter.validate(schema, object);
     }
 
     _validateNodes(pipeline, opt) {
@@ -292,14 +293,15 @@ class ApiValidator {
         return result;
     }
 
-    wrap(wrappedFn) {
-        return function errorsText(errors) {
+    wrapErrorMessageFn(wrappedFn) {
+        const errorsTextWapper = (errors) => {
             let message;
             if (errors) {
                 message = this.getCustomMessage(errors[0]);
             }
             return message || wrappedFn(errors);
         };
+        return errorsTextWapper;
     }
 
 
