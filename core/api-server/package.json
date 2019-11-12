@@ -1,6 +1,6 @@
 {
     "name": "api-server",
-    "version": "1.2.24",
+    "version": "1.2.25",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
@@ -50,6 +50,7 @@
         "eslint-plugin-import": "^2.18.2",
         "mocha": "^6.2.0",
         "mockery": "^2.1.0",
+        "nock": "^11.7.0",
         "nyc": "^14.1.1",
         "request": "^2.88.0",
         "sinon": "^7.4.1"
