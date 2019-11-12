@@ -1,7 +1,7 @@
-const uuidv4 = require('uuid/v4');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const execution = require('./execution');
+const { uuid } = require('../utils');
 
 class InternalService {
     async runStoredPipeline(options) {
@@ -40,8 +40,8 @@ class InternalService {
         return execution._run(option, jobID);
     }
 
-    _createCronJobID(options, uuid) {
-        return ['cron', options.name, uuid].join(':');
+    _createCronJobID(options, uid) {
+        return ['cron', options.name, uid].join(':');
     }
 
     _createPipelineJobID(options) {
@@ -49,11 +49,11 @@ class InternalService {
     }
 
     _createSubPipelineJobID(options) {
-        return ['sub', options.jobId, options.taskId, uuidv4()].join('.');
+        return ['sub', options.name, uuid()].join(':');
     }
 
     _createJobID(options) {
-        return [`${options.name}:${uuidv4()}`, options.name].join('.');
+        return [`${options.name}:${uuid()}`, options.name].join('.');
     }
 }
 
