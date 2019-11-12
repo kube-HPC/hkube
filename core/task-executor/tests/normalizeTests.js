@@ -78,7 +78,9 @@ describe('normalize', () => {
                 hotWorker: false,
                 workerStatus: 'ready',
                 workerPaused: false,
-                podName: undefined
+                podName: undefined,
+                workerImage: undefined,
+                algorithmImage: undefined
             });
             expect(res).to.deep.include({
                 id: 'id2',
@@ -86,7 +88,9 @@ describe('normalize', () => {
                 hotWorker: false,
                 workerStatus: 'not-ready',
                 workerPaused: false,
-                podName: undefined
+                podName: undefined,
+                workerImage: undefined,
+                algorithmImage: undefined
             });
             expect(res).to.deep.include({
                 id: 'id3',
@@ -94,7 +98,9 @@ describe('normalize', () => {
                 hotWorker: false,
                 workerStatus: 'notready',
                 workerPaused: false,
-                podName: undefined
+                podName: undefined,
+                workerImage: undefined,
+                algorithmImage: undefined
             });
         });
     });
