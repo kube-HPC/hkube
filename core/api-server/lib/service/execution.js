@@ -33,15 +33,15 @@ class ExecutionService {
         return this._runStored(options);
     }
 
-    async runCaching({ jobId, nodeName }) {
-        validator.validateCaching({ jobId, nodeName });
+    async runCaching(options) {
+        validator.validateCaching(options);
         const retryStrategy = {
             maxAttempts: 0,
             retryDelay: 5000,
             retryStrategy: request.RetryStrategies.HTTPOrNetworkError
         };
         const { protocol, host, port, prefix } = main.cachingServer;
-        const uri = `${protocol}://${host}:${port}/${prefix}?jobId=${jobId}&&nodeName=${nodeName}`;
+        const uri = `${protocol}://${host}:${port}/${prefix}?jobId=${options.jobId}&&nodeName=${options.nodeName}`;
 
         const response = await request({
             method: 'GET',
@@ -52,6 +52,7 @@ class ExecutionService {
         if (response.statusCode !== 200) {
             throw new Error(`error:${response.body.error.message}`);
         }
+        const { jobId } = options;
         log.debug(`get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
         const cacheJobId = this._createJobIdForCaching(jobId);
         return this._run(response.body, cacheJobId, true);
@@ -77,7 +78,6 @@ class ExecutionService {
             validator.addPipelineDefaults(pipeline);
             await validator.validateAlgorithmExists(pipeline);
             await validator.validateConcurrentPipelines(pipeline, jobId);
-
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },
