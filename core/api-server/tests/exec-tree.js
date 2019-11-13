@@ -1,6 +1,5 @@
 const { expect } = require('chai');
-const uuidv4 = require('uuid/v4');
-const HttpStatus = require('http-status-codes');
+const { uuid: uuidv4 } = require('../lib/utils');
 const stateManager = require('../lib/state/state-manager');
 const { triggersTree } = require('./mocks');
 const { request } = require('./utils');

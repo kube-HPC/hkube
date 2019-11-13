@@ -1,5 +1,5 @@
 
-const uuid = require('./random');
+const uuid = require('./uuid');
 
 module.exports = {
     uuid
