@@ -325,6 +325,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const merged = mergeWorkers(normWorkers, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
     const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
+    merged.mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
     const warmUpWorkers = normalizeHotWorkers(normWorkers, algorithmTemplates);
     const coolDownWorkers = normalizeColdWorkers(normWorkers, algorithmTemplates);
     const totalRequests = normalizeHotRequests(normRequests, algorithmTemplates);
