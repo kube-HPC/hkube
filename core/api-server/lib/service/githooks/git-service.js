@@ -4,7 +4,7 @@ const { InvalidDataError } = require('../../errors');
 const octokit = new Octokit();
 
 class GitService {
-    async getLastCommit({ url, branchName }) {
+    async getGithubLastCommit({ url, branchName }) {
         const { owner, repo } = this._parseGithubUrlRepo(url);
         let lastCommit;
         const params = {
@@ -21,6 +21,10 @@ class GitService {
             throw new InvalidDataError(`${error.message} (${url})`);
         }
         return lastCommit.data[0];
+    }
+
+    async getGitlabLastCommit({ url, branchName, token }) {
+
     }
 
     _parseGithubUrlRepo(url) {

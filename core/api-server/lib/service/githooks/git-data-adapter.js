@@ -6,10 +6,12 @@ const log = Logger.GetLogFromContanier();
 class GitDataAdapter {
     constructor() {
         this.adapterRegister = {
-            [WEBHOOKS.GITHUB]: this._githubAdapter.bind(this)
+            [WEBHOOKS.GITHUB]: this._githubAdapter.bind(this),
+            [WEBHOOKS.GITLAB]: this._gitlabAdapter.bind(this)
         };
         this.infoRegister = {
-            [WEBHOOKS.GITHUB]: this._githubInfo.bind(this)
+            [WEBHOOKS.GITHUB]: this._githubInfo.bind(this),
+            [WEBHOOKS.GITLAB]: this._gitlabInfo.bind(this)
         };
     }
 
@@ -24,7 +26,7 @@ class GitDataAdapter {
     async _githubInfo(payload) {
         const gitRepository = this._adaptRepoUrl(payload.gitRepository);
         const { webUrl, branchName } = gitRepository;
-        const lastCommit = await gitService.getLastCommit({ url: webUrl, branchName });
+        const lastCommit = await gitService.getGithubLastCommit({ url: webUrl, branchName });
 
         return {
             ...payload,
@@ -37,6 +39,11 @@ class GitDataAdapter {
                 }]
             })
         };
+    }
+
+    async _gitlabInfo(payload) {
+        const gitRepository = this._adaptRepoUrl(payload.gitRepository);
+        const { webUrl, branchName } = gitRepository;
     }
 
     _adaptRepoUrl(gitRepository) {
@@ -60,6 +67,10 @@ class GitDataAdapter {
         return this._adapter(commit, repository, branchName, WEBHOOKS.GITHUB);
     }
 
+    _gitlabAdapter({ ref, commits, repository }) {
+
+    }
+
     _refParse(ref) {
         return ref.split('/')[2];
     }
@@ -76,3 +87,5 @@ class GitDataAdapter {
 }
 
 module.exports = new GitDataAdapter();
+// https://gitlab.com/gitlab-org/gitlab-runner.git
+// https://github.com/kube-HPC/hkube.git

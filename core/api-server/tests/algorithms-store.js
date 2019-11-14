@@ -592,6 +592,7 @@ describe('Store/Algorithms', () => {
                     name,
                     gitRepository: {
                         url,
+                        token :'1111'
                     },
                     env: 'nodejs',
                     type: "Git"
