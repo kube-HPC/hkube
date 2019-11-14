@@ -51,7 +51,7 @@ class ExecutionService {
         if (response.statusCode !== 200) {
             throw new Error(`error:${response.body.error.message}`);
         }
-        const { jobId } = options;
+        const { jobId, nodeName } = options;
         log.debug(`get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
         const cacheJobId = this._createJobIdForCaching(nodeName);
         return this._run(response.body, cacheJobId, true);
