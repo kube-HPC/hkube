@@ -1,8 +1,7 @@
-
-const randString = require('crypto-random-string');
+const uuidV4 = require('uuid/v4');
 
 const uuid = ({ length = 8 } = {}) => {
-    return randString({ length });
+    return uuidV4({ length });
 };
 
 module.exports = uuid;
