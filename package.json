@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^16.27.3",
+    "crypto-random-string": "^3.0.1",
     "js-yaml": "^3.13.1",
     "request-promise": "^4.2.4"
   }
