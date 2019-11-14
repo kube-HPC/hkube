@@ -60,18 +60,20 @@ class StateManager extends EventEmitter {
         return job && CompletedState.includes(job.status);
     }
 
-    async setJobResults(options) {
-        let error;
-        let parent;
-        const topSpan = tracer.topSpan(options.jobId);
-        if (topSpan) {
-            parent = topSpan.context();
-        }
-        const span = tracer.startSpan({ name: 'set job result', parent, tags: { jobId: options.jobId } });
+    async setJobResultsToStorage(options) {
+        let storageError;
+        let storageResults;
+        let span;
         try {
-            let results;
             if (options.data) {
+                let parent;
+                const topSpan = tracer.topSpan(options.jobId);
+                if (topSpan) {
+                    parent = topSpan.context();
+                }
+                span = tracer.startSpan({ name: 'set job result', parent, tags: { jobId: options.jobId } });
                 const startSpan = tracer.startSpan.bind(tracer, { name: 'storage-get', parent: span.context() });
+
                 const data = await Promise.all(options.data.map(async (a) => {
                     if (a.result && a.result.storageInfo) {
                         const result = await storageManager.get(a.result.storageInfo, startSpan);
@@ -80,17 +82,29 @@ class StateManager extends EventEmitter {
                     return a;
                 }));
                 const storageInfo = await storageManager.hkubeResults.put({ jobId: options.jobId, data }, tracer.startSpan.bind(tracer, { name: 'storage-put', parent: span.context() }));
-                results = { storageInfo };
+                storageResults = { storageInfo };
             }
-            await this._etcd.jobs.results.set({ jobId: options.jobId, ...options, data: results });
-            span.finish();
+        }
+        catch (e) {
+            storageError = e.message;
+        }
+        finally {
+            span && span.finish(storageError);
+        }
+        return { storageError, storageResults };
+    }
+
+    async setJobResults(options) {
+        let error;
+        try {
+            await this._etcd.jobs.results.set(options);
         }
         catch (e) {
             error = e.message;
-            span.finish(e);
         }
         return error;
     }
+
 
     async updateDiscovery() {
         return this._updateDiscovery();
