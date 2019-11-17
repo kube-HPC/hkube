@@ -1,3 +1,7 @@
+/**
+ * Returns a guid
+ */
+
 const uuidV4 = require('uuid/v4');
 
 const uuid = ({ length = 8 } = {}) => {
