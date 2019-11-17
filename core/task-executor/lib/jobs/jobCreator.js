@@ -80,8 +80,8 @@ const applyLogging = (inputSpec, options) => {
             name: 'logs',
             emptyDir: {}
         });
-        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, {ALGORITHM_LOG_FILE_NAME: 'stdout.log'});
-        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, {BASE_LOGS_PATH: '/hkube-logs/'});
+        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_LOG_FILE_NAME: 'stdout.log' });
+        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { BASE_LOGS_PATH: '/hkube-logs/' });
         return spec;
     }
 
@@ -110,9 +110,11 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyName(spec, algorithmName);
     spec = applyAlgorithmName(spec, algorithmName);
     spec = applyAlgorithmImage(spec, algorithmImage);
-    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, algorithmEnv);
     spec = applyWorkerImage(spec, workerImage);
+    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, algorithmEnv);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_IMAGE: algorithmImage });
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
     if (settings.applyResources) {
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);

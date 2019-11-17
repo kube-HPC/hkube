@@ -1,26 +1,8 @@
 const { expect } = require('chai');
-const mockery = require('mockery');
 const etcd = require('../lib/helpers/etcd');
 const { discoveryStub, templateStoreStub } = require('./stub/discoveryStub');
-const { mock } = (require('./mocks/kubernetes.mock')).kubernetes()
 
 describe('bootstrap', () => {
-    before(async () => {
-        mockery.enable({
-            warnOnReplace: false,
-            warnOnUnregistered: false,
-            // useCleanCache: true
-        });
-        mockery.registerMock('./lib/helpers/kubernetes', mock);
-        const bootstrap = require('../bootstrap');
-        await bootstrap.init();
-    });
-    after(() => {
-        mockery.disable();
-    });
-    beforeEach(async () => {
-        await etcd._etcd._client.delete('/', { isPrefix: true });
-    });
     it('should get', async () => {
         await Promise.all(discoveryStub.map(d => etcd._etcd._client.put(`/discovery/stub/${d.workerId}`, d)));
         let workers = await etcd.getWorkers({ workerServiceName: 'stub' });

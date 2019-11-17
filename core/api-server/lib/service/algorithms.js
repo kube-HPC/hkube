@@ -94,6 +94,7 @@ class AlgorithmStore {
         return stateManager.getAlgorithmsQueueList();
     }
 
+    // TODO: need to refactor this function to override image in a right way
     async applyAlgorithm(data) {
         const { payload, options } = data;
         const file = data.file || {};

@@ -71,14 +71,14 @@ describe('jobCreator', () => {
                     }
                 ]
             }
-            const registry='localhost:5555/bar'
+            const registry = 'localhost:5555/bar'
             workerTemplate = {
                 "name": "worker",
                 "image": "hkube/worker",
                 "cpu": 0.1,
                 "mem": 128
             };
-            const res = setWorkerImage(workerTemplate, versions,{registry});
+            const res = setWorkerImage(workerTemplate, versions, { registry });
             expect(res).to.eql('localhost:5555/bar/foo/wkr:v1.2.3')
         })
     })
