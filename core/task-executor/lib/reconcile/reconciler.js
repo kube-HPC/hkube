@@ -325,9 +325,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const merged = mergeWorkers(normWorkers, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
     const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
-    merged.mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
-    const warmUpWorkers = normalizeHotWorkers(normWorkers, algorithmTemplates);
-    const coolDownWorkers = normalizeColdWorkers(normWorkers, algorithmTemplates);
+    const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
+    const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
+    const coolDownWorkers = normalizeColdWorkers(mergedWorkers, algorithmTemplates);
     const totalRequests = normalizeHotRequests(normRequests, algorithmTemplates);
 
     const isCpuPressure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESSURE;
@@ -339,9 +339,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const createPromises = [];
     const reconcileResult = {};
 
-    const idleWorkers = clonedeep(merged.mergedWorkers.filter(w => _idleWorkerFilter(w)));
-    const activeWorkers = clonedeep(merged.mergedWorkers.filter(w => _activeWorkerFilter(w)));
-    const pausedWorkers = clonedeep(merged.mergedWorkers.filter(w => _pausedWorkerFilter(w)));
+    const idleWorkers = clonedeep(mergedWorkers.filter(w => _idleWorkerFilter(w)));
+    const activeWorkers = clonedeep(mergedWorkers.filter(w => _activeWorkerFilter(w)));
+    const pausedWorkers = clonedeep(mergedWorkers.filter(w => _pausedWorkerFilter(w)));
     const pendingWorkers = clonedeep(merged.extraJobs);
     const jobsCreated = clonedeep(createdJobsList);
 
