@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver-queue",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -13,12 +13,6 @@
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
     "build": "./dockerfile/build.sh pipeline-driver-queue"
-  },
-  "pre-commit": {
-    "run": [
-      "lint",
-      "test"
-    ]
   },
   "author": "Hkube",
   "license": "MIT",

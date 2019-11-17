@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const uuidv4 = require('uuid/v4');
+const { uuid: uuidv4 } = require('../lib/utils');
 const HttpStatus = require('http-status-codes');
 const querystring = require('querystring');
 const builds = require('../lib/service/builds');
