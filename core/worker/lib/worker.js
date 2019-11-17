@@ -85,7 +85,7 @@ class Worker {
                 error: {
                     message: event.message
                 },
-                shouldCompleteJob: false
+                shouldCompleteJob: true
             };
             stateManager.exit(data);
         });
