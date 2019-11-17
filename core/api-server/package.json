@@ -63,12 +63,6 @@
         "build": "./dockerfile/build.sh api-server",
         "build-swagger": "node ./api/rest-api/swagger-builder.js"
     },
-    "pre-commit": {
-        "run": [
-            "lint",
-            "test"
-        ]
-    },
     "nyc": {
         "exclude": [
             "bootstrap.js",

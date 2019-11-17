@@ -14,13 +14,7 @@
     "start": "node app",
     "build": "./dockerfile/build.sh algorithm-queue"
   },
-  "pre-commit": {
-    "run": [
-      "lint",
-      "test"
-    ]
-  },
-  "author": "maty zisserman",
+  "author": "Hkube",
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.7",
