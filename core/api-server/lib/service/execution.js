@@ -1,8 +1,6 @@
-const uuidv4 = require('uuid/v4');
 const merge = require('lodash.merge');
 const request = require('requestretry');
 const log = require('@hkube/logger').GetLogFromContainer();
-const randString = require('crypto-random-string');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 const { main } = require('@hkube/config').load();
@@ -16,6 +14,7 @@ const component = require('../../lib/consts/componentNames').EXECUTION_SERVICE;
 const WebhookTypes = require('../webhook/States').Types;
 const regex = require('../../lib/consts/regex');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
+const { uuid } = require('../utils');
 
 
 class ExecutionService {
@@ -52,9 +51,9 @@ class ExecutionService {
         if (response.statusCode !== 200) {
             throw new Error(`error:${response.body.error.message}`);
         }
-        const { jobId } = options;
+        const { jobId, nodeName } = options;
         log.debug(`get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
-        const cacheJobId = this._createJobIdForCaching(jobId);
+        const cacheJobId = this._createJobIdForCaching(nodeName);
         return this._run(response.body, cacheJobId, true);
     }
 
@@ -255,17 +254,12 @@ class ExecutionService {
         return `raw-${options.name}`;
     }
 
-    _createSubPipelineJobID(options) {
-        return [options.jobId, uuidv4()].join('.');
-    }
-
-    _createJobIdForCaching(jobId) {
-        const originalJobID = jobId.split(':caching')[0];
-        return `${originalJobID}:caching:${randString({ length: 4 })}`;
+    _createJobIdForCaching(nodeName) {
+        return ['caching', nodeName, uuid()].join(':');
     }
 
     _createJobID(options) {
-        return [`${options.name}:${uuidv4()}`, options.name].join('.');
+        return [options.name, uuid()].join(':');
     }
 
     async _getLastPipeline(jobId) {

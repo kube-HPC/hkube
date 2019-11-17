@@ -41,12 +41,6 @@
     "start": "node app",
     "build": "./dockerfile/build.sh resource-manager"
   },
-  "pre-commit": {
-    "run": [
-      "lint",
-      "test"
-    ]
-  },
   "author": "Hkube",
   "license": "MIT"
 }

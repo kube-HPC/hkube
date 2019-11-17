@@ -1,7 +1,7 @@
 const clone = require('clone');
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const uuidv4 = require('uuid/v4');
+const { uuid: uuidv4 } = require('../lib/utils');
 const querystring = require('querystring');
 const { pipelines, workerStub } = require('./mocks');
 const { request } = require('./utils');

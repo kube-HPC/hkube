@@ -11,19 +11,13 @@
     "build": "dockerfile/build.sh task-executor",
     "start": "node app"
   },
-  "pre-commit": {
-    "run": [
-      "lint",
-      "test"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kube-HPC/task-executor.git"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Hkube",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/kube-HPC/task-executor/issues"
   },

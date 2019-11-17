@@ -14,12 +14,6 @@
     "start": "node app",
     "build": "./dockerfile/build.sh pipeline-driver-queue"
   },
-  "pre-commit": {
-    "run": [
-      "lint",
-      "test"
-    ]
-  },
   "author": "Hkube",
   "license": "MIT",
   "dependencies": {
