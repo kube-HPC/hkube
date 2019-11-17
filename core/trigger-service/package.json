@@ -13,17 +13,11 @@
     "start": "node app",
     "build": "./dockerfile/build.sh trigger-service"
   },
-  "pre-commit": {
-    "run": [
-      "lint",
-      "test"
-    ]
-  },
   "keywords": [
     "hkube",
     "hkube-core"
   ],
-  "author": "maty zisserman",
+  "author": "Hkube",
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.7",

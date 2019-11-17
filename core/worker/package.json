@@ -11,18 +11,12 @@
         "start": "node app",
         "build": "dockerfile/build.sh worker"
     },
-    "pre-commit": {
-        "run": [
-            "lint",
-            "test"
-        ]
-    },
     "repository": {
         "type": "git",
         "url": "git@github.com:kube-HPC/worker.git"
     },
-    "author": "",
-    "license": "ISC",
+    "author": "Hkube",
+    "license": "MIT",
     "dependencies": {
         "@hkube/config": "^2.0.7",
         "@hkube/etcd": "^5.0.5",

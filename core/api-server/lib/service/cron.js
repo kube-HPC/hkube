@@ -1,10 +1,10 @@
-const uuidv4 = require('uuid/v4');
 const objectPath = require('object-path');
 const storageManager = require('@hkube/storage-manager');
 const execution = require('../../lib/service/execution');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
+const { uuid } = require('../utils');
 
 class ExecutionService {
     async getCronResult(options) {
@@ -35,7 +35,7 @@ class ExecutionService {
 
     async runStoredCron(options) {
         validator.validateStoredInternal(options);
-        const jobId = this._createCronJobID(options, uuidv4());
+        const jobId = this._createCronJobID(options, uuid());
         return execution._runStored(options, jobId);
     }
 
@@ -61,8 +61,8 @@ class ExecutionService {
         return pipeline;
     }
 
-    _createCronJobID(options, uuid) {
-        return ['cron', options.name, uuid].join(':');
+    _createCronJobID(options, uid) {
+        return ['cron', options.name, uid].join(':');
     }
 }
 

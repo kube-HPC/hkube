@@ -17,7 +17,6 @@
         "@octokit/rest": "^16.28.7",
         "ajv": "^6.10.2",
         "cron": "^1.7.1",
-        "crypto-random-string": "^3.0.1",
         "deep-diff": "^1.0.2",
         "express": "^4.17.1",
         "express-async-errors": "^3.1.1",
@@ -63,12 +62,6 @@
         "start": "node app",
         "build": "./dockerfile/build.sh api-server",
         "build-swagger": "node ./api/rest-api/swagger-builder.js"
-    },
-    "pre-commit": {
-        "run": [
-            "lint",
-            "test"
-        ]
     },
     "nyc": {
         "exclude": [

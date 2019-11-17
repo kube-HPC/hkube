@@ -4,8 +4,8 @@
   "description": "",
   "main": "app.js",
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Hkube",
+  "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.7",
     "@hkube/logger": "^1.0.25",
@@ -41,11 +41,5 @@
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
     "build": "./dockerfile/build.sh caching-service"
-  },
-  "pre-commit": {
-    "run": [
-      "lint",
-      "test"
-    ]
   }
 }

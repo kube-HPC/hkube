@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const uuidv4 = require('uuid/v4');
+const { uuid: uuidv4 } = require('../lib/utils');
 const HttpStatus = require('http-status-codes');
 const clone = require('clone');
 const { pipelines } = require('./mocks');
