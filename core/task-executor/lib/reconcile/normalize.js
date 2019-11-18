@@ -67,6 +67,11 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
     }
     normWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
         const algorithm = algorithmTemplates[w.algorithmName] || {};
+
+        if (algorithm.options && algorithm.options.debug) {
+            return;
+        }
+
         const workerImage = setWorkerImage({ workerImage: algorithm.workerImage }, versions, registry);
         const algorithmImage = setAlgorithmImage({ algorithmImage: algorithm.algorithmImage }, versions, registry);
 
