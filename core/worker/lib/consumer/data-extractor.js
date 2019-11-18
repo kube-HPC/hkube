@@ -1,21 +1,26 @@
 const deep = require('deep-get-set');
 const flatten = require('flat');
 const clone = require('clone');
-const { isEqual } = require('lodash');
+const isEqual = require('lodash.isequal');
 const storageManager = require('@hkube/storage-manager');
 
 class DataExtractor {
     constructor() {
-        this.wrappedGetFromStorage = this.wrapStorageGet(); // eslint-disable-line
-        this.storageCach = [];
+        this.disableCache = process.env.DISABLE_WORKER_CACHE || false;
+        this.storageCache = Object.create(null);
+        this.oldStorage = null;
+    }
+
+    reset() {
+        this.storageCache = Object.create(null);
+        this.oldStorage = null;
     }
 
     async extract(input, storage, tracerStart) {
         const result = clone(input);
         const flatObj = flatten(input);
-        this.storageCach = this.storageCach || [];
         if (!this.isStorageEqueal(storage, this.oldStorage)) {
-            this.storageCach = [];
+            this.storageCache = Object.create(null);
         }
         this.oldStorage = storage;
 
@@ -47,19 +52,18 @@ class DataExtractor {
         return result;
     }
 
-    wrapStorageGet() {
-        const getFromStorageWrapper = async (info, trace) => {
-            const cached = this.storageCach.find((cachedItem) => {
-                return isEqual(info.path, cachedItem.info.path);
-            });
+    async wrappedGetFromStorage(info, trace) {
+        if (!this.disableCache) {
+            const cached = this.storageCache[info.path];
             if (cached) {
-                return cached.data;
+                return cached;
             }
-            const data = await storageManager.get(info, trace);
-            this.storageCach.push({ info, data });
-            return data;
-        };
-        return getFromStorageWrapper;
+        }
+        const data = await storageManager.get(info, trace);
+        if (!this.disableCache) {
+            this.storageCache[info.path] = data;
+        }
+        return data;
     }
 
     isStorageEqueal(storage1, storage2) {
