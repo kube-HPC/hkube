@@ -491,7 +491,8 @@ describe('Test', function () {
             const storageInfo = await storageManager.hkube.put({ jobId, taskId, data });
             let result = { storageInfo };
             results.data = [{ result }];
-            await stateManager.setJobResults(results);
+            const { storageResults } = await stateManager.setJobResultsToStorage(results);
+            await stateManager.setJobResults({ jobId, data: storageResults });
             const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
             const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
@@ -507,7 +508,8 @@ describe('Test', function () {
             const storageInfo = await storageManager.hkube.put({ jobId, taskId, data });
             let result = { storageInfo };
             results.data = [{ result }];
-            await stateManager.setJobResults(results);
+            const { storageResults } = await stateManager.setJobResultsToStorage(results);
+            await stateManager.setJobResults({ jobId, data: storageResults });
             const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
             const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);
@@ -537,7 +539,8 @@ describe('Test', function () {
             const storageInfo = await storageManager.hkube.put({ jobId, taskId, data });
             let result = { storageInfo };
             results.data = [{ result }];
-            await stateManager.setJobResults(results);
+            const { storageResults } = await stateManager.setJobResultsToStorage(results);
+            await stateManager.setJobResults({ jobId, data: storageResults });
             const etcdResult = await stateManager._etcd.jobs.results.get({ jobId: jobId });
             const res = await storageManager.get(etcdResult.data.storageInfo);
             expect(data).to.deep.equal(res[0].result);

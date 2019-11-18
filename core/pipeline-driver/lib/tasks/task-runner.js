@@ -171,44 +171,49 @@ class TaskRunner extends EventEmitter {
         return this.pipeline;
     }
 
-    async _stopPipeline(err, reason) {
+    async _stopPipeline(err) {
         let status;
-        let errorMsg;
+        let error;
         let data;
         if (err) {
             if (err.status) {
                 return;
             }
-            errorMsg = err.message;
-            status = DriverStates.FAILED;
-            this._error = errorMsg;
-            log.info(`pipeline ${status}. ${errorMsg}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-        }
-        else if (reason) {
-            status = DriverStates.STOPPED;
-            log.info(`pipeline ${status} ${this._jobId}. ${reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
+            error = err.message;
         }
         else {
-            status = DriverStates.COMPLETED;
-            log.info(`pipeline ${status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
             data = this._nodes.pipelineResults();
         }
-        this._jobStatus = status;
-        this._driverStatus = DriverStates.READY;
-        const resultError = await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data, reason, error: errorMsg, status });
 
-        if (errorMsg || resultError) {
-            const error = resultError || errorMsg;
-            await this._progressError({ status, error });
+        const { storageError, storageResults } = await this._stateManager.setJobResultsToStorage({ jobId: this._jobId, data });
+
+        if (error || storageError) {
+            status = DriverStates.FAILED;
+            error = storageError || error;
             if (err && err.batchTolerance) {
                 await this._stateManager.stopJob({ jobId: this._jobId });
             }
         }
         else {
-            await this._progressInfo({ status });
+            status = DriverStates.COMPLETED;
         }
+        this._jobStatus = status;
+        this._driverStatus = DriverStates.READY;
+        this._error = error;
+        await this._stateManager.setJobResults({ jobId: this._jobId, startTime: this.pipeline.startTime, pipeline: this.pipeline.name, data: storageResults, error, status });
+        await this._progressStatus({ status, error });
 
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
+        log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
+    }
+
+    async _progressStatus({ status, error }) {
+        if (error) {
+            await this._progressError({ status, error });
+        }
+        else {
+            await this._progressInfo({ status });
+        }
     }
 
     async _recoverPipeline() {
