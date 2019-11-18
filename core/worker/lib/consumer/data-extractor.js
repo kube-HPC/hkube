@@ -1,7 +1,7 @@
 const deep = require('deep-get-set');
 const flatten = require('flat');
 const clone = require('clone');
-const isEqual = require('lodash').isEqual;
+const { isEqual } = require('lodash');
 const storageManager = require('@hkube/storage-manager');
 
 class DataExtractor {
@@ -9,10 +9,7 @@ class DataExtractor {
         this.wrappedGetFromStorage = this.wrapStorageGet(); // eslint-disable-line
         this.storageCach = [];
     }
-    reset() {
-        this.storageCach = [];
-        this.oldStorage = undefined;
-    }
+
     async extract(input, storage, tracerStart) {
         const result = clone(input);
         const flatObj = flatten(input);
@@ -51,16 +48,16 @@ class DataExtractor {
     }
 
     wrapStorageGet() {
-        let getFromStorageWrapper = async (info, trace) => {
-            let cached = this.storageCach.find((cached) => { return isEqual(info.path, cached.info.path) });
+        const getFromStorageWrapper = async (info, trace) => {
+            const cached = this.storageCach.find((cachedItem) => {
+                return isEqual(info.path, cachedItem.info.path);
+            });
             if (cached) {
                 return cached.data;
             }
-            else {
-                let data = await storageManager.get(info, trace);
-                this.storageCach.push({ info, data });
-                return data;
-            }
+            const data = await storageManager.get(info, trace);
+            this.storageCach.push({ info, data });
+            return data;
         };
         return getFromStorageWrapper;
     }
@@ -70,9 +67,9 @@ class DataExtractor {
             const links1 = Object.values(storage1).map(s => s.storageInfo.path).sort();
             const links2 = Object.values(storage2).map(s => s.storageInfo.path).sort();
             return isEqual(links1, links2);
-        } else {
-            return storage1 == storage2;
         }
+
+        return storage1 === storage2;
     }
 }
 
