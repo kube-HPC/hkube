@@ -71,14 +71,14 @@ describe('PipelineDriverJobCreator', () => {
                     }
                 ]
             }
-            const registry='localhost:5555/bar'
+            const registry = 'localhost:5555/bar'
             driverTemplate = {
                 "name": "pipeline-driver",
                 "image": "hkube/pipeline-driver",
                 "cpu": 0.1,
                 "mem": 128
             };
-            const res = setPipelineDriverImage(driverTemplate, versions,{registry});
+            const res = setPipelineDriverImage(driverTemplate, versions, { registry });
             expect(res).to.eql('localhost:5555/bar/foo/pd:v1.2.3')
         })
     })

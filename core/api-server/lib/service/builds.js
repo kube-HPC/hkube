@@ -1,7 +1,6 @@
 const path = require('path');
 const merge = require('lodash.merge');
 const crypto = require('crypto');
-const uuidv4 = require('uuid/v4');
 const format = require('string-template');
 const semver = require('semver');
 const fse = require('fs-extra');
@@ -14,6 +13,7 @@ const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const States = require('../state/States');
 const { MESSAGES } = require('../consts/builds');
+const { uuid } = require('../utils');
 
 class Builds {
     async getBuild(options) {
@@ -179,7 +179,7 @@ class Builds {
     }
 
     _createBuildID(algorithmName) {
-        return [algorithmName, uuidv4()].join('-');
+        return [algorithmName, uuid()].join('-');
     }
 
     _incVersion(oldAlgorithm, newAlgorithm) {

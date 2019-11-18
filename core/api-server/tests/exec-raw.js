@@ -1,11 +1,86 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
+const pipelines = require('./mocks/pipelines.json');
+const { cachingError } = require('./mocks/http-response.json');
+const { main } = require('@hkube/config').load();
+const nock = require('nock')
 let restUrl;
 
 describe('Executions', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
+    });
+    describe('/exec/caching', () => {
+        before(async () => {
+            runCachPath = `${restUrl}/exec/caching`;
+            runRawPath = `${restUrl}/exec/raw`;
+            pipeline = pipelines.find((pl) => pl.name === 'flow1')
+            const options = {
+                uri: runRawPath,
+                body: pipeline
+            };
+            const response = await request(options);
+            jobId = response.body.jobId;
+            const { protocol, host, port, prefix } = main.cachingServer;
+            const cachingServiceURI = `${protocol}://${host}:${port}`;
+            let pathToJob = `/${prefix}?jobId=${jobId}&&nodeName=black-alg`;
+            nock(cachingServiceURI).get(pathToJob).reply(200, pipeline);
+            pathToJob = `/${prefix}?jobId=stam-job&&nodeName=stam-alg`;
+            nock(cachingServiceURI).get(pathToJob).reply(500, cachingError);
+
+        });
+        it('should succeed run caching', async () => {
+            const options = {
+                uri: runCachPath,
+                body: {
+                    jobId,
+                    nodeName: 'black-alg'
+                }
+            };
+            const response = await request(options);
+            expect(response.body).not.to.have.property('error');
+            expect(response.body).to.have.property('jobId');
+        });
+        it('should fail on no jobId', async () => {
+            const options = {
+                uri: runCachPath,
+                body: {
+                    nodeName: 'black-alg'
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal("data should have required property 'jobId'");
+        });
+        it('should fail on addtional property', async () => {
+            const options = {
+                uri: runCachPath,
+                body: {
+                    jobId,
+                    nodeName: 'black-alg',
+                    stam: 'klum'
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('data should NOT have additional properties');
+        });
+        it('should fail on no such node or job', async () => {
+            const options = {
+                uri: runCachPath,
+                body: {
+                    jobId: 'stam-job',
+                    nodeName: 'stam-alg'
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.INTERNAL_SERVER_ERROR);
+            expect(response.body.error.message).to.equal("error:part of the data is missing or incorrect error:cant find successors for stam-alg");
+        });
     });
     describe('/exec/raw', () => {
         let restPath = null;

@@ -49,11 +49,11 @@ class Etcd {
         await this._etcd.discovery.updateRegisteredData(options);
     }
 
-    sendCommandToWorker({ workerId, command, algorithmName, podName }) {
+    sendCommandToWorker({ workerId, command, algorithmName, podName, message }) {
         log.info(`worker for algorithm ${algorithmName} command: ${command}, pod: ${podName}`, {
             component, command, workerId, podName, algorithmName
         });
-        return this._etcd.workers.set({ workerId, status: { command }, timestamp: Date.now() });
+        return this._etcd.workers.set({ workerId, status: { command }, message, timestamp: Date.now() });
     }
 
     sendCommandToDriver({ driverId, command }) {
