@@ -168,7 +168,8 @@ const workerIngress = (algorithmName = '', { ingressHost, ingressPrefix = '' } =
         name: `ingress-worker-${algorithmName}`,
         annotations: {
             'nginx.ingress.kubernetes.io/rewrite-target': '/',
-            'nginx.ingress.kubernetes.io/ssl-redirect': 'false'
+            'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
+            'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
         },
         labels: {
             app: `ingress-${ALGORITHM_DEBUG}`,
