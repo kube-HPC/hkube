@@ -1,4 +1,5 @@
 const Octokit = require('@octokit/rest');
+const { ProjectsBundle } = require('gitlab');
 const urlLib = require('url');
 const { InvalidDataError } = require('../../errors');
 const octokit = new Octokit();
@@ -23,8 +24,22 @@ class GitService {
         return lastCommit.data[0];
     }
 
-    async getGitlabLastCommit({ url, branchName, token }) {
+    async getGitlabLastCommit({ url, branchName = 'maste', token = null }) {
+        const { owner, repo } = this._parseGithubUrlRepo(url);
 
+        const services = new ProjectsBundle({
+            host: 'https://gitlab.com/',
+            token
+        });
+        // 'inkscape/inkscape'
+
+        const lastCommit = await services.Commits.all(`${owner}/${repo}`, {
+            perPage: 1,
+            maxPages: 1,
+            showPagination: true,
+            ref_name: branchName
+        });
+        return lastCommit.data[0];
     }
 
     _parseGithubUrlRepo(url) {

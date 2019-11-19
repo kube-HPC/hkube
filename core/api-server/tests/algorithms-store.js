@@ -592,7 +592,8 @@ describe('Store/Algorithms', () => {
                     name,
                     gitRepository: {
                         url,
-                        token :'1111'
+                        token: '1111',
+                        gitKind: "github"
                     },
                     env: 'nodejs',
                     type: "Git"
@@ -848,6 +849,29 @@ describe('Store/Algorithms', () => {
                 expect(res2.body.version).to.equal('1.0.1');
             });
         })
+        describe('Gitlab', () => {
+            it('Gitlab-should create build with last commit data', async () => {
+                const url = 'https://gitlab.com/maty21/anomaly.git';
+                const name = uuidv4();
+                const body = {
+                    name,
+                    gitRepository: {
+                        url,
+                        //token: '1111',
+                        gitKind: "gitlab"
+                    },
+                    env: 'nodejs',
+                    type: "Git"
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    body: { payload }
+                };
+                const res = await request(options);
+                expect(res.body).to.have.property('buildId');
+            });
+        });
         describe('Image', () => {
             it('should not take affect on algorithmImage change', async () => {
                 const apply1 = {

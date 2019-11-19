@@ -12,6 +12,25 @@
         }
     },
     {
+        "name": "deep-green-alg",
+        "cpu": 1,
+        "mem": "6000Mi",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "gitRepository": {
+            "url": "https://gitlab.com/maty21/anomaly",
+            "webUrl": "https://gitlab.com/maty21/anomaly",
+            "branchName": "master",
+            "gitKind": "gitlab"
+        },
+        "env": "nodejs",
+        "entryPoint": "./app.js",
+        "type": "Git"
+    },
+    {
         "name": "green-alg",
         "cpu": 1,
         "mem": "6000Mi",

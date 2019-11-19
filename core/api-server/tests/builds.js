@@ -6,6 +6,7 @@ const querystring = require('querystring');
 const builds = require('../lib/service/builds');
 const { request } = require('./utils');
 const githubSample = require('./mocks/github-sample.json')
+const gitlabSample = require('./mocks/gitlab-sample')
 let restUrl;
 
 describe('Builds', () => {
@@ -317,6 +318,22 @@ describe('Builds', () => {
             const options = {
                 uri: restPath,
                 body: { payload: JSON.stringify(githubSample) },
+                method: 'POST'
+            };
+            const res = await request(options);
+            const body = res.body[0];
+            expect(body).to.have.property('buildId');
+        })
+    });
+    describe('webhhoks/gitlab', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/builds/webhook/gitlab`;
+        });
+        it('should run simple gitlab push webhook', async () => {
+            const options = {
+                uri: restPath,
+                body: gitlabSample,
                 method: 'POST'
             };
             const res = await request(options);

@@ -5,8 +5,8 @@ const gitDataAdapter = require('./git-data-adapter');
 const algorithmService = require('../algorithms');
 
 class GitWebhookListener {
-    async listen(data) {
-        const gitDetails = gitDataAdapter.adapt({ type: WEBHOOKS.GITHUB, data });
+    async listen(data, type = WEBHOOKS.GITHUB) {
+        const gitDetails = gitDataAdapter.adapt({ type, data });
         if (!gitDetails) {
             throw new ResourceNotFoundError('url', '');
         }

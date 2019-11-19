@@ -3,7 +3,7 @@ const builds = require('../../../../lib/service/builds');
 const methods = require('../../middlewares/methods');
 const logger = require('../../middlewares/logger');
 const gitListener = require('../../../../lib/service/githooks/git-webhook-listener');
-
+const { WEBHOOKS } = require('../../../../lib/consts/builds');
 const routes = (options) => {
     const router = express.Router();
     router.get('/', (req, res, next) => {
@@ -36,7 +36,12 @@ const routes = (options) => {
         next();
     });
     router.all('/webhook/github', methods(['POST']), logger(), async (req, res, next) => {
-        const response = await gitListener.listen(JSON.parse(req.body.payload));
+        const response = await gitListener.listen(JSON.parse(req.body.payload), WEBHOOKS.GITHUB);
+        res.json(response);
+        next();
+    });
+    router.all('/webhook/gitlab', methods(['POST']), logger(), async (req, res, next) => {
+        const response = await gitListener.listen(req.body, WEBHOOKS.GITLAB);
         res.json(response);
         next();
     });
