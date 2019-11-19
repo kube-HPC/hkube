@@ -121,4 +121,5 @@ config.cacheResults = {
     enabled: formatter.parseBool(process.env.CACHE_RESULTS_ENABLE, true),
     updateFrequency: formatter.parseInt(process.env.CACHE_UPDATE_FREQUENCY, 5000)
 };
+config.disableCache = formatter.parseBool(process.env.DISABLE_WORKER_CACHE, false);
 module.exports = config;

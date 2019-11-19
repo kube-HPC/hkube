@@ -5,13 +5,8 @@ const isEqual = require('lodash.isequal');
 const storageManager = require('@hkube/storage-manager');
 
 class DataExtractor {
-    constructor() {
-        this.disableCache = process.env.DISABLE_WORKER_CACHE || false;
-        this.storageCache = Object.create(null);
-        this.oldStorage = null;
-    }
-
-    reset() {
+    init(options) {
+        this.disableCache = options.disableCache;
         this.storageCache = Object.create(null);
         this.oldStorage = null;
     }

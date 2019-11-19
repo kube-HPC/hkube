@@ -22,7 +22,7 @@ describe('data-extractor tests', () => {
     afterEach(async function () {
         spy && spy.restore();
         spy2 && spy2.restore();
-        dataExtractor.reset();
+        dataExtractor.init({ disableCache: false });
     });
     it('store data and validate extraction no cache', async () => {
         const config = getConfig();
