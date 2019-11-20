@@ -78,6 +78,17 @@ class Worker {
                 this._setInactiveTimeout();
             }
         });
+        discovery.on(workerCommands.exit, async (event) => {
+            log.info(`got ${event.status.command} command, message ${event.message}`, { component });
+            await jobConsumer.updateDiscovery({ state: 'exit' });
+            const data = {
+                error: {
+                    message: event.message
+                },
+                shouldCompleteJob: true
+            };
+            stateManager.exit(data);
+        });
         discovery.on(workerCommands.startProcessing, async () => {
             if (stateManager.state === workerStates.exit) {
                 return;

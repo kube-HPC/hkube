@@ -1,11 +1,11 @@
 {
     "name": "api-server",
-    "version": "1.2.25",
+    "version": "1.2.27",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.7",
-        "@hkube/etcd": "^5.0.10",
+        "@hkube/etcd": "^5.0.12",
         "@hkube/logger": "^1.0.25",
         "@hkube/metrics": "^1.0.34",
         "@hkube/parsers": "^1.0.20",
@@ -17,7 +17,6 @@
         "@octokit/rest": "^16.28.7",
         "ajv": "^6.10.2",
         "cron": "^1.7.1",
-        "crypto-random-string": "^3.0.1",
         "deep-diff": "^1.0.2",
         "express": "^4.17.1",
         "express-async-errors": "^3.1.1",
@@ -64,12 +63,6 @@
         "start": "node app",
         "build": "./dockerfile/build.sh api-server",
         "build-swagger": "node ./api/rest-api/swagger-builder.js"
-    },
-    "pre-commit": {
-        "run": [
-            "lint",
-            "test"
-        ]
     },
     "nyc": {
         "exclude": [
