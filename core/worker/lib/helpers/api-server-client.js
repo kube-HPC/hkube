@@ -50,7 +50,7 @@ class ApiServerClient {
         const uuid = uuidv4();
         this.startSpan(uuid, body.jobId, body.taskId, apiUrl);
         const topWorkerSpan = tracer.topSpan(uuid);
-        body.spanId = topWorkerSpan.context();
+        body.spanId = topWorkerSpan.context();  // eslint-disable-line
         const response = await request({
             method: HTTP_POST,
             uri: apiUrl,
@@ -67,11 +67,11 @@ class ApiServerClient {
             id: uuid,
             tags: {
                 apiUrl,
-                jobId: jobId,
-                taskId: taskId
+                jobId,
+                taskId
             }
         };
-        let topWorkerSpan = tracer.topSpan(taskId);
+        const topWorkerSpan = tracer.topSpan(taskId);
         if (topWorkerSpan) {
             spanOptions.parent = topWorkerSpan.context();
         }
