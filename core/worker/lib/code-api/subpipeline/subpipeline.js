@@ -214,7 +214,7 @@ class SubPipelineHandler {
      */
     _startSubPipelineSpan(subPipelineName, subPipelineId, subPipelineJobId) {
         try {
-            const name = `start-subpipeline ${subPipelineName}`;
+            const name = `subpipeline ${subPipelineName} start invoked`;
             const spanOptions = {
                 name,
                 id: subPipelineId,
@@ -225,16 +225,15 @@ class SubPipelineHandler {
                     taskId: jobConsumer.taskId
                 }
             };
-            if (!jobConsumer.algTracer.topSpan(jobConsumer.taskId)) {
-                const topWorkerSpan = tracer.topSpan(jobConsumer.taskId);
-                if (topWorkerSpan) {
-                    spanOptions.parent = topWorkerSpan.context();
-                }
-                else {
-                    spanOptions.parent = jobConsumer._job.data.spanId;
-                }
+
+            const topWorkerSpan = tracer.topSpan(jobConsumer.taskId);
+            if (topWorkerSpan) {
+                spanOptions.parent = topWorkerSpan.context();
             }
-            jobConsumer.algTracer.startSpan(spanOptions);
+            else {
+                spanOptions.parent = jobConsumer._job.data.spanId;
+            }
+            tracer.startSpan(spanOptions);
         }
         catch (error) {
             log.warning(`error while staring subpipeline span: ${error.message}`);
@@ -248,7 +247,7 @@ class SubPipelineHandler {
      * @param error for status=FAILED: error object or message, for status=STOP: stop reason
      */
     _finishSubPipelineSpan(subPipelineId, status, error) {
-        const topSpan = jobConsumer.algTracer.topSpan(subPipelineId);
+        const topSpan = tracer.topSpan(subPipelineId);
         if (topSpan) {
             topSpan.addTag({ status });
             if (status === Status.STOPPED) {

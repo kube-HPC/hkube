@@ -63,16 +63,18 @@ class ExecutionService {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
         const pipe = merge(pipeline, options);
-        return this._run(pipe, jobId);
+        const parentSpan = options.spanId;
+        return this._run(pipe, jobId, undefined, undefined, parentSpan);
     }
 
-    async _run(pipeLine, jobID, alreadyExecuted = false, state) {
+    async _run(pipeLine, jobID, alreadyExecuted = false, state, parentSpan) {
         let pipeline = pipeLine;
         let jobId = jobID;
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name });
         }
-        const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name } });
+
+        const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
             validator.addPipelineDefaults(pipeline);
             await validator.validateAlgorithmExists(pipeline);

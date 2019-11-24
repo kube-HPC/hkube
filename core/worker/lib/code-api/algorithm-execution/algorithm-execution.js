@@ -3,6 +3,7 @@ const Validator = require('ajv');
 const { consts } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const storageManager = require('@hkube/storage-manager');
+const { tracer } = require('@hkube/metrics');
 const { Producer } = require('@hkube/producer-consumer');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const discovery = require('../../states/discovery');
@@ -29,6 +30,7 @@ class AlgorithmExecution {
 
     _initProducer(options) {
         const setting = Object.assign({}, { redis: options.redis });
+        setting.tracer = tracer;
         const valid = this._producerSchema(setting);
         if (!valid) {
             throw new Error(validator.errorsText(this._producerSchema.errors));
@@ -39,18 +41,22 @@ class AlgorithmExecution {
     _registerToEtcdEvents() {
         discovery.on(taskEvents.SUCCEED, (task) => {
             this._sendDoneToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.execId);
         });
         discovery.on(taskEvents.FAILED, (task) => {
             this._sendErrorToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.execId);
         });
         discovery.on(taskEvents.STALLED, (task) => {
             this._sendErrorToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.execId);
         });
         discovery.on(taskEvents.CRASHED, (task) => {
             this._sendErrorToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.execId);
         });
     }
@@ -180,6 +186,7 @@ class AlgorithmExecution {
 
             const storage = {};
             const { jobId, nodeName } = jobData;
+            const parentAlgName = jobData.algorithmName;
             const { algorithmName, input, resultAsRaw } = data;
             const algos = await discovery.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
@@ -190,17 +197,58 @@ class AlgorithmExecution {
             const storageInput = await Promise.all(input.map(i => this._mapInputToStorage(i, storage, jobId)));
             const task = { execId, taskId, input: storageInput, storage };
             const job = this._createJobData({ algorithmName, task, jobData });
-
+            this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
-            await this._createJob(job);
+            await this._createJob(job, taskId);
         }
         catch (e) {
             this._sendErrorToAlgorithm({ execId, error: e.message });
         }
     }
 
-    _createJob(job) {
-        return this._producer.createJob({ job });
+    _createJob(job, taskId) {
+        const topSpan = tracer.topSpan(taskId);
+        let tracing;
+        if (topSpan) {
+            tracing = {
+                parent: topSpan.context(),
+                tags: {
+                    jobId: job.data.jobId
+                }
+            };
+        }
+        return this._producer.createJob({ job, tracing });
+    }
+
+    _startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName) {
+        try {
+            const name = `${nodeName}:${parentAlgName} executing ${algorithmName}`;
+            const spanOptions = {
+                name,
+                id: taskId,
+                tags: {
+
+                    jobId,
+                    taskId
+                }
+            };
+
+            const topWorkerSpan = tracer.topSpan(jobId);
+            if (topWorkerSpan) {
+                spanOptions.parent = topWorkerSpan.context();
+            }
+            tracer.startSpan(spanOptions);
+        }
+        catch (error) {
+            log.warning(`error while staring job execution span: ${error.message}`);
+        }
+    }
+
+    _finishAlgoExecSpan(jobId) {
+        const topSpan = tracer.topSpan(jobId);
+        if (topSpan) {
+            topSpan.finish();
+        }
     }
 
     _createJobData({ algorithmName, task, jobData }) {
