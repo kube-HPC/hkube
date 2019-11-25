@@ -105,5 +105,3 @@ class GitDataAdapter {
 }
 
 module.exports = new GitDataAdapter();
-// https://gitlab.com/gitlab-org/gitlab-runner.git
-// https://github.com/kube-HPC/hkube.git

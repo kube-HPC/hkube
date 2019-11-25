@@ -24,14 +24,13 @@ class GitService {
         return lastCommit.data[0];
     }
 
-    async getGitlabLastCommit({ url, branchName = 'maste', token = null }) {
+    async getGitlabLastCommit({ url, branchName = 'master', token = null }) {
         const { owner, repo } = this._parseGithubUrlRepo(url);
 
         const services = new ProjectsBundle({
             host: 'https://gitlab.com/',
             token
         });
-        // 'inkscape/inkscape'
 
         const lastCommit = await services.Commits.all(`${owner}/${repo}`, {
             perPage: 1,
