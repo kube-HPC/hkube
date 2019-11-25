@@ -1,4 +1,5 @@
 const commands = {
+    exit: 'exit',
     stopProcessing: 'stopProcessing',
     startProcessing: 'startProcessing',
     coolDown: 'coolDown',

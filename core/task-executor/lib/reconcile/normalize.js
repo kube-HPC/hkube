@@ -3,6 +3,7 @@ const groupBy = require('lodash.groupby');
 const parse = require('@hkube/units-converter');
 const objectPath = require('object-path');
 const { gpuVendors } = require('../consts');
+const { setWorkerImage, setAlgorithmImage } = require('./createOptions');
 const { settings: globalSettings } = require('../helpers/settings');
 /**
  * normalizes the worker info from discovery
@@ -47,10 +48,45 @@ const normalizeWorkers = (workers) => {
             workerStatus: w.workerStatus,
             workerPaused: !!w.workerPaused,
             hotWorker: w.hotWorker,
-            podName: w.podName
+            podName: w.podName,
+            workerImage: w.workerImage,
+            algorithmImage: w.algorithmImage
         };
     });
     return workersArray;
+};
+
+/**
+ * This method tries to find workers that at least one image (worker/algorithm) 
+ * is different from the current image version.
+ */
+const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, registry) => {
+    const workers = [];
+    if (!Array.isArray(normWorkers) || normWorkers.length === 0) {
+        return workers;
+    }
+    normWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
+        const algorithm = algorithmTemplates[w.algorithmName] || {};
+
+        if (algorithm.options && algorithm.options.debug) {
+            return;
+        }
+
+        const workerImage = setWorkerImage({ workerImage: algorithm.workerImage }, versions, registry);
+        const algorithmImage = setAlgorithmImage({ algorithmImage: algorithm.algorithmImage }, versions, registry);
+
+        let message;
+        if (workerImage !== w.workerImage) {
+            message = 'worker image changed';
+        }
+        if (algorithmImage !== w.algorithmImage) {
+            message = 'algorithm image changed';
+        }
+        if (message) {
+            workers.push({ ...w, message });
+        }
+    });
+    return workers;
 };
 
 const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
@@ -374,6 +410,7 @@ const normalizeDriversAmount = (jobs, requests, settings) => {
 
 module.exports = {
     normalizeWorkers,
+    normalizeWorkerImages,
     normalizeHotRequests,
     normalizeHotWorkers,
     normalizeColdWorkers,

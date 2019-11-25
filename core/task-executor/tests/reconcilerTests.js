@@ -1,14 +1,10 @@
 const { expect } = require('chai');
-const mockery = require('mockery');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
-const { callCount, mock, clearCount } = (require('./mocks/kubernetes.mock')).kubernetes()
 const etcd = require('../lib/helpers/etcd');
 const { normalizeResources } = require('../lib/reconcile/normalize');
-const templateStore = require('./stub/templateStore');
-const driversTemplateStore = require('./stub/driversTemplateStore');
 const awsAccessKeyId = { name: 'AWS_ACCESS_KEY_ID', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsKey' } } };
 const awsSecretAccessKey = { name: 'AWS_SECRET_ACCESS_KEY', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsSecret' } } };
 const s3EndpointUrl = { name: 'S3_ENDPOINT_URL', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsEndpointUrl' } } };
@@ -20,7 +16,7 @@ const { settings: globalSettings } = require('../lib/helpers/settings');
 const resources = require('./stub/resources');
 const drivers = require('./stub/drivers');
 const options = main;
-let normResources, reconciler, driversReconciler, algorithmTemplates, driverTemplates;
+let callCount, clearCount, normResources, reconciler, driversReconciler, algorithmTemplates, driverTemplates;
 
 const prepareDriversData = (options) => {
     const { minAmount, scalePercent, name } = options.driversSetting;
@@ -31,26 +27,14 @@ const settings = prepareDriversData(options);
 
 describe('reconciler', () => {
     before(async () => {
-        mockery.enable({
-            warnOnReplace: false,
-            warnOnUnregistered: false,
-            useCleanCache: false
-        });
-        mockery.registerMock('../helpers/kubernetes', mock);
         reconciler = require('../lib/reconcile/reconciler');
         driversReconciler = require('../lib/reconcile/drivers-reconciler');
 
-        await etcd.init(main);
-        await etcd._etcd._client.delete('/', { isPrefix: true });
-
-        await Promise.all(templateStore.map(d => etcd._etcd.algorithms.store.set(d)));
-        await Promise.all(driversTemplateStore.map(d => etcd._etcd.pipelineDrivers.store.set(d)));
-
         algorithmTemplates = await etcd.getAlgorithmTemplate();
         driverTemplates = await etcd.getDriversTemplate();
-    });
-    after(() => {
-        mockery.disable();
+
+        callCount = global.testParams.callCount;
+        clearCount = global.testParams.clearCount;
     });
     beforeEach(() => {
         clearCount();

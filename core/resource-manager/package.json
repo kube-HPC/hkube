@@ -1,6 +1,6 @@
 {
   "name": "resource-manager",
-  "version": "1.2.11",
+  "version": "1.2.12",
   "description": "resource-manager",
   "main": "app.js",
   "directories": {
@@ -40,12 +40,6 @@
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
     "build": "./dockerfile/build.sh resource-manager"
-  },
-  "pre-commit": {
-    "run": [
-      "lint",
-      "test"
-    ]
   },
   "author": "Hkube",
   "license": "MIT"

@@ -2,9 +2,13 @@ type: object
 properties:
   name:
     $ref: "#/components/schemas/algorithmName"
-  algorithmImage:
+  image:
     type: string
     description: image name as in the docker registry
+  force:
+    type: boolean
+    description: should replace current algorithm version
+    default: false
 required:
   - name
-  - algorithmImage
+  - image
