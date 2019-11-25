@@ -253,6 +253,7 @@ class Worker {
                 spanOptions.parent = topWorkerSpan.context();
             }
             else {
+                //         log.warning('temp log message: no top span in start alg span');
                 spanOptions.parent = jobConsumer._job.data.spanId;
             }
         }

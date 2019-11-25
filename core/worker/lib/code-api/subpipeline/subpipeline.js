@@ -231,6 +231,7 @@ class SubPipelineHandler {
                 spanOptions.parent = topWorkerSpan.context();
             }
             else {
+                // log.warning('temp log message: no top span in start sub pipeline span');
                 spanOptions.parent = jobConsumer._job.data.spanId;
             }
             tracer.startSpan(spanOptions);

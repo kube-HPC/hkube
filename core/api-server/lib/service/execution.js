@@ -54,7 +54,7 @@ class ExecutionService {
         const { jobId, nodeName } = options;
         log.debug(`get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
         const cacheJobId = this._createJobIdForCaching(nodeName);
-        return this._run(response.body, cacheJobId, true);
+        return this._run(response.body, cacheJobId, { alreadyExecuted: true });
     }
 
     async _runStored(options, jobId) {
@@ -64,10 +64,10 @@ class ExecutionService {
         }
         const pipe = merge(pipeline, options);
         const parentSpan = options.spanId;
-        return this._run(pipe, jobId, undefined, undefined, parentSpan);
+        return this._run(pipe, jobId, { parentSpan });
     }
 
-    async _run(pipeLine, jobID, alreadyExecuted = false, state, parentSpan) {
+    async _run(pipeLine, jobID, { alreadyExecuted = false, state, parentSpan } = {}) {
         let pipeline = pipeLine;
         let jobId = jobID;
         if (!jobId) {
@@ -224,7 +224,7 @@ class ExecutionService {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        return this._run(pipeline, jobId, true, States.RESUMED);
+        return this._run(pipeline, jobId, { alreadyExecuted: true, state: States.RESUMED });
     }
 
     async getTree(options) {

@@ -140,6 +140,7 @@ class AlgorithmExecution {
             log.warning(`failed to stop executions: ${e.message}`, { component });
         }
         finally {
+            this._executions.forEach(excution => this._finishAlgoExecSpan(excution.taskId));
             this._executions.clear();
             this._stopping = false;
         }
@@ -160,6 +161,7 @@ class AlgorithmExecution {
             }
             const { jobId } = jobConsumer.jobData;
             const execution = this._executions.get(execId);
+            this._finishAlgoExecSpan(execution.taskId);
             await discovery.stopAlgorithmExecution({ jobId, taskId: execution.taskId, reason: data.reason });
         }
         catch (e) {
@@ -244,8 +246,8 @@ class AlgorithmExecution {
         }
     }
 
-    _finishAlgoExecSpan(jobId) {
-        const topSpan = tracer.topSpan(jobId);
+    _finishAlgoExecSpan(taskId) {
+        const topSpan = tracer.topSpan(taskId);
         if (topSpan) {
             topSpan.finish();
         }
