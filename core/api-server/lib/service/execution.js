@@ -196,7 +196,6 @@ class ExecutionService {
         await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: States.COMPLETED });
     }
 
-
     async pauseJob(options) {
         validator.validateJobID(options);
         const { jobId } = options;

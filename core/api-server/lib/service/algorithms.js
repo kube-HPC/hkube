@@ -2,9 +2,11 @@
 const merge = require('lodash.merge');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
-const validator = require('../validation/api-validator');
+const executionService = require('./execution');
+const pipelineService = require('./pipelines');
 const stateManager = require('../state/state-manager');
-const builds = require('./builds');
+const buildsService = require('./builds');
+const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES, BUILD_TYPES } = require('../consts/builds');
 const gitDataAdapter = require('./githooks/git-data-adapter');
@@ -21,44 +23,83 @@ class AlgorithmStore {
     }
 
     async deleteAlgorithm(options) {
-        validator.validateName(options);
-        const algorithm = await stateManager.getAlgorithm(options);
+        validator.validateAlgorithmDelete(options);
+        const { name, force } = options;
+        const algorithm = await stateManager.getAlgorithm({ name });
         if (!algorithm) {
-            throw new ResourceNotFoundError('algorithm', options.name);
+            throw new ResourceNotFoundError('algorithm', name);
         }
-        await this._checkAlgorithmDependencies(options.name);
-        await storageManager.hkubeStore.delete({ type: 'algorithm', name: options.name });
-        return stateManager.deleteAlgorithm(options);
+
+        const { builds, versions, pipelines, executions } = await this._findAlgorithmDependencies(name);
+        const { message, details } = await this._checkAlgorithmDependencies({ name, builds, versions, pipelines, executions });
+        let summary = `algorithm ${name} successfully deleted from store`;
+        if (message) {
+            if (!force) {
+                throw new ActionNotAllowed(message, details);
+            }
+            else {
+                const buildsRes = await this._deleteAll(builds, (a) => stateManager.deleteBuild(a));
+                const versionRes = await this._deleteAll(versions, (a) => stateManager.deleteAlgorithmVersion(a));
+                const pipelineRes = await this._deleteAll(pipelines, (a) => pipelineService.deletePipelineFromStore(a));
+                const execRes = await this._deleteAll(executions, (a) => executionService.stopJob(a));
+
+                const entities = {
+                    builds: buildsRes,
+                    versions: versionRes,
+                    pipelines: pipelineRes,
+                    executions: execRes
+                };
+                const deletedText = this._entitiesToText(entities);
+                summary += `. related data deleted: ${deletedText}`;
+            }
+        }
+        await storageManager.hkubeStore.delete({ type: 'algorithm', name });
+        await stateManager.deleteAlgorithm({ name });
+        return summary;
     }
 
-    async _checkAlgorithmDependencies(algorithmName) {
-        const { pipelines, executions } = await this._findAlgorithmDependencies(algorithmName);
-        const messages = [];
-        if (pipelines.length > 0) {
-            messages.push(`algorithm ${algorithmName} is stored in ${pipelines.length} different pipelines`);
-        }
-        if (executions.length > 0) {
-            messages.push(`algorithm ${algorithmName} is running in ${executions.length} different executions`);
-        }
-        if (messages.length > 0) {
-            messages.push(`before you delete algorithm ${algorithmName} you must first delete all related pipelines and executions`);
-            throw new ActionNotAllowed(messages.join(', '), {
-                pipelines: pipelines.map(p => p.name),
-                executions: executions.map(e => e.jobId)
-            });
-        }
+    async _deleteAll(array, func) {
+        const res = await Promise.all(array.map(a => this._deleteEntity(func, a)));
+        return res.filter(a => a);
     }
 
-    async _findAlgorithmDependencies(algorithmName) {
+    _entitiesToText(entities) {
+        return Object.entries(entities).filter(([, v]) => v.length).map(([k, v]) => `${v.length} ${k}`).join(', ');
+    }
+
+    async _deleteEntity(func, item) {
+        let success = true;
+        try {
+            await func(item);
+        }
+        catch (e) {
+            success = false;
+        }
+        return success;
+    }
+
+    async _checkAlgorithmDependencies({ name, ...entities }) {
+        let message;
+        const details = this._entitiesToText(entities);
+
+        if (details) {
+            message = `algorithm ${name} is stored in ${details}. you must first delete all related data or use the force flag`;
+        }
+        return { message, details };
+    }
+
+    async _findAlgorithmDependencies(name) {
         const limit = 1000;
-        const [pipelines, executions] = await Promise.all([
-            stateManager.getPipelines({ limit }, this._findAlgorithm(algorithmName)),
-            stateManager.getRunningPipelines({ limit }, this._findAlgorithm(algorithmName))
+        const [builds, versions, pipelines, executions] = await Promise.all([
+            stateManager.getBuilds({ buildId: name, limit }, n => n.algorithmName === name),
+            stateManager.getAlgorithmVersions({ name, limit }, n => n.name === name),
+            stateManager.getPipelines({ limit }, this._findAlgorithmInNodes(name)),
+            stateManager.getRunningPipelines({ limit }, this._findAlgorithmInNodes(name))
         ]);
-        return { pipelines, executions };
+        return { builds, versions, pipelines, executions };
     }
 
-    _findAlgorithm(algorithmName) {
+    _findAlgorithmInNodes(algorithmName) {
         return (l => l.nodes && l.nodes.some(n => n.algorithmName === algorithmName));
     }
 
@@ -122,7 +163,7 @@ class AlgorithmStore {
                 if (payload.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
                 }
-                const result = await builds.createBuild(file, oldAlgorithm, payload);
+                const result = await buildsService.createBuild(file, oldAlgorithm, payload);
                 buildId = result.buildId; // eslint-disable-line
                 messages.push(...result.messages);
                 newAlgorithm = merge({}, newAlgorithm, result.algorithm);
@@ -132,7 +173,7 @@ class AlgorithmStore {
                     throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
                 }
                 newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
-                const result = await builds.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
+                const result = await buildsService.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
                 buildId = result.buildId; // eslint-disable-line
                 messages.push(...result.messages);
                 newAlgorithm = merge({}, newAlgorithm, result.algorithm);
@@ -151,7 +192,7 @@ class AlgorithmStore {
             await this.storeAlgorithm(newAlgorithm);
         }
         finally {
-            builds.removeFile(data.file);
+            buildsService.removeFile(data.file);
         }
         return { buildId, messages, algorithm: newAlgorithm };
     }
