@@ -14,7 +14,8 @@ const MESSAGES = {
 };
 
 const WEBHOOKS = {
-    GITHUB: 'github'
+    GITHUB: 'github',
+    GITLAB: 'gitlab'
 };
 
 const BUILD_TYPES = {

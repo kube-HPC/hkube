@@ -1,5 +1,7 @@
+const uuidv4 = require('uuid/v4');
 const request = require('request-promise');
 const Logger = require('@hkube/logger');
+const { tracer } = require('@hkube/metrics');
 const { ApiServerPostTypes } = require('../consts');
 
 let log;
@@ -45,14 +47,42 @@ class ApiServerClient {
      * @throws {object} error
      */
     async _postRequest(body, apiUrl) {
+        const uuid = uuidv4();
+        this.startSpan(uuid, body.jobId, body.taskId, apiUrl);
+        const topWorkerSpan = tracer.topSpan(uuid);
+        body.spanId = topWorkerSpan.context();  // eslint-disable-line
         const response = await request({
             method: HTTP_POST,
             uri: apiUrl,
             body,
             json: true
         });
+        this.finishSpan(uuid);
         return response;
     }
+
+    startSpan(uuid, jobId, taskId, apiUrl) {
+        const spanOptions = {
+            name: 'httpPostRequest',
+            id: uuid,
+            tags: {
+                apiUrl,
+                jobId,
+                taskId
+            }
+        };
+        const topWorkerSpan = tracer.topSpan(taskId);
+        if (topWorkerSpan) {
+            spanOptions.parent = topWorkerSpan.context();
+        }
+        tracer.startSpan(spanOptions);
+    }
+
+    finishSpan(uuid) {
+        const topWorkerSpan = tracer.topSpan(uuid);
+        topWorkerSpan.finish();
+    }
 }
+
 
 module.exports = new ApiServerClient();
