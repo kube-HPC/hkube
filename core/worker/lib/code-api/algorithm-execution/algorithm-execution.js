@@ -140,7 +140,7 @@ class AlgorithmExecution {
             log.warning(`failed to stop executions: ${e.message}`, { component });
         }
         finally {
-            this._executions.forEach(excution => this._finishAlgoExecSpan(excution.taskId));
+            this._executions.forEach(execution => this._finishAlgoExecSpan(execution.taskId));
             this._executions.clear();
             this._stopping = false;
         }
