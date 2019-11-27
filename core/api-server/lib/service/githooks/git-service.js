@@ -25,10 +25,10 @@ class GitService {
     }
 
     async getGitlabLastCommit({ url, branchName = 'master', token = null }) {
-        const { owner, repo } = this._parseGithubUrlRepo(url);
+        const { host, owner, repo } = this._parseGithubUrlRepo(url);
 
         const services = new ProjectsBundle({
-            host: 'https://gitlab.com/',
+            host,
             token
         });
 
@@ -49,7 +49,8 @@ class GitService {
         }
         return {
             owner,
-            repo
+            repo,
+            host: `${parsedUrl.protocol}//${parsedUrl.hostname}/`
         };
     }
 }
