@@ -22,6 +22,7 @@
         "express-async-errors": "^3.1.1",
         "file-type": "^12.2.0",
         "fs-extra": "^8.1.0",
+        "gitlab": "^11.5.1",
         "graphlib": "^2.1.7",
         "http-status-codes": "^1.3.2",
         "js-yaml": "^3.13.1",
