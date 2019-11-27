@@ -330,7 +330,7 @@ describe('Builds', () => {
         before(() => {
             restPath = `${restUrl}/builds/webhook/gitlab`;
         });
-        it('should run simple gitlab push webhook', async () => {
+        it.skip('should run simple gitlab push webhook', async () => {
             const options = {
                 uri: restPath,
                 body: gitlabSample,
