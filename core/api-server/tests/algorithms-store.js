@@ -53,34 +53,124 @@ describe('Store/Algorithms', () => {
     });
     describe('/store/algorithms:name DELETE', () => {
         it('should throw error algorithm not found', async () => {
+            const algorithmName = `delete-${uuidv4()}`;
             const options = {
-                uri: restPath + '/not_exists',
-                method: 'DELETE',
-                body: {}
+                uri: `${restPath}/${algorithmName}`,
+                method: 'DELETE'
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
+            expect(response.body.error.message).to.equal(`algorithm ${algorithmName} Not Found`);
         });
-        it('should delete specific algorithm', async () => {
+        it('should throw error on related data', async () => {
+            const algorithmName = `delete-${uuidv4()}`;
+            const algorithm = {
+                uri: restPath,
+                body: {
+                    name: algorithmName,
+                    algorithmImage: "image"
+                }
+            };
+            const store = {
+                uri: `${restUrl}/store/pipelines`,
+                body: {
+                    name: `delete-${uuidv4()}`,
+                    nodes: [
+                        {
+                            nodeName: 'green',
+                            algorithmName,
+                            input: []
+                        }
+
+                    ]
+                }
+            };
+            const exec = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: store.body.name
+                }
+            };
+
+            const resAlg = await request(algorithm);
+            await request(store);
+            await request(exec);
+            await stateManager.setAlgorithmVersion(resAlg.body);
+            await stateManager.setBuild({ buildId: `${algorithmName}-1`, algorithmName });
+            await stateManager.setBuild({ buildId: `${algorithmName}-2`, algorithmName });
+
+            const optionsDelete = {
+                uri: `${restPath}/${algorithmName}?force=false`,
+                method: 'DELETE'
+            };
+            const response = await request(optionsDelete);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.contain('you must first delete all related data');
+        });
+        it('should delete algorithm with related data', async () => {
+            const algorithmName = `delete-${uuidv4()}`;
+            const algorithm = {
+                uri: restPath,
+                body: {
+                    name: algorithmName,
+                    algorithmImage: "image"
+                }
+            };
+            const store = {
+                uri: `${restUrl}/store/pipelines`,
+                body: {
+                    name: `delete-${uuidv4()}`,
+                    nodes: [
+                        {
+                            nodeName: 'green',
+                            algorithmName,
+                            input: []
+                        }
+
+                    ]
+                }
+            };
+            const exec = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: store.body.name
+                }
+            };
+
+            const resAlg = await request(algorithm);
+            await request(store);
+            await request(exec);
+            await stateManager.setAlgorithmVersion(resAlg.body);
+            await stateManager.setBuild({ buildId: `${algorithmName}-1`, algorithmName });
+            await stateManager.setBuild({ buildId: `${algorithmName}-2`, algorithmName });
+
+            const optionsDelete = {
+                uri: `${restPath}/${algorithmName}?force=true`,
+                method: 'DELETE'
+            };
+            const response = await request(optionsDelete);
+            expect(response.body).to.have.property('message');
+            expect(response.body.message).to.contain('related data deleted');
+        });
+        it('should delete specific algorithm without related data', async () => {
             const optionsInsert = {
                 uri: restPath,
                 body: {
-                    name: "delete",
-                    algorithmImage: "image"
+                    name: 'delete',
+                    algorithmImage: 'image'
                 }
             };
             await request(optionsInsert);
 
             const options = {
                 uri: restPath + '/delete',
-                method: 'DELETE',
-                body: {}
+                method: 'DELETE'
             };
             const response = await request(options);
             expect(response.body).to.have.property('message');
-            expect(response.body.message).to.equal('OK');
+            expect(response.body.message).to.contain('successfully deleted from store');
         });
     });
     describe('/store/algorithms GET', () => {

@@ -75,8 +75,9 @@ const routes = (option) => {
     });
     router.delete('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        await algorithmStore.deleteAlgorithm({ name });
-        res.json({ message: 'OK' });
+        const { force } = req.query;
+        const message = await algorithmStore.deleteAlgorithm({ name, force });
+        res.json({ message });
         next();
     });
     router.delete('/algorithms/debug/:name', logger(), async (req, res, next) => {

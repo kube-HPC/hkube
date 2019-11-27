@@ -47,6 +47,12 @@ delete:
       required: true
       schema:
         type: string
+    - name: force
+      in: query
+      description: should also delete all related data, e.g. pipelines, builds, versions.
+      required: false
+      schema:
+        type: boolean
   responses:
     "200":
       description: action summery

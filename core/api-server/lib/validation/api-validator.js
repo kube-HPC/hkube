@@ -104,6 +104,10 @@ class ApiValidator {
         this._validate(this._definitionsInternal.name, pipeline, false);
     }
 
+    validateAlgorithmDelete(algorithm) {
+        this._validate(this._definitionsInternal.algorithmDelete, algorithm, true);
+    }
+
     validatePipelineName(name) {
         this._validate(this._definitions.pipelineName, name, false);
     }

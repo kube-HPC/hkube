@@ -88,8 +88,9 @@ class StateManager extends EventEmitter {
         return this._etcd.algorithms.versions.get(options);
     }
 
-    getAlgorithmVersions(options) {
-        return this._etcd.algorithms.versions.list(options);
+    async getAlgorithmVersions(options, filter = () => true) {
+        const versions = await this._etcd.algorithms.versions.list(options);
+        return versions.filter(filter);
     }
 
     deleteAlgorithmVersion(options, settings) {
@@ -199,8 +200,9 @@ class StateManager extends EventEmitter {
         return options;
     }
 
-    async getBuilds(options) {
-        return this._etcd.algorithms.builds.list(options);
+    async getBuilds(options, filter = () => true) {
+        const builds = await this._etcd.algorithms.builds.list(options);
+        return builds.filter(filter);
     }
 
     async getBuild(options) {
@@ -213,6 +215,10 @@ class StateManager extends EventEmitter {
 
     async updateBuild(options) {
         await this._etcd.algorithms.builds.update(options);
+    }
+
+    async deleteBuild(options) {
+        await this._etcd.algorithms.builds.delete(options);
     }
 }
 
