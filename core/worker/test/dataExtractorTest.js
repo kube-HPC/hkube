@@ -39,7 +39,7 @@ describe('data-extractor tests', () => {
         }
         await dataExtractor.extract(data.input, data.storage);
         let storageManagerCalls = spy2.getCalls();
-        expect(storageManagerCalls.length).to.eql(2);
+        expect(storageManagerCalls.length).to.gte(2);
         let extractCall = spy.getCalls()[0];
         let value = await extractCall.returnValue
         expect(value).to.eql(['test-param', true, 12345, 'deep', 1973]);
