@@ -22,6 +22,10 @@ class PipelineStore {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
+        return this.deletePipelineFromStore(options);
+    }
+
+    async deletePipelineFromStore(options) {
         await storageManager.hkubeStore.delete({ type: 'pipeline', name: options.name });
         return stateManager.deletePipeline(options);
     }

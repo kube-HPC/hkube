@@ -18,3 +18,5 @@ storedSubPipeline:
   $ref: ./storedSubPipeline.yaml
 algorithmName:
   $ref: ./algorithmName.yaml
+algorithmDelete:
+  $ref: ./algorithmDelete.yaml
