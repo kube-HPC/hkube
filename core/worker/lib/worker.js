@@ -4,7 +4,7 @@ const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
-const { Status, stateEvents, EventMessages, workerStates, workerCommands, Components } = require('../lib/consts');
+const { JobStatus, stateEvents, workerStates, workerCommands, Components } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
@@ -52,19 +52,19 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(Status.COMPLETED, (data) => {
+        discovery.on(JobStatus.COMPLETED, (data) => {
             if (stateManager.state !== workerStates.working) {
                 return;
             }
             this._stopPipeline({ status: data.status });
         });
-        discovery.on(Status.FAILED, (data) => {
+        discovery.on(JobStatus.FAILED, (data) => {
             if (stateManager.state !== workerStates.working) {
                 return;
             }
             this._stopPipeline({ status: data.status });
         });
-        discovery.on(Status.STOPPED, (data) => {
+        discovery.on(JobStatus.STOPPED, (data) => {
             if (stateManager.state !== workerStates.working) {
                 return;
             }

@@ -6,13 +6,13 @@ const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components, Status } = require('../consts');
+const { metricsNames, Components, JobStatus } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
 const formatter = require('../helpers/formatters');
 
-const pipelineDoneStatus = [Status.COMPLETED, Status.FAILED, Status.STOPPED];
+const pipelineDoneStatus = [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
 let log;
@@ -61,7 +61,7 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
         this._jobProvider.on('job', async (job) => {
-            if (job.data.status === Status.PRESCHEDULE) {
+            if (job.data.status === JobStatus.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
                 job.done();
                 return;

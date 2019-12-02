@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const mockery = require('mockery');
 const messages = require('../lib/algorithm-communication/messages');
 const jobConsumer = require('../lib/consumer/JobConsumer');
-const { workerStates, EventMessages } = require('../lib/consts');
+const { workerStates, JobStatus } = require('../lib/consts');
 let subPipeline;
 let workerCommunication;
 let stateManager;
@@ -145,7 +145,7 @@ describe('worker SubPipeline test', () => {
             // stop pipeline
             const discovery = require('../lib/states/discovery');
             const subPipelineJobId = subPipelineHandler.getSubPipelineJobId('trueSubPipeline');
-            discovery.emit(EventMessages.STOPPED, { jobId: jobConsumer.jobId, reason: 'test' });
+            discovery.emit(JobStatus.STOPPED, { jobId: jobConsumer.jobId, reason: 'test' });
             // ensure subPipeline was stopped
             expect(apiServerMock.isStopped(subPipelineJobId));
             done();
