@@ -20,11 +20,14 @@
             "debug": false,
             "pending": false
         },
-        "gitRepository": {
-            "url": "https://gitlab.com/maty21/anomaly",
-            "webUrl": "https://gitlab.com/maty21/anomaly",
-            "branchName": "master",
-            "gitKind": "gitlab"
+
+        "repository": {
+            "gitRepository": {
+                "url": "https://gitlab.com/maty21/anomaly",
+                "webUrl": "https://gitlab.com/maty21/anomaly",
+                "branchName": "master",
+                "gitKind": "gitlab"
+            }
         },
         "env": "nodejs",
         "entryPoint": "./app.js",
@@ -39,10 +42,12 @@
             "debug": false,
             "pending": false
         },
-        "gitRepository": {
-            "url": "https://github.com/maty21/statistisc",
-            "webUrl": "https://github.com/maty21/statistisc",
-            "branchName": "master"
+        "repository": {
+            "gitRepository": {
+                "url": "https://github.com/maty21/statistisc",
+                "webUrl": "https://github.com/maty21/statistisc",
+                "branchName": "master"
+            }
         },
         "env": "nodejs",
         "entryPoint": "./app.js",

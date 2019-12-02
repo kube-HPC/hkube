@@ -14,12 +14,13 @@ class GitWebhookListener {
         if (!algorithms.length) {
             throw new ResourceNotFoundError('url', gitDetails.repository.url);
         }
-        return Promise.all(algorithms.map(a => this._storeBuildData({ ...a, gitRepository: { ...a.gitRepository, commit: gitDetails.commit } })));
+        return Promise.all(algorithms.map(a => this._storeBuildData({ ...a, gitRepository: { ...a.repository.gitRepository, commit: gitDetails.commit } })));
     }
 
     async _checkRegistration({ url, branchName }) {
         const algorithmList = await stateManager.getAlgorithms();
-        return algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.webUrl) && branchName === (a.gitRepository && a.gitRepository.branchName));
+        return algorithmList.filter(a => url === (a.repository && a.repository.gitRepository && a.repository.gitRepository.webUrl)
+            && branchName === (a.repository && a.repository.gitRepository && a.repository.gitRepository.branchName));
     }
 
     async _storeBuildData(data) {
