@@ -20,6 +20,7 @@
             "debug": false,
             "pending": false
         },
+
         "repository": {
             "gitRepository": {
                 "url": "https://gitlab.com/maty21/anomaly",
