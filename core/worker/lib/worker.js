@@ -4,7 +4,7 @@ const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
-const { stateEvents, EventMessages, workerStates, workerCommands, Components } = require('../lib/consts');
+const { Status, stateEvents, EventMessages, workerStates, workerCommands, Components } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
@@ -52,12 +52,23 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(EventMessages.STOPPED, async (res) => {
-            log.info(`got stop: ${res.reason}`, { component });
-            const reason = `parent pipeline stopped: ${res.reason}`;
-            const { jobId } = jobConsumer.jobData;
-            await this._stopAllPipelinesAndExecutions({ jobId, reason });
-            stateManager.stop();
+        discovery.on(Status.COMPLETED, (data) => {
+            if (stateManager.state !== workerStates.working) {
+                return;
+            }
+            this._stopPipeline({ status: data.status });
+        });
+        discovery.on(Status.FAILED, (data) => {
+            if (stateManager.state !== workerStates.working) {
+                return;
+            }
+            this._stopPipeline({ status: data.status });
+        });
+        discovery.on(Status.STOPPED, (data) => {
+            if (stateManager.state !== workerStates.working) {
+                return;
+            }
+            this._stopPipeline({ status: data.status, reason: data.reason });
         });
         discovery.on(workerCommands.coolDown, async () => {
             log.info('got coolDown event', { component });
@@ -99,6 +110,13 @@ class Worker {
                 this._setInactiveTimeout();
             }
         });
+    }
+
+    async _stopPipeline({ status, reason }) {
+        const { jobId } = jobConsumer.jobData;
+        log.warning(`got status: ${status}`, { component });
+        await this._stopAllPipelinesAndExecutions({ jobId, reason: `parent pipeline ${status}. ${reason || ''}` });
+        stateManager.stop();
     }
 
     _doTheBootstrap() {
