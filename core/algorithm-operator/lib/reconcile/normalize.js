@@ -48,6 +48,21 @@ const normalizeBuildJobs = (jobsRaw, predicate = () => true) => {
     return jobs;
 };
 
+const normalizeBoardDeployments = (jobsRaw, predicate = () => true) => {
+    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
+        return [];
+    }
+    const jobs = jobsRaw.body.items
+        .filter(predicate)
+        .map(j => ({
+            name: j.metadata.name,
+            boardId: j.metadata.labels['board-id'],
+            active: j.status.active === 1,
+            startTime: _tryParseTime(j.status.startTime)
+        }));
+    return jobs;
+};
+
 const normalizeSecret = (secret) => {
     if (!secret || !secret.body) {
         return {};
@@ -59,5 +74,6 @@ module.exports = {
     normalizeDeployments,
     normalizeAlgorithms,
     normalizeBuildJobs,
+    normalizeBoardDeployments,
     normalizeSecret
 };

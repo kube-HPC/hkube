@@ -2,7 +2,6 @@ const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const component = require('../../lib/consts/componentNames').K8S;
-const { WORKER, SERVICE, INGRESS } = require('../../lib/consts/kubernetes-kind-prefix');
 const { logWrappers } = require('./tracing');
 
 class KubernetesApi extends EventEmitter {
@@ -106,8 +105,8 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
-    async createAlgorithmForDebug({ deploymentSpec, ingressSpec, serviceSpec, algorithmName }) {
-        log.info(`Creating algorithm for debug ${deploymentSpec.metadata.name}`, { component });
+    async deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name }, type) {
+        log.info(`Creating expoesed service ${deploymentSpec.metadata.name}`, { component });
         let resDeployment = null;
         let resIngress = null;
         let resService = null;
@@ -125,17 +124,17 @@ class KubernetesApi extends EventEmitter {
         }
         catch (error) {
             log.error(`failed to continue creating operation ${deploymentSpec.metadata.name}. error: ${error.message}`, { component }, error);
-            await this.deleteAlgorithmForDebug(algorithmName);
+            await this.deleteExpoesedJob(name, type);
             throw error;
         }
     }
 
-    async deleteAlgorithmForDebug(algorithmName) {
-        log.info(`Deleting algorithm for debug ${algorithmName}`, { component });
+    async deleteExpoesedJob(name, type) {
+        log.info(`Deleting algorithm for debug ${name}`, { component });
         const [resDeployment, resIngress, resService] = await Promise.all([
-            this._client.deployments.delete({ deploymentName: `${WORKER}-${algorithmName}` }),
-            this._client.ingresses.delete({ ingressName: `${INGRESS}-${algorithmName}` }),
-            this._client.services.delete({ serviceName: `${SERVICE}-${algorithmName}` })
+            this._client.deployments.delete({ deploymentName: `${type}-${name}` }),
+            this._client.ingresses.delete({ ingressName: `ingress-${type}-${name}` }),
+            this._client.services.delete({ serviceName: `${type}-service-${name}` })
         ]);
         return {
             resDeployment,
