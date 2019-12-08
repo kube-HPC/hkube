@@ -20,9 +20,8 @@
             "debug": false,
             "pending": false
         },
-
-        "repository": {
-            "gitRepository": {
+        "gitRepository": {
+            "repository": {
                 "url": "https://gitlab.com/maty21/anomaly",
                 "webUrl": "https://gitlab.com/maty21/anomaly",
                 "branchName": "master",
@@ -42,8 +41,8 @@
             "debug": false,
             "pending": false
         },
-        "repository": {
-            "gitRepository": {
+        "gitRepository": {
+            "repository": {
                 "url": "https://github.com/maty21/statistisc",
                 "webUrl": "https://github.com/maty21/statistisc",
                 "branchName": "master"
