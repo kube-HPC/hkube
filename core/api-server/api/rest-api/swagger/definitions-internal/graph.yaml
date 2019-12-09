@@ -1,0 +1,18 @@
+type: object
+properties:
+  jobId:
+    type: string
+  nodeName:
+    type: string
+  sort:
+    type: string
+  order:
+    type: string
+  from:
+    type: integer
+    minimum: 0
+  to:
+    type: integer
+    minimum: 0
+required:
+  - jobId

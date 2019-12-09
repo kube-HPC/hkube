@@ -1,0 +1,65 @@
+get:
+  tags:
+    - Graph
+  summary: Get graph data
+  description: returns the graph data by jobId
+  parameters:
+    - name: jobId
+      in: path
+      description: Unique identifier representing jobId
+      required: true
+      schema:
+        type: string
+    - name: nodeName
+      in: path
+      description: the node name
+      required: true
+      schema:
+        type: string
+    - name: sort
+      in: query
+      description: sort by status, error or any other property
+      schema:
+        type: string
+    - name: order
+      in: query
+      description: order by asc or desc
+      schema:
+        type: string
+    - name: from
+      in: query
+      description: the start index
+      required: false
+      schema:
+        type: integer
+    - name: to
+      in: query
+      description: the end index
+      required: false
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: algorithm apply response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/algorithmApplyResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: build Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

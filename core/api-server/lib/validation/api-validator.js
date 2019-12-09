@@ -46,6 +46,10 @@ class ApiValidator {
         this._validate(this._definitionsInternal.algorithmName, algorithm);
     }
 
+    validateGraphQuery(options) {
+        this._validate(this._definitionsInternal.graph, options, true);
+    }
+
     validateStoredInternal(pipeline) {
         this._validate(this._definitionsInternal.pipeline, pipeline, false);
     }

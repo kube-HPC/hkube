@@ -67,7 +67,7 @@ class TaskRunner extends EventEmitter {
             case NodeStates.CRASHED: {
                 const data = { ...task, endTime: Date.now(), status: NodeStates.FAILED };
                 this._setTaskState(data);
-                this._taskComplete(task.taskId);
+                this._taskComplete(task);
                 break;
             }
             case NodeStates.WARNING: {
@@ -82,7 +82,7 @@ class TaskRunner extends EventEmitter {
             case NodeStates.FAILED:
             case NodeStates.SUCCEED:
                 this._setTaskState(task);
-                this._taskComplete(task.taskId);
+                this._taskComplete(task);
                 break;
             default:
                 log.error(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -277,10 +277,7 @@ class TaskRunner extends EventEmitter {
 
     async _deletePipeline() {
         try {
-            await Promise.all([
-                this._stateManager.deleteTasksList({ jobId: this._jobId }),
-                graphStore.deleteGraph({ jobId: this._jobId })
-            ]);
+            await this._stateManager.deleteTasksList({ jobId: this._jobId });
         }
         catch (e) {
             log.error(e.message, { component, jobId: this._jobId }, e);
@@ -430,7 +427,7 @@ class TaskRunner extends EventEmitter {
                 storage: options.storage
             });
             const batch = [waitAny];
-            this._nodes.addBatch(waitAny);
+            this._nodes.addBatch(options.node.nodeName, waitAny);
             this._setTaskState(waitAny);
             await this._createJob(options, batch);
         }
@@ -448,7 +445,7 @@ class TaskRunner extends EventEmitter {
                 status: NodeStates.CREATING,
                 input: inp
             });
-            this._nodes.addBatch(batch);
+            this._nodes.addBatch(options.node.nodeName, batch);
             this._setTaskState(batch);
             this._createJob(batch);
         });
@@ -479,9 +476,9 @@ class TaskRunner extends EventEmitter {
                     status: NodeStates.CREATING,
                     batchIndex: (ind + 1),
                     input: inp.input,
-                    storage: inp.storage
+                    storage: Object.keys(inp.storage).length > 0 ? inp.storage : undefined
                 });
-                this._nodes.addBatch(batch);
+                this._nodes.addBatch(options.node.nodeName, batch);
                 this._setTaskState(batch);
             });
             await this._createJob(options, options.node.batch);
@@ -494,18 +491,14 @@ class TaskRunner extends EventEmitter {
             status: NodeStates.SKIPPED,
             batchIndex: -1,
         });
-        this._nodes.addBatch(node);
-        this._nodes.setNode({ nodeName: node.nodeName, result: [], status: NodeStates.SKIPPED });
+        this._nodes.addBatch(options.node.nodeName, node);
+        this._nodes.setNode({ nodeName: options.node.nodeName, result: [], status: NodeStates.SKIPPED });
         this._setTaskState(node);
-        this._taskComplete(node.taskId);
+        this._taskComplete(node);
     }
 
-    _taskComplete(taskId) {
+    _taskComplete(task) {
         if (!this._active) {
-            return;
-        }
-        const task = this._nodes.getNodeByTaskID(taskId);
-        if (!task) {
             return;
         }
         const error = this._checkTaskErrors(task);

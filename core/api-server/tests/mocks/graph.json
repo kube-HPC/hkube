@@ -1,0 +1,279 @@
+{
+    "jobId": "raw-DAG:ad703972-9832-4066-8234-dc8b65ea4c7d",
+    "timestamp": 1575877141013,
+    "edges": [
+        {
+            "from": "A",
+            "to": "B",
+            "group": "waitNode"
+        },
+        {
+            "from": "B",
+            "to": "C",
+            "group": "waitNode"
+        },
+        {
+            "from": "B",
+            "to": "D",
+            "group": "waitNode"
+        },
+        {
+            "from": "G",
+            "to": "D",
+            "group": "waitNode"
+        },
+        {
+            "from": "B",
+            "to": "E",
+            "group": "waitNode"
+        },
+        {
+            "from": "C",
+            "to": "E",
+            "group": "waitNode"
+        },
+        {
+            "from": "D",
+            "to": "E",
+            "group": "waitNode"
+        },
+        {
+            "from": "E",
+            "to": "F",
+            "group": "waitNode"
+        }
+    ],
+    "nodes": [
+        {
+            "nodeName": "A",
+            "algorithmName": "eval-alg",
+            "batch": [
+                {
+                    "taskId": "A:eval-alg:d5c7ce6c-b8d9-4631-b9cb-95d25b268f06",
+                    "input": [
+                        1
+                    ],
+                    "status": "creating",
+                    "batchIndex": 1
+                },
+                {
+                    "taskId": "A:eval-alg:8c36cd08-a440-46c7-bc8f-57a477b3a4da",
+                    "input": [
+                        2
+                    ],
+                    "status": "creating",
+                    "batchIndex": 2
+                },
+                {
+                    "taskId": "A:eval-alg:04cad066-895a-4daf-8969-8d06a1b9970f",
+                    "input": [
+                        3
+                    ],
+                    "status": "active",
+                    "batchIndex": 3
+                },
+                {
+                    "taskId": "A:eval-alg:7d604d71-c060-4500-a62b-7f7a44d7b781",
+                    "input": [
+                        4
+                    ],
+                    "status": "active",
+                    "batchIndex": 4
+                },
+                {
+                    "taskId": "A:eval-alg:5603602b-30dc-4fca-b638-665a59f2d5b7",
+                    "input": [
+                        5
+                    ],
+                    "status": "succeed",
+                    "batchIndex": 5
+                },
+                {
+                    "taskId": "A:eval-alg:7e2eafbb-19bd-400e-b5dc-21e8f3887335",
+                    "input": [
+                        6
+                    ],
+                    "status": "failed",
+                    "error": "oopps",
+                    "batchIndex": 6
+                },
+                {
+                    "taskId": "A:eval-alg:bea08ab0-5bb7-42a4-9ef5-b1d44da03231",
+                    "input": [
+                        7
+                    ],
+                    "status": "creating",
+                    "batchIndex": 7
+                },
+                {
+                    "taskId": "A:eval-alg:44ff009b-d0b9-45f3-8044-e9e6a1211ae3",
+                    "input": [
+                        8
+                    ],
+                    "status": "failed",
+                    "batchIndex": 8
+                },
+                {
+                    "taskId": "A:eval-alg:577eb6ef-306e-49b6-8bd7-e0d9477b8d9a",
+                    "input": [
+                        9
+                    ],
+                    "status": "active",
+                    "batchIndex": 9
+                },
+                {
+                    "taskId": "A:eval-alg:df3b13cc-1a08-422e-bb5c-426082fedbf5",
+                    "input": [
+                        10
+                    ],
+                    "status": "creating",
+                    "batchIndex": 10
+                }
+            ]
+        },
+        {
+            "taskId": "B:eval-alg:d6fa0d48-985b-4df1-a232-fdff695b652d",
+            "input": [
+                "@A",
+                "@flowInput.timeout"
+            ],
+            "status": "preschedule",
+            "nodeName": "B",
+            "algorithmName": "eval-alg"
+        },
+        {
+            "input": [
+                "@B",
+                "@flowInput.timeout"
+            ],
+            "status": "creating",
+            "nodeName": "C",
+            "algorithmName": "eval-alg"
+        },
+        {
+            "taskId": "D:eval-alg:59067311-f23b-4280-8043-d9961a3fb96a",
+            "input": [
+                "@B",
+                "@G",
+                "@flowInput.timeout"
+            ],
+            "batch": [
+                {
+                    "taskId": "D:eval-alg:d5c7ce6c-b8d9-4631-b9cb-95d25b268f06",
+                    "input": [
+                        1
+                    ],
+                    "status": "creating",
+                    "batchIndex": 1
+                },
+                {
+                    "taskId": "D:eval-alg:8c36cd08-a440-46c7-bc8f-57a477b3a4da",
+                    "input": [
+                        2
+                    ],
+                    "status": "creating",
+                    "batchIndex": 2
+                },
+                {
+                    "taskId": "D:eval-alg:04cad066-895a-4daf-8969-8d06a1b9970f",
+                    "input": [
+                        3
+                    ],
+                    "status": "creating",
+                    "batchIndex": 3
+                },
+                {
+                    "taskId": "D:eval-alg:7d604d71-c060-4500-a62b-7f7a44d7b781",
+                    "input": [
+                        4
+                    ],
+                    "status": "creating",
+                    "batchIndex": 4
+                },
+                {
+                    "taskId": "D:eval-alg:5603602b-30dc-4fca-b638-665a59f2d5b7",
+                    "input": [
+                        5
+                    ],
+                    "status": "creating",
+                    "batchIndex": 5
+                },
+                {
+                    "taskId": "D:eval-alg:7e2eafbb-19bd-400e-b5dc-21e8f3887335",
+                    "input": [
+                        6
+                    ],
+                    "status": "failed",
+                    "batchIndex": 6
+                },
+                {
+                    "taskId": "D:eval-alg:bea08ab0-5bb7-42a4-9ef5-b1d44da03231",
+                    "input": [
+                        7
+                    ],
+                    "status": "creating",
+                    "batchIndex": 7
+                },
+                {
+                    "taskId": "D:eval-alg:44ff009b-d0b9-45f3-8044-e9e6a1211ae3",
+                    "input": [
+                        8
+                    ],
+                    "status": "creating",
+                    "batchIndex": 8
+                },
+                {
+                    "taskId": "D:eval-alg:577eb6ef-306e-49b6-8bd7-e0d9477b8d9a",
+                    "input": [
+                        9
+                    ],
+                    "status": "active",
+                    "batchIndex": 9
+                },
+                {
+                    "taskId": "D:eval-alg:df3b13cc-1a08-422e-bb5c-426082fedbf5",
+                    "input": [
+                        10
+                    ],
+                    "status": "creating",
+                    "batchIndex": 10
+                }
+            ],
+            "status": "preschedule",
+            "nodeName": "D",
+            "algorithmName": "eval-alg"
+        },
+        {
+            "input": [
+                "@B",
+                "@C",
+                "@D",
+                "@flowInput.timeout"
+            ],
+            "status": "creating",
+            "nodeName": "E",
+            "algorithmName": "eval-alg"
+        },
+        {
+            "input": [
+                "@E",
+                "@flowInput.timeout"
+            ],
+            "status": "creating",
+            "nodeName": "F",
+            "algorithmName": "eval-alg"
+        },
+        {
+            "taskId": "G:eval-alg:e694cdd6-68c0-4190-a8ce-6d0845a020bc",
+            "input": [
+                1,
+                {
+                    "path": "local-hkube/raw-DAG:ad703972-9832-4066-8234-dc8b65ea4c7d/raw-DAG:ad703972-9832-4066-8234-dc8b65ea4c7d"
+                }
+            ],
+            "status": "creating",
+            "nodeName": "G",
+            "algorithmName": "eval-alg"
+        }
+    ]
+}

@@ -2,24 +2,18 @@ const { Factory } = require('@hkube/redis-utils');
 const pathLib = require('path');
 const logger = require('@hkube/logger');
 const components = require('../consts/componentNames');
-
-const PREFIX_GRAPH_PATH = 'pipeline-driver/graph';
-const PREFIX_NODES_GRAPH_PATH = 'pipeline-driver/nodes-graph';
+const PREFIX_GRAPH_PATH = 'hkube:pipeline:graph';
 let log;
 
 class RedisAdapter {
     constructor() {
-        this._isInit = false;
         this._client = null;
     }
 
     async init(options) {
         log = logger.GetLogFromContainer();
-        if (!this._isInit) {
-            this._client = Factory.getClient(options.redis);
-            this._isInit = true;
-            log.info('redis initiated', { component: components.REDIS_PERSISTENT });
-        }
+        this._client = Factory.getClient(options.redis);
+        log.info('redis initiated', { component: components.REDIS_PERSISTENT });
     }
 
     updateGraph(options) {
@@ -27,19 +21,9 @@ class RedisAdapter {
         return this._set(path, options.data);
     }
 
-    getNodesGraph(options) {
-        const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, options.jobId);
+    getGraph(options) {
+        const path = pathLib.join('/', PREFIX_GRAPH_PATH, options.jobId);
         return this._get(path);
-    }
-
-    updateDriverGraph(options) {
-        const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, options.jobId);
-        return this._set(path, options.data);
-    }
-
-    deleteDriverGraph(options) {
-        const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, options.jobId);
-        return this._del(path);
     }
 
     _set(path, options) {
@@ -60,17 +44,6 @@ class RedisAdapter {
                     return reject(err);
                 }
                 return resolve(this._tryParseJSON(res));
-            });
-        });
-    }
-
-    _del(path) {
-        return new Promise((resolve, reject) => {
-            this._client.del(path, (err) => {
-                if (err) {
-                    return reject(err);
-                }
-                return resolve(true);
             });
         });
     }

@@ -89,3 +89,9 @@
   $ref: ./versions/algorithms_name_image.yaml
 /versions/algorithms/apply:
   $ref: ./versions/apply.yaml
+
+# graph
+/graph/raw/{jobId}:
+  $ref: ./graph/raw.yaml
+/graph/parsed/{jobId}/nodes/{nodeName}:
+  $ref: ./graph/parsed.yaml
