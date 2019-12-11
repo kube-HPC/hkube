@@ -6,7 +6,7 @@ const graph = require('./mocks/graph.json');
 const { request } = require('./utils');
 let restUrl;
 
-describe.only('Graph', () => {
+describe('Graph', () => {
     before(async () => {
         restUrl = global.testParams.restUrl;
         internalUrl = global.testParams.internalUrl;
@@ -68,8 +68,9 @@ describe.only('Graph', () => {
             expect(response.body.error.message).to.equal('graph no_such_id Not Found');
         });
         it('should throw node Not Found', async () => {
+            const qs = querystring.stringify({ node: 'no_such_id' });
             const options = {
-                uri: `${restPath}/${graph.jobId}/no_such_id`,
+                uri: `${restPath}/${graph.jobId}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
