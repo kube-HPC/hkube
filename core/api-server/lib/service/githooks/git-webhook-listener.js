@@ -14,7 +14,11 @@ class GitWebhookListener {
         if (!algorithms.length) {
             throw new ResourceNotFoundError('url', gitDetails.repository.url);
         }
-        return Promise.all(algorithms.map(a => this._storeBuildData({ ...a, gitRepository: { ...a.gitRepository.repository, commit: gitDetails.commit } })));
+        return Promise.all(algorithms.map(a => this._storeBuildData({
+            ...a,
+            gitRepository: { ...a.gitRepository.repository, commit: gitDetails.commit },
+            algorithmImage: null
+        })));
     }
 
     async _checkRegistration({ url, branchName }) {
