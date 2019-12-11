@@ -20,7 +20,7 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
-const createKindsSpec = ({ boardId, log_dir, versions, registry, clusterOptions, workerEnv, options }) => {
+const createKindsSpec = ({ boardId, logDir, versions, registry, clusterOptions, workerEnv }) => {
     if (!boardId) {
         const msg = 'Unable to create deployment spec. boardId is required';
         log.error(msg, { component });
@@ -34,7 +34,7 @@ const createKindsSpec = ({ boardId, log_dir, versions, registry, clusterOptions,
     deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { S3_ENDPOINT: '40.69.222.75:30999' });
     deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { aws_access_key_id: 'AKIAIOSFODNN7EXAMPLE' });
     deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { aws_secret_access_key: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY' });
-    deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { log_dir });
+    deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { logDir });
     deploymentSpec = applyImage(deploymentSpec, CONTAINERS.TENSORBOARD, versions, registry);
     deploymentSpec = applyBoardId(deploymentSpec, boardId, CONTAINERS.TENSORBOARD);
     deploymentSpec = applyStorage(deploymentSpec, 's3', CONTAINERS.TENSORBOARD, 'algorithm-operator-configmap');

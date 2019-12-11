@@ -1,7 +1,7 @@
 const etcd = require('../helpers/etcd');
 const { createKindsSpec } = require('../deployments/tensorboard');
 const kubernetes = require('../helpers/kubernetes');
-const { normalizeBoardDeployments: normalizeBoardDeployments, normalizeSecret } = require('./normalize');
+const { normalizeBoardDeployments, normalizeSecret } = require('./normalize');
 
 const STATUS = {
     RUNNING: 'running',
@@ -22,7 +22,7 @@ const reconcile = async ({ boards, jobs, secret, versions, registry, clusterOpti
     const stopped = boards.filter(b => b.status === STATUS.STOPPED);
     const added = pending.filter(a => !normJobs.find(d => d.boardId === a.boardId));
     const removed = normJobs.filter(a => stopped.find(d => d.boardId === a.boardId));
-    await Promise.all(added.map(a => _createBoardJob({ boardId: a.boardId, log_dir: a.log_dir, secret: normSecret, versions, registry, clusterOptions, options })));
+    await Promise.all(added.map(a => _createBoardJob({ boardId: a.boardId, logDir: a.logDir, secret: normSecret, versions, registry, clusterOptions, options })));
     await Promise.all(removed.map(a => kubernetes.deleteExpoesedJob(a.name, 'board')));
 };
 
