@@ -141,6 +141,7 @@ class TaskRunner extends EventEmitter {
         this._job = job;
         this._jobId = job.data.jobId;
         this._jobStatus = DriverStates.ACTIVE;
+        this._driverStatus = DriverStates.ACTIVE;
         log.info(`pipeline started ${this._jobId}`, { component, jobId: this._jobId });
 
         const jobStatus = await this._stateManager.watchJobStatus({ jobId: this._jobId });
@@ -152,6 +153,8 @@ class TaskRunner extends EventEmitter {
         if (!pipeline) {
             throw new PipelineNotFound(this._jobId);
         }
+
+        await this._progressStatus({ status: DriverStates.ACTIVE });
 
         this.pipeline = pipeline;
         this._nodes = new NodesMap(this.pipeline);
@@ -165,17 +168,14 @@ class TaskRunner extends EventEmitter {
 
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
 
-        const graph = await graphStore.getGraph({ jobId: this._jobId });
-        if (graph) {
+        if (jobStatus.status !== DriverStates.PENDING) {
+            const graph = await graphStore.getGraph({ jobId: this._jobId });
             log.info(`starting recover process ${this._jobId}`, { component });
-            this._driverStatus = DriverStates.RECOVERING;
+            this._recoverGraph(graph);
             await this._watchTasks();
-            await this._recoverPipeline(graph);
-            await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.RECOVERING });
+            await this._recoverPipeline();
         }
         else {
-            this._driverStatus = DriverStates.ACTIVE;
-            await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
             await this._watchTasks();
             this._runEntryNodes();
         }
@@ -219,7 +219,7 @@ class TaskRunner extends EventEmitter {
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
     }
 
-    async _recoverPipeline(graph) {
+    async _recoverGraph(graph) {
         graph.edges.forEach((e) => {
             this._nodes._graph.setEdge(e.from, e.to, e.edges);
         });
@@ -227,6 +227,9 @@ class TaskRunner extends EventEmitter {
             n.batch = n.batch || [];
             this._nodes._graph.setNode(n.nodeName, n);
         });
+    }
+
+    async _recoverPipeline() {
         if (this._nodes.isAllNodesCompleted()) {
             this.stop();
         }
@@ -304,7 +307,7 @@ class TaskRunner extends EventEmitter {
             await this._progress.error({ jobId: this._jobId, pipeline: this.pipeline.name, status, error, nodeName });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status, error, nodeName });
+            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status, error, nodeName, level: logger.Levels.ERROR.name });
         }
     }
 
@@ -313,7 +316,7 @@ class TaskRunner extends EventEmitter {
             await this._progress.info({ jobId: this._jobId, pipeline: this.pipeline.name, status });
         }
         else {
-            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status });
+            await this._stateManager.setJobStatus({ jobId: this._jobId, pipeline: this.pipeline.name, status, level: logger.Levels.INFO.name });
         }
     }
 
@@ -569,6 +572,7 @@ class TaskRunner extends EventEmitter {
     }
 
     _createJob(options, batch) {
+        console.log(`---- ready ${options.node.nodeName} -----`)
         let tasks = [];
         if (batch) {
             tasks = batch.map(b => ({ taskId: b.taskId, status: b.status, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));

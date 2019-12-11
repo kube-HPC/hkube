@@ -293,7 +293,7 @@ describe('Test', function () {
             expect(spy.calledOnce).to.equal(true);
         });
         it.only('should recover big pipeline', async function () {
-            this.timeout(10000);
+            this.timeout(50000);
             const jobId = `jobid-recovery-${uuidv4()}`;
             const job = {
                 data: { jobId },
@@ -302,7 +302,6 @@ describe('Test', function () {
             const options = {
                 type: 'eval-alg'
             }
-
             const workerStub = new WorkerStub(options, true);
             const pipeline = pipelines.find(p => p.name === 'randomPipeStored');
             const taskRunner = new TaskRunner(config);
@@ -317,16 +316,17 @@ describe('Test', function () {
             await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
             await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
 
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'active' });
             await stateManager.setExecution({ jobId, ...pipeline });
             await graphStore.start(jobId, nodesMap);
             await taskRunner.start(job);
 
             await delay(1000);
             expect(taskRunner._active).to.equal(true);
-            expect(taskRunner._driverStatus).to.equal('recovering');
+            expect(taskRunner._driverStatus).to.equal('active');
             expect(taskRunner._jobStatus).to.equal('active');
 
-            await delay(5000);
+            await delay(10000);
             expect(taskRunner._active).to.equal(false);
             expect(taskRunner._driverStatus).to.equal('ready');
             expect(taskRunner._jobStatus).to.equal('completed');
