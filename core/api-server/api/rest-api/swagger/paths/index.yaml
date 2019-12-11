@@ -93,5 +93,5 @@
 # graph
 /graph/raw/{jobId}:
   $ref: ./graph/raw.yaml
-/graph/parsed/{jobId}/nodes/{nodeName}:
+/graph/parsed/{jobId}:
   $ref: ./graph/parsed.yaml

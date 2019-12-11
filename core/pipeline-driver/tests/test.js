@@ -292,7 +292,7 @@ describe('Test', function () {
 
             expect(spy.calledOnce).to.equal(true);
         });
-        it('should recover big pipeline', async function () {
+        it.only('should recover big pipeline', async function () {
             this.timeout(10000);
             const jobId = `jobid-recovery-${uuidv4()}`;
             const job = {

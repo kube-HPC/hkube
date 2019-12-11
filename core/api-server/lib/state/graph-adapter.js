@@ -11,12 +11,10 @@ class GraphAdapter {
         this._client = Factory.getClient(options.redis);
     }
 
-    async getGraph(options) {
-        const { key, shouldParse } = options;
+    getGraph(options) {
+        const { key } = options;
         const path = pathLib.join('/', PREFIX_NODES_GRAPH_PATH, key);
-        const graph = await this._get(path);
-        const result = shouldParse ? JSON.parse(graph) : graph;
-        return result;
+        return this._get(path);
     }
 
     setGraph(options) {

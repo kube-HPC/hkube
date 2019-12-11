@@ -16,15 +16,17 @@ class AlgorithmVersions {
 
     async getGraphParsed(options) {
         validator.validateGraphQuery(options);
-        const { jobId, nodeName, sort, order, from, to } = options;
-        const graph = await graphAdapter.getGraph({ key: jobId, shouldParse: true });
+        const { jobId, node, sort, order, from, to } = options;
+        const json = await graphAdapter.getGraph({ key: jobId });
+        const graph = JSON.parse(json);
         if (!graph) {
             throw new ResourceNotFoundError('graph', jobId);
         }
-        if (nodeName) {
-            graph.nodes = graph.nodes.filter(n => n.nodeName === nodeName);
+        if (node) {
+            graph.nodes = graph.nodes.filter(n => n.nodeName === node);
+            graph.edges = graph.edges.filter(n => n.from === node || n.to === node);
             if (graph.nodes.length === 0) {
-                throw new ResourceNotFoundError('node', nodeName);
+                throw new ResourceNotFoundError('node', node);
             }
         }
         graph.nodes = graph.nodes.map((n) => {

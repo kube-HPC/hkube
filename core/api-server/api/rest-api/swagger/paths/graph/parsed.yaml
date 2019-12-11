@@ -10,20 +10,22 @@ get:
       required: true
       schema:
         type: string
-    - name: nodeName
-      in: path
+    - name: node
+      in: query
       description: the node name
-      required: true
+      required: false
       schema:
         type: string
     - name: sort
       in: query
       description: sort by status, error or any other property
+      required: false
       schema:
         type: string
     - name: order
       in: query
       description: order by asc or desc
+      required: false
       schema:
         type: string
     - name: from
@@ -52,7 +54,7 @@ get:
           schema:
             $ref: "#/components/schemas/error"
     "404":
-      description: build Not Found
+      description: jobId Not Found
       content:
         application/json:
           schema:

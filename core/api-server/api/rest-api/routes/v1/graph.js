@@ -12,10 +12,10 @@ const routes = () => {
         res.send(response);
         next();
     });
-    router.all('/parsed/:jobId?/:nodeName?', methods(['GET']), logger(), async (req, res, next) => {
-        const { jobId, nodeName } = req.params;
-        const { sort, order, from, to } = req.query;
-        const response = await graph.getGraphParsed({ jobId, nodeName, sort, order, from, to });
+    router.all('/parsed/:jobId?/:node?', methods(['GET']), logger(), async (req, res, next) => {
+        const { jobId } = req.params;
+        const { node, sort, order, from, to } = req.query;
+        const response = await graph.getGraphParsed({ jobId, node, sort, order, from, to });
         res.json(response);
         next();
     });

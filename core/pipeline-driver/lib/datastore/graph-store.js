@@ -6,10 +6,7 @@ const flatten = require('flat');
 const logger = require('@hkube/logger');
 const States = require('../state/NodeStates');
 const RedisStorage = require('./redis-storage-adapter');
-const { groupTypes } = require('../consts/graph-storage-types');
 const components = require('../consts/componentNames');
-
-const { EDGE } = groupTypes;
 const INTERVAL = 4000;
 let log;
 
@@ -78,11 +75,10 @@ class GraphStore {
     }
 
     _formatEdge(e) {
-        const { type } = e.value[0];
         const edge = {
             from: e.v,
             to: e.w,
-            group: type
+            edges: e.value
         };
         return edge;
     }
@@ -90,13 +86,13 @@ class GraphStore {
     _filterData(graph) {
         return {
             edges: graph.edges.map(e => this._formatEdge(e)),
-            nodes: graph.nodes.map(n => this._handleNode(n.value))
+            nodes: graph.nodes.map(n => this._formatNode(n.value))
         };
     }
 
-    _handleNode(node) {
+    _formatNode(node) {
         if (node.batch.length === 0) {
-            return this._mapTask(node);
+            return this._handleSingle(node);
         }
         return this._handleBatch(node);
     }
@@ -110,8 +106,6 @@ class GraphStore {
             status: task.status,
             error: task.error,
             prevErrors: task.prevErrors,
-            nodeName: task.nodeName,
-            algorithmName: task.algorithmName,
             retries: task.retries,
             batchIndex: task.batchIndex,
             startTime: task.startTime,
@@ -119,18 +113,23 @@ class GraphStore {
         };
     }
 
-    _handleSingle(node) {
-        const calculatedNode = this._mapTask(node);
-        return calculatedNode;
+    _handleSingle(n) {
+        const node = {
+            nodeName: n.nodeName,
+            algorithmName: n.algorithmName,
+            ...this._mapTask(n)
+        };
+        return node;
     }
 
-    _handleBatch(node) {
-        const calculatedNode = {
-            nodeName: node.nodeName,
-            algorithmName: node.algorithmName,
-            batch: node.batch.map(b => this._mapTask(b))
+    _handleBatch(n) {
+        const node = {
+            nodeName: n.nodeName,
+            algorithmName: n.algorithmName,
+            batch: n.batch.map(b => this._mapTask(b)),
+            batchInfo: this._batchInfo(n.batch)
         };
-        return calculatedNode;
+        return node;
     }
 
     _parseInput(node) {
@@ -150,45 +149,29 @@ class GraphStore {
         return result;
     }
 
-    _batchStatusCounter(node) {
-        const batchState = {
+    _batchInfo(batch) {
+        const batchInfo = {
             idle: 0,
             completed: 0,
             errors: 0,
-            running: 0
+            running: 0,
+            total: batch.length
         };
-
-        node.batch.forEach((b) => {
-            const { STATUS } = groupTypes;
-            const status = this._singleStatus(b.status);
+        batch.forEach((b) => {
             if (b.error) {
-                batchState.errors += 1;
+                batchInfo.errors += 1;
             }
-            if (status === STATUS.COMPLETED) {
-                batchState.completed += 1;
+            if (b.status === States.SUCCEED || b.status === States.FAILED) {
+                batchInfo.completed += 1;
             }
-            else if (status === STATUS.NOT_STARTED) {
-                batchState.idle += 1;
+            else if (b.status === States.CREATING || b.status === States.PENDING) {
+                batchInfo.idle += 1;
             }
             else {
-                batchState.running += 1;
+                batchInfo.running += 1;
             }
         });
-        return batchState;
-    }
-
-    _singleStatus(s) {
-        const { STATUS } = groupTypes;
-        if (s === States.SKIPPED) {
-            return States.SKIPPED;
-        }
-        if (s === States.SUCCEED || s === States.FAILED) {
-            return STATUS.COMPLETED;
-        }
-        if (s === States.CREATING || s === States.PENDING) {
-            return STATUS.NOT_STARTED;
-        }
-        return STATUS.RUNNING;
+        return batchInfo;
     }
 }
 
