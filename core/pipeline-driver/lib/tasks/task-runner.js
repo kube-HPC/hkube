@@ -170,6 +170,9 @@ class TaskRunner extends EventEmitter {
 
         if (jobStatus.status !== DriverStates.PENDING) {
             const graph = await graphStore.getGraph({ jobId: this._jobId });
+            if (!graph) {
+                throw new Error('unable to find graph during recover process');
+            }
             log.info(`starting recover process ${this._jobId}`, { component });
             this._recoverGraph(graph);
             await this._watchTasks();
@@ -219,7 +222,7 @@ class TaskRunner extends EventEmitter {
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
     }
 
-    async _recoverGraph(graph) {
+    _recoverGraph(graph) {
         graph.edges.forEach((e) => {
             this._nodes._graph.setEdge(e.from, e.to, e.edges);
         });
@@ -485,7 +488,7 @@ class TaskRunner extends EventEmitter {
                     status: NodeStates.CREATING,
                     batchIndex: (ind + 1),
                     input: inp.input,
-                    storage: Object.keys(inp.storage).length > 0 ? inp.storage : undefined
+                    storage: inp.storage
                 });
                 this._nodes.addBatch(batch);
                 this._setTaskState(batch);

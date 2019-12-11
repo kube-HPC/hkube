@@ -113,5 +113,15 @@ describe('Graph', () => {
             const batch = response.body.nodes[0].batch;
             expect(batch[0].batchIndex).to.equal(graph.nodes[0].batch[batch.length - 1].batchIndex);
         });
+        it('should success get last five graph batch by batchIndex', async () => {
+            const qs = querystring.stringify({ sort: 'batchIndex', order: 'desc', from: 0, to: 5 });
+            const options = {
+                uri: `${restPath}/${graph.jobId}?${qs}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            const batch = response.body.nodes[0].batch;
+            expect(batch[0].batchIndex).to.equal(graph.nodes[0].batch[batch.length - 1].batchIndex);
+        });
     });
 });

@@ -32,8 +32,8 @@ class AlgorithmVersions {
         graph.nodes = graph.nodes.map((n) => {
             let batch;
             if (n.batch) {
-                batch = n.batch.slice(from, to);
-                batch = orderBy(batch, sort, order);
+                batch = orderBy(n.batch, sort, order);
+                batch = batch.slice(from, to);
             }
             return { ...n, batch };
         });
