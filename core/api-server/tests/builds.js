@@ -13,6 +13,29 @@ describe('Builds', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
     });
+
+    describe('webhhoks/gitlab', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/builds/webhook/gitlab`;
+        });
+
+
+
+
+        it.skip('should run simple gitlab push webhook', async () => {
+            console.log(`restPath=${restPath}`)
+            const options = {
+                uri: restPath,
+                body: gitlabSample,
+                method: 'POST'
+            };
+            const res = await request(options);
+            const body = res.body[0];
+            console.log(res)
+            expect(body).to.have.property('buildId');
+        })
+    });
     describe('status', () => {
         let restPath = null;
         before(() => {
@@ -325,20 +348,5 @@ describe('Builds', () => {
             expect(body).to.have.property('buildId');
         })
     });
-    describe('webhhoks/gitlab', () => {
-        let restPath = null;
-        before(() => {
-            restPath = `${restUrl}/builds/webhook/gitlab`;
-        });
-        it.skip('should run simple gitlab push webhook', async () => {
-            const options = {
-                uri: restPath,
-                body: gitlabSample,
-                method: 'POST'
-            };
-            const res = await request(options);
-            const body = res.body[0];
-            expect(body).to.have.property('buildId');
-        })
-    });
+
 });
