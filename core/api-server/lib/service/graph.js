@@ -3,7 +3,7 @@ const validator = require('../validation/api-validator');
 const graphAdapter = require('../state/graph-adapter');
 const { ResourceNotFoundError } = require('../errors');
 
-class AlgorithmVersions {
+class GraphService {
     async getGraphRaw(options) {
         validator.validateJobID(options);
         const { jobId } = options;
@@ -41,4 +41,4 @@ class AlgorithmVersions {
     }
 }
 
-module.exports = new AlgorithmVersions();
+module.exports = new GraphService();
