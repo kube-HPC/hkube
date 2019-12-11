@@ -53,21 +53,12 @@ class Worker {
 
     _registerToEtcdEvents() {
         discovery.on(JobStatus.COMPLETED, (data) => {
-            if (stateManager.state !== workerStates.working) {
-                return;
-            }
             this._stopPipeline({ status: data.status });
         });
         discovery.on(JobStatus.FAILED, (data) => {
-            if (stateManager.state !== workerStates.working) {
-                return;
-            }
             this._stopPipeline({ status: data.status });
         });
         discovery.on(JobStatus.STOPPED, (data) => {
-            if (stateManager.state !== workerStates.working) {
-                return;
-            }
             this._stopPipeline({ status: data.status, reason: data.reason });
         });
         discovery.on(workerCommands.coolDown, async () => {
@@ -113,6 +104,9 @@ class Worker {
     }
 
     async _stopPipeline({ status, reason }) {
+        if (stateManager.state !== workerStates.working) {
+            return;
+        }
         const { jobId } = jobConsumer.jobData;
         log.warning(`got status: ${status}`, { component });
         await this._stopAllPipelinesAndExecutions({ jobId, reason: `parent pipeline ${status}. ${reason || ''}` });
