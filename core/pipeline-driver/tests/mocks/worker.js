@@ -25,18 +25,17 @@ class WorkerStub {
         const consumer = new Consumer(setting);
         consumer.on('job', async (job) => {
             this._job = job;
-
             if (auto) {
-                const jobId = job.data.jobId;
+                const { jobId, nodeName } = job.data;
                 job.data.tasks.forEach(async (task) => {
                     const { status, taskId } = task;
                     if (status === 'preschedule') {
                         this._job.done();
                         return;
                     }
-                    await this._etcd.jobs.tasks.set({ jobId, taskId, status: 'active' });
+                    await this._etcd.jobs.tasks.set({ jobId, taskId, status: 'active', nodeName });
                     await delay(200);
-                    await this.done({ jobId, taskId, result: 42, status: 'succeed' });
+                    await this.done({ jobId, taskId, result: 42, status: 'succeed', nodeName });
                 })
             }
         });
@@ -44,8 +43,8 @@ class WorkerStub {
         this._etcd = new Etcd({ ...etcdOptions, serviceName });
     }
 
-    async done({ jobId, taskId, result, error, status }) {
-        await this._etcd.jobs.tasks.set({ jobId, taskId, result, error, status });
+    async done({ jobId, taskId, result, error, status, nodeName, batchIndex }) {
+        await this._etcd.jobs.tasks.set({ jobId, taskId, result, error, status, nodeName, batchIndex });
         this._job && this._job.done(error);
     }
 }

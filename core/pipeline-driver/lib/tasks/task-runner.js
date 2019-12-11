@@ -572,7 +572,6 @@ class TaskRunner extends EventEmitter {
     }
 
     _createJob(options, batch) {
-        console.log(`---- ready ${options.node.nodeName} -----`)
         let tasks = [];
         if (batch) {
             tasks = batch.map(b => ({ taskId: b.taskId, status: b.status, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
