@@ -33,7 +33,7 @@ class JobConsumer extends EventEmitter {
         });
         this.etcd.jobs.status.on('change', (data) => {
             const { status, jobId } = data;
-            if (!this._isValidJob({ status })) {
+            if (this._isCompletedState({ status })) {
                 this._removeInvalidJob({ jobId });
             }
         });
@@ -46,8 +46,8 @@ class JobConsumer extends EventEmitter {
         this._consumer.register({ job: { type: algorithmType, concurrency: options.consumer.concurrency } });
     }
 
-    _isValidJob({ status }) {
-        return !pipelineDoneStatus.includes(status);
+    _isCompletedState({ status }) {
+        return pipelineDoneStatus.includes(status);
     }
 
     _removeInvalidJob({ jobId }) {
@@ -59,7 +59,7 @@ class JobConsumer extends EventEmitter {
             const { jobId } = job.data;
             const data = await this.etcd.jobs.status.get({ jobId });
             log.info(`job arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component });
-            if (!this._isValidJob({ status: data.status })) {
+            if (this._isCompletedState({ status: data.status })) {
                 this._removeInvalidJob({ jobId });
             }
             else {

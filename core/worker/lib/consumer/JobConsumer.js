@@ -68,7 +68,7 @@ class JobConsumer extends EventEmitter {
             }
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await etcd.watch({ jobId: job.data.jobId });
-            if (watchState && !this._isValidJob({ status: watchState.status })) {
+            if (watchState && this._isCompletedState({ status: watchState.status })) {
                 await this._stopJob(job, watchState.status);
                 return;
             }
@@ -108,8 +108,8 @@ class JobConsumer extends EventEmitter {
         });
     }
 
-    _isValidJob({ status }) {
-        return !pipelineDoneStatus.includes(status);
+    _isCompletedState({ status }) {
+        return pipelineDoneStatus.includes(status);
     }
 
     _shouldNormalExit(options) {
