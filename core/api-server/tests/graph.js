@@ -121,7 +121,8 @@ describe('Graph', () => {
             };
             const response = await request(options);
             const batch = response.body.nodes[0].batch;
-            expect(batch[0].batchIndex).to.equal(graph.nodes[0].batch[batch.length - 1].batchIndex);
+            const gBatch = graph.nodes[0].batch;
+            expect(batch[0].batchIndex).to.equal(gBatch[gBatch.length - 1].batchIndex);
         });
     });
 });
