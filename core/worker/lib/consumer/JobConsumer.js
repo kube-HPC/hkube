@@ -353,6 +353,7 @@ class JobConsumer extends EventEmitter {
                 execId: this._job.data.execId,
                 nodeName: this._job.data.nodeName,
                 algorithmName: this._job.data.algorithmName,
+                batchIndex: this._batchIndex,
                 endTime: Date.now()
             }, storageResult);
 

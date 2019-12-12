@@ -20,3 +20,5 @@ algorithmName:
   $ref: ./algorithmName.yaml
 algorithmDelete:
   $ref: ./algorithmDelete.yaml
+graph:
+  $ref: ./graph.yaml

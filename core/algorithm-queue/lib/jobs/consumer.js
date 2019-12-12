@@ -80,7 +80,7 @@ class JobConsumer extends EventEmitter {
             acc[cur] = 0.00001;
             return acc;
         }, {});
-        const batchIndex = taskData.batchIndex || 1;
+        const batchIndex = taskData.batchIndex || 0;
         const entranceTime = Date.now();
         return {
             jobId,

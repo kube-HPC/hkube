@@ -58,6 +58,7 @@ describe('Test', function () {
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
                 await stateManager.setExecution({ jobId, ...pipeline });
+                await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -79,6 +80,7 @@ describe('Test', function () {
                 const result = 'test-result';
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
+                await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
                 await stateManager.setExecution({ jobId, ...pipeline });
                 await taskRunner.start(job)
                 await delay(500);
@@ -104,6 +106,7 @@ describe('Test', function () {
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
                 await stateManager.setExecution({ jobId, ...pipeline });
+                await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -128,6 +131,7 @@ describe('Test', function () {
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
                 await stateManager.setExecution({ jobId, ...pipeline });
+                await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -152,6 +156,7 @@ describe('Test', function () {
                 const workerStub = new WorkerStub(options);
                 const taskRunner = new TaskRunner(config);
                 await stateManager.setExecution({ jobId, ...pipeline });
+                await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
                 await taskRunner.start(job)
                 await delay(500);
                 const node = taskRunner._nodes.getNode('green');
@@ -173,6 +178,7 @@ describe('Test', function () {
                 const status = 'invalid';
                 const taskRunner = new TaskRunner(config);
                 await stateManager.setExecution({ jobId, ...pipeline });
+                await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
                 await taskRunner.start(job)
                 await delay(200);
                 const node = taskRunner._nodes.getNode('green');
@@ -226,6 +232,7 @@ describe('Test', function () {
             }
             const pipeline = pipelines.find(p => p.name === 'two-nodes');
             await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
             const res1 = await taskRunner.start(job);
             const res2 = await taskRunner.start(job);
 
@@ -240,6 +247,7 @@ describe('Test', function () {
             }
             const pipeline = pipelines[1];
             await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
             await taskRunner.start(job)
             expect(taskRunner._jobId).to.equal(jobId);
             expect(taskRunner._active).to.equal(true);
@@ -256,6 +264,7 @@ describe('Test', function () {
             const pipeline = pipelines.find(p => p.name === 'batch');
             const node = pipeline.nodes[0];
             await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
             await taskRunner.start(job);
 
             await delay(500);
@@ -282,6 +291,7 @@ describe('Test', function () {
             nodesMap.setNode(node1);
             nodesMap.setNode(node2);
             await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'active' });
             await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
             await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
 
@@ -302,7 +312,6 @@ describe('Test', function () {
             const options = {
                 type: 'eval-alg'
             }
-
             const workerStub = new WorkerStub(options, true);
             const pipeline = pipelines.find(p => p.name === 'randomPipeStored');
             const taskRunner = new TaskRunner(config);
@@ -317,13 +326,14 @@ describe('Test', function () {
             await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
             await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
 
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'active' });
             await stateManager.setExecution({ jobId, ...pipeline });
             await graphStore.start(jobId, nodesMap);
             await taskRunner.start(job);
 
             await delay(1000);
             expect(taskRunner._active).to.equal(true);
-            expect(taskRunner._driverStatus).to.equal('recovering');
+            expect(taskRunner._driverStatus).to.equal('active');
             expect(taskRunner._jobStatus).to.equal('active');
 
             await delay(5000);
@@ -340,6 +350,7 @@ describe('Test', function () {
             const spy = sinon.spy(taskRunner, "stop");
             const pipeline = pipelines.find(p => p.name === 'one-node');
             await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
             await taskRunner.start(job);
             const node = taskRunner._nodes.getNode('green');
             const taskId = node.taskId;
@@ -359,6 +370,7 @@ describe('Test', function () {
             const spy = sinon.spy(taskRunner, "stop");
             const pipeline = pipelines.find(p => p.name === 'one-node');
             await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
             await taskRunner.start(job);
             const node = taskRunner._nodes.getNode('green');
             const taskId = node.taskId;
@@ -391,7 +403,8 @@ describe('Test', function () {
             }
             const pipeline = pipelines.find(p => p.name === 'simple-wait-any');
             await stateManager.setExecution({ jobId, ...pipeline });
-            const res = await taskRunner.start(job);
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await taskRunner.start(job);
             await delay(300);
             const options = { type: 'test-job' };
             const workerStub = new WorkerStub(options);
@@ -400,8 +413,8 @@ describe('Test', function () {
             const green = taskRunner._nodes.getNode('green');
             const yellow = taskRunner._nodes.getNode('yellow');
             const black = taskRunner._nodes.getNode('black');
-            await workerStub.done({ jobId, taskId: green.batch[0].taskId, status, result });
-            await workerStub.done({ jobId, taskId: yellow.batch[0].taskId, status, result });
+            await workerStub.done({ jobId, taskId: green.batch[0].taskId, status, result, nodeName: 'green', batchIndex: green.batch[0].batchIndex });
+            await workerStub.done({ jobId, taskId: yellow.batch[0].taskId, status, result, nodeName: 'yellow', batchIndex: yellow.batch[0].batchIndex });
 
             await delay(300);
 
