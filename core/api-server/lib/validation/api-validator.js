@@ -26,9 +26,12 @@ class ApiValidator {
         validatorInstance.addFormat('cron', this._validateCron);
         validatorInstance.addFormat('pipeline-name', this._validatePipelineName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
+        validatorInstance.addFormat('algorithm-image', this._validateAlgorithmImage);
         validatorInstance.addFormat('algorithm-memory', this._validateMemory);
         formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
         formatMessages.set('algorithm-name', validationMessages.ALGORITHM_NAME_FORMAT);
+        formatMessages.set('algorithm-image', validationMessages.ALGORITHM_IMAGE_FORMAT);
+
         Object.entries(this._definitions).forEach(([k, v]) => {
             validatorInstance.addSchema(v, `#/components/schemas/${k}`);
         });
@@ -237,17 +240,15 @@ class ApiValidator {
     }
 
     _validatePipelineName(name) {
-        if (!regex.PIPELINE_NAME_REGEX.test(name)) {
-            return false;
-        }
-        return true;
+        return regex.PIPELINE_NAME_REGEX.test(name);
     }
 
     _validateAlgorithmName(name) {
-        if (!regex.ALGORITHM_NAME_REGEX.test(name)) {
-            return false;
-        }
-        return true;
+        return regex.ALGORITHM_NAME_REGEX.test(name);
+    }
+
+    _validateAlgorithmImage(image) {
+        return regex.ALGORITHM_IMAGE_REGEX.test(image);
     }
 
     _validateMemory(memory) {
@@ -311,7 +312,6 @@ class ApiValidator {
         };
         return errorsTextWapper;
     }
-
 
     getCustomMessage(e) {
         if (e.keyword === 'format') {
