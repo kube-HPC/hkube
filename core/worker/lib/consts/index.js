@@ -1,6 +1,6 @@
 const Components = require('./component-names');
 const EventMessages = require('./etcd-messages');
-const Status = require('./job-status');
+const JobStatus = require('./job-status');
 const ApiServerPostTypes = require('./post-subpipeline-type');
 const stateEvents = require('./state-events');
 const jobEvents = require('./job-events');
@@ -12,7 +12,7 @@ const metricsNames = require('./metrics-names');
 module.exports = {
     Components,
     EventMessages,
-    Status,
+    JobStatus,
     ApiServerPostTypes,
     stateEvents,
     jobEvents,
