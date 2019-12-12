@@ -24,7 +24,8 @@ class GitDataAdapter {
     }
 
     async _githubInfo(payload) {
-        const gitRepository = this._adaptRepoUrl(payload.gitRepository);
+        const repoData = payload.gitRepository.repository ? payload.gitRepository.repository : payload.gitRepository;
+        const gitRepository = this._adaptRepoUrl(repoData);
         const { webUrl, branchName, token } = gitRepository;
         const lastCommit = await gitService.getGithubLastCommit({ url: webUrl, branchName, token });
 
@@ -65,9 +66,11 @@ class GitDataAdapter {
         const webUrl = url.endsWith('.git') ? url.slice(0, -4) : url;
         const cloneUrl = !url.endsWith('.git') ? `${url}.git` : url;
         return {
-            ...gitRepository,
+            branchName: gitRepository.branchName,
+            token: gitRepository.token,
             webUrl,
-            cloneUrl
+            cloneUrl,
+            url
         };
     }
 
