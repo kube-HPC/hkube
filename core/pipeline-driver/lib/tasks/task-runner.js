@@ -205,9 +205,6 @@ class TaskRunner extends EventEmitter {
         if (error || storageError) {
             status = DriverStates.FAILED;
             error = storageError || error;
-            if (err && err.batchTolerance) {
-                await this._stateManager.stopJob({ jobId: this._jobId });
-            }
         }
         else {
             status = DriverStates.COMPLETED;
