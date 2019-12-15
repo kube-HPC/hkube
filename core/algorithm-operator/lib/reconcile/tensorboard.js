@@ -2,7 +2,7 @@ const etcd = require('../helpers/etcd');
 const { createKindsSpec } = require('../deployments/tensorboard');
 const kubernetes = require('../helpers/kubernetes');
 const { normalizeBoardDeployments, normalizeSecret } = require('./normalize');
-const deploynetType = require('../consts/DeploymentTypes').BOARD;
+const deploymentType = require('../consts/DeploymentTypes').BOARD;
 
 const STATUS = {
     RUNNING: 'running',
@@ -12,7 +12,7 @@ const STATUS = {
 
 const _createBoardDeploynent = async (jobDetails) => {
     const { deploymentSpec, serviceSpec, ingressSpec } = createKindsSpec(jobDetails);
-    await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: jobDetails.boardId }, deploynetType);
+    await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: jobDetails.boardId }, deploymentType);
     await etcd.setTensorboard({ boardId: jobDetails.boardId, timestamp: Date.now(), progress: 5, status: STATUS.RUNNING });
 };
 
@@ -24,7 +24,7 @@ const reconcile = async ({ boards, deployments, secret, versions, registry, clus
     const added = pending.filter(a => !normDeploynets.find(d => d.boardId === a.boardId));
     const removed = normDeploynets.filter(a => stopped.find(d => d.boardId === a.boardId));
     await Promise.all(added.map(a => _createBoardDeploynent({ boardId: a.boardId, logDir: a.logDir, secret: normSecret, versions, registry, clusterOptions, options })));
-    await Promise.all(removed.map(a => kubernetes.deleteExpoesedDeploymet(a.boardId, deploynetType)));
+    await Promise.all(removed.map(a => kubernetes.deleteExpoesedDeploymet(a.boardId, deploymentType)));
 };
 
 module.exports = {
