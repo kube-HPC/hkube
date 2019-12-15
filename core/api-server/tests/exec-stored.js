@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const validationMessages = require('../lib/consts/validationMessages.js');
 const { request } = require('./utils');
 let restUrl;
 
@@ -87,7 +88,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
+            expect(response.body.error.message).to.equal(validationMessages.PIPELINE_NAME_FORMAT);
         });
         it('should succeed and return job id', async () => {
             const options = {

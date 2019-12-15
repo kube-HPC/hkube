@@ -6,12 +6,13 @@ const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components, Status } = require('../consts');
+const { metricsNames, Components, JobStatus } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
 const formatter = require('../helpers/formatters');
 
+const pipelineDoneStatus = [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
 let log;
@@ -60,15 +61,15 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
         this._jobProvider.on('job', async (job) => {
-            if (job.data.status === Status.PRESCHEDULE) {
+            if (job.data.status === JobStatus.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
                 job.done();
                 return;
             }
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await etcd.watch({ jobId: job.data.jobId });
-            if (watchState && watchState.status === constants.WATCH_STATE.STOPPED) {
-                await this._stopJob(job);
+            if (watchState && this._isCompletedState({ status: watchState.status })) {
+                await this._stopJob(job, watchState.status);
                 return;
             }
 
@@ -107,6 +108,10 @@ class JobConsumer extends EventEmitter {
         });
     }
 
+    _isCompletedState({ status }) {
+        return pipelineDoneStatus.includes(status);
+    }
+
     _shouldNormalExit(options) {
         const { shouldCompleteJob } = options || {};
         return shouldCompleteJob === undefined ? true : shouldCompleteJob;
@@ -135,9 +140,9 @@ class JobConsumer extends EventEmitter {
         this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
     }
 
-    async _stopJob(job) {
+    async _stopJob(job, status) {
         await etcd.unwatch({ jobId: job.data.jobId });
-        log.info(`job ${job.data.jobId} already stopped!`);
+        log.info(`job ${job.data.jobId} already in ${status} status`);
         job.done();
     }
 
@@ -348,6 +353,7 @@ class JobConsumer extends EventEmitter {
                 execId: this._job.data.execId,
                 nodeName: this._job.data.nodeName,
                 algorithmName: this._job.data.algorithmName,
+                batchIndex: this._batchIndex,
                 endTime: Date.now()
             }, storageResult);
 

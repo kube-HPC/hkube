@@ -1,10 +1,11 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
+const validationMessages = require('../lib/consts/validationMessages.js');
 const pipelines = require('./mocks/pipelines.json');
 const { cachingError } = require('./mocks/http-response.json');
 const { main } = require('@hkube/config').load();
-const nock = require('nock')
+const nock = require('nock');
 let restUrl;
 
 describe('Executions', () => {
@@ -24,9 +25,9 @@ describe('Executions', () => {
             jobId = response.body.jobId;
             const { protocol, host, port, prefix } = main.cachingServer;
             const cachingServiceURI = `${protocol}://${host}:${port}`;
-            let pathToJob = `/${prefix}?jobId=${jobId}&&nodeName=black-alg`;
+            let pathToJob = `/${prefix}?jobId=${jobId}&nodeName=black-alg`;
             nock(cachingServiceURI).get(pathToJob).reply(200, pipeline);
-            pathToJob = `/${prefix}?jobId=stam-job&&nodeName=stam-alg`;
+            pathToJob = `/${prefix}?jobId=stam-job&nodeName=stam-alg`;
             nock(cachingServiceURI).get(pathToJob).reply(500, cachingError);
 
         });
@@ -277,7 +278,7 @@ describe('Executions', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
+                expect(response.body.error.message).to.equal(validationMessages.PIPELINE_NAME_FORMAT);
             });
             it(`should throw validation error pipeline name start with ${v}`, async () => {
                 const options = {
@@ -296,7 +297,7 @@ describe('Executions', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('pipeline name must contain only alphanumeric, dash, dot or underscore');
+                expect(response.body.error.message).to.equal(validationMessages.PIPELINE_NAME_FORMAT);
             });
         });
         it('should succeed and return job id', async () => {

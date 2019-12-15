@@ -11,6 +11,7 @@ properties:
   algorithmImage:
     type: string
     description: image name as in the docker registry
+    format: algorithm-image
   cpu:
     type: number
     default: 0.1

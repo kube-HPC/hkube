@@ -3,6 +3,7 @@ const fse = require('fs-extra');
 const { uuid: uuidv4 } = require('../lib/utils');
 const HttpStatus = require('http-status-codes');
 const stateManager = require('../lib/state/state-manager');
+const validationMessages = require('../lib/consts/validationMessages.js');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms } = require('./mocks');
 const { request, defaultProps } = require('./utils');
@@ -261,7 +262,7 @@ describe('Store/Algorithms', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
             });
         });
         const invalidStartAndEndChars = ['/', '_', '*', '#', '"', '%', '-', 'A'];
@@ -277,7 +278,7 @@ describe('Store/Algorithms', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
             });
             it(`should throw invalid if algorithm name if end with ${v}`, async () => {
                 const options = {
@@ -290,7 +291,7 @@ describe('Store/Algorithms', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('algorithm name must contain only lower-case alphanumeric, dash or dot');
+                expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_NAME_FORMAT);
             });
         });
         it('should failed to store algorithm with no name', async () => {
@@ -310,6 +311,39 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
+        });
+        it('should failed to store algorithm with whitespace image name', async () => {
+            const body = {
+                name: uuidv4(),
+                algorithmImage: 'image ',
+            }
+            const options = { uri: restPath, body };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
+        });
+        it('should failed to store algorithm with whitespace image name', async () => {
+            const body = {
+                name: uuidv4(),
+                algorithmImage: ' image',
+            }
+            const options = { uri: restPath, body };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
+        });
+        it('should failed to store algorithm with whitespace image name', async () => {
+            const body = {
+                name: uuidv4(),
+                algorithmImage: 'image name',
+            }
+            const options = { uri: restPath, body };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
         });
         it('should succeed to store algorithm name (www.example.com)', async () => {
             const body = {
