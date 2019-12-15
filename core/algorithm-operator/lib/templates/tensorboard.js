@@ -77,7 +77,6 @@ const boardService = (boardID = '') => ({
         },
         ports: [
             {
-                name: 'metrics',
                 port: 80,
                 targetPort: 6006
             }
