@@ -1,11 +1,15 @@
-/**
- * Returns a guid
- */
-
 const uuidV4 = require('uuid/v4');
+const cryptoRandomString = require('crypto-random-string');
 
-const uuid = ({ length = 8 } = {}) => {
-    return uuidV4({ length });
+const uuid = () => {
+    return uuidV4();
 };
 
-module.exports = uuid;
+const randomString = () => {
+    return cryptoRandomString({ length: 4, characters: '0123456789abcdefghijklmnopqrstuvwxyz' });
+};
+
+module.exports = {
+    uuid,
+    randomString
+};
