@@ -6,11 +6,6 @@ const component = require('../consts/componentNames').K8S;
 const { deploymentBoardTemplate, boardIngress, boardService } = require('../templates/tensorboard');
 const CONTAINERS = require('../consts/containers');
 
-const applyBoardId = (inputSpec, algorithmName, containerName) => {
-    const spec = clonedeep(inputSpec);
-    spec.metadata.labels['algorithm-name'] = algorithmName;
-    return applyEnvToContainer(spec, containerName, { ALGORITHM_TYPE: algorithmName });
-};
 
 const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     const spec = clonedeep(inputSpec);
@@ -20,28 +15,20 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
-const createKindsSpec = ({ boardId, logDir, versions, registry, clusterOptions, workerEnv }) => {
+const createKindsSpec = ({ boardId, logDir, versions, registry, clusterOptions }) => {
     if (!boardId) {
         const msg = 'Unable to create deployment spec. boardId is required';
         log.error(msg, { component });
         throw new Error(msg);
     }
-
     const deployment = deploymentBoardTemplate(boardId);
     let deploymentSpec = clonedeep(deployment);
     deploymentSpec = applyNodeSelector(deploymentSpec, clusterOptions);
-    deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, workerEnv);
-    deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { S3_ENDPOINT: '40.69.222.75:30999' });
-    deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { aws_access_key_id: 'AKIAIOSFODNN7EXAMPLE' });
-    deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { aws_secret_access_key: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY' });
     deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { logDir });
     deploymentSpec = applyImage(deploymentSpec, CONTAINERS.TENSORBOARD, versions, registry);
-    deploymentSpec = applyBoardId(deploymentSpec, boardId, CONTAINERS.TENSORBOARD);
     deploymentSpec = applyStorage(deploymentSpec, 's3', CONTAINERS.TENSORBOARD, 'algorithm-operator-configmap');
-
     const ingressSpec = boardIngress(boardId, clusterOptions);
     const serviceSpec = boardService(boardId);
-
     return {
         deploymentSpec,
         ingressSpec,

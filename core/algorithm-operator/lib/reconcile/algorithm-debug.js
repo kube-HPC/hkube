@@ -4,10 +4,11 @@ const { createKindsSpec } = require('../deployments/worker-debug');
 const kubernetes = require('../helpers/kubernetes');
 const component = require('../consts/componentNames').ALGORITHM_DEBUG_RECONCILER;
 const debugPathPrefix = 'hkube/debug';
+const deployentType = ('../const/deployentTypes').WORKER;
 
 const _createKinds = async (jobDetails) => {
     const { deploymentSpec, ingressSpec, serviceSpec } = createKindsSpec(jobDetails);
-    const deploymentCreateResult = await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: jobDetails.algorithmName }, 'worker');
+    const deploymentCreateResult = await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: jobDetails.algorithmName }, deployentType);
     return deploymentCreateResult;
 };
 
@@ -32,7 +33,7 @@ const reconcile = async ({ kubernetesKinds, algorithms, versions, registry, clus
     }
     for (let algorithm of removed) { // eslint-disable-line
         await etcd.removeAlgorithmData(algorithm.name); // eslint-disable-line
-        await kubernetes.deleteExpoesedJob(algorithm.name, 'worker'); // eslint-disable-line
+        await kubernetes.deleteExpoesedDeploymet(algorithm.name, deployentType); // eslint-disable-line
     }
 
     return reconcileResult;

@@ -77,11 +77,11 @@ class Operator {
         if (boards.length === 0) {
             return;
         }
-        const jobs = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
+        const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
         const secret = await kubernetes.getSecret({ secretName: 'docker-credentials-secret' });
         await tensorboardReconciler.reconcile({
             boards,
-            jobs,
+            deployments,
             secret,
             versions,
             registry,

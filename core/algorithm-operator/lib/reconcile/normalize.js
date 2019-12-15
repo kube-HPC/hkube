@@ -48,19 +48,16 @@ const normalizeBuildJobs = (jobsRaw, predicate = () => true) => {
     return jobs;
 };
 
-const normalizeBoardDeployments = (jobsRaw, predicate = () => true) => {
-    if (!jobsRaw || !jobsRaw.body || !jobsRaw.body.items) {
+const normalizeBoardDeployments = (deploymentsRaw) => {
+    if (deploymentsRaw == null) {
         return [];
     }
-    const jobs = jobsRaw.body.items
-        .filter(predicate)
-        .map(j => ({
-            name: j.metadata.name,
-            boardId: j.metadata.labels['board-id'],
-            active: j.status.active === 1,
-            startTime: _tryParseTime(j.status.startTime)
-        }));
-    return jobs;
+    const deployments = deploymentsRaw.body.items.map(j => ({
+        name: j.metadata.name,
+        boardId: j.metadata.labels['board-id'],
+        image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image'))
+    }));
+    return deployments;
 };
 
 const normalizeSecret = (secret) => {

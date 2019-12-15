@@ -3,5 +3,5 @@ module.exports = {
     KANIKO: 'kaniko',
     ALGORITHM_DEBUG: 'worker-debug',
     ALGORITHM_QUEUE: 'algorithm-queue',
-    TENSORBOARD: 'tendorboard'
+    TENSORBOARD: 'tensorboard'
 };

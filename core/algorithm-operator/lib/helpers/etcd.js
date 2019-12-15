@@ -51,7 +51,7 @@ class Etcd extends EventEmitter {
         await this._etcd.algorithms.builds.update(options);
     }
 
-    async getTensorboards() {
+    getTensorboards() {
         return this._etcd.tensorboards.list();
     }
 

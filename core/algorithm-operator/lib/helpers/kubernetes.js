@@ -124,12 +124,12 @@ class KubernetesApi extends EventEmitter {
         }
         catch (error) {
             log.error(`failed to continue creating operation ${deploymentSpec.metadata.name}. error: ${error.message}`, { component }, error);
-            await this.deleteExpoesedJob(name, type);
+            await this.deleteExpoesedDeploymet(name, type);
             throw error;
         }
     }
 
-    async deleteExpoesedJob(name, type) {
+    async deleteExpoesedDeploymet(name, type) {
         log.info(`Deleting algorithm for debug ${name}`, { component });
         const [resDeployment, resIngress, resService] = await Promise.all([
             this._client.deployments.delete({ deploymentName: `${type}-${name}` }),

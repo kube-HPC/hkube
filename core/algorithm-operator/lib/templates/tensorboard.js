@@ -7,6 +7,7 @@ const deploymentBoardTemplate = (boardId = '') => ({
         name: `board-${boardId}`,
         labels: {
             app: `board-${boardId}`,
+            'board-id': `${boardId}`,
             group: 'hkube',
             core: 'true',
             'metrics-group': TENSORBOARD,
@@ -30,40 +31,11 @@ const deploymentBoardTemplate = (boardId = '') => ({
                 }
             },
             spec: {
-                serviceAccountName: 'board-serviceaccount',
                 containers: [
                     {
                         name: TENSORBOARD,
-                        image: 'hkube/tensorboard:5.0',
+                        image: `hkube/${TENSORBOARD}:11.0`,
                         env: [
-                            {
-                                name: 'NODE_ENV',
-                                value: 'production'
-                            },
-                            {
-                                name: 'POD_ID',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'metadata.uid'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'POD_NAME',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'metadata.name'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'NAMESPACE',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'metadata.namespace'
-                                    }
-                                }
-                            },
                             {
                                 name: 'DEFAULT_STORAGE',
                                 valueFrom: {
@@ -73,27 +45,6 @@ const deploymentBoardTemplate = (boardId = '') => ({
                                     }
                                 }
                             },
-                            {
-                                name: 'CLUSTER_NAME',
-                                valueFrom: {
-                                    configMapKeyRef: {
-                                        name: 'algorithm-operator-configmap',
-                                        key: 'CLUSTER_NAME'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'JAEGER_AGENT_SERVICE_HOST',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'status.hostIP'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'S3_USE_HTTPS',
-                                value: '0'
-                            }
                         ],
                         port: {
                             containerPort: 6006
@@ -106,32 +57,11 @@ const deploymentBoardTemplate = (boardId = '') => ({
     }
 });
 
-const dockerVolumes = {
-    volumeMounts: [
-        {
-            name: 'dockersock',
-            mountPath: '/var/run/docker.sock'
-        }
-    ],
-    volumes: [
-        {
-            name: 'dockersock',
-            hostPath: {
-                path: '/var/run/docker.sock'
-            }
-        }
-    ]
-};
-
-
 const boardService = (boardID = '') => ({
     kind: 'Service',
     apiVersion: 'v1',
     metadata: {
         name: `board-service-${boardID}`,
-        annotations: {
-            'prometheus.io/scrape': 'true'
-        },
         labels: {
             app: `board-${boardID}`,
             group: 'hkube',
@@ -195,5 +125,4 @@ module.exports = {
     deploymentBoardTemplate,
     boardService,
     boardIngress,
-    dockerVolumes
 };
