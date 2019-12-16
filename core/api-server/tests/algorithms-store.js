@@ -1002,7 +1002,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to watch completed build', async function () {
                 this.timeout(5000);
-                const algorithmName = `my-alg-${uuidv4()}`;
+                const algorithmName = `my-alg-${uuid()}`;
                 const algorithmImage = `${algorithmName}-image`
                 const formData = {
                     payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),

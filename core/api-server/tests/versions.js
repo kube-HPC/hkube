@@ -59,7 +59,6 @@ describe('Versions/Algorithms', () => {
         it('should failed to remove used version', async () => {
             const usedVersion = 'test-algorithmImage-1';
             const name = `my-alg-${uuid()}`;
-            const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';
             const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: usedVersion }) } };
             const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
@@ -80,7 +79,7 @@ describe('Versions/Algorithms', () => {
             const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';
             const algorithmImage3 = 'test-algorithmImage-3';
-
+            const name = `my-alg-${uuid()}`;
             const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
             const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
             const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
@@ -154,7 +153,6 @@ describe('Versions/Algorithms', () => {
         });
         it('should throw error of running pipelines dependent on algorithm', async function () {
             this.timeout(5000);
-            const name = `my-alg-${uuidv4()}`;
             const name = `my-alg-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';
