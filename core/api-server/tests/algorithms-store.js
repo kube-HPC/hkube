@@ -392,7 +392,6 @@ describe('Store/Algorithms', () => {
             });
         });
         it('should succeed to store and get multiple algorithms', async function () {
-            this.timeout(10000);
             const limit = 5;
             const keys = Array.from(Array(limit).keys());
             const algorithms = keys.map(k => ({
