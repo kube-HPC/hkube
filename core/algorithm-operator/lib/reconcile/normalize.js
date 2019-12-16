@@ -48,6 +48,18 @@ const normalizeBuildJobs = (jobsRaw, predicate = () => true) => {
     return jobs;
 };
 
+const normalizeBoardDeployments = (deploymentsRaw) => {
+    if (deploymentsRaw == null) {
+        return [];
+    }
+    const deployments = deploymentsRaw.body.items.map(j => ({
+        name: j.metadata.name,
+        boardId: j.metadata.labels['board-id'],
+        image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image'))
+    }));
+    return deployments;
+};
+
 const normalizeSecret = (secret) => {
     if (!secret || !secret.body) {
         return {};
@@ -59,5 +71,6 @@ module.exports = {
     normalizeDeployments,
     normalizeAlgorithms,
     normalizeBuildJobs,
+    normalizeBoardDeployments,
     normalizeSecret
 };
