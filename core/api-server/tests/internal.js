@@ -1,7 +1,7 @@
 const clone = require('clone');
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const { uuid: uuidv4 } = require('../lib/utils');
+const { uuid } = require('../lib/utils');
 const querystring = require('querystring');
 const { pipelines, workerStub } = require('./mocks');
 const { request } = require('./utils');
@@ -47,7 +47,7 @@ describe('Internal', () => {
             uri: `${internalUrl}/exec/stored/pipeline`,
             body: {
                 name: 'flow1',
-                parentJobId: uuidv4()
+                parentJobId: uuid()
             }
         };
         const response = await request(options);
@@ -62,7 +62,7 @@ describe('Internal', () => {
                 uri: `${internalUrl}/exec/stored/pipeline`,
                 body: {
                     name: pipeline,
-                    parentJobId: uuidv4()
+                    parentJobId: uuid()
                 }
             };
             promises.push(request(options));
@@ -153,8 +153,8 @@ describe('Internal', () => {
             uri: `${internalUrl}/exec/stored/subPipeline`,
             body: {
                 name: pipeline.name,
-                jobId: `jobId - ${uuidv4()} `,
-                taskId: `taskId - ${uuidv4()} `,
+                jobId: `jobId - ${uuid()} `,
+                taskId: `taskId - ${uuid()} `,
                 flowInput: {
                     bla: 'bla'
                 }
@@ -178,8 +178,8 @@ describe('Internal', () => {
                         ]
                     }
                 ],
-                jobId: `jobId - ${uuidv4()} `,
-                taskId: `taskId - ${uuidv4()} `,
+                jobId: `jobId - ${uuid()} `,
+                taskId: `taskId - ${uuid()} `,
                 flowInput: {
                     bla: 'bla'
                 }

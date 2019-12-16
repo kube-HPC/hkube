@@ -31,6 +31,7 @@
     "@hkube/metrics": "^1.0.34",
     "@hkube/rest-server": "^1.0.12",
     "@hkube/units-converter": "^1.0.14",
+    "crypto-random-string": "^3.0.1",
     "express": "^4.17.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.groupby": "^4.6.0",
