@@ -1,7 +1,7 @@
 {
   "name": "task-executor",
   "version": "1.2.20",
-  "description": "",
+  "description": "Hkube scheduler service",
   "main": "app.js",
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
