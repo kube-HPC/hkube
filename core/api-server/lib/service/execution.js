@@ -20,11 +20,7 @@ const { uuid } = require('../utils');
 class ExecutionService {
     async runRaw(options) {
         validator.validateRunRawPipeline(options);
-        const pipeline = {
-            ...options,
-            name: this.createRawName(options)
-        };
-        return this._run(pipeline);
+        return this._run(options);
     }
 
     async runStored(options) {
@@ -141,7 +137,7 @@ class ExecutionService {
         return response;
     }
 
-    async getPipelinesResultStored(options) {
+    async getPipelinesResult(options) {
         validator.validateResultList(options);
         const response = await stateManager.getJobResults({ ...options, jobId: options.name });
         if (response.length === 0) {
@@ -150,27 +146,9 @@ class ExecutionService {
         return response;
     }
 
-    async getPipelinesResultRaw(options) {
-        validator.validateResultList(options);
-        const response = await stateManager.getJobResults({ ...options, jobId: `raw-${options.name}` });
-        if (response.length === 0) {
-            throw new ResourceNotFoundError('pipeline results', options.name);
-        }
-        return response;
-    }
-
-    async getPipelinesStatusStored(options) {
+    async getPipelinesStatus(options) {
         validator.validateResultList(options);
         const response = await stateManager.getJobStatuses({ ...options, jobId: options.name });
-        if (response.length === 0) {
-            throw new ResourceNotFoundError('pipeline status', options.name);
-        }
-        return response;
-    }
-
-    async getPipelinesStatusRaw(options) {
-        validator.validateResultList(options);
-        const response = await stateManager.getJobStatuses({ ...options, jobId: `raw-${options.name}` });
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline status', options.name);
         }
@@ -249,10 +227,6 @@ class ExecutionService {
             stateManager.deleteWebhook({ jobId, type: WebhookTypes.RESULT }),
             producer.stopJob({ jobId })
         ]);
-    }
-
-    createRawName(options) {
-        return `raw-${options.name}`;
     }
 
     _createJobIdForCaching(nodeName) {

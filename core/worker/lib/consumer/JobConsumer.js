@@ -147,7 +147,7 @@ class JobConsumer extends EventEmitter {
     }
 
     _initMetrics(job) {
-        const pipelineName = formatter.formatPipelineName(job.data.pipelineName);
+        const { pipelineName } = job.data;
         metrics.get(metricsNames.worker_started).inc({
             labelValues: {
                 pipeline_name: pipelineName,
@@ -368,11 +368,10 @@ class JobConsumer extends EventEmitter {
 
     _summarizeMetrics(jobStatus) {
         try {
-            const pipelineName = formatter.formatPipelineName(this._pipelineName);
             if (jobStatus === constants.JOB_STATUS.FAILED) {
                 metrics.get(metricsNames.worker_failed).inc({
                     labelValues: {
-                        pipeline_name: pipelineName,
+                        pipeline_name: this._pipelineName,
                         algorithm_name: this.getAlgorithmType()
                     }
                 });
@@ -380,7 +379,7 @@ class JobConsumer extends EventEmitter {
             else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
                 metrics.get(metricsNames.worker_succeeded).inc({
                     labelValues: {
-                        pipeline_name: pipelineName,
+                        pipeline_name: this._pipelineName,
                         algorithm_name: this.getAlgorithmType()
                     }
                 });

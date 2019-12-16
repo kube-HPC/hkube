@@ -31,12 +31,8 @@ class InternalService {
 
     async runRawSubPipeline(options) {
         validator.validateRawSubPipeline(options);
-        const pipeline = {
-            ...options,
-            name: execution.createRawName(options)
-        };
-        const jobID = this._createSubPipelineJobID(pipeline);
-        const { jobId, taskId, ...option } = pipeline;
+        const jobID = this._createSubPipelineJobID(options);
+        const { jobId, taskId, ...option } = options;
         const parentSpan = options.spanId;
         return execution._run(option, jobID, { parentSpan });
     }

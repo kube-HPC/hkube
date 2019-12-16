@@ -1,8 +1,8 @@
 get:
   tags:
     - Pipelines
-  summary: Get stored pipeline results
-  description: return results of stored pipelines by given pipeline name
+  summary: Get pipeline status
+  description: return status of pipelines by given pipeline name
   parameters:
     - name: name
       in: path

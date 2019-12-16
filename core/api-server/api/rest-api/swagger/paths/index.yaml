@@ -23,14 +23,10 @@
   $ref: ./exec/tree.yaml
 
 # pipelines
-/pipelines/results/raw/{name}:
-  $ref: ./pipelines/results_raw.yaml
-/pipelines/results/stored/{name}:
-  $ref: ./pipelines/results_stored.yaml
-/pipelines/status/raw/{name}:
-  $ref: ./pipelines/status_raw.yaml
-/pipelines/status/stored/{name}:
-  $ref: ./pipelines/status_stored.yaml
+/pipelines/results/{name}:
+  $ref: ./pipelines/results.yaml
+/pipelines/status/{name}:
+  $ref: ./pipelines/status.yaml
 
 # cron
 /cron/results/{name}:
