@@ -16,6 +16,7 @@ describe('Store/Algorithms', () => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/store/algorithms`;
         applyPath = `${restPath}/apply`;
+        versionsPath = `${restUrl}/versions/algorithms`;
     });
     describe('/store/algorithms:name GET', () => {
         it('should throw error algorithm not found', async () => {
@@ -972,34 +973,26 @@ describe('Store/Algorithms', () => {
                 expect(res1.body.version).to.equal('1.0.0');
                 expect(res2.body.version).to.equal('1.0.1');
             });
-            it.only('should succeed to apply algorithm with first build', async () => {
-                const payload = {
-                    name: `my-alg-${uuidv4()}`,
-                    mem: "50Mi",
-                    cpu: 1,
-                    version: '1.9.0',
-                    env: 'nodejs'
-                }
+            it('should succeed to watch completed build', async function () {
+                this.timeout(5000);
+                const algorithmName = `my-alg-${uuidv4()}`;
+                const algorithmImage = `${algorithmName}-image`
                 const formData = {
-                    payload: JSON.stringify(payload),
+                    payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
-                const options = {
-                    uri: restPath + '/apply',
-                    formData
-                };
-                const response = await request(options);
-                await stateManager.setBuild({ buildId: response.body.buildId, algorithmName: payload.name, algorithmImage: `${payload.name}-image`, status: 'completed' });
-                await delay(10000);
+                const res1 = await request({ uri: `${restPath}/apply`, formData });
+                await stateManager.setBuild({ buildId: res1.body.buildId, algorithmName, algorithmImage, status: 'completed' });
+                await delay(2000);
 
-                const getOptions = {
-                    uri: restPath + '/' + payload.name,
-                    method: 'GET'
-                };
-                const algResponse = await request(getOptions);
-                expect(algResponse.body.fileInfo).to.have.property('fileExt');
-                expect(algResponse.body.fileInfo).to.have.property('checksum');
-                expect(algResponse.body.fileInfo).to.have.property('fileSize');
+                const { options, ...restProps } = res1.body.algorithm;
+
+                const res2 = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
+                expect(res2.body[0]).to.deep.equal({
+                    ...defaultProps,
+                    ...restProps,
+                    algorithmImage
+                });
             });
         })
         describe('Gitlab', () => {

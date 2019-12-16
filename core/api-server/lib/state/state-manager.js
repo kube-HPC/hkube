@@ -94,8 +94,8 @@ class StateManager extends EventEmitter {
         return versions.filter(filter);
     }
 
-    deleteAlgorithmVersion(options, settings) {
-        return this._etcd.algorithms.versions.delete(options, settings);
+    deleteAlgorithmVersion(options) {
+        return this._etcd.algorithms.versions.delete(options);
     }
 
     setPipeline(options) {

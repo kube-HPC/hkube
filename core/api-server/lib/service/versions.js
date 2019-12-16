@@ -34,19 +34,20 @@ class AlgorithmVersions {
     }
 
     async deleteVersion(options) {
-        const { name, algorithmImage } = options;
+        const { name, image } = options;
+        validator.validateAlgorithmVersion({ name, image });
         const algorithm = await stateManager.getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
-        const algorithmVersion = await stateManager.getAlgorithmVersions({ name, algorithmImage });
-        if (!algorithmVersion) {
-            throw new ResourceNotFoundError('algorithmVersion', algorithmImage);
-        }
-        else if (algorithm.algorithmImage === algorithmImage) {
+        if (algorithm.algorithmImage === image) {
             throw new ActionNotAllowed('unable to remove used version');
         }
-        const res = await stateManager.deleteAlgorithmVersion(options, { isPrefix: !options.algorithmImage });
+        const algorithmVersion = await stateManager.getAlgorithmVersion({ name, algorithmImage: image });
+        if (!algorithmVersion) {
+            throw new ResourceNotFoundError('algorithmVersion', image);
+        }
+        const res = await stateManager.deleteAlgorithmVersion({ name, algorithmImage: image });
         const deleted = parseInt(res.deleted, 10);
         return { deleted };
     }

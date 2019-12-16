@@ -99,29 +99,6 @@ describe('Versions/Algorithms', () => {
             expect(res2.body).to.eql({ deleted: 1 });
             expect(res3.body).to.have.lengthOf(1);
         });
-        it('should succeed to delete all versions', async () => {
-            const name = `my-alg-${uuidv4()}`;
-            const algorithmImage1 = 'test-algorithmImage-1';
-            const algorithmImage2 = 'test-algorithmImage-2';
-            const algorithmImage3 = 'test-algorithmImage-3';
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
-            const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
-            const deleteReq = { uri: `${restPath}/${name}`, method: 'DELETE' };
-
-            await request(applyReq1);
-            await request(applyReq2);
-            await request(applyReq3);
-
-            const res1 = await request(versionReq);
-            const res2 = await request(deleteReq);
-            const res3 = await request(versionReq);
-
-            expect(res1.body).to.have.lengthOf(2);
-            expect(res2.body).to.eql({ deleted: 2 });
-            expect(res3.body).to.have.lengthOf(0);
-        });
     });
     describe('apply', () => {
         it('should throw validation error of required property name', async () => {
