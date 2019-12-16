@@ -10,7 +10,6 @@ const { metricsNames, Components, JobStatus } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
-const formatter = require('../helpers/formatters');
 
 const pipelineDoneStatus = [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.STOPPED];
 const { MetadataPlugin } = Logger;
