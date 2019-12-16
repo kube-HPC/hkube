@@ -7,17 +7,6 @@ const component = require('../../lib/consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
 const { metricsNames } = require('../../lib/consts/metricsNames');
 
-/**
- * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
- * @param {string} pipelineName
- */
-function formatPipelineName(pipelineName) {
-    if (pipelineName.startsWith('raw-')) {
-        return 'raw';
-    }
-    return pipelineName;
-}
-
 class WebhooksHandler {
     init(options) {
         this._options = options;
@@ -69,7 +58,7 @@ class WebhooksHandler {
         metrics.get(metricsNames.pipelines_gross).retroactive({
             time,
             labelValues: {
-                pipeline_name: formatPipelineName(pipeline.name),
+                pipeline_name: pipeline.name,
                 status: payload.status
             }
         });

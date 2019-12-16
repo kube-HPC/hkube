@@ -2,17 +2,6 @@ const { metrics } = require('@hkube/metrics');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, metricsName, metricsTypes, heuristicsName } = require('../consts');
 
-/**
- * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
- * @param {string} pipelineName
- */
-function formatPipelineName(pipelineName) {
-    if (pipelineName.startsWith('raw-')) {
-        return 'raw';
-    }
-    return pipelineName;
-}
-
 class AggregationMetricsFactory {
     constructor() {
         this.timeInQueue = null;
@@ -132,7 +121,7 @@ class AggregationMetricsFactory {
      * @param {Object} job
      */
     updateScoreMetrics(job) {
-        const pipelineName = formatPipelineName(job.pipelineName);
+        const { pipelineName } = job;
         try {
             const labelValues = {
                 pipeline_name: pipelineName
@@ -162,7 +151,7 @@ class AggregationMetricsFactory {
      * @param {string} metricOperation
      */
     _histogram(metric, job, metricOperation) {
-        const pipelineName = formatPipelineName(job.pipelineName);
+        const { pipelineName } = job;
         const metricData = {
             id: job.jobId,
             labelValues: {
@@ -188,7 +177,7 @@ class AggregationMetricsFactory {
      * @param {string} metricOperation
      */
     _gauge(metric, job, metricOperation) {
-        const pipelineName = formatPipelineName(job.pipelineName);
+        const { pipelineName } = job;
         const metricData = {
             id: job.jobId,
             labelValues: {
@@ -210,7 +199,7 @@ class AggregationMetricsFactory {
      * @param {string} metricOperation
      */
     _counter(metric, job, metricOperation) {
-        const pipelineName = formatPipelineName(job.pipelineName);
+        const { pipelineName } = job;
         const metricData = {
             id: job.jobId,
             labelValues: {
