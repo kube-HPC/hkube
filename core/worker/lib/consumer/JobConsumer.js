@@ -4,6 +4,7 @@ const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
+const fse = require('fs-extra');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
 const { metricsNames, Components, JobStatus } = require('../consts');
@@ -16,6 +17,7 @@ const pipelineDoneStatus = [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.STO
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
 let log;
+let _algoMetricsDir;
 
 class JobConsumer extends EventEmitter {
     constructor() {
@@ -41,6 +43,8 @@ class JobConsumer extends EventEmitter {
                 ...metadata, ...this.currentTaskInfo()
             })
         }));
+        const { algoMetricsDir } = options;
+        _algoMetricsDir = algoMetricsDir;
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
@@ -343,6 +347,9 @@ class JobConsumer extends EventEmitter {
         if (shouldCompleteJob) {
             if (!error && status === constants.JOB_STATUS.SUCCEED) {
                 storageResult = await this._putResult(resultData);
+                if (this.jobData.tensorboard) {
+                    await this._putAlgoMetrics();
+                }
             }
             const resData = Object.assign({
                 status,
@@ -444,6 +451,20 @@ class JobConsumer extends EventEmitter {
                 error
             };
         }
+    }
+
+    async _putAlgoMetrics() {
+        const uploadTime = this.jobCurrentTime.toLocaleString().split('/').join('-');
+        const files = await fse.readdirSync(_algoMetricsDir);
+
+        files.forEach(((file) => {
+            if (!fse.lstatSync((`${_algoMetricsDir}/${file}`)).isDirectory()) {
+                const stream = fse.createReadStream(`${_algoMetricsDir}/${file}`);
+                const { taskId } = this.jobData;
+                const runName = `${uploadTime}-${taskId}`;
+                storageManager.hkubeAlgoMetrics.putStream({ pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName: file.toString(), stream });
+            }
+        }));
     }
 
     getTracer(name) {

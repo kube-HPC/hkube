@@ -1,3 +1,4 @@
+const algoMetricsDir = '/var/metrics';
 const workerTemplate = {
     apiVersion: 'batch/v1',
     kind: 'Job',
@@ -43,6 +44,10 @@ const workerTemplate = {
                             {
                                 name: 'INACTIVE_PAUSED_WORKER_TIMEOUT_MS',
                                 value: '10000'
+                            },
+                            {
+                                name: 'ALGO_METRICS_DIR',
+                                value: `${algoMetricsDir}`
                             },
                             {
                                 name: 'POD_ID',
@@ -107,7 +112,13 @@ const workerTemplate = {
                     },
                     {
                         name: 'algorunner',
-                        image: 'hkube/algorunner:latest'
+                        image: 'hkube/algorunner:latest',
+                        env: [
+                            {
+                                name: 'ALGO_METRICS_DIR',
+                                value: `${algoMetricsDir}`
+                            }
+                        ]
                     }
                 ],
                 restartPolicy: 'Never'
@@ -129,6 +140,19 @@ const logVolumes = [
         hostPath: {
             path: '/var/lib/docker/containers'
         }
+    },
+    {
+        name: 'algometrics',
+        emptyDir: {}
+    },
+
+];
+
+
+const sharedVolumeMounts = [
+    {
+        name: 'algometrics',
+        mountPath: `${algoMetricsDir}`
     }
 ];
 
@@ -147,5 +171,6 @@ const logVolumeMounts = [
 module.exports = {
     workerTemplate,
     logVolumes,
-    logVolumeMounts
+    logVolumeMounts,
+    sharedVolumeMounts
 };

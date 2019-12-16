@@ -24,5 +24,6 @@ config.timeouts = {
     inactivePaused: formatter.parseInt(process.env.INACTIVE_PAUSED_WORKER_TIMEOUT_MS, 600 * 1000),
     algorithmDisconnected: formatter.parseInt(process.env.ALGORITHM_DISCONNECTED_TIMEOUT_MS, 600 * 1000)
 };
+config.algoMetricsDir = 'var/tmp';
 
 module.exports = config;

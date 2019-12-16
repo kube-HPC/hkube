@@ -1,7 +1,13 @@
+const fse = require('fs-extra');
 const consumer = require('../lib/consumer/JobConsumer');
 const { Producer } = require('@hkube/producer-consumer');
 const stateManager = require('../lib/states/stateManager.js');
+const configIt = require('@hkube/config');
+const configuration = configIt.load().main;
 const { expect } = require('chai');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+chai.use(chaiAsPromised);
 const workerCommunication = require('../lib/algorithm-communication/workerCommunication');
 const worker = require('../lib/worker');
 const sinon = require('sinon');
@@ -10,7 +16,7 @@ const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
 const delay = require('delay');
 const etcd = require('../lib/states/discovery');
-const { JobStatus } = require('../lib/consts');
+const JobStatus = require('../lib/consumer/consts').JOB_STATUS;
 
 let spy, producer;
 
@@ -63,8 +69,15 @@ function getConfig() {
 }
 
 describe('consumer tests', () => {
+    before(async () => {
+        await fse.mkdirp(configuration.algoMetricsDir);
+    });
     afterEach(async function () {
         spy && spy.restore();
+        await fse.emptyDirSync(configuration.algoMetricsDir);
+        await storageManager.delete({
+            path: 'local-hkube-algo-metrics'
+        });
         // stateManager.reset();
         // await delay(500);
         // stateManager.bootstrap();
@@ -84,6 +97,48 @@ describe('consumer tests', () => {
         });
         await delay(1000);
         expect(spy.callCount).to.eq(1);
+    });
+    it('Check algo metrics are uploaded', async () => {
+        const config = getConfig();
+        fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
+        fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
+        consumer._jobProvider.emit('job-queue', {
+            data: {
+                jobId: config.jobId,
+                taskId: config.taskId,
+                input: [],
+                pipelineName: 'pipeName',
+                nodeName: 'A',
+                tensorboard: true,
+                state: JobStatus.SUCCEED
+            },
+        });
+        consumer.jobCurrentTime = new Date();
+        await consumer.finishJob({ state: JobStatus.SUCCEED, results: {} });
+        const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
+        expect(uploadedFiles.length).to.eql(2);
+
+    });
+    it.only('Check algo metrics are uploaded are not uploaded when tensoboard is false', async () => {
+        const config = getConfig();
+        fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
+        fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
+        consumer._jobProvider.emit('job-queue', {
+            data: {
+                jobId: config.jobId,
+                taskId: config.taskId,
+                input: [],
+                pipelineName: 'pipeName',
+                nodeName: 'A',
+                tensorboard: false,
+                state: JobStatus.SUCCEED
+            },
+        });
+        consumer.jobCurrentTime = new Date();
+        await consumer.finishJob({ state: JobStatus.SUCCEED, results: {} });
+        await delay(500);
+        const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
+        expect(uploadedFiles.length).to.eql(0);
     });
     it('store data and validate result from algorithm', async () => {
         const config = getConfig();

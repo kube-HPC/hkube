@@ -585,6 +585,7 @@ class TaskRunner extends EventEmitter {
                 tasks,
                 jobId: this._jobId,
                 nodeName: options.node.nodeName,
+                tensorboard: options.node.tensorboard,
                 pipelineName: this.pipeline.name,
                 priority: this.pipeline.priority,
                 algorithmName: options.node.algorithmName,
