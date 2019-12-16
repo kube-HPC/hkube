@@ -25,16 +25,27 @@ class AlgorithmVersions {
         if (!force) {
             const runningPipelines = await stateManager.getRunningPipelines();
             const matchedPipelines = runningPipelines.filter(e => e.nodes.find(n => n.algorithmName === options.name));
-            if (matchedPipelines.length > 0 && !force) {
+            if (matchedPipelines.length > 0) {
                 throw new ActionNotAllowed(`there are ${matchedPipelines.length} running pipelines which dependent on "${options.name}" algorithm`, matchedPipelines.map(p => p.jobId));
             }
         }
-
         await algorithms.storeAlgorithm(algorithmVersion);
         return algorithmVersion;
     }
 
     async deleteVersion(options) {
+        const { name, algorithmImage } = options;
+        const algorithm = await stateManager.getAlgorithm({ name });
+        if (!algorithm) {
+            throw new ResourceNotFoundError('algorithm', name);
+        }
+        const algorithmVersion = await stateManager.getAlgorithmVersions({ name, algorithmImage });
+        if (!algorithmVersion) {
+            throw new ResourceNotFoundError('algorithmVersion', algorithmImage);
+        }
+        else if (algorithm.algorithmImage === algorithmImage) {
+            throw new ActionNotAllowed('unable to remove used version');
+        }
         const res = await stateManager.deleteAlgorithmVersion(options, { isPrefix: !options.algorithmImage });
         const deleted = parseInt(res.deleted, 10);
         return { deleted };

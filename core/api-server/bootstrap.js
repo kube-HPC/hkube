@@ -13,7 +13,8 @@ const modules = [
     require('./lib/state/graph-adapter'),
     require('./lib/producer/jobs-producer'),
     require('./lib/examples/pipelines-updater'),
-    require('./lib/webhook/webhooks-handler')
+    require('./lib/webhook/webhooks-handler'),
+    require('./lib/service/algorithms'),
 ];
 
 class Bootstrap {

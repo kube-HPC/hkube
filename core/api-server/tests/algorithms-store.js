@@ -6,7 +6,7 @@ const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms } = require('./mocks');
-const { request, defaultProps } = require('./utils');
+const { request, delay, defaultProps } = require('./utils');
 let restUrl, restPath, applyPath;
 
 const gitRepo = 'https://github.com/kube-HPC/hkube';
@@ -166,7 +166,7 @@ describe('Store/Algorithms', () => {
             await request(optionsInsert);
 
             const options = {
-                uri: restPath + '/delete',
+                uri: restPath + '/delete?force=true',
                 method: 'DELETE'
             };
             const response = await request(options);
@@ -594,7 +594,7 @@ describe('Store/Algorithms', () => {
                 expect(res1.body).to.have.property('buildId');
                 expect(res2.body).to.have.property('error');
                 expect(res2.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res2.body.error.message).to.contain(`algorithm type cannot be changed, new type: ${body2.type}, old type: ${body1.type}`);
+                expect(res2.body.error.message).to.contain(`algorithm type cannot be changed from "${body1.type}" to "${body2.type}"`);
             });
         });
         describe('Github', () => {
@@ -971,6 +971,35 @@ describe('Store/Algorithms', () => {
                 const res2 = await request(getRequest);
                 expect(res1.body.version).to.equal('1.0.0');
                 expect(res2.body.version).to.equal('1.0.1');
+            });
+            it.only('should succeed to apply algorithm with first build', async () => {
+                const payload = {
+                    name: `my-alg-${uuidv4()}`,
+                    mem: "50Mi",
+                    cpu: 1,
+                    version: '1.9.0',
+                    env: 'nodejs'
+                }
+                const formData = {
+                    payload: JSON.stringify(payload),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const options = {
+                    uri: restPath + '/apply',
+                    formData
+                };
+                const response = await request(options);
+                await stateManager.setBuild({ buildId: response.body.buildId, algorithmName: payload.name, algorithmImage: `${payload.name}-image`, status: 'completed' });
+                await delay(10000);
+
+                const getOptions = {
+                    uri: restPath + '/' + payload.name,
+                    method: 'GET'
+                };
+                const algResponse = await request(getOptions);
+                expect(algResponse.body.fileInfo).to.have.property('fileExt');
+                expect(algResponse.body.fileInfo).to.have.property('checksum');
+                expect(algResponse.body.fileInfo).to.have.property('fileSize');
             });
         })
         describe('Gitlab', () => {
