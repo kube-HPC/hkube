@@ -20,6 +20,7 @@ module.exports = {
         "prefer-template": "off",
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
+        "arrow-parens": "off",
         "max-len": ["error", 200],
         "brace-style": ["error", "stroustrup"],
         "no-trailing-spaces": "off",
