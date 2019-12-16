@@ -3,7 +3,6 @@ const stateManager = require('../lib/state/state-manager');
 const { algorithms, pipelines, webhookStub } = require('./mocks');
 
 before(async function () {
-    this.timeout(10000);
     mockery.enable({
         warnOnReplace: false,
         warnOnUnregistered: false,
