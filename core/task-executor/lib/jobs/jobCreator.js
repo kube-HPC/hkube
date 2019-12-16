@@ -1,4 +1,4 @@
-const uuidv4 = require('uuid/v4');
+const cryptoRandomString = require('crypto-random-string');
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
@@ -8,6 +8,11 @@ const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
+
+const randomString = () => {
+    return cryptoRandomString({ length: 30 });
+};
+
 const applyAlgorithmResourceRequests = (inputSpec, resourceRequests) => {
     return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.ALGORITHM);
 };
@@ -33,7 +38,7 @@ const applyAlgorithmName = (inputSpec, algorithmName) => {
 
 const applyName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
-    const name = `${algorithmName}-${uuidv4()}`;
+    const name = `${algorithmName}-${randomString()}`;
     spec.metadata.name = name;
     return spec;
 };

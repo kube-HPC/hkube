@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const { uuid: uuidv4 } = require('../lib/utils');
+const { randomString: uuid } = require('../lib/utils');
 const HttpStatus = require('http-status-codes');
 const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
@@ -55,7 +55,7 @@ describe('Store/Algorithms', () => {
     });
     describe('/store/algorithms:name DELETE', () => {
         it('should throw error algorithm not found', async () => {
-            const algorithmName = `delete-${uuidv4()}`;
+            const algorithmName = `delete-${uuid()}`;
             const options = {
                 uri: `${restPath}/${algorithmName}`,
                 method: 'DELETE'
@@ -66,7 +66,7 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.message).to.equal(`algorithm ${algorithmName} Not Found`);
         });
         it('should throw error on related data', async () => {
-            const algorithmName = `delete-${uuidv4()}`;
+            const algorithmName = `delete-${uuid()}`;
             const algorithm = {
                 uri: restPath,
                 body: {
@@ -77,7 +77,7 @@ describe('Store/Algorithms', () => {
             const store = {
                 uri: `${restUrl}/store/pipelines`,
                 body: {
-                    name: `delete-${uuidv4()}`,
+                    name: `delete-${uuid()}`,
                     nodes: [
                         {
                             nodeName: 'green',
@@ -112,7 +112,7 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.message).to.contain('you must first delete all related data');
         });
         it('should delete algorithm with related data', async () => {
-            const algorithmName = `delete-${uuidv4()}`;
+            const algorithmName = `delete-${uuid()}`;
             const algorithm = {
                 uri: restPath,
                 body: {
@@ -123,7 +123,7 @@ describe('Store/Algorithms', () => {
             const store = {
                 uri: `${restUrl}/store/pipelines`,
                 body: {
-                    name: `delete-${uuidv4()}`,
+                    name: `delete-${uuid()}`,
                     nodes: [
                         {
                             nodeName: 'green',
@@ -196,6 +196,18 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'name'");
         });
+        it('should throw validation error of long algorithm name', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'this-is-33-length-algorithm--name'
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal("data.name should NOT be longer than 32 characters");
+        });
         it('should throw validation error of data.name should be string', async () => {
             const options = {
                 uri: restPath,
@@ -210,7 +222,7 @@ describe('Store/Algorithms', () => {
         });
         it('should throw validation error of memory min 4 Mi', async () => {
             const body = {
-                name: uuidv4(),
+                name: uuid(),
                 algorithmImage: "image",
                 mem: "3900Ki",
                 cpu: 1
@@ -305,7 +317,7 @@ describe('Store/Algorithms', () => {
         });
         it('should failed to store algorithm with no image', async () => {
             const body = {
-                name: uuidv4()
+                name: uuid()
             }
             const options = { uri: restPath, body };
             const response = await request(options);
@@ -313,9 +325,9 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
         });
-        it('should failed to store algorithm with whitespace image name', async () => {
+        it('should failed to store algorithm with end whitespace image name', async () => {
             const body = {
-                name: uuidv4(),
+                name: uuid(),
                 algorithmImage: 'image ',
             }
             const options = { uri: restPath, body };
@@ -324,9 +336,9 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
         });
-        it('should failed to store algorithm with whitespace image name', async () => {
+        it('should failed to store algorithm with start whitespace image name', async () => {
             const body = {
-                name: uuidv4(),
+                name: uuid(),
                 algorithmImage: ' image',
             }
             const options = { uri: restPath, body };
@@ -335,9 +347,9 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
         });
-        it('should failed to store algorithm with whitespace image name', async () => {
+        it('should failed to store algorithm with middle whitespace image name', async () => {
             const body = {
-                name: uuidv4(),
+                name: uuid(),
                 algorithmImage: 'image name',
             }
             const options = { uri: restPath, body };
@@ -346,9 +358,24 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(validationMessages.ALGORITHM_IMAGE_FORMAT);
         });
+        it('should succeed to store algorithm with name of 32 characters', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: `this-is-32-length-algorithm-${uuid()}`,
+                    algorithmImage: 'image-name',
+                }
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.deep.equal({
+                ...defaultProps,
+                ...options.body
+            });
+        });
         it('should succeed to store algorithm name (www.example.com)', async () => {
             const body = {
-                name: '2-www.exam-ple.com' + uuidv4(),
+                name: '2-www.exam-ple.com' + uuid(),
                 algorithmImage: "image",
                 mem: "50Mi",
                 cpu: 1
@@ -370,7 +397,7 @@ describe('Store/Algorithms', () => {
             const keys = Array.from(Array(limit).keys());
             const algorithms = keys.map(k => ({
                 ...defaultProps,
-                name: `stress-${k}-${uuidv4()}`,
+                name: `stress-${k}-${uuid()}`,
                 algorithmImage: "image",
                 mem: "50Mi",
                 cpu: k
@@ -392,7 +419,7 @@ describe('Store/Algorithms', () => {
         });
         it('should succeed to store algorithm', async () => {
             const body = {
-                name: uuidv4(),
+                name: uuid(),
                 algorithmImage: "image",
                 mem: "50Mi",
                 cpu: 1,
@@ -435,7 +462,7 @@ describe('Store/Algorithms', () => {
             });
             it('should throw validation error of memory min 4 Mi', async () => {
                 const body = {
-                    name: uuidv4(),
+                    name: uuid(),
                     algorithmImage: "image",
                     mem: "3900Ki",
                     cpu: 1
@@ -463,7 +490,7 @@ describe('Store/Algorithms', () => {
             });
             it('should throw validation invalid env', async () => {
                 const body = {
-                    name: uuidv4(),
+                    name: uuid(),
                     algorithmImage: "image",
                     mem: "3900Ki",
                     cpu: 1,
@@ -481,7 +508,7 @@ describe('Store/Algorithms', () => {
             });
             it('should throw validation invalid fileExt', async () => {
                 const payload = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1,
                     version: '1.9.0'
@@ -503,7 +530,7 @@ describe('Store/Algorithms', () => {
             });
             it('should throw error of missing image and file', async () => {
                 const body = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1
                 };
@@ -521,7 +548,7 @@ describe('Store/Algorithms', () => {
             });
             it('should throw error of having image and file', async () => {
                 const body = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'image',
                     mem: "50Mi",
                     cpu: 1,
@@ -542,7 +569,7 @@ describe('Store/Algorithms', () => {
             });
             it('should not throw error when git repo was not supplied', async () => {
                 const apply = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     type: "Git",
                     mem: "50Mi",
@@ -556,7 +583,7 @@ describe('Store/Algorithms', () => {
             });
             it('should not throw error when file was not supplied', async () => {
                 const apply = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     type: "Code",
                     mem: "50Mi",
@@ -571,7 +598,7 @@ describe('Store/Algorithms', () => {
             it('should throw validation error of algorithm type cannot be changed', async () => {
                 const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
                 const body1 = {
-                    name: uuidv4(),
+                    name: uuid(),
                     gitRepository: {
                         url,
                     },
@@ -600,7 +627,7 @@ describe('Store/Algorithms', () => {
         });
         describe('Github', () => {
             it('should throw error of required property url', async () => {
-                const name = uuidv4();
+                const name = uuid();
                 const body = {
                     name,
                     gitRepository: {
@@ -617,7 +644,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.message).to.equal(`data.gitRepository should have required property 'url'`);
             });
             it('should throw error of match format url', async () => {
-                const name = uuidv4();
+                const name = uuid();
                 const body = {
                     name,
                     gitRepository: {
@@ -635,7 +662,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.message).to.equal(`data.gitRepository.url should match format "url"`);
             });
             it('should throw error of url not found', async () => {
-                const name = uuidv4();
+                const name = uuid();
                 const body = {
                     name,
                     gitRepository: {
@@ -653,7 +680,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.message).to.equal(`invalid url 'http://no_such_url'`);
             });
             it('should throw error of branch not found', async () => {
-                const name = uuidv4();
+                const name = uuid();
                 const body = {
                     name,
                     gitRepository: {
@@ -673,7 +700,7 @@ describe('Store/Algorithms', () => {
             });
             it('should throw error of git repository is empty', async () => {
                 const url = 'https://github.com/hkube/empty';
-                const name = uuidv4();
+                const name = uuid();
                 const body = {
                     name,
                     gitRepository: {
@@ -693,7 +720,7 @@ describe('Store/Algorithms', () => {
             it('should throw error of both image and git is not allowed', async () => {
                 const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
                 const body = {
-                    name: uuidv4(),
+                    name: uuid(),
                     algorithmImage: 'my-image',
                     gitRepository: {
                         url
@@ -712,7 +739,7 @@ describe('Store/Algorithms', () => {
             });
             it('should create build with last commit data', async () => {
                 const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
-                const name = uuidv4();
+                const name = uuid();
                 const body = {
                     name,
                     gitRepository: {
@@ -732,7 +759,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body).to.have.property('buildId');
             });
             it('should create build with last commit data', async () => {
-                const name = uuidv4();
+                const name = uuid();
                 const body = {
                     name,
                     mem: "6000Mi",
@@ -752,7 +779,7 @@ describe('Store/Algorithms', () => {
             });
             it('should not trigger new build if same commit id', async () => {
                 const body = {
-                    name: uuidv4(),
+                    name: uuid(),
                     gitRepository: {
                         url: gitRepo
                     },
@@ -773,7 +800,7 @@ describe('Store/Algorithms', () => {
         describe('Code', () => {
             it('should succeed to apply algorithm with first build', async () => {
                 const payload = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1,
                     version: '1.9.0',
@@ -804,7 +831,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm without buildId in response', async () => {
                 const body = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1
                 }
@@ -855,7 +882,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm with buildId due to change in env', async () => {
                 const body = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1
                 }
@@ -905,7 +932,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm without buildId in response', async () => {
                 const body = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1,
                     version: '1.8.0',
@@ -947,7 +974,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm with version inc', async () => {
                 const body = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1,
                     env: 'nodejs'
@@ -998,7 +1025,7 @@ describe('Store/Algorithms', () => {
         describe('Gitlab', () => {
             it('Gitlab-should create build with last commit data', async () => {
                 const url = 'https://gitlab.com/maty21/anomaly.git';
-                const name = uuidv4();
+                const name = uuid();
                 const body = {
                     name,
                     gitRepository: {
@@ -1021,7 +1048,7 @@ describe('Store/Algorithms', () => {
         describe('Image', () => {
             it('should not take affect on algorithmImage change', async () => {
                 const apply1 = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     mem: "50Mi",
                     type: "Image",
@@ -1055,7 +1082,7 @@ describe('Store/Algorithms', () => {
             });
             it('should take affect on algorithmImage change', async () => {
                 const apply1 = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     mem: "50Mi",
                     type: "Image",
@@ -1089,7 +1116,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm with just cpu change', async () => {
                 const apply1 = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     mem: "50Mi",
                     type: "Image",
@@ -1123,7 +1150,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm with just gpu change', async () => {
                 const apply1 = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     mem: "50Mi",
                     type: "Image",
@@ -1157,7 +1184,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm with just mem change', async () => {
                 const apply1 = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     mem: "50Mi",
                     type: "Image",
@@ -1191,7 +1218,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm with just minHotWorkers change', async () => {
                 const apply1 = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     mem: "50Mi",
                     type: "Image",
@@ -1225,7 +1252,7 @@ describe('Store/Algorithms', () => {
             });
             it('should succeed to apply algorithm with just algorithmEnv change', async () => {
                 const apply1 = {
-                    name: `my-alg-${uuidv4()}`,
+                    name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
                     mem: "50Mi",
                     type: "Image",

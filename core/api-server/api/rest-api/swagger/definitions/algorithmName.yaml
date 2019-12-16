@@ -1,4 +1,5 @@
 type: string
 description: Unique identifier representing a specific algorithm
 minLength: 1
+maxLength: 32
 format: algorithm-name

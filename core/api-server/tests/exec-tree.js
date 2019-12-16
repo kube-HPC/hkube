@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { uuid: uuidv4 } = require('../lib/utils');
+const { uuid } = require('../lib/utils');
 const stateManager = require('../lib/state/state-manager');
 const { triggersTree } = require('./mocks');
 const { request } = require('./utils');
@@ -42,7 +42,7 @@ describe('Executions', () => {
         it('should failed if jobId not found', async () => {
             const options = {
                 method: 'GET',
-                uri: restPath + `/${uuidv4()}`
+                uri: restPath + `/${uuid()}`
             };
             const response = await request(options);
             expect(response.response.statusCode).to.deep.equal(404);

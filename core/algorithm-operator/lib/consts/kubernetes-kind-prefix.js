@@ -1,9 +1,7 @@
-const SERVICE = 'worker-service';
-const WORKER = 'worker';
-const INGRESS = 'ingress-worker';
+const SERVICE = 'service';
+const INGRESS = 'ingress';
 
 module.exports = {
     SERVICE,
-    WORKER,
     INGRESS
 };
