@@ -17,7 +17,7 @@ describe('Versions/Algorithms', () => {
             const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
             await request(applyReq)
             const res = await request(versionReq);
-            expect(res.body).to.have.lengthOf(0);
+            expect(res.body).to.have.lengthOf(1);
         });
         it('should succeed to get versions', async () => {
             const name = `my-alg-${uuid()}`;
@@ -31,7 +31,7 @@ describe('Versions/Algorithms', () => {
             const res = await request(versionReq);
             expect(res.body[0]).to.eql({ ...defaultProps, name, algorithmImage: algorithmImage1 });
         });
-        it('should failed to apply algorithm version', async () => {
+        it('should succeed to apply algorithm version', async () => {
             for (let i = 0; i < 3; i++) {
                 const name = `my-alg-${uuid()}`;
                 const image = `my-image-${uuid()}`;
@@ -39,9 +39,7 @@ describe('Versions/Algorithms', () => {
                 const versionReq = { uri: `${restPath}/apply`, body: { name, image } };
                 await request(applyReq);
                 const res = await request(versionReq);
-                expect(res.body).to.have.property('error');
-                expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-                expect(res.body.error.message).to.eql(`algorithmVersion ${image} Not Found`);
+                expect(res.body).to.eql({ ...defaultProps, name, algorithmImage: image });
             }
         });
         it('should succeed to apply algorithm version without overrideImage', async () => {
@@ -58,12 +56,30 @@ describe('Versions/Algorithms', () => {
         });
     });
     describe('delete', () => {
-        it('should succeed to delete specific version', async () => {
+        it('should failed to remove used version', async () => {
+            const usedVersion = 'test-algorithmImage-1';
             const name = `my-alg-${uuid()}`;
+            const algorithmImage2 = 'test-algorithmImage-2';
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: usedVersion }) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
+            const versionReq1 = { uri: `${restPath}/apply`, body: { name, image: usedVersion } };
+
+            await request(applyReq1);
+            await request(applyReq2);
+
+            await request(versionReq1);
+            const deleteReq = { uri: `${restPath}/${name}/${usedVersion}`, method: 'DELETE' };
+            const res = await request(deleteReq);
+
+            expect(res.body).to.have.property('error');
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal('unable to remove used version');
+        });
+        it('should succeed to delete specific version', async () => {
             const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';
             const algorithmImage3 = 'test-algorithmImage-3';
-
+            const name = `my-alg-${uuid()}`;
             const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
             const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
             const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
@@ -81,29 +97,6 @@ describe('Versions/Algorithms', () => {
             expect(res1.body).to.have.lengthOf(2);
             expect(res2.body).to.eql({ deleted: 1 });
             expect(res3.body).to.have.lengthOf(1);
-        });
-        it('should succeed to delete all versions', async () => {
-            const name = `my-alg-${uuid()}`;
-            const algorithmImage1 = 'test-algorithmImage-1';
-            const algorithmImage2 = 'test-algorithmImage-2';
-            const algorithmImage3 = 'test-algorithmImage-3';
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
-            const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
-            const deleteReq = { uri: `${restPath}/${name}`, method: 'DELETE' };
-
-            await request(applyReq1);
-            await request(applyReq2);
-            await request(applyReq3);
-
-            const res1 = await request(versionReq);
-            const res2 = await request(deleteReq);
-            const res3 = await request(versionReq);
-
-            expect(res1.body).to.have.lengthOf(2);
-            expect(res2.body).to.eql({ deleted: 2 });
-            expect(res3.body).to.have.lengthOf(0);
         });
     });
     describe('apply', () => {
@@ -158,7 +151,8 @@ describe('Versions/Algorithms', () => {
             expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res.body.error.message).to.equal(`algorithm ${body.name} Not Found`);
         });
-        it('should throw error of running pipelines dependent on algorithm', async () => {
+        it('should throw error of running pipelines dependent on algorithm', async function () {
+            this.timeout(5000);
             const name = `my-alg-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';
@@ -267,5 +261,6 @@ describe('Versions/Algorithms', () => {
             expect(res2.body).to.eql({ ...defaultProps, name, algorithmImage: algorithmImage2 });
             expect(res3.body.error.message).to.eql(`algorithmVersion ${applyPayload3.image} Not Found`);
         });
+
     });
 });

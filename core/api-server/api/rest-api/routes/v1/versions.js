@@ -28,15 +28,9 @@ const routes = (options) => {
         res.status(HttpStatus.CREATED).json(response);
         next();
     });
-    router.delete('/algorithms/:name', logger(), async (req, res, next) => {
-        const { name } = req.params;
-        const response = await versionsService.deleteVersion({ name });
-        res.json(response);
-        next();
-    });
     router.delete('/algorithms/:name/:image', logger(), async (req, res, next) => {
         const { name, image } = req.params;
-        const response = await versionsService.deleteVersion({ name, algorithmImage: image });
+        const response = await versionsService.deleteVersion({ name, image });
         res.json(response);
         next();
     });
