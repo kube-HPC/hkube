@@ -5,7 +5,7 @@ const stateManager = require('../lib/state/state-manager');
 const { delay, request } = require('./utils');
 let restUrl;
 
-describe.only('Webhooks', () => {
+describe('Webhooks', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         nock('http://my-webhook-server-2').persist().post('/webhook/result').reply(200);

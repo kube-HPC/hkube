@@ -171,7 +171,7 @@ class ExecutionService {
         const { jobId } = options;
         const pipeline = await stateManager.getExecution({ jobId });
         await stateManager.updateJobStatus({ jobId, status: States.STOPPED, reason: options.reason, level: levels.INFO.name });
-        await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: States.COMPLETED });
+        await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: States.STOPPED });
     }
 
     async pauseJob(options) {
