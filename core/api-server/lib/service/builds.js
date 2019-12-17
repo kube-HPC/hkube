@@ -49,7 +49,7 @@ class Builds {
         validator.validateBuildId(options);
         const { buildId } = options;
         const build = await this.getBuild({ buildId });
-        if (stateManager.isActiveState(build.status)) {
+        if (!stateManager.isActiveState(build.status)) {
             throw new InvalidDataError(`unable to stop build because its in ${build.status} status`);
         }
         const buildData = {
