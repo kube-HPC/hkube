@@ -1,22 +1,24 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const { main } = require('@hkube/config').load();
+const nock = require('nock');
 const { request } = require('./utils');
+const pipelineTypes = require('../lib/consts/pipeline-types');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const pipelines = require('./mocks/pipelines.json');
 const { cachingError } = require('./mocks/http-response.json');
-const { main } = require('@hkube/config').load();
-const nock = require('nock');
-let restUrl;
+let restUrl, jobId;
 
 describe('Executions', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
     });
     describe('/exec/caching', () => {
+        let restPath = null;
         before(async () => {
-            runCachPath = `${restUrl}/exec/caching`;
-            runRawPath = `${restUrl}/exec/raw`;
-            pipeline = pipelines.find((pl) => pl.name === 'flow1')
+            restPath = `${restUrl}/exec/caching`;
+            const runRawPath = `${restUrl}/exec/raw`;
+            const pipeline = pipelines.find((pl) => pl.name === 'flow1')
             const options = {
                 uri: runRawPath,
                 body: pipeline
@@ -26,14 +28,14 @@ describe('Executions', () => {
             const { protocol, host, port, prefix } = main.cachingServer;
             const cachingServiceURI = `${protocol}://${host}:${port}`;
             let pathToJob = `/${prefix}?jobId=${jobId}&nodeName=black-alg`;
-            nock(cachingServiceURI).get(pathToJob).reply(200, pipeline);
+            nock(cachingServiceURI).persist().get(pathToJob).reply(200, pipeline);
             pathToJob = `/${prefix}?jobId=stam-job&nodeName=stam-alg`;
-            nock(cachingServiceURI).get(pathToJob).reply(500, cachingError);
+            nock(cachingServiceURI).persist().get(pathToJob).reply(400, cachingError);
 
         });
         it('should succeed run caching', async () => {
             const options = {
-                uri: runCachPath,
+                uri: restPath,
                 body: {
                     jobId,
                     nodeName: 'black-alg'
@@ -45,7 +47,7 @@ describe('Executions', () => {
         });
         it('should fail on no jobId', async () => {
             const options = {
-                uri: runCachPath,
+                uri: restPath,
                 body: {
                     nodeName: 'black-alg'
                 }
@@ -55,9 +57,9 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'jobId'");
         });
-        it('should fail on addtional property', async () => {
+        it('should fail on additional property', async () => {
             const options = {
-                uri: runCachPath,
+                uri: restPath,
                 body: {
                     jobId,
                     nodeName: 'black-alg',
@@ -71,7 +73,7 @@ describe('Executions', () => {
         });
         it('should fail on no such node or job', async () => {
             const options = {
-                uri: runCachPath,
+                uri: restPath,
                 body: {
                     jobId: 'stam-job',
                     nodeName: 'stam-alg'
@@ -79,8 +81,24 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.INTERNAL_SERVER_ERROR);
-            expect(response.body.error.message).to.equal("error:part of the data is missing or incorrect error:cant find successors for stam-alg");
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal("part of the data is missing or incorrect error:cant find successors for stam-alg");
+        });
+        it('should succeed to execute with right types', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId,
+                    nodeName: 'black-alg'
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.types).to.eql([pipelineTypes.CACHING]);
         });
     });
     describe('/exec/raw', () => {
@@ -316,6 +334,28 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
+        });
+        it('should succeed to execute with right types', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'exec_raw',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ]
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.types).to.eql([pipelineTypes.RAW]);
         });
     });
 });

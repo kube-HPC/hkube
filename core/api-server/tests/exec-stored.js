@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const validationMessages = require('../lib/consts/validationMessages.js');
+const pipelineTypes = require('../lib/consts/pipeline-types');
 const { request } = require('./utils');
 let restUrl;
 
@@ -99,6 +100,21 @@ describe('Executions', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
+        });
+        it('should succeed to execute with right types', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'flow1'
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.types).to.eql([pipelineTypes.STORED]);
         });
     });
 });

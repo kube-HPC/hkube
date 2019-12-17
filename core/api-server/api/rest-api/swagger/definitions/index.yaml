@@ -54,3 +54,7 @@ webhooks:
   $ref: ./webhooks.yaml
 githubWebhook:
   $ref: ./githubWebhook.yaml
+gitlabWebhook:
+  $ref: ./gitlabWebhook.yaml
+tag:
+  $ref: ./tag.yaml
