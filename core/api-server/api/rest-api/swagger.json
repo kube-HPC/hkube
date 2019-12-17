@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.35",
+    "version": "1.2.38",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -86,6 +86,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "input": {
@@ -201,6 +202,16 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific algorithm",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -394,6 +405,16 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific algorithm",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -963,6 +984,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -1078,6 +1100,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -1189,6 +1221,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -1304,6 +1337,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -1684,13 +1727,13 @@
         }
       }
     },
-    "/pipelines/results/raw/{name}": {
+    "/pipelines/results/{name}": {
       "get": {
         "tags": [
           "Pipelines"
         ],
-        "summary": "Get raw pipeline results",
-        "description": "return results of raw pipelines by given pipeline name",
+        "summary": "Get pipeline results",
+        "description": "return results of pipelines by given pipeline name",
         "parameters": [
           {
             "name": "name",
@@ -1824,293 +1867,13 @@
         }
       }
     },
-    "/pipelines/results/stored/{name}": {
+    "/pipelines/status/{name}": {
       "get": {
         "tags": [
           "Pipelines"
         ],
-        "summary": "Get stored pipeline results",
-        "description": "return results of stored pipelines by given pipeline name",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "pipeline name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "sort by asc or desc",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "description": "order by",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "limit",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "jobId": {
-                        "type": "string"
-                      },
-                      "timestamp": {
-                        "type": "string"
-                      },
-                      "pipeline": {
-                        "type": "string"
-                      },
-                      "data": {
-                        "type": "array",
-                        "items": {}
-                      },
-                      "status": {
-                        "type": "string"
-                      },
-                      "timeTook": {
-                        "type": "number"
-                      },
-                      "storageModule": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "pipelines Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/pipelines/status/raw/{name}": {
-      "get": {
-        "tags": [
-          "Pipelines"
-        ],
-        "summary": "Get raw pipeline status",
-        "description": "return status of raw pipelines by given pipeline name",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "pipeline name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "sort by asc or desc",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "description": "order by",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "limit",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "jobId": {
-                        "type": "string"
-                      },
-                      "timestamp": {
-                        "type": "string"
-                      },
-                      "pipeline": {
-                        "type": "string"
-                      },
-                      "data": {
-                        "type": "array",
-                        "items": {}
-                      },
-                      "status": {
-                        "type": "string"
-                      },
-                      "timeTook": {
-                        "type": "number"
-                      },
-                      "storageModule": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "pipelines Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/pipelines/status/stored/{name}": {
-      "get": {
-        "tags": [
-          "Pipelines"
-        ],
-        "summary": "Get stored pipeline status",
-        "description": "return status of stored pipelines by given pipeline name",
+        "summary": "Get pipeline status",
+        "description": "return status of pipelines by given pipeline name",
         "parameters": [
           {
             "name": "name",
@@ -2905,6 +2668,7 @@
                       "type": "string",
                       "description": "Unique identifier representing a specific algorithm",
                       "minLength": 1,
+                      "maxLength": 32,
                       "format": "algorithm-name"
                     },
                     "env": {
@@ -3249,6 +3013,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1,
+                        "maxLength": 32,
                         "format": "algorithm-name"
                       },
                       "env": {
@@ -3440,6 +3205,7 @@
                     "type": "string",
                     "description": "Unique identifier representing a specific algorithm",
                     "minLength": 1,
+                    "maxLength": 32,
                     "format": "algorithm-name"
                   },
                   "env": {
@@ -3686,6 +3452,7 @@
                     "type": "string",
                     "description": "Unique identifier representing a specific algorithm",
                     "minLength": 1,
+                    "maxLength": 32,
                     "format": "algorithm-name"
                   },
                   "env": {
@@ -3918,6 +3685,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1,
+                        "maxLength": 32,
                         "format": "algorithm-name"
                       },
                       "env": {
@@ -4109,6 +3877,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "env": {
@@ -4362,6 +4131,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -4477,6 +4247,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -4691,6 +4471,7 @@
                               "type": "string",
                               "description": "Unique identifier representing a specific algorithm",
                               "minLength": 1,
+                              "maxLength": 32,
                               "format": "algorithm-name"
                             },
                             "input": {
@@ -4806,6 +4587,16 @@
                           }
                         },
                         "additionalProperties": false
+                      },
+                      "tags": {
+                        "type": "array",
+                        "description": "Array of tags",
+                        "items": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific algorithm",
+                          "minLength": 1,
+                          "maxLength": 32
+                        }
                       }
                     },
                     "additionalProperties": false,
@@ -4876,6 +4667,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "input": {
@@ -4991,6 +4783,16 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific algorithm",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -5037,6 +4839,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -5152,6 +4955,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -5259,6 +5072,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "input": {
@@ -5374,6 +5188,16 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific algorithm",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -5420,6 +5244,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -5535,6 +5360,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -5975,6 +5810,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "env": {
@@ -6258,6 +6094,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "env": {
@@ -6701,14 +6538,92 @@
                     "type": "object",
                     "description": "github object which received after push for more information https://developer.github.com/webhooks/"
                   }
-                },
-                "required": [
-                  "github"
-                ]
+                }
               }
             }
           },
           "description": "github webhook data",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "webhook created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/builds/webhook/gitlab": {
+      "post": {
+        "tags": [
+          "Builds"
+        ],
+        "summary": "Insert webhook for automating build after push",
+        "description": "webhook for automating  build algorithm directly from gitlab",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gitlab": {
+                    "type": "object",
+                    "description": "gitlab object which received after push for more information https://docs.gitlab.com/ee/user/project/integrations/webhooks.html"
+                  }
+                }
+              }
+            }
+          },
+          "description": "gitlab webhook data",
           "required": true
         },
         "responses": {
@@ -7489,6 +7404,7 @@
               "type": "string",
               "description": "Unique identifier representing a specific algorithm",
               "minLength": 1,
+              "maxLength": 32,
               "format": "algorithm-name"
             }
           },
@@ -7531,6 +7447,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1,
+                        "maxLength": 32,
                         "format": "algorithm-name"
                       },
                       "env": {
@@ -7762,6 +7679,7 @@
               "type": "string",
               "description": "Unique identifier representing a specific algorithm",
               "minLength": 1,
+              "maxLength": 32,
               "format": "algorithm-name"
             }
           },
@@ -7813,6 +7731,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1,
+                        "maxLength": 32,
                         "format": "algorithm-name"
                       },
                       "env": {
@@ -8042,6 +7961,7 @@
               "type": "string",
               "description": "Unique identifier representing a specific algorithm",
               "minLength": 1,
+              "maxLength": 32,
               "format": "algorithm-name"
             }
           },
@@ -8148,6 +8068,7 @@
                     "type": "string",
                     "description": "Unique identifier representing a specific algorithm",
                     "minLength": 1,
+                    "maxLength": 32,
                     "format": "algorithm-name"
                   },
                   "image": {
@@ -8283,6 +8204,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "env": {
@@ -8586,6 +8508,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "env": {
@@ -8817,6 +8740,7 @@
             "type": "string",
             "description": "Unique identifier representing a specific algorithm",
             "minLength": 1,
+            "maxLength": 32,
             "format": "algorithm-name"
           },
           "env": {
@@ -8971,6 +8895,7 @@
         "type": "string",
         "description": "Unique identifier representing a specific algorithm",
         "minLength": 1,
+        "maxLength": 32,
         "format": "algorithm-name"
       },
       "algorithmVersion": {
@@ -8980,6 +8905,7 @@
             "type": "string",
             "description": "Unique identifier representing a specific algorithm",
             "minLength": 1,
+            "maxLength": 32,
             "format": "algorithm-name"
           },
           "image": {
@@ -9021,6 +8947,7 @@
                 "type": "string",
                 "description": "Unique identifier representing a specific algorithm",
                 "minLength": 1,
+                "maxLength": 32,
                 "format": "algorithm-name"
               },
               "env": {
@@ -9365,6 +9292,7 @@
                   "type": "string",
                   "description": "Unique identifier representing a specific algorithm",
                   "minLength": 1,
+                  "maxLength": 32,
                   "format": "algorithm-name"
                 },
                 "input": {
@@ -9480,6 +9408,16 @@
               }
             },
             "additionalProperties": false
+          },
+          "tags": {
+            "type": "array",
+            "description": "Array of tags",
+            "items": {
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "maxLength": 32
+            }
           }
         },
         "additionalProperties": false,
@@ -9506,6 +9444,7 @@
             "type": "string",
             "description": "Unique identifier representing a specific algorithm",
             "minLength": 1,
+            "maxLength": 32,
             "format": "algorithm-name"
           },
           "input": {
@@ -9704,6 +9643,16 @@
               }
             },
             "additionalProperties": false
+          },
+          "tags": {
+            "type": "array",
+            "description": "Array of tags",
+            "items": {
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "maxLength": 32
+            }
           }
         },
         "additionalProperties": false,
@@ -9799,10 +9748,22 @@
             "type": "object",
             "description": "github object which received after push for more information https://developer.github.com/webhooks/"
           }
-        },
-        "required": [
-          "github"
-        ]
+        }
+      },
+      "gitlabWebhook": {
+        "type": "object",
+        "properties": {
+          "gitlab": {
+            "type": "object",
+            "description": "gitlab object which received after push for more information https://docs.gitlab.com/ee/user/project/integrations/webhooks.html"
+          }
+        }
+      },
+      "tag": {
+        "type": "string",
+        "description": "Unique identifier representing a specific algorithm",
+        "minLength": 1,
+        "maxLength": 32
       }
     }
   }

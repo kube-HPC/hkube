@@ -392,6 +392,7 @@ describe('Store/Pipelines', () => {
             const pipeline = clone(pipelines[2]);
             pipeline.name = uuid();
             pipeline.description = 'my description';
+            pipeline.tags = ['bla', 'hot'];
             const options = {
                 uri: restPath,
                 body: pipeline

@@ -70,7 +70,9 @@
 /builds/rerun:
   $ref: ./builds/rerun.yaml
 /builds/webhook/github:
-  $ref: ./builds/webhook.yaml
+  $ref: ./builds/webhook-github.yaml
+/builds/webhook/gitlab:
+  $ref: ./builds/webhook-gitlab.yaml
 
 # readme
 /readme/algorithms/{name}:
