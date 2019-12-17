@@ -33,7 +33,7 @@ class AlgorithmStore {
             }
             const newAlgorithm = merge({}, algorithm, { algorithmImage: currentImage, options: { pending: false } });
             await this.storeAlgorithm(newAlgorithm);
-            await stateManager.setAlgorithmVersion(newAlgorithm);
+            await stateManager.setAlgorithmVersion({ ...newAlgorithm, algorithmImage });
         });
     }
 
