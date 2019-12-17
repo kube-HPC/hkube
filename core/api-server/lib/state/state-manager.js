@@ -11,6 +11,7 @@ class StateManager extends EventEmitter {
     async init(options) {
         this._etcd = new Etcd(options.etcd);
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
+        await this._watchBuilds();
         return this._watchJobResults();
     }
 
@@ -93,8 +94,8 @@ class StateManager extends EventEmitter {
         return versions.filter(filter);
     }
 
-    deleteAlgorithmVersion(options, settings) {
-        return this._etcd.algorithms.versions.delete(options, settings);
+    deleteAlgorithmVersion(options) {
+        return this._etcd.algorithms.versions.delete(options);
     }
 
     setPipeline(options) {
@@ -203,6 +204,13 @@ class StateManager extends EventEmitter {
     async getBuilds(options, filter = () => true) {
         const builds = await this._etcd.algorithms.builds.list(options);
         return builds.filter(filter);
+    }
+
+    async _watchBuilds() {
+        await this._etcd.algorithms.builds.singleWatch();
+        this._etcd.algorithms.builds.on('change', (build) => {
+            this.emit(`build-${build.status}`, build);
+        });
     }
 
     async getBuild(options) {

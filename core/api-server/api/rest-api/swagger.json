@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.30",
+    "version": "1.2.35",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -2917,7 +2917,8 @@
                     },
                     "algorithmImage": {
                       "type": "string",
-                      "description": "image name as in the docker registry"
+                      "description": "image name as in the docker registry",
+                      "format": "algorithm-image"
                     },
                     "cpu": {
                       "type": "number",
@@ -3260,7 +3261,8 @@
                       },
                       "algorithmImage": {
                         "type": "string",
-                        "description": "image name as in the docker registry"
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
                       },
                       "cpu": {
                         "type": "number",
@@ -3450,7 +3452,8 @@
                   },
                   "algorithmImage": {
                     "type": "string",
-                    "description": "image name as in the docker registry"
+                    "description": "image name as in the docker registry",
+                    "format": "algorithm-image"
                   },
                   "cpu": {
                     "type": "number",
@@ -3695,7 +3698,8 @@
                   },
                   "algorithmImage": {
                     "type": "string",
-                    "description": "image name as in the docker registry"
+                    "description": "image name as in the docker registry",
+                    "format": "algorithm-image"
                   },
                   "cpu": {
                     "type": "number",
@@ -3926,7 +3930,8 @@
                       },
                       "algorithmImage": {
                         "type": "string",
-                        "description": "image name as in the docker registry"
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
                       },
                       "cpu": {
                         "type": "number",
@@ -4116,7 +4121,8 @@
                         },
                         "algorithmImage": {
                           "type": "string",
-                          "description": "image name as in the docker registry"
+                          "description": "image name as in the docker registry",
+                          "format": "algorithm-image"
                         },
                         "cpu": {
                           "type": "number",
@@ -5981,7 +5987,8 @@
                         },
                         "algorithmImage": {
                           "type": "string",
-                          "description": "image name as in the docker registry"
+                          "description": "image name as in the docker registry",
+                          "format": "algorithm-image"
                         },
                         "cpu": {
                           "type": "number",
@@ -6263,7 +6270,8 @@
                           },
                           "algorithmImage": {
                             "type": "string",
-                            "description": "image name as in the docker registry"
+                            "description": "image name as in the docker registry",
+                            "format": "algorithm-image"
                           },
                           "cpu": {
                             "type": "number",
@@ -7535,7 +7543,8 @@
                       },
                       "algorithmImage": {
                         "type": "string",
-                        "description": "image name as in the docker registry"
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
                       },
                       "cpu": {
                         "type": "number",
@@ -7734,101 +7743,6 @@
             }
           }
         }
-      },
-      "delete": {
-        "tags": [
-          "Versions"
-        ],
-        "summary": "Delete algorithm versions",
-        "description": "Delete existing algorithm version.",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "algorithm name",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Unique identifier representing a specific algorithm",
-              "minLength": 1,
-              "format": "algorithm-name"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "pipeline Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/versions/algorithms/{name}/{image}": {
@@ -7911,7 +7825,8 @@
                       },
                       "algorithmImage": {
                         "type": "string",
-                        "description": "image name as in the docker registry"
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
                       },
                       "cpu": {
                         "type": "number",
@@ -8241,7 +8156,7 @@
                   },
                   "force": {
                     "type": "boolean",
-                    "description": "should replace current algorithm version",
+                    "description": "should replace or not current algorithm version for running algorithm instances",
                     "default": false
                   }
                 },
@@ -8380,7 +8295,8 @@
                         },
                         "algorithmImage": {
                           "type": "string",
-                          "description": "image name as in the docker registry"
+                          "description": "image name as in the docker registry",
+                          "format": "algorithm-image"
                         },
                         "cpu": {
                           "type": "number",
@@ -8588,7 +8504,7 @@
         }
       }
     },
-    "/graph/parsed/{jobId}/nodes/{nodeName}": {
+    "/graph/parsed/{jobId}": {
       "get": {
         "tags": [
           "Graph"
@@ -8606,10 +8522,10 @@
             }
           },
           {
-            "name": "nodeName",
-            "in": "path",
+            "name": "node",
+            "in": "query",
             "description": "the node name",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -8618,6 +8534,7 @@
             "name": "sort",
             "in": "query",
             "description": "sort by status, error or any other property",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -8626,6 +8543,7 @@
             "name": "order",
             "in": "query",
             "description": "order by asc or desc",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -8680,7 +8598,8 @@
                         },
                         "algorithmImage": {
                           "type": "string",
-                          "description": "image name as in the docker registry"
+                          "description": "image name as in the docker registry",
+                          "format": "algorithm-image"
                         },
                         "cpu": {
                           "type": "number",
@@ -8848,7 +8767,7 @@
             }
           },
           "404": {
-            "description": "build Not Found",
+            "description": "jobId Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -8910,7 +8829,8 @@
           },
           "algorithmImage": {
             "type": "string",
-            "description": "image name as in the docker registry"
+            "description": "image name as in the docker registry",
+            "format": "algorithm-image"
           },
           "cpu": {
             "type": "number",
@@ -9068,7 +8988,7 @@
           },
           "force": {
             "type": "boolean",
-            "description": "should replace current algorithm version",
+            "description": "should replace or not current algorithm version for running algorithm instances",
             "default": false
           }
         },
@@ -9113,7 +9033,8 @@
               },
               "algorithmImage": {
                 "type": "string",
-                "description": "image name as in the docker registry"
+                "description": "image name as in the docker registry",
+                "format": "algorithm-image"
               },
               "cpu": {
                 "type": "number",
