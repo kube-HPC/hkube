@@ -2,17 +2,6 @@ const { metrics } = require('@hkube/metrics');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { componentName, metricsName, metricsTypes, heuristicsName } = require('../consts/index');
 
-/**
- * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
- * @param {string} pipelineName
- */
-function formatPipelineName(pipelineName) {
-    if (pipelineName.startsWith('raw-')) {
-        return 'raw';
-    }
-    return pipelineName;
-}
-
 class AggregationMetricsFactory {
     constructor() {
         this.timeInQueue = null;
@@ -136,7 +125,7 @@ class AggregationMetricsFactory {
     _scoreTask(task) {
         try {
             const labelValues = {
-                pipeline_name: formatPipelineName(task.pipelineName),
+                pipeline_name: task.pipelineName,
                 algorithm_name: task.algorithmName,
                 node_name: task.nodeName
             };
@@ -172,7 +161,7 @@ class AggregationMetricsFactory {
         const metricData = {
             id: `${task.taskId}-${task.status}`,
             labelValues: {
-                pipeline_name: formatPipelineName(task.pipelineName),
+                pipeline_name: task.pipelineName,
                 algorithm_name: task.algorithmName,
                 node_name: task.nodeName
             }
@@ -204,7 +193,7 @@ class AggregationMetricsFactory {
         const metricData = {
             id: task.taskId,
             labelValues: {
-                pipeline_name: formatPipelineName(task.pipelineName),
+                pipeline_name: task.pipelineName,
                 algorithm_name: task.algorithmName,
                 node_name: task.nodeName
             }
@@ -227,7 +216,7 @@ class AggregationMetricsFactory {
         const metricData = {
             id: task.taskId,
             labelValues: {
-                pipeline_name: formatPipelineName(task.pipelineName),
+                pipeline_name: task.pipelineName,
                 algorithm_name: task.algorithmName,
                 node_name: task.nodeName
             }

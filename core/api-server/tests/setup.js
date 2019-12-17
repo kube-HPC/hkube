@@ -1,6 +1,6 @@
 const mockery = require('mockery');
 const stateManager = require('../lib/state/state-manager');
-const { algorithms, pipelines, webhookStub } = require('./mocks');
+const { algorithms, pipelines } = require('./mocks');
 
 before(async function () {
     mockery.enable({
@@ -14,7 +14,6 @@ before(async function () {
     await stateManager._etcd._client.client.delete().all();
     await Promise.all(pipelines.map(p => stateManager.setPipeline(p)));
     await Promise.all(algorithms.map(p => stateManager.setAlgorithm(p)));
-    webhookStub.start();
 
     const baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
     const restUrl = `${baseUrl}/${config.rest.prefix}/v1`;

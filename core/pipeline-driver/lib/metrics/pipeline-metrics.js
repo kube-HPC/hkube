@@ -19,13 +19,6 @@ class PipelineMetrics {
         });
     }
 
-    _formatPipelineName(pipelineName) {
-        if (pipelineName.startsWith('raw-')) {
-            return 'raw';
-        }
-        return pipelineName;
-    }
-
     startMetrics(options) {
         const { jobId, pipeline, spanId } = options;
         if (!jobId || !pipeline) {
@@ -34,7 +27,7 @@ class PipelineMetrics {
         metrics.get(metricsNames.pipelines_net).start({
             id: jobId,
             labelValues: {
-                pipeline_name: this._formatPipelineName(pipeline)
+                pipeline_name: pipeline
             }
         });
         tracer.startSpan({
@@ -52,7 +45,7 @@ class PipelineMetrics {
         metrics.get(metricsNames.pipelines_net).end({
             id: jobId,
             labelValues: {
-                pipeline_name: this._formatPipelineName(pipeline),
+                pipeline_name: pipeline,
                 status
             }
         });
@@ -73,7 +66,7 @@ class PipelineMetrics {
             labelValues: {
                 status,
                 jobId,
-                pipeline_name: this._formatPipelineName(pipeline)
+                pipeline_name: pipeline
             }
         });
     }

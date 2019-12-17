@@ -1,52 +1,48 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const storageManager = require('@hkube/storage-manager');
+const nock = require('nock');
 const stateManager = require('../lib/state/state-manager');
-const { webhookStub } = require('./mocks');
 const { delay, request } = require('./utils');
 let restUrl;
 
-describe('Webhooks', () => {
+describe.only('Webhooks', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
+        nock('http://my-webhook-server-2').persist().post('/webhook/result').reply(200);
+        nock('http://my-webhook-server-2').persist().post('/webhook/progress').reply(200);
     });
     describe('Results', () => {
-        it('should succeed to send webhook', async () => {
+        it('should succeed to send webhook result', async () => {
             return new Promise(async (resolve) => {
-                let jobId = null;
-                webhookStub.on('result', async (req) => {
-                    if (req.body.jobId === jobId) {
-                        expect(req.body).to.have.property('data');
-                        expect(req.body).to.have.property('jobId');
-                        expect(req.body).to.have.property('status');
-                        expect(req.body).to.have.property('timestamp');
+                nock('http://my-webhook-server-1')
+                    .post('/webhook/result')
+                    .reply(200, async (uri, requestBody) => {
+                        expect(requestBody).to.have.property('data');
+                        expect(requestBody).to.have.property('jobId');
+                        expect(requestBody).to.have.property('status');
+                        expect(requestBody).to.have.property('timestamp');
 
                         const status = {
-                            uri: restUrl + '/exec/results/' + jobId,
+                            uri: `${restUrl}/exec/results/${requestBody.jobId}`,
                             method: 'GET'
                         };
-                        const responseStatus = await request(status);
-                        expect(req.body).to.deep.equal(responseStatus.body);
+                        const response = await request(status);
+                        expect(requestBody).to.deep.equal(response.body);
                         return resolve();
-                    }
-                });
+
+                    })
                 const stored = {
                     uri: restUrl + '/exec/stored',
-                    body: { name: 'webhookFlow' }
+                    body: { name: 'webhookFlow1' }
                 };
                 const response = await request(stored);
-                jobId = response.body.jobId;
 
                 const results = {
-                    jobId,
+                    jobId: response.body.jobId,
                     status: 'completed',
-                    level: 'info',
                     data: [{ res1: 400 }, { res2: 500 }]
                 }
                 await stateManager.setJobStatus(results);
-                let link = await storageManager.hkubeResults.put({ jobId, data: results.data })
-                results.data = {};
-                results.data.storageInfo = link;
                 await stateManager.setJobResults(results);
             });
         });
@@ -126,7 +122,7 @@ describe('Webhooks', () => {
         it('should succeed to send webhook and get results', async () => {
             let options = {
                 uri: restUrl + '/exec/stored',
-                body: { name: 'webhookFlow' }
+                body: { name: 'webhookFlow2' }
             };
             const response = await request(options);
             jobId = response.body.jobId;
@@ -137,17 +133,13 @@ describe('Webhooks', () => {
                 level: 'info',
                 data: [{ res1: 400 }, { res2: 500 }]
             }
-            await stateManager.setJobStatus(results);
-            let link = await storageManager.hkubeResults.put({ jobId, data: results.data })
-            results.data = {};
-            results.data.storageInfo = link;
             await stateManager.setJobResults(results);
 
             await delay(1000);
 
             options = {
                 method: 'GET',
-                uri: restUrl + '/webhooks/results/' + jobId
+                uri: `${restUrl}/webhooks/results/${jobId}`
             };
             const response2 = await request(options);
 
@@ -161,28 +153,32 @@ describe('Webhooks', () => {
         });
     });
     describe('Progress', () => {
-        it('should succeed to send webhook', async () => {
-            let jobId = null;
-            webhookStub.on('progress', async (req) => {
-                if (req.body.jobId === jobId) {
-                    expect(req.body).to.have.property('jobId');
-                    expect(req.body).to.have.property('status');
-                    expect(req.body).to.have.property('timestamp');
+        it('should succeed to send webhook progress', async () => {
+            return new Promise(async (resolve) => {
+                nock('http://my-webhook-server-1')
+                    .post('/webhook/progress')
+                    .reply(200, async (uri, requestBody) => {
+                        expect(requestBody).to.have.property('jobId');
+                        expect(requestBody).to.have.property('level');
+                        expect(requestBody).to.have.property('pipeline');
+                        expect(requestBody).to.have.property('status');
+                        expect(requestBody).to.have.property('timestamp');
 
-                    const status = {
-                        uri: restUrl + '/exec/status/' + jobId,
-                        method: 'GET'
-                    };
-                    const responseStatus = await request(status);
-                    expect(req.body).to.deep.equal(responseStatus.body);
-                }
+                        const status = {
+                            uri: `${restUrl}/exec/status/${requestBody.jobId}`,
+                            method: 'GET'
+                        };
+                        const response = await request(status);
+                        expect(requestBody).to.deep.equal(response.body);
+                        return resolve();
+
+                    })
+                const stored = {
+                    uri: restUrl + '/exec/stored',
+                    body: { name: 'webhookFlow1' }
+                };
+                await request(stored);
             });
-            const stored = {
-                uri: restUrl + '/exec/stored',
-                body: { name: 'webhookFlow' }
-            };
-            const response = await request(stored);
-            jobId = response.body.jobId;
         });
         it('should throw webhooks validation error of should match format "url', async () => {
             const options = {
@@ -270,7 +266,7 @@ describe('Webhooks', () => {
             this.timeout(5000);
             const options1 = {
                 uri: restUrl + '/exec/stored',
-                body: { name: 'webhookFlow' }
+                body: { name: 'webhookFlow2' }
             };
             const response = await request(options1);
 
@@ -278,7 +274,7 @@ describe('Webhooks', () => {
 
             const options2 = {
                 method: 'GET',
-                uri: `${restUrl}/webhooks/status/${response.body.jobId}`
+                uri: `${restUrl}/webhooks/status/${response.body.jobId} `
             };
             const response2 = await request(options2);
 
@@ -294,7 +290,7 @@ describe('Webhooks', () => {
             this.timeout(5000);
             const options1 = {
                 uri: restUrl + '/exec/stored',
-                body: { name: 'webhookFlow' }
+                body: { name: 'webhookFlow2' }
             };
             const response = await request(options1);
             const jobId = response.body.jobId;
@@ -311,7 +307,7 @@ describe('Webhooks', () => {
 
             const options2 = {
                 method: 'GET',
-                uri: `${restUrl}/webhooks/webhookFlow?limit=3`
+                uri: `${restUrl}/webhooks/webhookFlow2?limit=3`
             };
             const response2 = await request(options2);
             expect(response2.body[0]).to.have.property('jobId');

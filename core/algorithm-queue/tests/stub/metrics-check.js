@@ -40,4 +40,3 @@ async function check() {
     log.info('DONE');
 }
 
-check();
