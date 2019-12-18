@@ -1,10 +1,4 @@
 module.exports = {
-    formatPipelineName(pipelineName) {
-        if (pipelineName.startsWith('raw-')) {
-            return 'raw';
-        }
-        return pipelineName;
-    },
     parseBool(value, defaultValue) {
         if (typeof value === 'boolean') {
             return value;

@@ -23,14 +23,10 @@
   $ref: ./exec/tree.yaml
 
 # pipelines
-/pipelines/results/raw/{name}:
-  $ref: ./pipelines/results_raw.yaml
-/pipelines/results/stored/{name}:
-  $ref: ./pipelines/results_stored.yaml
-/pipelines/status/raw/{name}:
-  $ref: ./pipelines/status_raw.yaml
-/pipelines/status/stored/{name}:
-  $ref: ./pipelines/status_stored.yaml
+/pipelines/results/{name}:
+  $ref: ./pipelines/results.yaml
+/pipelines/status/{name}:
+  $ref: ./pipelines/status.yaml
 
 # cron
 /cron/results/{name}:
@@ -74,7 +70,9 @@
 /builds/rerun:
   $ref: ./builds/rerun.yaml
 /builds/webhook/github:
-  $ref: ./builds/webhook.yaml
+  $ref: ./builds/webhook-github.yaml
+/builds/webhook/gitlab:
+  $ref: ./builds/webhook-gitlab.yaml
 
 # readme
 /readme/algorithms/{name}:
@@ -84,9 +82,7 @@
 
 # versions
 /versions/algorithms/{name}:
-  $ref: ./versions/algorithms_name.yaml
-/versions/algorithms/{name}/{image}:
-  $ref: ./versions/algorithms_name_image.yaml
+  $ref: ./versions/version.yaml
 /versions/algorithms/apply:
   $ref: ./versions/apply.yaml
 

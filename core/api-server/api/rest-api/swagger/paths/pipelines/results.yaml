@@ -1,8 +1,8 @@
 get:
   tags:
     - Pipelines
-  summary: Get raw pipeline results
-  description: return results of raw pipelines by given pipeline name
+  summary: Get pipeline results
+  description: return results of pipelines by given pipeline name
   parameters:
     - name: name
       in: path

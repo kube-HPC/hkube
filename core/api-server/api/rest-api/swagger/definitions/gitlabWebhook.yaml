@@ -1,0 +1,5 @@
+type: object
+properties:
+  gitlab:
+    type: object
+    description: gitlab object which received after push for more information https://docs.gitlab.com/ee/user/project/integrations/webhooks.html

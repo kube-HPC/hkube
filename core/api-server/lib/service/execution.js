@@ -1,18 +1,16 @@
 const merge = require('lodash.merge');
-const request = require('requestretry');
-const log = require('@hkube/logger').GetLogFromContainer();
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
-const { main } = require('@hkube/config').load();
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
+const cachingService = require('./caching');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const States = require('../state/States');
-const component = require('../../lib/consts/componentNames').EXECUTION_SERVICE;
 const WebhookTypes = require('../webhook/States').Types;
 const regex = require('../../lib/consts/regex');
+const pipelineTypes = require('../../lib/consts/pipeline-types');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const { uuid } = require('../utils');
 
@@ -20,56 +18,41 @@ const { uuid } = require('../utils');
 class ExecutionService {
     async runRaw(options) {
         validator.validateRunRawPipeline(options);
-        const pipeline = {
-            ...options,
-            name: this.createRawName(options)
-        };
-        return this._run(pipeline);
+        return this._run({ pipeline: options, types: [pipelineTypes.RAW] });
     }
 
     async runStored(options) {
         validator.validateRunStoredPipeline(options);
-        return this._runStored(options);
+        return this._runStored({ pipeline: options, types: [pipelineTypes.STORED] });
     }
 
     async runCaching(options) {
         validator.validateCaching(options);
-        const retryStrategy = {
-            maxAttempts: 0,
-            retryDelay: 5000,
-            retryStrategy: request.RetryStrategies.HTTPOrNetworkError
-        };
-        const { protocol, host, port, prefix } = main.cachingServer;
-        const uri = `${protocol}://${host}:${port}/${prefix}?jobId=${options.jobId}&&nodeName=${options.nodeName}`;
-
-        const response = await request({
-            method: 'GET',
-            uri,
-            json: true,
-            ...retryStrategy
-        });
-        if (response.statusCode !== 200) {
-            throw new Error(`error:${response.body.error.message}`);
-        }
         const { jobId, nodeName } = options;
-        log.debug(`get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
-        const cacheJobId = this._createJobIdForCaching(nodeName);
-        return this._run(response.body, cacheJobId, { alreadyExecuted: true });
-    }
-
-    async _runStored(options, jobId) {
-        const pipeline = await stateManager.getPipeline(options);
-        if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
+        const { error, pipeline } = await cachingService.exec({ jobId, nodeName });
+        if (error) {
+            throw new InvalidDataError(error.message);
         }
-        const pipe = merge(pipeline, options);
-        const parentSpan = options.spanId;
-        return this._run(pipe, jobId, { parentSpan });
+        const types = [...new Set([...pipeline.types || [], pipelineTypes.CACHING])];
+        const cacheJobId = this._createJobIdForCaching(nodeName);
+        return this._run({ pipeline, jobId: cacheJobId, options: { alreadyExecuted: true }, types });
     }
 
-    async _run(pipeLine, jobID, { alreadyExecuted = false, state, parentSpan } = {}) {
-        let pipeline = pipeLine;
-        let jobId = jobID;
+    async _runStored(options) {
+        const { pipeline, jobId, types } = options;
+        const storedPipeline = await stateManager.getPipeline({ name: pipeline.name });
+        if (!storedPipeline) {
+            throw new ResourceNotFoundError('pipeline', pipeline.name);
+        }
+        const newPipeline = merge(storedPipeline, pipeline);
+        return this._run({ pipeline: newPipeline, jobId, options: { parentSpan: pipeline.spanId }, types });
+    }
+
+    async _run(payload) {
+        let { pipeline, jobId } = payload;
+        const { types } = payload;
+        const { alreadyExecuted, state, parentSpan } = payload.options || {};
+
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name });
         }
@@ -92,10 +75,11 @@ class ExecutionService {
             const lastRunResult = await this._getLastPipeline(jobId);
             const startTime = Date.now();
             const status = state || States.PENDING;
+            const pipelineObject = { ...pipeline, jobId, startTime, lastRunResult, types };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
-            await storageManager.hkubeExecutions.put({ jobId, data: pipeline }, tracer.startSpan.bind(tracer, { name: 'storage-put-exeuctions', parent: span.context() }));
-            await stateManager.setExecution({ jobId, ...pipeline, startTime, lastRunResult });
-            await stateManager.setRunningPipeline({ jobId, ...pipeline, startTime, lastRunResult });
+            await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
+            await stateManager.setExecution(pipelineObject);
+            await stateManager.setRunningPipeline(pipelineObject);
             await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status, level: levels.INFO.name });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
@@ -141,7 +125,7 @@ class ExecutionService {
         return response;
     }
 
-    async getPipelinesResultStored(options) {
+    async getPipelinesResult(options) {
         validator.validateResultList(options);
         const response = await stateManager.getJobResults({ ...options, jobId: options.name });
         if (response.length === 0) {
@@ -150,27 +134,9 @@ class ExecutionService {
         return response;
     }
 
-    async getPipelinesResultRaw(options) {
-        validator.validateResultList(options);
-        const response = await stateManager.getJobResults({ ...options, jobId: `raw-${options.name}` });
-        if (response.length === 0) {
-            throw new ResourceNotFoundError('pipeline results', options.name);
-        }
-        return response;
-    }
-
-    async getPipelinesStatusStored(options) {
+    async getPipelinesStatus(options) {
         validator.validateResultList(options);
         const response = await stateManager.getJobStatuses({ ...options, jobId: options.name });
-        if (response.length === 0) {
-            throw new ResourceNotFoundError('pipeline status', options.name);
-        }
-        return response;
-    }
-
-    async getPipelinesStatusRaw(options) {
-        validator.validateResultList(options);
-        const response = await stateManager.getJobStatuses({ ...options, jobId: `raw-${options.name}` });
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline status', options.name);
         }
@@ -193,7 +159,7 @@ class ExecutionService {
         const { jobId } = options;
         const pipeline = await stateManager.getExecution({ jobId });
         await stateManager.updateJobStatus({ jobId, status: States.STOPPED, reason: options.reason, level: levels.INFO.name });
-        await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: States.COMPLETED });
+        await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: States.STOPPED });
     }
 
     async pauseJob(options) {
@@ -223,7 +189,7 @@ class ExecutionService {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        return this._run(pipeline, jobId, { alreadyExecuted: true, state: States.RESUMED });
+        return this._run({ pipeline, jobId, options: { alreadyExecuted: true, state: States.RESUMED } });
     }
 
     async getTree(options) {
@@ -249,10 +215,6 @@ class ExecutionService {
             stateManager.deleteWebhook({ jobId, type: WebhookTypes.RESULT }),
             producer.stopJob({ jobId })
         ]);
-    }
-
-    createRawName(options) {
-        return `raw-${options.name}`;
     }
 
     _createJobIdForCaching(nodeName) {

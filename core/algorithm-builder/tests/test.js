@@ -47,9 +47,9 @@ describe('Test', function () {
             config.buildId = buildId;
 
             await dockerBuilder.runBuild(config);
-            const response = await stateManger._etcd.algorithms.versions.list({ name: mockAlg.name });
-            expect(response[0].algorithmImage).to.contain(mockBuild.algorithmName);
-            expect(response[0].algorithmImage).to.contain(mockBuild.version);
+            const build = await stateManger.getBuild({ buildId });
+            expect(build.algorithmImage).to.contain(mockBuild.algorithmName);
+            expect(build.algorithmImage).to.contain(mockBuild.version);
         });
         xit('NODEJS: should succeed to build docker', async function () {
             this.timeout(50000);

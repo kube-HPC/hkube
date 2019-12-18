@@ -2,6 +2,7 @@ const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const execution = require('./execution');
 const { uuid } = require('../utils');
+const pipelineTypes = require('../../lib/consts/pipeline-types');
 
 class InternalService {
     async runStoredPipeline(options) {
@@ -18,27 +19,23 @@ class InternalService {
             }
         }
         const { parentJobId, ...option } = pipeline;
-        return execution._runStored(option, jobId);
+        return execution._runStored({ pipeline: option, jobId, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED] });
     }
 
     async runStoredSubPipeline(options) {
         validator.validateStoredSubPipeline(options);
         const jobID = this._createSubPipelineJobID(options);
-        const { jobId, taskId, rootJobId, ...option } = options;
-        option.rootJobId = rootJobId || jobId;
-        return execution._runStored(option, jobID);
+        const { jobId, taskId, rootJobId, ...pipeline } = options;
+        pipeline.rootJobId = rootJobId || jobId;
+        return execution._runStored({ pipeline, jobId: jobID, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE] });
     }
 
     async runRawSubPipeline(options) {
         validator.validateRawSubPipeline(options);
-        const pipeline = {
-            ...options,
-            name: execution.createRawName(options)
-        };
-        const jobID = this._createSubPipelineJobID(pipeline);
-        const { jobId, taskId, ...option } = pipeline;
+        const jobID = this._createSubPipelineJobID(options);
+        const { jobId, taskId, ...pipeline } = options;
         const parentSpan = options.spanId;
-        return execution._run(option, jobID, { parentSpan });
+        return execution._run({ pipeline, jobId: jobID, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
     }
 
     _createCronJobID(options, uid) {
@@ -51,10 +48,6 @@ class InternalService {
 
     _createSubPipelineJobID(options) {
         return ['sub', options.name, uuid()].join(':');
-    }
-
-    _createJobID(options) {
-        return [`${options.name}:${uuid()}`, options.name].join('.');
     }
 }
 

@@ -7,7 +7,7 @@ properties:
     description: image name as in the docker registry
   force:
     type: boolean
-    description: should replace current algorithm version
+    description: should replace or not current algorithm version for running algorithm instances
     default: false
 required:
   - name

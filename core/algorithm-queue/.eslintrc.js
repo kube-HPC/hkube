@@ -30,6 +30,7 @@ module.exports = {
         "object-curly-newline": "off",
         "newline-per-chained-call": "off",
         "arrow-body-style": "off",
+        "arrow-parens": "off",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0
     }

@@ -6,7 +6,7 @@ const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms } = require('./mocks');
-const { request, defaultProps } = require('./utils');
+const { request, delay, defaultProps } = require('./utils');
 let restUrl, restPath, applyPath;
 
 const gitRepo = 'https://github.com/kube-HPC/hkube';
@@ -16,6 +16,7 @@ describe('Store/Algorithms', () => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/store/algorithms`;
         applyPath = `${restPath}/apply`;
+        versionsPath = `${restUrl}/versions/algorithms`;
     });
     describe('/store/algorithms:name GET', () => {
         it('should throw error algorithm not found', async () => {
@@ -110,7 +111,7 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain('you must first delete all related data');
         });
-        it('should delete algorithm with related data', async () => {
+        it('should delete algorithm with related data with force', async () => {
             const algorithmName = `delete-${uuid()}`;
             const algorithm = {
                 uri: restPath,
@@ -155,6 +156,28 @@ describe('Store/Algorithms', () => {
             expect(response.body).to.have.property('message');
             expect(response.body.message).to.contain('related data deleted');
         });
+        it('should delete algorithm with related data without force', async () => {
+            const algorithmName = `delete-${uuid()}`;
+            const algorithm = {
+                uri: restPath,
+                body: {
+                    name: algorithmName,
+                    algorithmImage: "image"
+                }
+            };
+            const resAlg = await request(algorithm);
+            await stateManager.setAlgorithmVersion(resAlg.body);
+            await stateManager.setBuild({ buildId: `${algorithmName}-1`, algorithmName });
+            await stateManager.setBuild({ buildId: `${algorithmName}-2`, algorithmName });
+
+            const optionsDelete = {
+                uri: `${restPath}/${algorithmName}?force=false`,
+                method: 'DELETE'
+            };
+            const response = await request(optionsDelete);
+            expect(response.body).to.have.property('message');
+            expect(response.body.message).to.equal(`algorithm ${algorithmName} successfully deleted from store. related data deleted: 2 builds, 1 versions`);
+        });
         it('should delete specific algorithm without related data', async () => {
             const optionsInsert = {
                 uri: restPath,
@@ -166,7 +189,7 @@ describe('Store/Algorithms', () => {
             await request(optionsInsert);
 
             const options = {
-                uri: restPath + '/delete',
+                uri: restPath + '/delete?force=true',
                 method: 'DELETE'
             };
             const response = await request(options);
@@ -391,7 +414,6 @@ describe('Store/Algorithms', () => {
             });
         });
         it('should succeed to store and get multiple algorithms', async function () {
-            this.timeout(10000);
             const limit = 5;
             const keys = Array.from(Array(limit).keys());
             const algorithms = keys.map(k => ({
@@ -621,7 +643,7 @@ describe('Store/Algorithms', () => {
                 expect(res1.body).to.have.property('buildId');
                 expect(res2.body).to.have.property('error');
                 expect(res2.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res2.body.error.message).to.contain(`algorithm type cannot be changed, new type: ${body2.type}, old type: ${body1.type}`);
+                expect(res2.body.error.message).to.contain(`algorithm type cannot be changed from "${body1.type}" to "${body2.type}"`);
             });
         });
         describe('Github', () => {
@@ -998,6 +1020,27 @@ describe('Store/Algorithms', () => {
                 const res2 = await request(getRequest);
                 expect(res1.body.version).to.equal('1.0.0');
                 expect(res2.body.version).to.equal('1.0.1');
+            });
+            it('should succeed to watch completed build', async function () {
+                this.timeout(5000);
+                const algorithmName = `my-alg-${uuid()}`;
+                const algorithmImage = `${algorithmName}-image`
+                const formData = {
+                    payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const res1 = await request({ uri: `${restPath}/apply`, formData });
+                await stateManager.setBuild({ buildId: res1.body.buildId, algorithmName, algorithmImage, status: 'completed' });
+                await delay(2000);
+
+                const { options, ...restProps } = res1.body.algorithm;
+
+                const res2 = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
+                expect(res2.body[0]).to.deep.equal({
+                    ...defaultProps,
+                    ...restProps,
+                    algorithmImage
+                });
             });
         })
         describe('Gitlab', () => {

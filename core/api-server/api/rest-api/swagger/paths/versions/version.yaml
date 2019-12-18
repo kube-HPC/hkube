@@ -11,9 +11,8 @@ get:
       schema:
         $ref: "#/components/schemas/algorithmName"
     - name: image
-      in: path
+      in: query
       description: algorithm image
-      required: true
       schema:
         type: string
     - name: sort
@@ -71,9 +70,8 @@ delete:
       schema:
         $ref: "#/components/schemas/algorithmName"
     - name: image
-      in: path
+      in: query
       description: algorithm image
-      required: true
       schema:
         type: string
   responses:

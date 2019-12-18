@@ -3,6 +3,3 @@ properties:
   github:
     type: object
     description: github object which received after push for more information https://developer.github.com/webhooks/
-
-required:
-  - github
