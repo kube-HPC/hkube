@@ -68,7 +68,7 @@ describe('Versions/Algorithms', () => {
             await request(applyReq2);
 
             await request(versionReq1);
-            const deleteReq = { uri: `${restPath}/${name}/${usedVersion}`, method: 'DELETE' };
+            const deleteReq = { uri: `${restPath}/${name}?image=${usedVersion}`, method: 'DELETE' };
             const res = await request(deleteReq);
 
             expect(res.body).to.have.property('error');
@@ -84,7 +84,7 @@ describe('Versions/Algorithms', () => {
             const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
             const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
             const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
-            const deleteReq = { uri: `${restPath}/${name}/${algorithmImage2}`, method: 'DELETE' };
+            const deleteReq = { uri: `${restPath}/${name}?image=${algorithmImage2}`, method: 'DELETE' };
 
             await request(applyReq1);
             await request(applyReq2);

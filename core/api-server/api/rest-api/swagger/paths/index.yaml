@@ -82,9 +82,7 @@
 
 # versions
 /versions/algorithms/{name}:
-  $ref: ./versions/algorithms_name.yaml
-/versions/algorithms/{name}/{image}:
-  $ref: ./versions/algorithms_name_image.yaml
+  $ref: ./versions/version.yaml
 /versions/algorithms/apply:
   $ref: ./versions/apply.yaml
 
