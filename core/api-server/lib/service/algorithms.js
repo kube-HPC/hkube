@@ -56,10 +56,10 @@ class AlgorithmStore {
         }
 
         const { builds, versions, pipelines, executions } = await this._findAlgorithmDependencies(name);
-        const { message, details } = await this._checkAlgorithmDependencies({ name, pipelines, executions });
+        const { message, details } = await this._checkAlgorithmDependencies({ name, builds, versions, pipelines, executions });
         let summary = `algorithm ${name} successfully deleted from store`;
         if (message) {
-            if (!force) {
+            if (!force && (pipelines.length > 0 || executions.length > 0)) {
                 throw new ActionNotAllowed(message, details);
             }
             else {

@@ -111,7 +111,7 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain('you must first delete all related data');
         });
-        it('should delete algorithm with related data', async () => {
+        it('should delete algorithm with related data with force', async () => {
             const algorithmName = `delete-${uuid()}`;
             const algorithm = {
                 uri: restPath,
@@ -155,6 +155,28 @@ describe('Store/Algorithms', () => {
             const response = await request(optionsDelete);
             expect(response.body).to.have.property('message');
             expect(response.body.message).to.contain('related data deleted');
+        });
+        it('should delete algorithm with related data without force', async () => {
+            const algorithmName = `delete-${uuid()}`;
+            const algorithm = {
+                uri: restPath,
+                body: {
+                    name: algorithmName,
+                    algorithmImage: "image"
+                }
+            };
+            const resAlg = await request(algorithm);
+            await stateManager.setAlgorithmVersion(resAlg.body);
+            await stateManager.setBuild({ buildId: `${algorithmName}-1`, algorithmName });
+            await stateManager.setBuild({ buildId: `${algorithmName}-2`, algorithmName });
+
+            const optionsDelete = {
+                uri: `${restPath}/${algorithmName}?force=false`,
+                method: 'DELETE'
+            };
+            const response = await request(optionsDelete);
+            expect(response.body).to.have.property('message');
+            expect(response.body.message).to.equal(`algorithm ${algorithmName} successfully deleted from store. related data deleted: 2 builds, 1 versions`);
         });
         it('should delete specific algorithm without related data', async () => {
             const optionsInsert = {
