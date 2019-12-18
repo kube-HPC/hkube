@@ -119,7 +119,7 @@ describe('consumer tests', () => {
         expect(uploadedFiles.length).to.eql(2);
 
     });
-    it.only('Check algo metrics are uploaded are not uploaded when tensoboard is false', async () => {
+    it('Check algo metrics are uploaded are not uploaded when tensoboard is false', async () => {
         const config = getConfig();
         fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
         fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
