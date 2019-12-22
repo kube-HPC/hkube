@@ -140,13 +140,13 @@ const logVolumes = [
         hostPath: {
             path: '/var/lib/docker/containers'
         }
-    },
-    {
-        name: 'algometrics',
-        emptyDir: {}
-    },
-
+    }
 ];
+
+const algoMetricVolume = {
+    name: 'algometrics',
+    emptyDir: {}
+};
 
 
 const sharedVolumeMounts = [
@@ -172,5 +172,6 @@ module.exports = {
     workerTemplate,
     logVolumes,
     logVolumeMounts,
-    sharedVolumeMounts
+    sharedVolumeMounts,
+    algoMetricVolume
 };
