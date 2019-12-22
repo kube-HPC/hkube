@@ -5,18 +5,18 @@ const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const fse = require('fs-extra');
+const dree = require('dree');
+const pathLib = require('path');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
 const { metricsNames, Components, JobStatus } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
-
 const pipelineDoneStatus = [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
 let log;
-let _algoMetricsDir;
 
 class JobConsumer extends EventEmitter {
     constructor() {
@@ -43,7 +43,7 @@ class JobConsumer extends EventEmitter {
             })
         }));
         const { algoMetricsDir } = options;
-        _algoMetricsDir = algoMetricsDir;
+        this._algoMetricsDir = algoMetricsDir;
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
@@ -344,10 +344,12 @@ class JobConsumer extends EventEmitter {
         const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus(data);
 
         if (shouldCompleteJob) {
+            let metricsPath;
             if (!error && status === constants.JOB_STATUS.SUCCEED) {
                 storageResult = await this._putResult(resultData);
-                if (this.jobData.tensorboard) {
-                    await this._putAlgoMetrics();
+                if (this.jobData.metrics.tensorboard) {
+                    const tensorboard = await this._putAlgoMetrics();
+                    metricsPath = { tensorboard };
                 }
             }
             const resData = Object.assign({
@@ -360,7 +362,8 @@ class JobConsumer extends EventEmitter {
                 nodeName: this._job.data.nodeName,
                 algorithmName: this._job.data.algorithmName,
                 batchIndex: this._batchIndex,
-                endTime: Date.now()
+                endTime: Date.now(),
+                metricsPath
             }, storageResult);
 
             this._job.error = error;
@@ -451,18 +454,54 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    async _putAlgoMetrics() {
-        const uploadTime = this.jobCurrentTime.toLocaleString().split('/').join('-');
-        const files = await fse.readdirSync(_algoMetricsDir);
+    getFileNames(parentDir) {
+        if (parentDir.children) {
+            let flatChildrenList = [];
+            parentDir.children.forEach((child) => {
+                const grandchildren = this.getFileNames(child);
+                if (grandchildren.length === 1 && typeof (grandchildren[0]) === 'string') {
+                    flatChildrenList = [[parentDir.name, ...grandchildren], ...flatChildrenList];
+                }
+                else {
+                    grandchildren.forEach((filePath) => {
+                        flatChildrenList = [[parentDir.name, ...filePath], ...flatChildrenList];
+                    });
+                }
+            });
+            return flatChildrenList;
+        }
+        return [parentDir.name];
+    }
 
-        files.forEach(((file) => {
-            if (!fse.lstatSync((`${_algoMetricsDir}/${file}`)).isDirectory()) {
-                const stream = fse.createReadStream(`${_algoMetricsDir}/${file}`);
-                const { taskId } = this.jobData;
-                const runName = `${uploadTime}-${taskId}`;
-                storageManager.hkubeAlgoMetrics.putStream({ pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName: file.toString(), stream });
-            }
-        }));
+    async _putAlgoMetrics() {
+        let path = null;
+        let error;
+        try {
+            const uploadTime = this.jobCurrentTime.toLocaleString().split('/').join('-');
+            const dirTree = dree.scan(this._algoMetricsDir);
+            const files = this.getFileNames(dirTree);
+            const { taskId } = this.jobData;
+            const runName = `${uploadTime}-${taskId.substring(taskId.length - 8)}`;
+            const paths = await Promise.all(files.map((file) => {
+                file.shift();
+                const stream = fse.createReadStream(`${this._algoMetricsDir}/${file.join('/')}`);
+                return storageManager.hkubeAlgoMetrics.putStream(
+                    { pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName: file, stream }
+                );
+            }));
+            const separatedPath = paths[0] && paths[0].path.split(pathLib.sep);
+            path = separatedPath && separatedPath.slice(0, separatedPath.length - 1).join(pathLib.sep);
+        }
+        catch (err) {
+            error = err.message;
+        }
+        finally {
+            // eslint-disable-next-line no-unsafe-finally
+            return {
+                path,
+                error
+            };
+        }
     }
 
     getTracer(name) {

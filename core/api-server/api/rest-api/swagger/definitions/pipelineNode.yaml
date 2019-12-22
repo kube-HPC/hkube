@@ -11,9 +11,9 @@ properties:
     description: The input for the algorithm
     items: {}
     default: []
-  tensorboard:
-    type: boolean
-    default: true
+  metrics:
+    $ref: "#/components/schemas/metrics"
+    default: {}
 required:
   - nodeName
   - algorithmName

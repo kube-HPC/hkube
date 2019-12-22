@@ -18,5 +18,4 @@ config.throttle = {
 config.extraDetails = false;
 config.isDefault = true;
 config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
-config.algoMetricsDir = process.env.ALGO_METRICS_DIR || '/var/metrics/';
 module.exports = config;

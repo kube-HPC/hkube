@@ -1,0 +1,6 @@
+type: object
+properties:
+  tensorboard:
+    type: boolean
+    description: Should tensorboard metrics be collected.
+    default: true

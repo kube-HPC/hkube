@@ -5,9 +5,6 @@ const stateManager = require('../lib/states/stateManager.js');
 const configIt = require('@hkube/config');
 const configuration = configIt.load().main;
 const { expect } = require('chai');
-const chai = require('chai');
-const chaiAsPromised = require('chai-as-promised');
-chai.use(chaiAsPromised);
 const workerCommunication = require('../lib/algorithm-communication/workerCommunication');
 const worker = require('../lib/worker');
 const sinon = require('sinon');
@@ -98,10 +95,12 @@ describe('consumer tests', () => {
         await delay(1000);
         expect(spy.callCount).to.eq(1);
     });
-    it('Check algo metrics are uploaded', async () => {
+    it.only('Check algo metrics are uploaded', async () => {
         const config = getConfig();
-        fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
-        fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
+        await fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
+        await fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
+        await fse.mkdirp(`${configuration.algoMetricsDir}/ss`);
+        await fse.writeFile(`${configuration.algoMetricsDir}/ss/c.txt`, 'c text');
         consumer._jobProvider.emit('job-queue', {
             data: {
                 jobId: config.jobId,
@@ -109,14 +108,16 @@ describe('consumer tests', () => {
                 input: [],
                 pipelineName: 'pipeName',
                 nodeName: 'A',
-                tensorboard: true,
+                metrics: {
+                    tensorboard: true
+                },
                 state: JobStatus.SUCCEED
             },
         });
         consumer.jobCurrentTime = new Date();
         await consumer.finishJob({ state: JobStatus.SUCCEED, results: {} });
         const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
-        expect(uploadedFiles.length).to.eql(2);
+        expect(uploadedFiles.length).to.eql(3);
 
     });
     it('Check algo metrics are uploaded are not uploaded when tensoboard is false', async () => {
@@ -130,13 +131,35 @@ describe('consumer tests', () => {
                 input: [],
                 pipelineName: 'pipeName',
                 nodeName: 'A',
-                tensorboard: false,
+                metrics: {
+                    tensorboard: false
+                },
                 state: JobStatus.SUCCEED
             },
         });
         consumer.jobCurrentTime = new Date();
         await consumer.finishJob({ state: JobStatus.SUCCEED, results: {} });
         await delay(500);
+        const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
+        expect(uploadedFiles.length).to.eql(0);
+    });
+    it('Check no metric files to upload', async () => {
+        const config = getConfig();
+        consumer._jobProvider.emit('job-queue', {
+            data: {
+                jobId: config.jobId,
+                taskId: config.taskId,
+                input: [],
+                pipelineName: 'pipeName',
+                nodeName: 'A',
+                metrics: {
+                    tensorboard: true
+                },
+                state: JobStatus.SUCCEED
+            },
+        });
+        consumer.jobCurrentTime = new Date();
+        await consumer.finishJob({ state: JobStatus.SUCCEED, results: {} });
         const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
         expect(uploadedFiles.length).to.eql(0);
     });

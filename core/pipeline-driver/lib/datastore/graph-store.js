@@ -109,7 +109,8 @@ class GraphStore {
             retries: task.retries,
             batchIndex: task.batchIndex,
             startTime: task.startTime,
-            endTime: task.endTime
+            endTime: task.endTime,
+            metricsPath: task.metricsPath
         };
     }
 

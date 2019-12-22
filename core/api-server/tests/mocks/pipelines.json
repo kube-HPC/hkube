@@ -8,7 +8,9 @@
                 "input": [
                     "@flowInput.files.link"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
@@ -16,7 +18,9 @@
                 "input": [
                     "@green"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
@@ -24,7 +28,9 @@
                 "input": [
                     "@yellow"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "white",
@@ -32,7 +38,9 @@
                 "input": [
                     "test"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -56,7 +64,9 @@
                 "input": [
                     "#@flowInput.files.links"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
@@ -64,7 +74,9 @@
                 "input": [
                     "@green"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
@@ -73,7 +85,9 @@
                     "@green",
                     "@yellow"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -101,7 +115,9 @@
                 "input": [
                     "#@flowInput.files.links"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
@@ -109,7 +125,9 @@
                 "input": [
                     "#@flowInput.files.links"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
@@ -117,7 +135,9 @@
                 "input": [
                     "#@flowInput.files.links"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -159,7 +179,9 @@
                 "input": [
                     "@green"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
@@ -167,7 +189,9 @@
                 "input": [
                     "@yellow"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "white",
@@ -175,7 +199,9 @@
                 "input": [
                     "test"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -237,7 +263,9 @@
                 "nodeName": "A",
                 "algorithmName": "green-alg",
                 "input": [],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "B",
@@ -245,7 +273,9 @@
                 "input": [
                     "@C"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ]
     },
@@ -258,7 +288,9 @@
                 "input": [
                     "@B"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "B",
@@ -266,7 +298,9 @@
                 "input": [
                     "@A"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ]
     },
@@ -279,7 +313,9 @@
                 "input": [
                     "flowInput"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "triggers": {
@@ -298,7 +334,9 @@
                 "input": [
                     "flowInput"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "triggers": {
@@ -317,7 +355,9 @@
                 "input": [
                     "flowInput"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "triggers": {}
@@ -331,7 +371,9 @@
                 "input": [
                     "flowInput"
                 ],
-                "tensorboard": true
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "options": {

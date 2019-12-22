@@ -328,7 +328,9 @@ describe('Executions', () => {
                             nodeName: 'string',
                             algorithmName: 'green-alg',
                             input: [],
-                            "tensorboard": true
+                            "metrics": {
+                                "tensorboard": true
+                            }
                         }
                     ]
                 }
