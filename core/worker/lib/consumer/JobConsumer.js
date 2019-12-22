@@ -1,11 +1,11 @@
 const EventEmitter = require('events');
+const recursive = require('recursive-readdir');
 const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
 const fse = require('fs-extra');
-const dree = require('dree');
 const pathLib = require('path');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
@@ -478,13 +478,12 @@ class JobConsumer extends EventEmitter {
         let error;
         try {
             const uploadTime = this.jobCurrentTime.toLocaleString().split('/').join('-');
-            const dirTree = dree.scan(this._algoMetricsDir);
-            const files = this.getFileNames(dirTree);
+            const files = await recursive(this._algoMetricsDir);
             const { taskId } = this.jobData;
             const runName = `${uploadTime}-${taskId.substring(taskId.length - 8)}`;
             const paths = await Promise.all(files.map((file) => {
-                file.shift();
-                const stream = fse.createReadStream(`${this._algoMetricsDir}/${file.join('/')}`);
+                file.replace(this._algoMetricsDir, '');
+                const stream = fse.createReadStream(file);
                 return storageManager.hkubeAlgoMetrics.putStream(
                     { pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName: file, stream }
                 );

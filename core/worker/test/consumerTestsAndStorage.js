@@ -95,7 +95,7 @@ describe('consumer tests', () => {
         await delay(1000);
         expect(spy.callCount).to.eq(1);
     });
-    it.only('Check algo metrics are uploaded', async () => {
+    it('Check algo metrics are uploaded', async () => {
         const config = getConfig();
         await fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
         await fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
@@ -120,7 +120,7 @@ describe('consumer tests', () => {
         expect(uploadedFiles.length).to.eql(3);
 
     });
-    it('Check algo metrics are uploaded are not uploaded when tensoboard is false', async () => {
+    it('Check algo metrics are not uploaded when tensoboard is false', async () => {
         const config = getConfig();
         fse.writeFile(`${configuration.algoMetricsDir}/a.txt`, 'a text');
         fse.writeFile(`${configuration.algoMetricsDir}/b.txt`, 'b text');
@@ -143,7 +143,7 @@ describe('consumer tests', () => {
         const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
         expect(uploadedFiles.length).to.eql(0);
     });
-    it('Check no metric files to upload', async () => {
+    it('Check when there are no metric files to upload', async () => {
         const config = getConfig();
         consumer._jobProvider.emit('job-queue', {
             data: {
