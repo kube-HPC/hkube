@@ -1,18 +1,18 @@
-post:
+get:
   tags:
-    - Versions
-  summary: Apply algorithm version
-  description: Apply algorithm version will change the current algorithm image
-  requestBody:
-    content:
-      application/json:
-        schema:
-          $ref: "#/components/schemas/algorithmVersion"
-    description: an object representing all information needed for stored pipeline execution
-    required: true
+    - Storage
+  summary: stream data
+  description: stream data according to path
+  parameters:
+    - name: path
+      in: path
+      description: path to storage
+      required: true
+      schema:
+        type: string
   responses:
     "200":
-      description: the OK string
+      description: storage response
       content:
         application/json:
           schema:
@@ -24,7 +24,7 @@ post:
           schema:
             $ref: "#/components/schemas/error"
     "404":
-      description: jobId Not Found
+      description: path Not Found
       content:
         application/json:
           schema:
