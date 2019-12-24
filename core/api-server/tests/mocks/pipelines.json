@@ -7,28 +7,40 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "@flowInput.files.link"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "@green"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
                     "@yellow"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "white",
                 "algorithmName": "black-alg",
                 "input": [
                     "test"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -51,14 +63,20 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "@green"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
@@ -66,7 +84,10 @@
                 "input": [
                     "@green",
                     "@yellow"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -93,21 +114,30 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -148,21 +178,30 @@
                 "algorithmName": "yellow-alg",
                 "input": [
                     "@green"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
                     "@yellow"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "white",
                 "algorithmName": "black-alg",
                 "input": [
                     "test"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -223,14 +262,20 @@
             {
                 "nodeName": "A",
                 "algorithmName": "green-alg",
-                "input": []
+                "input": [],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "B",
                 "algorithmName": "green-alg",
                 "input": [
                     "@C"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ]
     },
@@ -242,14 +287,20 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "@B"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "B",
                 "algorithmName": "green-alg",
                 "input": [
                     "@A"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ]
     },
@@ -261,7 +312,10 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "flowInput"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "triggers": {
@@ -279,7 +333,10 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "flowInput"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "triggers": {
@@ -297,7 +354,10 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "flowInput"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "triggers": {}
@@ -310,7 +370,10 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "flowInput"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "options": {

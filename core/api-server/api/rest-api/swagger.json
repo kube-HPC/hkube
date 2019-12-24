@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.42",
+    "version": "1.2.43",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -114,6 +114,17 @@
                           "description": "The input for the algorithm",
                           "items": {},
                           "default": []
+                        },
+                        "metrics": {
+                          "default": {},
+                          "type": "object",
+                          "properties": {
+                            "tensorboard": {
+                              "type": "boolean",
+                              "description": "Should tensorboard metrics be collected.",
+                              "default": true
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -1012,6 +1023,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -1249,6 +1271,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -4159,6 +4192,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -4499,6 +4543,17 @@
                               "description": "The input for the algorithm",
                               "items": {},
                               "default": []
+                            },
+                            "metrics": {
+                              "default": {},
+                              "type": "object",
+                              "properties": {
+                                "tensorboard": {
+                                  "type": "boolean",
+                                  "description": "Should tensorboard metrics be collected.",
+                                  "default": true
+                                }
+                              }
                             }
                           },
                           "required": [
@@ -4695,6 +4750,17 @@
                           "description": "The input for the algorithm",
                           "items": {},
                           "default": []
+                        },
+                        "metrics": {
+                          "default": {},
+                          "type": "object",
+                          "properties": {
+                            "tensorboard": {
+                              "type": "boolean",
+                              "description": "Should tensorboard metrics be collected.",
+                              "default": true
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -4867,6 +4933,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -5100,6 +5177,17 @@
                           "description": "The input for the algorithm",
                           "items": {},
                           "default": []
+                        },
+                        "metrics": {
+                          "default": {},
+                          "type": "object",
+                          "properties": {
+                            "tensorboard": {
+                              "type": "boolean",
+                              "description": "Should tensorboard metrics be collected.",
+                              "default": true
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -5272,6 +5360,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -9622,6 +9721,17 @@
                   "description": "The input for the algorithm",
                   "items": {},
                   "default": []
+                },
+                "metrics": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "tensorboard": {
+                      "type": "boolean",
+                      "description": "Should tensorboard metrics be collected.",
+                      "default": true
+                    }
+                  }
                 }
               },
               "required": [
@@ -9774,12 +9884,33 @@
             "description": "The input for the algorithm",
             "items": {},
             "default": []
+          },
+          "metrics": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "tensorboard": {
+                "type": "boolean",
+                "description": "Should tensorboard metrics be collected.",
+                "default": true
+              }
+            }
           }
         },
         "required": [
           "nodeName",
           "algorithmName"
         ]
+      },
+      "metrics": {
+        "type": "object",
+        "properties": {
+          "tensorboard": {
+            "type": "boolean",
+            "description": "Should tensorboard metrics be collected.",
+            "default": true
+          }
+        }
       },
       "pipelineResult": {
         "type": "object",

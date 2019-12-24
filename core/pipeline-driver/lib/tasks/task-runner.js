@@ -566,8 +566,8 @@ class TaskRunner extends EventEmitter {
     }
 
     _updateTaskState(taskId, task) {
-        const { status, result, error, reason, podName, prevError, retries, startTime, endTime } = task;
-        const state = { status, result, error, reason, podName, prevError, retries, startTime, endTime };
+        const { status, result, error, reason, podName, prevError, retries, startTime, endTime, metricsPath } = task;
+        const state = { status, result, error, reason, podName, prevError, retries, startTime, endTime, metricsPath };
         this._nodes.updateTaskState(taskId, state);
     }
 
@@ -585,6 +585,7 @@ class TaskRunner extends EventEmitter {
                 tasks,
                 jobId: this._jobId,
                 nodeName: options.node.nodeName,
+                metrics: options.node.metrics,
                 pipelineName: this.pipeline.name,
                 priority: this.pipeline.priority,
                 algorithmName: options.node.algorithmName,

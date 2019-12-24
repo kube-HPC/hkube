@@ -5,7 +5,7 @@ const objectPath = require('object-path');
 const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage, applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts } = require('@hkube/kubernetes-client').utils;
 const { components, containers } = require('../consts');
 const component = components.K8S;
-const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate } = require('../templates');
+const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
 
@@ -72,6 +72,11 @@ const applyPipelineDriverImage = (inputSpec, image) => {
 const applyLogging = (inputSpec, options) => {
     let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
+    spec = applyVolumes(spec, algoMetricVolume);
+    sharedVolumeMounts.forEach((vm) => {
+        spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, vm);
+        spec = applyVolumeMounts(spec, CONTAINERS.WORKER, vm);
+    });
     if (!isPrivileged) {
         spec = applyVolumeMounts(spec, CONTAINERS.WORKER, {
             name: 'logs',

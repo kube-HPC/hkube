@@ -34,6 +34,8 @@ pipelineName:
   $ref: ./pipelineName.yaml
 pipelineNode:
   $ref: ./pipelineNode.yaml
+metrics:
+  $ref: ./metrics.yaml
 pipelineResult:
   $ref: ./pipelineResult.yaml
 priority:

@@ -122,4 +122,5 @@ config.cacheResults = {
     updateFrequency: formatter.parseInt(process.env.CACHE_UPDATE_FREQUENCY, 5000)
 };
 config.disableCache = formatter.parseBool(process.env.DISABLE_WORKER_CACHE, false);
+config.algoMetricsDir = process.env.ALGO_METRICS_DIR || '/var/metrics/';
 module.exports = config;
