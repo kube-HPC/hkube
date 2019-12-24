@@ -482,10 +482,10 @@ class JobConsumer extends EventEmitter {
             const { taskId } = this.jobData;
             const runName = `${uploadTime}-${taskId.substring(taskId.length - 8)}`;
             const paths = await Promise.all(files.map((file) => {
-                file.replace(this._algoMetricsDir, '');
                 const stream = fse.createReadStream(file);
+                const fileName = file.replace(this._algoMetricsDir, '');
                 return storageManager.hkubeAlgoMetrics.putStream(
-                    { pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName: file, stream }
+                    { pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName, stream }
                 );
             }));
             const separatedPath = paths[0] && paths[0].path.split(pathLib.sep);
