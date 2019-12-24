@@ -347,7 +347,7 @@ class JobConsumer extends EventEmitter {
             let metricsPath;
             if (!error && status === constants.JOB_STATUS.SUCCEED) {
                 storageResult = await this._putResult(resultData);
-                if (this.jobData.metrics.tensorboard) {
+                if (this.jobData.metrics && this.jobData.metrics.tensorboard) {
                     const tensorboard = await this._putAlgoMetrics();
                     metricsPath = { tensorboard };
                 }
