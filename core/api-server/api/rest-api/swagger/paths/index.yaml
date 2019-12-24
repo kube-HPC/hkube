@@ -91,3 +91,19 @@
   $ref: ./graph/raw.yaml
 /graph/parsed/{jobId}:
   $ref: ./graph/parsed.yaml
+
+# storage
+/storage/info:
+  $ref: ./storage/info.yaml
+/storage/prefix/types:
+  $ref: ./storage/prefixes_types.yaml
+/storage/prefixes/{path}:
+  $ref: ./storage/prefixes_path.yaml
+/storage/keys/{path}:
+  $ref: ./storage/keys_path.yaml
+/storage/values/{path}:
+  $ref: ./storage/values_path.yaml
+/storage/stream/{path}:
+  $ref: ./storage/stream_path.yaml
+/storage/download/{path}:
+  $ref: ./storage/download.yaml

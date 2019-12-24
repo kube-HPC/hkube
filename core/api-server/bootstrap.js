@@ -15,7 +15,8 @@ const modules = [
     require('./lib/examples/pipelines-updater'),
     require('./lib/webhook/webhooks-handler'),
     require('./lib/service/algorithms'),
-    require('./lib/service/caching')
+    require('./lib/service/caching'),
+    require('./lib/service/storage')
 ];
 
 class Bootstrap {
