@@ -21,9 +21,11 @@ const routes = (options) => {
         res.json(response);
         next();
     });
-    router.all('/:jobId?', methods(['GET']), logger(), async (req, res, next) => {
-        const { jobId, sort, limit } = req.params;
-        const response = await WebhooksService.getWebhooks({ jobId, sort, limit });
+    router.all('/list', methods(['GET']), logger(), async (req, res, next) => {
+        const { sort, limit } = req.query;
+        const experimentName = req.query.experimentName || 'main';
+        const name = req.query.name || '';
+        const response = await WebhooksService.getWebhooks({ name, experimentName, sort, limit });
         res.json(response);
         next();
     });

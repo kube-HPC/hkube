@@ -260,7 +260,7 @@ describe('Webhooks', () => {
         it('should throw error when no such jobId', async function () {
             const options = {
                 method: 'GET',
-                uri: `${restUrl}/webhooks/no_such`
+                uri: `${restUrl}/webhooks/list?name=no_such`
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
@@ -311,7 +311,7 @@ describe('Webhooks', () => {
 
             const options2 = {
                 method: 'GET',
-                uri: `${restUrl}/webhooks/webhookFlow?limit=3`
+                uri: `${restUrl}/webhooks/list/?name=webhookFlow&limit=3`
             };
             const response2 = await request(options2);
             expect(response2.body[0]).to.have.property('jobId');

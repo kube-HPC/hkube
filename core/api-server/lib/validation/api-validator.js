@@ -47,7 +47,7 @@ class ApiValidator {
     }
 
     validateStoredInternal(pipeline) {
-        this._validate(this._definitionsInternal.pipeline, pipeline, false);
+        this._validate(this._definitionsInternal.pipeline, pipeline, true);
     }
 
     validateRawSubPipeline(pipeline) {
@@ -63,7 +63,7 @@ class ApiValidator {
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(this._definitions.storedPipeline, pipeline, false, { checkFlowInput: false });
+        this._validate(this._definitions.storedPipeline, pipeline, true, { checkFlowInput: false });
     }
 
     validateCaching(request) {

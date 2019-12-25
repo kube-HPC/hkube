@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.21",
+    "version": "1.2.32",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -66,6 +66,11 @@
                     "description": "Unique identifier representing a specific pipeline",
                     "minLength": 1,
                     "format": "pipeline-name"
+                  },
+                  "experiment": {
+                    "type": "string",
+                    "description": "experiment name",
+                    "default": "main"
                   },
                   "description": {
                     "type": "string",
@@ -293,6 +298,11 @@
                     "description": "Unique identifier representing a specific pipeline",
                     "minLength": 1,
                     "format": "pipeline-name"
+                  },
+                  "experimentName": {
+                    "default": "main",
+                    "type": "string",
+                    "description": "experiment name"
                   },
                   "flowInput": {
                     "type": "object",
@@ -944,6 +954,11 @@
                       "minLength": 1,
                       "format": "pipeline-name"
                     },
+                    "experiment": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
+                    },
                     "description": {
                       "type": "string",
                       "description": "pipeline description"
@@ -1169,6 +1184,11 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "experiment": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
                     },
                     "description": {
                       "type": "string",
@@ -1824,7 +1844,7 @@
         }
       }
     },
-    "/pipelines/results/stored/{name}": {
+    "/pipelines/results/stored": {
       "get": {
         "tags": [
           "Pipelines"
@@ -1834,9 +1854,16 @@
         "parameters": [
           {
             "name": "name",
-            "in": "path",
+            "in": "query",
             "description": "pipeline name",
-            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
             "schema": {
               "type": "string"
             }
@@ -2114,9 +2141,16 @@
         "parameters": [
           {
             "name": "name",
-            "in": "path",
+            "in": "query",
             "description": "pipeline name",
-            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
             "schema": {
               "type": "string"
             }
@@ -2244,7 +2278,7 @@
         }
       }
     },
-    "/cron/results/{name}": {
+    "/cron/results": {
       "get": {
         "tags": [
           "Cron"
@@ -2254,9 +2288,16 @@
         "parameters": [
           {
             "name": "name",
-            "in": "path",
+            "in": "query",
             "description": "pipeline name",
-            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
             "schema": {
               "type": "string"
             }
@@ -2384,7 +2425,7 @@
         }
       }
     },
-    "/cron/status/{name}": {
+    "/cron/status": {
       "get": {
         "tags": [
           "Cron"
@@ -2394,9 +2435,16 @@
         "parameters": [
           {
             "name": "name",
-            "in": "path",
+            "in": "query",
             "description": "pipeline name",
-            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
             "schema": {
               "type": "string"
             }
@@ -2919,11 +2967,6 @@
                       "type": "string",
                       "description": "image name as in the docker registry"
                     },
-                    "overrideImage": {
-                      "type": "boolean",
-                      "description": "should replace the current image with this image",
-                      "default": false
-                    },
                     "cpu": {
                       "type": "number",
                       "default": 0.1,
@@ -3003,7 +3046,8 @@
                         "gitKind": {
                           "type": "string",
                           "enum": [
-                            "github"
+                            "github",
+                            "gitlab"
                           ],
                           "default": "github"
                         }
@@ -3135,6 +3179,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "should also delete all related data, e.g. pipelines, builds, versions.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -3257,11 +3310,6 @@
                         "type": "string",
                         "description": "image name as in the docker registry"
                       },
-                      "overrideImage": {
-                        "type": "boolean",
-                        "description": "should replace the current image with this image",
-                        "default": false
-                      },
                       "cpu": {
                         "type": "number",
                         "default": 0.1,
@@ -3341,7 +3389,8 @@
                           "gitKind": {
                             "type": "string",
                             "enum": [
-                              "github"
+                              "github",
+                              "gitlab"
                             ],
                             "default": "github"
                           }
@@ -3451,11 +3500,6 @@
                     "type": "string",
                     "description": "image name as in the docker registry"
                   },
-                  "overrideImage": {
-                    "type": "boolean",
-                    "description": "should replace the current image with this image",
-                    "default": false
-                  },
                   "cpu": {
                     "type": "number",
                     "default": 0.1,
@@ -3535,7 +3579,8 @@
                       "gitKind": {
                         "type": "string",
                         "enum": [
-                          "github"
+                          "github",
+                          "gitlab"
                         ],
                         "default": "github"
                       }
@@ -3700,11 +3745,6 @@
                     "type": "string",
                     "description": "image name as in the docker registry"
                   },
-                  "overrideImage": {
-                    "type": "boolean",
-                    "description": "should replace the current image with this image",
-                    "default": false
-                  },
                   "cpu": {
                     "type": "number",
                     "default": 0.1,
@@ -3784,7 +3824,8 @@
                       "gitKind": {
                         "type": "string",
                         "enum": [
-                          "github"
+                          "github",
+                          "gitlab"
                         ],
                         "default": "github"
                       }
@@ -3935,11 +3976,6 @@
                         "type": "string",
                         "description": "image name as in the docker registry"
                       },
-                      "overrideImage": {
-                        "type": "boolean",
-                        "description": "should replace the current image with this image",
-                        "default": false
-                      },
                       "cpu": {
                         "type": "number",
                         "default": 0.1,
@@ -4019,7 +4055,8 @@
                           "gitKind": {
                             "type": "string",
                             "enum": [
-                              "github"
+                              "github",
+                              "gitlab"
                             ],
                             "default": "github"
                           }
@@ -4074,6 +4111,16 @@
                       "name"
                     ]
                   },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "overrideImage": {
+                        "type": "boolean",
+                        "description": "should replace the current image with this image",
+                        "default": false
+                      }
+                    }
+                  },
                   "file": {
                     "type": "string",
                     "format": "binary",
@@ -4118,11 +4165,6 @@
                         "algorithmImage": {
                           "type": "string",
                           "description": "image name as in the docker registry"
-                        },
-                        "overrideImage": {
-                          "type": "boolean",
-                          "description": "should replace the current image with this image",
-                          "default": false
                         },
                         "cpu": {
                           "type": "number",
@@ -4203,7 +4245,8 @@
                             "gitKind": {
                               "type": "string",
                               "enum": [
-                                "github"
+                                "github",
+                                "gitlab"
                               ],
                               "default": "github"
                             }
@@ -4341,6 +4384,11 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "experiment": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
                     },
                     "description": {
                       "type": "string",
@@ -4671,6 +4719,11 @@
                         "minLength": 1,
                         "format": "pipeline-name"
                       },
+                      "experiment": {
+                        "type": "string",
+                        "description": "experiment name",
+                        "default": "main"
+                      },
                       "description": {
                         "type": "string",
                         "description": "pipeline description"
@@ -4856,6 +4909,11 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "experiment": {
+                    "type": "string",
+                    "description": "experiment name",
+                    "default": "main"
+                  },
                   "description": {
                     "type": "string",
                     "description": "pipeline description"
@@ -5016,6 +5074,11 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "experiment": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
                     },
                     "description": {
                       "type": "string",
@@ -5239,6 +5302,11 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "experiment": {
+                    "type": "string",
+                    "description": "experiment name",
+                    "default": "main"
+                  },
                   "description": {
                     "type": "string",
                     "description": "pipeline description"
@@ -5399,6 +5467,11 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "experiment": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
                     },
                     "description": {
                       "type": "string",
@@ -5988,11 +6061,6 @@
                           "type": "string",
                           "description": "image name as in the docker registry"
                         },
-                        "overrideImage": {
-                          "type": "boolean",
-                          "description": "should replace the current image with this image",
-                          "default": false
-                        },
                         "cpu": {
                           "type": "number",
                           "default": 0.1,
@@ -6072,7 +6140,8 @@
                             "gitKind": {
                               "type": "string",
                               "enum": [
-                                "github"
+                                "github",
+                                "gitlab"
                               ],
                               "default": "github"
                             }
@@ -6274,11 +6343,6 @@
                             "type": "string",
                             "description": "image name as in the docker registry"
                           },
-                          "overrideImage": {
-                            "type": "boolean",
-                            "description": "should replace the current image with this image",
-                            "default": false
-                          },
                           "cpu": {
                             "type": "number",
                             "default": 0.1,
@@ -6358,7 +6422,8 @@
                               "gitKind": {
                                 "type": "string",
                                 "enum": [
-                                  "github"
+                                  "github",
+                                  "gitlab"
                                 ],
                                 "default": "github"
                               }
@@ -7550,11 +7615,6 @@
                         "type": "string",
                         "description": "image name as in the docker registry"
                       },
-                      "overrideImage": {
-                        "type": "boolean",
-                        "description": "should replace the current image with this image",
-                        "default": false
-                      },
                       "cpu": {
                         "type": "number",
                         "default": 0.1,
@@ -7634,7 +7694,8 @@
                           "gitKind": {
                             "type": "string",
                             "enum": [
-                              "github"
+                              "github",
+                              "gitlab"
                             ],
                             "default": "github"
                           }
@@ -7645,6 +7706,10 @@
                       },
                       "entryPoint": {
                         "type": "string"
+                      },
+                      "baseImage": {
+                        "type": "string",
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "version": {
                         "type": "string"
@@ -7926,11 +7991,6 @@
                         "type": "string",
                         "description": "image name as in the docker registry"
                       },
-                      "overrideImage": {
-                        "type": "boolean",
-                        "description": "should replace the current image with this image",
-                        "default": false
-                      },
                       "cpu": {
                         "type": "number",
                         "default": 0.1,
@@ -8010,7 +8070,8 @@
                           "gitKind": {
                             "type": "string",
                             "enum": [
-                              "github"
+                              "github",
+                              "gitlab"
                             ],
                             "default": "github"
                           }
@@ -8021,6 +8082,10 @@
                       },
                       "entryPoint": {
                         "type": "string"
+                      },
+                      "baseImage": {
+                        "type": "string",
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "version": {
                         "type": "string"
@@ -8248,14 +8313,19 @@
                     "minLength": 1,
                     "format": "algorithm-name"
                   },
-                  "algorithmImage": {
+                  "image": {
                     "type": "string",
                     "description": "image name as in the docker registry"
+                  },
+                  "force": {
+                    "type": "boolean",
+                    "description": "should replace current algorithm version",
+                    "default": false
                   }
                 },
                 "required": [
                   "name",
-                  "algorithmImage"
+                  "image"
                 ]
               }
             }
@@ -8338,6 +8408,377 @@
           }
         }
       }
+    },
+    "/experiment/{name}": {
+      "get": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "get experiment details",
+        "description": "get experiment details",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "experiment name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "describe the experiment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "Delete experiment",
+        "description": "Delete existing experiment from store",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "experiment name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "should also delete all related data, e.g.jobs.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "Insert experiment",
+        "description": "Insert new experiment to store if not exists",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "experimentName": {
+                    "type": "string",
+                    "description": "experiment name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "describe the experiment"
+                  }
+                }
+              }
+            }
+          },
+          "description": "experiment to be added to the store",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "experiment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "pipeline conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/experiment/list": {
+      "get": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "Get experiments list",
+        "description": "Returns experiments list",
+        "responses": {
+          "200": {
+            "description": "list of experiments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "describe the experiment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -8362,11 +8803,6 @@
           "algorithmImage": {
             "type": "string",
             "description": "image name as in the docker registry"
-          },
-          "overrideImage": {
-            "type": "boolean",
-            "description": "should replace the current image with this image",
-            "default": false
           },
           "cpu": {
             "type": "number",
@@ -8447,7 +8883,8 @@
               "gitKind": {
                 "type": "string",
                 "enum": [
-                  "github"
+                  "github",
+                  "gitlab"
                 ],
                 "default": "github"
               }
@@ -8517,15 +8954,30 @@
             "minLength": 1,
             "format": "algorithm-name"
           },
-          "algorithmImage": {
+          "image": {
             "type": "string",
             "description": "image name as in the docker registry"
+          },
+          "force": {
+            "type": "boolean",
+            "description": "should replace current algorithm version",
+            "default": false
           }
         },
         "required": [
           "name",
-          "algorithmImage"
+          "image"
         ]
+      },
+      "algorithmApplyOptions": {
+        "type": "object",
+        "properties": {
+          "overrideImage": {
+            "type": "boolean",
+            "description": "should replace the current image with this image",
+            "default": false
+          }
+        }
       },
       "algorithmApplyResponse": {
         "type": "object",
@@ -8554,11 +9006,6 @@
               "algorithmImage": {
                 "type": "string",
                 "description": "image name as in the docker registry"
-              },
-              "overrideImage": {
-                "type": "boolean",
-                "description": "should replace the current image with this image",
-                "default": false
               },
               "cpu": {
                 "type": "number",
@@ -8639,7 +9086,8 @@
                   "gitKind": {
                     "type": "string",
                     "enum": [
-                      "github"
+                      "github",
+                      "gitlab"
                     ],
                     "default": "github"
                   }
@@ -8868,6 +9316,11 @@
             "description": "Unique identifier representing a specific pipeline",
             "minLength": 1,
             "format": "pipeline-name"
+          },
+          "experiment": {
+            "type": "string",
+            "description": "experiment name",
+            "default": "main"
           },
           "description": {
             "type": "string",
@@ -9127,6 +9580,11 @@
             "minLength": 1,
             "format": "pipeline-name"
           },
+          "experimentName": {
+            "default": "main",
+            "type": "string",
+            "description": "experiment name"
+          },
           "flowInput": {
             "type": "object",
             "description": "input object"
@@ -9326,6 +9784,24 @@
         "required": [
           "github"
         ]
+      },
+      "experiment": {
+        "type": "object",
+        "properties": {
+          "experimentName": {
+            "type": "string",
+            "description": "experiment name"
+          },
+          "description": {
+            "type": "string",
+            "description": "describe the experiment"
+          }
+        }
+      },
+      "experimentName": {
+        "type": "string",
+        "description": "experiment name",
+        "default": "main"
       }
     }
   }

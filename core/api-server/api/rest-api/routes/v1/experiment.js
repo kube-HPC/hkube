@@ -9,7 +9,7 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.all('/results/raw/:name?', methods(['GET']), logger(), async (req, res, next) => {
+    router.all('/experiment/:name?', methods(['GET']), logger(), async (req, res, next) => {
         const { name } = req.params;
         const { sort, order, limit } = req.query;
         const response = await Execution.getPipelinesResultRaw({ name, sort, order, limit });
@@ -17,16 +17,15 @@ const routes = (options) => {
         res.name = name;
         next();
     });
-    router.all('/results/stored', methods(['GET']), logger(), async (req, res, next) => {
+    router.all('/experiment/:name?', methods(['POST']), logger(), async (req, res, next) => {
+        const { name } = req.params;
         const { sort, order, limit } = req.query;
-        const experimentName = req.query.experimentName || 'main';
-        const name = req.query.name || '';
-        const response = await Execution.getPipelinesResultStored({ name, experimentName, sort, order, limit });
+        const response = await Execution.getPipelinesResultStored({ name, sort, order, limit });
         res.json(response);
         res.name = name;
         next();
     });
-    router.all('/status/raw/:name?', methods(['GET']), logger(), async (req, res, next) => {
+    router.all('/experiment/:name?', methods(['DELETE']), logger(), async (req, res, next) => {
         const { name } = req.params;
         const { sort, order, limit } = req.query;
         const response = await Execution.getPipelinesStatusRaw({ name, sort, order, limit });
@@ -34,11 +33,10 @@ const routes = (options) => {
         res.name = name;
         next();
     });
-    router.all('/status/stored', methods(['GET']), logger(), async (req, res, next) => {
+    router.all('/experiment/list', methods(['GET']), logger(), async (req, res, next) => {
+        const { name } = req.params;
         const { sort, order, limit } = req.query;
-        const experimentName = req.query.experimentName || 'main';
-        const name = req.query.name || '';
-        const response = await Execution.getPipelinesStatusStored({ name, experimentName, sort, order, limit });
+        const response = await Execution.getPipelinesStatusStored({ name, sort, order, limit });
         res.json(response);
         res.name = name;
         next();

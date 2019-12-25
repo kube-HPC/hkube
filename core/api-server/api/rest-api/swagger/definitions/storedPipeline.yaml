@@ -2,6 +2,9 @@ type: object
 properties:
   name:
     $ref: "#/components/schemas/pipelineName"
+  experimentName:
+    $ref: "#/components/schemas/experimentName"
+    default: main
   flowInput:
     type: object
     description: input object

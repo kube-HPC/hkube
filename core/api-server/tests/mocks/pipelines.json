@@ -91,7 +91,8 @@
         "options": {
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
-        }
+        },
+        "experimentName": "main"
     },
     {
         "name": "flow3",
@@ -139,6 +140,7 @@
             "result": "http://webhook-stub-ui:3002/webhook/result"
         },
         "priority": 5,
+        "experimentName": "main",
         "options": {
             "ttl": 3600,
             "batchTolerance": 30,
@@ -270,9 +272,7 @@
                 ]
             }
         ],
-        "triggers": {
-            
-        }
+        "triggers": {}
     },
     {
         "name": "concurrentPipelines",

@@ -5,9 +5,13 @@ get:
   description: return results of stored pipelines by given pipeline name
   parameters:
     - name: name
-      in: path
+      in: query
       description: pipeline name
-      required: true
+      schema:
+        type: string
+    - name: experimentName
+      in: query
+      description: experiment name
       schema:
         type: string
     - name: sort

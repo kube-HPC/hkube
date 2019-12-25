@@ -51,9 +51,9 @@ class ExecutionService {
         if (response.statusCode !== 200) {
             throw new Error(`error:${response.body.error.message}`);
         }
-        const { jobId, nodeName } = options;
+        const { experimentName, jobId, nodeName } = options;
         log.debug(`get response with status ${response.statusCode} ${response.statusMessage}`, { component, jobId });
-        const cacheJobId = this._createJobIdForCaching(nodeName);
+        const cacheJobId = this._createJobIdForCaching(nodeName, experimentName);
         return this._run(response.body, cacheJobId, { alreadyExecuted: true });
     }
 
@@ -71,7 +71,7 @@ class ExecutionService {
         let pipeline = pipeLine;
         let jobId = jobID;
         if (!jobId) {
-            jobId = this._createJobID({ name: pipeline.name });
+            jobId = this._createJobID({ name: pipeline.name, experimentName: pipeLine.experimentName });
         }
 
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
@@ -143,10 +143,11 @@ class ExecutionService {
 
     async getPipelinesResultStored(options) {
         validator.validateResultList(options);
-        const response = await stateManager.getJobResults({ ...options, jobId: options.name });
+        const response = await stateManager.getJobResults({ ...options, jobId: `${options.experimentName}:${options.name}` });
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline results', options.name);
         }
+
         return response;
     }
 
@@ -161,7 +162,7 @@ class ExecutionService {
 
     async getPipelinesStatusStored(options) {
         validator.validateResultList(options);
-        const response = await stateManager.getJobStatuses({ ...options, jobId: options.name });
+        const response = await stateManager.getJobStatuses({ ...options, jobId: `${options.experimentName}:${options.name}` });
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline status', options.name);
         }
@@ -260,7 +261,7 @@ class ExecutionService {
     }
 
     _createJobID(options) {
-        return [options.name, uuid()].join(':');
+        return [options.experimentName, options.name, uuid()].join(':');
     }
 
     async _getLastPipeline(jobId) {

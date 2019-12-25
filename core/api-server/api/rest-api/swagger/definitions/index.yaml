@@ -54,3 +54,7 @@ webhooks:
   $ref: ./webhooks.yaml
 githubWebhook:
   $ref: ./githubWebhook.yaml
+experiment:
+  $ref: ./experiment.yaml
+experimentName:
+  $ref: ./experimentName.yaml

@@ -4,12 +4,31 @@ get:
   summary: Webhook list
   description: Returns all webhooks for specific pipeline
   parameters:
-    - name: jobId
-      in: path
+    - name: name
+      in: query
       description: Unique identifier representing pipeline execution
-      required: true
       schema:
         type: string
+    - name: experimentName
+      in: query
+      description: experiment name
+      schema:
+        type: string
+    - name: sort
+      in: query
+      description: sort by asc or desc
+      schema:
+        type: string
+    - name: order
+      in: query
+      description: order by
+      schema:
+        type: string
+    - name: limit
+      in: query
+      description: limit
+      schema:
+        type: integer
   responses:
     "200":
       description: pipeline result

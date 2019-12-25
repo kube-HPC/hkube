@@ -23,10 +23,10 @@ class WebhooksService {
     }
 
     async getWebhooks(options) {
-        validator.validateJobID(options);
-        const webhooks = await stateManager.getWebhooks(options);
+        // validator.validateJobID(options);
+        const webhooks = await stateManager.getWebhooks({ ...options, jobId: `${options.experimentName}:${options.name}` });
         if (webhooks.length === 0) {
-            throw new ResourceNotFoundError('webhook', options.jobId);
+            throw new ResourceNotFoundError('webhook', options.name);
         }
         return webhooks;
     }

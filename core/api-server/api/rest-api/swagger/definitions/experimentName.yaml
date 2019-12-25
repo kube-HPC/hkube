@@ -1,0 +1,3 @@
+type: string
+description: experiment name
+default: main

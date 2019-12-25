@@ -9,18 +9,20 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.all('/results/:name?', methods(['GET']), logger(), async (req, res, next) => {
-        const { name } = req.params;
+    router.all('/results', methods(['GET']), logger(), async (req, res, next) => {
         const { sort, order, limit } = req.query;
-        const response = await Cron.getCronResult({ name, sort, order, limit });
+        const experimentName = req.query.experimentName || 'main';
+        const name = req.query.name || '';
+        const response = await Cron.getCronResult({ experimentName, name, sort, order, limit });
         res.json(response);
         res.name = name;
         next();
     });
-    router.all('/status/:name?', methods(['GET']), logger(), async (req, res, next) => {
-        const { name } = req.params;
+    router.all('/status', methods(['GET']), logger(), async (req, res, next) => {
         const { sort, order, limit } = req.query;
-        const response = await Cron.getCronStatus({ name, sort, order, limit });
+        const experimentName = req.query.experimentName || 'main';
+        const name = req.query.name || '';
+        const response = await Cron.getCronStatus({ experimentName, name, sort, order, limit });
         res.json(response);
         res.name = name;
         next();

@@ -25,7 +25,7 @@
 # pipelines
 /pipelines/results/raw/{name}:
   $ref: ./pipelines/results_raw.yaml
-/pipelines/results/stored/{name}:
+/pipelines/results/stored:
   $ref: ./pipelines/results_stored.yaml
 /pipelines/status/raw/{name}:
   $ref: ./pipelines/status_raw.yaml
@@ -33,9 +33,9 @@
   $ref: ./pipelines/status_stored.yaml
 
 # cron
-/cron/results/{name}:
+/cron/results:
   $ref: ./cron/results.yaml
-/cron/status/{name}:
+/cron/status:
   $ref: ./cron/status.yaml
 /cron/list:
   $ref: ./cron/list.yaml
@@ -61,8 +61,8 @@
   $ref: ./webhooks/status.yaml
 /webhooks/results/{jobId}:
   $ref: ./webhooks/results.yaml
-/webhooks/{jobId}:
-  $ref: ./webhooks/jobId.yaml
+/webhooks/list:
+  $ref: ./webhooks/list.yaml
 
 # builds
 /builds/status/{buildId}:
@@ -89,3 +89,9 @@
   $ref: ./versions/algorithms_name_image.yaml
 /versions/algorithms/apply:
   $ref: ./versions/apply.yaml
+
+# experiment
+/experiment/{name}:
+  $ref: ./experiment/experiment_name.yaml
+/experiment/list:
+  $ref: ./experiment/experiment_list.yaml
