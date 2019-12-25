@@ -5,9 +5,9 @@ get:
   description: download data as file according to path
   parameters:
     - name: path
-      in: query
+      in: path
       description: path to storage
-      required: false
+      required: true
       schema:
         type: string
   responses:

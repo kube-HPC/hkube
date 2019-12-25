@@ -1,6 +1,7 @@
 
 const express = require('express');
 const pathLib = require('path');
+const querystring = require('querystring');
 const logger = require('../../middlewares/logger');
 const storage = require('../../../../lib/service/storage');
 const { ResourceNotFoundError, InvalidDataError } = require('../../../../lib/errors');
@@ -45,7 +46,7 @@ const routes = (options) => {
         }
     });
     router.get('/prefixes/:path?', logger(), async (req, res, next) => {
-        const { path } = req.params;
+        const path = querystring.unescape(req.params.path);
         try {
             const response = await storage.getPrefixesByPath({ path });
             res.json(response);
@@ -66,7 +67,7 @@ const routes = (options) => {
         }
     });
     router.get('/keys/:path?', logger(), async (req, res, next) => {
-        const { path } = req.params;
+        const path = querystring.unescape(req.params.path);
         try {
             const response = await storage.getKeysByPath({ path });
             res.json(response);
@@ -77,7 +78,7 @@ const routes = (options) => {
         }
     });
     router.get('/values/:path?', logger(), async (req, res, next) => {
-        const { path } = req.params;
+        const path = querystring.unescape(req.params.path);
         try {
             const response = await storage.getByPath({ path });
             res.json(response);
@@ -88,13 +89,13 @@ const routes = (options) => {
         }
     });
     router.get('/stream/:path?', logger(), async (req, res, next) => {
-        const { path } = req.params;
+        const path = querystring.unescape(req.params.path);
         const stream = await storage.getStream({ path });
         stream.on('error', err => handleStreamError(err, path, res, next));
         stream.pipe(res);
     });
     router.get('/download/:path?', logger(), async (req, res, next) => {
-        const { path } = req.params;
+        const path = querystring.unescape(req.params.path);
         const stream = await storage.getStream({ path });
         const filename = pathLib.basename(path);
         stream.on('error', err => handleStreamError(err, path, res, next));

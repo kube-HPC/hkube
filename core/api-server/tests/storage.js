@@ -56,7 +56,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body).to.have.lengthOf(2);
+            expect(response.body).to.be.an('array').that.includes('local-hkube-store/algorithm')
         });
         it('should return zero prefixes', async () => {
             const options = {

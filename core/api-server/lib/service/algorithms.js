@@ -63,6 +63,8 @@ class AlgorithmStore {
                 throw new ActionNotAllowed(message, details);
             }
             else {
+                const buildPaths = versions.filter(v => v.fileInfo).map(v => v.fileInfo.path);
+                await this._deleteAll(buildPaths, (a) => storageManager.delete({ path: a }));
                 const buildsRes = await this._deleteAll(builds, (a) => stateManager.deleteBuild(a));
                 const versionRes = await this._deleteAll(versions, (a) => stateManager.deleteAlgorithmVersion(a));
                 const pipelineRes = await this._deleteAll(pipelines, (a) => pipelineService.deletePipelineFromStore(a));
@@ -78,6 +80,7 @@ class AlgorithmStore {
                 summary += `. related data deleted: ${deletedText}`;
             }
         }
+        await storageManager.hkubeStore.delete({ type: 'readme/algorithms', name });
         await storageManager.hkubeStore.delete({ type: 'algorithm', name });
         await stateManager.deleteAlgorithm({ name });
         return summary;
