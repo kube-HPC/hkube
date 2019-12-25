@@ -112,15 +112,14 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.message).to.contain('you must first delete all related data');
         });
         it('should delete algorithm with related data with force', async () => {
-            const algorithmName = `delete-${uuid()}`;
-            const algorithm = {
-                uri: restPath,
-                body: {
-                    name: algorithmName,
-                    algorithmImage: "image"
-                }
+            const algorithmName = `my-alg-${uuid()}`;
+            const algorithmImage = `${algorithmName}-image`
+            const formData = {
+                payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),
+                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
             };
-            const store = {
+            const resApply = await request({ uri: `${restPath}/apply`, formData });
+            const storePipeline = {
                 uri: `${restUrl}/store/pipelines`,
                 body: {
                     name: `delete-${uuid()}`,
@@ -134,19 +133,16 @@ describe('Store/Algorithms', () => {
                     ]
                 }
             };
-            const exec = {
+            const execPipeline = {
                 uri: `${restUrl}/exec/stored`,
                 body: {
-                    name: store.body.name
+                    name: storePipeline.body.name
                 }
             };
 
-            const resAlg = await request(algorithm);
-            await request(store);
-            await request(exec);
-            await stateManager.setAlgorithmVersion(resAlg.body);
-            await stateManager.setBuild({ buildId: `${algorithmName}-1`, algorithmName });
-            await stateManager.setBuild({ buildId: `${algorithmName}-2`, algorithmName });
+            await request(storePipeline);
+            await request(execPipeline);
+            await stateManager.setAlgorithmVersion({ ...resApply.body.algorithm, algorithmImage });
 
             const optionsDelete = {
                 uri: `${restPath}/${algorithmName}?force=true`,

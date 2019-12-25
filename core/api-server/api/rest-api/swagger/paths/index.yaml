@@ -96,14 +96,14 @@
 /storage/info:
   $ref: ./storage/info.yaml
 /storage/prefix/types:
-  $ref: ./storage/prefixes_types.yaml
+  $ref: ./storage/prefix_types.yaml
 /storage/prefixes/{path}:
-  $ref: ./storage/prefixes_path.yaml
+  $ref: ./storage/prefixes.yaml
 /storage/keys/{path}:
-  $ref: ./storage/keys_path.yaml
+  $ref: ./storage/keys.yaml
 /storage/values/{path}:
-  $ref: ./storage/values_path.yaml
+  $ref: ./storage/values.yaml
 /storage/stream/{path}:
-  $ref: ./storage/stream_path.yaml
+  $ref: ./storage/stream.yaml
 /storage/download/{path}:
   $ref: ./storage/download.yaml

@@ -4,7 +4,7 @@ const TYPES = {
     SUB_PIPELINE: 'sub-pipeline',
     CRON: 'cron',
     CACHING: 'caching',
-    INTERNAL: 'internal',
+    INTERNAL: 'internal'
 };
 
 module.exports = TYPES;
