@@ -1,0 +1,18 @@
+type: object
+properties:
+  sort:
+    type: string
+  order:
+    type: string
+    default: desc
+    enum:
+      - asc
+      - desc
+  from:
+    type: integer
+    default: 0
+    minimum: 0
+  to:
+    type: integer
+    default: 10
+    minimum: 0

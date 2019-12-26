@@ -1,8 +1,8 @@
 get:
   tags:
     - Graph
-  summary: Get graph data
-  description: returns the graph data by jobId
+  summary: Query the pipeline graph
+  description: returns the graph data by jobId, node and tasks
   parameters:
     - name: jobId
       in: path
@@ -46,7 +46,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/algorithmApplyResponse"
+            $ref: "#/components/schemas/graphResponse"
     "400":
       description: bad request
       content:

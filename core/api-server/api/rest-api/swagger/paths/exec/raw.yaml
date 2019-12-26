@@ -2,7 +2,7 @@ post:
   tags:
     - Execution
   summary: Run raw pipeline
-  description: "Start pipeline execution with raw input, returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc."
+  description: Start pipeline execution with raw input, returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.
   requestBody:
     content:
       application/json:

@@ -16,7 +16,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/algorithmApplyResponse"
+            $ref: "#/components/schemas/defaultResponse"
     "400":
       description: bad request
       content:

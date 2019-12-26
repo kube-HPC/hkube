@@ -13,8 +13,6 @@ properties:
   priority:
     $ref: "#/components/schemas/priority"
     default: 3
-  triggers:
-    $ref: "#/components/schemas/triggers"
   tags:
     type: array
     description: Array of tags

@@ -1,7 +1,7 @@
 get:
   tags:
     - Builds
-  summary: Get build
+  summary: Get build list
   description: returns all builds that related to algorithm
   parameters:
     - name: name
@@ -32,7 +32,7 @@ get:
         application/json:
           schema:
             items:
-              $ref: "#/components/schemas/algorithmApplyResponse"
+              $ref: "#/components/schemas/defaultResponse"
     "400":
       description: bad request
       content:
