@@ -1,6 +1,7 @@
 
-const pathLib = require('path');
+const orderBy = require('lodash.orderby');
 const storageManager = require('@hkube/storage-manager');
+const validator = require('../validation/api-validator');
 
 class StorageService {
     init(config) {
@@ -17,39 +18,45 @@ class StorageService {
         return storageManager.prefixesTypes;
     }
 
-    async getPrefixesByPath({ path }) {
-        const result = await storageManager.storage.listPrefixes({ path });
-        return result.map(p => pathLib.join(path, p));
+    async getPrefixesByPath({ path, ...options }) {
+        validator.validateListRange(options);
+        return this._getPrefixesByPath({ path, ...options });
     }
 
-    async allPrefixes() {
-        return Promise.all(this.prefixesTypes.map(k => this._prefixes(k)));
+    async _getPrefixesByPath({ path, sort, order, from, to }) {
+        const keys = await storageManager.storage.listPrefixes({ path });
+        const result = this._formatResponse({ path, keys, sort, order, from, to });
+        return result;
     }
 
-    async getKeysByPath({ path }) {
-        return storageManager.storage.listWithStats({ path });
+    async getAllPrefixes(options) {
+        validator.validateListRange(options);
+        return Promise.all(this.prefixesTypes.map(path => this._getPrefixesByPath({ path, ...options })));
     }
 
-    async getAllKeys() {
-        return Promise.all(this.prefixesTypes.map(k => this._keys(k)));
+    async getKeysByPath({ path, ...options }) {
+        validator.validateListRange(options);
+        return this._getKeysByPath({ path, ...options });
+    }
+
+    async _getKeysByPath({ path, sort, order, from, to }) {
+        const keys = await storageManager.storage.listWithStats({ path });
+        return this._formatResponse({ path, keys, sort, order, from, to });
+    }
+
+    async getAllKeys(options) {
+        validator.validateListRange(options);
+        return Promise.all(this.prefixesTypes.map(path => this._getKeysByPath({ path, ...options })));
     }
 
     async getStream({ path }) {
         return storageManager.getStream({ path });
     }
 
-    async _prefixes(path) {
-        const keys = await this.getPrefixesByPath({ path });
-        return this._formatKeys(path, keys);
-    }
-
-    async _keys(path) {
-        const keys = await this.getKeysByPath({ path });
-        return this._formatKeys(path, keys);
-    }
-
-    async _formatKeys(path, keys) {
-        return { prefix: path, total: keys.length, keys };
+    _formatResponse({ path, keys, sort, order, from, to }) {
+        const orderKeys = orderBy(keys, sort, order);
+        const sliceKeys = orderKeys.slice(from, to);
+        return { path, total: keys.length, keys: sliceKeys };
     }
 
     getByPath({ path }) {

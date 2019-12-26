@@ -1,7 +1,7 @@
 get:
   tags:
     - Graph
-  summary: Get graph data
+  summary: Get graph as raw data
   description: returns the graph data by jobId
   parameters:
     - name: jobId
@@ -16,7 +16,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/algorithmApplyResponse"
+            $ref: "#/components/schemas/graphResponse"
     "400":
       description: bad request
       content:

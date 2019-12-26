@@ -3,15 +3,9 @@ properties:
   name:
     $ref: "#/components/schemas/algorithmName"
   env:
-    type: string
-    enum:
-      - nodejs
-      - python
-      - jvm
+    $ref: "#/components/schemas/algorithmEnv"
   algorithmImage:
-    type: string
-    description: image name as in the docker registry
-    format: algorithm-image
+    $ref: "#/components/schemas/algorithmImage"
   cpu:
     type: number
     default: 0.1
@@ -109,6 +103,6 @@ properties:
       - Git
       - Code
       - Image
-    default: "Image"
+    default: Image
 required:
   - name

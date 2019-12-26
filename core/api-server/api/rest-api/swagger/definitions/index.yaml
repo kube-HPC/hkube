@@ -2,6 +2,12 @@ algorithm:
   $ref: ./algorithm.yaml
 algorithmName:
   $ref: ./algorithmName.yaml
+algorithmImage:
+  $ref: ./algorithmImage.yaml
+algorithmEnv:
+  $ref: ./algorithmEnv.yaml
+algorithmFileExt:
+  $ref: ./algorithmFileExt.yaml
 algorithmVersion:
   $ref: ./algorithmVersion.yaml
 algorithmApplyOptions:
@@ -50,8 +56,8 @@ pauseRequest:
   $ref: ./pauseRequest.yaml
 resumeRequest:
   $ref: ./resumeRequest.yaml
-storedPipeline:
-  $ref: ./storedPipeline.yaml
+storedPipelineRequest:
+  $ref: ./storedPipelineRequest.yaml
 triggers:
   $ref: ./triggers.yaml
 webhookResult:
@@ -64,3 +70,9 @@ gitlabWebhook:
   $ref: ./gitlabWebhook.yaml
 tag:
   $ref: ./tag.yaml
+graphResponse:
+  $ref: ./graphResponse.yaml
+algorithmBuild:
+  $ref: ./algorithmBuild.yaml
+algorithmBuildGit:
+  $ref: ./algorithmBuildGit.yaml

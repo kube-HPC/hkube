@@ -1,0 +1,9 @@
+type: object
+properties:
+  fileExt:
+    $ref: "#/components/schemas/algorithmFileExt"
+  env:
+    $ref: "#/components/schemas/algorithmEnv"
+required:
+  - fileExt
+  - env

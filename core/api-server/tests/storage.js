@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const querystring = require('querystring');
 const storageManager = require('@hkube/storage-manager');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
@@ -56,7 +57,10 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body).to.be.an('array').that.includes('local-hkube-store/algorithm')
+            expect(response.body).to.have.property('keys');
+            expect(response.body).to.have.property('path');
+            expect(response.body).to.have.property('total');
+            expect(response.body.keys).to.be.an('array').that.includes('algorithm');
         });
         it('should return zero prefixes', async () => {
             const options = {
@@ -64,15 +68,28 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body).to.have.lengthOf(0);
+            expect(response.body.keys).to.have.lengthOf(0);
         });
         it('should return all prefixes', async () => {
+            const qs = querystring.stringify({ sort: 'no_such_id', order: 'asc', from: 0, to: 3 });
             const options = {
-                uri: `${restPath}`,
+                uri: `${restPath}?${qs}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body).to.have.lengthOf(storageManager.prefixesTypes.length);
+        });
+        it('should return all prefixes by path', async () => {
+            const total = 3;
+            const qs = querystring.stringify({ order: 'asc', from: 0, to: total });
+            const options = {
+                uri: `${restPath}/local-hkube-store/algorithm?${qs}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('keys');
+            expect(response.body).to.have.property('path');
+            expect(response.body).to.have.property('total');
         });
     });
     describe('/keys/:path', () => {
@@ -92,11 +109,11 @@ describe('Storage', () => {
         it('should return specific keys', async () => {
             const alg = 'eval-alg';
             const options = {
-                uri: `${restPath}/${encodeURIComponent(`local-hkube-store/algorithm/${alg}.json`)}`,
+                uri: `${restPath}/${`local-hkube-store/algorithm/${alg}.json`}`,
                 method: 'GET'
             };
             const response = await request(options);
-            const algorithm = response.body[0]
+            const algorithm = response.body.keys[0]
             expect(algorithm).to.have.property('path');
             expect(algorithm).to.have.property('size');
             expect(algorithm).to.have.property('mtime');
@@ -107,7 +124,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body).to.have.lengthOf(0);
+            expect(response.body.keys).to.have.lengthOf(0);
         });
         it('should return all keys', async () => {
             const options = {
@@ -116,6 +133,16 @@ describe('Storage', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.lengthOf(storageManager.prefixesTypes.length);
+        });
+        it('should return all keys by query', async () => {
+            const total = 3;
+            const qs = querystring.stringify({ sort: 'size', order: 'desc', from: 0, to: total });
+            const options = {
+                uri: `${restPath}/local-hkube-store?${qs}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body.keys).to.have.lengthOf(total);
         });
     });
     describe('/values/:path', () => {
@@ -126,7 +153,7 @@ describe('Storage', () => {
         it('should throw value Not Found', async () => {
             const value = 'local-hkube-store/algorithm/no_such_value';
             const options = {
-                uri: `${restPath}/${encodeURIComponent(value)}`,
+                uri: `${restPath}/${value}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -136,7 +163,7 @@ describe('Storage', () => {
         it('should return specific value', async () => {
             const alg = 'eval-alg';
             const options = {
-                uri: `${restPath}/${encodeURIComponent(`local-hkube-store/algorithm/${alg}.json`)}`,
+                uri: `${restPath}/${`local-hkube-store/algorithm/${alg}.json`}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -151,7 +178,7 @@ describe('Storage', () => {
         it('should throw stream Not Found', async () => {
             const value = 'local-hkube-store/algorithm/no_such_stream';
             const options = {
-                uri: `${restPath}/${encodeURIComponent(value)}`,
+                uri: `${restPath}/${value}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -161,7 +188,7 @@ describe('Storage', () => {
         it('should return specific stream', async () => {
             const alg = 'eval-alg';
             const options = {
-                uri: `${restPath}/${encodeURIComponent(`local-hkube-store/algorithm/${alg}.json`)}`,
+                uri: `${restPath}/${`local-hkube-store/algorithm/${alg}.json`}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -176,7 +203,7 @@ describe('Storage', () => {
         it('should throw key Not Found', async () => {
             const value = 'local-hkube-store/algorithm/no_such_stream';
             const options = {
-                uri: `${restPath}/${encodeURIComponent(value)}`,
+                uri: `${restPath}/${value}`,
                 method: 'GET'
             };
             const response = await request(options);
@@ -186,7 +213,7 @@ describe('Storage', () => {
         it('should return specific download', async () => {
             const alg = 'eval-alg';
             const options = {
-                uri: `${restPath}/${encodeURIComponent(`local-hkube-store/algorithm/${alg}.json`)}`,
+                uri: `${restPath}/${`local-hkube-store/algorithm/${alg}.json`}`,
                 method: 'GET'
             };
             const response = await request(options);
