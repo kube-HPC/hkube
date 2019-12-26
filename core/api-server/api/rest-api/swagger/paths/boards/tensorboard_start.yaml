@@ -1,0 +1,38 @@
+post:
+  tags:
+    - Boards
+  summary: Rerun board
+  description: rerun board
+  parameters:
+    - name: name
+      in: path
+      description: Unique identifier representing board
+      required: true
+      schema:
+        type: string
+        format: board-name
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/boardStartRequest"
+    required: true
+  responses:
+    "200":
+      description: start board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

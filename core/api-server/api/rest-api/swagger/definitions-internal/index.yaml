@@ -22,3 +22,5 @@ algorithmDelete:
   $ref: ./algorithmDelete.yaml
 graph:
   $ref: ./graph.yaml
+boardStartRequest:
+  $ref: ./boardStartRequest.yaml

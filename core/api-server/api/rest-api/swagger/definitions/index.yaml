@@ -8,6 +8,10 @@ algorithmApplyOptions:
   $ref: ./algorithmApplyOptions.yaml
 algorithmApplyResponse:
   $ref: ./algorithmApplyResponse.yaml
+boardStartRequest:
+  $ref: ./boardStartRequest.yaml
+board:
+  $ref: ./board.yaml
 buildId:
   $ref: ./buildId.yaml
 caching:

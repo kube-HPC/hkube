@@ -1,0 +1,38 @@
+put:
+  tags:
+    - Boards
+  summary: Stop board
+  description: stop board
+  parameters:
+    - name: name
+      in: path
+      description: Unique identifier representing board
+      required: true
+      schema:
+        type: string
+        format: board-name
+  responses:
+    "200":
+      description: stop board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/board"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: board Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

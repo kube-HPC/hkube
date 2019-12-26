@@ -1,0 +1,8 @@
+type: object
+properties:
+  boardId:
+    type: string
+    description: Unique identifier representing board
+    format: board-id
+  status:
+    type: string

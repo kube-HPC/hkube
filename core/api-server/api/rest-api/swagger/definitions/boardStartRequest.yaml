@@ -1,0 +1,9 @@
+type: object
+properties:
+  metricLinks:
+    type: array
+    items:
+      type: string
+      format: path
+required:
+  - metricLinks

@@ -1,0 +1,13 @@
+type: object
+properties:
+  name:
+    type: string
+    format: board-id
+  metricLinks:
+    type: array
+    items:
+      type: string
+      format: path
+required:
+  - metricLinks
+  - name
