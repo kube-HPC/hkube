@@ -17,7 +17,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/board"
+            $ref: "#/components/schemas/boardStatusResult"
     "400":
       description: bad request
       content:
