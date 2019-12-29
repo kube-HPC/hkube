@@ -1,8 +1,8 @@
 post:
   tags:
     - Boards
-  summary: Rerun board
-  description: rerun board
+  summary: Start board
+  description: start board
   parameters:
     - name: name
       in: path

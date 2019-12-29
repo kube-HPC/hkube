@@ -11,13 +11,13 @@ const routes = (options) => {
     });
     router.all('/tensor/status/:name?', methods(['GET']), logger(), async (req, res, next) => {
         const { name } = req.params;
-        const response = await boards.getTensorboard({ boardId: name });
+        const response = await boards.getTensorboard({ name });
         res.json(response);
         next();
     });
     router.all('/tensor/stop/:name?', methods(['PUT']), logger(), async (req, res, next) => {
         const { name } = req.params;
-        await boards.stopTensorboard({ boardId: name });
+        await boards.stopTensorboard({ name });
         res.json({ message: 'OK' });
         next();
     });

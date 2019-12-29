@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
+const States = require('../lib/state/States')
 let restUrl;
 
 describe('Boards', () => {
@@ -39,7 +40,7 @@ describe('Boards', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('board name must not contain special characters *,&#$ or spaces');
         });
-        it('should throw validation error of bad board name', async () => {
+        it('check metricLinks mandatory validation', async () => {
             const options = {
                 uri: restPath + '/boardName',
                 method: 'POST',
@@ -64,10 +65,11 @@ describe('Boards', () => {
             }
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body.boardId).to.equal('myBoard');
+            expect(response.body.name).to.equal('myBoard');
+            expect(response.body.status).to.equal(States.PENDING);
         });
         it('starting board should fail if name exists', async () => {
-            let options = {
+            const options = {
                 uri: restPath + '/myUniqueBoard',
                 method: 'POST',
                 body: {
@@ -76,13 +78,6 @@ describe('Boards', () => {
             };
             let response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            options = {
-                uri: restPath + '/myUniqueBoard',
-                method: 'POST',
-                body: {
-                    metricLinks: ['adf']
-                }
-            };
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('board myUniqueBoard already started');
@@ -93,7 +88,7 @@ describe('Boards', () => {
         before(() => {
             restPath = `${restUrl}/stop`;
         });
-        it('should throw NotFound when board does not exist', async () => {
+        it('should throw NotFound when board does not exist on stop board', async () => {
             const options = {
                 uri: restPath + '/no_such_id',
                 method: 'PUT'
@@ -125,7 +120,7 @@ describe('Boards', () => {
             }
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body.status).to.equal('stopped');
+            expect(response.body.status).to.equal(States.STOPPED);
         });
 
     });

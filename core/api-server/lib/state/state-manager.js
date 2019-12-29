@@ -106,10 +106,6 @@ class StateManager extends EventEmitter {
         return this._etcd.pipelines.get(options);
     }
 
-    getTensorboards() {
-        return this._etcd.tensorboards.list();
-    }
-
     getTensorboard(options) {
         return this._etcd.tensorboards.get(options);
     }

@@ -4,10 +4,7 @@ properties:
     type: string
     format: board-id
   metricLinks:
-    type: array
-    items:
-      type: string
-      format: path
+    $ref: "#/components/schemas/metricLinks"
 required:
   - metricLinks
   - name

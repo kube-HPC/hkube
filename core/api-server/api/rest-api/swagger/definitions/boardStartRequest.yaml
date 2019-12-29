@@ -1,9 +1,6 @@
 type: object
 properties:
   metricLinks:
-    type: array
-    items:
-      type: string
-      format: path
+    $ref: "#/components/schemas/metricLinks"
 required:
   - metricLinks

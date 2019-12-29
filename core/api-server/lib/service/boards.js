@@ -6,21 +6,22 @@ const States = require('../state/States');
 
 class Boards {
     async getTensorboard(options) {
-        const response = await stateManager.getTensorboard(options);
+        const response = await stateManager.getTensorboard({ boardId: options.name });
         if (!response) {
-            throw new ResourceNotFoundError('board', options.boardId);
+            throw new ResourceNotFoundError('board', options.name);
         }
+        response.name = response.boardId;
+        delete response.boardId;
         return response;
     }
 
     async stopTensorboard(options) {
-        const { boardId } = options;
-        const board = await this.getTensorboard({ boardId });
+        const board = await this.getTensorboard({ name: options.name });
         if (!stateManager.isActiveState(board.status)) {
-            throw new InvalidDataError(`unable to stop board ${boardId} because its in ${board.status} status`);
+            throw new InvalidDataError(`unable to stop board ${options.name} because its in ${board.status} status`);
         }
         const boardData = {
-            boardId,
+            boardId: options.name,
             status: States.STOPPED,
             endTime: Date.now()
         };

@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.45",
+    "version": "1.2.46",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -9279,6 +9279,13 @@
           "status": {
             "type": "string"
           }
+        }
+      },
+      "metricLinks": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "path"
         }
       },
       "buildId": {
