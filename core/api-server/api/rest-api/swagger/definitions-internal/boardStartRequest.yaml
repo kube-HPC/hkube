@@ -2,9 +2,14 @@ type: object
 properties:
   name:
     type: string
-    format: board-id
-  metricLinks:
-    $ref: "#/components/schemas/metricLinks"
+    format: board-name
+  pipelineName:
+    $ref: "#/components/schemas/pipelineName"
+  nodeName:
+    type: string
+  taskId:
+    type: string
 required:
-  - metricLinks
+  - pipelineName
+  - nodeName
   - name

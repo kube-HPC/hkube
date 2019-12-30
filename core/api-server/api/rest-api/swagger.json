@@ -5867,8 +5867,8 @@
         "tags": [
           "Boards"
         ],
-        "summary": "Rerun board",
-        "description": "rerun board",
+        "summary": "Start board",
+        "description": "start board",
         "parameters": [
           {
             "name": "name",
@@ -5887,16 +5887,22 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "metricLinks": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "path"
-                    }
+                  "pipelineName": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  },
+                  "nodeName": {
+                    "type": "string"
+                  },
+                  "taskId": {
+                    "type": "string"
                   }
                 },
                 "required": [
-                  "metricLinks"
+                  "pipelineName",
+                  "nodeName"
                 ]
               }
             }
@@ -5966,7 +5972,7 @@
           "Boards"
         ],
         "summary": "Get board status",
-        "description": "returns the board status by specific board id",
+        "description": "returns the board status by specific board name",
         "parameters": [
           {
             "name": "name",
@@ -5990,7 +5996,7 @@
                     "boardId": {
                       "type": "string",
                       "description": "Unique identifier representing board",
-                      "format": "board-id"
+                      "format": "board-name"
                     },
                     "status": {
                       "type": "string"
@@ -6087,16 +6093,22 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "metricLinks": {
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "format": "path"
-                      }
+                    "pipelineName": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific pipeline",
+                      "minLength": 1,
+                      "format": "pipeline-name"
+                    },
+                    "nodeName": {
+                      "type": "string"
+                    },
+                    "taskId": {
+                      "type": "string"
                     }
                   },
                   "required": [
-                    "metricLinks"
+                    "pipelineName",
+                    "nodeName"
                   ]
                 }
               }
@@ -9256,16 +9268,22 @@
       "boardStartRequest": {
         "type": "object",
         "properties": {
-          "metricLinks": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "path"
-            }
+          "pipelineName": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          },
+          "nodeName": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
           }
         },
         "required": [
-          "metricLinks"
+          "pipelineName",
+          "nodeName"
         ]
       },
       "boardStatusResult": {
@@ -9274,18 +9292,11 @@
           "boardId": {
             "type": "string",
             "description": "Unique identifier representing board",
-            "format": "board-id"
+            "format": "board-name"
           },
           "status": {
             "type": "string"
           }
-        }
-      },
-      "metricLinks": {
-        "type": "array",
-        "items": {
-          "type": "string",
-          "format": "path"
         }
       },
       "buildId": {

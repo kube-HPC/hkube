@@ -2,7 +2,7 @@ get:
   tags:
     - Boards
   summary: Get board status
-  description: returns the board status by specific board id
+  description: returns the board status by specific board name
   parameters:
     - name: name
       in: path

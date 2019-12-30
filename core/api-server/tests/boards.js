@@ -33,28 +33,36 @@ describe('Boards', () => {
                 uri: restPath + '/f*dd',
                 method: 'POST',
                 body: {
-                    metricLinks: ['adf']
+                    pipelineName: 'adf',
+                    nodeName: 'nodedd',
+                    taskId: 'taskIDDD'
                 }
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('board name must not contain special characters *,&#$ or spaces');
         });
-        it('check metricLinks mandatory validation', async () => {
+        it.only('check mandatory nodeName validation', async () => {
             const options = {
                 uri: restPath + '/boardName',
                 method: 'POST',
+                body: {
+                    pipelineName: 'adf',
+                    taskId: 'taskIDDD'
+                }
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data should have required property 'metricLinks'");
+            expect(response.body.error.message).to.equal("data should have required property 'nodeName'");
         });
         it('starting board should succeed', async () => {
             let options = {
                 uri: restPath + '/myBoard',
                 method: 'POST',
                 body: {
-                    metricLinks: ['adf']
+                    pipelineName: 'adf',
+                    nodeName: 'nodedd',
+                    taskId: 'taskIDDD'
                 }
             };
             let response = await request(options);
@@ -73,7 +81,9 @@ describe('Boards', () => {
                 uri: restPath + '/myUniqueBoard',
                 method: 'POST',
                 body: {
-                    metricLinks: ['adf']
+                    pipelineName: 'adf',
+                    nodeName: 'nodedd',
+                    taskId: 'taskIDDD'
                 }
             };
             let response = await request(options);
@@ -103,7 +113,9 @@ describe('Boards', () => {
                 uri: restUrl + '/start/jobToStop',
                 method: 'POST',
                 body: {
-                    metricLinks: ['adf']
+                    pipelineName: 'adf',
+                    nodeName: 'nodedd',
+                    taskId: 'taskIDDD'
                 }
             };
             let response = await request(options);

@@ -3,6 +3,6 @@ properties:
   boardId:
     type: string
     description: Unique identifier representing board
-    format: board-id
+    format: board-name
   status:
     type: string

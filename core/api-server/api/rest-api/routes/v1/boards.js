@@ -22,7 +22,7 @@ const routes = (options) => {
         next();
     });
     router.all('/tensor/start/:name?', methods(['POST']), logger(), async (req, res, next) => {
-        const methodOptions = { metricLinks: req.body.metricLinks, name: req.params.name };
+        const methodOptions = { name: req.params.name, pipelineName: req.body.pipelineName, nodeName: req.body.nodeName, taskId: req.body.taskId };
         await boards.startTensorboard(methodOptions);
         res.json({ message: 'OK' });
         next();

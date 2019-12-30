@@ -1,6 +1,11 @@
 type: object
 properties:
-  metricLinks:
-    $ref: "#/components/schemas/metricLinks"
+  pipelineName:
+    $ref: "#/components/schemas/pipelineName"
+  nodeName:
+    type: string
+  taskId:
+    type: string
 required:
-  - metricLinks
+  - pipelineName
+  - nodeName

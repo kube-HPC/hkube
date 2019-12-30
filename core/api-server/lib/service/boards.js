@@ -1,3 +1,4 @@
+const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError, ActionNotAllowed } = require('../errors');
@@ -29,10 +30,12 @@ class Boards {
     }
 
     async startTensorboard(options) {
-        validator.validateBoardStartReq({ name: options.name, metricLinks: options.metricLinks });
+        validator.validateBoardStartReq({ name: options.name, pipelineName: options.pipelineName, nodeName: options.nodeName, taskId: options.taskId });
+        // eslint-disable-next-line no-param-reassign
+        options.runName = options.taskId;
         const boardId = options.name;
         const existingBoard = await stateManager.getTensorboard({ boardId });
-        const logDir = options.metricLinks[0];
+        const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(options);
         const board = {
             boardId,
             logDir,
