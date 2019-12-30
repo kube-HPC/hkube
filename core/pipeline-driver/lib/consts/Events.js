@@ -2,6 +2,8 @@
 module.exports = {
     JOBS: {
         STOPPED: 'job-stopped',
+        PAUSED: 'job-paused',
+        RESUMED: 'job-resumed',
         WAITING: 'job-waiting',
         ACTIVE: 'job-active',
         FAILED: 'job-failed',
