@@ -42,7 +42,7 @@ describe('Boards', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('board name must not contain special characters *,&#$ or spaces');
         });
-        it.only('check mandatory nodeName validation', async () => {
+        it('check mandatory nodeName validation', async () => {
             const options = {
                 uri: restPath + '/boardName',
                 method: 'POST',

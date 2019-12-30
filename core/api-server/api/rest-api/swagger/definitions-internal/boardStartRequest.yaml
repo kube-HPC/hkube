@@ -1,8 +1,7 @@
 type: object
 properties:
   name:
-    type: string
-    format: board-name
+    $ref: "#/components/schemas/boardName"
   pipelineName:
     $ref: "#/components/schemas/pipelineName"
   nodeName:

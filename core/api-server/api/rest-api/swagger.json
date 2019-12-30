@@ -5993,7 +5993,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "boardId": {
+                    "name": {
                       "type": "string",
                       "description": "Unique identifier representing board",
                       "format": "board-name"
@@ -9289,7 +9289,7 @@
       "boardStatusResult": {
         "type": "object",
         "properties": {
-          "boardId": {
+          "name": {
             "type": "string",
             "description": "Unique identifier representing board",
             "format": "board-name"
@@ -9298,6 +9298,11 @@
             "type": "string"
           }
         }
+      },
+      "boardName": {
+        "type": "string",
+        "description": "Unique identifier representing board",
+        "format": "board-name"
       },
       "buildId": {
         "type": "object",

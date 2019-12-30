@@ -28,7 +28,7 @@ class ApiValidator {
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
         validatorInstance.addFormat('algorithm-image', this._validateAlgorithmImage);
         validatorInstance.addFormat('algorithm-memory', this._validateMemory);
-        validatorInstance.addFormat('board-name', this._validateBoardId);
+        validatorInstance.addFormat('board-name', this._validateBoardName);
         validatorInstance.addFormat('path', this._validatePath);
         formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
         formatMessages.set('algorithm-name', validationMessages.ALGORITHM_NAME_FORMAT);
@@ -254,8 +254,8 @@ class ApiValidator {
         return regex.PIPELINE_NAME_REGEX.test(name);
     }
 
-    _validateBoardId(boardId) {
-        return regex.BOARD_ID.test(boardId);
+    _validateBoardName(name) {
+        return regex.BOARD_ID.test(name);
     }
 
     _validatePath(path) {

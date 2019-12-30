@@ -11,18 +11,19 @@ class Boards {
         if (!response) {
             throw new ResourceNotFoundError('board', options.name);
         }
-        response.name = response.boardId;
-        delete response.boardId;
-        return response;
+        const { boardId, ...resp } = response;
+        resp.name = boardId;
+        return resp;
     }
 
     async stopTensorboard(options) {
-        const board = await this.getTensorboard({ name: options.name });
+        const { name } = options;
+        const board = await this.getTensorboard({ name });
         if (!stateManager.isActiveState(board.status)) {
-            throw new InvalidDataError(`unable to stop board ${options.name} because its in ${board.status} status`);
+            throw new InvalidDataError(`unable to stop board ${name} because its in ${board.status} status`);
         }
         const boardData = {
-            boardId: options.name,
+            boardId: name,
             status: States.STOPPED,
             endTime: Date.now()
         };
@@ -31,11 +32,11 @@ class Boards {
 
     async startTensorboard(options) {
         validator.validateBoardStartReq({ name: options.name, pipelineName: options.pipelineName, nodeName: options.nodeName, taskId: options.taskId });
-        // eslint-disable-next-line no-param-reassign
-        options.runName = options.taskId;
         const boardId = options.name;
         const existingBoard = await stateManager.getTensorboard({ boardId });
-        const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(options);
+        const { taskId, ...opt } = options;
+        opt.runName = taskId;
+        const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(opt);
         const board = {
             boardId,
             logDir,

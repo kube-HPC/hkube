@@ -18,6 +18,8 @@ boardStartRequest:
   $ref: ./boardStartRequest.yaml
 boardStatusResult:
   $ref: ./boardStatusResult.yaml
+boardName:
+  $ref: ./boardName.yaml
 buildId:
   $ref: ./buildId.yaml
 caching:
