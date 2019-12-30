@@ -1,0 +1,37 @@
+get:
+  tags:
+    - Storage
+  summary: Get storage data
+  description: returns the storage data
+  parameters:
+    - name: path
+      in: path
+      description: path to storage
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: storage response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: path Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

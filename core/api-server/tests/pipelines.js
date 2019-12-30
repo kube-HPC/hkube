@@ -9,10 +9,10 @@ describe('Pipelines', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
     });
-    describe('/pipelines/results/stored', () => {
+    describe('/pipelines/results', () => {
         let restPath = null;
         before(() => {
-            restPath = `${restUrl}/pipelines/results/stored`;
+            restPath = `${restUrl}/pipelines/results`;
         });
         it('should throw status Not Found with params', async () => {
             const options = {
@@ -85,30 +85,22 @@ describe('Pipelines', () => {
             expect(response.body[0]).to.have.property('timestamp');
         })
     });
-    describe.skip('/pipelines/results/raw', () => {
+    describe('/pipelines/status', () => {
         let restPath = null;
         before(() => {
-            restPath = `${restUrl}/pipelines/results/raw`;
+            restPath = `${restUrl}/pipelines/status`;
         });
         it('should throw status Not Found with params', async () => {
             const options = {
-                uri: restPath + '/no_such_id',
+                uri: restPath + '?name=no_such_id',
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('pipeline results no_such_id Not Found');
+            expect(response.body.error.message).to.equal('pipeline status no_such_id Not Found');
         });
-        it('should throw validation error of required property name', async () => {
-            const options = {
-                uri: restPath,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data should have required property 'name'");
-        });
-        it.skip('should throw validation error of order property', async () => {
+
+        it('should throw validation error of order property', async () => {
             const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
             const options = {
                 uri: restPath + `?${qs}`,
@@ -184,182 +176,5 @@ describe('Pipelines', () => {
             expect(response.body[0]).to.have.property('timestamp');
         })
     });
-    describe('/pipelines/status/stored', () => {
-        let restPath = null;
-        before(() => {
-            restPath = `${restUrl}/pipelines/status/stored`;
-        });
 
-        it('should throw status Not Found with params', async () => {
-            const options = {
-                uri: restPath + '?name=no_such_id',
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('pipeline status no_such_id Not Found');
-        });
-
-        it('should throw validation error of order property', async () => {
-            const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
-            const options = {
-                uri: restPath + `?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
-        });
-        it('should throw validation error of sort property', async () => {
-            const qs = querystring.stringify({ name: 'pipe', sort: 'bla' });
-            const options = {
-                uri: restPath + `?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
-        });
-        it('should throw validation error of limit should be >= 1', async () => {
-            const qs = querystring.stringify({ name: 'pipe', limit: 0 });
-            const options = {
-                uri: restPath + `?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be >= 1");
-        });
-        it('should throw validation error of limit should be integer', async () => {
-            const qs = querystring.stringify({ name: 'pipe', limit: "y" });
-            const options = {
-                uri: restPath + `?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be integer");
-        });
-        it('should succeed to get pipelines status', async () => {
-            const pipeline = 'flow1';
-            const optionsRun = {
-                uri: restUrl + '/exec/stored',
-                body: {
-                    name: pipeline
-                }
-            };
-            const limit = 3;
-            await Promise.all(Array.from(Array(limit)).map(d => request(optionsRun)));
-
-            const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit });
-            const options = {
-                uri: restPath + `?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body).to.have.lengthOf(limit)
-            expect(response.body[0]).to.have.property('jobId');
-            expect(response.body[0]).to.have.property('level');
-            expect(response.body[0]).to.have.property('pipeline');
-            expect(response.body[0]).to.have.property('status');
-            expect(response.body[0]).to.have.property('timestamp');
-        })
-    });
-    describe.skip('/pipelines/status/raw', () => {
-        let restPath = null;
-        before(() => {
-            restPath = `${restUrl}/pipelines/status/raw`;
-        });
-        it('should throw status Not Found with params', async () => {
-            const options = {
-                uri: restPath + '/no_such_id',
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('pipeline status no_such_id Not Found');
-        });
-        it('should throw validation error of required property name', async () => {
-            const options = {
-                uri: restPath,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data should have required property 'name'");
-        });
-        it('should throw validation error of order property', async () => {
-            const qs = querystring.stringify({ order: 'bla' });
-            const options = {
-                uri: restPath + `/pipe?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
-        });
-        it('should throw validation error of sort property', async () => {
-            const qs = querystring.stringify({ sort: 'bla' });
-            const options = {
-                uri: restPath + `/pipe?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.sort should be equal to one of the allowed values");
-        });
-        it('should throw validation error of limit should be >= 1', async () => {
-            const qs = querystring.stringify({ limit: 0 });
-            const options = {
-                uri: restPath + `/pipe?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be >= 1");
-        });
-        it('should throw validation error of limit should be integer', async () => {
-            const qs = querystring.stringify({ limit: "y" });
-            const options = {
-                uri: restPath + `/pipe?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data.limit should be integer");
-        });
-        it('should succeed to get pipelines statuses', async () => {
-            const pipeline = 'pipeline_statuses';
-            const optionsRun = {
-                uri: restUrl + '/exec/raw',
-                body: {
-                    name: pipeline,
-                    nodes: [
-                        {
-                            nodeName: 'string',
-                            algorithmName: 'green-alg',
-                            input: []
-                        }
-                    ]
-                }
-            };
-            const limit = 3;
-            await Promise.all(Array.from(Array(limit)).map(d => request(optionsRun)));
-
-            const qs = querystring.stringify({ sort: 'desc', limit });
-            const options = {
-                uri: restPath + `/${pipeline}?${qs}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body).to.have.lengthOf(limit)
-            expect(response.body[0]).to.have.property('jobId');
-            expect(response.body[0]).to.have.property('level');
-            expect(response.body[0]).to.have.property('pipeline');
-            expect(response.body[0]).to.have.property('status');
-            expect(response.body[0]).to.have.property('timestamp');
-        })
-    });
 });

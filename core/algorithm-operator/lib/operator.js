@@ -4,6 +4,7 @@ const etcd = require('./helpers/etcd');
 const { logWrappers } = require('./helpers/tracing');
 const kubernetes = require('./helpers/kubernetes');
 const algorithmBuildsReconciler = require('./reconcile/algorithm-builds');
+const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const CONTAINERS = require('./consts/containers');
@@ -40,6 +41,7 @@ class Operator {
             const algorithms = await etcd.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
+                this._tenosrboards({ ...configMap }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options)
             ]);
@@ -62,6 +64,24 @@ class Operator {
         await algorithmBuildsReconciler.reconcile({
             builds,
             jobs,
+            secret,
+            versions,
+            registry,
+            clusterOptions,
+            options,
+        });
+    }
+
+    async _tenosrboards({ versions, registry, clusterOptions }, options) {
+        const boards = await etcd.getTensorboards();
+        if (boards.length === 0) {
+            return;
+        }
+        const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
+        const secret = await kubernetes.getSecret({ secretName: 'docker-credentials-secret' });
+        await tensorboardReconciler.reconcile({
+            boards,
+            deployments,
             secret,
             versions,
             registry,

@@ -5,6 +5,7 @@ const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
 const { uuid } = require('../utils');
+const pipelineTypes = require('../../lib/consts/pipeline-types');
 
 class ExecutionService {
     async getCronResult(options) {
@@ -36,7 +37,7 @@ class ExecutionService {
     async runStoredCron(options) {
         validator.validateStoredInternal(options);
         const jobId = this._createCronJobID(options, uuid());
-        return execution._runStored(options, jobId);
+        return execution._runStored({ pipeline: options, jobId, types: [pipelineTypes.CRON, pipelineTypes.STORED] });
     }
 
     async startCronJob(options) {

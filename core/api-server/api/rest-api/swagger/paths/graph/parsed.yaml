@@ -1,43 +1,52 @@
 get:
   tags:
-    - Pipelines
-  summary: Get stored pipeline status
-  description: return status of stored pipelines by given pipeline name
+    - Graph
+  summary: Get graph data
+  description: returns the graph data by jobId
   parameters:
-    - name: name
-      in: query
-      description: pipeline name
+    - name: jobId
+      in: path
+      description: Unique identifier representing jobId
+      required: true
       schema:
         type: string
-    - name: experimentName
+    - name: node
       in: query
-      description: experiment name
+      description: the node name
+      required: false
       schema:
         type: string
     - name: sort
       in: query
-      description: sort by asc or desc
+      description: sort by status, error or any other property
+      required: false
       schema:
         type: string
     - name: order
       in: query
-      description: order by
+      description: order by asc or desc
+      required: false
       schema:
         type: string
-    - name: limit
+    - name: from
       in: query
-      description: limit
+      description: the start index
+      required: false
+      schema:
+        type: integer
+    - name: to
+      in: query
+      description: the end index
+      required: false
       schema:
         type: integer
   responses:
     "200":
-      description: action summery
+      description: algorithm apply response
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/pipelineResult"
+            $ref: "#/components/schemas/algorithmApplyResponse"
     "400":
       description: bad request
       content:
@@ -45,7 +54,7 @@ get:
           schema:
             $ref: "#/components/schemas/error"
     "404":
-      description: pipelines Not Found
+      description: jobId Not Found
       content:
         application/json:
           schema:

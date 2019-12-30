@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { uuid: uuidv4 } = require('../lib/utils');
+const { uuid } = require('../lib/utils');
 const HttpStatus = require('http-status-codes');
 const clone = require('clone');
 const { pipelines } = require('./mocks');
@@ -345,7 +345,7 @@ describe('Store/Pipelines', () => {
         it('should throw validation error if algorithmName not exists', async () => {
             const pipeline = clone(pipelines[0]);
             pipeline.nodes[0].algorithmName = 'not.exists'
-            pipeline.name = uuidv4();
+            pipeline.name = uuid();
             const body = pipeline;
             const options = {
                 uri: restPath,
@@ -357,7 +357,7 @@ describe('Store/Pipelines', () => {
             expect(response.body.error.message).to.equal('algorithm not.exists Not Found');
         });
         it('should succeed to store pipeline and add defaults', async () => {
-            const name = uuidv4();
+            const name = uuid();
             const options = {
                 uri: restPath,
                 body: {
@@ -390,8 +390,9 @@ describe('Store/Pipelines', () => {
         });
         it('should succeed to store pipeline', async () => {
             const pipeline = clone(pipelines[2]);
-            pipeline.name = uuidv4();
+            pipeline.name = uuid();
             pipeline.description = 'my description';
+            pipeline.tags = ['bla', 'hot'];
             const options = {
                 uri: restPath,
                 body: pipeline

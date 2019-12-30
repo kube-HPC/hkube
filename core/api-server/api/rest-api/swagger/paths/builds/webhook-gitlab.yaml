@@ -1,0 +1,31 @@
+post:
+  tags:
+    - Builds
+  summary: Insert webhook for automating build after push
+  description: webhook for automating  build algorithm directly from gitlab
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/gitlabWebhook"
+    description: gitlab webhook data
+    required: true
+  responses:
+    "201":
+      description: webhook created
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

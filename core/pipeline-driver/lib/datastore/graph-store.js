@@ -1,14 +1,12 @@
 
 const clone = require('clone');
+const isEqual = require('lodash.isequal');
 const deep = require('deep-get-set');
 const flatten = require('flat');
 const logger = require('@hkube/logger');
 const States = require('../state/NodeStates');
 const RedisStorage = require('./redis-storage-adapter');
-const { groupTypes } = require('../consts/graph-storage-types');
 const components = require('../consts/componentNames');
-
-const { EDGE } = groupTypes;
 const INTERVAL = 4000;
 let log;
 
@@ -31,7 +29,7 @@ class GraphStore {
     }
 
     async stop() {
-        await this._updateGraph();
+        await this._store();
         clearInterval(this._interval);
         this._interval = null;
         this._nodesMap = null;
@@ -39,23 +37,19 @@ class GraphStore {
     }
 
     getGraph(options) {
-        return RedisStorage.getNodesGraph({ jobId: options.jobId });
-    }
-
-    deleteGraph(options) {
-        return RedisStorage.deleteDriverGraph({ jobId: options.jobId });
+        return RedisStorage.getGraph({ jobId: options.jobId });
     }
 
     _storeInterval() {
         if (this._interval) {
             return;
         }
-        this._interval = setInterval(() => {
+        this._interval = setInterval(async () => {
             if (this._working) {
                 return;
             }
             this._working = true;
-            this._store();
+            await this._store();
             this._working = false;
         }, INTERVAL);
     }
@@ -64,10 +58,7 @@ class GraphStore {
         try {
             if (this._nodesMap) {
                 const graph = this._nodesMap.getJSONGraph();
-                await Promise.all([
-                    this._updateGraph(graph),
-                    this._updateDriverGraph(graph)
-                ]);
+                await this._updateGraph(graph);
             }
         }
         catch (error) {
@@ -76,45 +67,30 @@ class GraphStore {
     }
 
     async _updateGraph(graph) {
-        const g = (graph) || (this._nodesMap && this._nodesMap.getJSONGraph());
-        if (g) {
-            const filterGraph = this._filterData(g);
-            await RedisStorage.updateGraph({ jobId: this._currentJobID, data: filterGraph });
+        const filterGraph = this._filterData(graph);
+        if (!isEqual(this._lastGraph, filterGraph)) {
+            this._lastGraph = filterGraph;
+            await RedisStorage.updateGraph({ jobId: this._currentJobID, data: { jobId: this._currentJobID, timestamp: Date.now(), ...filterGraph } });
         }
-    }
-
-    async _updateDriverGraph(graph) {
-        await RedisStorage.updateDriverGraph({ jobId: this._currentJobID, data: graph });
     }
 
     _formatEdge(e) {
-        const { type } = e.value[0];
         const edge = {
             from: e.v,
             to: e.w,
-            group: EDGE.NONE
+            edges: e.value
         };
-        if (type === EDGE.WAIT_ANY) {
-            edge.group = EDGE.WAIT_ANY;
-        }
-        else if (type === EDGE.ALGORITHM_EXECUTION) {
-            edge.group = EDGE.ALGORITHM_EXECUTION;
-        }
         return edge;
     }
 
     _filterData(graph) {
         return {
-            jobId: this._currentJobID,
-            graph: {
-                timestamp: Date.now(),
-                edges: graph.edges.map(e => this._formatEdge(e)),
-                nodes: graph.nodes.map(n => this._handleNode(n.value))
-            }
+            edges: graph.edges.map(e => this._formatEdge(e)),
+            nodes: graph.nodes.map(n => this._formatNode(n.value))
         };
     }
 
-    _handleNode(node) {
+    _formatNode(node) {
         if (node.batch.length === 0) {
             return this._handleSingle(node);
         }
@@ -124,60 +100,37 @@ class GraphStore {
     _mapTask(task) {
         return {
             taskId: task.taskId,
-            // input: this._parseInput(task),
-            // output: task.result,
+            input: this._parseInput(task),
+            output: task.result,
             podName: task.podName,
             status: task.status,
             error: task.error,
             prevErrors: task.prevErrors,
-            nodeName: task.nodeName,
-            algorithmName: task.algorithmName,
             retries: task.retries,
+            batchIndex: task.batchIndex,
             startTime: task.startTime,
-            endTime: task.endTime
+            endTime: task.endTime,
+            metricsPath: task.metricsPath
         };
     }
 
-    _handleSingle(node) {
-        const calculatedNode = this._mapTask(node);
-        calculatedNode.group = this._singleStatus(node.status);
-        return calculatedNode;
+    _handleSingle(n) {
+        const node = {
+            nodeName: n.nodeName,
+            algorithmName: n.algorithmName,
+            ...this._mapTask(n)
+        };
+        return node;
     }
 
-    _handleBatch(node) {
-        const { BATCH } = groupTypes;
-        const batchTasks = node.batch.map(b => ({
-            ...this._mapTask(b),
-            batchIndex: b.batchIndex
-        }));
-        const calculatedNode = {
-            nodeName: node.nodeName,
-            algorithmName: node.algorithmName,
-            extra: {},
-            group: BATCH.NOT_STARTED,
-            batchTasks
+    _handleBatch(n) {
+        const node = {
+            nodeName: n.nodeName,
+            algorithmName: n.algorithmName,
+            batch: n.batch.map(b => this._mapTask(b)),
+            batchInfo: this._batchInfo(n.batch)
         };
-        let completed = 0;
-        let group = null;
-        const batchStatus = this._batchStatusCounter(node);
-        if (batchStatus.completed === node.batch.length) {
-            completed = node.batch.length;
-            group = BATCH.COMPLETED;
-        }
-        else if (batchStatus.idle === node.batch.length) {
-            completed = 0;
-            group = BATCH.NOT_STARTED;
-        }
-        else {
-            completed = batchStatus.running + batchStatus.completed;
-            group = BATCH.RUNNING;
-        }
-        if (batchStatus.errors > 0) {
-            group = BATCH.ERRORS;
-        }
-        calculatedNode.extra.batch = `${completed}/${node.batch.length}`;
-        calculatedNode.group = group;
-        return calculatedNode;
+        return node;
     }
 
     _parseInput(node) {
@@ -197,45 +150,29 @@ class GraphStore {
         return result;
     }
 
-    _batchStatusCounter(node) {
-        const batchState = {
+    _batchInfo(batch) {
+        const batchInfo = {
             idle: 0,
             completed: 0,
             errors: 0,
-            running: 0
+            running: 0,
+            total: batch.length
         };
-
-        node.batch.forEach((b) => {
-            const { STATUS } = groupTypes;
-            const status = this._singleStatus(b.status);
+        batch.forEach((b) => {
             if (b.error) {
-                batchState.errors += 1;
+                batchInfo.errors += 1;
             }
-            if (status === STATUS.COMPLETED) {
-                batchState.completed += 1;
+            if (b.status === States.SUCCEED || b.status === States.FAILED) {
+                batchInfo.completed += 1;
             }
-            else if (status === STATUS.NOT_STARTED) {
-                batchState.idle += 1;
+            else if (b.status === States.CREATING || b.status === States.PENDING) {
+                batchInfo.idle += 1;
             }
             else {
-                batchState.running += 1;
+                batchInfo.running += 1;
             }
         });
-        return batchState;
-    }
-
-    _singleStatus(s) {
-        const { STATUS } = groupTypes;
-        if (s === States.SKIPPED) {
-            return States.SKIPPED;
-        }
-        if (s === States.SUCCEED || s === States.FAILED) {
-            return STATUS.COMPLETED;
-        }
-        if (s === States.CREATING || s === States.PENDING) {
-            return STATUS.NOT_STARTED;
-        }
-        return STATUS.RUNNING;
+        return batchInfo;
     }
 }
 

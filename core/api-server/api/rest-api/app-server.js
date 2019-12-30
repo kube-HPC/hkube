@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const swaggerParser = require('swagger-parser');
 const RestServer = require('@hkube/rest-server');
-const Logger = require('@hkube/logger');
+const log = require('@hkube/logger').GetLogFromContanier();
 const { metrics } = require('@hkube/metrics');
 require('express-async-errors');
 const HttpStatus = require('http-status-codes');
@@ -11,7 +11,6 @@ const swaggerLoader = require('./swagger-loader.js');
 const validator = require('../../lib/validation/api-validator');
 const component = require('../../lib/consts/componentNames').REST_API;
 const afterRequest = require('./middlewares/after-request');
-const log = Logger.GetLogFromContanier();
 const rest = new RestServer();
 
 class AppServer {

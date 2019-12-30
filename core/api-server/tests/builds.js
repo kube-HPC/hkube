@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const { uuid: uuidv4 } = require('../lib/utils');
+const { randomString: uuid } = require('../lib/utils');
 const HttpStatus = require('http-status-codes');
 const querystring = require('querystring');
 const builds = require('../lib/service/builds');
@@ -13,16 +13,11 @@ describe('Builds', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
     });
-
     describe('webhhoks/gitlab', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/builds/webhook/gitlab`;
         });
-
-
-
-
         it.skip('should run simple gitlab push webhook', async () => {
             console.log(`restPath=${restPath}`)
             const options = {
@@ -61,7 +56,7 @@ describe('Builds', () => {
         });
         it('should succeed to get build status', async () => {
             const payload = {
-                name: `my-alg-${uuidv4()}`,
+                name: `my-alg-${uuid()}`,
                 mem: "50Mi",
                 cpu: 1,
                 version: '1.9.0',
@@ -90,7 +85,7 @@ describe('Builds', () => {
         });
         it('should succeed to get baseImage', async () => {
             const payload = {
-                name: `my-alg-${uuidv4()}`,
+                name: `my-alg-${uuid()}`,
                 mem: "50Mi",
                 cpu: 1,
                 version: '1.9.0',
@@ -142,7 +137,7 @@ describe('Builds', () => {
         });
         it('should succeed to stop build', async () => {
             const payload = {
-                name: `my-alg-${uuidv4()}`,
+                name: `my-alg-${uuid()}`,
                 mem: "50Mi",
                 cpu: 1,
                 version: '1.9.0',
@@ -193,7 +188,7 @@ describe('Builds', () => {
         });
         it('should succeed to rerun build', async () => {
             const payload = {
-                name: `my-alg-${uuidv4()}`,
+                name: `my-alg-${uuid()}`,
                 mem: "50Mi",
                 cpu: 1,
                 version: '1.9.0',
@@ -274,7 +269,7 @@ describe('Builds', () => {
         });
         it('should succeed to get build list', async () => {
             const body = {
-                name: `my-alg-${uuidv4()}`,
+                name: `my-alg-${uuid()}`,
                 mem: "50Mi",
                 cpu: 1,
                 version: '1.9.0',
@@ -348,5 +343,4 @@ describe('Builds', () => {
             expect(body).to.have.property('buildId');
         })
     });
-
 });

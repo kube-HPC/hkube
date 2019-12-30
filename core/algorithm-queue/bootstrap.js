@@ -3,8 +3,6 @@ const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
-const { VerbosityPlugin } = Logger;
-log.plugins.use(new VerbosityPlugin(main.redis));
 const monitor = require('@hkube/redis-utils').Monitor;
 const { componentName } = require('./lib/consts/index');
 const { tracer } = require('@hkube/metrics');

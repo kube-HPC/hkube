@@ -1,6 +1,6 @@
 {
   "name": "algorithm-queue",
-  "version": "1.2.12",
+  "version": "1.2.17",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",
-    "test": "NODE_ENV=test mocha tests --colors  --exit",
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/_mocha tests --timeout=10000 --colors --recursive --exit",
     "test:cov": "NODE_ENV=test ./node_modules/nyc/bin/nyc.js --reporter=html --reporter=text --reporter=lcov mocha tests --colors --recursive --exit",
     "coverage": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "start": "node app",
@@ -18,27 +18,27 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.7",
-    "@hkube/etcd": "^5.0.3",
+    "@hkube/etcd": "^5.0.14",
     "@hkube/logger": "^1.0.25",
-    "@hkube/metrics": "^1.0.34",
+    "@hkube/metrics": "^1.0.38",
     "@hkube/producer-consumer": "^1.0.46",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
-    "aigle": "^1.13.1",
-    "lodash": "^4.17.11",
-    "uuid": "^3.3.2"
+    "aigle": "^1.14.1",
+    "lodash": "^4.17.15",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "await-delay": "^1.0.0",
     "await-done": "^1.0.10",
     "chai": "^4.2.0",
-    "eslint": "^5.16.0",
-    "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-chai-friendly": "^0.4.1",
-    "eslint-plugin-import": "^2.17.2",
-    "mocha": "^6.1.4",
+    "eslint": "^6.7.2",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-chai-friendly": "^0.5.0",
+    "eslint-plugin-import": "^2.19.1",
+    "mocha": "^6.2.2",
     "mockery": "^2.1.0",
     "nyc": "^14.1.1",
-    "sinon": "^7.3.2"
+    "sinon": "^7.5.0"
   }
 }

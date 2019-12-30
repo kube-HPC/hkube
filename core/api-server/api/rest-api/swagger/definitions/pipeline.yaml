@@ -25,6 +25,11 @@ properties:
     default: 3
   triggers:
     $ref: "#/components/schemas/triggers"
+  tags:
+    type: array
+    description: Array of tags
+    items:
+      $ref: "#/components/schemas/tag"
 additionalProperties: false
 required:
   - name

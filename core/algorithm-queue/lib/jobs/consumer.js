@@ -7,6 +7,8 @@ const { heuristicsName, jobState } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
+const pipelineDoneStatus = [jobState.COMPLETED, jobState.FAILED, jobState.STOPPED];
+
 class JobConsumer extends EventEmitter {
     constructor() {
         super();
@@ -30,9 +32,9 @@ class JobConsumer extends EventEmitter {
             this._handleJob(job);
         });
         this.etcd.jobs.status.on('change', (data) => {
-            if (data && data.status === jobState.STOPPED) {
-                const { jobId } = data;
-                queueRunner.queue.removeJobs([{ jobId }]);
+            const { status, jobId } = data;
+            if (this._isCompletedState({ status })) {
+                this._removeInvalidJob({ jobId });
             }
         });
         this.etcd.algorithms.executions.on('change', (data) => {
@@ -44,16 +46,23 @@ class JobConsumer extends EventEmitter {
         this._consumer.register({ job: { type: algorithmType, concurrency: options.consumer.concurrency } });
     }
 
+    _isCompletedState({ status }) {
+        return pipelineDoneStatus.includes(status);
+    }
+
+    _removeInvalidJob({ jobId }) {
+        queueRunner.queue.removeJobs([{ jobId }]);
+    }
+
     async _handleJob(job) {
         try {
             const { jobId } = job.data;
             const data = await this.etcd.jobs.status.get({ jobId });
-            if (data && data.status === jobState.STOPPED) {
-                log.warning(`job arrived with state stopped therefore will not added to queue : ${jobId}`, { component });
-                queueRunner.queue.removeJobs([{ jobId }]);
+            log.info(`job arrived with ${data.status} state and ${job.data.tasks.length} tasks`, { component });
+            if (this._isCompletedState({ status: data.status })) {
+                this._removeInvalidJob({ jobId });
             }
             else {
-                log.info(`job arrived with inputs amount: ${job.data.tasks.length}`, { component });
                 this.queueTasksBuilder(job);
             }
         }
@@ -66,12 +75,12 @@ class JobConsumer extends EventEmitter {
     }
 
     pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
-        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId, nodeType } = jobData;
+        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId, nodeType, metrics } = jobData;
         const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
             acc[cur] = 0.00001;
             return acc;
         }, {});
-        const batchIndex = taskData.batchIndex || 1;
+        const batchIndex = taskData.batchIndex || 0;
         const entranceTime = Date.now();
         return {
             jobId,
@@ -85,6 +94,7 @@ class JobConsumer extends EventEmitter {
             entranceTime,
             attempts: 0,
             initialBatchLength,
+            metrics,
             calculated: {
                 latestScores,
                 //  score: '1-100',

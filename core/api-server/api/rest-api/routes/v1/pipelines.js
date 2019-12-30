@@ -9,36 +9,22 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.all('/results/raw/:name?', methods(['GET']), logger(), async (req, res, next) => {
-        const { name } = req.params;
-        const { sort, order, limit } = req.query;
-        const response = await Execution.getPipelinesResultRaw({ name, sort, order, limit });
-        res.json(response);
-        res.name = name;
-        next();
-    });
-    router.all('/results/stored', methods(['GET']), logger(), async (req, res, next) => {
+
+    router.all('/results', methods(['GET']), logger(), async (req, res, next) => {
         const { sort, order, limit } = req.query;
         const experimentName = req.query.experimentName || 'main';
         const name = req.query.name || '';
-        const response = await Execution.getPipelinesResultStored({ name, experimentName, sort, order, limit });
+        const response = await Execution.getPipelinesResult({ name, experimentName, sort, order, limit });
         res.json(response);
         res.name = name;
         next();
     });
-    router.all('/status/raw/:name?', methods(['GET']), logger(), async (req, res, next) => {
-        const { name } = req.params;
-        const { sort, order, limit } = req.query;
-        const response = await Execution.getPipelinesStatusRaw({ name, sort, order, limit });
-        res.json(response);
-        res.name = name;
-        next();
-    });
-    router.all('/status/stored', methods(['GET']), logger(), async (req, res, next) => {
+
+    router.all('/status', methods(['GET']), logger(), async (req, res, next) => {
         const { sort, order, limit } = req.query;
         const experimentName = req.query.experimentName || 'main';
         const name = req.query.name || '';
-        const response = await Execution.getPipelinesStatusStored({ name, experimentName, sort, order, limit });
+        const response = await Execution.getPipelinesStatus({ name, experimentName, sort, order, limit });
         res.json(response);
         res.name = name;
         next();

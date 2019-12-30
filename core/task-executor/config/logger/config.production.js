@@ -6,5 +6,5 @@ config.transport = {
     file: false,
     redis: true
 };
-config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 1;
+config.verbosityLevel = process.env.HKUBE_LOG_LEVEL || 2;
 module.exports = config;

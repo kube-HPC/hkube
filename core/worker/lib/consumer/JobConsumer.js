@@ -1,17 +1,19 @@
 const EventEmitter = require('events');
+const recursive = require('recursive-readdir');
 const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const Logger = require('@hkube/logger');
+const fse = require('fs-extra');
+const pathLib = require('path');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components, Status } = require('../consts');
+const { metricsNames, Components, JobStatus } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
-const formatter = require('../helpers/formatters');
-
+const pipelineDoneStatus = [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
 let log;
@@ -40,6 +42,8 @@ class JobConsumer extends EventEmitter {
                 ...metadata, ...this.currentTaskInfo()
             })
         }));
+        const { algoMetricsDir } = options;
+        this._algoMetricsDir = algoMetricsDir;
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
@@ -60,15 +64,15 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
         this._jobProvider.on('job', async (job) => {
-            if (job.data.status === Status.PRESCHEDULE) {
+            if (job.data.status === JobStatus.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
                 job.done();
                 return;
             }
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
             const watchState = await etcd.watch({ jobId: job.data.jobId });
-            if (watchState && watchState.status === constants.WATCH_STATE.STOPPED) {
-                await this._stopJob(job);
+            if (watchState && this._isCompletedState({ status: watchState.status })) {
+                await this._stopJob(job, watchState.status);
                 return;
             }
 
@@ -107,6 +111,10 @@ class JobConsumer extends EventEmitter {
         });
     }
 
+    _isCompletedState({ status }) {
+        return pipelineDoneStatus.includes(status);
+    }
+
     _shouldNormalExit(options) {
         const { shouldCompleteJob } = options || {};
         return shouldCompleteJob === undefined ? true : shouldCompleteJob;
@@ -135,14 +143,14 @@ class JobConsumer extends EventEmitter {
         this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
     }
 
-    async _stopJob(job) {
+    async _stopJob(job, status) {
         await etcd.unwatch({ jobId: job.data.jobId });
-        log.info(`job ${job.data.jobId} already stopped!`);
+        log.info(`job ${job.data.jobId} already in ${status} status`);
         job.done();
     }
 
     _initMetrics(job) {
-        const pipelineName = formatter.formatPipelineName(job.data.pipelineName);
+        const { pipelineName } = job.data;
         metrics.get(metricsNames.worker_started).inc({
             labelValues: {
                 pipeline_name: pipelineName,
@@ -336,8 +344,13 @@ class JobConsumer extends EventEmitter {
         const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus(data);
 
         if (shouldCompleteJob) {
+            let metricsPath;
             if (!error && status === constants.JOB_STATUS.SUCCEED) {
                 storageResult = await this._putResult(resultData);
+                if (this.jobData.metrics && this.jobData.metrics.tensorboard) {
+                    const tensorboard = await this._putAlgoMetrics();
+                    metricsPath = { tensorboard };
+                }
             }
             const resData = Object.assign({
                 status,
@@ -348,7 +361,9 @@ class JobConsumer extends EventEmitter {
                 execId: this._job.data.execId,
                 nodeName: this._job.data.nodeName,
                 algorithmName: this._job.data.algorithmName,
-                endTime: Date.now()
+                batchIndex: this._batchIndex,
+                endTime: Date.now(),
+                metricsPath
             }, storageResult);
 
             this._job.error = error;
@@ -362,11 +377,10 @@ class JobConsumer extends EventEmitter {
 
     _summarizeMetrics(jobStatus) {
         try {
-            const pipelineName = formatter.formatPipelineName(this._pipelineName);
             if (jobStatus === constants.JOB_STATUS.FAILED) {
                 metrics.get(metricsNames.worker_failed).inc({
                     labelValues: {
-                        pipeline_name: pipelineName,
+                        pipeline_name: this._pipelineName,
                         algorithm_name: this.getAlgorithmType()
                     }
                 });
@@ -374,7 +388,7 @@ class JobConsumer extends EventEmitter {
             else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
                 metrics.get(metricsNames.worker_succeeded).inc({
                     labelValues: {
-                        pipeline_name: pipelineName,
+                        pipeline_name: this._pipelineName,
                         algorithm_name: this.getAlgorithmType()
                     }
                 });
@@ -435,6 +449,55 @@ class JobConsumer extends EventEmitter {
             return {
                 status,
                 result,
+                error
+            };
+        }
+    }
+
+    getFileNames(parentDir) {
+        if (parentDir.children) {
+            let flatChildrenList = [];
+            parentDir.children.forEach((child) => {
+                const grandchildren = this.getFileNames(child);
+                if (grandchildren.length === 1 && typeof (grandchildren[0]) === 'string') {
+                    flatChildrenList = [[parentDir.name, ...grandchildren], ...flatChildrenList];
+                }
+                else {
+                    grandchildren.forEach((filePath) => {
+                        flatChildrenList = [[parentDir.name, ...filePath], ...flatChildrenList];
+                    });
+                }
+            });
+            return flatChildrenList;
+        }
+        return [parentDir.name];
+    }
+
+    async _putAlgoMetrics() {
+        let path = null;
+        let error;
+        try {
+            const uploadTime = this.jobCurrentTime.toLocaleString().split('/').join('-');
+            const files = await recursive(this._algoMetricsDir);
+            const { taskId } = this.jobData;
+            const runName = `${uploadTime}-${taskId.substring(taskId.length - 8)}`;
+            const paths = await Promise.all(files.map((file) => {
+                const stream = fse.createReadStream(file);
+                const fileName = file.replace(this._algoMetricsDir, '');
+                return storageManager.hkubeAlgoMetrics.putStream(
+                    { pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName, stream }
+                );
+            }));
+            const separatedPath = paths[0] && paths[0].path.split(pathLib.sep);
+            path = separatedPath && separatedPath.slice(0, separatedPath.length - 1).join(pathLib.sep);
+        }
+        catch (err) {
+            error = err.message;
+        }
+        finally {
+            // eslint-disable-next-line no-unsafe-finally
+            return {
+                path,
                 error
             };
         }

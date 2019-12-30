@@ -1,6 +1,7 @@
 
 module.exports = {
     PENDING: 'pending',
+    CREATING: 'creating',
     WAITING: 'waiting',
     ACTIVE: 'active',
     COMPLETED: 'completed',

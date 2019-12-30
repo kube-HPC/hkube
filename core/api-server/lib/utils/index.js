@@ -1,6 +1,7 @@
 
-const uuid = require('./uuid');
+const { uuid, randomString } = require('./uuid');
 
 module.exports = {
-    uuid
+    uuid,
+    randomString
 };
