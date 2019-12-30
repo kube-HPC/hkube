@@ -144,6 +144,10 @@ class StateManager extends EventEmitter {
         return Promise.all(list.map(r => this.getResultFromStorage(r)));
     }
 
+    async getJobResultsAsRaw(options) {
+        return this._etcd.jobs.results.list(options);
+    }
+
     setJobResults(options) {
         return this._etcd.jobs.results.set(options);
     }
