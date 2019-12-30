@@ -417,36 +417,6 @@
                     "maximum": 5,
                     "example": 3
                   },
-                  "triggers": {
-                    "type": "object",
-                    "properties": {
-                      "pipelines": {
-                        "type": "array",
-                        "description": "pipelines to activate upon result",
-                        "items": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      },
-                      "cron": {
-                        "type": "object",
-                        "properties": {
-                          "pattern": {
-                            "type": "string",
-                            "description": "cron job",
-                            "minLength": 1,
-                            "format": "cron"
-                          },
-                          "enabled": {
-                            "type": "boolean",
-                            "description": "enable or disable cron job",
-                            "default": false
-                          }
-                        }
-                      }
-                    },
-                    "additionalProperties": false
-                  },
                   "tags": {
                     "type": "array",
                     "description": "Array of tags",
@@ -6027,172 +5997,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "buildId": {
-                      "type": "string",
-                      "description": "Pipeline name"
-                    },
-                    "algorithm": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific algorithm",
-                          "minLength": 1,
-                          "maxLength": 32,
-                          "format": "algorithm-name"
-                        },
-                        "env": {
-                          "type": "string",
-                          "enum": [
-                            "nodejs",
-                            "python",
-                            "jvm"
-                          ]
-                        },
-                        "algorithmImage": {
-                          "type": "string",
-                          "description": "image name as in the docker registry",
-                          "format": "algorithm-image"
-                        },
-                        "cpu": {
-                          "type": "number",
-                          "default": 0.1,
-                          "minimum": 0,
-                          "description": "algorithm cpu"
-                        },
-                        "gpu": {
-                          "type": "integer",
-                          "minimum": 0,
-                          "description": "algorithm gpu"
-                        },
-                        "mem": {
-                          "type": "string",
-                          "description": "algorithm memory",
-                          "format": "algorithm-memory",
-                          "default": "256Mi",
-                          "example": "512Mi"
-                        },
-                        "options": {
-                          "type": "object",
-                          "properties": {
-                            "debug": {
-                              "type": "boolean",
-                              "description": "debug algorithm locally",
-                              "default": false
-                            },
-                            "pending": {
-                              "type": "boolean",
-                              "description": "pending algorithm",
-                              "default": false
-                            }
-                          },
-                          "default": {}
-                        },
-                        "gitRepository": {
-                          "type": "object",
-                          "properties": {
-                            "url": {
-                              "type": "string",
-                              "description": "a url for the git repository",
-                              "format": "url"
-                            },
-                            "commit": {
-                              "type": "object",
-                              "description": "commit details",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "commit id"
-                                },
-                                "timestamp": {
-                                  "type": "string",
-                                  "description": "commit time"
-                                },
-                                "message": {
-                                  "type": "string",
-                                  "description": "commit message"
-                                }
-                              },
-                              "required": [
-                                "id"
-                              ]
-                            },
-                            "branchName": {
-                              "type": "string",
-                              "default": "master",
-                              "description": "the branch name you wish to create a build from"
-                            },
-                            "tag": {
-                              "type": "string",
-                              "description": "a specific tag which will trigger the build"
-                            },
-                            "token": {
-                              "type": "string",
-                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                            },
-                            "gitKind": {
-                              "type": "string",
-                              "enum": [
-                                "github",
-                                "gitlab"
-                              ],
-                              "default": "github"
-                            }
-                          },
-                          "required": [
-                            "url"
-                          ]
-                        },
-                        "entryPoint": {
-                          "type": "string"
-                        },
-                        "baseImage": {
-                          "type": "string",
-                          "description": "Custom docker image to be used as base to the newly built algorithm image"
-                        },
-                        "version": {
-                          "type": "string"
-                        },
-                        "minHotWorkers": {
-                          "type": "integer",
-                          "description": "how many live algorithm instances will always run",
-                          "minimum": 0,
-                          "default": 0
-                        },
-                        "algorithmEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for algorithm"
-                        },
-                        "workerEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for worker"
-                        },
-                        "nodeSelector": {
-                          "type": "object",
-                          "description": "key value labels for nodes constraint",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "type of algorithm code resource",
-                          "enum": [
-                            "Git",
-                            "Code",
-                            "Image"
-                          ],
-                          "default": "Image"
-                        }
-                      },
-                      "required": [
-                        "name"
-                      ]
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "timestamp": {
+                    "message": {
                       "type": "string"
                     }
                   }
@@ -6265,7 +6070,7 @@
         "tags": [
           "Builds"
         ],
-        "summary": "Get build",
+        "summary": "Get build list",
         "description": "returns all builds that related to algorithm",
         "parameters": [
           {
@@ -6311,172 +6116,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "buildId": {
-                        "type": "string",
-                        "description": "Pipeline name"
-                      },
-                      "algorithm": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific algorithm",
-                            "minLength": 1,
-                            "maxLength": 32,
-                            "format": "algorithm-name"
-                          },
-                          "env": {
-                            "type": "string",
-                            "enum": [
-                              "nodejs",
-                              "python",
-                              "jvm"
-                            ]
-                          },
-                          "algorithmImage": {
-                            "type": "string",
-                            "description": "image name as in the docker registry",
-                            "format": "algorithm-image"
-                          },
-                          "cpu": {
-                            "type": "number",
-                            "default": 0.1,
-                            "minimum": 0,
-                            "description": "algorithm cpu"
-                          },
-                          "gpu": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "description": "algorithm gpu"
-                          },
-                          "mem": {
-                            "type": "string",
-                            "description": "algorithm memory",
-                            "format": "algorithm-memory",
-                            "default": "256Mi",
-                            "example": "512Mi"
-                          },
-                          "options": {
-                            "type": "object",
-                            "properties": {
-                              "debug": {
-                                "type": "boolean",
-                                "description": "debug algorithm locally",
-                                "default": false
-                              },
-                              "pending": {
-                                "type": "boolean",
-                                "description": "pending algorithm",
-                                "default": false
-                              }
-                            },
-                            "default": {}
-                          },
-                          "gitRepository": {
-                            "type": "object",
-                            "properties": {
-                              "url": {
-                                "type": "string",
-                                "description": "a url for the git repository",
-                                "format": "url"
-                              },
-                              "commit": {
-                                "type": "object",
-                                "description": "commit details",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "description": "commit id"
-                                  },
-                                  "timestamp": {
-                                    "type": "string",
-                                    "description": "commit time"
-                                  },
-                                  "message": {
-                                    "type": "string",
-                                    "description": "commit message"
-                                  }
-                                },
-                                "required": [
-                                  "id"
-                                ]
-                              },
-                              "branchName": {
-                                "type": "string",
-                                "default": "master",
-                                "description": "the branch name you wish to create a build from"
-                              },
-                              "tag": {
-                                "type": "string",
-                                "description": "a specific tag which will trigger the build"
-                              },
-                              "token": {
-                                "type": "string",
-                                "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                              },
-                              "gitKind": {
-                                "type": "string",
-                                "enum": [
-                                  "github",
-                                  "gitlab"
-                                ],
-                                "default": "github"
-                              }
-                            },
-                            "required": [
-                              "url"
-                            ]
-                          },
-                          "entryPoint": {
-                            "type": "string"
-                          },
-                          "baseImage": {
-                            "type": "string",
-                            "description": "Custom docker image to be used as base to the newly built algorithm image"
-                          },
-                          "version": {
-                            "type": "string"
-                          },
-                          "minHotWorkers": {
-                            "type": "integer",
-                            "description": "how many live algorithm instances will always run",
-                            "minimum": 0,
-                            "default": 0
-                          },
-                          "algorithmEnv": {
-                            "type": "object",
-                            "description": "key value environment variables for algorithm"
-                          },
-                          "workerEnv": {
-                            "type": "object",
-                            "description": "key value environment variables for worker"
-                          },
-                          "nodeSelector": {
-                            "type": "object",
-                            "description": "key value labels for nodes constraint",
-                            "additionalProperties": {
-                              "type": "string"
-                            }
-                          },
-                          "type": {
-                            "type": "string",
-                            "description": "type of algorithm code resource",
-                            "enum": [
-                              "Git",
-                              "Code",
-                              "Image"
-                            ],
-                            "default": "Image"
-                          }
-                        },
-                        "required": [
-                          "name"
-                        ]
-                      },
-                      "status": {
-                        "type": "string"
-                      },
-                      "timestamp": {
+                      "message": {
                         "type": "string"
                       }
                     }
@@ -8024,7 +7664,8 @@
                   },
                   "image": {
                     "type": "string",
-                    "description": "image name as in the docker registry"
+                    "description": "image name as in the docker registry",
+                    "format": "algorithm-image"
                   },
                   "force": {
                     "type": "boolean",
@@ -8494,7 +8135,7 @@
         "tags": [
           "Graph"
         ],
-        "summary": "Get graph data",
+        "summary": "Get graph as raw data",
         "description": "returns the graph data by jobId",
         "parameters": [
           {
@@ -8515,173 +8156,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "buildId": {
-                      "type": "string",
-                      "description": "Pipeline name"
-                    },
-                    "algorithm": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific algorithm",
-                          "minLength": 1,
-                          "maxLength": 32,
-                          "format": "algorithm-name"
-                        },
-                        "env": {
-                          "type": "string",
-                          "enum": [
-                            "nodejs",
-                            "python",
-                            "jvm"
-                          ]
-                        },
-                        "algorithmImage": {
-                          "type": "string",
-                          "description": "image name as in the docker registry",
-                          "format": "algorithm-image"
-                        },
-                        "cpu": {
-                          "type": "number",
-                          "default": 0.1,
-                          "minimum": 0,
-                          "description": "algorithm cpu"
-                        },
-                        "gpu": {
-                          "type": "integer",
-                          "minimum": 0,
-                          "description": "algorithm gpu"
-                        },
-                        "mem": {
-                          "type": "string",
-                          "description": "algorithm memory",
-                          "format": "algorithm-memory",
-                          "default": "256Mi",
-                          "example": "512Mi"
-                        },
-                        "options": {
-                          "type": "object",
-                          "properties": {
-                            "debug": {
-                              "type": "boolean",
-                              "description": "debug algorithm locally",
-                              "default": false
-                            },
-                            "pending": {
-                              "type": "boolean",
-                              "description": "pending algorithm",
-                              "default": false
-                            }
-                          },
-                          "default": {}
-                        },
-                        "gitRepository": {
-                          "type": "object",
-                          "properties": {
-                            "url": {
-                              "type": "string",
-                              "description": "a url for the git repository",
-                              "format": "url"
-                            },
-                            "commit": {
-                              "type": "object",
-                              "description": "commit details",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "commit id"
-                                },
-                                "timestamp": {
-                                  "type": "string",
-                                  "description": "commit time"
-                                },
-                                "message": {
-                                  "type": "string",
-                                  "description": "commit message"
-                                }
-                              },
-                              "required": [
-                                "id"
-                              ]
-                            },
-                            "branchName": {
-                              "type": "string",
-                              "default": "master",
-                              "description": "the branch name you wish to create a build from"
-                            },
-                            "tag": {
-                              "type": "string",
-                              "description": "a specific tag which will trigger the build"
-                            },
-                            "token": {
-                              "type": "string",
-                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                            },
-                            "gitKind": {
-                              "type": "string",
-                              "enum": [
-                                "github",
-                                "gitlab"
-                              ],
-                              "default": "github"
-                            }
-                          },
-                          "required": [
-                            "url"
-                          ]
-                        },
-                        "entryPoint": {
-                          "type": "string"
-                        },
-                        "baseImage": {
-                          "type": "string",
-                          "description": "Custom docker image to be used as base to the newly built algorithm image"
-                        },
-                        "version": {
-                          "type": "string"
-                        },
-                        "minHotWorkers": {
-                          "type": "integer",
-                          "description": "how many live algorithm instances will always run",
-                          "minimum": 0,
-                          "default": 0
-                        },
-                        "algorithmEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for algorithm"
-                        },
-                        "workerEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for worker"
-                        },
-                        "nodeSelector": {
-                          "type": "object",
-                          "description": "key value labels for nodes constraint",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "type of algorithm code resource",
-                          "enum": [
-                            "Git",
-                            "Code",
-                            "Image"
-                          ],
-                          "default": "Image"
-                        }
-                      },
-                      "required": [
-                        "name"
-                      ]
-                    },
-                    "status": {
+                    "jobId": {
                       "type": "string"
                     },
                     "timestamp": {
-                      "type": "string"
+                      "type": "number"
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "Array of edges"
+                    },
+                    "nodes": {
+                      "type": "array",
+                      "description": "Array of nodes"
                     }
                   }
                 }
@@ -8753,8 +8240,8 @@
         "tags": [
           "Graph"
         ],
-        "summary": "Get graph data",
-        "description": "returns the graph data by jobId",
+        "summary": "Query the pipeline graph",
+        "description": "returns the graph data by jobId, node and tasks",
         "parameters": [
           {
             "name": "jobId",
@@ -8819,173 +8306,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "buildId": {
-                      "type": "string",
-                      "description": "Pipeline name"
-                    },
-                    "algorithm": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific algorithm",
-                          "minLength": 1,
-                          "maxLength": 32,
-                          "format": "algorithm-name"
-                        },
-                        "env": {
-                          "type": "string",
-                          "enum": [
-                            "nodejs",
-                            "python",
-                            "jvm"
-                          ]
-                        },
-                        "algorithmImage": {
-                          "type": "string",
-                          "description": "image name as in the docker registry",
-                          "format": "algorithm-image"
-                        },
-                        "cpu": {
-                          "type": "number",
-                          "default": 0.1,
-                          "minimum": 0,
-                          "description": "algorithm cpu"
-                        },
-                        "gpu": {
-                          "type": "integer",
-                          "minimum": 0,
-                          "description": "algorithm gpu"
-                        },
-                        "mem": {
-                          "type": "string",
-                          "description": "algorithm memory",
-                          "format": "algorithm-memory",
-                          "default": "256Mi",
-                          "example": "512Mi"
-                        },
-                        "options": {
-                          "type": "object",
-                          "properties": {
-                            "debug": {
-                              "type": "boolean",
-                              "description": "debug algorithm locally",
-                              "default": false
-                            },
-                            "pending": {
-                              "type": "boolean",
-                              "description": "pending algorithm",
-                              "default": false
-                            }
-                          },
-                          "default": {}
-                        },
-                        "gitRepository": {
-                          "type": "object",
-                          "properties": {
-                            "url": {
-                              "type": "string",
-                              "description": "a url for the git repository",
-                              "format": "url"
-                            },
-                            "commit": {
-                              "type": "object",
-                              "description": "commit details",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "commit id"
-                                },
-                                "timestamp": {
-                                  "type": "string",
-                                  "description": "commit time"
-                                },
-                                "message": {
-                                  "type": "string",
-                                  "description": "commit message"
-                                }
-                              },
-                              "required": [
-                                "id"
-                              ]
-                            },
-                            "branchName": {
-                              "type": "string",
-                              "default": "master",
-                              "description": "the branch name you wish to create a build from"
-                            },
-                            "tag": {
-                              "type": "string",
-                              "description": "a specific tag which will trigger the build"
-                            },
-                            "token": {
-                              "type": "string",
-                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                            },
-                            "gitKind": {
-                              "type": "string",
-                              "enum": [
-                                "github",
-                                "gitlab"
-                              ],
-                              "default": "github"
-                            }
-                          },
-                          "required": [
-                            "url"
-                          ]
-                        },
-                        "entryPoint": {
-                          "type": "string"
-                        },
-                        "baseImage": {
-                          "type": "string",
-                          "description": "Custom docker image to be used as base to the newly built algorithm image"
-                        },
-                        "version": {
-                          "type": "string"
-                        },
-                        "minHotWorkers": {
-                          "type": "integer",
-                          "description": "how many live algorithm instances will always run",
-                          "minimum": 0,
-                          "default": 0
-                        },
-                        "algorithmEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for algorithm"
-                        },
-                        "workerEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for worker"
-                        },
-                        "nodeSelector": {
-                          "type": "object",
-                          "description": "key value labels for nodes constraint",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "type of algorithm code resource",
-                          "enum": [
-                            "Git",
-                            "Code",
-                            "Image"
-                          ],
-                          "default": "Image"
-                        }
-                      },
-                      "required": [
-                        "name"
-                      ]
-                    },
-                    "status": {
+                    "jobId": {
                       "type": "string"
                     },
                     "timestamp": {
-                      "type": "string"
+                      "type": "number"
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "Array of edges"
+                    },
+                    "nodes": {
+                      "type": "array",
+                      "description": "Array of nodes"
                     }
                   }
                 }
@@ -9166,8 +8499,8 @@
         "tags": [
           "Storage"
         ],
-        "summary": "Get all keys by path",
-        "description": "returns all available keys found in storage according to path",
+        "summary": "Get all prefixes by path",
+        "description": "returns all available prefixes found in storage according to path",
         "parameters": [
           {
             "name": "path",
@@ -9176,6 +8509,42 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "sort by status, error or any other property",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "order by asc or desc",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "the start index",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "the start index",
+            "required": false,
+            "schema": {
+              "type": "integer"
             }
           }
         ],
@@ -9270,6 +8639,42 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "sort by status, error or any other property",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "order by asc or desc",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "the start index",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "the end index",
+            "required": false,
+            "schema": {
+              "type": "integer"
             }
           }
         ],
@@ -9799,6 +9204,26 @@
         "maxLength": 32,
         "format": "algorithm-name"
       },
+      "algorithmImage": {
+        "type": "string",
+        "description": "image name as in the docker registry",
+        "format": "algorithm-image"
+      },
+      "algorithmEnv": {
+        "type": "string",
+        "enum": [
+          "nodejs",
+          "python",
+          "jvm"
+        ]
+      },
+      "algorithmFileExt": {
+        "type": "string",
+        "enum": [
+          "zip",
+          "gz"
+        ]
+      },
       "algorithmVersion": {
         "type": "object",
         "properties": {
@@ -9811,7 +9236,8 @@
           },
           "image": {
             "type": "string",
-            "description": "image name as in the docker registry"
+            "description": "image name as in the docker registry",
+            "format": "algorithm-image"
           },
           "force": {
             "type": "boolean",
@@ -10472,7 +9898,7 @@
           "jobId"
         ]
       },
-      "storedPipeline": {
+      "storedPipelineRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -10556,36 +9982,6 @@
             "minimum": 1,
             "maximum": 5,
             "example": 3
-          },
-          "triggers": {
-            "type": "object",
-            "properties": {
-              "pipelines": {
-                "type": "array",
-                "description": "pipelines to activate upon result",
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "cron": {
-                "type": "object",
-                "properties": {
-                  "pattern": {
-                    "type": "string",
-                    "description": "cron job",
-                    "minLength": 1,
-                    "format": "cron"
-                  },
-                  "enabled": {
-                    "type": "boolean",
-                    "description": "enable or disable cron job",
-                    "default": false
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
           },
           "tags": {
             "type": "array",
@@ -10725,6 +10121,65 @@
         "description": "Unique identifier representing a specific algorithm",
         "minLength": 1,
         "maxLength": 32
+      },
+      "graphResponse": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "number"
+          },
+          "edges": {
+            "type": "array",
+            "description": "Array of edges"
+          },
+          "nodes": {
+            "type": "array",
+            "description": "Array of nodes"
+          }
+        }
+      },
+      "algorithmBuild": {
+        "type": "object",
+        "properties": {
+          "fileExt": {
+            "type": "string",
+            "enum": [
+              "zip",
+              "gz"
+            ]
+          },
+          "env": {
+            "type": "string",
+            "enum": [
+              "nodejs",
+              "python",
+              "jvm"
+            ]
+          }
+        },
+        "required": [
+          "fileExt",
+          "env"
+        ]
+      },
+      "algorithmBuildGit": {
+        "type": "object",
+        "properties": {
+          "env": {
+            "type": "string",
+            "enum": [
+              "nodejs",
+              "python",
+              "jvm"
+            ]
+          }
+        },
+        "required": [
+          "env"
+        ]
       }
     }
   }

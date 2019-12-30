@@ -7,7 +7,7 @@ post:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/storedPipeline"
+          $ref: "#/components/schemas/storedPipelineRequest"
     description: an object representing all information needed for stored pipeline execution
     required: true
   responses:

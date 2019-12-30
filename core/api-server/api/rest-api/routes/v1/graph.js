@@ -12,7 +12,7 @@ const routes = () => {
         res.send(response);
         next();
     });
-    router.all('/parsed/:jobId?/:node?', methods(['GET']), logger(), async (req, res, next) => {
+    router.all('/parsed/:jobId?', methods(['GET']), logger(), async (req, res, next) => {
         const { jobId } = req.params;
         const { node, sort, order, from, to } = req.query;
         const response = await graph.getGraphParsed({ jobId, node, sort, order, from, to });

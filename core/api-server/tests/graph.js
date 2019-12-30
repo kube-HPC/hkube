@@ -87,7 +87,7 @@ describe('Graph', () => {
         });
         it('should success to get node graph', async () => {
             const options = {
-                uri: `${restPath}/${graph.jobId}/${graph.nodes[0].nodeName}`,
+                uri: `${restPath}/${graph.jobId}?node=${graph.nodes[0].nodeName}`,
                 method: 'GET'
             };
             const response = await request(options);

@@ -1,7 +1,6 @@
 
 const express = require('express');
 const pathLib = require('path');
-const querystring = require('querystring');
 const logger = require('../../middlewares/logger');
 const storage = require('../../../../lib/service/storage');
 const { ResourceNotFoundError, InvalidDataError } = require('../../../../lib/errors');
@@ -36,8 +35,9 @@ const routes = (options) => {
         next();
     });
     router.get('/prefixes', logger(), async (req, res, next) => {
+        const { sort, order, from, to } = req.query;
         try {
-            const response = await storage.allPrefixes();
+            const response = await storage.getAllPrefixes({ sort, order, from, to });
             res.json(response);
             next();
         }
@@ -45,10 +45,11 @@ const routes = (options) => {
             next(handleStorageError(e));
         }
     });
-    router.get('/prefixes/:path?', logger(), async (req, res, next) => {
-        const path = querystring.unescape(req.params.path);
+    router.get('/prefixes/*', logger(), async (req, res, next) => {
+        const path = req.params[0];
+        const { sort, order, from, to } = req.query;
         try {
-            const response = await storage.getPrefixesByPath({ path });
+            const response = await storage.getPrefixesByPath({ path, sort, order, from, to });
             res.json(response);
             next();
         }
@@ -57,8 +58,9 @@ const routes = (options) => {
         }
     });
     router.get('/keys', logger(), async (req, res, next) => {
+        const { sort, order, from, to } = req.query;
         try {
-            const response = await storage.getAllKeys();
+            const response = await storage.getAllKeys({ sort, order, from, to });
             res.json(response);
             next();
         }
@@ -66,10 +68,11 @@ const routes = (options) => {
             next(handleStorageError(e));
         }
     });
-    router.get('/keys/:path?', logger(), async (req, res, next) => {
-        const path = querystring.unescape(req.params.path);
+    router.get('/keys/*', logger(), async (req, res, next) => {
+        const path = req.params[0];
+        const { sort, order, from, to } = req.query;
         try {
-            const response = await storage.getKeysByPath({ path });
+            const response = await storage.getKeysByPath({ path, sort, order, from, to });
             res.json(response);
             next();
         }
@@ -77,8 +80,8 @@ const routes = (options) => {
             next(handleStorageError(e, 'key', path));
         }
     });
-    router.get('/values/:path?', logger(), async (req, res, next) => {
-        const path = querystring.unescape(req.params.path);
+    router.get('/values/*', logger(), async (req, res, next) => {
+        const path = req.params[0];
         try {
             const response = await storage.getByPath({ path });
             res.json(response);
@@ -88,14 +91,14 @@ const routes = (options) => {
             next(handleStorageError(e, 'value', path));
         }
     });
-    router.get('/stream/:path?', logger(), async (req, res, next) => {
-        const path = querystring.unescape(req.params.path);
+    router.get('/stream/*', logger(), async (req, res, next) => {
+        const path = req.params[0];
         const stream = await storage.getStream({ path });
         stream.on('error', err => handleStreamError(err, path, res, next));
         stream.pipe(res);
     });
-    router.get('/download/:path?', logger(), async (req, res, next) => {
-        const path = querystring.unescape(req.params.path);
+    router.get('/download/*', logger(), async (req, res, next) => {
+        const path = req.params[0];
         const stream = await storage.getStream({ path });
         const filename = pathLib.basename(path);
         stream.on('error', err => handleStreamError(err, path, res, next));

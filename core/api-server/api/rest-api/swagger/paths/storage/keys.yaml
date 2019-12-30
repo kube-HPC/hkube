@@ -10,6 +10,30 @@ get:
       required: true
       schema:
         type: string
+    - name: sort
+      in: query
+      description: sort by status, error or any other property
+      required: false
+      schema:
+        type: string
+    - name: order
+      in: query
+      description: order by asc or desc
+      required: false
+      schema:
+        type: string
+    - name: from
+      in: query
+      description: the start index
+      required: false
+      schema:
+        type: integer
+    - name: to
+      in: query
+      description: the end index
+      required: false
+      schema:
+        type: integer
   responses:
     "200":
       description: storage response

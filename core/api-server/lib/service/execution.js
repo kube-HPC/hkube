@@ -52,14 +52,13 @@ class ExecutionService {
         let { pipeline, jobId } = payload;
         const { types } = payload;
         const { alreadyExecuted, state, parentSpan } = payload.options || {};
-
+        validator.addPipelineDefaults(pipeline);
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
         }
 
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
-            validator.addPipelineDefaults(pipeline);
             await validator.validateAlgorithmExists(pipeline);
             await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {

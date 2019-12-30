@@ -124,7 +124,7 @@ const workerTemplate = {
                 restartPolicy: 'Never'
             }
         },
-        backoffLimit: 4
+        backoffLimit: 0
     }
 };
 

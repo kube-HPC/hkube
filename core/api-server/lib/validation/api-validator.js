@@ -45,6 +45,10 @@ class ApiValidator {
         this._addDefaults(this._definitions.algorithm, algorithm);
     }
 
+    validateListRange(options) {
+        this._validate(this._definitionsInternal.listRange, options);
+    }
+
     validateAlgorithmName(algorithm) {
         this._validate(this._definitionsInternal.algorithmName, algorithm);
     }
@@ -70,7 +74,7 @@ class ApiValidator {
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(this._definitions.storedPipeline, pipeline, true, { checkFlowInput: false });
+        this._validate(this._definitions.storedPipelineRequest, pipeline, false, { checkFlowInput: false });
     }
 
     validateCaching(request) {
@@ -100,11 +104,11 @@ class ApiValidator {
     }
 
     validateAlgorithmBuild(algorithm) {
-        this._validate(this._definitionsInternal.algorithmBuild, algorithm);
+        this._validate(this._definitions.algorithmBuild, algorithm);
     }
 
     validateAlgorithmBuildFromGit(algorithm) {
-        this._validate(this._definitionsInternal.algorithmBuildGit, algorithm);
+        this._validate(this._definitions.algorithmBuildGit, algorithm);
     }
 
     validateName(pipeline) {
