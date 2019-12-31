@@ -45,15 +45,23 @@ class TaskRunner extends EventEmitter {
         this._stateManager.on(Events.COMMANDS.stopProcessing, (data) => {
             this.emit(Events.COMMANDS.stopProcessing, data);
         });
-        this._stateManager.on(Events.JOBS.STOPPED, (data) => {
-            log.info(`pipeline ${data.status} ${this._jobId}. ${data.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-            this._jobStatus = data.status;
-            this._driverStatus = DriverStates.READY;
-            this.stop(null, null, false);
-        });
-        this._stateManager.on('task-*', (task) => {
-            this._handleTaskEvent(task);
-        });
+        this._stateManager.on(Events.JOBS.STOPPED, (d) => this._onStop(d));
+        this._stateManager.on(Events.JOBS.PAUSED, (d) => this._onPause(d));
+        this._stateManager.on('task-*', (task) => this._handleTaskEvent(task));
+    }
+
+    _onStop(data) {
+        log.info(`pipeline ${data.status} ${this._jobId}. ${data.reason}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
+        this._jobStatus = data.status;
+        this._driverStatus = DriverStates.READY;
+        this.stop({ shouldStop: false });
+    }
+
+    _onPause(data) {
+        log.info(`pipeline ${data.status} ${this._jobId}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
+        this._jobStatus = data.status;
+        this._driverStatus = DriverStates.READY;
+        this.stop({ shouldStop: false, shouldDeleteTasks: false });
     }
 
     _handleTaskEvent(task) {
@@ -102,12 +110,13 @@ class TaskRunner extends EventEmitter {
         }
         catch (e) {
             log.error(e.message, { component, jobId: this._jobId }, e);
-            await this.stop(e);
+            const shouldStop = e.status === null;
+            await this.stop({ error: e, shouldStop });
         }
         return result;
     }
 
-    async stop(error, nodeName, shouldStop = true) {
+    async stop({ error, nodeName, shouldStop = true, shouldDeleteTasks = true } = {}) {
         if (!this._active) {
             return;
         }
@@ -121,7 +130,9 @@ class TaskRunner extends EventEmitter {
             log.error(`unable to stop pipeline, ${e.message}`, { component, jobId: this._jobId }, e);
         }
         finally {
-            await this._deletePipeline();
+            if (shouldDeleteTasks) {
+                await this._deleteTasks();
+            }
             await this._unWatchJob();
             await this._cleanJob(error);
             await this._updateDiscovery();
@@ -167,12 +178,9 @@ class TaskRunner extends EventEmitter {
         });
 
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
+        const graph = await graphStore.getGraph({ jobId: this._jobId });
 
-        if (jobStatus.status !== DriverStates.PENDING) {
-            const graph = await graphStore.getGraph({ jobId: this._jobId });
-            if (!graph) {
-                throw new Error('unable to find graph during recover process');
-            }
+        if (jobStatus.status !== DriverStates.PENDING && graph) {
             log.info(`starting recover process ${this._jobId}`, { component });
             this._recoverGraph(graph);
             await this._watchTasks();
@@ -191,9 +199,6 @@ class TaskRunner extends EventEmitter {
         let error;
         let data;
         if (err) {
-            if (err.status) {
-                return;
-            }
             error = err.message;
         }
         else {
@@ -250,9 +255,6 @@ class TaskRunner extends EventEmitter {
                     }
                 });
             }
-            else {
-                this._runEntryNodes();
-            }
         }
     }
 
@@ -284,7 +286,7 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    async _deletePipeline() {
+    async _deleteTasks() {
         try {
             await this._stateManager.deleteTasksList({ jobId: this._jobId });
         }
@@ -403,7 +405,7 @@ class TaskRunner extends EventEmitter {
             }
         }
         catch (error) {
-            this.stop(error, nodeName);
+            this.stop({ error, nodeName });
         }
     }
 
@@ -512,7 +514,7 @@ class TaskRunner extends EventEmitter {
         }
         const error = this._checkTaskErrors(task);
         if (error) {
-            this.stop(error, task.nodeName);
+            this.stop({ error, nodeName: task.nodeName });
         }
         else {
             this._nodes.updateCompletedTask(task);
