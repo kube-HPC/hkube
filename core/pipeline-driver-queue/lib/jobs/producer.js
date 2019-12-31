@@ -97,6 +97,9 @@ class JobProducer {
                     pipeline: pipeline.pipelineName
                 }
             },
+            queue: {
+                removeOnFail: true
+            },
             tracing: {
                 parent: pipeline.spanId,
                 tags: {

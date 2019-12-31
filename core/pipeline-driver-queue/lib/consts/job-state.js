@@ -4,7 +4,8 @@ const jobState = {
     COMPLETED: 'completed',
     FAILED: 'failed',
     STALLED: 'stalled',
-    STOPPED: 'stopped'
+    STOPPED: 'stopped',
+    PAUSED: 'paused',
 };
 
 module.exports = jobState;

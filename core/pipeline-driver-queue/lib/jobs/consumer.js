@@ -24,7 +24,11 @@ class JobConsumer {
         this._consumer.on('job', (job) => {
             this._handleJob(job);
         });
-        persistence.on('job-stopped', async (job) => {
+        persistence.on(`job-${jobState.STOPPED}`, async (job) => {
+            const { jobId, status } = job;
+            await this._stopJob(jobId, status);
+        });
+        persistence.on(`job-${jobState.PAUSED}`, async (job) => {
             const { jobId, status } = job;
             await this._stopJob(jobId, status);
         });
@@ -38,7 +42,7 @@ class JobConsumer {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
             }
             const jobStatus = await persistence.getJobStatus({ jobId });
-            if (jobStatus && jobStatus.status === jobState.STOPPED) {
+            if (jobStatus.status === jobState.STOPPED || jobStatus.status === jobState.PAUSED) {
                 log.warning(`job arrived with state stop therefore will not added to queue ${jobId}`, { component });
                 await this._stopJob(jobId, jobStatus.status);
             }

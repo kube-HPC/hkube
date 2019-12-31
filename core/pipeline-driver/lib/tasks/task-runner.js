@@ -178,12 +178,9 @@ class TaskRunner extends EventEmitter {
         });
 
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
+        const graph = await graphStore.getGraph({ jobId: this._jobId });
 
-        if (jobStatus.status !== DriverStates.PENDING) {
-            const graph = await graphStore.getGraph({ jobId: this._jobId });
-            if (!graph) {
-                throw new Error('unable to find graph during recover process');
-            }
+        if (jobStatus.status !== DriverStates.PENDING && graph) {
             log.info(`starting recover process ${this._jobId}`, { component });
             this._recoverGraph(graph);
             await this._watchTasks();
