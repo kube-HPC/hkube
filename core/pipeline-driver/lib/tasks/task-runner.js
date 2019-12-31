@@ -229,8 +229,14 @@ class TaskRunner extends EventEmitter {
             this._nodes._graph.setEdge(e.from, e.to, e.edges);
         });
         graph.nodes.forEach((n) => {
-            n.batch = n.batch || []; // eslint-disable-line
-            this._nodes._graph.setNode(n.nodeName, n);
+            const pNode = this.pipeline.nodes.find(p => p.nodeName === n.nodeName);
+            const node = {
+                ...n,
+                ...pNode,
+                batch: n.batch || [],
+                input: n.input
+            };
+            this._nodes._graph.setNode(node.nodeName, node);
         });
     }
 
