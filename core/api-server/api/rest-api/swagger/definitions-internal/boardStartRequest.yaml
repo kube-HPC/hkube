@@ -1,0 +1,14 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/boardName"
+  pipelineName:
+    $ref: "#/components/schemas/pipelineName"
+  nodeName:
+    type: string
+  taskId:
+    type: string
+required:
+  - pipelineName
+  - nodeName
+  - name

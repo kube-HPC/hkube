@@ -60,6 +60,14 @@
 /webhooks/{jobId}:
   $ref: ./webhooks/jobId.yaml
 
+# boards
+/boards/tensor/start/{name}:
+  $ref: ./boards/tensorboard_start.yaml
+/boards/tensor/status/{name}:
+  $ref: ./boards/tensorboard_status.yaml
+/boards/tensor/stop/{name}:
+  $ref: ./boards/tensorboard_stop.yaml
+
 # builds
 /builds/status/{buildId}:
   $ref: ./builds/status.yaml
