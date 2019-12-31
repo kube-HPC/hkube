@@ -4,7 +4,7 @@ const Regex = {
     PIPELINE_NAME_REGEX: /^[:\-_.A-Za-z0-9]+$/i,
     ALGORITHM_NAME_REGEX: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,
     ALGORITHM_IMAGE_REGEX: /^\S*$/,
-    BOARD_ID: /^([:\-A-z0-9^._])*[^\s]\1*$/,
+    BOARD_ID: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,
     PATH: /^([A-z0-9.\\-|/])*[^\s]\1*$/
 };
 

@@ -34,7 +34,7 @@ const deploymentBoardTemplate = (boardId = '') => ({
                 containers: [
                     {
                         name: TENSORBOARD,
-                        image: `hkube/${TENSORBOARD}:11.0`,
+                        image: `hkube/${TENSORBOARD}`,
                         env: [
                             {
                                 name: 'DEFAULT_STORAGE',
