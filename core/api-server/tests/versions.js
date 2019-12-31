@@ -20,16 +20,17 @@ describe('Versions/Algorithms', () => {
             expect(res.body).to.have.lengthOf(1);
         });
         it('should succeed to get versions', async () => {
-            const name = `my-alg-${uuid()}`;
+            const name1 = `my-alg-${uuid()}`;
+            const name2 = `${name1}-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage';
             const algorithmImage2 = 'new-test-algorithmImage';
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
-            const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name: name1, algorithmImage: algorithmImage1 }) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name: name2, algorithmImage: algorithmImage2 }) } };
+            const versionReq = { uri: `${restPath}/${name1}`, method: 'GET' };
             await request(applyReq1);
             await request(applyReq2);
             const res = await request(versionReq);
-            expect(res.body[0]).to.eql({ ...defaultProps, name, algorithmImage: algorithmImage1 });
+            expect(res.body[0]).to.eql({ ...defaultProps, name: name1, algorithmImage: algorithmImage1 });
         });
         it('should succeed to apply algorithm version', async () => {
             for (let i = 0; i < 3; i++) {
