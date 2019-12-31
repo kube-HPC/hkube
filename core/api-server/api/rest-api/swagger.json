@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.45",
+    "version": "1.2.46",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -5862,6 +5862,318 @@
         }
       }
     },
+    "/boards/tensor/start/{name}": {
+      "post": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Start board",
+        "description": "start board",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "board-name"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pipelineName": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  },
+                  "nodeName": {
+                    "type": "string"
+                  },
+                  "taskId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "pipelineName",
+                  "nodeName"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/status/{name}": {
+      "get": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Get board status",
+        "description": "returns the board status by specific board name",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "board-name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "algorithm apply response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Unique identifier representing board",
+                      "format": "board-name"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/stop/{name}": {
+      "put": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Stop board",
+        "description": "stop board",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "board-name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "stop board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pipelineName": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific pipeline",
+                      "minLength": 1,
+                      "format": "pipeline-name"
+                    },
+                    "nodeName": {
+                      "type": "string"
+                    },
+                    "taskId": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pipelineName",
+                    "nodeName"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/builds/status/{buildId}": {
       "get": {
         "tags": [
@@ -8952,6 +9264,45 @@
             "type": "string"
           }
         }
+      },
+      "boardStartRequest": {
+        "type": "object",
+        "properties": {
+          "pipelineName": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          },
+          "nodeName": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pipelineName",
+          "nodeName"
+        ]
+      },
+      "boardStatusResult": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing board",
+            "format": "board-name"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "boardName": {
+        "type": "string",
+        "description": "Unique identifier representing board",
+        "format": "board-name"
       },
       "buildId": {
         "type": "object",
