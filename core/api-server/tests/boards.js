@@ -30,7 +30,7 @@ describe('Boards', () => {
         });
         it('should throw validation error of bad board name', async () => {
             const options = {
-                uri: restPath + '/f*dd',
+                uri: restPath + '/abCd',
                 method: 'POST',
                 body: {
                     pipelineName: 'adf',
@@ -40,11 +40,11 @@ describe('Boards', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('board name must not contain special characters *,&#$ or spaces');
+            expect(response.body.error.message).to.equal('board name must consist of lower case alphanumeric characters, dash or dot');
         });
         it('check mandatory nodeName validation', async () => {
             const options = {
-                uri: restPath + '/boardName',
+                uri: restPath + '/board-name',
                 method: 'POST',
                 body: {
                     pipelineName: 'adf',
@@ -57,7 +57,7 @@ describe('Boards', () => {
         });
         it('starting board should succeed', async () => {
             let options = {
-                uri: restPath + '/myBoard',
+                uri: restPath + '/my-board',
                 method: 'POST',
                 body: {
                     pipelineName: 'adf',
@@ -68,17 +68,17 @@ describe('Boards', () => {
             let response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             options = {
-                uri: `${restUrl}/status/myBoard`,
+                uri: `${restUrl}/status/my-board`,
                 method: 'GET'
             }
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body.name).to.equal('myBoard');
+            expect(response.body.name).to.equal('my-board');
             expect(response.body.status).to.equal(States.PENDING);
         });
         it('starting board should fail if name exists', async () => {
             const options = {
-                uri: restPath + '/myUniqueBoard',
+                uri: restPath + '/my-unique-board',
                 method: 'POST',
                 body: {
                     pipelineName: 'adf',
@@ -90,7 +90,7 @@ describe('Boards', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('board myUniqueBoard already started');
+            expect(response.body.error.message).to.equal('board my-unique-board already started');
         });
     });
     describe('stop', () => {
@@ -110,7 +110,7 @@ describe('Boards', () => {
 
         it('should succeed to stop', async () => {
             let options = {
-                uri: restUrl + '/start/jobToStop',
+                uri: restUrl + '/start/job-to-stop',
                 method: 'POST',
                 body: {
                     pipelineName: 'adf',
@@ -121,13 +121,13 @@ describe('Boards', () => {
             let response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             options = {
-                uri: restPath + '/jobToStop',
+                uri: restPath + '/job-to-stop',
                 method: 'PUT'
             };
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             options = {
-                uri: `${restUrl}/status/jobToStop`,
+                uri: `${restUrl}/status/job-to-stop`,
                 method: 'GET'
             }
             response = await request(options);
