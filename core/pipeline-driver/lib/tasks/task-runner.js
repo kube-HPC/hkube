@@ -8,6 +8,7 @@ const StateManager = require('../state/state-manager');
 const Progress = require('../progress/nodes-progress');
 const DriverStates = require('../state/DriverStates');
 const Events = require('../consts/Events');
+const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
@@ -176,6 +177,8 @@ class TaskRunner extends EventEmitter {
             calcProgress: this._nodes.calcProgress,
             sendProgress: this._stateManager.setJobStatus
         });
+
+        this._boards = new Boards({ updateBoard: (task, cb) => this._stateManager.updateExecution(task, cb) });
 
         pipelineMetrics.startMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, spanId: this._job.data && this._job.data.spanId });
         const graph = await graphStore.getGraph({ jobId: this._jobId });
@@ -570,6 +573,7 @@ class TaskRunner extends EventEmitter {
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+        this._boards.update(task);
         pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: NodeStates.ACTIVE });
     }
 

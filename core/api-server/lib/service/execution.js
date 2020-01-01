@@ -189,7 +189,7 @@ class ExecutionService {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        return this._run({ pipeline, jobId, options: { alreadyExecuted: true, state: States.RESUMED } });
+        return this._run({ pipeline, jobId, types: pipeline.types, options: { alreadyExecuted: true, state: States.RESUMED } });
     }
 
     async getTree(options) {
