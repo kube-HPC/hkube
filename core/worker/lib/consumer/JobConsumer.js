@@ -454,25 +454,6 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    getFileNames(parentDir) {
-        if (parentDir.children) {
-            let flatChildrenList = [];
-            parentDir.children.forEach((child) => {
-                const grandchildren = this.getFileNames(child);
-                if (grandchildren.length === 1 && typeof (grandchildren[0]) === 'string') {
-                    flatChildrenList = [[parentDir.name, ...grandchildren], ...flatChildrenList];
-                }
-                else {
-                    grandchildren.forEach((filePath) => {
-                        flatChildrenList = [[parentDir.name, ...filePath], ...flatChildrenList];
-                    });
-                }
-            });
-            return flatChildrenList;
-        }
-        return [parentDir.name];
-    }
-
     async _putAlgoMetrics() {
         let path = null;
         let error;
