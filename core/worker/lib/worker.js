@@ -1,10 +1,11 @@
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
+const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
-const { JobStatus, stateEvents, workerStates, workerCommands, Components } = require('../lib/consts');
+const { stateEvents, workerStates, workerCommands, Components } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
@@ -52,13 +53,13 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(JobStatus.COMPLETED, (data) => {
+        discovery.on(pipelineStatuses.COMPLETED, (data) => {
             this._stopPipeline({ status: data.status });
         });
-        discovery.on(JobStatus.FAILED, (data) => {
+        discovery.on(pipelineStatuses.FAILED, (data) => {
             this._stopPipeline({ status: data.status });
         });
-        discovery.on(JobStatus.STOPPED, (data) => {
+        discovery.on(pipelineStatuses.STOPPED, (data) => {
             this._stopPipeline({ status: data.status, reason: data.reason });
         });
         discovery.on(workerCommands.coolDown, async () => {

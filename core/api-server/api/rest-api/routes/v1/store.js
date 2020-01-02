@@ -1,9 +1,9 @@
 const express = require('express');
 const multer = require('multer');
 const HttpStatus = require('http-status-codes');
+const { buildType } = require('@hkube/consts');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
-const { BUILD_TYPES } = require('../../../../lib/consts/builds');
 const logger = require('../../middlewares/logger');
 const upload = multer({ dest: 'uploads/zipped/' });
 
@@ -95,7 +95,7 @@ const routes = (option) => {
         const file = req.file || {};
         if (!type) {
             // eslint-disable-next-line no-nested-ternary
-            type = req.file ? BUILD_TYPES.CODE : (payload.gitRepository ? BUILD_TYPES.GIT : BUILD_TYPES.IMAGE);
+            type = req.file ? buildType.CODE : (payload.gitRepository ? buildType.GIT : buildType.IMAGE);
         }
         const response = await algorithmStore.applyAlgorithm({ options, payload: { ...payload, type }, file: { path: file.path, name: file.originalname } });
         res.json(response);

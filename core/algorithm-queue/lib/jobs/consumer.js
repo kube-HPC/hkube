@@ -2,12 +2,13 @@ const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
+const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
-const { heuristicsName, jobState } = require('../consts/index');
+const { heuristicsName } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 const component = require('../consts/component-name').JOBS_CONSUMER;
 
-const pipelineDoneStatus = [jobState.COMPLETED, jobState.FAILED, jobState.STOPPED];
+const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
 class JobConsumer extends EventEmitter {
     constructor() {
@@ -38,7 +39,7 @@ class JobConsumer extends EventEmitter {
             }
         });
         this.etcd.algorithms.executions.on('change', (data) => {
-            if (data && data.status === jobState.STOPPED) {
+            if (data && data.status === pipelineStatuses.STOPPED) {
                 const { jobId, taskId } = data;
                 queueRunner.queue.removeJobs([{ jobId, taskId }]);
             }

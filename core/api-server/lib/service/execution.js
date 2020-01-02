@@ -1,6 +1,7 @@
 const merge = require('lodash.merge');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
+const { pipelineTypes } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
 const cachingService = require('./caching');
@@ -10,7 +11,6 @@ const validator = require('../validation/api-validator');
 const States = require('../state/States');
 const WebhookTypes = require('../webhook/States').Types;
 const regex = require('../../lib/consts/regex');
-const pipelineTypes = require('../../lib/consts/pipeline-types');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const { uuid } = require('../utils');
 
