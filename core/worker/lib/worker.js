@@ -1,6 +1,6 @@
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
+const { pipelineStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
