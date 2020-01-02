@@ -1,4 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
+const http = require('http');
 const component = require('../lib/consts/componentNames').OPERATOR;
 const etcd = require('./helpers/etcd');
 const { logWrappers } = require('./helpers/tracing');
@@ -8,6 +9,7 @@ const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const CONTAINERS = require('./consts/containers');
+const TENSORBOARD_STATUS = require('./consts/tenosrboard-status').STATUS;
 
 class Operator {
     async init(options = {}) {
@@ -43,7 +45,8 @@ class Operator {
                 this._algorithmBuilds({ ...configMap }, options),
                 this._tenosrboards({ ...configMap }, options),
                 this._algorithmDebug(configMap, algorithms, options),
-                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options)
+                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options),
+                this._updateTensorboards()
             ]);
         }
         catch (e) {
@@ -78,11 +81,10 @@ class Operator {
             return;
         }
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
-        const secret = await kubernetes.getSecret({ secretName: 'docker-credentials-secret' });
+
         await tensorboardReconciler.reconcile({
             boards,
             deployments,
-            secret,
             versions,
             registry,
             clusterOptions,
@@ -112,6 +114,20 @@ class Operator {
             registry,
             clusterOptions,
             resources
+        });
+    }
+
+    async _updateTensorboards() {
+        const boards = await etcd.getTensorboards();
+        const creating = boards.filter(b => b.status === TENSORBOARD_STATUS.CREATING);
+        creating.forEach((board) => {
+            const { boardId } = board;
+            const url = `http://board-service-${board.boardId}.default.svc`;
+            http.get(url, (resp) => {
+                if (resp.statusCode === 200) {
+                    etcd.setTensorboard({ boardId, status: TENSORBOARD_STATUS.RUNNING });
+                }
+            });
         });
     }
 }

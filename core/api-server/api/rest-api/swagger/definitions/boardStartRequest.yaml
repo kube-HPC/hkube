@@ -4,6 +4,8 @@ properties:
     $ref: "#/components/schemas/pipelineName"
   nodeName:
     type: string
+  jobId:
+    type: string
   taskId:
     type: string
 required:

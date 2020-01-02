@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.46",
+    "version": "1.2.52",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -5896,6 +5896,9 @@
                   "nodeName": {
                     "type": "string"
                   },
+                  "jobId": {
+                    "type": "string"
+                  },
                   "taskId": {
                     "type": "string"
                   }
@@ -6000,6 +6003,9 @@
                     },
                     "status": {
                       "type": "string"
+                    },
+                    "relativeUrl": {
+                      "type": "string"
                     }
                   }
                 }
@@ -6100,6 +6106,9 @@
                       "format": "pipeline-name"
                     },
                     "nodeName": {
+                      "type": "string"
+                    },
+                    "jobId": {
                       "type": "string"
                     },
                     "taskId": {
@@ -9277,6 +9286,9 @@
           "nodeName": {
             "type": "string"
           },
+          "jobId": {
+            "type": "string"
+          },
           "taskId": {
             "type": "string"
           }
@@ -9295,6 +9307,9 @@
             "format": "board-name"
           },
           "status": {
+            "type": "string"
+          },
+          "relativeUrl": {
             "type": "string"
           }
         }

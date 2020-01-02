@@ -118,6 +118,10 @@ class StateManager extends EventEmitter {
         await this._etcd.tensorboards.update(options);
     }
 
+    async deleteTensorBoard(options) {
+        await this._etcd.tensorboards.delete(options);
+    }
+
     async getPipelines(options, filter = () => true) {
         const pipelines = await this._etcd.pipelines.list(options);
         return pipelines.filter(filter);

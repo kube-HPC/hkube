@@ -35,6 +35,7 @@ describe('Boards', () => {
                 body: {
                     pipelineName: 'adf',
                     nodeName: 'nodedd',
+                    jobId: 'jobbb',
                     taskId: 'taskIDDD'
                 }
             };
@@ -48,6 +49,7 @@ describe('Boards', () => {
                 method: 'POST',
                 body: {
                     pipelineName: 'adf',
+                    jobId: 'jobbb',
                     taskId: 'taskIDDD'
                 }
             };
@@ -62,6 +64,7 @@ describe('Boards', () => {
                 body: {
                     pipelineName: 'adf',
                     nodeName: 'nodedd',
+                    jobId: 'jobbb',
                     taskId: 'taskIDDD'
                 }
             };
@@ -83,6 +86,7 @@ describe('Boards', () => {
                 body: {
                     pipelineName: 'adf',
                     nodeName: 'nodedd',
+                    jobId: 'jobbb',
                     taskId: 'taskIDDD'
                 }
             };
@@ -115,6 +119,7 @@ describe('Boards', () => {
                 body: {
                     pipelineName: 'adf',
                     nodeName: 'nodedd',
+                    jobId: 'jobbb',
                     taskId: 'taskIDDD'
                 }
             };
@@ -131,8 +136,7 @@ describe('Boards', () => {
                 method: 'GET'
             }
             response = await request(options);
-            expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body.status).to.equal(States.STOPPED);
+            expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
         });
 
     });

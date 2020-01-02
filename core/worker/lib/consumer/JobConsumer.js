@@ -458,16 +458,14 @@ class JobConsumer extends EventEmitter {
         let path = null;
         let error;
         try {
-            // const uploadTime = this.jobCurrentTime.toLocaleString().split('/').join('-');
+            const formatedDate = this.jobCurrentTime.toLocaleString().split('/').join('-');
             const files = await recursive(this._algoMetricsDir);
-            const { taskId } = this.jobData;
-            // const runName = `${uploadTime}-${taskId.substring(taskId.length - 8)}`;
-            const runName = taskId;
+            const { taskId, jobId } = this.jobData;
             const paths = await Promise.all(files.map((file) => {
                 const stream = fse.createReadStream(file);
                 const fileName = file.replace(this._algoMetricsDir, '');
                 return storageManager.hkubeAlgoMetrics.putStream(
-                    { pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName, stream }
+                    { pipelineName: this.jobData.pipelineName, taskId, jobId, nodeName: this.jobData.nodeName, data: stream, formatedDate, fileName, stream }
                 );
             }));
             const separatedPath = paths[0] && paths[0].path.split(pathLib.sep);
