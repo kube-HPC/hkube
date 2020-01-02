@@ -8,7 +8,7 @@ const producer = require('../producer/jobs-producer');
 const StateManager = require('../state/state-manager');
 const Progress = require('../progress/nodes-progress');
 const DriverStates = require('../state/DriverStates');
-const Events = require('../consts/Events');
+const commands = require('../consts/commands');
 const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
@@ -44,8 +44,8 @@ class TaskRunner extends EventEmitter {
             podName: options.kubernetes.podName,
             discoveryMethod: this._getDiscoveryData.bind(this)
         });
-        this._stateManager.on(Events.COMMANDS.stopProcessing, (data) => {
-            this.emit(Events.COMMANDS.stopProcessing, data);
+        this._stateManager.on(commands.stopProcessing, (data) => {
+            this.emit(commands.stopProcessing, data);
         });
         this._stateManager.on(`job-${pipelineStatuses.STOPPED}`, (d) => this._onStop(d));
         this._stateManager.on(`job-${pipelineStatuses.PAUSED}`, (d) => this._onPause(d));
