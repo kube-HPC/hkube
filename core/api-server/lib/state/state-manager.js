@@ -3,7 +3,7 @@ const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const States = require('./States');
-const ActiveState = [States.PENDING, States.CREATING, States.ACTIVE, States.RECOVERING, States.RESUMED, States.PAUSED];
+const ActiveState = [States.PENDING, States.CREATING, States.ACTIVE, States.RECOVERING, States.RESUMED, States.PAUSED, States.RUNNING];
 const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
 const PausedState = [States.PAUSED];
 
@@ -106,6 +106,18 @@ class StateManager extends EventEmitter {
         return this._etcd.pipelines.get(options);
     }
 
+    getTensorboard(options) {
+        return this._etcd.tensorboards.get(options);
+    }
+
+    async setTensorboard(options) {
+        await this._etcd.tensorboards.set(options);
+    }
+
+    async updateTensorBoard(options) {
+        await this._etcd.tensorboards.update(options);
+    }
+
     async getPipelines(options, filter = () => true) {
         const pipelines = await this._etcd.pipelines.list(options);
         return pipelines.filter(filter);
@@ -142,6 +154,10 @@ class StateManager extends EventEmitter {
     async getJobResults(options) {
         const list = await this._etcd.jobs.results.list(options);
         return Promise.all(list.map(r => this.getResultFromStorage(r)));
+    }
+
+    async getJobResultsAsRaw(options) {
+        return this._etcd.jobs.results.list(options);
     }
 
     setJobResults(options) {

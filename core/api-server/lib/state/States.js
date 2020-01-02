@@ -11,5 +11,6 @@ module.exports = {
     STOPPED: 'stopped',
     STOPPING: 'stopping',
     PAUSED: 'paused',
-    RESUMED: 'resumed'
+    RESUMED: 'resumed',
+    RUNNING: 'running'
 };

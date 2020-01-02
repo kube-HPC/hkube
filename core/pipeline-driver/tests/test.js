@@ -222,7 +222,7 @@ describe('Test', function () {
             await taskRunner.start(job)
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
-            expect(call.args[0].message).to.equal(error);
+            expect(call.args[0].error.message).to.equal(error);
         });
         it('should start only one pipeline', async function () {
             const jobId = `jobid-${uuidv4()}`;
@@ -393,7 +393,7 @@ describe('Test', function () {
             await taskRunner.start(job)
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
-            expect(call.args[0].message).to.equal(error);
+            expect(call.args[0].error.message).to.equal(error);
         });
         it('should wait any', async function () {
             const jobId = `jobid-${uuidv4()}`;

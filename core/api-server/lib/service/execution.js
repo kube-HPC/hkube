@@ -189,7 +189,7 @@ class ExecutionService {
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        return this._run({ pipeline, jobId, options: { alreadyExecuted: true, state: States.RESUMED } });
+        return this._run({ pipeline, jobId, types: pipeline.types, options: { alreadyExecuted: true, state: States.RESUMED } });
     }
 
     async getTree(options) {
@@ -228,7 +228,7 @@ class ExecutionService {
     async _getLastPipeline(jobId) {
         const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
         if (jobIdPrefix) {
-            const result = await stateManager.getJobResults({ jobId: jobIdPrefix[0], limit: 1, sort: 'desc' });
+            const result = await stateManager.getJobResultsAsRaw({ jobId: jobIdPrefix[0], limit: 1, sort: 'desc' });
             if (result.length > 0) {
                 return (({ timestamp, status, timeTook }) => ({ timestamp, status, timeTook }))(result[0]);
             }

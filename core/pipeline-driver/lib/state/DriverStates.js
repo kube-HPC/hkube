@@ -3,6 +3,7 @@ module.exports = {
     PENDING: 'pending',
     ACTIVE: 'active',
     PAUSED: 'paused',
+    RESUMED: 'resumed',
     FAILED: 'failed',
     COMPLETED: 'completed',
     STOPPED: 'stopped'
