@@ -1,5 +1,5 @@
 const Logger = require('@hkube/logger');
-const { buildType } = require('@hkube/consts');
+const { buildTypes } = require('@hkube/consts');
 const gitService = require('./git-service');
 const component = require('../../consts/componentNames');
 const { WEBHOOKS } = require('../../consts/builds');
@@ -40,7 +40,7 @@ class GitDataAdapter {
                     message: lastCommit.commit.message
                 }]
             }),
-            type: buildType.GIT
+            type: buildTypes.GIT
         };
     }
 
@@ -58,7 +58,7 @@ class GitDataAdapter {
                     message: lastCommit.message
                 }]
             }),
-            type: buildType.GIT
+            type: buildTypes.GIT
         };
     }
 
@@ -103,7 +103,7 @@ class GitDataAdapter {
             commit,
             repository: { url, webUrl, cloneUrl, branchName, token },
             webhookType,
-            type: buildType.GIT
+            type: buildTypes.GIT
         };
     }
 }

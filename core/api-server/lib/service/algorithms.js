@@ -2,7 +2,7 @@
 const merge = require('lodash.merge');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
-const { buildType } = require('@hkube/consts');
+const { buildTypes } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContanier();
 const executionService = require('./execution');
 const pipelineService = require('./pipelines');
@@ -184,7 +184,7 @@ class AlgorithmStore {
             newAlgorithm = merge({}, oldAlgorithm, payload);
             validator.addAlgorithmDefaults(newAlgorithm);
 
-            if (payload.type === buildType.CODE && file.path) {
+            if (payload.type === buildTypes.CODE && file.path) {
                 if (payload.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
                 }
@@ -193,7 +193,7 @@ class AlgorithmStore {
                 messages.push(...result.messages);
                 newAlgorithm = merge({}, newAlgorithm, result.algorithm);
             }
-            else if (payload.type === buildType.GIT && payload.gitRepository) {
+            else if (payload.type === buildTypes.GIT && payload.gitRepository) {
                 if (payload.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
                 }
