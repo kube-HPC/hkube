@@ -1,60 +1,45 @@
 const storageManager = require('@hkube/storage-manager');
-const { boardStatuses } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
-
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 const States = require('../state/States');
+
+
 class Boards {
-    async getTensorboard(options) {
-        const response = await stateManager.getTensorboard({ boardId: options.name });
+    async getTensorboard(options, type) {
+        const response = await stateManager.getTensorboard(options, type);
         if (!response) {
-            throw new ResourceNotFoundError('board', options.name);
+            throw new ResourceNotFoundError('board', JSON.stringify(options));
         }
-        const { boardId, ...resp } = response;
-        resp.name = boardId;
-        resp.relativeUrl = `hkube/board/${boardId}`;
-        return resp;
+        return response;
     }
 
-    async stopTensorboard(options) {
-        const { name } = options;
-        await this.getTensorboard({ name }); // check board exists
-        const boardData = {
-            boardId: name
-        };
-        await stateManager.deleteTensorBoard(boardData);
+    async stopTensorboard(options, type) {
+        await this.getTensorboard(options, type); // check board exists
+        await stateManager.deleteTensorBoard(options, type);
     }
 
-    async startTensorboard(options) {
-        const { jobId, nodeName, pipelineName, name, taskId } = options;
-        validator.validateBoardStartReq({ name, pipelineName, nodeName, jobId, taskId });
-        const boardId = options.name;
-        const existingBoard = await stateManager.getTensorboard({ boardId });
+    async startTensorboard(options, type) {
+        validator.validateBoardStartReq(options, type);
+        const existingBoard = await stateManager.getTensorboard(options, type);
         const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(options);
         const board = {
-            boardId,
-            taskId,
-            jobId,
             logDir,
-            status: boardStatuses.PENDING,
+            status: States.PENDING,
             result: null,
             error: null,
             endTime: null,
-            startTime: Date.now()
+            startTime: Date.now(),
+            ...options
         };
         if (existingBoard) {
-            if (existingBoard.status === boardStatuses.RUNNING || existingBoard.status === boardStatuses.PENDING) {
-                throw new ActionNotAllowed(`board ${boardId} already started`, `board ${boardId} already started and is in ${board.status} status`);
+            if (existingBoard.status === States.RUNNING || existingBoard.status === States.PENDING || existingBoard.status === States.CREATING) {
+                throw new ActionNotAllowed('board: already started', `board ${JSON.stringify(options)} \n already started and is in ${board.status} status`);
             }
-            return stateManager.updateTensorBoard(board);
+            return stateManager.updateTensorBoard(board, type);
         }
 
-        return stateManager.setTensorboard(board);
-    }
-
-    isActiveState(state) {
-        return ActiveStates.includes(state);
+        return stateManager.setTensorboard(board, type);
     }
 }
 

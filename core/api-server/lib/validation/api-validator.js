@@ -131,7 +131,11 @@ class ApiValidator {
     }
 
     validateBoardStartReq(board) {
-        this._validate(this._definitionsInternal.boardStartRequest, board, false);
+        const hasRequired = board.taskId || board.jobId || (board.pipelineName && board.nodeName);
+        if (!hasRequired) {
+            throw new InvalidDataError('Must supply jobId or taskId or pipeline Name and nodeName');
+        }
+        this._validate(this._definitions.boardStartRequest, board, false);
     }
 
     validateCronRequest(options) {

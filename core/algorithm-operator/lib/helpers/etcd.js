@@ -52,11 +52,26 @@ class Etcd extends EventEmitter {
     }
 
     getTensorboards() {
-        return this._etcd.tensorboards.list();
+        const batches = this._etcd.tensorboards.batches.list().map((batch) => {
+            const board = { ...batch, type: 'batch' }; return board;
+        });
+        const tasks = this._etcd.tensorboards.tasks.list().map((task) => {
+            const board = { ...task, type: 'task' }; return board;
+        });
+        const nodes = this._etcd.tensorboards.nodes.list().map((node) => {
+            const board = { ...node, type: 'node' }; return board;
+        });
+        return [...batches, ...tasks, ...nodes];
     }
 
-    async setTensorboard(options) {
-        await this._etcd.tensorboards.update(options);
+    async updateTensorboard(options) {
+        const specificBoardEtcd = this._getBoardEtcd(options);
+        await specificBoardEtcd.update(options);
+    }
+
+    _getBoardEtcd(options) {
+        const specificBoardEtcds = this._etcd.tensorboards;
+        return (options.type === 'batch' && specificBoardEtcds.batches) || (options.type === 'task' && specificBoardEtcds.tasks) || (specificBoardEtcds.nodes);
     }
 }
 

@@ -8,6 +8,3 @@ properties:
     type: string
   taskId:
     type: string
-required:
-  - pipelineName
-  - nodeName
