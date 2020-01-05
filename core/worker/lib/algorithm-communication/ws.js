@@ -14,7 +14,6 @@ class WsWorkerCommunication extends EventEmitter {
         super();
         this._socketServer = null;
         this._socket = null;
-
     }
 
     init(option) {
@@ -90,8 +89,6 @@ class WsWorkerCommunication extends EventEmitter {
         }
         this._socket.send(this._stringify(message));
     }
-
-
 }
 
 module.exports = WsWorkerCommunication;
