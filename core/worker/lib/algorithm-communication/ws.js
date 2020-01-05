@@ -3,9 +3,9 @@ const http = require('http');
 const WebSocket = require('ws');
 const Logger = require('@hkube/logger');
 const Validator = require('ajv');
-const bson = require('bson');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const component = require('../consts').Components.COMMUNICATIONS;
+const { binaryDecode, binaryEncode } = require('../helpers/binaryEncoding');
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
@@ -14,8 +14,7 @@ class WsWorkerCommunication extends EventEmitter {
         super();
         this._socketServer = null;
         this._socket = null;
-        this._parse = JSON.parse;
-        this._stringify = JSON.stringify;
+
     }
 
     init(option) {
@@ -28,11 +27,12 @@ class WsWorkerCommunication extends EventEmitter {
                     return reject(new Error(validator.errorsText(validator.errors)));
                 }
                 if (option.binary) {
-                    this._parse = (data) => {
-                        const ret = bson.deserialize(data, { promoteBuffers: true, promoteValues: true });
-                        return ret;
-                    };
-                    this._stringify = data => bson.serialize(data);
+                    this._parse = binaryDecode;
+                    this._stringify = binaryEncode;
+                }
+                else {
+                    this._parse = JSON.parse;
+                    this._stringify = JSON.stringify;
                 }
                 const server = options.httpServer || http.createServer();
                 this._socketServer = new WebSocket.Server({ server, maxPayload: options.maxPayload });
@@ -90,6 +90,8 @@ class WsWorkerCommunication extends EventEmitter {
         }
         this._socket.send(this._stringify(message));
     }
+
+
 }
 
 module.exports = WsWorkerCommunication;
