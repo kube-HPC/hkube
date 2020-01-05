@@ -40,7 +40,8 @@ config.workerCommunication = {
             port: process.env.WORKER_SOCKET_PORT || 3000
         },
         maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES,
-        pingTimeout: formatters.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000)
+        pingTimeout: formatters.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000),
+        binary: formatters.parseBool(process.env.WORKER_BINARY, false)
     }
 };
 
