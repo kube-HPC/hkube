@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
-const { boardStatuses } = require('@hkube/consts');
+const States = require('../lib/state/States')
 let restUrl;
 
 describe('Boards', () => {
@@ -20,28 +20,13 @@ describe('Boards', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('board no_such_id Not Found');
+            expect(response.body.error.message).to.equal('board {"taskId":"no_such_id"} Not Found');
         });
     });
     describe('start', () => {
         let restPath = null;
         before(() => {
             restPath = `${restUrl}/start`;
-        });
-        it('should throw validation error of bad board name', async () => {
-            const options = {
-                uri: restPath + '/abCd',
-                method: 'POST',
-                body: {
-                    pipelineName: 'adf',
-                    nodeName: 'nodedd',
-                    jobId: 'jobbb',
-                    taskId: 'taskIDDD'
-                }
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('board name must consist of lower case alphanumeric characters, dash or dot');
         });
         it('check mandatory nodeName validation', async () => {
             const options = {
@@ -59,7 +44,7 @@ describe('Boards', () => {
         });
         it('starting board should succeed', async () => {
             let options = {
-                uri: restPath + '/my-board',
+                uri: restPath + '/taskIDDD',
                 method: 'POST',
                 body: {
                     pipelineName: 'adf',
@@ -71,13 +56,12 @@ describe('Boards', () => {
             let response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             options = {
-                uri: `${restUrl}/status/my-board`,
+                uri: `${restUrl}/status/taskIDDD`,
                 method: 'GET'
             }
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body.name).to.equal('my-board');
-            expect(response.body.status).to.equal(boardStatuses.PENDING);
+            expect(response.body.status).to.equal(States.PENDING);
         });
         it('starting board should fail if name exists', async () => {
             const options = {
@@ -94,7 +78,7 @@ describe('Boards', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('board my-unique-board already started');
+            expect(response.body.error.message).to.equal('board: already started');
         });
     });
     describe('stop', () => {
@@ -105,11 +89,11 @@ describe('Boards', () => {
         it('should throw NotFound when board does not exist on stop board', async () => {
             const options = {
                 uri: restPath + '/no_such_id',
-                method: 'PUT'
+                method: 'DELETE'
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('board no_such_id Not Found');
+            expect(response.body.error.message).to.equal('board {"taskId":"no_such_id"} Not Found');
         });
 
         it('should succeed to stop', async () => {
@@ -127,7 +111,7 @@ describe('Boards', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             options = {
                 uri: restPath + '/job-to-stop',
-                method: 'PUT'
+                method: 'DELETE'
             };
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);

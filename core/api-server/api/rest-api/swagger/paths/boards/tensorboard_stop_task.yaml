@@ -1,10 +1,10 @@
-get:
+delete:
   tags:
     - Boards
-  summary: Get board status
-  description: returns the board status by specific board name
+  summary: Stop board
+  description: Stop board
   parameters:
-    - name: name
+    - name: taskId
       in: path
       description: Unique identifier representing board
       required: true
@@ -13,11 +13,11 @@ get:
         format: board-name
   responses:
     "200":
-      description: algorithm apply response
+      description: start board response
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/boardStatusResult"
+            $ref: "#/components/schemas/defaultResponse"
     "400":
       description: bad request
       content:

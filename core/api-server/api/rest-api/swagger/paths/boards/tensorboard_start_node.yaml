@@ -4,19 +4,16 @@ post:
   summary: Start board
   description: start board
   parameters:
-    - name: name
+    - name: pipelineName
       in: path
-      description: Unique identifier representing board
       required: true
       schema:
         type: string
-        format: board-name
-  requestBody:
-    content:
-      application/json:
-        schema:
-          $ref: "#/components/schemas/boardStartRequest"
-    required: true
+    - name: nodeName
+      in: path
+      required: true
+      schema:
+        type: string
   responses:
     "200":
       description: start board response

@@ -91,7 +91,7 @@ class StateManager extends EventEmitter {
     }
 
     _getBoardEtcd(type) {
-        const specificBoardEtcds = this._etcd.tensorboards;
+        const specificBoardEtcds = this._etcd.tensorboard;
         return (type === 'batch' && specificBoardEtcds.batches) || (type === 'task' && specificBoardEtcds.tasks) || (specificBoardEtcds.nodes);
     }
 

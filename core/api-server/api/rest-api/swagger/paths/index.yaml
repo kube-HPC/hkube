@@ -61,12 +61,26 @@
   $ref: ./webhooks/jobId.yaml
 
 # boards
-/boards/tensor/start/{name}:
-  $ref: ./boards/tensorboard_start.yaml
-/boards/tensor/status/{name}:
-  $ref: ./boards/tensorboard_status.yaml
-/boards/tensor/stop/{name}:
-  $ref: ./boards/tensorboard_stop.yaml
+/boards/tensor/pipeline/{pipelineName}/start/{nodeName}:
+  $ref: ./boards/tensorboard_start_node.yaml
+/boards/tensor/pipeline/{pipelineName}/status/{nodeName}:
+  $ref: ./boards/tensorboard_status_node.yaml
+/boards/tensor/pipeline/{pipelineName}/stop/{nodeName}:
+  $ref: ./boards/tensorboard_stop_node.yaml
+
+/boards/tensor/node/{nodeName}/start/{jobId}:
+  $ref: ./boards/tensorboard_start_batch.yaml
+/boards/tensor/node/{nodeName}/status/{jobId}:
+  $ref: ./boards/tensorboard_status_batch.yaml
+/boards/tensor/node/{nodeName}/stop/{jobId}:
+  $ref: ./boards/tensorboard_stop_batch.yaml
+
+/boards/tensor/start/{taskId}:
+  $ref: ./boards/tensorboard_start_task.yaml
+/boards/tensor/status/{taskId}:
+  $ref: ./boards/tensorboard_status_task.yaml
+/boards/tensor/pipeline/stop/{taskId}:
+  $ref: ./boards/tensorboard_stop_task.yaml
 
 # builds
 /builds/status/{buildId}:
