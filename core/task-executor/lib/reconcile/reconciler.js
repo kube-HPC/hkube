@@ -125,7 +125,7 @@ const _processAllRequests = (
         const resourceRequests = createContainerResource(algorithmTemplate, useResourceLimits);
         const workerResourceRequests = createContainerResource(workerResources, useResourceLimits);
 
-        const { workerEnv, algorithmEnv, nodeSelector, entryPoint } = algorithmTemplate;
+        const { workerEnv, algorithmEnv, nodeSelector, entryPoint, options: algorithmOptions } = algorithmTemplate;
 
         createDetails.push({
             numberOfNewJobs: 1,
@@ -140,7 +140,8 @@ const _processAllRequests = (
                 hotWorker,
                 resourceRequests,
                 workerResourceRequests,
-                clusterOptions
+                clusterOptions,
+                algorithmOptions
             }
         });
         if (!reconcileResult[algorithmName]) {

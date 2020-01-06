@@ -104,7 +104,7 @@ const applyLogging = (inputSpec, options) => {
     });
     return spec;
 };
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv,
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, algorithmOptions,
     nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
@@ -125,6 +125,10 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_IMAGE: algorithmImage });
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
+    if (algorithmOptions && algorithmOptions.binary) {
+        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_BINARY: 'true' });
+        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { WORKER_BINARY: 'true' });
+    }
     spec = applyAlgorithmResourceRequests(spec, resourceRequests);
     if (settings.applyResources) {
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
