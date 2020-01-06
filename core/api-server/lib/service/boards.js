@@ -1,9 +1,9 @@
 const storageManager = require('@hkube/storage-manager');
+const { boardStatuses } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError, ActionNotAllowed } = require('../errors');
-const States = require('../state/States');
-
+const ActiveStates = [boardStatuses.PENDING, boardStatuses.CREATING, boardStatuses.RUNNING];
 
 class Boards {
     async getTensorboard(options) {
@@ -19,12 +19,12 @@ class Boards {
     async stopTensorboard(options) {
         const { name } = options;
         const board = await this.getTensorboard({ name });
-        if (!stateManager.isActiveState(board.status)) {
+        if (!this.isActiveState(board.status)) {
             throw new InvalidDataError(`unable to stop board ${name} because its in ${board.status} status`);
         }
         const boardData = {
             boardId: name,
-            status: States.STOPPED,
+            status: boardStatuses.STOPPED,
             endTime: Date.now()
         };
         await stateManager.updateTensorBoard(boardData);
@@ -40,20 +40,24 @@ class Boards {
         const board = {
             boardId,
             logDir,
-            status: States.PENDING,
+            status: boardStatuses.PENDING,
             result: null,
             error: null,
             endTime: null,
             startTime: Date.now()
         };
         if (existingBoard) {
-            if (existingBoard.status === States.RUNNING || existingBoard.status === States.PENDING) {
+            if (existingBoard.status === boardStatuses.RUNNING || existingBoard.status === boardStatuses.PENDING) {
                 throw new ActionNotAllowed(`board ${boardId} already started`, `board ${boardId} already started and is in ${board.status} status`);
             }
             return stateManager.updateTensorBoard(board);
         }
 
         return stateManager.setTensorboard(board);
+    }
+
+    isActiveState(state) {
+        return ActiveStates.includes(state);
     }
 }
 

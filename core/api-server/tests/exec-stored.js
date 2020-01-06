@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const { pipelineTypes } = require('@hkube/consts');
 const validationMessages = require('../lib/consts/validationMessages.js');
-const pipelineTypes = require('../lib/consts/pipeline-types');
 const { request } = require('./utils');
 let restUrl;
 
