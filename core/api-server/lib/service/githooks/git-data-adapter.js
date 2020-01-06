@@ -1,7 +1,8 @@
 const Logger = require('@hkube/logger');
+const { buildTypes } = require('@hkube/consts');
 const gitService = require('./git-service');
 const component = require('../../consts/componentNames');
-const { WEBHOOKS, BUILD_TYPES } = require('../../consts/builds');
+const { WEBHOOKS } = require('../../consts/builds');
 const log = Logger.GetLogFromContanier();
 class GitDataAdapter {
     constructor() {
@@ -39,7 +40,7 @@ class GitDataAdapter {
                     message: lastCommit.commit.message
                 }]
             }),
-            type: BUILD_TYPES.GIT
+            type: buildTypes.GIT
         };
     }
 
@@ -57,7 +58,7 @@ class GitDataAdapter {
                     message: lastCommit.message
                 }]
             }),
-            type: BUILD_TYPES.GIT
+            type: buildTypes.GIT
         };
     }
 
@@ -102,7 +103,7 @@ class GitDataAdapter {
             commit,
             repository: { url, webUrl, cloneUrl, branchName, token },
             webhookType,
-            type: BUILD_TYPES.GIT
+            type: buildTypes.GIT
         };
     }
 }

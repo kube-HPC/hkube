@@ -2,10 +2,6 @@ const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
-const States = require('./States');
-const ActiveState = [States.PENDING, States.CREATING, States.ACTIVE, States.RECOVERING, States.RESUMED, States.PAUSED, States.RUNNING];
-const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
-const PausedState = [States.PAUSED];
 
 class StateManager extends EventEmitter {
     async init(options) {
@@ -13,18 +9,6 @@ class StateManager extends EventEmitter {
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
         await this._watchBuilds();
         return this._watchJobResults();
-    }
-
-    isActiveState(state) {
-        return ActiveState.includes(state);
-    }
-
-    isCompletedState(state) {
-        return CompletedState.includes(state);
-    }
-
-    isPausedState(state) {
-        return PausedState.includes(state);
     }
 
     setExecution(options) {

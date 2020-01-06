@@ -1,3 +1,4 @@
+const { pipelineTypes } = require('@hkube/consts');
 
 class Boards {
     constructor(options) {
@@ -9,7 +10,7 @@ class Boards {
         if (!this.updated && task.metricsPath && task.metricsPath.tensorboard && task.metricsPath.tensorboard.path) {
             this.updated = true;
             this.updateBoard({ jobId: task.jobId }, (oldItem) => {
-                const types = [...new Set([...oldItem.types || [], 'tensorboard'])];
+                const types = [...new Set([...oldItem.types || [], pipelineTypes.TENSORBOARD])];
                 return { ...oldItem, types };
             });
         }

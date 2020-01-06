@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
-const States = require('../lib/state/States')
+const { boardStatuses } = require('@hkube/consts');
 let restUrl;
 
 describe('Boards', () => {
@@ -74,7 +74,7 @@ describe('Boards', () => {
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.name).to.equal('my-board');
-            expect(response.body.status).to.equal(States.PENDING);
+            expect(response.body.status).to.equal(boardStatuses.PENDING);
         });
         it('starting board should fail if name exists', async () => {
             const options = {
@@ -132,7 +132,7 @@ describe('Boards', () => {
             }
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
-            expect(response.body.status).to.equal(States.STOPPED);
+            expect(response.body.status).to.equal(boardStatuses.STOPPED);
         });
 
     });

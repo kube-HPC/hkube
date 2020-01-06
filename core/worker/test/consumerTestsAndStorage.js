@@ -1,6 +1,7 @@
 const fse = require('fs-extra');
 const consumer = require('../lib/consumer/JobConsumer');
 const { Producer } = require('@hkube/producer-consumer');
+const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
 const stateManager = require('../lib/states/stateManager.js');
 const configIt = require('@hkube/config');
 const configuration = configIt.load().main;
@@ -13,7 +14,6 @@ const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
 const delay = require('delay');
 const etcd = require('../lib/states/discovery');
-const JobStatus = require('../lib/consumer/consts').JOB_STATUS;
 
 let spy, producer;
 
@@ -82,14 +82,14 @@ describe('consumer tests', () => {
     });
     it('if job already stopped return and finish job', async () => {
         const config = getConfig();
-        await etcd._etcd.jobs.status.set({ jobId: config.jobId, status: JobStatus.STOPPED });
+        await etcd._etcd.jobs.status.set({ jobId: config.jobId, status: pipelineStatuses.STOPPED });
         spy = sinon.spy(consumer, '_stopJob');
         consumer._jobProvider.emit('job', {
             data: {
                 jobId: config.jobId,
                 taskId: config.taskId,
                 input: ['test-param', true, 12345],
-                pipelineName: JobStatus.STOPPED
+                pipelineName: pipelineStatuses.STOPPED
             }
         });
         await delay(1000);
@@ -111,11 +111,11 @@ describe('consumer tests', () => {
                 metrics: {
                     tensorboard: true
                 },
-                state: JobStatus.SUCCEED
+                state: taskStatuses.SUCCEED
             },
         });
         consumer.jobCurrentTime = new Date();
-        await consumer.finishJob({ state: JobStatus.SUCCEED, results: {} });
+        await consumer.finishJob({ state: taskStatuses.SUCCEED, results: {} });
         const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
         expect(uploadedFiles.length).to.eql(3);
 
@@ -134,11 +134,11 @@ describe('consumer tests', () => {
                 metrics: {
                     tensorboard: false
                 },
-                state: JobStatus.SUCCEED
+                state: taskStatuses.SUCCEED
             },
         });
         consumer.jobCurrentTime = new Date();
-        await consumer.finishJob({ state: JobStatus.SUCCEED, results: {} });
+        await consumer.finishJob({ state: taskStatuses.SUCCEED, results: {} });
         await delay(500);
         const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
         expect(uploadedFiles.length).to.eql(0);
@@ -155,11 +155,11 @@ describe('consumer tests', () => {
                 metrics: {
                     tensorboard: true
                 },
-                state: JobStatus.SUCCEED
+                state: taskStatuses.SUCCEED
             },
         });
         consumer.jobCurrentTime = new Date();
-        await consumer.finishJob({ state: JobStatus.SUCCEED, results: {} });
+        await consumer.finishJob({ state: taskStatuses.SUCCEED, results: {} });
         const uploadedFiles = await storageManager.list({ path: 'local-hkube-algo-metrics/pipeName/A/' });
         expect(uploadedFiles.length).to.eql(0);
     });

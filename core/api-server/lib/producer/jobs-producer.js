@@ -1,10 +1,10 @@
 const log = require('@hkube/logger').GetLogFromContainer();
 const levels = require('@hkube/logger').Levels;
+const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
 const { Producer, Events } = require('@hkube/producer-consumer');
 const stateManager = require('../state/state-manager');
 const component = require('../../lib/consts/componentNames').JOBS_PRODUCER;
-const States = require('../state/States');
 
 class JobProducer {
     init(options) {
@@ -18,18 +18,18 @@ class JobProducer {
             }
         });
         this._producer.on(Events.WAITING, (event) => {
-            log.info(`${Events.WAITING} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: States.WAITING });
+            log.info(`${Events.WAITING} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: Events.WAITING });
         }).on(Events.ACTIVE, (event) => {
-            log.info(`${Events.ACTIVE} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: States.ACTIVE });
+            log.info(`${Events.ACTIVE} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: Events.ACTIVE });
         }).on(Events.COMPLETED, (event) => {
-            log.info(`${Events.COMPLETED} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: States.COMPLETED });
+            log.info(`${Events.COMPLETED} ${event.options.data.jobId}`, { component, jobId: event.options.data.jobId, status: Events.COMPLETED });
         }).on(Events.FAILED, (event) => {
-            log.error(`${Events.FAILED} ${event.options.data.jobId}, ${event.error}`, { component, jobId: event.options.data.jobId, status: States.FAILED });
+            log.error(`${Events.FAILED} ${event.options.data.jobId}, ${event.error}`, { component, jobId: event.options.data.jobId, status: Events.FAILED });
         }).on(Events.STALLED, (event) => {
-            log.error(`${Events.STALLED} ${event.options.data.jobId}, ${event.error}`, { component, jobId: event.options.data.jobId, status: States.STALLED });
+            log.error(`${Events.STALLED} ${event.options.data.jobId}, ${event.error}`, { component, jobId: event.options.data.jobId, status: Events.STALLED });
         }).on(Events.CRASHED, async (data) => {
             const { jobId, error } = data;
-            const status = States.FAILED;
+            const status = pipelineStatuses.FAILED;
             log.error(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
             const pipeline = await stateManager.getExecution({ jobId });
             stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: levels.ERROR.name });

@@ -2,6 +2,7 @@
 const merge = require('lodash.merge');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
+const { buildTypes } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContanier();
 const executionService = require('./execution');
 const pipelineService = require('./pipelines');
@@ -9,7 +10,7 @@ const stateManager = require('../state/state-manager');
 const buildsService = require('./builds');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
-const { MESSAGES, BUILD_TYPES } = require('../consts/builds');
+const { MESSAGES } = require('../consts/builds');
 const gitDataAdapter = require('./githooks/git-data-adapter');
 const component = require('../../lib/consts/componentNames').ALGORITHMS_SERVICE;
 
@@ -183,7 +184,7 @@ class AlgorithmStore {
             newAlgorithm = merge({}, oldAlgorithm, payload);
             validator.addAlgorithmDefaults(newAlgorithm);
 
-            if (payload.type === BUILD_TYPES.CODE && file.path) {
+            if (payload.type === buildTypes.CODE && file.path) {
                 if (payload.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
                 }
@@ -192,7 +193,7 @@ class AlgorithmStore {
                 messages.push(...result.messages);
                 newAlgorithm = merge({}, newAlgorithm, result.algorithm);
             }
-            else if (payload.type === BUILD_TYPES.GIT && payload.gitRepository) {
+            else if (payload.type === buildTypes.GIT && payload.gitRepository) {
                 if (payload.algorithmImage) {
                     throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
                 }

@@ -1,9 +1,10 @@
 const Etcd = require('@hkube/etcd');
 const { Events } = require('@hkube/producer-consumer');
+const { taskStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
 const uuidv4 = require('uuid/v4');
 const producerSingleton = require('./producer-singleton');
-const { componentName, jobState, taskStatus } = require('../consts/index');
+const { componentName } = require('../consts/index');
 const queueRunner = require('../queue-runner');
 
 const MAX_JOB_ATTEMPTS = 3;
@@ -36,17 +37,17 @@ class JobProducer {
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            log.info(`${Events.WAITING} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.WAITING });
+            log.info(`${Events.WAITING} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.WAITING });
         });
         this._producer.on(Events.ACTIVE, async (data) => {
-            log.info(`${Events.ACTIVE} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.ACTIVE });
+            log.info(`${Events.ACTIVE} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.ACTIVE });
             await this.createJob();
         });
         this._producer.on(Events.COMPLETED, (data) => {
-            log.debug(`${Events.COMPLETED} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.COMPLETED });
+            log.debug(`${Events.COMPLETED} ${data.jobId}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.COMPLETED });
         });
         this._producer.on(Events.FAILED, (data) => {
-            log.info(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: jobState.FAILED });
+            log.info(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
             const { jobId, taskId, nodeName } = job.options;
@@ -58,11 +59,11 @@ class JobProducer {
             if (attempts > MAX_JOB_ATTEMPTS) {
                 attempts = MAX_JOB_ATTEMPTS;
                 err = 'CrashLoopBackOff';
-                status = taskStatus.CRASHED;
+                status = taskStatuses.CRASHED;
             }
             else {
                 err = 'StalledState';
-                status = taskStatus.STALLED;
+                status = taskStatuses.STALLED;
                 queueRunner.queue.add([task]);
             }
             const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${MAX_JOB_ATTEMPTS}`;

@@ -1,9 +1,9 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const { pipelineTypes } = require('@hkube/consts');
 const { main } = require('@hkube/config').load();
 const nock = require('nock');
 const { request } = require('./utils');
-const pipelineTypes = require('../lib/consts/pipeline-types');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const pipelines = require('./mocks/pipelines.json');
 const { cachingError } = require('./mocks/http-response.json');
