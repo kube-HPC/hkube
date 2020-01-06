@@ -88,3 +88,4 @@ typings/
 .dynamodb/
 .vscode
 .DS_Store
+**/.clinic

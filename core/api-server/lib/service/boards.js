@@ -1,10 +1,10 @@
 const storageManager = require('@hkube/storage-manager');
+const { boardStatuses } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
+
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 const States = require('../state/States');
-
-
 class Boards {
     async getTensorboard(options) {
         const response = await stateManager.getTensorboard({ boardId: options.name });
@@ -37,20 +37,24 @@ class Boards {
             taskId,
             jobId,
             logDir,
-            status: States.PENDING,
+            status: boardStatuses.PENDING,
             result: null,
             error: null,
             endTime: null,
             startTime: Date.now()
         };
         if (existingBoard) {
-            if (existingBoard.status === States.RUNNING || existingBoard.status === States.PENDING) {
+            if (existingBoard.status === boardStatuses.RUNNING || existingBoard.status === boardStatuses.PENDING) {
                 throw new ActionNotAllowed(`board ${boardId} already started`, `board ${boardId} already started and is in ${board.status} status`);
             }
             return stateManager.updateTensorBoard(board);
         }
 
         return stateManager.setTensorboard(board);
+    }
+
+    isActiveState(state) {
+        return ActiveStates.includes(state);
     }
 }
 
