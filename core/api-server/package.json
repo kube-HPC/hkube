@@ -1,6 +1,6 @@
 {
     "name": "api-server",
-    "version": "1.2.52",
+    "version": "1.2.54",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
@@ -13,7 +13,7 @@
         "@hkube/producer-consumer": "^1.0.46",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.12",
-        "@hkube/storage-manager": "^1.0.54",
+        "@hkube/storage-manager": "^1.0.58",
         "@hkube/units-converter": "^1.0.14",
         "@octokit/rest": "^16.35.2",
         "ajv": "^6.10.2",

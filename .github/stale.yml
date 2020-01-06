@@ -15,7 +15,7 @@ exemptLabels:
   - pinned
   - security
   - "[Status] Maybe Later"
-  - HKube: Feature
+  - "HKube: Feature"
 
 # Set to true to ignore issues in a project (defaults to false)
 exemptProjects: false
