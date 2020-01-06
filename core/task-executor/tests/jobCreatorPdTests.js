@@ -167,6 +167,24 @@ describe('PipelineDriverJobCreator', () => {
             expect(res.metadata.name).to.include(CONTAINERS.PIPELINE_DRIVER);
             expect(res.spec.template.spec.containers[0].resources).to.deep.include({ requests: { cpu: '200m' } });
             expect(res.spec.template.spec.containers[0].resources).to.deep.include({ limits: { cpu: '500m', memory: '200M' } });
+            expect(res.spec.template.spec.containers[0].env).to.deep.include({
+                name: 'DEFAULT_STORAGE',
+                valueFrom: {
+                    configMapKeyRef: {
+                        key: 'DEFAULT_STORAGE',
+                        name: 'task-executor-configmap'
+                    }
+                }
+            });
+            expect(res.spec.template.spec.containers[0].env).to.deep.include({
+                name: 'STORAGE_BINARY',
+                valueFrom: {
+                    configMapKeyRef: {
+                        key: 'STORAGE_BINARY',
+                        name: 'task-executor-configmap'
+                    }
+                }
+            });
         });
     });
 });
