@@ -90,30 +90,20 @@ class StateManager extends EventEmitter {
         return this._etcd.pipelines.get(options);
     }
 
-    _getBoardEtcd(type) {
-        const specificBoardEtcds = this._etcd.tensorboard;
-        return (type === 'batch' && specificBoardEtcds.batches) || (type === 'task' && specificBoardEtcds.tasks) || (specificBoardEtcds.nodes);
-    }
-
-
     getTensorboard(options, type) {
-        const specificBoardEtcd = this._getBoardEtcd(type);
-        return specificBoardEtcd.get(options);
+        return this._etcd.tensorboard[type].get(options);
     }
 
     async setTensorboard(options, type) {
-        const specificBoardEtcd = this._getBoardEtcd(type);
-        await specificBoardEtcd.set(options);
+        await this._etcd.tensorboard[type].set(options);
     }
 
     async updateTensorBoard(options, type) {
-        const specificBoardEtcd = this._getBoardEtcd(type);
-        await specificBoardEtcd.update(options);
+        await this._etcd.tensorboard[type].update(options);
     }
 
     async deleteTensorBoard(options, type) {
-        const specificBoardEtcd = this._getBoardEtcd(type);
-        await specificBoardEtcd.delete(options);
+        await this._etcd.tensorboard[type].delete(options);
     }
 
     async getPipelines(options, filter = () => true) {

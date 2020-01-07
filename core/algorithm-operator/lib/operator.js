@@ -1,5 +1,6 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const http = require('http');
+const rp = require('request-promise');
+const { boardStatuses } = require('@hkube/consts');
 const component = require('../lib/consts/componentNames').OPERATOR;
 const etcd = require('./helpers/etcd');
 const { logWrappers } = require('./helpers/tracing');
@@ -9,30 +10,35 @@ const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const CONTAINERS = require('./consts/containers');
-const TENSORBOARD_STATUS = require('./consts/tenosrboard-status').STATUS;
+
 
 class Operator {
     async init(options = {}) {
         this._intervalMs = options.intervalMs;
+        this._boardsIntervalMs = options.boardsIntervalMs;
         if (options.healthchecks.logExternalRequests) {
             logWrappers([
                 '_interval',
             ], this, log);
         }
         this._interval = this._interval.bind(this);
+        this._boardsInterval = this._boardsInterval.bind(this);
         this._lastIntervalTime = null;
+        this._lastIntervalBoardTime = null;
         this._interval(options);
+        this._boardsInterval(options);
     }
 
     checkHealth(maxDiff) {
         log.debug('health-checks');
-        if (!this._lastIntervalTime) {
+        if (!this._lastIntervalTime || !this._lastIntervalBoardTime) {
             return true;
         }
         const diff = Date.now() - this._lastIntervalTime;
         log.debug(`diff = ${diff}`);
-
-        return (diff < maxDiff);
+        const boardDiff = Date.now() - this._lastIntervalBoardTime;
+        log.debug(`diff = ${boardDiff}`);
+        return (diff < maxDiff && boardDiff < maxDiff);
     }
 
     async _interval(options) {
@@ -46,7 +52,6 @@ class Operator {
                 this._tenosrboards({ ...configMap }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options),
-                this._updateTensorboards()
             ]);
         }
         catch (e) {
@@ -54,6 +59,21 @@ class Operator {
         }
         finally {
             setTimeout(this._interval, this._intervalMs, options);
+        }
+    }
+
+    async _boardsInterval(options) {
+        this._lastIntervalBoardTime = Date.now();
+        try {
+            log.debug('Update board interval.', { component });
+
+            await this._updateTensorboards();
+        }
+        catch (e) {
+            log.throttle.error(e.message, { component }, e);
+        }
+        finally {
+            setTimeout(this._boardsInterval, this._boardsIntervalMs, options);
         }
     }
 
@@ -119,16 +139,32 @@ class Operator {
 
     async _updateTensorboards() {
         const boards = await etcd.getTensorboards();
-        const creating = boards.filter(b => b.status === TENSORBOARD_STATUS.CREATING);
+        const creating = boards.filter(b => b.status === boardStatuses.CREATING);
+        const promises = [];
         creating.forEach((board) => {
-            const { boardId } = board;
             const url = `http://board-service-${board.boardId}.default.svc`;
-            http.get(url, (resp) => {
-                if (resp.statusCode === 200) {
-                    etcd.setTensorboard({ boardId, status: TENSORBOARD_STATUS.RUNNING });
+            const requestPromise = rp(url, (resp, response) => {
+                try {
+                    if ((resp || response).statusCode === 200) {
+                        // eslint-disable-next-line no-param-reassign
+                        board.status = boardStatuses.RUNNING;
+                        // eslint-disable-next-line no-param-reassign
+                        board.timestamp = Date.now();
+                        etcd.updateTensorboard(board);
+                    }
+                }
+                catch (e) {
+                    log.error(e);
                 }
             });
+            promises.push(requestPromise);
         });
+        try {
+            await Promise.all(promises);
+        }
+        catch (e) {
+            log.debug(e);
+        }
     }
 }
 

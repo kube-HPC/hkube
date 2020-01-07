@@ -51,27 +51,15 @@ class Etcd extends EventEmitter {
         await this._etcd.algorithms.builds.update(options);
     }
 
-    getTensorboards() {
-        const batches = this._etcd.tensorboards.batches.list().map((batch) => {
-            const board = { ...batch, type: 'batch' }; return board;
-        });
-        const tasks = this._etcd.tensorboards.tasks.list().map((task) => {
-            const board = { ...task, type: 'task' }; return board;
-        });
-        const nodes = this._etcd.tensorboards.nodes.list().map((node) => {
-            const board = { ...node, type: 'node' }; return board;
-        });
+    async getTensorboards() {
+        const batches = (await this._etcd.tensorboard.batch.list()).map(batch => ({ ...batch, type: 'batch' }));
+        const tasks = (await this._etcd.tensorboard.task.list()).map(task => ({ ...task, type: 'task' }));
+        const nodes = (await this._etcd.tensorboard.node.list()).map(node => ({ ...node, type: 'node' }));
         return [...batches, ...tasks, ...nodes];
     }
 
     async updateTensorboard(options) {
-        const specificBoardEtcd = this._getBoardEtcd(options);
-        await specificBoardEtcd.update(options);
-    }
-
-    _getBoardEtcd(options) {
-        const specificBoardEtcds = this._etcd.tensorboards;
-        return (options.type === 'batch' && specificBoardEtcds.batches) || (options.type === 'task' && specificBoardEtcds.tasks) || (specificBoardEtcds.nodes);
+        await this._etcd.tensorboard[options.type].update(options);
     }
 }
 

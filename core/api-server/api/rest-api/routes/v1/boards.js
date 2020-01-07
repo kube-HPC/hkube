@@ -41,7 +41,7 @@ const routes = (options) => {
         res.json({ message: 'OK' });
         next();
     });
-    router.all('/tensor/node/:node/start/:jobId?', methods(['POST']), logger(), async (req, res, next) => {
+    router.all('/tensor/node/:nodeName/start/:jobId?', methods(['POST']), logger(), async (req, res, next) => {
         const { nodeName, jobId } = req.params;
         const { pipelineName } = req.body;
         await boards.startTensorboard({ nodeName, jobId, pipelineName }, 'batch');

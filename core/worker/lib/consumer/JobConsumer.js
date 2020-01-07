@@ -461,12 +461,12 @@ class JobConsumer extends EventEmitter {
         try {
             const formatedDate = this.jobCurrentTime.toLocaleString().split('/').join('-');
             const files = await recursive(this._algoMetricsDir);
-            const { taskId, jobId } = this.jobData;
+            const { taskId, jobId, nodeName, pipelineName } = this.jobData;
             const paths = await Promise.all(files.map((file) => {
                 const stream = fse.createReadStream(file);
                 const fileName = file.replace(this._algoMetricsDir, '');
                 return storageManager.hkubeAlgoMetrics.putStream(
-                    { pipelineName: this.jobData.pipelineName, taskId, jobId, nodeName: this.jobData.nodeName, data: stream, formatedDate, fileName, stream }
+                    { pipelineName, taskId, jobId, nodeName, data: stream, formatedDate, fileName, stream }
                 );
             }));
             const separatedPath = paths[0] && paths[0].path.split(pathLib.sep);

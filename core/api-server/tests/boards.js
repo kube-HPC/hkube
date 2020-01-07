@@ -42,7 +42,7 @@ describe('Boards', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data should have required property 'nodeName'");
         });
-        it('starting board should succeed', async () => {
+        it('starting task board should succeed', async () => {
             let options = {
                 uri: restPath + '/taskIDDD',
                 method: 'POST',
@@ -63,6 +63,25 @@ describe('Boards', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.status).to.equal(boardStatuses.PENDING);
         });
+        it.only('starting batch board should succeed', async () => {
+            let options = {
+                uri: `${restUrl}/node/nName/start/taskIDDD`,
+                method: 'POST',
+                body: {
+                    pipelineName: 'pName'
+                }
+            };
+            let response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            options = {
+                uri: `${restUrl}/node/nName/status/taskIDDD`,
+                method: 'GET'
+            }
+            response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.body.status).to.equal(boardStatuses.PENDING);
+        });
+
         it('starting board should fail if name exists', async () => {
             const options = {
                 uri: restPath + '/my-unique-board',
