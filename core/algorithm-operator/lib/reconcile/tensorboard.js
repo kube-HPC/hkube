@@ -1,3 +1,5 @@
+const rp = require('request-promise');
+const log = require('@hkube/logger').GetLogFromContainer();
 const { boardStatuses } = require('@hkube/consts');
 const etcd = require('../helpers/etcd');
 const { createKindsSpec } = require('../deployments/tensorboard');
@@ -23,6 +25,27 @@ const reconcile = async ({ boards, deployments, versions, registry, clusterOptio
     await Promise.all(removed.map(a => kubernetes.deleteExposedDeployment(a.boardId, deploymentType)));
 };
 
+const updateTensorboards = async () => {
+    const boards = await etcd.getTensorboards();
+    const creating = boards.filter(b => b.status === boardStatuses.CREATING);
+    await Promise.all(creating.forEach(async (board) => {
+        // const url = `http://board-service-${board.boardId}.default.svc`;
+        const url = `http://40.69.222.75/hkube/board/${board.boardId}`;
+        try {
+            const result = await rp({ uri: url, resolveWithFullResponse: true });
+            // eslint-disable-next-line no-param-reassign
+            board.status = boardStatuses.RUNNING;
+            // eslint-disable-next-line no-param-reassign
+            board.timestamp = Date.now();
+            etcd.updateTensorboard(board);
+            return { code: result.statusCode };
+        }
+        catch (error) {
+            log.debug(`${url} ${error.message}`);
+            return error.statusCode;
+        }
+    }));
+};
 module.exports = {
-    reconcile
+    reconcile, updateTensorboards
 };

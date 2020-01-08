@@ -1,6 +1,4 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const rp = require('request-promise');
-const { boardStatuses } = require('@hkube/consts');
 const component = require('../lib/consts/componentNames').OPERATOR;
 const etcd = require('./helpers/etcd');
 const { logWrappers } = require('./helpers/tracing');
@@ -67,7 +65,7 @@ class Operator {
         try {
             log.debug('Update board interval.', { component });
 
-            await this._updateTensorboards();
+            await tensorboardReconciler.updateTensorboards();
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
@@ -135,36 +133,6 @@ class Operator {
             clusterOptions,
             resources
         });
-    }
-
-    async _updateTensorboards() {
-        const boards = await etcd.getTensorboards();
-        const creating = boards.filter(b => b.status === boardStatuses.CREATING);
-        const promises = [];
-        creating.forEach((board) => {
-            const url = `http://board-service-${board.boardId}.default.svc`;
-            const requestPromise = rp(url, (resp, response) => {
-                try {
-                    if ((resp || response).statusCode === 200) {
-                        // eslint-disable-next-line no-param-reassign
-                        board.status = boardStatuses.RUNNING;
-                        // eslint-disable-next-line no-param-reassign
-                        board.timestamp = Date.now();
-                        etcd.updateTensorboard(board);
-                    }
-                }
-                catch (e) {
-                    log.error(e);
-                }
-            });
-            promises.push(requestPromise);
-        });
-        try {
-            await Promise.all(promises);
-        }
-        catch (e) {
-            log.debug(e);
-        }
     }
 }
 
