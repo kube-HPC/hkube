@@ -1,6 +1,6 @@
 {
   "name": "hkube",
-  "version": "1.2.100",
+  "version": "1.2.101",
   "description": "",
   "main": "index.js",
   "scripts": {
