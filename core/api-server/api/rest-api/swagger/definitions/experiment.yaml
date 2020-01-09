@@ -1,6 +1,6 @@
 type: object
 properties:
-  experimentName:
+  name:
     type: string
     description: experiment name
   description:

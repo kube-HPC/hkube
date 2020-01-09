@@ -89,7 +89,7 @@
 # experiment
 /experiment/{name}:
   $ref: ./experiment/experiment_name.yaml
-/experiment/list:
+/experiment/list/{name}:
   $ref: ./experiment/experiment_list.yaml
 # graph
 /graph/raw/{jobId}:
