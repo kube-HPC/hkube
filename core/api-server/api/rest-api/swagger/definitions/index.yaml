@@ -14,10 +14,12 @@ algorithmApplyOptions:
   $ref: ./algorithmApplyOptions.yaml
 algorithmApplyResponse:
   $ref: ./algorithmApplyResponse.yaml
-boardStartRequest:
-  $ref: ./boardStartRequest.yaml
-boardStatusResult:
-  $ref: ./boardStatusResult.yaml
+boardTaskStartRequest:
+  $ref: ./boardTaskStartRequest.yaml
+boardBatchStartRequest:
+  $ref: ./boardBatchStartRequest.yaml
+boardStatusResponse:
+  $ref: ./boardStatusResponse.yaml
 boardName:
   $ref: ./boardName.yaml
 buildId:

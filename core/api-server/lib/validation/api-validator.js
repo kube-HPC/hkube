@@ -130,8 +130,17 @@ class ApiValidator {
         this._validate(this._definitionsInternal.buildId, build, false);
     }
 
-    validateBoardStartReq(board) {
-        this._validate(this._definitionsInternal.boardStartRequest, board, false);
+    validateBoardStartReq(board, type) {
+        if (type === 'task') this.validateBoardTaskStartReq(board);
+        else if (type === 'batch') this.validateBoardBatchStartReq(board);
+    }
+
+    validateBoardBatchStartReq(board) {
+        this._validate(this._definitions.boardBatchStartRequest, board, false);
+    }
+
+    validateBoardTaskStartReq(board) {
+        this._validate(this._definitions.boardTaskStartRequest, board, false);
     }
 
     validateCronRequest(options) {

@@ -4,3 +4,5 @@ properties:
     $ref: "#/components/schemas/boardName"
   status:
     type: string
+  relativeUrl:
+    type: string

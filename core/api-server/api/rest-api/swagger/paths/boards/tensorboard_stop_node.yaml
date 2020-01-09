@@ -1,23 +1,26 @@
-put:
+delete:
   tags:
     - Boards
   summary: Stop board
-  description: stop board
+  description: Stop board
   parameters:
-    - name: name
+    - name: pipelineName
       in: path
-      description: Unique identifier representing board
       required: true
       schema:
         type: string
-        format: board-name
+    - name: nodeName
+      schema:
+        type: string
+      in: path
+      required: true
   responses:
     "200":
-      description: stop board response
+      description: start board response
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/boardStartRequest"
+            $ref: "#/components/schemas/defaultResponse"
     "400":
       description: bad request
       content:

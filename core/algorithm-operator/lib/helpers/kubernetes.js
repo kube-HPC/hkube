@@ -129,8 +129,8 @@ class KubernetesApi extends EventEmitter {
         }
     }
 
-    async deleteExpoesedDeploymet(name, type) {
-        log.info(`Deleting algorithm for debug ${name}`, { component });
+    async deleteExposedDeployment(name, type) {
+        log.info(`Deleting exposed deployment ${name}`, { component });
         const [resDeployment, resIngress, resService] = await Promise.all([
             this._client.deployments.delete({ deploymentName: `${type}-${name}` }),
             this._client.ingresses.delete({ ingressName: `ingress-${type}-${name}` }),
