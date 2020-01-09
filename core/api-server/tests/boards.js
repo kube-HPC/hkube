@@ -63,7 +63,7 @@ describe('Boards', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(response.body.status).to.equal(boardStatuses.PENDING);
         });
-        it.only('starting batch board should succeed', async () => {
+        it('starting batch board should succeed', async () => {
             let options = {
                 uri: `${restUrl}/node/nName/start/taskIDDD`,
                 method: 'POST',

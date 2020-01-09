@@ -28,15 +28,11 @@ const reconcile = async ({ boards, deployments, versions, registry, clusterOptio
 const updateTensorboards = async () => {
     const boards = await etcd.getTensorboards();
     const creating = boards.filter(b => b.status === boardStatuses.CREATING);
-    await Promise.all(creating.forEach(async (board) => {
+    await Promise.all(creating.map(async (board) => {
         const url = `http://board-service-${board.boardId}.default.svc`;
         try {
             const result = await rp({ uri: url, resolveWithFullResponse: true });
-            // eslint-disable-next-line no-param-reassign
-            board.status = boardStatuses.RUNNING;
-            // eslint-disable-next-line no-param-reassign
-            board.timestamp = Date.now();
-            etcd.updateTensorboard(board);
+            await etcd.updateTensorboard({ ...board, status: boardStatuses.RUNNING, timestamp: Date.now() });
             return { code: result.statusCode };
         }
         catch (error) {
