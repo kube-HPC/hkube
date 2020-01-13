@@ -83,6 +83,15 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'STORAGE_BINARY',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'STORAGE_BINARY'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
@@ -108,6 +117,7 @@ const workerTemplate = {
                                     }
                                 }
                             },
+                            
                         ],
                     },
                     {
@@ -124,7 +134,7 @@ const workerTemplate = {
                 restartPolicy: 'Never'
             }
         },
-        backoffLimit: 4
+        backoffLimit: 0
     }
 };
 

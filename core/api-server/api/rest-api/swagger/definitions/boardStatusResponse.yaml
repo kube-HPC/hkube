@@ -1,0 +1,8 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/boardName"
+  status:
+    type: string
+  relativeUrl:
+    type: string

@@ -1,7 +1,7 @@
 const logger = require('@hkube/logger');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const Events = require('../consts/Events');
+const commands = require('../consts/commands');
 const TaskRunner = require('../tasks/task-runner');
 const component = require('../consts/componentNames').JOBS_CONSUMER;
 let log;
@@ -41,7 +41,7 @@ class JobConsumer {
 
     _handleTaskRunner(option) {
         this._taskRunner = new TaskRunner(option);
-        this._taskRunner.on(Events.COMMANDS.stopProcessing, () => {
+        this._taskRunner.on(commands.stopProcessing, () => {
             this._stopProcessing();
         });
     }

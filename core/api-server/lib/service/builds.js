@@ -7,13 +7,14 @@ const fse = require('fs-extra');
 const { diff } = require('deep-diff');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
+const { buildStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
-const States = require('../state/States');
 const { MESSAGES } = require('../consts/builds');
 const { uuid } = require('../utils');
+const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatuses.ACTIVE];
 
 class Builds {
     async getBuild(options) {
@@ -34,7 +35,7 @@ class Builds {
     async startBuild(options) {
         const build = {
             ...options,
-            status: States.PENDING,
+            status: buildStatuses.PENDING,
             progress: 0,
             result: null,
             error: null,
@@ -49,12 +50,12 @@ class Builds {
         validator.validateBuildId(options);
         const { buildId } = options;
         const build = await this.getBuild({ buildId });
-        if (!stateManager.isActiveState(build.status)) {
+        if (!this.isActiveState(build.status)) {
             throw new InvalidDataError(`unable to stop build because its in ${build.status} status`);
         }
         const buildData = {
             buildId,
-            status: States.STOPPED,
+            status: buildStatuses.STOPPED,
             endTime: Date.now()
         };
         await stateManager.updateBuild(buildData);
@@ -64,7 +65,7 @@ class Builds {
         validator.validateBuildId(options);
         const { buildId } = options;
         const build = await this.getBuild({ buildId });
-        if (stateManager.isActiveState(build.status)) {
+        if (this.isActiveState(build.status)) {
             throw new InvalidDataError(`unable to rerun build because its in ${build.status} status`);
         }
         await this.startBuild(build);
@@ -86,6 +87,10 @@ class Builds {
             await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt, type, baseImage });
         }
         return { algorithm, buildId, messages };
+    }
+
+    isActiveState(state) {
+        return ActiveStates.includes(state);
     }
 
     async createBuildFromGitRepository(oldAlgorithm, newAlgorithm) {

@@ -1,0 +1,38 @@
+get:
+  tags:
+    - Boards
+  summary: Board status
+  description: Board status
+  parameters:
+    - name: taskId
+      in: path
+      description: Unique identifier representing board
+      required: true
+      schema:
+        type: string
+        format: board-name
+  responses:
+    "200":
+      description: start board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/boardStatusResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: board Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

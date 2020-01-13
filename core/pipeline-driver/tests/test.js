@@ -6,8 +6,7 @@ const chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 const sinon = require('sinon');
-const { Producer } = require('@hkube/producer-consumer');
-const Events = require('../lib/consts/Events');
+const { pipelineStatuses } = require('@hkube/consts');
 const DriverStates = require('../lib/state/DriverStates');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const { Node } = NodeTypes;
@@ -222,7 +221,7 @@ describe('Test', function () {
             await taskRunner.start(job)
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
-            expect(call.args[0].message).to.equal(error);
+            expect(call.args[0].error.message).to.equal(error);
         });
         it('should start only one pipeline', async function () {
             const jobId = `jobid-${uuidv4()}`;
@@ -393,7 +392,7 @@ describe('Test', function () {
             await taskRunner.start(job)
             const call = spy.getCalls()[0];
             expect(spy.calledOnce).to.equal(true);
-            expect(call.args[0].message).to.equal(error);
+            expect(call.args[0].error.message).to.equal(error);
         });
         it('should wait any', async function () {
             const jobId = `jobid-${uuidv4()}`;
@@ -579,7 +578,7 @@ describe('Test', function () {
                 const taskId = `taskId-${uuidv4()}`;
                 const data = { error: 'some different error', status: 'failed' }
                 await stateManager.watchTasks({ jobId });
-                stateManager.on(Events.TASKS.FAILED, (response) => {
+                stateManager.on('task-failed', (response) => {
                     throw new Error('failed');
                 });
                 await stateManager.unWatchTasks({ jobId });
@@ -594,7 +593,7 @@ describe('Test', function () {
                 const jobId = `jobid-${uuidv4()}`;
                 const status = DriverStates.STOPPED;
                 await stateManager.watchJobStatus({ jobId });
-                stateManager.on(Events.JOBS.STOPPED, (response) => {
+                stateManager.on(`job-${pipelineStatuses.STOPPED}`, (response) => {
                     if (response.jobId === jobId) {
                         expect(response.jobId).to.equal(jobId);
                         expect(response.status).to.equal(status);
@@ -608,7 +607,7 @@ describe('Test', function () {
             return new Promise(async (resolve, reject) => {
                 const jobId = `jobid-${uuidv4()}`;
                 await stateManager.watchJobStatus({ jobId });
-                stateManager.on(Events.JOBS.STOPPED, (response) => {
+                stateManager.on(`job-${pipelineStatuses.STOPPED}`, (response) => {
                     throw new Error('failed');
                 });
                 await stateManager.unWatchJobStatus({ jobId });

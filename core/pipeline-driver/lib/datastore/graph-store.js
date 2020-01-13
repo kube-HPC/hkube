@@ -4,7 +4,7 @@ const isEqual = require('lodash.isequal');
 const deep = require('deep-get-set');
 const flatten = require('flat');
 const logger = require('@hkube/logger');
-const States = require('../state/NodeStates');
+const { taskStatuses } = require('@hkube/consts');
 const RedisStorage = require('./redis-storage-adapter');
 const components = require('../consts/componentNames');
 const INTERVAL = 4000;
@@ -162,10 +162,10 @@ class GraphStore {
             if (b.error) {
                 batchInfo.errors += 1;
             }
-            if (b.status === States.SUCCEED || b.status === States.FAILED) {
+            if (b.status === taskStatuses.SUCCEED || b.status === taskStatuses.FAILED) {
                 batchInfo.completed += 1;
             }
-            else if (b.status === States.CREATING || b.status === States.PENDING) {
+            else if (b.status === taskStatuses.CREATING || b.status === taskStatuses.PENDING) {
                 batchInfo.idle += 1;
             }
             else {

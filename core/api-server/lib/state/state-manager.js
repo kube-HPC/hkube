@@ -2,10 +2,6 @@ const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
-const States = require('./States');
-const ActiveState = [States.PENDING, States.CREATING, States.ACTIVE, States.RECOVERING, States.RESUMED, States.PAUSED];
-const CompletedState = [States.COMPLETED, States.FAILED, States.STOPPED];
-const PausedState = [States.PAUSED];
 
 class StateManager extends EventEmitter {
     async init(options) {
@@ -13,18 +9,6 @@ class StateManager extends EventEmitter {
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
         await this._watchBuilds();
         return this._watchJobResults();
-    }
-
-    isActiveState(state) {
-        return ActiveState.includes(state);
-    }
-
-    isCompletedState(state) {
-        return CompletedState.includes(state);
-    }
-
-    isPausedState(state) {
-        return PausedState.includes(state);
     }
 
     setExecution(options) {
@@ -106,6 +90,22 @@ class StateManager extends EventEmitter {
         return this._etcd.pipelines.get(options);
     }
 
+    getTensorboard(options, type) {
+        return this._etcd.tensorboard[type].get(options);
+    }
+
+    async setTensorboard(options, type) {
+        await this._etcd.tensorboard[type].set(options);
+    }
+
+    async updateTensorBoard(options, type) {
+        await this._etcd.tensorboard[type].update(options);
+    }
+
+    async deleteTensorBoard(options, type) {
+        await this._etcd.tensorboard[type].delete(options);
+    }
+
     async getPipelines(options, filter = () => true) {
         const pipelines = await this._etcd.pipelines.list(options);
         return pipelines.filter(filter);
@@ -142,6 +142,10 @@ class StateManager extends EventEmitter {
     async getJobResults(options) {
         const list = await this._etcd.jobs.results.list(options);
         return Promise.all(list.map(r => this.getResultFromStorage(r)));
+    }
+
+    async getJobResultsAsRaw(options) {
+        return this._etcd.jobs.results.list(options);
     }
 
     setJobResults(options) {

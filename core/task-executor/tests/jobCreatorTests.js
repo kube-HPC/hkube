@@ -130,7 +130,24 @@ describe('jobCreator', () => {
             expect(res).to.nested.include({ 'spec.template.spec.containers[1].image': 'myImage1' });
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
             expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:latest' });
-
+            expect(res.spec.template.spec.containers[0].env).to.deep.include({
+                name: 'DEFAULT_STORAGE',
+                valueFrom: {
+                    configMapKeyRef: {
+                        key: 'DEFAULT_STORAGE',
+                        name: 'task-executor-configmap'
+                    }
+                }
+            });
+            expect(res.spec.template.spec.containers[0].env).to.deep.include({
+                name: 'STORAGE_BINARY',
+                valueFrom: {
+                    configMapKeyRef: {
+                        key: 'STORAGE_BINARY',
+                        name: 'task-executor-configmap'
+                    }
+                }
+            });
             expect(res.metadata.name).to.include('myalgo1-');
         });
         it('should apply with worker', () => {
@@ -140,6 +157,19 @@ describe('jobCreator', () => {
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
             expect(res.metadata.name).to.include('myalgo1-');
         });
+
+        it('should apply with binary storage', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, algorithmOptions:{binary: true} });
+            expect(res.spec.template.spec.containers[0].env).to.deep.include({name: 'WORKER_BINARY', value: 'true'})
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({name: 'WORKER_BINARY', value: 'true'})
+        });
+
+        it('should apply without binary storage', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
+            expect(res.spec.template.spec.containers[0].env).to.deep.not.include({name: 'WORKER_BINARY', value: 'true'})
+            expect(res.spec.template.spec.containers[1].env).to.deep.not.include({name: 'WORKER_BINARY', value: 'true'})
+        });
+
         it('should apply with worker and resources', () => {
             globalSettings.applyResources = true;
 

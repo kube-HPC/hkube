@@ -6,10 +6,10 @@ const Zip = require('adm-zip');
 const targz = require('targz');
 const _clone = require('git-clone');
 const { spawn } = require('child_process');
+const { buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { STATES, PROGRESS } = require('../consts/States');
-const buildType = require('../consts/buildType');
 const component = require('../consts/components').DOCKER_BUILDER;
 const { KANIKO } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
@@ -327,7 +327,7 @@ const runBuild = async (options) => {
 
         await _ensureDirs(buildDirs);
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        if (type === buildType.GIT) {
+        if (type === buildTypes.GIT) {
             await _downloadFromGit({ dest, gitRepository });
         }
         else {
