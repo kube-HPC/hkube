@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.2.27",
+  "version": "1.2.28",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
@@ -18,7 +18,7 @@
     "@hkube/producer-consumer": "^1.0.46",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
-    "@hkube/storage-manager": "^1.0.58",
+    "@hkube/storage-manager": "^1.0.59",
     "async": "^3.1.0",
     "clone": "^2.1.2",
     "deep-get-set": "^1.1.0",

@@ -1,6 +1,6 @@
 {
   "name": "algorithm-builder",
-  "version": "1.2.25",
+  "version": "1.2.27",
   "description": "build algorithm with hkube worker connectivity",
   "author": "Hkube",
   "license": "ISC",
@@ -22,7 +22,7 @@
     "@hkube/etcd": "^5.0.14",
     "@hkube/kubernetes-client": "^1.0.27",
     "@hkube/logger": "^1.0.25",
-    "@hkube/storage-manager": "^1.0.58",
+    "@hkube/storage-manager": "^1.0.59",
     "adm-zip": "^0.4.13",
     "fs-extra": "^8.1.0",
     "git-clone": "^0.1.0",
