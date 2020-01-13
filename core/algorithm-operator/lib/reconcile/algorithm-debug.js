@@ -50,7 +50,7 @@ const reconcile = async ({ kubernetesKinds, algorithms, versions, registry, clus
     }
     for (let algorithm of added) { // eslint-disable-line
         await _createKinds({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, algorithmOptions: algorithm.options, workerEnv: algorithm.workerEnv }); // eslint-disable-line
-        await etcd.storeAlgorithmData(algorithm.algorithmName, { algorithmData: algorithm, path: `${debugPathPrefix}/${algorithm.algorithmName}` }); // eslint-disable-line
+        await etcd.storeAlgorithmData(algorithm.name, { algorithmData: algorithm, path: `${debugPathPrefix}/${algorithm.name}` }); // eslint-disable-line
     }
     for (let algorithm of removed) { // eslint-disable-line
         await etcd.removeAlgorithmData(algorithm.algorithmName); // eslint-disable-line
