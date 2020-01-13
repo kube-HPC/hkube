@@ -1,6 +1,6 @@
 {
     "name": "api-server",
-    "version": "1.2.56",
+    "version": "1.2.57",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
