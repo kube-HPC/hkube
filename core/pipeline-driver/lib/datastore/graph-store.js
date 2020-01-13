@@ -110,7 +110,8 @@ class GraphStore {
             batchIndex: task.batchIndex,
             startTime: task.startTime,
             endTime: task.endTime,
-            metricsPath: task.metricsPath
+            metricsPath: task.metricsPath,
+            level: task.level
         };
     }
 
