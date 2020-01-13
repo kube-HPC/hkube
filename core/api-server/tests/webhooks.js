@@ -307,7 +307,7 @@ describe('Webhooks', () => {
 
             const options2 = {
                 method: 'GET',
-                uri: `${restUrl}/webhooks/list/?name=${jobId}&limit=3`
+                uri: `${restUrl}/webhooks/list/${jobId}`
             };
             const response2 = await request(options2);
             expect(response2.body[0]).to.have.property('jobId');
