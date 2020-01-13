@@ -1,10 +1,11 @@
+const { taskStatuses } = require('@hkube/consts');
+
 const events = {
-    WAITING: 'task-waiting',
-    ACTIVE: 'task-active',
-    SUCCEED: 'task-succeed',
-    FAILED: 'task-failed',
-    STALLED: 'task-stalled',
-    CRASHED: 'task-crashed'
+    ACTIVE: `task-${taskStatuses.ACTIVE}`,
+    SUCCEED: `task-${taskStatuses.SUCCEED}`,
+    FAILED: `task-${taskStatuses.FAILED}`,
+    STALLED: `task-${taskStatuses.STALLED}`,
+    CRASHED: `task-${taskStatuses.CRASHED}`
 };
 
 module.exports = events;
