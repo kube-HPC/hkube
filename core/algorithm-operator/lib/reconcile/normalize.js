@@ -8,7 +8,9 @@ const normalizeDeployments = (deploymentsRaw) => {
     const deployments = deploymentsRaw.body.items.map(j => ({
         name: j.metadata.name,
         algorithmName: j.metadata.labels['algorithm-name'],
-        image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image'))
+        image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image')),
+        imageFull: objectPath.get(j, 'spec.template.spec.containers.0.image'),
+        env: objectPath.get(j, 'spec.template.spec.containers.0.env', [])
     }));
     return deployments;
 };

@@ -1,4 +1,6 @@
 const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line 
+const formatters = require('../../lib/utils/formatters');
+
 const config = {};
 config.serviceName = packageJson.name;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
@@ -69,7 +71,8 @@ config.s3 = {
 };
 
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    binary: formatters.parseBool(process.env.STORAGE_BINARY, false)
 };
 
 config.storageAdapters = {

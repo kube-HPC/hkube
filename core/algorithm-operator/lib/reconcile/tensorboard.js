@@ -1,32 +1,46 @@
+const rp = require('request-promise');
+const log = require('@hkube/logger').GetLogFromContainer();
+const { boardStatuses } = require('@hkube/consts');
 const etcd = require('../helpers/etcd');
 const { createKindsSpec } = require('../deployments/tensorboard');
 const kubernetes = require('../helpers/kubernetes');
-const { normalizeBoardDeployments, normalizeSecret } = require('./normalize');
+const { normalizeBoardDeployments } = require('./normalize');
 const deploymentType = require('../consts/DeploymentTypes').BOARD;
-
-const STATUS = {
-    RUNNING: 'running',
-    PENDING: 'pending',
-    STOPPED: 'stopped'
+const _createBoardDeployment = async (deploymentDetails) => {
+    const { versions, registry, clusterOptions, options, board } = deploymentDetails;
+    const { boardId, logDir } = board;
+    const { deploymentSpec, serviceSpec, ingressSpec } = createKindsSpec({ boardId, logDir, versions, registry, clusterOptions, options });
+    await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: boardId }, deploymentType);
+    board.status = boardStatuses.CREATING;
+    board.timestamp = Date.now();
+    await etcd.updateTensorboard(board);
 };
 
-const _createBoardDeploynent = async (jobDetails) => {
-    const { deploymentSpec, serviceSpec, ingressSpec } = createKindsSpec(jobDetails);
-    await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: jobDetails.boardId }, deploymentType);
-    await etcd.setTensorboard({ boardId: jobDetails.boardId, timestamp: Date.now(), progress: 5, status: STATUS.RUNNING });
+const reconcile = async ({ boards, deployments, versions, registry, clusterOptions, options }) => {
+    const normDeployments = normalizeBoardDeployments(deployments);
+    const pending = boards.filter(b => b.status === boardStatuses.PENDING);
+    const added = pending.filter(a => !normDeployments.find(d => d.boardId === a.boardId));
+    const removed = normDeployments.filter(a => !boards.find(d => d.boardId === a.boardId));
+    await Promise.all(added.map(a => _createBoardDeployment({ board: a, versions, registry, clusterOptions, options })));
+    await Promise.all(removed.map(a => kubernetes.deleteExposedDeployment(a.boardId, deploymentType)));
 };
 
-const reconcile = async ({ boards, deployments, secret, versions, registry, clusterOptions, options }) => {
-    const normDeploynets = normalizeBoardDeployments(deployments);
-    const normSecret = normalizeSecret(secret);
-    const pending = boards.filter(b => b.status === STATUS.PENDING);
-    const stopped = boards.filter(b => b.status === STATUS.STOPPED);
-    const added = pending.filter(a => !normDeploynets.find(d => d.boardId === a.boardId));
-    const removed = normDeploynets.filter(a => stopped.find(d => d.boardId === a.boardId));
-    await Promise.all(added.map(a => _createBoardDeploynent({ boardId: a.boardId, logDir: a.logDir, secret: normSecret, versions, registry, clusterOptions, options })));
-    await Promise.all(removed.map(a => kubernetes.deleteExpoesedDeploymet(a.boardId, deploymentType)));
+const updateTensorboards = async () => {
+    const boards = await etcd.getTensorboards();
+    const creating = boards.filter(b => b.status === boardStatuses.CREATING);
+    await Promise.all(creating.map(async (board) => {
+        const url = `http://board-service-${board.boardId}.default.svc`;
+        try {
+            const result = await rp({ uri: url, resolveWithFullResponse: true });
+            await etcd.updateTensorboard({ ...board, status: boardStatuses.RUNNING, timestamp: Date.now() });
+            return { code: result.statusCode };
+        }
+        catch (error) {
+            log.debug(`${url} ${error.message}`);
+            return error.statusCode;
+        }
+    }));
 };
-
 module.exports = {
-    reconcile
+    reconcile, updateTensorboards
 };

@@ -1,8 +1,8 @@
 const clone = require('clone');
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const { pipelineTypes } = require('@hkube/consts');
 const { uuid } = require('../lib/utils');
-const pipelineTypes = require('../lib/consts/pipeline-types');
 const querystring = require('querystring');
 const { pipelines, workerStub } = require('./mocks');
 const { request } = require('./utils');

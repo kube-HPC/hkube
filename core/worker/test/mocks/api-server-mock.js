@@ -1,8 +1,9 @@
 const uuidv4 = require('uuid/v4');
 const vm = require('vm');
+const { pipelineStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const discovery = require('../../lib/states/discovery');
-const { JobStatus, ApiServerPostTypes } = require('../../lib/consts');
+const { ApiServerPostTypes } = require('../../lib/consts');
 const EventEmitter = require('events');
 
 class ApiServerClientMock extends EventEmitter {
@@ -62,7 +63,7 @@ class ApiServerClientMock extends EventEmitter {
         const options = {
             jobId,
             startTime: Date.now(),
-            status: JobStatus.STOPPED
+            status: pipelineStatuses.STOPPED
         }
         await discovery._etcd.jobs.results.set(options);
         this.emit('stop');
@@ -79,7 +80,7 @@ class ApiServerClientMock extends EventEmitter {
             jobId,
             data: { storageInfo },
             startTime: Date.now(),
-            status: JobStatus.COMPLETED,
+            status: pipelineStatuses.COMPLETED,
         }
         await discovery._etcd.jobs.results.set(options);
     }
@@ -88,7 +89,7 @@ class ApiServerClientMock extends EventEmitter {
         const options = {
             jobId,
             startTime: Date.now(),
-            status: JobStatus.FAILED,
+            status: pipelineStatuses.FAILED,
             error: error.message
         }
         await discovery._etcd.jobs.results.set(options);

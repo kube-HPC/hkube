@@ -35,6 +35,10 @@ const socketWorkerCommunicationSchema = {
         maxPayload: {
             type: 'integer',
             default: 1e8
+        },
+        binary: {
+            type: 'boolean',
+            default: false
         }
     }
 };

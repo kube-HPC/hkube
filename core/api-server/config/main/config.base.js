@@ -1,4 +1,6 @@
 const packageJson = require(process.cwd() + '/package.json');
+const formatter = require(process.cwd() + '/lib/utils/formatters');
+
 const config = {};
 config.serviceName = packageJson.name;
 
@@ -96,7 +98,8 @@ config.s3 = {
 };
 
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    binary: formatter.parseBool(process.env.STORAGE_BINARY, false)
 };
 
 config.storageAdapters = {
