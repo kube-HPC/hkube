@@ -1,5 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
-const formatter = require(process.cwd() + '/lib/helpers/formatters');
+const formatters = require(process.cwd() + '/lib/helpers/formatters');
 const config = {};
 
 config.serviceName = packageJson.name;
@@ -21,7 +21,7 @@ config.etcd = {
     serviceName: config.serviceName
 };
 
-config.debugMode = formatter.parseBool(process.env.DEBUG_MODE);
+config.debugMode = formatters.parseBool(process.env.DEBUG_MODE);
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.workerImage = process.env.WORKER_IMAGE;
 config.algorithmImage = process.env.ALGORITHM_IMAGE;
@@ -40,7 +40,8 @@ config.workerCommunication = {
             port: process.env.WORKER_SOCKET_PORT || 3000
         },
         maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES,
-        pingTimeout: formatter.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000)
+        pingTimeout: formatters.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000),
+        binary: formatters.parseBool(process.env.WORKER_BINARY, false)
     }
 };
 
@@ -58,7 +59,7 @@ config.jobConsumer = {
 
 config.pollingInterval = process.env.POLLING_INTERVAL || 100; // The polling interval is the period of time between jobs in ms.
 
-config.hotWorker = formatter.parseBool(process.env.HOT_WORKER);
+config.hotWorker = formatters.parseBool(process.env.HOT_WORKER);
 
 config.timeouts = {
     stop: 10000 // timeout to stop the algorithm in ms
@@ -96,7 +97,8 @@ config.s3 = {
 };
 
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
+    binary: formatters.parseBool(process.env.STORAGE_BINARY, false)
 };
 
 config.storageAdapters = {
@@ -118,8 +120,9 @@ config.storageAdapters = {
     }
 };
 config.cacheResults = {
-    enabled: formatter.parseBool(process.env.CACHE_RESULTS_ENABLE, true),
-    updateFrequency: formatter.parseInt(process.env.CACHE_UPDATE_FREQUENCY, 5000)
+    enabled: formatters.parseBool(process.env.CACHE_RESULTS_ENABLE, true),
+    updateFrequency: formatters.parseInt(process.env.CACHE_UPDATE_FREQUENCY, 5000)
 };
-config.disableCache = formatter.parseBool(process.env.DISABLE_WORKER_CACHE, false);
+config.disableCache = formatters.parseBool(process.env.DISABLE_WORKER_CACHE, false);
+config.algoMetricsDir = process.env.ALGO_METRICS_DIR || '/var/metrics/';
 module.exports = config;

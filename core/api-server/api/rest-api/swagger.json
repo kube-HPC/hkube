@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.30",
+    "version": "1.2.52",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -18,8 +18,36 @@
       "description": "Execution pipelines as raw or stored"
     },
     {
+      "name": "Graph",
+      "description": "Query the pipeline graph"
+    },
+    {
+      "name": "Builds",
+      "description": "status, rerun and stop builds"
+    },
+    {
+      "name": "Versions",
+      "description": "Versioning for algorithms"
+    },
+    {
+      "name": "Cron",
+      "description": "Get pipelines cron result and status"
+    },
+    {
       "name": "Pipelines",
       "description": "Get pipelines status and result"
+    },
+    {
+      "name": "Pipeline Readme",
+      "description": "Store readme for pipelines"
+    },
+    {
+      "name": "Algorithm Readme",
+      "description": "Store readme for algorithms"
+    },
+    {
+      "name": "Storage",
+      "description": "Query the storage"
     },
     {
       "name": "StoreAlgorithms",
@@ -28,14 +56,6 @@
     {
       "name": "StorePipelines",
       "description": "Store new pipelines, update, get and delete"
-    },
-    {
-      "name": "Cron",
-      "description": "Get pipelines cron result and status"
-    },
-    {
-      "name": "Pipeline Readme",
-      "description": "Store readme for pipelines and algorithms"
     },
     {
       "name": "Webhooks",
@@ -86,6 +106,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "input": {
@@ -93,6 +114,17 @@
                           "description": "The input for the algorithm",
                           "items": {},
                           "default": []
+                        },
+                        "metrics": {
+                          "default": {},
+                          "type": "object",
+                          "properties": {
+                            "tensorboard": {
+                              "type": "boolean",
+                              "description": "Should tensorboard metrics be collected.",
+                              "default": true
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -201,6 +233,16 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific algorithm",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -365,35 +407,15 @@
                     "maximum": 5,
                     "example": 3
                   },
-                  "triggers": {
-                    "type": "object",
-                    "properties": {
-                      "pipelines": {
-                        "type": "array",
-                        "description": "pipelines to activate upon result",
-                        "items": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      },
-                      "cron": {
-                        "type": "object",
-                        "properties": {
-                          "pattern": {
-                            "type": "string",
-                            "description": "cron job",
-                            "minLength": 1,
-                            "format": "cron"
-                          },
-                          "enabled": {
-                            "type": "boolean",
-                            "description": "enable or disable cron job",
-                            "default": false
-                          }
-                        }
-                      }
-                    },
-                    "additionalProperties": false
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific algorithm",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -963,6 +985,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -970,6 +993,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -1078,6 +1112,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -1189,6 +1233,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -1196,6 +1241,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -1304,6 +1360,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -1684,13 +1750,13 @@
         }
       }
     },
-    "/pipelines/results/raw/{name}": {
+    "/pipelines/results/{name}": {
       "get": {
         "tags": [
           "Pipelines"
         ],
-        "summary": "Get raw pipeline results",
-        "description": "return results of raw pipelines by given pipeline name",
+        "summary": "Get pipeline results",
+        "description": "return results of pipelines by given pipeline name",
         "parameters": [
           {
             "name": "name",
@@ -1824,293 +1890,13 @@
         }
       }
     },
-    "/pipelines/results/stored/{name}": {
+    "/pipelines/status/{name}": {
       "get": {
         "tags": [
           "Pipelines"
         ],
-        "summary": "Get stored pipeline results",
-        "description": "return results of stored pipelines by given pipeline name",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "pipeline name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "sort by asc or desc",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "description": "order by",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "limit",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "jobId": {
-                        "type": "string"
-                      },
-                      "timestamp": {
-                        "type": "string"
-                      },
-                      "pipeline": {
-                        "type": "string"
-                      },
-                      "data": {
-                        "type": "array",
-                        "items": {}
-                      },
-                      "status": {
-                        "type": "string"
-                      },
-                      "timeTook": {
-                        "type": "number"
-                      },
-                      "storageModule": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "pipelines Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/pipelines/status/raw/{name}": {
-      "get": {
-        "tags": [
-          "Pipelines"
-        ],
-        "summary": "Get raw pipeline status",
-        "description": "return status of raw pipelines by given pipeline name",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "pipeline name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "sort by asc or desc",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "description": "order by",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "limit",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "jobId": {
-                        "type": "string"
-                      },
-                      "timestamp": {
-                        "type": "string"
-                      },
-                      "pipeline": {
-                        "type": "string"
-                      },
-                      "data": {
-                        "type": "array",
-                        "items": {}
-                      },
-                      "status": {
-                        "type": "string"
-                      },
-                      "timeTook": {
-                        "type": "number"
-                      },
-                      "storageModule": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "pipelines Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/pipelines/status/stored/{name}": {
-      "get": {
-        "tags": [
-          "Pipelines"
-        ],
-        "summary": "Get stored pipeline status",
-        "description": "return status of stored pipelines by given pipeline name",
+        "summary": "Get pipeline status",
+        "description": "return status of pipelines by given pipeline name",
         "parameters": [
           {
             "name": "name",
@@ -2905,6 +2691,7 @@
                       "type": "string",
                       "description": "Unique identifier representing a specific algorithm",
                       "minLength": 1,
+                      "maxLength": 32,
                       "format": "algorithm-name"
                     },
                     "env": {
@@ -2917,7 +2704,8 @@
                     },
                     "algorithmImage": {
                       "type": "string",
-                      "description": "image name as in the docker registry"
+                      "description": "image name as in the docker registry",
+                      "format": "algorithm-image"
                     },
                     "cpu": {
                       "type": "number",
@@ -3248,6 +3036,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1,
+                        "maxLength": 32,
                         "format": "algorithm-name"
                       },
                       "env": {
@@ -3260,7 +3049,8 @@
                       },
                       "algorithmImage": {
                         "type": "string",
-                        "description": "image name as in the docker registry"
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
                       },
                       "cpu": {
                         "type": "number",
@@ -3438,6 +3228,7 @@
                     "type": "string",
                     "description": "Unique identifier representing a specific algorithm",
                     "minLength": 1,
+                    "maxLength": 32,
                     "format": "algorithm-name"
                   },
                   "env": {
@@ -3450,7 +3241,8 @@
                   },
                   "algorithmImage": {
                     "type": "string",
-                    "description": "image name as in the docker registry"
+                    "description": "image name as in the docker registry",
+                    "format": "algorithm-image"
                   },
                   "cpu": {
                     "type": "number",
@@ -3683,6 +3475,7 @@
                     "type": "string",
                     "description": "Unique identifier representing a specific algorithm",
                     "minLength": 1,
+                    "maxLength": 32,
                     "format": "algorithm-name"
                   },
                   "env": {
@@ -3695,7 +3488,8 @@
                   },
                   "algorithmImage": {
                     "type": "string",
-                    "description": "image name as in the docker registry"
+                    "description": "image name as in the docker registry",
+                    "format": "algorithm-image"
                   },
                   "cpu": {
                     "type": "number",
@@ -3914,6 +3708,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1,
+                        "maxLength": 32,
                         "format": "algorithm-name"
                       },
                       "env": {
@@ -3926,7 +3721,8 @@
                       },
                       "algorithmImage": {
                         "type": "string",
-                        "description": "image name as in the docker registry"
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
                       },
                       "cpu": {
                         "type": "number",
@@ -4104,6 +3900,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "env": {
@@ -4116,7 +3913,8 @@
                         },
                         "algorithmImage": {
                           "type": "string",
-                          "description": "image name as in the docker registry"
+                          "description": "image name as in the docker registry",
+                          "format": "algorithm-image"
                         },
                         "cpu": {
                           "type": "number",
@@ -4356,6 +4154,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -4363,6 +4162,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -4471,6 +4281,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -4685,6 +4505,7 @@
                               "type": "string",
                               "description": "Unique identifier representing a specific algorithm",
                               "minLength": 1,
+                              "maxLength": 32,
                               "format": "algorithm-name"
                             },
                             "input": {
@@ -4692,6 +4513,17 @@
                               "description": "The input for the algorithm",
                               "items": {},
                               "default": []
+                            },
+                            "metrics": {
+                              "default": {},
+                              "type": "object",
+                              "properties": {
+                                "tensorboard": {
+                                  "type": "boolean",
+                                  "description": "Should tensorboard metrics be collected.",
+                                  "default": true
+                                }
+                              }
                             }
                           },
                           "required": [
@@ -4800,6 +4632,16 @@
                           }
                         },
                         "additionalProperties": false
+                      },
+                      "tags": {
+                        "type": "array",
+                        "description": "Array of tags",
+                        "items": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific algorithm",
+                          "minLength": 1,
+                          "maxLength": 32
+                        }
                       }
                     },
                     "additionalProperties": false,
@@ -4870,6 +4712,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "input": {
@@ -4877,6 +4720,17 @@
                           "description": "The input for the algorithm",
                           "items": {},
                           "default": []
+                        },
+                        "metrics": {
+                          "default": {},
+                          "type": "object",
+                          "properties": {
+                            "tensorboard": {
+                              "type": "boolean",
+                              "description": "Should tensorboard metrics be collected.",
+                              "default": true
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -4985,6 +4839,16 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific algorithm",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -5031,6 +4895,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -5038,6 +4903,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -5146,6 +5022,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -5253,6 +5139,7 @@
                           "type": "string",
                           "description": "Unique identifier representing a specific algorithm",
                           "minLength": 1,
+                          "maxLength": 32,
                           "format": "algorithm-name"
                         },
                         "input": {
@@ -5260,6 +5147,17 @@
                           "description": "The input for the algorithm",
                           "items": {},
                           "default": []
+                        },
+                        "metrics": {
+                          "default": {},
+                          "type": "object",
+                          "properties": {
+                            "tensorboard": {
+                              "type": "boolean",
+                              "description": "Should tensorboard metrics be collected.",
+                              "default": true
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -5368,6 +5266,16 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific algorithm",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
                   }
                 },
                 "additionalProperties": false,
@@ -5414,6 +5322,7 @@
                             "type": "string",
                             "description": "Unique identifier representing a specific algorithm",
                             "minLength": 1,
+                            "maxLength": 32,
                             "format": "algorithm-name"
                           },
                           "input": {
@@ -5421,6 +5330,17 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "metrics": {
+                            "default": {},
+                            "type": "object",
+                            "properties": {
+                              "tensorboard": {
+                                "type": "boolean",
+                                "description": "Should tensorboard metrics be collected.",
+                                "default": true
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -5529,6 +5449,16 @@
                         }
                       },
                       "additionalProperties": false
+                    },
+                    "tags": {
+                      "type": "array",
+                      "description": "Array of tags",
+                      "items": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32
+                      }
                     }
                   },
                   "additionalProperties": false,
@@ -5932,6 +5862,912 @@
         }
       }
     },
+    "/boards/tensor/pipeline/{pipelineName}/start/{nodeName}": {
+      "post": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Start board",
+        "description": "start board",
+        "parameters": [
+          {
+            "name": "pipelineName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nodeName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/pipeline/{pipelineName}/status/{nodeName}": {
+      "get": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Board status",
+        "description": "Board status",
+        "parameters": [
+          {
+            "name": "pipelineName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nodeName",
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Unique identifier representing board",
+                      "format": "board-name"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "relativeUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/pipeline/{pipelineName}/stop/{nodeName}": {
+      "delete": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Stop board",
+        "description": "Stop board",
+        "parameters": [
+          {
+            "name": "pipelineName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nodeName",
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/node/{nodeName}/start/{jobId}": {
+      "post": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Start board",
+        "description": "start board",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nodeName",
+            "in": "path",
+            "description": "Batch node name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pipelineName": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/node/{nodeName}/status/{jobId}": {
+      "get": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Board status",
+        "description": "Board status",
+        "parameters": [
+          {
+            "name": "jobId",
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true
+          },
+          {
+            "name": "nodeName",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Batch node name",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Unique identifier representing board",
+                      "format": "board-name"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "relativeUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/node/{nodeName}/stop/{jobId}": {
+      "delete": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Stop board",
+        "description": "stop board",
+        "parameters": [
+          {
+            "name": "jobId",
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true
+          },
+          {
+            "name": "nodeName",
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "description": "Batch node name",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/start/{taskId}": {
+      "post": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Start board",
+        "description": "start board",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "board-name"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pipelineName": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific pipeline",
+                    "minLength": 1,
+                    "format": "pipeline-name"
+                  },
+                  "nodeName": {
+                    "type": "string"
+                  },
+                  "jobId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/status/{taskId}": {
+      "get": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Board status",
+        "description": "Board status",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "board-name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Unique identifier representing board",
+                      "format": "board-name"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "relativeUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensor/pipeline/stop/{taskId}": {
+      "delete": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Stop board",
+        "description": "Stop board",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "description": "Unique identifier representing board",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "board-name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/builds/status/{buildId}": {
       "get": {
         "tags": [
@@ -5958,170 +6794,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "buildId": {
-                      "type": "string",
-                      "description": "Pipeline name"
-                    },
-                    "algorithm": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific algorithm",
-                          "minLength": 1,
-                          "format": "algorithm-name"
-                        },
-                        "env": {
-                          "type": "string",
-                          "enum": [
-                            "nodejs",
-                            "python",
-                            "jvm"
-                          ]
-                        },
-                        "algorithmImage": {
-                          "type": "string",
-                          "description": "image name as in the docker registry"
-                        },
-                        "cpu": {
-                          "type": "number",
-                          "default": 0.1,
-                          "minimum": 0,
-                          "description": "algorithm cpu"
-                        },
-                        "gpu": {
-                          "type": "integer",
-                          "minimum": 0,
-                          "description": "algorithm gpu"
-                        },
-                        "mem": {
-                          "type": "string",
-                          "description": "algorithm memory",
-                          "format": "algorithm-memory",
-                          "default": "256Mi",
-                          "example": "512Mi"
-                        },
-                        "options": {
-                          "type": "object",
-                          "properties": {
-                            "debug": {
-                              "type": "boolean",
-                              "description": "debug algorithm locally",
-                              "default": false
-                            },
-                            "pending": {
-                              "type": "boolean",
-                              "description": "pending algorithm",
-                              "default": false
-                            }
-                          },
-                          "default": {}
-                        },
-                        "gitRepository": {
-                          "type": "object",
-                          "properties": {
-                            "url": {
-                              "type": "string",
-                              "description": "a url for the git repository",
-                              "format": "url"
-                            },
-                            "commit": {
-                              "type": "object",
-                              "description": "commit details",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "commit id"
-                                },
-                                "timestamp": {
-                                  "type": "string",
-                                  "description": "commit time"
-                                },
-                                "message": {
-                                  "type": "string",
-                                  "description": "commit message"
-                                }
-                              },
-                              "required": [
-                                "id"
-                              ]
-                            },
-                            "branchName": {
-                              "type": "string",
-                              "default": "master",
-                              "description": "the branch name you wish to create a build from"
-                            },
-                            "tag": {
-                              "type": "string",
-                              "description": "a specific tag which will trigger the build"
-                            },
-                            "token": {
-                              "type": "string",
-                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                            },
-                            "gitKind": {
-                              "type": "string",
-                              "enum": [
-                                "github",
-                                "gitlab"
-                              ],
-                              "default": "github"
-                            }
-                          },
-                          "required": [
-                            "url"
-                          ]
-                        },
-                        "entryPoint": {
-                          "type": "string"
-                        },
-                        "baseImage": {
-                          "type": "string",
-                          "description": "Custom docker image to be used as base to the newly built algorithm image"
-                        },
-                        "version": {
-                          "type": "string"
-                        },
-                        "minHotWorkers": {
-                          "type": "integer",
-                          "description": "how many live algorithm instances will always run",
-                          "minimum": 0,
-                          "default": 0
-                        },
-                        "algorithmEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for algorithm"
-                        },
-                        "workerEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for worker"
-                        },
-                        "nodeSelector": {
-                          "type": "object",
-                          "description": "key value labels for nodes constraint",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "type of algorithm code resource",
-                          "enum": [
-                            "Git",
-                            "Code",
-                            "Image"
-                          ],
-                          "default": "Image"
-                        }
-                      },
-                      "required": [
-                        "name"
-                      ]
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "timestamp": {
+                    "message": {
                       "type": "string"
                     }
                   }
@@ -6194,7 +6867,7 @@
         "tags": [
           "Builds"
         ],
-        "summary": "Get build",
+        "summary": "Get build list",
         "description": "returns all builds that related to algorithm",
         "parameters": [
           {
@@ -6240,170 +6913,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "buildId": {
-                        "type": "string",
-                        "description": "Pipeline name"
-                      },
-                      "algorithm": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "description": "Unique identifier representing a specific algorithm",
-                            "minLength": 1,
-                            "format": "algorithm-name"
-                          },
-                          "env": {
-                            "type": "string",
-                            "enum": [
-                              "nodejs",
-                              "python",
-                              "jvm"
-                            ]
-                          },
-                          "algorithmImage": {
-                            "type": "string",
-                            "description": "image name as in the docker registry"
-                          },
-                          "cpu": {
-                            "type": "number",
-                            "default": 0.1,
-                            "minimum": 0,
-                            "description": "algorithm cpu"
-                          },
-                          "gpu": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "description": "algorithm gpu"
-                          },
-                          "mem": {
-                            "type": "string",
-                            "description": "algorithm memory",
-                            "format": "algorithm-memory",
-                            "default": "256Mi",
-                            "example": "512Mi"
-                          },
-                          "options": {
-                            "type": "object",
-                            "properties": {
-                              "debug": {
-                                "type": "boolean",
-                                "description": "debug algorithm locally",
-                                "default": false
-                              },
-                              "pending": {
-                                "type": "boolean",
-                                "description": "pending algorithm",
-                                "default": false
-                              }
-                            },
-                            "default": {}
-                          },
-                          "gitRepository": {
-                            "type": "object",
-                            "properties": {
-                              "url": {
-                                "type": "string",
-                                "description": "a url for the git repository",
-                                "format": "url"
-                              },
-                              "commit": {
-                                "type": "object",
-                                "description": "commit details",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "description": "commit id"
-                                  },
-                                  "timestamp": {
-                                    "type": "string",
-                                    "description": "commit time"
-                                  },
-                                  "message": {
-                                    "type": "string",
-                                    "description": "commit message"
-                                  }
-                                },
-                                "required": [
-                                  "id"
-                                ]
-                              },
-                              "branchName": {
-                                "type": "string",
-                                "default": "master",
-                                "description": "the branch name you wish to create a build from"
-                              },
-                              "tag": {
-                                "type": "string",
-                                "description": "a specific tag which will trigger the build"
-                              },
-                              "token": {
-                                "type": "string",
-                                "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                              },
-                              "gitKind": {
-                                "type": "string",
-                                "enum": [
-                                  "github",
-                                  "gitlab"
-                                ],
-                                "default": "github"
-                              }
-                            },
-                            "required": [
-                              "url"
-                            ]
-                          },
-                          "entryPoint": {
-                            "type": "string"
-                          },
-                          "baseImage": {
-                            "type": "string",
-                            "description": "Custom docker image to be used as base to the newly built algorithm image"
-                          },
-                          "version": {
-                            "type": "string"
-                          },
-                          "minHotWorkers": {
-                            "type": "integer",
-                            "description": "how many live algorithm instances will always run",
-                            "minimum": 0,
-                            "default": 0
-                          },
-                          "algorithmEnv": {
-                            "type": "object",
-                            "description": "key value environment variables for algorithm"
-                          },
-                          "workerEnv": {
-                            "type": "object",
-                            "description": "key value environment variables for worker"
-                          },
-                          "nodeSelector": {
-                            "type": "object",
-                            "description": "key value labels for nodes constraint",
-                            "additionalProperties": {
-                              "type": "string"
-                            }
-                          },
-                          "type": {
-                            "type": "string",
-                            "description": "type of algorithm code resource",
-                            "enum": [
-                              "Git",
-                              "Code",
-                              "Image"
-                            ],
-                            "default": "Image"
-                          }
-                        },
-                        "required": [
-                          "name"
-                        ]
-                      },
-                      "status": {
-                        "type": "string"
-                      },
-                      "timestamp": {
+                      "message": {
                         "type": "string"
                       }
                     }
@@ -6693,14 +7203,92 @@
                     "type": "object",
                     "description": "github object which received after push for more information https://developer.github.com/webhooks/"
                   }
-                },
-                "required": [
-                  "github"
-                ]
+                }
               }
             }
           },
           "description": "github webhook data",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "webhook created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/builds/webhook/gitlab": {
+      "post": {
+        "tags": [
+          "Builds"
+        ],
+        "summary": "Insert webhook for automating build after push",
+        "description": "webhook for automating  build algorithm directly from gitlab",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gitlab": {
+                    "type": "object",
+                    "description": "gitlab object which received after push for more information https://docs.gitlab.com/ee/user/project/integrations/webhooks.html"
+                  }
+                }
+              }
+            }
+          },
+          "description": "gitlab webhook data",
           "required": true
         },
         "responses": {
@@ -7469,373 +8057,6 @@
         "tags": [
           "Versions"
         ],
-        "summary": "Get algorithm versions",
-        "description": "returns list of algorithm versions.",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "algorithm name",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Unique identifier representing a specific algorithm",
-              "minLength": 1,
-              "format": "algorithm-name"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "sort by asc or desc",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "description": "order by",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "limit",
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific algorithm",
-                        "minLength": 1,
-                        "format": "algorithm-name"
-                      },
-                      "env": {
-                        "type": "string",
-                        "enum": [
-                          "nodejs",
-                          "python",
-                          "jvm"
-                        ]
-                      },
-                      "algorithmImage": {
-                        "type": "string",
-                        "description": "image name as in the docker registry"
-                      },
-                      "cpu": {
-                        "type": "number",
-                        "default": 0.1,
-                        "minimum": 0,
-                        "description": "algorithm cpu"
-                      },
-                      "gpu": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "description": "algorithm gpu"
-                      },
-                      "mem": {
-                        "type": "string",
-                        "description": "algorithm memory",
-                        "format": "algorithm-memory",
-                        "default": "256Mi",
-                        "example": "512Mi"
-                      },
-                      "options": {
-                        "type": "object",
-                        "properties": {
-                          "debug": {
-                            "type": "boolean",
-                            "description": "debug algorithm locally",
-                            "default": false
-                          },
-                          "pending": {
-                            "type": "boolean",
-                            "description": "pending algorithm",
-                            "default": false
-                          }
-                        },
-                        "default": {}
-                      },
-                      "gitRepository": {
-                        "type": "object",
-                        "properties": {
-                          "url": {
-                            "type": "string",
-                            "description": "a url for the git repository",
-                            "format": "url"
-                          },
-                          "commit": {
-                            "type": "object",
-                            "description": "commit details",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "description": "commit id"
-                              },
-                              "timestamp": {
-                                "type": "string",
-                                "description": "commit time"
-                              },
-                              "message": {
-                                "type": "string",
-                                "description": "commit message"
-                              }
-                            },
-                            "required": [
-                              "id"
-                            ]
-                          },
-                          "branchName": {
-                            "type": "string",
-                            "default": "master",
-                            "description": "the branch name you wish to create a build from"
-                          },
-                          "tag": {
-                            "type": "string",
-                            "description": "a specific tag which will trigger the build"
-                          },
-                          "token": {
-                            "type": "string",
-                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                          },
-                          "gitKind": {
-                            "type": "string",
-                            "enum": [
-                              "github",
-                              "gitlab"
-                            ],
-                            "default": "github"
-                          }
-                        },
-                        "required": [
-                          "url"
-                        ]
-                      },
-                      "entryPoint": {
-                        "type": "string"
-                      },
-                      "baseImage": {
-                        "type": "string",
-                        "description": "Custom docker image to be used as base to the newly built algorithm image"
-                      },
-                      "version": {
-                        "type": "string"
-                      },
-                      "minHotWorkers": {
-                        "type": "integer",
-                        "description": "how many live algorithm instances will always run",
-                        "minimum": 0,
-                        "default": 0
-                      },
-                      "algorithmEnv": {
-                        "type": "object",
-                        "description": "key value environment variables for algorithm"
-                      },
-                      "workerEnv": {
-                        "type": "object",
-                        "description": "key value environment variables for worker"
-                      },
-                      "nodeSelector": {
-                        "type": "object",
-                        "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "type of algorithm code resource",
-                        "enum": [
-                          "Git",
-                          "Code",
-                          "Image"
-                        ],
-                        "default": "Image"
-                      }
-                    },
-                    "required": [
-                      "name"
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "algorithm Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Versions"
-        ],
-        "summary": "Delete algorithm versions",
-        "description": "Delete existing algorithm version.",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "algorithm name",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "description": "Unique identifier representing a specific algorithm",
-              "minLength": 1,
-              "format": "algorithm-name"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "pipeline Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/versions/algorithms/{name}/{image}": {
-      "get": {
-        "tags": [
-          "Versions"
-        ],
         "summary": "Get algorithm specific version",
         "description": "returns list of algorithm versions.",
         "parameters": [
@@ -7848,14 +8069,14 @@
               "type": "string",
               "description": "Unique identifier representing a specific algorithm",
               "minLength": 1,
+              "maxLength": 32,
               "format": "algorithm-name"
             }
           },
           {
             "name": "image",
-            "in": "path",
+            "in": "query",
             "description": "algorithm image",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -7899,6 +8120,7 @@
                         "type": "string",
                         "description": "Unique identifier representing a specific algorithm",
                         "minLength": 1,
+                        "maxLength": 32,
                         "format": "algorithm-name"
                       },
                       "env": {
@@ -7911,7 +8133,8 @@
                       },
                       "algorithmImage": {
                         "type": "string",
-                        "description": "image name as in the docker registry"
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
                       },
                       "cpu": {
                         "type": "number",
@@ -8127,14 +8350,14 @@
               "type": "string",
               "description": "Unique identifier representing a specific algorithm",
               "minLength": 1,
+              "maxLength": 32,
               "format": "algorithm-name"
             }
           },
           {
             "name": "image",
-            "in": "path",
+            "in": "query",
             "description": "algorithm image",
-            "required": true,
             "schema": {
               "type": "string"
             }
@@ -8233,15 +8456,17 @@
                     "type": "string",
                     "description": "Unique identifier representing a specific algorithm",
                     "minLength": 1,
+                    "maxLength": 32,
                     "format": "algorithm-name"
                   },
                   "image": {
                     "type": "string",
-                    "description": "image name as in the docker registry"
+                    "description": "image name as in the docker registry",
+                    "format": "algorithm-image"
                   },
                   "force": {
                     "type": "boolean",
-                    "description": "should replace current algorithm version",
+                    "description": "should replace or not current algorithm version for running algorithm instances",
                     "default": false
                   }
                 },
@@ -8336,7 +8561,7 @@
         "tags": [
           "Graph"
         ],
-        "summary": "Get graph data",
+        "summary": "Get graph as raw data",
         "description": "returns the graph data by jobId",
         "parameters": [
           {
@@ -8357,171 +8582,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "buildId": {
-                      "type": "string",
-                      "description": "Pipeline name"
-                    },
-                    "algorithm": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific algorithm",
-                          "minLength": 1,
-                          "format": "algorithm-name"
-                        },
-                        "env": {
-                          "type": "string",
-                          "enum": [
-                            "nodejs",
-                            "python",
-                            "jvm"
-                          ]
-                        },
-                        "algorithmImage": {
-                          "type": "string",
-                          "description": "image name as in the docker registry"
-                        },
-                        "cpu": {
-                          "type": "number",
-                          "default": 0.1,
-                          "minimum": 0,
-                          "description": "algorithm cpu"
-                        },
-                        "gpu": {
-                          "type": "integer",
-                          "minimum": 0,
-                          "description": "algorithm gpu"
-                        },
-                        "mem": {
-                          "type": "string",
-                          "description": "algorithm memory",
-                          "format": "algorithm-memory",
-                          "default": "256Mi",
-                          "example": "512Mi"
-                        },
-                        "options": {
-                          "type": "object",
-                          "properties": {
-                            "debug": {
-                              "type": "boolean",
-                              "description": "debug algorithm locally",
-                              "default": false
-                            },
-                            "pending": {
-                              "type": "boolean",
-                              "description": "pending algorithm",
-                              "default": false
-                            }
-                          },
-                          "default": {}
-                        },
-                        "gitRepository": {
-                          "type": "object",
-                          "properties": {
-                            "url": {
-                              "type": "string",
-                              "description": "a url for the git repository",
-                              "format": "url"
-                            },
-                            "commit": {
-                              "type": "object",
-                              "description": "commit details",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "commit id"
-                                },
-                                "timestamp": {
-                                  "type": "string",
-                                  "description": "commit time"
-                                },
-                                "message": {
-                                  "type": "string",
-                                  "description": "commit message"
-                                }
-                              },
-                              "required": [
-                                "id"
-                              ]
-                            },
-                            "branchName": {
-                              "type": "string",
-                              "default": "master",
-                              "description": "the branch name you wish to create a build from"
-                            },
-                            "tag": {
-                              "type": "string",
-                              "description": "a specific tag which will trigger the build"
-                            },
-                            "token": {
-                              "type": "string",
-                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                            },
-                            "gitKind": {
-                              "type": "string",
-                              "enum": [
-                                "github",
-                                "gitlab"
-                              ],
-                              "default": "github"
-                            }
-                          },
-                          "required": [
-                            "url"
-                          ]
-                        },
-                        "entryPoint": {
-                          "type": "string"
-                        },
-                        "baseImage": {
-                          "type": "string",
-                          "description": "Custom docker image to be used as base to the newly built algorithm image"
-                        },
-                        "version": {
-                          "type": "string"
-                        },
-                        "minHotWorkers": {
-                          "type": "integer",
-                          "description": "how many live algorithm instances will always run",
-                          "minimum": 0,
-                          "default": 0
-                        },
-                        "algorithmEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for algorithm"
-                        },
-                        "workerEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for worker"
-                        },
-                        "nodeSelector": {
-                          "type": "object",
-                          "description": "key value labels for nodes constraint",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "type of algorithm code resource",
-                          "enum": [
-                            "Git",
-                            "Code",
-                            "Image"
-                          ],
-                          "default": "Image"
-                        }
-                      },
-                      "required": [
-                        "name"
-                      ]
-                    },
-                    "status": {
+                    "jobId": {
                       "type": "string"
                     },
                     "timestamp": {
-                      "type": "string"
+                      "type": "number"
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "Array of edges"
+                    },
+                    "nodes": {
+                      "type": "array",
+                      "description": "Array of nodes"
                     }
                   }
                 }
@@ -8588,13 +8661,13 @@
         }
       }
     },
-    "/graph/parsed/{jobId}/nodes/{nodeName}": {
+    "/graph/parsed/{jobId}": {
       "get": {
         "tags": [
           "Graph"
         ],
-        "summary": "Get graph data",
-        "description": "returns the graph data by jobId",
+        "summary": "Query the pipeline graph",
+        "description": "returns the graph data by jobId, node and tasks",
         "parameters": [
           {
             "name": "jobId",
@@ -8606,10 +8679,10 @@
             }
           },
           {
-            "name": "nodeName",
-            "in": "path",
+            "name": "node",
+            "in": "query",
             "description": "the node name",
-            "required": true,
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -8618,6 +8691,7 @@
             "name": "sort",
             "in": "query",
             "description": "sort by status, error or any other property",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -8626,6 +8700,7 @@
             "name": "order",
             "in": "query",
             "description": "order by asc or desc",
+            "required": false,
             "schema": {
               "type": "string"
             }
@@ -8657,170 +8732,127 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "buildId": {
-                      "type": "string",
-                      "description": "Pipeline name"
-                    },
-                    "algorithm": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "description": "Unique identifier representing a specific algorithm",
-                          "minLength": 1,
-                          "format": "algorithm-name"
-                        },
-                        "env": {
-                          "type": "string",
-                          "enum": [
-                            "nodejs",
-                            "python",
-                            "jvm"
-                          ]
-                        },
-                        "algorithmImage": {
-                          "type": "string",
-                          "description": "image name as in the docker registry"
-                        },
-                        "cpu": {
-                          "type": "number",
-                          "default": 0.1,
-                          "minimum": 0,
-                          "description": "algorithm cpu"
-                        },
-                        "gpu": {
-                          "type": "integer",
-                          "minimum": 0,
-                          "description": "algorithm gpu"
-                        },
-                        "mem": {
-                          "type": "string",
-                          "description": "algorithm memory",
-                          "format": "algorithm-memory",
-                          "default": "256Mi",
-                          "example": "512Mi"
-                        },
-                        "options": {
-                          "type": "object",
-                          "properties": {
-                            "debug": {
-                              "type": "boolean",
-                              "description": "debug algorithm locally",
-                              "default": false
-                            },
-                            "pending": {
-                              "type": "boolean",
-                              "description": "pending algorithm",
-                              "default": false
-                            }
-                          },
-                          "default": {}
-                        },
-                        "gitRepository": {
-                          "type": "object",
-                          "properties": {
-                            "url": {
-                              "type": "string",
-                              "description": "a url for the git repository",
-                              "format": "url"
-                            },
-                            "commit": {
-                              "type": "object",
-                              "description": "commit details",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "description": "commit id"
-                                },
-                                "timestamp": {
-                                  "type": "string",
-                                  "description": "commit time"
-                                },
-                                "message": {
-                                  "type": "string",
-                                  "description": "commit message"
-                                }
-                              },
-                              "required": [
-                                "id"
-                              ]
-                            },
-                            "branchName": {
-                              "type": "string",
-                              "default": "master",
-                              "description": "the branch name you wish to create a build from"
-                            },
-                            "tag": {
-                              "type": "string",
-                              "description": "a specific tag which will trigger the build"
-                            },
-                            "token": {
-                              "type": "string",
-                              "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                            },
-                            "gitKind": {
-                              "type": "string",
-                              "enum": [
-                                "github",
-                                "gitlab"
-                              ],
-                              "default": "github"
-                            }
-                          },
-                          "required": [
-                            "url"
-                          ]
-                        },
-                        "entryPoint": {
-                          "type": "string"
-                        },
-                        "baseImage": {
-                          "type": "string",
-                          "description": "Custom docker image to be used as base to the newly built algorithm image"
-                        },
-                        "version": {
-                          "type": "string"
-                        },
-                        "minHotWorkers": {
-                          "type": "integer",
-                          "description": "how many live algorithm instances will always run",
-                          "minimum": 0,
-                          "default": 0
-                        },
-                        "algorithmEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for algorithm"
-                        },
-                        "workerEnv": {
-                          "type": "object",
-                          "description": "key value environment variables for worker"
-                        },
-                        "nodeSelector": {
-                          "type": "object",
-                          "description": "key value labels for nodes constraint",
-                          "additionalProperties": {
-                            "type": "string"
-                          }
-                        },
-                        "type": {
-                          "type": "string",
-                          "description": "type of algorithm code resource",
-                          "enum": [
-                            "Git",
-                            "Code",
-                            "Image"
-                          ],
-                          "default": "Image"
-                        }
-                      },
-                      "required": [
-                        "name"
-                      ]
-                    },
-                    "status": {
+                    "jobId": {
                       "type": "string"
                     },
                     "timestamp": {
+                      "type": "number"
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "Array of edges"
+                    },
+                    "nodes": {
+                      "type": "array",
+                      "description": "Array of nodes"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "jobId Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/info": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "Get storage info",
+        "description": "returns the storage info",
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/prefix/types": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "Get storage types",
+        "description": "returns the storage types that managed by Hkube",
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
                       "type": "string"
                     }
                   }
@@ -8848,7 +8880,549 @@
             }
           },
           "404": {
-            "description": "build Not Found",
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/prefixes/{path}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "Get all prefixes by path",
+        "description": "returns all available prefixes found in storage according to path",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "description": "path to storage",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "sort by status, error or any other property",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "order by asc or desc",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "the start index",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "the start index",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/keys/{path}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "Get all keys by path",
+        "description": "returns all available keys found in storage according to path",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "description": "path to storage",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "sort by status, error or any other property",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "order by asc or desc",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "the start index",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "the end index",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/values/{path}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "Get storage data",
+        "description": "returns the storage data",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "description": "path to storage",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/stream/{path}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "stream data",
+        "description": "stream data according to path",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "description": "path to storage",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/download/{path}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "stream data to file",
+        "description": "download data as file according to path",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "description": "path to storage",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -8898,6 +9472,7 @@
             "type": "string",
             "description": "Unique identifier representing a specific algorithm",
             "minLength": 1,
+            "maxLength": 32,
             "format": "algorithm-name"
           },
           "env": {
@@ -8910,7 +9485,8 @@
           },
           "algorithmImage": {
             "type": "string",
-            "description": "image name as in the docker registry"
+            "description": "image name as in the docker registry",
+            "format": "algorithm-image"
           },
           "cpu": {
             "type": "number",
@@ -9051,7 +9627,28 @@
         "type": "string",
         "description": "Unique identifier representing a specific algorithm",
         "minLength": 1,
+        "maxLength": 32,
         "format": "algorithm-name"
+      },
+      "algorithmImage": {
+        "type": "string",
+        "description": "image name as in the docker registry",
+        "format": "algorithm-image"
+      },
+      "algorithmEnv": {
+        "type": "string",
+        "enum": [
+          "nodejs",
+          "python",
+          "jvm"
+        ]
+      },
+      "algorithmFileExt": {
+        "type": "string",
+        "enum": [
+          "zip",
+          "gz"
+        ]
       },
       "algorithmVersion": {
         "type": "object",
@@ -9060,15 +9657,17 @@
             "type": "string",
             "description": "Unique identifier representing a specific algorithm",
             "minLength": 1,
+            "maxLength": 32,
             "format": "algorithm-name"
           },
           "image": {
             "type": "string",
-            "description": "image name as in the docker registry"
+            "description": "image name as in the docker registry",
+            "format": "algorithm-image"
           },
           "force": {
             "type": "boolean",
-            "description": "should replace current algorithm version",
+            "description": "should replace or not current algorithm version for running algorithm instances",
             "default": false
           }
         },
@@ -9101,6 +9700,7 @@
                 "type": "string",
                 "description": "Unique identifier representing a specific algorithm",
                 "minLength": 1,
+                "maxLength": 32,
                 "format": "algorithm-name"
               },
               "env": {
@@ -9113,7 +9713,8 @@
               },
               "algorithmImage": {
                 "type": "string",
-                "description": "image name as in the docker registry"
+                "description": "image name as in the docker registry",
+                "format": "algorithm-image"
               },
               "cpu": {
                 "type": "number",
@@ -9257,6 +9858,55 @@
             "type": "string"
           }
         }
+      },
+      "boardStartTaskRequest": {
+        "type": "object",
+        "properties": {
+          "pipelineName": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          },
+          "nodeName": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string"
+          }
+        }
+      },
+      "boardStartBatchRequest": {
+        "type": "object",
+        "properties": {
+          "pipelineName": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
+          }
+        }
+      },
+      "boardStatusResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing board",
+            "format": "board-name"
+          },
+          "status": {
+            "type": "string"
+          },
+          "relativeUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "boardName": {
+        "type": "string",
+        "description": "Unique identifier representing board",
+        "format": "board-name"
       },
       "buildId": {
         "type": "object",
@@ -9444,6 +10094,7 @@
                   "type": "string",
                   "description": "Unique identifier representing a specific algorithm",
                   "minLength": 1,
+                  "maxLength": 32,
                   "format": "algorithm-name"
                 },
                 "input": {
@@ -9451,6 +10102,17 @@
                   "description": "The input for the algorithm",
                   "items": {},
                   "default": []
+                },
+                "metrics": {
+                  "default": {},
+                  "type": "object",
+                  "properties": {
+                    "tensorboard": {
+                      "type": "boolean",
+                      "description": "Should tensorboard metrics be collected.",
+                      "default": true
+                    }
+                  }
                 }
               },
               "required": [
@@ -9559,6 +10221,16 @@
               }
             },
             "additionalProperties": false
+          },
+          "tags": {
+            "type": "array",
+            "description": "Array of tags",
+            "items": {
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "maxLength": 32
+            }
           }
         },
         "additionalProperties": false,
@@ -9585,6 +10257,7 @@
             "type": "string",
             "description": "Unique identifier representing a specific algorithm",
             "minLength": 1,
+            "maxLength": 32,
             "format": "algorithm-name"
           },
           "input": {
@@ -9592,12 +10265,33 @@
             "description": "The input for the algorithm",
             "items": {},
             "default": []
+          },
+          "metrics": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "tensorboard": {
+                "type": "boolean",
+                "description": "Should tensorboard metrics be collected.",
+                "default": true
+              }
+            }
           }
         },
         "required": [
           "nodeName",
           "algorithmName"
         ]
+      },
+      "metrics": {
+        "type": "object",
+        "properties": {
+          "tensorboard": {
+            "type": "boolean",
+            "description": "Should tensorboard metrics be collected.",
+            "default": true
+          }
+        }
       },
       "pipelineResult": {
         "type": "object",
@@ -9674,7 +10368,7 @@
           "jobId"
         ]
       },
-      "storedPipeline": {
+      "storedPipelineRequest": {
         "type": "object",
         "properties": {
           "name": {
@@ -9754,35 +10448,15 @@
             "maximum": 5,
             "example": 3
           },
-          "triggers": {
-            "type": "object",
-            "properties": {
-              "pipelines": {
-                "type": "array",
-                "description": "pipelines to activate upon result",
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "cron": {
-                "type": "object",
-                "properties": {
-                  "pattern": {
-                    "type": "string",
-                    "description": "cron job",
-                    "minLength": 1,
-                    "format": "cron"
-                  },
-                  "enabled": {
-                    "type": "boolean",
-                    "description": "enable or disable cron job",
-                    "default": false
-                  }
-                }
-              }
-            },
-            "additionalProperties": false
+          "tags": {
+            "type": "array",
+            "description": "Array of tags",
+            "items": {
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "maxLength": 32
+            }
           }
         },
         "additionalProperties": false,
@@ -9878,9 +10552,80 @@
             "type": "object",
             "description": "github object which received after push for more information https://developer.github.com/webhooks/"
           }
+        }
+      },
+      "gitlabWebhook": {
+        "type": "object",
+        "properties": {
+          "gitlab": {
+            "type": "object",
+            "description": "gitlab object which received after push for more information https://docs.gitlab.com/ee/user/project/integrations/webhooks.html"
+          }
+        }
+      },
+      "tag": {
+        "type": "string",
+        "description": "Unique identifier representing a specific algorithm",
+        "minLength": 1,
+        "maxLength": 32
+      },
+      "graphResponse": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "number"
+          },
+          "edges": {
+            "type": "array",
+            "description": "Array of edges"
+          },
+          "nodes": {
+            "type": "array",
+            "description": "Array of nodes"
+          }
+        }
+      },
+      "algorithmBuild": {
+        "type": "object",
+        "properties": {
+          "fileExt": {
+            "type": "string",
+            "enum": [
+              "zip",
+              "gz"
+            ]
+          },
+          "env": {
+            "type": "string",
+            "enum": [
+              "nodejs",
+              "python",
+              "jvm"
+            ]
+          }
         },
         "required": [
-          "github"
+          "fileExt",
+          "env"
+        ]
+      },
+      "algorithmBuildGit": {
+        "type": "object",
+        "properties": {
+          "env": {
+            "type": "string",
+            "enum": [
+              "nodejs",
+              "python",
+              "jvm"
+            ]
+          }
+        },
+        "required": [
+          "env"
         ]
       }
     }

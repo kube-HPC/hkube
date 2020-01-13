@@ -1,0 +1,61 @@
+get:
+  tags:
+    - Storage
+  summary: Get all keys by path
+  description: returns all available keys found in storage according to path
+  parameters:
+    - name: path
+      in: path
+      description: path to storage
+      required: true
+      schema:
+        type: string
+    - name: sort
+      in: query
+      description: sort by status, error or any other property
+      required: false
+      schema:
+        type: string
+    - name: order
+      in: query
+      description: order by asc or desc
+      required: false
+      schema:
+        type: string
+    - name: from
+      in: query
+      description: the start index
+      required: false
+      schema:
+        type: integer
+    - name: to
+      in: query
+      description: the end index
+      required: false
+      schema:
+        type: integer
+  responses:
+    "200":
+      description: storage response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: path Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

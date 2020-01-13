@@ -1,5 +1,6 @@
 const objectPath = require('object-path');
 const storageManager = require('@hkube/storage-manager');
+const { pipelineTypes } = require('@hkube/consts');
 const execution = require('../../lib/service/execution');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
@@ -36,7 +37,7 @@ class ExecutionService {
     async runStoredCron(options) {
         validator.validateStoredInternal(options);
         const jobId = this._createCronJobID(options, uuid());
-        return execution._runStored(options, jobId);
+        return execution._runStored({ pipeline: options, jobId, types: [pipelineTypes.CRON, pipelineTypes.STORED] });
     }
 
     async startCronJob(options) {

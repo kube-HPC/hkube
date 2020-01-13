@@ -6,10 +6,10 @@ const Zip = require('adm-zip');
 const targz = require('targz');
 const _clone = require('git-clone');
 const { spawn } = require('child_process');
+const { buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { STATES, PROGRESS } = require('../consts/States');
-const buildType = require('../consts/buildType');
 const component = require('../consts/components').DOCKER_BUILDER;
 const { KANIKO } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
@@ -81,7 +81,7 @@ const runBash = ({ command, args, resultUpdater = () => { } }) => {
         let data = '';
         let error = '';
 
-        build.stdout.on('data',async (d) => {
+        build.stdout.on('data', async (d) => {
             data += d.toString();
             await resultUpdater({ data });
         });
@@ -105,13 +105,6 @@ const _setBuildStatus = async (options) => {
     const prog = progress(status);
     log.info(`update build status to: ${status}, progress: ${prog}  -> ${buildId}. ${error || ''}`, { component });
     await stateManger.updateBuild({ ...options, timestamp: Date.now(), progress: prog });
-};
-
-const _updateAlgorithmImage = async ({ algorithmName, algorithmImage, status }) => {
-    if (status === STATES.COMPLETED) {
-        log.info(`update algorithm image, name=${algorithmName}, image=${algorithmImage}`, { component });
-        await stateManger.updateAlgorithmImage({ algorithmName, algorithmImage });
-    }
 };
 
 const _getBuild = async ({ buildId }) => {
@@ -255,14 +248,14 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
         _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
     }
-    let updating=false
+    let updating = false
     const resultUpdater = async (result) => {
-        if (updating){
+        if (updating) {
             return
         }
-        updating=true
+        updating = true
         await stateManger.updateBuild({ buildId, result, timestamp: Date.now() });
-        updating=false
+        updating = false
     }
     const output = await runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args, resultUpdater });
     return { output, algorithmImage };
@@ -334,7 +327,7 @@ const runBuild = async (options) => {
 
         await _ensureDirs(buildDirs);
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        if (type === buildType.GIT) {
+        if (type === buildTypes.GIT) {
             await _downloadFromGit({ dest, gitRepository });
         }
         else {
@@ -353,8 +346,7 @@ const runBuild = async (options) => {
     const { data, warnings, errors } = _analyzeErrors(result.output, error);
     await _removeFolder({ folder: buildPath });
     const status = errors ? STATES.FAILED : STATES.COMPLETED;
-    await _updateAlgorithmImage({ algorithmName, algorithmImage: result.algorithmImage, status });
-    await _setBuildStatus({ buildId, buildMode, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
+    await _setBuildStatus({ buildId, algorithmName, algorithmImage: result.algorithmImage, buildMode, progress, error, trace, status, endTime: Date.now(), result: { data, warnings, errors } });
     return { buildId, error, status, result: { data, warnings, errors } };
 };
 

@@ -1,0 +1,23 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/pipelineName"
+  flowInput:
+    type: object
+    description: input object
+  webhooks:
+    $ref: "#/components/schemas/webhooks"
+  options:
+    $ref: "#/components/schemas/options"
+    default: {}
+  priority:
+    $ref: "#/components/schemas/priority"
+    default: 3
+  tags:
+    type: array
+    description: Array of tags
+    items:
+      $ref: "#/components/schemas/tag"
+additionalProperties: false
+required:
+  - name

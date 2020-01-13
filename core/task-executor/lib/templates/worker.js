@@ -1,3 +1,4 @@
+const algoMetricsDir = '/var/metrics';
 const workerTemplate = {
     apiVersion: 'batch/v1',
     kind: 'Job',
@@ -45,6 +46,10 @@ const workerTemplate = {
                                 value: '10000'
                             },
                             {
+                                name: 'ALGO_METRICS_DIR',
+                                value: `${algoMetricsDir}`
+                            },
+                            {
                                 name: 'POD_ID',
                                 valueFrom: {
                                     fieldRef: {
@@ -78,6 +83,15 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'STORAGE_BINARY',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'STORAGE_BINARY'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
@@ -103,17 +117,24 @@ const workerTemplate = {
                                     }
                                 }
                             },
+                            
                         ],
                     },
                     {
                         name: 'algorunner',
-                        image: 'hkube/algorunner:latest'
+                        image: 'hkube/algorunner:latest',
+                        env: [
+                            {
+                                name: 'ALGO_METRICS_DIR',
+                                value: `${algoMetricsDir}`
+                            }
+                        ]
                     }
                 ],
                 restartPolicy: 'Never'
             }
         },
-        backoffLimit: 4
+        backoffLimit: 0
     }
 };
 
@@ -132,6 +153,19 @@ const logVolumes = [
     }
 ];
 
+const algoMetricVolume = {
+    name: 'algometrics',
+    emptyDir: {}
+};
+
+
+const sharedVolumeMounts = [
+    {
+        name: 'algometrics',
+        mountPath: `${algoMetricsDir}`
+    }
+];
+
 const logVolumeMounts = [
     {
         name: 'varlog',
@@ -147,5 +181,7 @@ const logVolumeMounts = [
 module.exports = {
     workerTemplate,
     logVolumes,
-    logVolumeMounts
+    logVolumeMounts,
+    sharedVolumeMounts,
+    algoMetricVolume
 };

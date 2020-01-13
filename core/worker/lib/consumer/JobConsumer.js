@@ -1,18 +1,20 @@
 const EventEmitter = require('events');
+const recursive = require('recursive-readdir');
 const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
+const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
+const fse = require('fs-extra');
+const pathLib = require('path');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components, JobStatus } = require('../consts');
+const { metricsNames, Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
-const formatter = require('../helpers/formatters');
-
-const pipelineDoneStatus = [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.STOPPED];
+const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
 let log;
@@ -41,6 +43,8 @@ class JobConsumer extends EventEmitter {
                 ...metadata, ...this.currentTaskInfo()
             })
         }));
+        const { algoMetricsDir } = options;
+        this._algoMetricsDir = algoMetricsDir;
         this._options = Object.assign({}, options);
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
@@ -61,7 +65,7 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
         this._jobProvider.on('job', async (job) => {
-            if (job.data.status === JobStatus.PRESCHEDULE) {
+            if (job.data.status === taskStatuses.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
                 job.done();
                 return;
@@ -147,7 +151,7 @@ class JobConsumer extends EventEmitter {
     }
 
     _initMetrics(job) {
-        const pipelineName = formatter.formatPipelineName(job.data.pipelineName);
+        const { pipelineName } = job.data;
         metrics.get(metricsNames.worker_started).inc({
             labelValues: {
                 pipeline_name: pipelineName,
@@ -341,8 +345,13 @@ class JobConsumer extends EventEmitter {
         const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus(data);
 
         if (shouldCompleteJob) {
+            let metricsPath;
             if (!error && status === constants.JOB_STATUS.SUCCEED) {
                 storageResult = await this._putResult(resultData);
+                if (this.jobData.metrics && this.jobData.metrics.tensorboard) {
+                    const tensorboard = await this._putAlgoMetrics();
+                    metricsPath = { tensorboard };
+                }
             }
             const resData = Object.assign({
                 status,
@@ -354,7 +363,8 @@ class JobConsumer extends EventEmitter {
                 nodeName: this._job.data.nodeName,
                 algorithmName: this._job.data.algorithmName,
                 batchIndex: this._batchIndex,
-                endTime: Date.now()
+                endTime: Date.now(),
+                metricsPath
             }, storageResult);
 
             this._job.error = error;
@@ -368,11 +378,10 @@ class JobConsumer extends EventEmitter {
 
     _summarizeMetrics(jobStatus) {
         try {
-            const pipelineName = formatter.formatPipelineName(this._pipelineName);
             if (jobStatus === constants.JOB_STATUS.FAILED) {
                 metrics.get(metricsNames.worker_failed).inc({
                     labelValues: {
-                        pipeline_name: pipelineName,
+                        pipeline_name: this._pipelineName,
                         algorithm_name: this.getAlgorithmType()
                     }
                 });
@@ -380,7 +389,7 @@ class JobConsumer extends EventEmitter {
             else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
                 metrics.get(metricsNames.worker_succeeded).inc({
                     labelValues: {
-                        pipeline_name: pipelineName,
+                        pipeline_name: this._pipelineName,
                         algorithm_name: this.getAlgorithmType()
                     }
                 });
@@ -441,6 +450,35 @@ class JobConsumer extends EventEmitter {
             return {
                 status,
                 result,
+                error
+            };
+        }
+    }
+
+    async _putAlgoMetrics() {
+        let path = null;
+        let error;
+        try {
+            const formatedDate = this.jobCurrentTime.toLocaleString().split('/').join('-');
+            const files = await recursive(this._algoMetricsDir);
+            const { taskId, jobId, nodeName, pipelineName } = this.jobData;
+            const paths = await Promise.all(files.map((file) => {
+                const stream = fse.createReadStream(file);
+                const fileName = file.replace(this._algoMetricsDir, '');
+                return storageManager.hkubeAlgoMetrics.putStream(
+                    { pipelineName, taskId, jobId, nodeName, data: stream, formatedDate, fileName, stream }
+                );
+            }));
+            const separatedPath = paths[0] && paths[0].path.split(pathLib.sep);
+            path = separatedPath && separatedPath.slice(0, separatedPath.length - 1).join(pathLib.sep);
+        }
+        catch (err) {
+            error = err.message;
+        }
+        finally {
+            // eslint-disable-next-line no-unsafe-finally
+            return {
+                path,
                 error
             };
         }

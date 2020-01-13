@@ -2,12 +2,26 @@ algorithm:
   $ref: ./algorithm.yaml
 algorithmName:
   $ref: ./algorithmName.yaml
+algorithmImage:
+  $ref: ./algorithmImage.yaml
+algorithmEnv:
+  $ref: ./algorithmEnv.yaml
+algorithmFileExt:
+  $ref: ./algorithmFileExt.yaml
 algorithmVersion:
   $ref: ./algorithmVersion.yaml
 algorithmApplyOptions:
   $ref: ./algorithmApplyOptions.yaml
 algorithmApplyResponse:
   $ref: ./algorithmApplyResponse.yaml
+boardTaskStartRequest:
+  $ref: ./boardTaskStartRequest.yaml
+boardBatchStartRequest:
+  $ref: ./boardBatchStartRequest.yaml
+boardStatusResponse:
+  $ref: ./boardStatusResponse.yaml
+boardName:
+  $ref: ./boardName.yaml
 buildId:
   $ref: ./buildId.yaml
 caching:
@@ -34,6 +48,8 @@ pipelineName:
   $ref: ./pipelineName.yaml
 pipelineNode:
   $ref: ./pipelineNode.yaml
+metrics:
+  $ref: ./metrics.yaml
 pipelineResult:
   $ref: ./pipelineResult.yaml
 priority:
@@ -44,8 +60,8 @@ pauseRequest:
   $ref: ./pauseRequest.yaml
 resumeRequest:
   $ref: ./resumeRequest.yaml
-storedPipeline:
-  $ref: ./storedPipeline.yaml
+storedPipelineRequest:
+  $ref: ./storedPipelineRequest.yaml
 triggers:
   $ref: ./triggers.yaml
 webhookResult:
@@ -54,3 +70,13 @@ webhooks:
   $ref: ./webhooks.yaml
 githubWebhook:
   $ref: ./githubWebhook.yaml
+gitlabWebhook:
+  $ref: ./gitlabWebhook.yaml
+tag:
+  $ref: ./tag.yaml
+graphResponse:
+  $ref: ./graphResponse.yaml
+algorithmBuild:
+  $ref: ./algorithmBuild.yaml
+algorithmBuildGit:
+  $ref: ./algorithmBuildGit.yaml

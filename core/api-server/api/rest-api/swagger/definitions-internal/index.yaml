@@ -1,13 +1,11 @@
-algorithmBuild:
-  $ref: ./algorithmBuild.yaml
-algorithmBuildGit:
-  $ref: ./algorithmBuildGit.yaml
 buildId:
   $ref: ./buildId.yaml
 kubernetesValueFrom:
   $ref: ./kubernetesValueFrom.yaml
 list:
   $ref: ./list.yaml
+listRange:
+  $ref: ./list_range.yaml
 name:
   $ref: ./name.yaml
 pipeline:
@@ -22,3 +20,9 @@ algorithmDelete:
   $ref: ./algorithmDelete.yaml
 graph:
   $ref: ./graph.yaml
+boardTaskStartRequest:
+  $ref: ./boardTaskStartRequest.yaml
+boardNodeStartRequest:
+  $ref: ./boardNodeStartRequest.yaml
+boardBatchStartRequest:
+  $ref: ./boardBatchStartRequest.yaml

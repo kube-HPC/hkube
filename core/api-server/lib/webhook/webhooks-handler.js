@@ -1,22 +1,13 @@
 const request = require('requestretry');
 const { metrics, utils } = require('@hkube/metrics');
+const { pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const log = require('@hkube/logger').GetLogFromContainer();
 const stateManager = require('../state/state-manager');
 const component = require('../../lib/consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
 const { metricsNames } = require('../../lib/consts/metricsNames');
-
-/**
- * Convert raw pipeline names to 'raw' (to enable rate them in prometheus)
- * @param {string} pipelineName
- */
-function formatPipelineName(pipelineName) {
-    if (pipelineName.startsWith('raw-')) {
-        return 'raw';
-    }
-    return pipelineName;
-}
+const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
 class WebhooksHandler {
     init(options) {
@@ -56,7 +47,7 @@ class WebhooksHandler {
                 await stateManager.setWebhook({ jobId, type: Types.PROGRESS, ...result });
             }
         }
-        if (stateManager.isCompletedState(payload.status)) {
+        if (this.isCompletedState(payload.status)) {
             await stateManager.releaseJobStatusLock({ jobId });
         }
     }
@@ -69,7 +60,7 @@ class WebhooksHandler {
         metrics.get(metricsNames.pipelines_gross).retroactive({
             time,
             labelValues: {
-                pipeline_name: formatPipelineName(pipeline.name),
+                pipeline_name: pipeline.name,
                 status: payload.status
             }
         });
@@ -84,6 +75,10 @@ class WebhooksHandler {
     async _deleteRunningPipeline(options) {
         const res = await stateManager.deleteRunningPipeline(options);
         log.info(`deleted running executions ${JSON.stringify(res)}`, { component });
+    }
+
+    isCompletedState(state) {
+        return CompletedState.includes(state);
     }
 
     _request(url, body, type, pipelineStatus, jobId) {

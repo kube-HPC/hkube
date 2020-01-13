@@ -5,7 +5,7 @@ const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
 
-const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED];
+const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
 
 class StateManager extends EventEmitter {
     constructor(option) {
@@ -105,7 +105,6 @@ class StateManager extends EventEmitter {
         return error;
     }
 
-
     async updateDiscovery() {
         return this._updateDiscovery();
     }
@@ -113,7 +112,7 @@ class StateManager extends EventEmitter {
     async setJobStatus(options) {
         await this._updateDiscovery();
         return this._etcd.jobs.status.update(options, (oldItem) => {
-            if (oldItem.status !== DriverStates.STOPPED) {
+            if (oldItem.status !== DriverStates.STOPPED && oldItem.status !== DriverStates.PAUSED) {
                 return { ...oldItem, ...options };
             }
             return null;
@@ -139,6 +138,10 @@ class StateManager extends EventEmitter {
 
     setExecution(options) {
         return this._etcd.executions.running.set(options);
+    }
+
+    updateExecution(options, cb) {
+        return this._etcd.executions.stored.update(options, cb);
     }
 
     watchTasks(options) {

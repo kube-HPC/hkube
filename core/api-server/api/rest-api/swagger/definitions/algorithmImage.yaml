@@ -1,0 +1,3 @@
+type: string
+description: image name as in the docker registry
+format: algorithm-image

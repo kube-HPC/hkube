@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
-const { Producer, Events } = require('@hkube/producer-consumer');
+const { Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const { TASKS } = require('../consts/Events');
 
 class JobProducer extends EventEmitter {
     constructor() {
@@ -17,17 +16,6 @@ class JobProducer extends EventEmitter {
                 redis: options.redis,
                 ...options.jobs.producer
             }
-        });
-        this._producer.on(Events.WAITING, (data) => {
-            this.emit(TASKS.WAITING, data.jobId);
-        }).on(Events.COMPLETED, (data) => {
-            this.emit(TASKS.SUCCEED, data.jobId);
-        }).on(Events.ACTIVE, (data) => {
-            this.emit(TASKS.ACTIVE, data.jobId);
-        }).on(Events.STALLED, (data) => {
-            this.emit(TASKS.STALLED, data.jobId);
-        }).on(Events.CRASHED, (data) => {
-            this.emit(TASKS.CRASHED, { taskId: data.jobId, error: data.error });
         });
     }
 

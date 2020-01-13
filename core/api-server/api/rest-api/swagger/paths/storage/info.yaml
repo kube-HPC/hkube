@@ -1,0 +1,12 @@
+get:
+  tags:
+    - Storage
+  summary: Get storage info
+  description: returns the storage info
+  responses:
+    "200":
+      description: storage response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"

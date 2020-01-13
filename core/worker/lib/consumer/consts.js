@@ -4,7 +4,9 @@ module.exports = {
         ACTIVE: 'active',
         FAILED: 'failed',
         SUCCEED: 'succeed',
-        WARNING: 'warning'
+        WARNING: 'warning',
+        COMPLETED: 'completed',
+        STOPPED: 'stopped'
     },
     WATCH_STATE: {
         STOPPED: 'stopped'

@@ -11,6 +11,9 @@ properties:
     description: The input for the algorithm
     items: {}
     default: []
+  metrics:
+    $ref: "#/components/schemas/metrics"
+    default: {}
 required:
   - nodeName
   - algorithmName

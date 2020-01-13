@@ -7,38 +7,46 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "@flowInput.files.link"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "@green"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
                     "@yellow"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "white",
                 "algorithmName": "black-alg",
                 "input": [
                     "test"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
             "files": {
                 "link": "links-1"
             }
-        },
-        "webhooks": {
-            "progress": "http://webhook-stub-ui:30002/webhook/progress",
-            "result": "http://webhook-stub-ui:30002/webhook/result"
         },
         "priority": 5,
         "options": {
@@ -55,14 +63,20 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "@green"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
@@ -70,7 +84,10 @@
                 "input": [
                     "@green",
                     "@yellow"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -83,10 +100,6 @@
                     "links-5"
                 ]
             }
-        },
-        "webhooks": {
-            "progress": "http://localhost:3002/webhook/progress",
-            "result": "http://localhost:3002/webhook/result"
         },
         "options": {
             "batchTolerance": 30,
@@ -101,21 +114,30 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "yellow",
                 "algorithmName": "yellow-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "black",
                 "algorithmName": "black-alg",
                 "input": [
                     "#@flowInput.files.links"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "flowInput": {
@@ -134,10 +156,6 @@
                 ]
             }
         },
-        "webhooks": {
-            "progress": "http://webhook-stub-ui:3002/webhook/progress",
-            "result": "http://webhook-stub-ui:3002/webhook/result"
-        },
         "priority": 5,
         "options": {
             "ttl": 3600,
@@ -146,7 +164,58 @@
         }
     },
     {
-        "name": "webhookFlow",
+        "name": "webhookFlow1",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput.files.link"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
+            },
+            {
+                "nodeName": "white",
+                "algorithmName": "black-alg",
+                "input": [
+                    "test"
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "link": "links-1"
+            }
+        },
+        "webhooks": {
+            "progress": "http://my-webhook-server-1/webhook/progress",
+            "result": "http://my-webhook-server-1/webhook/result"
+        }
+    },
+    {
+        "name": "webhookFlow2",
         "nodes": [
             {
                 "nodeName": "green",
@@ -183,8 +252,8 @@
             }
         },
         "webhooks": {
-            "progress": "http://localhost:3002/webhook/progress",
-            "result": "http://localhost:3002/webhook/result"
+            "progress": "http://my-webhook-server-2/webhook/progress",
+            "result": "http://my-webhook-server-2/webhook/result"
         }
     },
     {
@@ -193,14 +262,20 @@
             {
                 "nodeName": "A",
                 "algorithmName": "green-alg",
-                "input": []
+                "input": [],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "B",
                 "algorithmName": "green-alg",
                 "input": [
                     "@C"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ]
     },
@@ -212,14 +287,20 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "@B"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             },
             {
                 "nodeName": "B",
                 "algorithmName": "green-alg",
                 "input": [
                     "@A"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ]
     },
@@ -231,7 +312,10 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "flowInput"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "triggers": {
@@ -249,7 +333,10 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "flowInput"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "triggers": {
@@ -267,12 +354,13 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "flowInput"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
-        "triggers": {
-            
-        }
+        "triggers": {}
     },
     {
         "name": "concurrentPipelines",
@@ -282,7 +370,10 @@
                 "algorithmName": "green-alg",
                 "input": [
                     "flowInput"
-                ]
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
             }
         ],
         "options": {

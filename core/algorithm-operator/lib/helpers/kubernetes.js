@@ -106,7 +106,7 @@ class KubernetesApi extends EventEmitter {
     }
 
     async deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name }, type) {
-        log.info(`Creating expoesed service ${deploymentSpec.metadata.name}`, { component });
+        log.info(`Creating exposed service ${deploymentSpec.metadata.name}`, { component });
         let resDeployment = null;
         let resIngress = null;
         let resService = null;
@@ -124,13 +124,37 @@ class KubernetesApi extends EventEmitter {
         }
         catch (error) {
             log.error(`failed to continue creating operation ${deploymentSpec.metadata.name}. error: ${error.message}`, { component }, error);
-            await this.deleteExpoesedDeploymet(name, type);
+            await this.deleteExposedDeployment(name, type);
             throw error;
         }
     }
 
-    async deleteExpoesedDeploymet(name, type) {
-        log.info(`Deleting algorithm for debug ${name}`, { component });
+    async updateExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name }, type) {
+        log.info(`Updating exposed service ${deploymentSpec.metadata.name}`, { component });
+        let resDeployment = null;
+        let resIngress = null;
+        let resService = null;
+
+        try {
+            resDeployment = await this._client.deployments.update({ deploymentName: deploymentSpec.metadata.name, spec: deploymentSpec });
+            resIngress = await this._client.ingresses.update({ ingressName: ingressSpec.metadata.name, spec: ingressSpec });
+            resService = await this._client.services.update({ serviceName: serviceSpec.metadata.name, spec: serviceSpec });
+
+            return {
+                resDeployment,
+                resIngress,
+                resService
+            };
+        }
+        catch (error) {
+            log.error(`failed to continue updating operation ${deploymentSpec.metadata.name}. error: ${error.message}`, { component }, error);
+            await this.deleteExposedDeployment(name, type);
+            throw error;
+        }
+    }
+
+    async deleteExposedDeployment(name, type) {
+        log.info(`Deleting exposed deployment ${name}`, { component });
         const [resDeployment, resIngress, resService] = await Promise.all([
             this._client.deployments.delete({ deploymentName: `${type}-${name}` }),
             this._client.ingresses.delete({ ingressName: `ingress-${type}-${name}` }),
