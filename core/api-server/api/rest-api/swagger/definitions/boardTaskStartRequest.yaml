@@ -1,0 +1,11 @@
+type: object
+properties:
+  pipelineName:
+    $ref: "#/components/schemas/pipelineName"
+  nodeName:
+    type: string
+  jobId:
+    type: string
+required:
+  - pipelineName
+  - nodeName

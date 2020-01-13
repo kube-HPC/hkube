@@ -5,6 +5,7 @@ const Logger = require('@hkube/logger');
 const Validator = require('ajv');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const component = require('../consts').Components.COMMUNICATIONS;
+const { binaryDecode, binaryEncode } = require('../helpers/binaryEncoding');
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
@@ -23,6 +24,14 @@ class WsWorkerCommunication extends EventEmitter {
                 const valid = validator.validate(schema, options);
                 if (!valid) {
                     return reject(new Error(validator.errorsText(validator.errors)));
+                }
+                if (option.binary) {
+                    this._parse = binaryDecode;
+                    this._stringify = binaryEncode;
+                }
+                else {
+                    this._parse = JSON.parse;
+                    this._stringify = JSON.stringify;
                 }
                 const server = options.httpServer || http.createServer();
                 this._socketServer = new WebSocket.Server({ server, maxPayload: options.maxPayload });
@@ -53,7 +62,7 @@ class WsWorkerCommunication extends EventEmitter {
     _registerSocketMessages(socket) {
         this._socket = socket;
         socket.on('message', (data) => {
-            const payload = JSON.parse(data);
+            const payload = this._parse(data);
             log.debug(`got message ${payload.command}`, { component });
             this.emit(payload.command, payload);
         });
@@ -78,7 +87,7 @@ class WsWorkerCommunication extends EventEmitter {
             log.warning(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
-        this._socket.send(JSON.stringify(message));
+        this._socket.send(this._stringify(message));
     }
 }
 

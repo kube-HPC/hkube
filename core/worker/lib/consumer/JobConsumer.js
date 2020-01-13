@@ -4,16 +4,17 @@ const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
+const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const fse = require('fs-extra');
 const pathLib = require('path');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components, JobStatus } = require('../consts');
+const { metricsNames, Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
-const pipelineDoneStatus = [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.STOPPED];
+const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
 let log;
@@ -64,7 +65,7 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${JSON.stringify(this._options.jobConsumer.job)}`, { component });
 
         this._jobProvider.on('job', async (job) => {
-            if (job.data.status === JobStatus.PRESCHEDULE) {
+            if (job.data.status === taskStatuses.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId} is in ${job.data.status} mode, calling done...`);
                 job.done();
                 return;
@@ -454,38 +455,18 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    getFileNames(parentDir) {
-        if (parentDir.children) {
-            let flatChildrenList = [];
-            parentDir.children.forEach((child) => {
-                const grandchildren = this.getFileNames(child);
-                if (grandchildren.length === 1 && typeof (grandchildren[0]) === 'string') {
-                    flatChildrenList = [[parentDir.name, ...grandchildren], ...flatChildrenList];
-                }
-                else {
-                    grandchildren.forEach((filePath) => {
-                        flatChildrenList = [[parentDir.name, ...filePath], ...flatChildrenList];
-                    });
-                }
-            });
-            return flatChildrenList;
-        }
-        return [parentDir.name];
-    }
-
     async _putAlgoMetrics() {
         let path = null;
         let error;
         try {
-            const uploadTime = this.jobCurrentTime.toLocaleString().split('/').join('-');
+            const formatedDate = this.jobCurrentTime.toLocaleString().split('/').join('-');
             const files = await recursive(this._algoMetricsDir);
-            const { taskId } = this.jobData;
-            const runName = `${uploadTime}-${taskId.substring(taskId.length - 8)}`;
+            const { taskId, jobId, nodeName, pipelineName } = this.jobData;
             const paths = await Promise.all(files.map((file) => {
                 const stream = fse.createReadStream(file);
                 const fileName = file.replace(this._algoMetricsDir, '');
                 return storageManager.hkubeAlgoMetrics.putStream(
-                    { pipelineName: this.jobData.pipelineName, runName, nodeName: this.jobData.nodeName, data: stream, fileName, stream }
+                    { pipelineName, taskId, jobId, nodeName, data: stream, formatedDate, fileName, stream }
                 );
             }));
             const separatedPath = paths[0] && paths[0].path.split(pathLib.sep);

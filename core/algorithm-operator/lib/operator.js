@@ -9,28 +9,34 @@ const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const CONTAINERS = require('./consts/containers');
 
+
 class Operator {
     async init(options = {}) {
         this._intervalMs = options.intervalMs;
+        this._boardsIntervalMs = options.boardsIntervalMs;
         if (options.healthchecks.logExternalRequests) {
             logWrappers([
                 '_interval',
             ], this, log);
         }
         this._interval = this._interval.bind(this);
+        this._boardsInterval = this._boardsInterval.bind(this);
         this._lastIntervalTime = null;
+        this._lastIntervalBoardTime = null;
         this._interval(options);
+        this._boardsInterval(options);
     }
 
     checkHealth(maxDiff) {
         log.debug('health-checks');
-        if (!this._lastIntervalTime) {
+        if (!this._lastIntervalTime || !this._lastIntervalBoardTime) {
             return true;
         }
         const diff = Date.now() - this._lastIntervalTime;
         log.debug(`diff = ${diff}`);
-
-        return (diff < maxDiff);
+        const boardDiff = Date.now() - this._lastIntervalBoardTime;
+        log.debug(`diff = ${boardDiff}`);
+        return (diff < maxDiff && boardDiff < maxDiff);
     }
 
     async _interval(options) {
@@ -43,7 +49,7 @@ class Operator {
                 this._algorithmBuilds({ ...configMap }, options),
                 this._tenosrboards({ ...configMap }, options),
                 this._algorithmDebug(configMap, algorithms, options),
-                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options)
+                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options),
             ]);
         }
         catch (e) {
@@ -51,6 +57,21 @@ class Operator {
         }
         finally {
             setTimeout(this._interval, this._intervalMs, options);
+        }
+    }
+
+    async _boardsInterval(options) {
+        this._lastIntervalBoardTime = Date.now();
+        try {
+            log.debug('Update board interval.', { component });
+
+            await tensorboardReconciler.updateTensorboards();
+        }
+        catch (e) {
+            log.throttle.error(e.message, { component }, e);
+        }
+        finally {
+            setTimeout(this._boardsInterval, this._boardsIntervalMs, options);
         }
     }
 
@@ -78,11 +99,10 @@ class Operator {
             return;
         }
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
-        const secret = await kubernetes.getSecret({ secretName: 'docker-credentials-secret' });
+
         await tensorboardReconciler.reconcile({
             boards,
             deployments,
-            secret,
             versions,
             registry,
             clusterOptions,

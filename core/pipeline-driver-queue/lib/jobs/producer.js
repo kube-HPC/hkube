@@ -1,8 +1,9 @@
 const isEqual = require('lodash.isequal');
 const { Events, Producer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
+const { pipelineStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { componentName, jobState } = require('../consts');
+const { componentName } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
@@ -68,18 +69,18 @@ class JobProducer {
 
     _producerEventRegistry() {
         this._producer.on(Events.WAITING, (data) => {
-            log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.WAITING });
+            log.info(`${Events.WAITING} ${data.jobId}`, { component, jobId: data.jobId, status: Events.WAITING });
         }).on(Events.ACTIVE, (data) => {
-            log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.ACTIVE });
+            log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
         }).on(Events.COMPLETED, (data) => {
-            log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.COMPLETED });
+            log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
         }).on(Events.FAILED, (data) => {
-            log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: jobState.FAILED });
+            log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: Events.FAILED });
         }).on(Events.STALLED, (data) => {
-            log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: jobState.STALLED });
+            log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.STALLED });
         }).on(Events.CRASHED, async (data) => {
             const { jobId, error } = data;
-            const status = jobState.FAILED;
+            const status = pipelineStatuses.FAILED;
             log.warning(`${Events.CRASHED} ${jobId}`, { component, jobId, status });
             const pipeline = await persistence.getExecution({ jobId });
             persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
@@ -96,6 +97,9 @@ class JobProducer {
                     jobId: pipeline.jobId,
                     pipeline: pipeline.pipelineName
                 }
+            },
+            queue: {
+                removeOnFail: true
             },
             tracing: {
                 parent: pipeline.spanId,

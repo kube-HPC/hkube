@@ -1,0 +1,41 @@
+delete:
+  tags:
+    - Boards
+  summary: Stop board
+  description: Stop board
+  parameters:
+    - name: pipelineName
+      in: path
+      required: true
+      schema:
+        type: string
+    - name: nodeName
+      schema:
+        type: string
+      in: path
+      required: true
+  responses:
+    "200":
+      description: start board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: board Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

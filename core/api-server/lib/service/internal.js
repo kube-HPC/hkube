@@ -1,8 +1,8 @@
+const { pipelineTypes } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const execution = require('./execution');
 const { uuid } = require('../utils');
-const pipelineTypes = require('../../lib/consts/pipeline-types');
 
 class InternalService {
     async runStoredPipeline(options) {

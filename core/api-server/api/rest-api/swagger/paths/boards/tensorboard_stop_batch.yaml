@@ -1,0 +1,43 @@
+delete:
+  tags:
+    - Boards
+  summary: Stop board
+  description: stop board
+  parameters:
+    - name: jobId
+      schema:
+        type: string
+      in: path
+      description: Unique identifier representing board
+      required: true
+    - name: nodeName
+      schema:
+        type: string
+      in: path
+      description: Batch node name
+      required: true
+  responses:
+    "200":
+      description: start board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: board Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

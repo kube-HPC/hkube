@@ -51,12 +51,15 @@ class Etcd extends EventEmitter {
         await this._etcd.algorithms.builds.update(options);
     }
 
-    getTensorboards() {
-        return this._etcd.tensorboards.list();
+    async getTensorboards() {
+        const batches = (await this._etcd.tensorboard.batch.list()).map(batch => ({ ...batch, type: 'batch' }));
+        const tasks = (await this._etcd.tensorboard.task.list()).map(task => ({ ...task, type: 'task' }));
+        const nodes = (await this._etcd.tensorboard.node.list()).map(node => ({ ...node, type: 'node' }));
+        return [...batches, ...tasks, ...nodes];
     }
 
-    async setTensorboard(options) {
-        await this._etcd.tensorboards.update(options);
+    async updateTensorboard(options) {
+        await this._etcd.tensorboard[options.type].update(options);
     }
 }
 

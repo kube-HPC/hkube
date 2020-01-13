@@ -1,11 +1,11 @@
 const objectPath = require('object-path');
 const storageManager = require('@hkube/storage-manager');
+const { pipelineTypes } = require('@hkube/consts');
 const execution = require('../../lib/service/execution');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
 const { uuid } = require('../utils');
-const pipelineTypes = require('../../lib/consts/pipeline-types');
 
 class ExecutionService {
     async getCronResult(options) {
