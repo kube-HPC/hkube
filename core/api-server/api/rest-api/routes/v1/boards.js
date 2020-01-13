@@ -62,8 +62,8 @@ const routes = (options) => {
     });
     router.all('/tensor/start/:taskId?', methods(['POST']), logger(), async (req, res, next) => {
         const { taskId } = req.params;
-        const { nodeName, pipelineName } = req.body;
-        await boards.startTensorboard({ taskId, nodeName, pipelineName }, 'task');
+        const { nodeName, pipelineName, jobId } = req.body;
+        await boards.startTensorboard({ taskId, jobId, nodeName, pipelineName }, 'task');
         res.json({ message: 'OK' });
         next();
     });
