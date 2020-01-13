@@ -19,15 +19,8 @@ const WEBHOOKS = {
     GITLAB: 'gitlab'
 };
 
-const BUILD_TYPES = {
-    CODE: 'Code',
-    IMAGE: 'Image',
-    GIT: 'Git'
-
-};
 module.exports = {
     BUILD_TRIGGERS,
     MESSAGES,
-    WEBHOOKS,
-    BUILD_TYPES
+    WEBHOOKS
 };

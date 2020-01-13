@@ -1,6 +1,7 @@
+const { buildTypes } = require('@hkube/consts');
 const stateManager = require('../../state/state-manager');
 const { ResourceNotFoundError } = require('../../errors');
-const { WEBHOOKS, BUILD_TYPES } = require('../../consts/builds');
+const { WEBHOOKS } = require('../../consts/builds');
 const gitDataAdapter = require('./git-data-adapter');
 const algorithmService = require('../algorithms');
 
@@ -28,7 +29,7 @@ class GitWebhookListener {
     }
 
     async _storeBuildData(data) {
-        return algorithmService.applyAlgorithm({ payload: { ...data, type: BUILD_TYPES.GIT } });
+        return algorithmService.applyAlgorithm({ payload: { ...data, type: buildTypes.GIT } });
     }
 }
 
