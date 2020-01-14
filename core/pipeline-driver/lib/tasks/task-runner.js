@@ -70,8 +70,8 @@ class TaskRunner extends EventEmitter {
         switch (task.status) {
             case taskStatuses.STALLED: {
                 const { error, ...rest } = task;
-                const prevError = error;
-                this._setTaskState({ prevError, ...rest });
+                const warning = error;
+                this._setTaskState({ warning, ...rest });
                 break;
             }
             case taskStatuses.CRASHED: {
@@ -81,9 +81,7 @@ class TaskRunner extends EventEmitter {
                 break;
             }
             case taskStatuses.WARNING: {
-                const { warning, ...rest } = task;
-                const prevError = warning;
-                this._setTaskState({ prevError, ...rest });
+                this._setTaskState(task);
                 break;
             }
             case taskStatuses.ACTIVE:
@@ -579,8 +577,8 @@ class TaskRunner extends EventEmitter {
     }
 
     _updateTaskState(taskId, task) {
-        const { status, result, error, reason, podName, prevError, retries, startTime, endTime, metricsPath } = task;
-        const state = { status, result, error, reason, podName, prevError, retries, startTime, endTime, metricsPath };
+        const { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
+        const state = { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath };
         this._nodes.updateTaskState(taskId, state);
     }
 

@@ -105,7 +105,7 @@ class GraphStore {
             podName: task.podName,
             status: task.status,
             error: task.error,
-            prevErrors: task.prevErrors,
+            warnings: task.warnings,
             retries: task.retries,
             batchIndex: task.batchIndex,
             startTime: task.startTime,
@@ -129,7 +129,8 @@ class GraphStore {
             nodeName: n.nodeName,
             algorithmName: n.algorithmName,
             batch: n.batch.map(b => this._mapTask(b)),
-            batchInfo: this._batchInfo(n.batch)
+            batchInfo: this._batchInfo(n.batch),
+            level: n.level
         };
         return node;
     }

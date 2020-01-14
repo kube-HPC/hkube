@@ -137,7 +137,7 @@ describe('Test', function () {
                 await workerStub.done({ jobId, taskId: jobId, taskId: node.taskId, status, error });
                 await delay(500);
                 expect(node.status).to.eql(status);
-                expect(node.prevErrors).to.include(error);
+                expect(node.warnings).to.include(error);
             });
             it('should create job and handle crashed status', async function () {
                 const jobId = `jobid-crashed-event-${uuidv4()}`;
