@@ -86,7 +86,7 @@ class Queue extends events {
     _removeDuplicates(tasks) {
         if (this.queue.length > 0) {
             tasks.forEach((t) => {
-                const res = _.remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId);
+                const res = _.remove(this.queue, q => q.jobId === t.jobId && q.taskId === t.taskId && q.status === 'preschedule');
                 res.forEach((r) => {
                     log.warning(`found duplicate task ${r.taskId} with status ${r.status}, new task status: ${t.status}`, { component: components.QUEUE });
                 });
