@@ -19,12 +19,12 @@ properties:
     properties:
       policy:
         type: string
-        default: onFailure
+        default: OnNetworkFailure
         enum:
           - Never
-          - onFailure
-          - onAlgorithmFailure
-          - onNetworkFailure
+          - OnFailure
+          - OnAlgorithmFailure
+          - OnNetworkFailure
       limit:
         type: integer
         minimum: 1
