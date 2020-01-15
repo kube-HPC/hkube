@@ -1,6 +1,6 @@
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses } = require('@hkube/consts');
+const { pipelineStatuses, retryPolicy } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
@@ -10,7 +10,6 @@ const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
-
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -164,18 +163,15 @@ class Worker {
         const workerState = stateManager.state;
         const containerMessage = Object.entries(container).map(([k, v]) => `${k}: ${v}`);
         const defaultMessage = `algorithm ${type} has disconnected while in ${workerState} state, reason: ${reason}.`;
-        const shouldCompleteJob = workerState !== workerStates.working && workerState !== workerStates.bootstrap;
-        const data = {
+        const options = {
             error: {
                 reason: containerReason,
                 message: `${defaultMessage} ${containerMessage}`,
-            },
-            shouldCompleteJob
+            }
         };
-        const error = data.error.message;
+        const error = options.error.message;
         log.error(error, { component });
-        await jobConsumer.sendWarning(error);
-        stateManager.exit(data);
+        await this._handleRetry({ ...options, isNetworkError: true });
     }
 
     /**
@@ -199,13 +195,10 @@ class Worker {
                 log.debug(`progress: ${message.data.progress}`, { component });
             }
         });
-        algoRunnerCommunication.on(messages.incomming.error, async (message) => {
-            const errText = message.error && message.error.message;
-            log.info(`got error from algorithm: ${errText}`, { component });
-            const { jobId } = jobConsumer.jobData;
-            const reason = `parent algorithm failed: ${errText}`;
-            await this._stopAllPipelinesAndExecutions({ jobId, reason });
-            stateManager.done(message);
+        algoRunnerCommunication.on(messages.incomming.error, async (data) => {
+            const message = data.error && data.error.message;
+            log.info(`got error from algorithm: ${message}`, { component });
+            await this._handleRetry({ error: { message }, isAlgorithmError: true });
         });
         algoRunnerCommunication.on(messages.incomming.startSpan, (message) => {
             this._startAlgorithmSpan(message);
@@ -213,6 +206,61 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.finishSpan, (message) => {
             this._finishAlgorithmSpan(message);
         });
+    }
+
+    async _handleRetry(options) {
+        const retry = jobConsumer.jobRetry;
+        const { isAlgorithmError, isNetworkError } = options;
+
+        switch (retry.policy) {
+            case retryPolicy.Never: {
+                this._endJob(options);
+                break;
+            }
+            case retryPolicy.OnAlgorithmFailure: {
+                if (isNetworkError) {
+                    this._endJob(options);
+                    return;
+                }
+                this._startRetry(options);
+                break;
+            }
+            case retryPolicy.OnFailure: {
+                this._startRetry(options);
+                break;
+            }
+            case retryPolicy.OnNetworkFailure: {
+                if (isAlgorithmError) {
+                    this._endJob(options);
+                    return;
+                }
+                this._startRetry(options);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    async _endJob(options) {
+        const { jobId } = jobConsumer.jobData;
+        const reason = `parent algorithm failed: ${options.error.message}`;
+        await this._stopAllPipelinesAndExecutions({ jobId, reason });
+
+        const data = {
+            ...options,
+            shouldCompleteJob: true
+        };
+        stateManager.done(data);
+    }
+
+    async _startRetry(options) {
+        const data = {
+            ...options,
+            shouldCompleteJob: false
+        };
+        await jobConsumer.sendWarning(options.error.message);
+        stateManager.exit(data);
     }
 
     async _stopAllPipelinesAndExecutions({ jobId, reason }) {

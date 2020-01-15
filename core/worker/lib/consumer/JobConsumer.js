@@ -4,7 +4,7 @@ const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
-const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, retryPolicy } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const fse = require('fs-extra');
 const pathLib = require('path');
@@ -14,7 +14,7 @@ const { metricsNames, Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
-const DEFAULT_RETRY = { policy: 'onNetworkFailure', limit: 3 };
+const DEFAULT_RETRY = { policy: retryPolicy.OnNetworkFailure };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
@@ -133,6 +133,7 @@ class JobConsumer extends EventEmitter {
         this._taskId = undefined;
         this._pipelineName = undefined;
         this._jobData = undefined;
+        this._retry = undefined;
     }
 
     _setJob(job) {
