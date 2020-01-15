@@ -145,15 +145,15 @@ class Worker {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
-            await this.algorithmDisconnect(reason);
+            await this._algorithmDisconnect(reason);
         });
 
         stateManager.on('disconnect', async (reason) => {
-            await this.algorithmDisconnect(reason);
+            await this._algorithmDisconnect(reason);
         });
     }
 
-    async algorithmDisconnect(reason) {
+    async _algorithmDisconnect(reason) {
         if (this._debugMode) {
             return;
         }

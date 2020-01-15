@@ -14,6 +14,7 @@ const { metricsNames, Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
+const DEFAULT_RETRY = { policy: 'onNetworkFailure', limit: 3 };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
@@ -142,6 +143,7 @@ class JobConsumer extends EventEmitter {
         this._batchIndex = job.data.batchIndex;
         this._pipelineName = job.data.pipelineName;
         this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
+        this._retry = job.data.retry;
     }
 
     async _stopJob(job, status) {
@@ -525,6 +527,10 @@ class JobConsumer extends EventEmitter {
 
     get taskId() {
         return this._taskId;
+    }
+
+    get jobRetry() {
+        return this._retry || DEFAULT_RETRY;
     }
 
     getAlgorithmType() {
