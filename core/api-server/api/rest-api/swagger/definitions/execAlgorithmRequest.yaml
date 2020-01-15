@@ -1,0 +1,12 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/algorithmName"
+  input:
+    type: array
+    description: The input for the algorithm
+    items: {}
+    default: []
+additionalProperties: false
+required:
+  - name

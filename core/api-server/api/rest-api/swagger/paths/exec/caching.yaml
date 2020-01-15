@@ -16,7 +16,7 @@ post:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/jobId"
+            $ref: "#/components/schemas/jobIdObject"
     "400":
       description: bad request
       content:

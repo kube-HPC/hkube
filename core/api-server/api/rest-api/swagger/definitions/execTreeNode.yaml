@@ -4,5 +4,4 @@ properties:
     type: string
     description: Pipeline name
   jobId:
-    type: string
-    description: Unique identifier representing a specific pipeline
+    $ref: "#/components/schemas/jobId"

@@ -33,9 +33,23 @@ class ExecutionService {
         if (error) {
             throw new InvalidDataError(error.message);
         }
-        const types = [...new Set([...pipeline.types || [], pipelineTypes.CACHING])];
+        const types = [...new Set([...pipeline.types || [], pipelineTypes.NODE])];
         const cacheJobId = this._createJobIdForCaching(nodeName);
         return this._run({ pipeline, jobId: cacheJobId, options: { alreadyExecuted: true }, types });
+    }
+
+    async runAlgorithm(options) {
+        validator.validateExecAlgorithmRequest(options);
+        const { name, input } = options;
+        const pipeline = {
+            name,
+            nodes: [{
+                nodeName: name,
+                algorithmName: name,
+                input
+            }]
+        };
+        return this._run({ pipeline, types: [pipelineTypes.ALGORITHM] });
     }
 
     async _runStored(options) {

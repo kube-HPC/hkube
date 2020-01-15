@@ -1,9 +1,7 @@
 type: object
 properties:
   jobId:
-    type: string
-    description: Unique job identifier
-    minLength: 1
+    $ref: "#/components/schemas/jobId"
   nodeName:
     type: string
     description: Unique node identifier
