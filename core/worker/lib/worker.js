@@ -171,7 +171,7 @@ class Worker {
         };
         const error = options.error.message;
         log.error(error, { component });
-        await this._handleRetry({ ...options, isNetworkError: true });
+        await this._handleRetry({ ...options, isCrashed: true });
     }
 
     /**
@@ -210,26 +210,26 @@ class Worker {
 
     async _handleRetry(options) {
         const retry = jobConsumer.jobRetry;
-        const { isAlgorithmError, isNetworkError } = options;
+        const { isAlgorithmError, isCrashed } = options;
 
         switch (retry.policy) {
             case retryPolicy.Never: {
                 this._endJob(options);
                 break;
             }
-            case retryPolicy.OnAlgorithmFailure: {
-                if (isNetworkError) {
+            case retryPolicy.OnError: {
+                if (isCrashed) {
                     this._endJob(options);
                     return;
                 }
                 this._startRetry(options);
                 break;
             }
-            case retryPolicy.OnFailure: {
+            case retryPolicy.Always: {
                 this._startRetry(options);
                 break;
             }
-            case retryPolicy.OnNetworkFailure: {
+            case retryPolicy.OnCrash: {
                 if (isAlgorithmError) {
                     this._endJob(options);
                     return;
@@ -238,6 +238,8 @@ class Worker {
                 break;
             }
             default:
+                log.warning(`unknown retry policy ${retry.policy}`, { component });
+                this._endJob(options);
                 break;
         }
     }

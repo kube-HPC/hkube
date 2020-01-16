@@ -131,12 +131,12 @@
                           "properties": {
                             "policy": {
                               "type": "string",
-                              "default": "OnNetworkFailure",
+                              "default": "OnCrash",
                               "enum": [
                                 "Never",
-                                "OnFailure",
-                                "OnAlgorithmFailure",
-                                "OnNetworkFailure"
+                                "Always",
+                                "OnError",
+                                "OnCrash"
                               ]
                             },
                             "limit": {
@@ -1031,12 +1031,12 @@
                             "properties": {
                               "policy": {
                                 "type": "string",
-                                "default": "OnNetworkFailure",
+                                "default": "OnCrash",
                                 "enum": [
                                   "Never",
-                                  "OnFailure",
-                                  "OnAlgorithmFailure",
-                                  "OnNetworkFailure"
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
                                 ]
                               },
                               "limit": {
@@ -1300,12 +1300,12 @@
                             "properties": {
                               "policy": {
                                 "type": "string",
-                                "default": "OnNetworkFailure",
+                                "default": "OnCrash",
                                 "enum": [
                                   "Never",
-                                  "OnFailure",
-                                  "OnAlgorithmFailure",
-                                  "OnNetworkFailure"
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
                                 ]
                               },
                               "limit": {
@@ -4242,12 +4242,12 @@
                             "properties": {
                               "policy": {
                                 "type": "string",
-                                "default": "OnNetworkFailure",
+                                "default": "OnCrash",
                                 "enum": [
                                   "Never",
-                                  "OnFailure",
-                                  "OnAlgorithmFailure",
-                                  "OnNetworkFailure"
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
                                 ]
                               },
                               "limit": {
@@ -4614,12 +4614,12 @@
                               "properties": {
                                 "policy": {
                                   "type": "string",
-                                  "default": "OnNetworkFailure",
+                                  "default": "OnCrash",
                                   "enum": [
                                     "Never",
-                                    "OnFailure",
-                                    "OnAlgorithmFailure",
-                                    "OnNetworkFailure"
+                                    "Always",
+                                    "OnError",
+                                    "OnCrash"
                                   ]
                                 },
                                 "limit": {
@@ -4842,12 +4842,12 @@
                           "properties": {
                             "policy": {
                               "type": "string",
-                              "default": "OnNetworkFailure",
+                              "default": "OnCrash",
                               "enum": [
                                 "Never",
-                                "OnFailure",
-                                "OnAlgorithmFailure",
-                                "OnNetworkFailure"
+                                "Always",
+                                "OnError",
+                                "OnCrash"
                               ]
                             },
                             "limit": {
@@ -5046,12 +5046,12 @@
                             "properties": {
                               "policy": {
                                 "type": "string",
-                                "default": "OnNetworkFailure",
+                                "default": "OnCrash",
                                 "enum": [
                                   "Never",
-                                  "OnFailure",
-                                  "OnAlgorithmFailure",
-                                  "OnNetworkFailure"
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
                                 ]
                               },
                               "limit": {
@@ -5311,12 +5311,12 @@
                           "properties": {
                             "policy": {
                               "type": "string",
-                              "default": "OnNetworkFailure",
+                              "default": "OnCrash",
                               "enum": [
                                 "Never",
-                                "OnFailure",
-                                "OnAlgorithmFailure",
-                                "OnNetworkFailure"
+                                "Always",
+                                "OnError",
+                                "OnCrash"
                               ]
                             },
                             "limit": {
@@ -5515,12 +5515,12 @@
                             "properties": {
                               "policy": {
                                 "type": "string",
-                                "default": "OnNetworkFailure",
+                                "default": "OnCrash",
                                 "enum": [
                                   "Never",
-                                  "OnFailure",
-                                  "OnAlgorithmFailure",
-                                  "OnNetworkFailure"
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
                                 ]
                               },
                               "limit": {
@@ -10322,12 +10322,12 @@
                   "properties": {
                     "policy": {
                       "type": "string",
-                      "default": "OnNetworkFailure",
+                      "default": "OnCrash",
                       "enum": [
                         "Never",
-                        "OnFailure",
-                        "OnAlgorithmFailure",
-                        "OnNetworkFailure"
+                        "Always",
+                        "OnError",
+                        "OnCrash"
                       ]
                     },
                     "limit": {
@@ -10506,12 +10506,12 @@
             "properties": {
               "policy": {
                 "type": "string",
-                "default": "OnNetworkFailure",
+                "default": "OnCrash",
                 "enum": [
                   "Never",
-                  "OnFailure",
-                  "OnAlgorithmFailure",
-                  "OnNetworkFailure"
+                  "Always",
+                  "OnError",
+                  "OnCrash"
                 ]
               },
               "limit": {
