@@ -21,11 +21,7 @@ class Experiment {
     }
 
     async deleteExperiment(options) {
-        const experiment = await stateManager.deleteExperiment(options);
-        if (!experiment) {
-            throw new ResourceNotFoundError('pipeline', options.name);
-        }
-        return experiment;
+        return stateManager.deleteExperiment(options);
     }
 }
 

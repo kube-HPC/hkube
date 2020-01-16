@@ -10,18 +10,14 @@ const routes = (options) => {
         next();
     });
     router.all('/results', methods(['GET']), logger(), async (req, res, next) => {
-        const { sort, order, limit } = req.query;
-        const experimentName = req.query.experimentName || 'main';
-        const name = req.query.name || '';
+        const { experimentName, name, sort, order, limit } = req.query;
         const response = await Cron.getCronResult({ experimentName, name, sort, order, limit });
         res.json(response);
         res.name = name;
         next();
     });
     router.all('/status', methods(['GET']), logger(), async (req, res, next) => {
-        const { sort, order, limit } = req.query;
-        const experimentName = req.query.experimentName || 'main';
-        const name = req.query.name || '';
+        const { experimentName, name, sort, order, limit } = req.query;
         const response = await Cron.getCronStatus({ experimentName, name, sort, order, limit });
         res.json(response);
         res.name = name;

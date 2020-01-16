@@ -11,9 +11,7 @@ const routes = (options) => {
     });
 
     router.all('/results', methods(['GET']), logger(), async (req, res, next) => {
-        const { sort, order, limit } = req.query;
-        const experimentName = req.query.experimentName || 'main';
-        const name = req.query.name || '';
+        const { name, experimentName, sort, order, limit } = req.query;
         const response = await Execution.getPipelinesResult({ name, experimentName, sort, order, limit });
         res.json(response);
         res.name = name;
@@ -21,9 +19,7 @@ const routes = (options) => {
     });
 
     router.all('/status', methods(['GET']), logger(), async (req, res, next) => {
-        const { sort, order, limit } = req.query;
-        const experimentName = req.query.experimentName || 'main';
-        const name = req.query.name || '';
+        const { name, experimentName, sort, order, limit } = req.query;
         const response = await Execution.getPipelinesStatus({ name, experimentName, sort, order, limit });
         res.json(response);
         res.name = name;
