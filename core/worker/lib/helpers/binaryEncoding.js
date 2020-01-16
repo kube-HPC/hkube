@@ -1,10 +1,14 @@
 const bson = require('bson');
 
 const binaryDecode = (data) => {
-    return bson.deserialize(data, { promoteBuffers: true, promoteValues: true });
+    const ret = bson.deserialize(data, { promoteBuffers: true, promoteValues: true });
+    return ret;
 };
 
-const binaryEncode = bson.serialize;
+const binaryEncode = (data) => {
+    const size = bson.calculateObjectSize(data);
+    return bson.serialize(data, { minInternalBufferSize: Math.floor(size * 1.1) });
+};
 
 module.exports = {
     binaryDecode,
