@@ -213,30 +213,26 @@ class Worker {
         const { isAlgorithmError, isCrashed } = options;
 
         switch (retry.policy) {
-            case retryPolicy.Never: {
+            case retryPolicy.Never:
                 this._endJob(options);
                 break;
-            }
-            case retryPolicy.OnError: {
-                if (isCrashed) {
-                    this._endJob(options);
-                    return;
-                }
-                this._startRetry(options);
-                break;
-            }
-            case retryPolicy.Always: {
-                this._startRetry(options);
-                break;
-            }
-            case retryPolicy.OnCrash: {
+            case retryPolicy.OnError:
                 if (isAlgorithmError) {
-                    this._endJob(options);
+                    this._startRetry(options);
                     return;
                 }
+                this._endJob(options);
+                break;
+            case retryPolicy.Always:
                 this._startRetry(options);
                 break;
-            }
+            case retryPolicy.OnCrash:
+                if (isCrashed) {
+                    this._startRetry(options);
+                    return;
+                }
+                this._endJob(options);
+                break;
             default:
                 log.warning(`unknown retry policy ${retry.policy}`, { component });
                 this._endJob(options);
