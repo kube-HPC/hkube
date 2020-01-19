@@ -80,7 +80,7 @@ put:
           schema:
             $ref: "#/components/schemas/defaultResponse"
     "404":
-      description: pipeline Not Found
+      description: algorithm Not Found
       content:
         application/json:
           schema:

@@ -1,7 +1,6 @@
 type: object
 properties:
   jobId:
-    type: string
-    description: Unique identifier representing pipeline execution
+    $ref: "#/components/schemas/jobId"
 required:
   - jobId

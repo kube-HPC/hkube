@@ -19,6 +19,22 @@ properties:
   metrics:
     $ref: "#/components/schemas/metrics"
     default: {}
+  retry:
+    type: object
+    properties:
+      policy:
+        type: string
+        default: OnCrash
+        enum:
+          - Never
+          - Always
+          - OnError
+          - OnCrash
+      limit:
+        type: integer
+        minimum: 1
+        default: 3
+        example: 1
 required:
   - nodeName
   - algorithmName

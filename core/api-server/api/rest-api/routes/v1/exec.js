@@ -27,6 +27,12 @@ const routes = (options) => {
         res.jobId = jobId;
         next();
     });
+    router.all('/algorithm', methods(['POST']), logger(), async (req, res, next) => {
+        const jobId = await Execution.runAlgorithm(req.body);
+        res.json({ jobId });
+        res.jobId = jobId;
+        next();
+    });
     router.all('/stop', methods(['POST']), logger(), async (req, res, next) => {
         const { jobId, reason } = req.body;
         await Execution.stopJob({ jobId, reason });
