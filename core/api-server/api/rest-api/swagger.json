@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.59",
+    "version": "1.2.63",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -114,6 +114,12 @@
                           "description": "The input for the algorithm",
                           "items": {},
                           "default": []
+                        },
+                        "ttl": {
+                          "type": "integer",
+                          "description": "Algorithm execution time to live in seconds. 0 to disable",
+                          "minimum": 0,
+                          "example": 0
                         },
                         "metrics": {
                           "default": {},
@@ -1131,6 +1137,12 @@
                             "items": {},
                             "default": []
                           },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
+                          },
                           "metrics": {
                             "default": {},
                             "type": "object",
@@ -1399,6 +1411,12 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
                           },
                           "metrics": {
                             "default": {},
@@ -4349,6 +4367,12 @@
                             "items": {},
                             "default": []
                           },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
+                          },
                           "metrics": {
                             "default": {},
                             "type": "object",
@@ -4721,6 +4745,12 @@
                               "items": {},
                               "default": []
                             },
+                            "ttl": {
+                              "type": "integer",
+                              "description": "Algorithm execution time to live in seconds. 0 to disable",
+                              "minimum": 0,
+                              "example": 0
+                            },
                             "metrics": {
                               "default": {},
                               "type": "object",
@@ -4949,6 +4979,12 @@
                           "items": {},
                           "default": []
                         },
+                        "ttl": {
+                          "type": "integer",
+                          "description": "Algorithm execution time to live in seconds. 0 to disable",
+                          "minimum": 0,
+                          "example": 0
+                        },
                         "metrics": {
                           "default": {},
                           "type": "object",
@@ -5152,6 +5188,12 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
                           },
                           "metrics": {
                             "default": {},
@@ -5418,6 +5460,12 @@
                           "items": {},
                           "default": []
                         },
+                        "ttl": {
+                          "type": "integer",
+                          "description": "Algorithm execution time to live in seconds. 0 to disable",
+                          "minimum": 0,
+                          "example": 0
+                        },
                         "metrics": {
                           "default": {},
                           "type": "object",
@@ -5621,6 +5669,12 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
                           },
                           "metrics": {
                             "default": {},
@@ -10434,6 +10488,12 @@
                   "items": {},
                   "default": []
                 },
+                "ttl": {
+                  "type": "integer",
+                  "description": "Algorithm execution time to live in seconds. 0 to disable",
+                  "minimum": 0,
+                  "example": 0
+                },
                 "metrics": {
                   "default": {},
                   "type": "object",
@@ -10617,6 +10677,12 @@
             "description": "The input for the algorithm",
             "items": {},
             "default": []
+          },
+          "ttl": {
+            "type": "integer",
+            "description": "Algorithm execution time to live in seconds. 0 to disable",
+            "minimum": 0,
+            "example": 0
           },
           "metrics": {
             "default": {},

@@ -14,6 +14,7 @@ const { metricsNames, Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
+const { logMessages } = require('../consts');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
@@ -271,7 +272,7 @@ class JobConsumer extends EventEmitter {
     }
 
     _getStatus(data) {
-        const { state, results } = data;
+        const { state, results, isTtlExpired } = data;
         const workerStatus = state;
         let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
@@ -283,7 +284,10 @@ class JobConsumer extends EventEmitter {
             reason = results.error && results.error.reason;
             status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
         }
-
+        if (isTtlExpired) {
+            error = logMessages.algorithmTtlExpired;
+            status = constants.JOB_STATUS.FAILED;
+        }
         const resultData = results && results.data;
         return {
             workerStatus,
@@ -336,7 +340,7 @@ class JobConsumer extends EventEmitter {
         await etcd.update(data);
     }
 
-    async finishJob(data = {}) {
+    async finishJob(data = {}, isTtlExpired) {
         if (!this._job) {
             return;
         }
@@ -345,7 +349,7 @@ class JobConsumer extends EventEmitter {
             await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
         let storageResult = {};
-        const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus(data);
+        const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
         if (shouldCompleteJob) {
             let metricsPath;
