@@ -1,6 +1,6 @@
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses, retryPolicy } = require('@hkube/consts');
+const { pipelineStatuses, retryPolicy, taskStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
@@ -10,6 +10,7 @@ const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
+const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -21,6 +22,7 @@ class Worker {
         this._isConnected = false;
         this._isInit = false;
         this._isBootstrapped = false;
+        this._ttlTimeoutHandle = null;
     }
 
     preInit() {
@@ -103,14 +105,14 @@ class Worker {
         });
     }
 
-    async _stopPipeline({ status, reason }) {
+    async _stopPipeline({ status, reason, isTtlExpired }) {
         if (stateManager.state !== workerStates.working) {
             return;
         }
         const { jobId } = jobConsumer.jobData;
         log.warning(`got status: ${status}`, { component });
         await this._stopAllPipelinesAndExecutions({ jobId, reason: `parent pipeline ${status}. ${reason || ''}` });
-        stateManager.stop();
+        stateManager.stop(isTtlExpired);
     }
 
     _doTheBootstrap() {
@@ -398,6 +400,24 @@ class Worker {
         }
     }
 
+    _handleTtlStart(job) {
+        const { ttl } = job.data;
+        if (ttl) {
+            this._ttlTimeoutHandle = setTimeout(async () => {
+                const msg = logMessages.algorithmTtlExpired;
+                log.warning(msg, { component });
+                await this._stopPipeline({ status: taskStatuses.STOPPED, reason: msg, isTtlExpired: true });
+            }, ttl * 1000);
+        }
+    }
+
+    _handleTtlEnd() {
+        if (this._ttlTimeoutHandle) {
+            clearTimeout(this._ttlTimeoutHandle);
+            this._ttlTimeoutHandle = null;
+        }
+    }
+
     _handleTimeout(state) {
         if (state === workerStates.ready) {
             if (this._inactiveTimer) {
@@ -422,7 +442,7 @@ class Worker {
     }
 
     _registerToStateEvents() {
-        stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
+        stateManager.on(stateEvents.stateEntered, async ({ job, state, results, isTtlExpired }) => {
             const { jobId } = jobConsumer.jobData || {};
             let pendingTransition = null;
             let reason = null;
@@ -431,15 +451,17 @@ class Worker {
             this._handleTimeout(state);
             switch (state) {
                 case workerStates.exit:
+                    this._handleTtlEnd();
                     await jobConsumer.pause();
                     await jobConsumer.finishJob(result);
                     jobConsumer.finishBullJob(results);
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
+                    this._handleTtlEnd();
                     reason = `parent algorithm entered state ${state}`;
                     await this._stopAllPipelinesAndExecutions({ jobId, reason });
-                    await jobConsumer.finishJob(result);
+                    await jobConsumer.finishJob(result, isTtlExpired);
                     pendingTransition = stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
@@ -455,6 +477,7 @@ class Worker {
                     break;
                 }
                 case workerStates.working:
+                    this._handleTtlStart(job);
                     algoRunnerCommunication.send({
                         command: messages.outgoing.start
                     });
@@ -464,6 +487,7 @@ class Worker {
                 case workerStates.error:
                     break;
                 case workerStates.stop:
+                    this._handleTtlEnd();
                     this._stopTimeout = setTimeout(() => {
                         log.warning('Timeout exceeded trying to stop algorithm.', { component });
                         stateManager.done('Timeout exceeded trying to stop algorithm');

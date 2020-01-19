@@ -6,6 +6,7 @@ const taskEvents = require('./task-events');
 const workerStates = require('./worker-states');
 const workerCommands = require('./worker-commands');
 const metricsNames = require('./metrics-names');
+const logMessages = require('./log-messages');
 
 module.exports = {
     Components,
@@ -15,5 +16,6 @@ module.exports = {
     taskEvents,
     workerStates,
     workerCommands,
-    metricsNames
+    metricsNames,
+    logMessages
 };
