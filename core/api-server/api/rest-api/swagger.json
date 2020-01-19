@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.59",
+    "version": "1.2.63",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -6174,24 +6174,13 @@
         }
       }
     },
-    "/boards/tensor": {
+    "/boards/tensors": {
       "post": {
         "tags": [
           "Boards"
         ],
         "summary": "Start board",
         "description": "start board",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Unique identifier representing board",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6209,12 +6198,11 @@
                   },
                   "jobId": {
                     "type": "string"
+                  },
+                  "taskId": {
+                    "type": "string"
                   }
-                },
-                "required": [
-                  "pipelineName",
-                  "nodeName"
-                ]
+                }
               }
             }
           },
@@ -6283,7 +6271,7 @@
         }
       }
     },
-    "/boards/tensor/{id}": {
+    "/boards/tensors/{id}": {
       "get": {
         "tags": [
           "Boards"
@@ -9643,7 +9631,6 @@
         }
       },
       "createBoardRequest": {
-
         "type": "object",
         "properties": {
           "pipelineName": {
@@ -9657,14 +9644,12 @@
           },
           "jobId": {
             "type": "string"
+          },
+          "taskId": {
+            "type": "string"
           }
-        },
-        "required": [
-          "pipelineName",
-          "nodeName"
-        ]
+        }
       },
-
       "createBoardResponse": {
         "type": "object",
         "properties": {
@@ -9676,7 +9661,6 @@
           }
         },
         "required": [
-
           "id"
         ]
       },

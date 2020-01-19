@@ -10,23 +10,23 @@ class Boards {
     async getTensorboard(options) {
         const response = await stateManager.getTensorboard(options);
         if (!response) {
-            throw new ResourceNotFoundError('board', JSON.stringify(options));
+            throw new ResourceNotFoundError('board', options.id);
         }
         return response;
     }
 
     async getTensorboards(options) {
         const response = await stateManager.getTensorboards(options);
-        if (!response) {
-            throw new ResourceNotFoundError('board', JSON.stringify(options));
-        }
         return response;
     }
 
     async stopTensorboard(options) {
-        await this.getTensorboard(options); // check board exists
         const deleteResult = await stateManager.deleteTensorBoard(options);
-        return deleteResult;
+        const deleted = parseInt(deleteResult.deleted, 10);
+        if (deleted === 0) {
+            throw new ResourceNotFoundError('board', options.id);
+        }
+        return deleted;
     }
 
     generateId(options, type) {
@@ -73,11 +73,11 @@ class Boards {
         return id;
     }
 
-    async getBoardInfo({ taskId, jobId }, type) {
+    async getBoardInfo({ taskId, jobId, nodeName }, type) {
         const pipeline = await execution.getPipeline({ jobId });
+        const gr = await graph.getGraphRaw({ jobId });
+        const parsedGraph = JSON.parse(gr);
         if (type === 'task') {
-            const gr = await graph.getGraphRaw({ jobId });
-            const parsedGraph = JSON.parse(gr);
             let foundNode = parsedGraph.nodes.find(node => taskId === node.taskId);
             if (!foundNode) {
                 foundNode = parsedGraph.nodes.find(node => node.batch && node.batch.find(batchPart => batchPart.taskId === taskId));
@@ -86,6 +86,9 @@ class Boards {
                 throw new ResourceNotFoundError(`No task ${taskId} in job ${jobId}`);
             }
             return { nodeName: foundNode.nodeName, pipelineName: pipeline.name };
+        }
+        if (!parsedGraph.nodes.some(node => node.nodeName === nodeName)) {
+            throw new ResourceNotFoundError('node', `${nodeName} for job ${jobId}`);
         }
         return { pipelineName: pipeline.name };
     }

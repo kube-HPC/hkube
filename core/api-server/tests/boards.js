@@ -5,16 +5,18 @@ const { boardStatuses } = require('@hkube/consts');
 const graphAdapter = require('../lib/state/graph-adapter');
 const graph = require('./mocks/graph.json');
 
+let restBoardPath;
 let restUrl;
 
 describe('Boards', () => {
     before(() => {
-        restUrl = global.testParams.restUrl + '/boards/tensor';
+        restUrl = global.testParams.restUrl;
+        restBoardPath = global.testParams.restUrl + '/boards/tensors';
     });
     describe('status', () => {
         let restPath = null;
         before(() => {
-            restPath = `${restUrl}/`;
+            restPath = `${restBoardPath}/`;
         });
         it('should throw status Not Found with params', async () => {
             const options = {
@@ -23,17 +25,17 @@ describe('Boards', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('board {"id":"no_such_id"} Not Found');
+            expect(response.body.error.message).to.equal('board no_such_id Not Found');
         });
     });
     describe('start', () => {
         let restPath = null;
         before(() => {
-            restPath = `${restUrl}/`;
+            restPath = `${restBoardPath}/`;
         });
         it('starting task board should succeed', async () => {
             const options1 = {
-                uri: global.testParams.restUrl + '/exec/raw',
+                uri: restUrl + '/exec/raw',
                 body: {
                     name: 'exec_pipeline',
                     nodes: [
@@ -53,13 +55,13 @@ describe('Boards', () => {
                 method: 'POST',
                 body: {
                     jobId: response1.body.jobId,
-                    taskId: 'A:eval-alg:8c36cd08-a440-46c7-bc8f-57a477b3a4da'
+                    taskId: graph.nodes[0].batch[0].taskId
                 }
             };
             let response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             options = {
-                uri: `${restUrl}/${response.body.id}`,
+                uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
             }
             response = await request(options);
@@ -68,7 +70,7 @@ describe('Boards', () => {
         });
         it('starting task board should fail if no such task', async () => {
             const options1 = {
-                uri: global.testParams.restUrl + '/exec/raw',
+                uri: restUrl + '/exec/raw',
                 body: {
                     name: 'exec_pipeline',
                     nodes: [
@@ -97,7 +99,7 @@ describe('Boards', () => {
         });
         it('starting node board should succeed', async () => {
             let options = {
-                uri: `${restUrl}`,
+                uri: `${restBoardPath}`,
                 method: 'POST',
                 body: {
                     pipelineName: 'pName',
@@ -107,7 +109,7 @@ describe('Boards', () => {
             let response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             options = {
-                uri: `${restUrl}/${response.body.id}`,
+                uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
             }
             response = await request(options);
@@ -122,7 +124,7 @@ describe('Boards', () => {
                     name: 'exec_pipeline',
                     nodes: [
                         {
-                            nodeName: 'nName',
+                            nodeName: 'A',
                             algorithmName: 'green-alg',
                             input: [],
                             metrics: { tensorboard: true }
@@ -131,12 +133,12 @@ describe('Boards', () => {
                 }
             };
             const response1 = await request(options1);
+            await graphAdapter.setGraph({ key: response1.body.jobId, data: graph })
             const options = {
                 uri: restPath,
                 method: 'POST',
                 body: {
-                    pipelineName: 'adfb',
-                    nodeName: 'nodedd',
+                    nodeName: 'A',
                     jobId: response1.body.jobId,
                 }
             };
@@ -145,6 +147,35 @@ describe('Boards', () => {
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('board: already started');
+        });
+        it('starting board should fail if no such node', async () => {
+            const options1 = {
+                uri: global.testParams.restUrl + '/exec/raw',
+                body: {
+                    name: 'exec_pipeline',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            algorithmName: 'green-alg',
+                            input: [],
+                            metrics: { tensorboard: true }
+                        }
+                    ]
+                }
+            };
+            const response1 = await request(options1);
+            await graphAdapter.setGraph({ key: response1.body.jobId, data: graph })
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    nodeName: 'no_such_node',
+                    jobId: response1.body.jobId,
+                }
+            };
+            let response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.message).to.equal(`node no_such_node for job ${response1.body.jobId} Not Found`);
         });
         it('starting board should fail if no such job', async () => {
             const options = {
@@ -166,7 +197,7 @@ describe('Boards', () => {
     describe('stop', () => {
         let restPath = null;
         before(() => {
-            restPath = `${restUrl}`;
+            restPath = `${restBoardPath}`;
         });
         it('should throw NotFound when board does not exist on stop board', async () => {
             const options = {
@@ -175,12 +206,12 @@ describe('Boards', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('board {"id":"no_such_id"} Not Found');
+            expect(response.body.error.message).to.equal('board no_such_id Not Found');
         });
 
         it('should succeed to stop', async () => {
             let options = {
-                uri: `${restUrl}`,
+                uri: `${restBoardPath}`,
                 method: 'POST',
                 body: {
                     pipelineName: 'pName1',
@@ -196,7 +227,7 @@ describe('Boards', () => {
             response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             options = {
-                uri: `${restUrl}/${response.body.id}`,
+                uri: `${restBoardPath}/${response.body.id}`,
                 method: 'GET'
             }
             response = await request(options);

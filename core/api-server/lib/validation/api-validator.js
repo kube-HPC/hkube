@@ -134,18 +134,14 @@ class ApiValidator {
 
     validateCreateBoardReq(board) {
         const { taskId, jobId, nodeName, pipelineName } = board;
-        if (taskId) {
-            if (!jobId) {
-                throw new InvalidDataError('Must supply jobId');
-            }
+        if (taskId && !jobId) {
+            throw new InvalidDataError('Must supply jobId');
         }
-        else if (!jobId) {
-            if (!nodeName) {
-                throw new InvalidDataError('Must supply nodeName');
-            }
-            if (!pipelineName) {
-                throw new InvalidDataError('Must supply pipeLineName');
-            }
+        if (!nodeName && !taskId) {
+            throw new InvalidDataError('Must supply nodeName');
+        }
+        if (!jobId && !pipelineName) {
+            throw new InvalidDataError('Must supply pipeLineName');
         }
     }
 

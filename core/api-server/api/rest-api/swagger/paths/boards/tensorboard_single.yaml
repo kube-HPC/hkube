@@ -1,8 +1,8 @@
 get:
   tags:
     - Boards
-  summary: Board status
-  description: Board status
+  summary: Board details
+  description: Board details
   parameters:
     - name: id
       in: path
@@ -12,7 +12,7 @@ get:
         type: string
   responses:
     "200":
-      description: start board response
+      description: get board response
       content:
         application/json:
           schema:
@@ -49,7 +49,7 @@ delete:
         type: string
   responses:
     "200":
-      description: start board response
+      description: delete board response
       content:
         application/json:
           schema:

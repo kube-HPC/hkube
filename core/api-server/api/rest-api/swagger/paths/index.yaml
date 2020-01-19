@@ -64,9 +64,9 @@
 
 # boards
 
-/boards/tensor:
+/boards/tensors:
   $ref: ./boards/tensorboard_create.yaml
-/boards/tensor/{id}:
+/boards/tensors/{id}:
   $ref: ./boards/tensorboard_single.yaml
 /boards/tensors/:
   $ref: ./boards/tensorboard_list.yaml

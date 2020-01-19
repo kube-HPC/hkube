@@ -1,8 +1,8 @@
 get:
   tags:
     - Boards
-  summary: Board status
-  description: Board status
+  summary: Board list
+  description: Board list
   responses:
     "200":
       description: start board response
