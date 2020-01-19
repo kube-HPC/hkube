@@ -10,6 +10,7 @@ const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
+const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -104,14 +105,14 @@ class Worker {
         });
     }
 
-    async _stopPipeline({ status, reason }) {
+    async _stopPipeline({ status, reason, isTtlExpired }) {
         if (stateManager.state !== workerStates.working) {
             return;
         }
         const { jobId } = jobConsumer.jobData;
         log.warning(`got status: ${status}`, { component });
         await this._stopAllPipelinesAndExecutions({ jobId, reason: `parent pipeline ${status}. ${reason || ''}` });
-        stateManager.stop();
+        stateManager.stop(isTtlExpired);
     }
 
     _doTheBootstrap() {
@@ -403,8 +404,9 @@ class Worker {
         const { ttl } = job.data;
         if (ttl) {
             this._ttlTimeoutHandle = setTimeout(async () => {
-                log.warning('TTL expired', { component });
-                await this._stopPipeline({ status: 'stopped', reason: 'TTL expired' });
+                const msg = logMessages.algorithmTtlExpired;
+                log.warning(msg, { component });
+                await this._stopPipeline({ status: 'stopped', reason: msg, isTtlExpired: true });
             }, ttl * 1000);
         }
     }
@@ -440,7 +442,7 @@ class Worker {
     }
 
     _registerToStateEvents() {
-        stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
+        stateManager.on(stateEvents.stateEntered, async ({ job, state, results, isTtlExpired }) => {
             const { jobId } = jobConsumer.jobData || {};
             let pendingTransition = null;
             let reason = null;
@@ -459,7 +461,7 @@ class Worker {
                     this._handleTtlEnd();
                     reason = `parent algorithm entered state ${state}`;
                     await this._stopAllPipelinesAndExecutions({ jobId, reason });
-                    await jobConsumer.finishJob(result);
+                    await jobConsumer.finishJob(result, isTtlExpired);
                     pendingTransition = stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
