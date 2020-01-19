@@ -1,6 +1,6 @@
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses, retryPolicy } = require('@hkube/consts');
+const { pipelineStatuses, retryPolicy, taskStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
@@ -406,7 +406,7 @@ class Worker {
             this._ttlTimeoutHandle = setTimeout(async () => {
                 const msg = logMessages.algorithmTtlExpired;
                 log.warning(msg, { component });
-                await this._stopPipeline({ status: 'stopped', reason: msg, isTtlExpired: true });
+                await this._stopPipeline({ status: taskStatuses.STOPPED, reason: msg, isTtlExpired: true });
             }, ttl * 1000);
         }
     }
