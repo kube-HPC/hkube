@@ -2,7 +2,7 @@ post:
   tags:
     - Execution
   summary: Run stored pipeline
-  description: "Start pipeline execution when the name of the pipeline is known, all parameters in this action will be merged with the stored pipeline and then returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc."
+  description: Start pipeline execution when the name of the pipeline is known, all parameters in this action will be merged with the stored pipeline and then returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.
   requestBody:
     content:
       application/json:
@@ -16,7 +16,7 @@ post:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/jobId"
+            $ref: "#/components/schemas/jobIdObject"
     "400":
       description: bad request
       content:

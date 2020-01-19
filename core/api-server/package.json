@@ -1,11 +1,11 @@
 {
     "name": "api-server",
-    "version": "1.2.57",
+    "version": "1.2.64",
     "description": "Hkube Api Server",
     "main": "app.js",
     "dependencies": {
         "@hkube/config": "^2.0.7",
-        "@hkube/consts": "^1.0.14",
+        "@hkube/consts": "^1.0.17",
         "@hkube/etcd": "^5.0.17",
         "@hkube/logger": "^1.0.25",
         "@hkube/metrics": "^1.0.38",
@@ -13,7 +13,7 @@
         "@hkube/producer-consumer": "^1.0.46",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.12",
-        "@hkube/storage-manager": "^1.0.59",
+        "@hkube/storage-manager": "^1.0.60",
         "@hkube/units-converter": "^1.0.14",
         "@octokit/rest": "^16.35.2",
         "ajv": "^6.10.2",

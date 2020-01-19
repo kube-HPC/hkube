@@ -1,6 +1,6 @@
 {
     "name": "worker",
-    "version": "1.2.38",
+    "version": "1.2.42",
     "description": "worker process",
     "main": "app.js",
     "scripts": {
@@ -19,8 +19,8 @@
     "license": "MIT",
     "dependencies": {
         "@hkube/config": "^2.0.7",
-        "@hkube/consts": "^1.0.12",
-        "@hkube/etcd": "^5.0.5",
+        "@hkube/consts": "^1.0.18",
+        "@hkube/etcd": "^5.0.17",
         "@hkube/kubernetes-client": "^1.0.27",
         "@hkube/logger": "^1.0.25",
         "@hkube/metrics": "^1.0.34",
@@ -28,7 +28,7 @@
         "@hkube/producer-consumer": "^1.0.46",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.12",
-        "@hkube/storage-manager": "^1.0.59",
+        "@hkube/storage-manager": "^1.0.60",
         "ajv": "^6.10.2",
         "bson": "^4.0.2",
         "clone": "^2.1.2",

@@ -1,14 +1,14 @@
 post:
   tags:
     - Execution
-  summary: Run raw pipeline
-  description: Start pipeline execution with raw input, returns jobId that can be used as a reference for the pipeline to do actions such as results/status/stop, etc.
+  summary: Run algorithm
+  description: Start execution for single algorithm.
   requestBody:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/pipeline"
-    description: an object representing all information needed for pipeline execution
+          $ref: "#/components/schemas/execAlgorithmRequest"
+    description: an object representing all information needed for algorithm execution request
     required: true
   responses:
     "200":
@@ -19,6 +19,12 @@ post:
             $ref: "#/components/schemas/jobIdObject"
     "400":
       description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: algorithm Not Found
       content:
         application/json:
           schema:

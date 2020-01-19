@@ -4,7 +4,7 @@ const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
-const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, retryPolicy } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const fse = require('fs-extra');
 const pathLib = require('path');
@@ -14,6 +14,8 @@ const { metricsNames, Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
+const { logMessages } = require('../consts');
+const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
 const component = Components.CONSUMER;
@@ -132,6 +134,7 @@ class JobConsumer extends EventEmitter {
         this._taskId = undefined;
         this._pipelineName = undefined;
         this._jobData = undefined;
+        this._retry = undefined;
     }
 
     _setJob(job) {
@@ -142,6 +145,7 @@ class JobConsumer extends EventEmitter {
         this._batchIndex = job.data.batchIndex;
         this._pipelineName = job.data.pipelineName;
         this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
+        this._retry = job.data.retry;
     }
 
     async _stopJob(job, status) {
@@ -268,7 +272,7 @@ class JobConsumer extends EventEmitter {
     }
 
     _getStatus(data) {
-        const { state, results } = data;
+        const { state, results, isTtlExpired } = data;
         const workerStatus = state;
         let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
         let error = null;
@@ -280,7 +284,10 @@ class JobConsumer extends EventEmitter {
             reason = results.error && results.error.reason;
             status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
         }
-
+        if (isTtlExpired) {
+            error = logMessages.algorithmTtlExpired;
+            status = constants.JOB_STATUS.FAILED;
+        }
         const resultData = results && results.data;
         return {
             workerStatus,
@@ -333,7 +340,7 @@ class JobConsumer extends EventEmitter {
         await etcd.update(data);
     }
 
-    async finishJob(data = {}) {
+    async finishJob(data = {}, isTtlExpired) {
         if (!this._job) {
             return;
         }
@@ -342,7 +349,7 @@ class JobConsumer extends EventEmitter {
             await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
         let storageResult = {};
-        const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus(data);
+        const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
         if (shouldCompleteJob) {
             let metricsPath;
@@ -525,6 +532,10 @@ class JobConsumer extends EventEmitter {
 
     get taskId() {
         return this._taskId;
+    }
+
+    get jobRetry() {
+        return this._retry || DEFAULT_RETRY;
     }
 
     getAlgorithmType() {

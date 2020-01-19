@@ -90,7 +90,6 @@ describe('Test', function () {
                 expect(node.result).to.eql(result);
             });
             it('should create job and handle failed status', async function () {
-                this.timeout(3000);
                 const jobId = `jobid-failed-event-${uuidv4()}`;
                 const job = {
                     data: { jobId },
@@ -115,7 +114,6 @@ describe('Test', function () {
                 expect(node.error).to.eql(error);
             });
             it('should create job and handle stalled status', async function () {
-                this.timeout(3000);
                 const jobId = `jobid-stalled-event-${uuidv4()}`;
                 const job = {
                     data: { jobId },
@@ -137,7 +135,7 @@ describe('Test', function () {
                 await workerStub.done({ jobId, taskId: jobId, taskId: node.taskId, status, error });
                 await delay(500);
                 expect(node.status).to.eql(status);
-                expect(node.prevErrors).to.include(error);
+                expect(node.warnings).to.include(error);
             });
             it('should create job and handle crashed status', async function () {
                 const jobId = `jobid-crashed-event-${uuidv4()}`;
@@ -302,7 +300,6 @@ describe('Test', function () {
             expect(spy.calledOnce).to.equal(true);
         });
         it('should recover big pipeline', async function () {
-            this.timeout(10000);
             const jobId = `jobid-recovery-${uuidv4()}`;
             const job = {
                 data: { jobId },

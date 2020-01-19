@@ -5,6 +5,8 @@
   $ref: ./exec/stored.yaml
 /exec/caching:
   $ref: ./exec/caching.yaml
+/exec/algorithm:
+  $ref: ./exec/algorithm.yaml
 /exec/stop:
   $ref: ./exec/stop.yaml
 /exec/pause:

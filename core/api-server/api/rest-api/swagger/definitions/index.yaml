@@ -40,6 +40,8 @@ execTreeResult:
   $ref: ./execTreeResult.yaml
 jobId:
   $ref: ./jobId.yaml
+jobIdObject:
+  $ref: ./jobIdObject.yaml
 options:
   $ref: ./options.yaml
 pipeline:
@@ -84,3 +86,5 @@ algorithmBuild:
   $ref: ./algorithmBuild.yaml
 algorithmBuildGit:
   $ref: ./algorithmBuildGit.yaml
+execAlgorithmRequest:
+  $ref: ./execAlgorithmRequest.yaml

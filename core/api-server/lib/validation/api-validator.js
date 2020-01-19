@@ -87,6 +87,10 @@ class ApiValidator {
         this._validate(this._definitions.caching, request, false);
     }
 
+    validateExecAlgorithmRequest(request) {
+        this._validate(this._definitions.execAlgorithmRequest, request, false);
+    }
+
     validateStopPipeline(pipeline) {
         this._validate(this._definitions.stopRequest, pipeline, true);
     }
@@ -155,7 +159,7 @@ class ApiValidator {
     }
 
     validateJobID(pipeline) {
-        this._validate(this._definitions.jobId, pipeline, false);
+        this._validate(this._definitions.jobIdObject, pipeline, false);
     }
 
     async validateAlgorithmExists(pipeline) {

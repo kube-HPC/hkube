@@ -19,6 +19,7 @@ class StateManager extends EventEmitter {
         this._stateMachine = null;
         this._job = null;
         this._results = null;
+        this._isTtlExpired = false;
         this._inactiveTimer = null;
     }
 
@@ -107,7 +108,8 @@ class StateManager extends EventEmitter {
                 {},
                 { job: this._job },
                 { state: this._stateMachine.state },
-                this.results ? { results: this.results } : null
+                this.results ? { results: this.results } : null,
+                { isTtlExpired: this._isTtlExpired }
             );
 
             this.emit(stateEvents.stateEntered, data);
@@ -162,8 +164,9 @@ class StateManager extends EventEmitter {
     /**
      * transitions to stop state.
      */
-    stop() {
+    stop(isTtlExpired = false) {
         try {
+            this._isTtlExpired = isTtlExpired;
             this._stateMachine.stop();
         }
         catch (error) {
@@ -209,6 +212,7 @@ class StateManager extends EventEmitter {
      */
     cleanup() {
         try {
+            this._isTtlExpired = false;
             this._stateMachine.cleanup();
         }
         catch (error) {

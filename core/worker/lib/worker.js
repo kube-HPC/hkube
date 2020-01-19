@@ -1,6 +1,6 @@
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses } = require('@hkube/consts');
+const { pipelineStatuses, retryPolicy, taskStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
@@ -10,7 +10,7 @@ const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
-
+const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -22,6 +22,7 @@ class Worker {
         this._isConnected = false;
         this._isInit = false;
         this._isBootstrapped = false;
+        this._ttlTimeoutHandle = null;
     }
 
     preInit() {
@@ -104,14 +105,14 @@ class Worker {
         });
     }
 
-    async _stopPipeline({ status, reason }) {
+    async _stopPipeline({ status, reason, isTtlExpired }) {
         if (stateManager.state !== workerStates.working) {
             return;
         }
         const { jobId } = jobConsumer.jobData;
         log.warning(`got status: ${status}`, { component });
         await this._stopAllPipelinesAndExecutions({ jobId, reason: `parent pipeline ${status}. ${reason || ''}` });
-        stateManager.stop();
+        stateManager.stop(isTtlExpired);
     }
 
     _doTheBootstrap() {
@@ -145,15 +146,15 @@ class Worker {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
-            await this.algorithmDisconnect(reason);
+            await this._algorithmDisconnect(reason);
         });
 
         stateManager.on('disconnect', async (reason) => {
-            await this.algorithmDisconnect(reason);
+            await this._algorithmDisconnect(reason);
         });
     }
 
-    async algorithmDisconnect(reason) {
+    async _algorithmDisconnect(reason) {
         if (this._debugMode) {
             return;
         }
@@ -164,18 +165,15 @@ class Worker {
         const workerState = stateManager.state;
         const containerMessage = Object.entries(container).map(([k, v]) => `${k}: ${v}`);
         const defaultMessage = `algorithm ${type} has disconnected while in ${workerState} state, reason: ${reason}.`;
-        const shouldCompleteJob = workerState !== workerStates.working && workerState !== workerStates.bootstrap;
-        const data = {
+        const options = {
             error: {
                 reason: containerReason,
                 message: `${defaultMessage} ${containerMessage}`,
-            },
-            shouldCompleteJob
+            }
         };
-        const error = data.error.message;
+        const error = options.error.message;
         log.error(error, { component });
-        await jobConsumer.sendWarning(error);
-        stateManager.exit(data);
+        await this._handleRetry({ ...options, isCrashed: true });
     }
 
     /**
@@ -199,13 +197,10 @@ class Worker {
                 log.debug(`progress: ${message.data.progress}`, { component });
             }
         });
-        algoRunnerCommunication.on(messages.incomming.error, async (message) => {
-            const errText = message.error && message.error.message;
-            log.info(`got error from algorithm: ${errText}`, { component });
-            const { jobId } = jobConsumer.jobData;
-            const reason = `parent algorithm failed: ${errText}`;
-            await this._stopAllPipelinesAndExecutions({ jobId, reason });
-            stateManager.done(message);
+        algoRunnerCommunication.on(messages.incomming.error, async (data) => {
+            const message = data.error && data.error.message;
+            log.info(`got error from algorithm: ${message}`, { component });
+            await this._handleRetry({ error: { message }, isAlgorithmError: true });
         });
         algoRunnerCommunication.on(messages.incomming.startSpan, (message) => {
             this._startAlgorithmSpan(message);
@@ -213,6 +208,59 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.finishSpan, (message) => {
             this._finishAlgorithmSpan(message);
         });
+    }
+
+    async _handleRetry(options) {
+        const retry = jobConsumer.jobRetry;
+        const { isAlgorithmError, isCrashed } = options;
+
+        switch (retry.policy) {
+            case retryPolicy.Never:
+                this._endJob(options);
+                break;
+            case retryPolicy.OnError:
+                if (isAlgorithmError) {
+                    this._startRetry(options);
+                    return;
+                }
+                this._endJob(options);
+                break;
+            case retryPolicy.Always:
+                this._startRetry(options);
+                break;
+            case retryPolicy.OnCrash:
+                if (isCrashed) {
+                    this._startRetry(options);
+                    return;
+                }
+                this._endJob(options);
+                break;
+            default:
+                log.warning(`unknown retry policy ${retry.policy}`, { component });
+                this._endJob(options);
+                break;
+        }
+    }
+
+    async _endJob(options) {
+        const { jobId } = jobConsumer.jobData;
+        const reason = `parent algorithm failed: ${options.error.message}`;
+        await this._stopAllPipelinesAndExecutions({ jobId, reason });
+
+        const data = {
+            ...options,
+            shouldCompleteJob: true
+        };
+        stateManager.done(data);
+    }
+
+    async _startRetry(options) {
+        const data = {
+            ...options,
+            shouldCompleteJob: false
+        };
+        await jobConsumer.sendWarning(options.error.message);
+        stateManager.exit(data);
     }
 
     async _stopAllPipelinesAndExecutions({ jobId, reason }) {
@@ -352,6 +400,24 @@ class Worker {
         }
     }
 
+    _handleTtlStart(job) {
+        const { ttl } = job.data;
+        if (ttl) {
+            this._ttlTimeoutHandle = setTimeout(async () => {
+                const msg = logMessages.algorithmTtlExpired;
+                log.warning(msg, { component });
+                await this._stopPipeline({ status: taskStatuses.STOPPED, reason: msg, isTtlExpired: true });
+            }, ttl * 1000);
+        }
+    }
+
+    _handleTtlEnd() {
+        if (this._ttlTimeoutHandle) {
+            clearTimeout(this._ttlTimeoutHandle);
+            this._ttlTimeoutHandle = null;
+        }
+    }
+
     _handleTimeout(state) {
         if (state === workerStates.ready) {
             if (this._inactiveTimer) {
@@ -376,7 +442,7 @@ class Worker {
     }
 
     _registerToStateEvents() {
-        stateManager.on(stateEvents.stateEntered, async ({ job, state, results }) => {
+        stateManager.on(stateEvents.stateEntered, async ({ job, state, results, isTtlExpired }) => {
             const { jobId } = jobConsumer.jobData || {};
             let pendingTransition = null;
             let reason = null;
@@ -385,15 +451,17 @@ class Worker {
             this._handleTimeout(state);
             switch (state) {
                 case workerStates.exit:
+                    this._handleTtlEnd();
                     await jobConsumer.pause();
                     await jobConsumer.finishJob(result);
                     jobConsumer.finishBullJob(results);
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
+                    this._handleTtlEnd();
                     reason = `parent algorithm entered state ${state}`;
                     await this._stopAllPipelinesAndExecutions({ jobId, reason });
-                    await jobConsumer.finishJob(result);
+                    await jobConsumer.finishJob(result, isTtlExpired);
                     pendingTransition = stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
@@ -409,6 +477,7 @@ class Worker {
                     break;
                 }
                 case workerStates.working:
+                    this._handleTtlStart(job);
                     algoRunnerCommunication.send({
                         command: messages.outgoing.start
                     });
@@ -418,6 +487,7 @@ class Worker {
                 case workerStates.error:
                     break;
                 case workerStates.stop:
+                    this._handleTtlEnd();
                     this._stopTimeout = setTimeout(() => {
                         log.warning('Timeout exceeded trying to stop algorithm.', { component });
                         stateManager.done('Timeout exceeded trying to stop algorithm');
