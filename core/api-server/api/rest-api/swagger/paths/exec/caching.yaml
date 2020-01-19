@@ -24,7 +24,7 @@ post:
           schema:
             $ref: "#/components/schemas/error"
     "404":
-      description: pipeline Not Found
+      description: node Not Found
       content:
         application/json:
           schema:

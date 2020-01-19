@@ -582,7 +582,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "node Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -699,7 +699,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -2988,7 +2988,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -3089,7 +3089,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -3771,7 +3771,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -7790,7 +7790,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -8529,7 +8529,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
