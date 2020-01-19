@@ -84,7 +84,7 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("part of the data is missing or incorrect error:cant find successors for stam-alg");
         });
-        it('should succeed to execute with right types', async () => {
+        xit('should succeed to execute with right types', async () => {
             const options = {
                 uri: restPath,
                 body: {
