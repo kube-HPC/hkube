@@ -105,7 +105,7 @@ class GraphStore {
             podName: task.podName,
             status: task.status,
             error: task.error,
-            prevErrors: task.prevErrors,
+            warnings: task.warnings,
             retries: task.retries,
             batchIndex: task.batchIndex,
             startTime: task.startTime,

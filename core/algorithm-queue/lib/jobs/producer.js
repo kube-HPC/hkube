@@ -50,14 +50,15 @@ class JobProducer {
             log.info(`${Events.FAILED} ${data.jobId}, error: ${data.error}`, { component: componentName.JOBS_PRODUCER, jobId: data.jobId, status: Events.FAILED });
         });
         this._producer.on(Events.STUCK, async (job) => {
-            const { jobId, taskId, nodeName } = job.options;
+            const { jobId, taskId, nodeName, retry } = job.options;
             let err;
             let status;
+            const maxAttempts = (retry && retry.limit) || MAX_JOB_ATTEMPTS;
             const task = this._pipelineToQueueAdapter(job.options);
             let { attempts } = task;
 
-            if (attempts > MAX_JOB_ATTEMPTS) {
-                attempts = MAX_JOB_ATTEMPTS;
+            if (attempts > maxAttempts) {
+                attempts = maxAttempts;
                 err = 'CrashLoopBackOff';
                 status = taskStatuses.CRASHED;
             }
@@ -66,9 +67,9 @@ class JobProducer {
                 status = taskStatuses.STALLED;
                 queueRunner.queue.add([task]);
             }
-            const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${MAX_JOB_ATTEMPTS}`;
+            const error = `node ${nodeName} is in ${err}, attempts: ${attempts}/${maxAttempts}`;
             log.warning(`${error} ${job.jobId} `, { component: componentName.JOBS_PRODUCER, jobId });
-            await this.etcd.jobs.tasks.set({ jobId, taskId, status, error, retries: attempts });
+            await this.etcd.jobs.tasks.set({ jobId, taskId, nodeName, status, error, retries: attempts });
         });
     }
 

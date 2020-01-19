@@ -2,9 +2,7 @@ const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const stateManager = require('../states/stateManager');
 const { stateEvents, workerStates, Components } = require('../../lib/consts');
-
 const component = Components.JOB_PROVIDER;
-
 let log;
 
 class JobProvider extends EventEmitter {
