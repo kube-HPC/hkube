@@ -1,26 +1,15 @@
-post:
+get:
   tags:
     - Boards
-  summary: Start board
-  description: start board
-  parameters:
-    - name: pipelineName
-      in: path
-      required: true
-      schema:
-        type: string
-    - name: nodeName
-      in: path
-      required: true
-      schema:
-        type: string
+  summary: Board status
+  description: Board status
   responses:
     "200":
       description: start board response
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/defaultResponse"
+            $ref: "#/components/schemas/listBoardResponse"
     "400":
       description: bad request
       content:

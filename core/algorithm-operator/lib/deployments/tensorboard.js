@@ -15,20 +15,20 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
-const createKindsSpec = ({ boardId, logDir, versions, registry, clusterOptions, options }) => {
-    if (!boardId) {
-        const msg = 'Unable to create deployment spec. boardId is required';
+const createKindsSpec = ({ boardReference, logDir, versions, registry, clusterOptions, options }) => {
+    if (!boardReference) {
+        const msg = 'Unable to create deployment spec. boardReference is required';
         log.error(msg, { component });
         throw new Error(msg);
     }
-    const deployment = deploymentBoardTemplate(boardId);
+    const deployment = deploymentBoardTemplate(boardReference);
     let deploymentSpec = clonedeep(deployment);
     deploymentSpec = applyNodeSelector(deploymentSpec, clusterOptions);
     deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { logDir });
     deploymentSpec = applyImage(deploymentSpec, CONTAINERS.TENSORBOARD, versions, registry);
     deploymentSpec = applyStorage(deploymentSpec, options.defaultStorage, CONTAINERS.TENSORBOARD, 'algorithm-operator-configmap');
-    const ingressSpec = boardIngress(boardId, clusterOptions);
-    const serviceSpec = boardService(boardId);
+    const ingressSpec = boardIngress(boardReference, clusterOptions);
+    const serviceSpec = boardService(boardReference);
     return {
         deploymentSpec,
         ingressSpec,
