@@ -125,6 +125,27 @@
                               "default": true
                             }
                           }
+                        },
+                        "retry": {
+                          "type": "object",
+                          "properties": {
+                            "policy": {
+                              "type": "string",
+                              "default": "OnCrash",
+                              "enum": [
+                                "Never",
+                                "Always",
+                                "OnError",
+                                "OnCrash"
+                              ]
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "default": 3,
+                              "example": 1
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -1120,6 +1141,27 @@
                                 "default": true
                               }
                             }
+                          },
+                          "retry": {
+                            "type": "object",
+                            "properties": {
+                              "policy": {
+                                "type": "string",
+                                "default": "OnCrash",
+                                "enum": [
+                                  "Never",
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
+                                ]
+                              },
+                              "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "default": 3,
+                                "example": 1
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -1366,6 +1408,27 @@
                                 "type": "boolean",
                                 "description": "Should tensorboard metrics be collected.",
                                 "default": true
+                              }
+                            }
+                          },
+                          "retry": {
+                            "type": "object",
+                            "properties": {
+                              "policy": {
+                                "type": "string",
+                                "default": "OnCrash",
+                                "enum": [
+                                  "Never",
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
+                                ]
+                              },
+                              "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "default": 3,
+                                "example": 1
                               }
                             }
                           }
@@ -4296,6 +4359,27 @@
                                 "default": true
                               }
                             }
+                          },
+                          "retry": {
+                            "type": "object",
+                            "properties": {
+                              "policy": {
+                                "type": "string",
+                                "default": "OnCrash",
+                                "enum": [
+                                  "Never",
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
+                                ]
+                              },
+                              "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "default": 3,
+                                "example": 1
+                              }
+                            }
                           }
                         },
                         "required": [
@@ -4647,6 +4731,27 @@
                                   "default": true
                                 }
                               }
+                            },
+                            "retry": {
+                              "type": "object",
+                              "properties": {
+                                "policy": {
+                                  "type": "string",
+                                  "default": "OnCrash",
+                                  "enum": [
+                                    "Never",
+                                    "Always",
+                                    "OnError",
+                                    "OnCrash"
+                                  ]
+                                },
+                                "limit": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "default": 3,
+                                  "example": 1
+                                }
+                              }
                             }
                           },
                           "required": [
@@ -4854,6 +4959,27 @@
                               "default": true
                             }
                           }
+                        },
+                        "retry": {
+                          "type": "object",
+                          "properties": {
+                            "policy": {
+                              "type": "string",
+                              "default": "OnCrash",
+                              "enum": [
+                                "Never",
+                                "Always",
+                                "OnError",
+                                "OnCrash"
+                              ]
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "default": 3,
+                              "example": 1
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -5035,6 +5161,27 @@
                                 "type": "boolean",
                                 "description": "Should tensorboard metrics be collected.",
                                 "default": true
+                              }
+                            }
+                          },
+                          "retry": {
+                            "type": "object",
+                            "properties": {
+                              "policy": {
+                                "type": "string",
+                                "default": "OnCrash",
+                                "enum": [
+                                  "Never",
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
+                                ]
+                              },
+                              "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "default": 3,
+                                "example": 1
                               }
                             }
                           }
@@ -5281,6 +5428,27 @@
                               "default": true
                             }
                           }
+                        },
+                        "retry": {
+                          "type": "object",
+                          "properties": {
+                            "policy": {
+                              "type": "string",
+                              "default": "OnCrash",
+                              "enum": [
+                                "Never",
+                                "Always",
+                                "OnError",
+                                "OnCrash"
+                              ]
+                            },
+                            "limit": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "default": 3,
+                              "example": 1
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -5462,6 +5630,27 @@
                                 "type": "boolean",
                                 "description": "Should tensorboard metrics be collected.",
                                 "default": true
+                              }
+                            }
+                          },
+                          "retry": {
+                            "type": "object",
+                            "properties": {
+                              "policy": {
+                                "type": "string",
+                                "default": "OnCrash",
+                                "enum": [
+                                  "Never",
+                                  "Always",
+                                  "OnError",
+                                  "OnCrash"
+                                ]
+                              },
+                              "limit": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "default": 3,
+                                "example": 1
                               }
                             }
                           }
@@ -10255,6 +10444,27 @@
                       "default": true
                     }
                   }
+                },
+                "retry": {
+                  "type": "object",
+                  "properties": {
+                    "policy": {
+                      "type": "string",
+                      "default": "OnCrash",
+                      "enum": [
+                        "Never",
+                        "Always",
+                        "OnError",
+                        "OnCrash"
+                      ]
+                    },
+                    "limit": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "default": 3,
+                      "example": 1
+                    }
+                  }
                 }
               },
               "required": [
@@ -10416,6 +10626,27 @@
                 "type": "boolean",
                 "description": "Should tensorboard metrics be collected.",
                 "default": true
+              }
+            }
+          },
+          "retry": {
+            "type": "object",
+            "properties": {
+              "policy": {
+                "type": "string",
+                "default": "OnCrash",
+                "enum": [
+                  "Never",
+                  "Always",
+                  "OnError",
+                  "OnCrash"
+                ]
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "default": 3,
+                "example": 1
               }
             }
           }
