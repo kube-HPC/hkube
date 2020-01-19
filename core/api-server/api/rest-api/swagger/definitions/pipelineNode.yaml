@@ -11,6 +11,11 @@ properties:
     description: The input for the algorithm
     items: {}
     default: []
+  ttl:
+    type: integer
+    description: Algorithm execution time to live in seconds. 0 to disable
+    minimum: 0
+    example: 0
   metrics:
     $ref: "#/components/schemas/metrics"
     default: {}

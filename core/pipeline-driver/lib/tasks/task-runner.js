@@ -597,6 +597,7 @@ class TaskRunner extends EventEmitter {
                 jobId: this._jobId,
                 nodeName: options.node.nodeName,
                 metrics: options.node.metrics,
+                ttl: options.node.ttl,
                 pipelineName: this.pipeline.name,
                 priority: this.pipeline.priority,
                 algorithmName: options.node.algorithmName,
