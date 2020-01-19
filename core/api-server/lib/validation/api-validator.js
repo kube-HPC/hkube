@@ -168,6 +168,14 @@ class ApiValidator {
         });
     }
 
+    async validateExperimentExists(experimentName) {
+        const result = await stateManager.getExperiment({ experimentName });
+        if (result === null) {
+            throw new ResourceNotFoundError('experiment', experimentName);
+        }
+    }
+
+
     async validateConcurrentPipelines(pipelines, jobId) {
         if (pipelines.options && pipelines.options.concurrentPipelines) {
             const { concurrentPipelines } = pipelines.options;

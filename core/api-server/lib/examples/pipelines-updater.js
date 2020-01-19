@@ -52,9 +52,7 @@ class PipelinesUpdater {
         try {
             let experimentsList = await this._getByType('experiment');
             log.info(`found ${experimentsList.length} experiments using the ${options.defaultStorage} storage`);
-            if (options.addDefaultAlgorithms !== 'false') {
-                experimentsList = await this._setDiff('experiment', experiments, experimentsList);
-            }
+            experimentsList = await this._setDiff('experiment', experiments, experimentsList);
             await Promise.all(experiments.map(d => stateManager.setExperiment(d)));
         }
         catch (error) {
