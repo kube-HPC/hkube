@@ -33,7 +33,7 @@ class ExecutionService {
         if (error) {
             throw new InvalidDataError(error.message);
         }
-        const types = [...new Set([...pipeline.types || [], pipelineTypes.CACHING])];
+        const types = [...new Set([...pipeline.types || [], pipelineTypes.NODE])];
         const cacheJobId = this._createJobIdForCaching(nodeName);
         return this._run({ pipeline, jobId: cacheJobId, options: { alreadyExecuted: true }, types });
     }

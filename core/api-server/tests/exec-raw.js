@@ -98,7 +98,7 @@ describe('Executions', () => {
                 method: 'GET'
             };
             const res2 = await request(optionsGET);
-            expect(res2.body.types).to.eql([pipelineTypes.CACHING]);
+            expect(res2.body.types).to.eql([pipelineTypes.NODE]);
         });
     });
     describe('/exec/raw', () => {
