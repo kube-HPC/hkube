@@ -1,17 +1,17 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { pipelineTypes } = require('@hkube/consts');
-const { main } = require('@hkube/config').load();
 const nock = require('nock');
 const { request } = require('./utils');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const pipelines = require('./mocks/pipelines.json');
 const { cachingError } = require('./mocks/http-response.json');
-let restUrl, jobId;
+let restUrl, jobId, config;
 
 describe('Executions', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
+        config = global.testParams.config;
     });
     describe('/exec/caching', () => {
         let restPath = null;
@@ -25,7 +25,7 @@ describe('Executions', () => {
             };
             const response = await request(options);
             jobId = response.body.jobId;
-            const { protocol, host, port, prefix } = main.cachingServer;
+            const { protocol, host, port, prefix } = config.cachingServer;
             const cachingServiceURI = `${protocol}://${host}:${port}`;
             let pathToJob = `/${prefix}?jobId=${jobId}&nodeName=black-alg`;
             nock(cachingServiceURI).persist().get(pathToJob).reply(200, pipeline);

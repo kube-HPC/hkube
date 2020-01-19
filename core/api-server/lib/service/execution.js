@@ -38,6 +38,20 @@ class ExecutionService {
         return this._run({ pipeline, jobId: cacheJobId, options: { alreadyExecuted: true }, types });
     }
 
+    async runAlgorithm(options) {
+        validator.validateExecAlgorithmRequest(options);
+        const { name, input } = options;
+        const pipeline = {
+            name,
+            nodes: [{
+                nodeName: name,
+                algorithmName: name,
+                input
+            }]
+        };
+        return this._run({ pipeline, types: [pipelineTypes.ALGORITHM] });
+    }
+
     async _runStored(options) {
         const { pipeline, jobId, types } = options;
         const storedPipeline = await stateManager.getPipeline({ name: pipeline.name });

@@ -544,8 +544,7 @@
                 "properties": {
                   "jobId": {
                     "type": "string",
-                    "description": "Unique job identifier",
-                    "minLength": 1
+                    "description": "Unique identifier representing pipeline execution"
                   },
                   "nodeName": {
                     "type": "string",
@@ -604,7 +603,124 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "node Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exec/algorithm": {
+      "post": {
+        "tags": [
+          "Execution"
+        ],
+        "summary": "Run algorithm",
+        "description": "Start execution for single algorithm.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific algorithm",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "algorithm-name"
+                  },
+                  "input": {
+                    "type": "array",
+                    "description": "The input for the algorithm",
+                    "items": {},
+                    "default": []
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          },
+          "description": "an object representing all information needed for algorithm execution request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "pipeline execution data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobId": {
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
+                    }
+                  },
+                  "required": [
+                    "jobId"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -1512,7 +1628,8 @@
                   "type": "object",
                   "properties": {
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
                     },
                     "timestamp": {
                       "type": "string"
@@ -1625,7 +1742,8 @@
                   "type": "object",
                   "properties": {
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
                     },
                     "timestamp": {
                       "type": "string"
@@ -1745,7 +1863,7 @@
                       },
                       "jobId": {
                         "type": "string",
-                        "description": "Unique identifier representing a specific pipeline"
+                        "description": "Unique identifier representing pipeline execution"
                       }
                     }
                   }
@@ -1866,7 +1984,8 @@
                     "type": "object",
                     "properties": {
                       "jobId": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
                       },
                       "timestamp": {
                         "type": "string"
@@ -2006,7 +2125,8 @@
                     "type": "object",
                     "properties": {
                       "jobId": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
                       },
                       "timestamp": {
                         "type": "string"
@@ -2146,7 +2266,8 @@
                     "type": "object",
                     "properties": {
                       "jobId": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
                       },
                       "timestamp": {
                         "type": "string"
@@ -2286,7 +2407,8 @@
                     "type": "object",
                     "properties": {
                       "jobId": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
                       },
                       "timestamp": {
                         "type": "string"
@@ -2417,7 +2539,8 @@
                     "type": "object",
                     "properties": {
                       "jobId": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Unique identifier representing pipeline execution"
                       },
                       "timestamp": {
                         "type": "string"
@@ -2928,7 +3051,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -3029,7 +3152,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -3711,7 +3834,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -7856,7 +7979,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -8595,7 +8718,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "algorithm Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -8779,7 +8902,8 @@
                   "type": "object",
                   "properties": {
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
                     },
                     "timestamp": {
                       "type": "number"
@@ -8929,7 +9053,8 @@
                   "type": "object",
                   "properties": {
                     "jobId": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Unique identifier representing pipeline execution"
                     },
                     "timestamp": {
                       "type": "number"
@@ -10128,8 +10253,7 @@
         "properties": {
           "jobId": {
             "type": "string",
-            "description": "Unique job identifier",
-            "minLength": 1
+            "description": "Unique identifier representing pipeline execution"
           },
           "nodeName": {
             "type": "string",
@@ -10198,7 +10322,7 @@
           },
           "jobId": {
             "type": "string",
-            "description": "Unique identifier representing a specific pipeline"
+            "description": "Unique identifier representing pipeline execution"
           }
         }
       },
@@ -10213,12 +10337,16 @@
             },
             "jobId": {
               "type": "string",
-              "description": "Unique identifier representing a specific pipeline"
+              "description": "Unique identifier representing pipeline execution"
             }
           }
         }
       },
       "jobId": {
+        "type": "string",
+        "description": "Unique identifier representing pipeline execution"
+      },
+      "jobIdObject": {
         "type": "object",
         "properties": {
           "jobId": {
@@ -10542,7 +10670,8 @@
         "type": "object",
         "properties": {
           "jobId": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
           },
           "timestamp": {
             "type": "string"
@@ -10818,7 +10947,8 @@
         "type": "object",
         "properties": {
           "jobId": {
-            "type": "string"
+            "type": "string",
+            "description": "Unique identifier representing pipeline execution"
           },
           "timestamp": {
             "type": "number"
@@ -10871,6 +11001,28 @@
         },
         "required": [
           "env"
+        ]
+      },
+      "execAlgorithmRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific algorithm",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "algorithm-name"
+          },
+          "input": {
+            "type": "array",
+            "description": "The input for the algorithm",
+            "items": {},
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
         ]
       }
     }

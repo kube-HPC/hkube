@@ -24,7 +24,7 @@ get:
           schema:
             $ref: "#/components/schemas/error"
     "404":
-      description: pipeline Not Found
+      description: algorithm Not Found
       content:
         application/json:
           schema:
@@ -67,7 +67,7 @@ delete:
           schema:
             $ref: "#/components/schemas/error"
     "404":
-      description: pipeline Not Found
+      description: algorithm Not Found
       content:
         application/json:
           schema:

@@ -1,7 +1,7 @@
 type: object
 properties:
   jobId:
-    type: string
+    $ref: "#/components/schemas/jobId"
   timestamp:
     type: number
   edges:
