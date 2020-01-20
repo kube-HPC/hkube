@@ -1,0 +1,74 @@
+get:
+  tags:
+    - Boards
+  summary: Board details
+  description: Board details
+  parameters:
+    - name: id
+      in: path
+      description: Unique identifier representing board
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: get board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/getBoardResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: board Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+delete:
+  tags:
+    - Boards
+  summary: Stop board
+  description: Stop board
+  parameters:
+    - name: id
+      in: path
+      description: Unique identifier representing board
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: delete board response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: board Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
