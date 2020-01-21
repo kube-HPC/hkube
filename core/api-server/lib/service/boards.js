@@ -60,6 +60,7 @@ class Boards {
             error: null,
             endTime: null,
             startTime: Date.now(),
+            type,
             ...boardInfo
         };
         if (existingBoard) {
