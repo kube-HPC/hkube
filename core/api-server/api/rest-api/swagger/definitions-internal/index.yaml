@@ -20,9 +20,3 @@ algorithmDelete:
   $ref: ./algorithmDelete.yaml
 graph:
   $ref: ./graph.yaml
-boardTaskStartRequest:
-  $ref: ./boardTaskStartRequest.yaml
-boardNodeStartRequest:
-  $ref: ./boardNodeStartRequest.yaml
-boardBatchStartRequest:
-  $ref: ./boardBatchStartRequest.yaml

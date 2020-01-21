@@ -28,12 +28,10 @@ class ApiValidator {
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
         validatorInstance.addFormat('algorithm-image', this._validateAlgorithmImage);
         validatorInstance.addFormat('algorithm-memory', this._validateMemory);
-        validatorInstance.addFormat('board-name', this._validateBoardName);
         validatorInstance.addFormat('path', this._validatePath);
         formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
         formatMessages.set('algorithm-name', validationMessages.ALGORITHM_NAME_FORMAT);
         formatMessages.set('algorithm-image', validationMessages.ALGORITHM_IMAGE_FORMAT);
-        formatMessages.set('board-name', validationMessages.BOARD_NAME_FORMAT);
 
         Object.entries(this._definitions).forEach(([k, v]) => {
             validatorInstance.addSchema(v, `#/components/schemas/${k}`);
@@ -134,17 +132,17 @@ class ApiValidator {
         this._validate(this._definitionsInternal.buildId, build, false);
     }
 
-    validateBoardStartReq(board, type) {
-        if (type === 'task') this.validateBoardTaskStartReq(board);
-        else if (type === 'batch') this.validateBoardBatchStartReq(board);
-    }
-
-    validateBoardBatchStartReq(board) {
-        this._validate(this._definitions.boardBatchStartRequest, board, false);
-    }
-
-    validateBoardTaskStartReq(board) {
-        this._validate(this._definitions.boardTaskStartRequest, board, false);
+    validateCreateBoardReq(board) {
+        const { taskId, jobId, nodeName, pipelineName } = board;
+        if (taskId && !jobId) {
+            throw new InvalidDataError('Must supply jobId');
+        }
+        if (!nodeName && !taskId) {
+            throw new InvalidDataError('Must supply nodeName');
+        }
+        if (!jobId && !pipelineName) {
+            throw new InvalidDataError('Must supply pipeLineName');
+        }
     }
 
     validateCronRequest(options) {
@@ -265,10 +263,6 @@ class ApiValidator {
 
     _validatePipelineName(name) {
         return regex.PIPELINE_NAME_REGEX.test(name);
-    }
-
-    _validateBoardName(name) {
-        return regex.BOARD_ID.test(name);
     }
 
     _validatePath(path) {

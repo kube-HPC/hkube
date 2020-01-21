@@ -2,5 +2,9 @@ type: object
 properties:
   pipelineName:
     $ref: "#/components/schemas/pipelineName"
-required:
-  - pipelineName
+  nodeName:
+    type: string
+  jobId:
+    type: string
+  taskId:
+    type: string

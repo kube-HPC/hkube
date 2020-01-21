@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.59",
+    "version": "1.2.63",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -114,6 +114,12 @@
                           "description": "The input for the algorithm",
                           "items": {},
                           "default": []
+                        },
+                        "ttl": {
+                          "type": "integer",
+                          "description": "Algorithm execution time to live in seconds. 0 to disable",
+                          "minimum": 0,
+                          "example": 0
                         },
                         "metrics": {
                           "default": {},
@@ -1131,6 +1137,12 @@
                             "items": {},
                             "default": []
                           },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
+                          },
                           "metrics": {
                             "default": {},
                             "type": "object",
@@ -1399,6 +1411,12 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
                           },
                           "metrics": {
                             "default": {},
@@ -4349,6 +4367,12 @@
                             "items": {},
                             "default": []
                           },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
+                          },
                           "metrics": {
                             "default": {},
                             "type": "object",
@@ -4721,6 +4745,12 @@
                               "items": {},
                               "default": []
                             },
+                            "ttl": {
+                              "type": "integer",
+                              "description": "Algorithm execution time to live in seconds. 0 to disable",
+                              "minimum": 0,
+                              "example": 0
+                            },
                             "metrics": {
                               "default": {},
                               "type": "object",
@@ -4949,6 +4979,12 @@
                           "items": {},
                           "default": []
                         },
+                        "ttl": {
+                          "type": "integer",
+                          "description": "Algorithm execution time to live in seconds. 0 to disable",
+                          "minimum": 0,
+                          "example": 0
+                        },
                         "metrics": {
                           "default": {},
                           "type": "object",
@@ -5152,6 +5188,12 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
                           },
                           "metrics": {
                             "default": {},
@@ -5418,6 +5460,12 @@
                           "items": {},
                           "default": []
                         },
+                        "ttl": {
+                          "type": "integer",
+                          "description": "Algorithm execution time to live in seconds. 0 to disable",
+                          "minimum": 0,
+                          "example": 0
+                        },
                         "metrics": {
                           "default": {},
                           "type": "object",
@@ -5621,6 +5669,12 @@
                             "description": "The input for the algorithm",
                             "items": {},
                             "default": []
+                          },
+                          "ttl": {
+                            "type": "integer",
+                            "description": "Algorithm execution time to live in seconds. 0 to disable",
+                            "minimum": 0,
+                            "example": 0
                           },
                           "metrics": {
                             "default": {},
@@ -6174,636 +6228,13 @@
         }
       }
     },
-    "/boards/tensor/pipeline/{pipelineName}/start/{nodeName}": {
+    "/boards/tensors": {
       "post": {
         "tags": [
           "Boards"
         ],
         "summary": "Start board",
         "description": "start board",
-        "parameters": [
-          {
-            "name": "pipelineName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "nodeName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "start board response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/boards/tensor/pipeline/{pipelineName}/status/{nodeName}": {
-      "get": {
-        "tags": [
-          "Boards"
-        ],
-        "summary": "Board status",
-        "description": "Board status",
-        "parameters": [
-          {
-            "name": "pipelineName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "nodeName",
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "start board response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Unique identifier representing board",
-                      "format": "board-name"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "relativeUrl": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "board Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/boards/tensor/pipeline/{pipelineName}/stop/{nodeName}": {
-      "delete": {
-        "tags": [
-          "Boards"
-        ],
-        "summary": "Stop board",
-        "description": "Stop board",
-        "parameters": [
-          {
-            "name": "pipelineName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "nodeName",
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "start board response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "board Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/boards/tensor/node/{nodeName}/start/{jobId}": {
-      "post": {
-        "tags": [
-          "Boards"
-        ],
-        "summary": "Start board",
-        "description": "start board",
-        "parameters": [
-          {
-            "name": "jobId",
-            "in": "path",
-            "description": "Unique identifier representing board",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "nodeName",
-            "in": "path",
-            "description": "Batch node name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "pipelineName": {
-                    "type": "string",
-                    "description": "Unique identifier representing a specific pipeline",
-                    "minLength": 1,
-                    "format": "pipeline-name"
-                  }
-                },
-                "required": [
-                  "pipelineName"
-                ]
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "start board response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/boards/tensor/node/{nodeName}/status/{jobId}": {
-      "get": {
-        "tags": [
-          "Boards"
-        ],
-        "summary": "Board status",
-        "description": "Board status",
-        "parameters": [
-          {
-            "name": "jobId",
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "description": "Unique identifier representing board",
-            "required": true
-          },
-          {
-            "name": "nodeName",
-            "in": "path",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Batch node name",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "start board response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Unique identifier representing board",
-                      "format": "board-name"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "relativeUrl": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "board Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/boards/tensor/node/{nodeName}/stop/{jobId}": {
-      "delete": {
-        "tags": [
-          "Boards"
-        ],
-        "summary": "Stop board",
-        "description": "stop board",
-        "parameters": [
-          {
-            "name": "jobId",
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "description": "Unique identifier representing board",
-            "required": true
-          },
-          {
-            "name": "nodeName",
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "description": "Batch node name",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "start board response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "board Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/boards/tensor/start/{taskId}": {
-      "post": {
-        "tags": [
-          "Boards"
-        ],
-        "summary": "Start board",
-        "description": "start board",
-        "parameters": [
-          {
-            "name": "taskId",
-            "in": "path",
-            "description": "Unique identifier representing board",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "board-name"
-            }
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -6821,12 +6252,11 @@
                   },
                   "jobId": {
                     "type": "string"
+                  },
+                  "taskId": {
+                    "type": "string"
                   }
-                },
-                "required": [
-                  "pipelineName",
-                  "nodeName"
-                ]
+                }
               }
             }
           },
@@ -6840,10 +6270,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "type": "string"
+                    },
                     "message": {
                       "type": "string"
                     }
-                  }
+                  },
+                  "required": [
+                    "id"
+                  ]
                 }
               }
             }
@@ -6889,7 +6325,7 @@
         }
       }
     },
-    "/boards/tensor/status/{taskId}": {
+    "/boards/tensors/{id}": {
       "get": {
         "tags": [
           "Boards"
@@ -6898,13 +6334,12 @@
         "description": "Board status",
         "parameters": [
           {
-            "name": "taskId",
+            "name": "id",
             "in": "path",
             "description": "Unique identifier representing board",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "board-name"
+              "type": "string"
             }
           }
         ],
@@ -6916,10 +6351,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "name": {
-                      "type": "string",
-                      "description": "Unique identifier representing board",
-                      "format": "board-name"
+                    "id": {
+                      "type": "string"
                     },
                     "status": {
                       "type": "string"
@@ -6990,9 +6423,7 @@
             }
           }
         }
-      }
-    },
-    "/boards/tensor/pipeline/stop/{taskId}": {
+      },
       "delete": {
         "tags": [
           "Boards"
@@ -7001,13 +6432,12 @@
         "description": "Stop board",
         "parameters": [
           {
-            "name": "taskId",
+            "name": "id",
             "in": "path",
             "description": "Unique identifier representing board",
             "required": true,
             "schema": {
-              "type": "string",
-              "format": "board-name"
+              "type": "string"
             }
           }
         ],
@@ -7048,6 +6478,80 @@
           },
           "404": {
             "description": "board Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/boards/tensors/": {
+      "get": {
+        "tags": [
+          "Boards"
+        ],
+        "summary": "Board status",
+        "description": "Board status",
+        "responses": {
+          "200": {
+            "description": "start board response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "Array of nodes",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      },
+                      "relativeUrl": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
             "content": {
               "application/json": {
                 "schema": {
@@ -10180,7 +9684,7 @@
           }
         }
       },
-      "boardTaskStartRequest": {
+      "createBoardRequest": {
         "type": "object",
         "properties": {
           "pipelineName": {
@@ -10194,34 +9698,31 @@
           },
           "jobId": {
             "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          }
+        }
+      },
+      "createBoardResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
           }
         },
         "required": [
-          "pipelineName",
-          "nodeName"
+          "id"
         ]
       },
-      "boardBatchStartRequest": {
+      "getBoardResponse": {
         "type": "object",
         "properties": {
-          "pipelineName": {
-            "type": "string",
-            "description": "Unique identifier representing a specific pipeline",
-            "minLength": 1,
-            "format": "pipeline-name"
-          }
-        },
-        "required": [
-          "pipelineName"
-        ]
-      },
-      "boardStatusResponse": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Unique identifier representing board",
-            "format": "board-name"
+          "id": {
+            "type": "string"
           },
           "status": {
             "type": "string"
@@ -10231,10 +9732,23 @@
           }
         }
       },
-      "boardName": {
-        "type": "string",
-        "description": "Unique identifier representing board",
-        "format": "board-name"
+      "listBoardResponse": {
+        "type": "array",
+        "description": "Array of nodes",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "relativeUrl": {
+              "type": "string"
+            }
+          }
+        }
       },
       "buildId": {
         "type": "object",
@@ -10434,6 +9948,12 @@
                   "items": {},
                   "default": []
                 },
+                "ttl": {
+                  "type": "integer",
+                  "description": "Algorithm execution time to live in seconds. 0 to disable",
+                  "minimum": 0,
+                  "example": 0
+                },
                 "metrics": {
                   "default": {},
                   "type": "object",
@@ -10617,6 +10137,12 @@
             "description": "The input for the algorithm",
             "items": {},
             "default": []
+          },
+          "ttl": {
+            "type": "integer",
+            "description": "Algorithm execution time to live in seconds. 0 to disable",
+            "minimum": 0,
+            "example": 0
           },
           "metrics": {
             "default": {},
