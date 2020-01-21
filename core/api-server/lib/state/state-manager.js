@@ -238,19 +238,19 @@ class StateManager extends EventEmitter {
     }
 
     async getExperiment(options) {
-        return this._etcd.experiment.get(options);
+        return this._etcd.experiments.get(options);
     }
 
     async setExperiment(options) {
-        return this._etcd.experiment.set(options);
+        return this._etcd.experiments.set(options);
     }
 
     async deleteExperiment(options) {
-        return this._etcd.experiment.delete(options);
+        return this._etcd.experiments.delete(options);
     }
 
     async experimentsList(options) {
-        return this._etcd.experiment.list(options);
+        return this._etcd.experiments.list(options);
     }
 }
 
