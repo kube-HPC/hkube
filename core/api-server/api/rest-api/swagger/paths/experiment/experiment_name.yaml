@@ -1,0 +1,117 @@
+get:
+  tags:
+    - Experiment
+  summary: get experiment details
+  description: get experiment details
+  parameters:
+    - name: name
+      in: path
+      description: experiment name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/experiment"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+delete:
+  tags:
+    - Experiment
+  summary: Delete experiment
+  description: Delete existing experiment from store
+  parameters:
+    - name: name
+      in: path
+      description: experiment name to get from the store
+      required: true
+      schema:
+        type: string
+    - name: force
+      in: query
+      description: should also delete all related data, e.g.jobs.
+      required: false
+      schema:
+        type: boolean
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipeline Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+post:
+  tags:
+    - Experiment
+  summary: Insert experiment
+  description: Insert new experiment to store if not exists
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/experiment"
+    description: experiment to be added to the store
+    required: true
+  responses:
+    "201":
+      description: experiment created
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "409":
+      description: pipeline conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

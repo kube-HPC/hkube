@@ -63,7 +63,7 @@ class ExecutionService {
     }
 
     _createCronJobID(options, uid) {
-        return ['cron', options.name, uid].join(':');
+        return ['cron', options.experimentName, options.name, uid].join(':');
     }
 }
 

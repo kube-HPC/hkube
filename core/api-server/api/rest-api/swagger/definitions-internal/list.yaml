@@ -2,6 +2,10 @@ type: object
 properties:
   name:
     type: string
+    default: ""
+  experimentName:
+    $ref: "#/components/schemas/experimentName"
+    default: main
   order:
     type: string
     default: mod

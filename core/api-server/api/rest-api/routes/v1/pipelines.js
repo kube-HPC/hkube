@@ -9,18 +9,18 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.all('/results/:name?', methods(['GET']), logger(), async (req, res, next) => {
-        const { name } = req.params;
-        const { sort, order, limit } = req.query;
-        const response = await Execution.getPipelinesResult({ name, sort, order, limit });
+
+    router.all('/results', methods(['GET']), logger(), async (req, res, next) => {
+        const { name, experimentName, sort, order, limit } = req.query;
+        const response = await Execution.getPipelinesResult({ name, experimentName, sort, order, limit });
         res.json(response);
         res.name = name;
         next();
     });
-    router.all('/status/:name?', methods(['GET']), logger(), async (req, res, next) => {
-        const { name } = req.params;
-        const { sort, order, limit } = req.query;
-        const response = await Execution.getPipelinesStatus({ name, sort, order, limit });
+
+    router.all('/status', methods(['GET']), logger(), async (req, res, next) => {
+        const { name, experimentName, sort, order, limit } = req.query;
+        const response = await Execution.getPipelinesStatus({ name, experimentName, sort, order, limit });
         res.json(response);
         res.name = name;
         next();

@@ -25,15 +25,15 @@
   $ref: ./exec/tree.yaml
 
 # pipelines
-/pipelines/results/{name}:
+/pipelines/results:
   $ref: ./pipelines/results.yaml
-/pipelines/status/{name}:
+/pipelines/status:
   $ref: ./pipelines/status.yaml
 
 # cron
-/cron/results/{name}:
+/cron/results:
   $ref: ./cron/results.yaml
-/cron/status/{name}:
+/cron/status:
   $ref: ./cron/status.yaml
 /cron/list:
   $ref: ./cron/list.yaml
@@ -59,8 +59,8 @@
   $ref: ./webhooks/status.yaml
 /webhooks/results/{jobId}:
   $ref: ./webhooks/results.yaml
-/webhooks/{jobId}:
-  $ref: ./webhooks/jobId.yaml
+/webhooks/list:
+  $ref: ./webhooks/list.yaml
 
 # boards
 
@@ -97,6 +97,11 @@
 /versions/algorithms/apply:
   $ref: ./versions/apply.yaml
 
+# experiment
+/experiment/{name}:
+  $ref: ./experiment/experiment_name.yaml
+/experiment/list/{name}:
+  $ref: ./experiment/experiment_list.yaml
 # graph
 /graph/raw/{jobId}:
   $ref: ./graph/raw.yaml

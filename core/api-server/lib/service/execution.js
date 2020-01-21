@@ -34,8 +34,7 @@ class ExecutionService {
             throw new InvalidDataError(error.message);
         }
         const types = [...new Set([...pipeline.types || [], pipelineTypes.NODE])];
-        const cacheJobId = this._createJobIdForCaching(nodeName);
-        return this._run({ pipeline, jobId: cacheJobId, options: { alreadyExecuted: true }, types });
+        return this._run({ pipeline, options: { alreadyExecuted: true }, types });
     }
 
     async runAlgorithm(options) {
@@ -66,14 +65,13 @@ class ExecutionService {
         let { pipeline, jobId } = payload;
         const { types } = payload;
         const { alreadyExecuted, state, parentSpan } = payload.options || {};
-
+        validator.addPipelineDefaults(pipeline);
         if (!jobId) {
-            jobId = this._createJobID({ name: pipeline.name });
+            jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
         }
 
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
-            validator.addPipelineDefaults(pipeline);
             await validator.validateAlgorithmExists(pipeline);
             await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {
@@ -149,16 +147,17 @@ class ExecutionService {
 
     async getPipelinesResult(options) {
         validator.validateResultList(options);
-        const response = await stateManager.getJobResults({ ...options, jobId: options.name });
+        const response = await stateManager.getJobResults({ ...options, jobId: `${options.experimentName}:${options.name}` });
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline results', options.name);
         }
+
         return response;
     }
 
     async getPipelinesStatus(options) {
         validator.validateResultList(options);
-        const response = await stateManager.getJobStatuses({ ...options, jobId: options.name });
+        const response = await stateManager.getJobStatuses({ ...options, jobId: `${options.experimentName}:${options.name}` });
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline status', options.name);
         }
@@ -239,12 +238,8 @@ class ExecutionService {
         ]);
     }
 
-    _createJobIdForCaching(nodeName) {
-        return ['caching', nodeName, uuid()].join(':');
-    }
-
     _createJobID(options) {
-        return [options.name, uuid()].join(':');
+        return [options.experimentName, options.name, uuid()].join(':');
     }
 
     async _getLastPipeline(jobId) {

@@ -13,7 +13,7 @@ describe('Internal', () => {
         restUrl = global.testParams.restUrl;
         internalUrl = global.testParams.internalUrl;
     });
-    it('should clean the job', async () => {
+    it.skip('should clean the job', async () => {
         const options1 = {
             uri: `${restUrl}/exec/raw`,
             body: {
@@ -311,9 +311,9 @@ describe('Internal', () => {
         }
 
         // get the cron results
-        const qs = querystring.stringify({ sort: 'desc', limit });
+        const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit });
         const opt = {
-            uri: restUrl + `/cron/results/${pipeline}?${qs}`,
+            uri: restUrl + `/cron/results/?${qs}`,
             method: 'GET'
         };
         const response = await request(opt);
