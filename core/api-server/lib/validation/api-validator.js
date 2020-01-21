@@ -283,7 +283,7 @@ class ApiValidator {
     _validateBoardName(name) {
         return regex.BOARD_ID.test(name);
     }
-  
+
     _validatePath(path) {
         return regex.PATH.test(path);
     }
