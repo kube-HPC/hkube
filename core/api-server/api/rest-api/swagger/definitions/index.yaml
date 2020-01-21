@@ -14,14 +14,14 @@ algorithmApplyOptions:
   $ref: ./algorithmApplyOptions.yaml
 algorithmApplyResponse:
   $ref: ./algorithmApplyResponse.yaml
-boardTaskStartRequest:
-  $ref: ./boardTaskStartRequest.yaml
-boardBatchStartRequest:
-  $ref: ./boardBatchStartRequest.yaml
-boardStatusResponse:
-  $ref: ./boardStatusResponse.yaml
-boardName:
-  $ref: ./boardName.yaml
+createBoardRequest:
+  $ref: ./createBoardRequest.yaml
+createBoardResponse:
+  $ref: ./createBoardResponse.yaml
+getBoardResponse:
+  $ref: ./getBoardResponse.yaml
+listBoardResponse:
+  $ref: ./listBoardResponse.yaml
 buildId:
   $ref: ./buildId.yaml
 caching:

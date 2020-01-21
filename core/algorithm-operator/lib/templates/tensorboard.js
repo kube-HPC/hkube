@@ -1,13 +1,13 @@
 const { TENSORBOARD } = require('../consts/containers');
 
-const deploymentBoardTemplate = (boardId = '') => ({
+const deploymentBoardTemplate = (boardReference = '') => ({
     apiVersion: 'apps/v1',
     kind: 'Deployment',
     metadata: {
-        name: `board-${boardId}`,
+        name: `board-${boardReference}`,
         labels: {
-            app: `board-${boardId}`,
-            'board-id': `${boardId}`,
+            app: `board-${boardReference}`,
+            'board-id': `${boardReference}`,
             group: 'hkube',
             core: 'true',
             'metrics-group': TENSORBOARD,
@@ -18,13 +18,13 @@ const deploymentBoardTemplate = (boardId = '') => ({
         replicas: 1,
         selector: {
             matchLabels: {
-                app: `board-${boardId}`
+                app: `board-${boardReference}`
             }
         },
         template: {
             metadata: {
                 labels: {
-                    app: `board-${boardId}`,
+                    app: `board-${boardReference}`,
                     group: 'hkube',
                     'metrics-group': TENSORBOARD,
                     type: TENSORBOARD
@@ -57,13 +57,13 @@ const deploymentBoardTemplate = (boardId = '') => ({
     }
 });
 
-const boardService = (boardID = '') => ({
+const boardService = (boardReference = '') => ({
     kind: 'Service',
     apiVersion: 'v1',
     metadata: {
-        name: `board-service-${boardID}`,
+        name: `board-service-${boardReference}`,
         labels: {
-            app: `board-${boardID}`,
+            app: `board-${boardReference}`,
             group: 'hkube',
             core: 'true',
             type: TENSORBOARD
@@ -73,7 +73,7 @@ const boardService = (boardID = '') => ({
         selector: {
             'metrics-group': TENSORBOARD,
             group: 'hkube',
-            app: `board-${boardID}`,
+            app: `board-${boardReference}`,
         },
         ports: [
             {
@@ -84,11 +84,11 @@ const boardService = (boardID = '') => ({
     }
 });
 
-const boardIngress = (boardId = '', { ingressHost, ingressPrefix = '' } = {}) => ({
+const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '' } = {}) => ({
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
-        name: `ingress-board-${boardId}`,
+        name: `ingress-board-${boardReference}`,
         annotations: {
             'nginx.ingress.kubernetes.io/rewrite-target': '/',
             'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
@@ -105,9 +105,9 @@ const boardIngress = (boardId = '', { ingressHost, ingressPrefix = '' } = {}) =>
             {
                 http: {
                     paths: [{
-                        path: `${ingressPrefix}/hkube/board/${boardId}`,
+                        path: `${ingressPrefix}/hkube/board/${boardReference}`,
                         backend: {
-                            serviceName: `board-service-${boardId}`,
+                            serviceName: `board-service-${boardReference}`,
                             servicePort: 80
                         }
                     }]

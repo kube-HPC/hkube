@@ -1,7 +1,7 @@
 type: object
 properties:
-  name:
-    $ref: "#/components/schemas/boardName"
+  id:
+    type: string
   status:
     type: string
   relativeUrl:

@@ -56,7 +56,7 @@ const normalizeBoardDeployments = (deploymentsRaw) => {
     }
     const deployments = deploymentsRaw.body.items.map(j => ({
         name: j.metadata.name,
-        boardId: j.metadata.labels['board-id'],
+        boardReference: j.metadata.labels['board-id'],
         image: parseImageName(objectPath.get(j, 'spec.template.spec.containers.0.image'))
     }));
     return deployments;
