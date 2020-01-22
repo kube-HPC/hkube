@@ -5,7 +5,6 @@ const etcd = require('../helpers/etcd');
 const { createKindsSpec } = require('../deployments/worker-debug');
 const kubernetes = require('../helpers/kubernetes');
 const component = require('../consts/componentNames').ALGORITHM_DEBUG_RECONCILER;
-const debugPathPrefix = 'hkube/debug';
 const deploymentType = require('../consts/DeploymentTypes').WORKER;
 const { normalizeDeployments } = require('./normalize');
 
@@ -50,7 +49,6 @@ const reconcile = async ({ kubernetesKinds, algorithms, versions, registry, clus
     }
     for (let algorithm of added) { // eslint-disable-line
         await _createKinds({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, algorithmOptions: algorithm.options, workerEnv: algorithm.workerEnv }); // eslint-disable-line
-        await etcd.storeAlgorithmData(algorithm.name, { algorithmData: algorithm, path: `${debugPathPrefix}/${algorithm.name}` }); // eslint-disable-line
     }
     for (let algorithm of removed) { // eslint-disable-line
         await etcd.removeAlgorithmData(algorithm.algorithmName); // eslint-disable-line
