@@ -28,7 +28,18 @@ class StateManger {
         if (!buildId) {
             return;
         }
-        await this._etcd.algorithms.builds.update(options);
+        let ok = false;
+        let count = 10;
+        while (!ok && count > 0) {
+            try {
+                await this._etcd.algorithms.builds.update(options); // eslint-disable-line
+                ok = true;
+            }
+            catch (error) {
+                count -= 1;
+                log.info(`update failed. ${count} retries left. error: ${error.message}`);
+            }
+        }
     }
 }
 

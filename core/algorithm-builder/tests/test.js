@@ -33,6 +33,12 @@ describe('Test', function () {
             expect(response).to.have.property('status');
             expect(response).to.have.property('result');
         });
+        it('should build', async function () {
+            const mockBuild = require(`./mocks/python/build.json`);
+
+            await stateManger.insertBuild(mockBuild);
+            await stateManger.updateBuild(mockBuild);
+        });
         xit('should succeed to build docker', async function () {
             this.timeout(5000)
             const env = config.testModeEnv;

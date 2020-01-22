@@ -80,7 +80,7 @@ const runBash = ({ command, args, resultUpdater = () => { } }) => {
         const build = spawn(command, args);
         let data = '';
         let error = '';
-
+        
         build.stdout.on('data', async (d) => {
             data += d.toString();
             await resultUpdater({ data });
