@@ -18,7 +18,6 @@ class Etcd extends EventEmitter {
             logWrappers([
                 'getAlgorithmTemplate',
                 'getAlgorithmTemplates',
-                'storeAlgorithmData',
                 'removeAlgorithmData',
                 'getBuilds',
                 'setBuild'
@@ -33,10 +32,6 @@ class Etcd extends EventEmitter {
 
     getAlgorithmTemplates() {
         return this._etcd.algorithms.store.list();
-    }
-
-    storeAlgorithmData(name, data) {
-        return this._etcd.algorithms.debug.set({ name, ...data });
     }
 
     removeAlgorithmData(name) {
