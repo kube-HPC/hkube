@@ -1,0 +1,37 @@
+delete:
+  tags:
+    - StoreAlgorithms
+  summary: Delete debug algorithm
+  description: Delete existing algorithm from store
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: algorithm Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

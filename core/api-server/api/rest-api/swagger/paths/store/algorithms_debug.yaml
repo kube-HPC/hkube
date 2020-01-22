@@ -1,0 +1,37 @@
+post:
+  tags:
+    - StoreAlgorithms
+  summary: Insert debug algorithm
+  description: Insert new debug algorithm to store if not exists
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/algorithmDebug"
+    description: algorithm descriptor to be added to the store
+    required: true
+  responses:
+    "201":
+      description: algorithm created
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "409":
+      description: pipeline conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
