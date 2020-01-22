@@ -21,7 +21,9 @@ class Experiment {
     }
 
     async deleteExperiment(options) {
-        return stateManager.deleteExperiment(options);
+        const res = await stateManager.deleteExperiment(options);
+        const msg = res.deleted === '0' ? 'deleted operation has failed' : 'deleted successfully ';
+        return msg;
     }
 }
 
