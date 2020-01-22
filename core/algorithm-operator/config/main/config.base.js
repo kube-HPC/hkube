@@ -6,6 +6,7 @@ config.serviceName = packageJson.name;
 config.version = packageJson.version;
 config.intervalMs = process.env.INTERVAL_MS || 10000;
 config.boardsIntervalMs = process.env.BOARDS_INTERVAL_MS || 2000;
+config.boardTimeOut = process.env.BOARDS_TIMEOUT || 3 * 60 * 60 * 1000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.buildMode = process.env.BUILD_MODE || 'kaniko'
 
