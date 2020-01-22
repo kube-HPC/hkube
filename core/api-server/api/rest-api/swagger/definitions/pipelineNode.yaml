@@ -18,7 +18,6 @@ properties:
     example: 0
   metrics:
     $ref: "#/components/schemas/metrics"
-    default: {}
   retry:
     type: object
     properties:

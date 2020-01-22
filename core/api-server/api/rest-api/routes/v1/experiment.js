@@ -9,30 +9,32 @@ const routes = (options) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
     });
-    router.all('/list', methods(['GET']), logger(), async (req, res, next) => {
+    router.all('/list/all', methods(['GET']), logger(), async (req, res, next) => {
         const { sort, order, limit } = req.query;
         const response = await Experiment.experimentsList({ sort, order, limit });
         res.json(response);
         next();
     });
-    router.all('/:name?', methods(['GET']), logger(), async (req, res, next) => {
+
+    router.get('/:name?', logger(), async (req, res, next) => {
         const { name } = req.params;
         const response = await Experiment.getExperiment({ name });
         res.json(response);
         res.name = name;
         next();
     });
-    router.all('/:name?', methods(['POST']), logger(), async (req, res, next) => {
-        const { name, description } = req.params;
-        const response = await Experiment.setExperiment({ name, description });
-        res.json(response);
+
+    router.post('/', logger(), async (req, res, next) => {
+        const { name, description } = req.body;
+        await Experiment.insertExperiment({ name, description });
+        res.json({ message: 'OK' });
         res.name = name;
         next();
     });
-    router.all('/:name?', methods(['DELETE']), logger(), async (req, res, next) => {
+    router.delete('/:name?', logger(), async (req, res, next) => {
         const { name } = req.params;
         const response = await Experiment.deleteExperiment({ name });
-        res.json(response);
+        res.json({ message: response });
         res.name = name;
         next();
     });

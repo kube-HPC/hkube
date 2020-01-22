@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.63",
+    "version": "1.2.70",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -90,7 +90,10 @@
                   "experimentName": {
                     "type": "string",
                     "description": "experiment name",
-                    "default": "main"
+                    "default": "main",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "experiment-name"
                   },
                   "description": {
                     "type": "string",
@@ -371,7 +374,10 @@
                   "experimentName": {
                     "default": "main",
                     "type": "string",
-                    "description": "experiment name"
+                    "description": "experiment name",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "experiment-name"
                   },
                   "flowInput": {
                     "type": "object",
@@ -1122,7 +1128,10 @@
                     "experimentName": {
                       "type": "string",
                       "description": "experiment name",
-                      "default": "main"
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
                     },
                     "description": {
                       "type": "string",
@@ -1402,7 +1411,10 @@
                     "experimentName": {
                       "type": "string",
                       "description": "experiment name",
-                      "default": "main"
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
                     },
                     "description": {
                       "type": "string",
@@ -3258,6 +3270,206 @@
         }
       }
     },
+    "/store/algorithms/debug/{name}": {
+      "delete": {
+        "tags": [
+          "StoreAlgorithms"
+        ],
+        "summary": "Delete debug algorithm",
+        "description": "Delete existing algorithm from store",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "algorithm name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "algorithm Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/store/algorithms/debug": {
+      "post": {
+        "tags": [
+          "StoreAlgorithms"
+        ],
+        "summary": "Insert debug algorithm",
+        "description": "Insert new debug algorithm to store if not exists",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific algorithm",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "algorithm-name"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          },
+          "description": "algorithm descriptor to be added to the store",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "algorithm created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "pipeline conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/store/algorithms": {
       "get": {
         "tags": [
@@ -4390,7 +4602,10 @@
                     "experimentName": {
                       "type": "string",
                       "description": "experiment name",
-                      "default": "main"
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
                     },
                     "description": {
                       "type": "string",
@@ -4773,7 +4988,10 @@
                       "experimentName": {
                         "type": "string",
                         "description": "experiment name",
-                        "default": "main"
+                        "default": "main",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "format": "experiment-name"
                       },
                       "description": {
                         "type": "string",
@@ -5012,7 +5230,10 @@
                   "experimentName": {
                     "type": "string",
                     "description": "experiment name",
-                    "default": "main"
+                    "default": "main",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "experiment-name"
                   },
                   "description": {
                     "type": "string",
@@ -5227,7 +5448,10 @@
                     "experimentName": {
                       "type": "string",
                       "description": "experiment name",
-                      "default": "main"
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
                     },
                     "description": {
                       "type": "string",
@@ -5503,7 +5727,10 @@
                   "experimentName": {
                     "type": "string",
                     "description": "experiment name",
-                    "default": "main"
+                    "default": "main",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "experiment-name"
                   },
                   "description": {
                     "type": "string",
@@ -5718,7 +5945,10 @@
                     "experimentName": {
                       "type": "string",
                       "description": "experiment name",
-                      "default": "main"
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
                     },
                     "description": {
                       "type": "string",
@@ -6198,43 +6428,12 @@
         "description": "Returns all webhooks for specific pipeline",
         "parameters": [
           {
-            "name": "name",
-            "in": "query",
+            "name": "jobId",
+            "in": "path",
             "description": "Unique identifier representing pipeline execution",
+            "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "experimentName",
-            "in": "query",
-            "description": "experiment name",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sort",
-            "in": "query",
-            "description": "sort by asc or desc",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order",
-            "in": "query",
-            "description": "order by",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "limit",
-            "schema": {
-              "type": "integer"
             }
           }
         ],
@@ -6439,8 +6638,8 @@
         "tags": [
           "Boards"
         ],
-        "summary": "Board status",
-        "description": "Board status",
+        "summary": "Board details",
+        "description": "Board details",
         "parameters": [
           {
             "name": "id",
@@ -6454,7 +6653,7 @@
         ],
         "responses": {
           "200": {
-            "description": "start board response",
+            "description": "get board response",
             "content": {
               "application/json": {
                 "schema": {
@@ -6552,7 +6751,7 @@
         ],
         "responses": {
           "200": {
-            "description": "start board response",
+            "description": "delete board response",
             "content": {
               "application/json": {
                 "schema": {
@@ -6631,8 +6830,8 @@
         "tags": [
           "Boards"
         ],
-        "summary": "Board status",
-        "description": "Board status",
+        "summary": "Board list",
+        "description": "Board list",
         "responses": {
           "200": {
             "description": "start board response",
@@ -6640,7 +6839,7 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "description": "Array of nodes",
+                  "description": "Array of boards",
                   "items": {
                     "type": "object",
                     "properties": {
@@ -8514,7 +8713,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "experimentName": {
+                    "name": {
                       "type": "string",
                       "description": "experiment name"
                     },
@@ -8686,7 +8885,9 @@
             }
           }
         }
-      },
+      }
+    },
+    "/experiment": {
       "post": {
         "tags": [
           "Experiment"
@@ -8699,7 +8900,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "experimentName": {
+                  "name": {
                     "type": "string",
                     "description": "experiment name"
                   },
@@ -8790,7 +8991,7 @@
         }
       }
     },
-    "/experiment/list": {
+    "/experiment/list/all": {
       "get": {
         "tags": [
           "Experiment"
@@ -8805,7 +9006,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "experimentName": {
+                    "name": {
                       "type": "string",
                       "description": "experiment name"
                     },
@@ -9928,6 +10129,21 @@
           "name"
         ]
       },
+      "algorithmDebug": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific algorithm",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "algorithm-name"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
       "algorithmName": {
         "type": "string",
         "description": "Unique identifier representing a specific algorithm",
@@ -10214,7 +10430,7 @@
       },
       "listBoardResponse": {
         "type": "array",
-        "description": "Array of nodes",
+        "description": "Array of boards",
         "items": {
           "type": "object",
           "properties": {
@@ -10403,7 +10619,10 @@
           "experimentName": {
             "type": "string",
             "description": "experiment name",
-            "default": "main"
+            "default": "main",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "experiment-name"
           },
           "description": {
             "type": "string",
@@ -10765,7 +10984,10 @@
           "experimentName": {
             "default": "main",
             "type": "string",
-            "description": "experiment name"
+            "description": "experiment name",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "experiment-name"
           },
           "flowInput": {
             "type": "object",
@@ -10947,7 +11169,7 @@
       "experiment": {
         "type": "object",
         "properties": {
-          "experimentName": {
+          "name": {
             "type": "string",
             "description": "experiment name"
           },
@@ -10960,7 +11182,10 @@
       "experimentName": {
         "type": "string",
         "description": "experiment name",
-        "default": "main"
+        "default": "main",
+        "minLength": 1,
+        "maxLength": 32,
+        "format": "experiment-name"
       },
       "gitlabWebhook": {
         "type": "object",

@@ -1,32 +1,30 @@
-get:
+post:
   tags:
     - Experiment
-  summary: Get  jobs by experiment name
-  description: Returns the executed jobs
-  parameters:
-    - name: experimentName
-      in: path
-      description: Unique identifier representing experiment
-      required: true
-      schema:
-        type: string
+  summary: Insert experiment
+  description: Insert new experiment to store if not exists
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/experiment"
+    description: experiment to be added to the store
+    required: true
   responses:
-    "200":
-      description: jobs list data
+    "201":
+      description: experiment created
       content:
         application/json:
           schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/pipeline"
+            $ref: "#/components/schemas/defaultResponse"
     "400":
       description: bad request
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/error"
-    "404":
-      description: jobId Not Found
+    "409":
+      description: pipeline conflict
       content:
         application/json:
           schema:
