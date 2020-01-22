@@ -6,6 +6,7 @@ class Config:
         "host": os.environ.get('WORKER_SOCKET_HOST', "127.0.0.1"),
         "protocol": os.environ.get('WORKER_SOCKET_PROTOCOL', "ws"),
         "url": os.environ.get('WORKER_SOCKET_URL', None),
+        "binary": os.environ.get('WORKER_BINARY', 'False'),
     }
     algorithm = {
         "path": os.environ.get('ALGORITHM_PATH', "algorithm_unique_folder"),
