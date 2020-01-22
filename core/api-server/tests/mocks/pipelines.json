@@ -104,7 +104,8 @@
         "options": {
             "batchTolerance": 30,
             "progressVerbosityLevel": "debug"
-        }
+        },
+        "experimentName": "main"
     },
     {
         "name": "flow3",
@@ -157,6 +158,7 @@
             }
         },
         "priority": 5,
+        "experimentName": "main",
         "options": {
             "ttl": 3600,
             "batchTolerance": 30,

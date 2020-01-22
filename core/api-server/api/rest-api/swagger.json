@@ -87,6 +87,11 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "experimentName": {
+                    "type": "string",
+                    "description": "experiment name",
+                    "default": "main"
+                  },
                   "description": {
                     "type": "string",
                     "description": "pipeline description"
@@ -362,6 +367,11 @@
                     "description": "Unique identifier representing a specific pipeline",
                     "minLength": 1,
                     "format": "pipeline-name"
+                  },
+                  "experimentName": {
+                    "default": "main",
+                    "type": "string",
+                    "description": "experiment name"
                   },
                   "flowInput": {
                     "type": "object",
@@ -1109,6 +1119,11 @@
                       "minLength": 1,
                       "format": "pipeline-name"
                     },
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
+                    },
                     "description": {
                       "type": "string",
                       "description": "pipeline description"
@@ -1383,6 +1398,11 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
                     },
                     "description": {
                       "type": "string",
@@ -1949,19 +1969,26 @@
         }
       }
     },
-    "/pipelines/results/{name}": {
+    "/pipelines/results": {
       "get": {
         "tags": [
           "Pipelines"
         ],
-        "summary": "Get pipeline results",
-        "description": "return results of pipelines by given pipeline name",
+        "summary": "Get stored pipeline results",
+        "description": "return results of stored pipelines by given pipeline name",
         "parameters": [
           {
             "name": "name",
-            "in": "path",
+            "in": "query",
             "description": "pipeline name",
-            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
             "schema": {
               "type": "string"
             }
@@ -2090,7 +2117,7 @@
         }
       }
     },
-    "/pipelines/status/{name}": {
+    "/pipelines/status": {
       "get": {
         "tags": [
           "Pipelines"
@@ -2100,9 +2127,16 @@
         "parameters": [
           {
             "name": "name",
-            "in": "path",
+            "in": "query",
             "description": "pipeline name",
-            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
             "schema": {
               "type": "string"
             }
@@ -2231,7 +2265,7 @@
         }
       }
     },
-    "/cron/results/{name}": {
+    "/cron/results": {
       "get": {
         "tags": [
           "Cron"
@@ -2241,9 +2275,16 @@
         "parameters": [
           {
             "name": "name",
-            "in": "path",
+            "in": "query",
             "description": "pipeline name",
-            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
             "schema": {
               "type": "string"
             }
@@ -2372,7 +2413,7 @@
         }
       }
     },
-    "/cron/status/{name}": {
+    "/cron/status": {
       "get": {
         "tags": [
           "Cron"
@@ -2382,9 +2423,16 @@
         "parameters": [
           {
             "name": "name",
-            "in": "path",
+            "in": "query",
             "description": "pipeline name",
-            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
             "schema": {
               "type": "string"
             }
@@ -4339,6 +4387,11 @@
                       "minLength": 1,
                       "format": "pipeline-name"
                     },
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
+                    },
                     "description": {
                       "type": "string",
                       "description": "pipeline description"
@@ -4717,6 +4770,11 @@
                         "minLength": 1,
                         "format": "pipeline-name"
                       },
+                      "experimentName": {
+                        "type": "string",
+                        "description": "experiment name",
+                        "default": "main"
+                      },
                       "description": {
                         "type": "string",
                         "description": "pipeline description"
@@ -4951,6 +5009,11 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "experimentName": {
+                    "type": "string",
+                    "description": "experiment name",
+                    "default": "main"
+                  },
                   "description": {
                     "type": "string",
                     "description": "pipeline description"
@@ -5160,6 +5223,11 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
                     },
                     "description": {
                       "type": "string",
@@ -5432,6 +5500,11 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "experimentName": {
+                    "type": "string",
+                    "description": "experiment name",
+                    "default": "main"
+                  },
                   "description": {
                     "type": "string",
                     "description": "pipeline description"
@@ -5641,6 +5714,11 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name",
+                      "default": "main"
                     },
                     "description": {
                       "type": "string",
@@ -6111,7 +6189,7 @@
         }
       }
     },
-    "/webhooks/{jobId}": {
+    "/webhooks/list": {
       "get": {
         "tags": [
           "Webhooks"
@@ -6120,12 +6198,43 @@
         "description": "Returns all webhooks for specific pipeline",
         "parameters": [
           {
-            "name": "jobId",
-            "in": "path",
+            "name": "name",
+            "in": "query",
             "description": "Unique identifier representing pipeline execution",
-            "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "experimentName",
+            "in": "query",
+            "description": "experiment name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "sort by asc or desc",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "order by",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "limit",
+            "schema": {
+              "type": "integer"
             }
           }
         ],
@@ -8379,6 +8488,377 @@
         }
       }
     },
+    "/experiment/{name}": {
+      "get": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "get experiment details",
+        "description": "get experiment details",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "experiment name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "describe the experiment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "Delete experiment",
+        "description": "Delete existing experiment from store",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "experiment name to get from the store",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "should also delete all related data, e.g.jobs.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "pipeline Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "Insert experiment",
+        "description": "Insert new experiment to store if not exists",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "experimentName": {
+                    "type": "string",
+                    "description": "experiment name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "describe the experiment"
+                  }
+                }
+              }
+            }
+          },
+          "description": "experiment to be added to the store",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "experiment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "pipeline conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/experiment/list": {
+      "get": {
+        "tags": [
+          "Experiment"
+        ],
+        "summary": "Get experiments list",
+        "description": "Returns experiments list",
+        "responses": {
+          "200": {
+            "description": "list of experiments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "experimentName": {
+                      "type": "string",
+                      "description": "experiment name"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "describe the experiment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/graph/raw/{jobId}": {
       "get": {
         "tags": [
@@ -9920,6 +10400,11 @@
             "minLength": 1,
             "format": "pipeline-name"
           },
+          "experimentName": {
+            "type": "string",
+            "description": "experiment name",
+            "default": "main"
+          },
           "description": {
             "type": "string",
             "description": "pipeline description"
@@ -10277,6 +10762,11 @@
             "minLength": 1,
             "format": "pipeline-name"
           },
+          "experimentName": {
+            "default": "main",
+            "type": "string",
+            "description": "experiment name"
+          },
           "flowInput": {
             "type": "object",
             "description": "input object"
@@ -10453,6 +10943,24 @@
             "description": "github object which received after push for more information https://developer.github.com/webhooks/"
           }
         }
+      },
+      "experiment": {
+        "type": "object",
+        "properties": {
+          "experimentName": {
+            "type": "string",
+            "description": "experiment name"
+          },
+          "description": {
+            "type": "string",
+            "description": "describe the experiment"
+          }
+        }
+      },
+      "experimentName": {
+        "type": "string",
+        "description": "experiment name",
+        "default": "main"
       },
       "gitlabWebhook": {
         "type": "object",

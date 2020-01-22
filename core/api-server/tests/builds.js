@@ -218,15 +218,7 @@ describe('Builds', () => {
         before(() => {
             restPath = `${restUrl}/builds/list`;
         });
-        it('should throw validation error of required property name', async () => {
-            const options = {
-                uri: restPath,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal("data should have required property 'name'");
-        });
+
         it('should throw validation error of order property', async () => {
             const qs = querystring.stringify({ order: 'bla' });
             const options = {

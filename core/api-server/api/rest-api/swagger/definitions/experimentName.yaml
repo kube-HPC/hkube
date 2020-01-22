@@ -1,0 +1,6 @@
+type: string
+description: experiment name
+default: main
+minLength: 1
+maxLength: 32
+format: experiment-name

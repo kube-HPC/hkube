@@ -226,15 +226,31 @@ class StateManager extends EventEmitter {
     }
 
     async setBuild(options) {
-        await this._etcd.algorithms.builds.set(options);
+        return this._etcd.algorithms.builds.set(options);
     }
 
     async updateBuild(options) {
-        await this._etcd.algorithms.builds.update(options);
+        return this._etcd.algorithms.builds.update(options);
     }
 
     async deleteBuild(options) {
-        await this._etcd.algorithms.builds.delete(options);
+        return this._etcd.algorithms.builds.delete(options);
+    }
+
+    async getExperiment(options) {
+        return this._etcd.experiments.get(options);
+    }
+
+    async setExperiment(options) {
+        return this._etcd.experiments.set(options);
+    }
+
+    async deleteExperiment(options) {
+        return this._etcd.experiments.delete(options);
+    }
+
+    async experimentsList(options) {
+        return this._etcd.experiments.list(options);
     }
 }
 
