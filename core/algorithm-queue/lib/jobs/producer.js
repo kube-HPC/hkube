@@ -11,7 +11,8 @@ const MAX_JOB_ATTEMPTS = 3;
 
 class JobProducer {
     async init(options) {
-        const { etcd, serviceName } = options;
+        const { etcd, serviceName, producerUpdateInterval } = options;
+        this._producerUpdateInterval = producerUpdateInterval;
         this.etcd = new Etcd({ ...etcd, serviceName });
         this._producer = producerSingleton.get;
         this.bullQueue = this._producer._createQueue(options.algorithmType);
@@ -28,7 +29,7 @@ class JobProducer {
                     await this.createJob();
                 }
             }
-        }, 1000);
+        }, this._producerUpdateInterval);
     }
 
     getPendingAmount() {
