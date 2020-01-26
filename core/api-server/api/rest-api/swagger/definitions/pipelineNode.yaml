@@ -16,6 +16,8 @@ properties:
     description: Algorithm execution time to live in seconds. 0 to disable
     minimum: 0
     example: 0
+  includeInResult:
+    type: boolean
   metrics:
     $ref: "#/components/schemas/metrics"
   retry:

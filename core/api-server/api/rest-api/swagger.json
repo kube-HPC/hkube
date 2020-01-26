@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.70",
+    "version": "1.2.72",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -129,14 +129,15 @@
                           "minimum": 0,
                           "example": 0
                         },
+                        "includeInResult": {
+                          "type": "boolean"
+                        },
                         "metrics": {
-                          "default": {},
                           "type": "object",
                           "properties": {
                             "tensorboard": {
                               "type": "boolean",
-                              "description": "Should tensorboard metrics be collected.",
-                              "default": true
+                              "description": "Should tensorboard metrics be collected."
                             }
                           }
                         },
@@ -1167,14 +1168,15 @@
                             "minimum": 0,
                             "example": 0
                           },
+                          "includeInResult": {
+                            "type": "boolean"
+                          },
                           "metrics": {
-                            "default": {},
                             "type": "object",
                             "properties": {
                               "tensorboard": {
                                 "type": "boolean",
-                                "description": "Should tensorboard metrics be collected.",
-                                "default": true
+                                "description": "Should tensorboard metrics be collected."
                               }
                             }
                           },
@@ -1450,14 +1452,15 @@
                             "minimum": 0,
                             "example": 0
                           },
+                          "includeInResult": {
+                            "type": "boolean"
+                          },
                           "metrics": {
-                            "default": {},
                             "type": "object",
                             "properties": {
                               "tensorboard": {
                                 "type": "boolean",
-                                "description": "Should tensorboard metrics be collected.",
-                                "default": true
+                                "description": "Should tensorboard metrics be collected."
                               }
                             }
                           },
@@ -4641,14 +4644,15 @@
                             "minimum": 0,
                             "example": 0
                           },
+                          "includeInResult": {
+                            "type": "boolean"
+                          },
                           "metrics": {
-                            "default": {},
                             "type": "object",
                             "properties": {
                               "tensorboard": {
                                 "type": "boolean",
-                                "description": "Should tensorboard metrics be collected.",
-                                "default": true
+                                "description": "Should tensorboard metrics be collected."
                               }
                             }
                           },
@@ -5027,14 +5031,15 @@
                               "minimum": 0,
                               "example": 0
                             },
+                            "includeInResult": {
+                              "type": "boolean"
+                            },
                             "metrics": {
-                              "default": {},
                               "type": "object",
                               "properties": {
                                 "tensorboard": {
                                   "type": "boolean",
-                                  "description": "Should tensorboard metrics be collected.",
-                                  "default": true
+                                  "description": "Should tensorboard metrics be collected."
                                 }
                               }
                             },
@@ -5269,14 +5274,15 @@
                           "minimum": 0,
                           "example": 0
                         },
+                        "includeInResult": {
+                          "type": "boolean"
+                        },
                         "metrics": {
-                          "default": {},
                           "type": "object",
                           "properties": {
                             "tensorboard": {
                               "type": "boolean",
-                              "description": "Should tensorboard metrics be collected.",
-                              "default": true
+                              "description": "Should tensorboard metrics be collected."
                             }
                           }
                         },
@@ -5487,14 +5493,15 @@
                             "minimum": 0,
                             "example": 0
                           },
+                          "includeInResult": {
+                            "type": "boolean"
+                          },
                           "metrics": {
-                            "default": {},
                             "type": "object",
                             "properties": {
                               "tensorboard": {
                                 "type": "boolean",
-                                "description": "Should tensorboard metrics be collected.",
-                                "default": true
+                                "description": "Should tensorboard metrics be collected."
                               }
                             }
                           },
@@ -5766,14 +5773,15 @@
                           "minimum": 0,
                           "example": 0
                         },
+                        "includeInResult": {
+                          "type": "boolean"
+                        },
                         "metrics": {
-                          "default": {},
                           "type": "object",
                           "properties": {
                             "tensorboard": {
                               "type": "boolean",
-                              "description": "Should tensorboard metrics be collected.",
-                              "default": true
+                              "description": "Should tensorboard metrics be collected."
                             }
                           }
                         },
@@ -5984,14 +5992,15 @@
                             "minimum": 0,
                             "example": 0
                           },
+                          "includeInResult": {
+                            "type": "boolean"
+                          },
                           "metrics": {
-                            "default": {},
                             "type": "object",
                             "properties": {
                               "tensorboard": {
                                 "type": "boolean",
-                                "description": "Should tensorboard metrics be collected.",
-                                "default": true
+                                "description": "Should tensorboard metrics be collected."
                               }
                             }
                           },
@@ -10658,14 +10667,15 @@
                   "minimum": 0,
                   "example": 0
                 },
+                "includeInResult": {
+                  "type": "boolean"
+                },
                 "metrics": {
-                  "default": {},
                   "type": "object",
                   "properties": {
                     "tensorboard": {
                       "type": "boolean",
-                      "description": "Should tensorboard metrics be collected.",
-                      "default": true
+                      "description": "Should tensorboard metrics be collected."
                     }
                   }
                 },
@@ -10848,14 +10858,15 @@
             "minimum": 0,
             "example": 0
           },
+          "includeInResult": {
+            "type": "boolean"
+          },
           "metrics": {
-            "default": {},
             "type": "object",
             "properties": {
               "tensorboard": {
                 "type": "boolean",
-                "description": "Should tensorboard metrics be collected.",
-                "default": true
+                "description": "Should tensorboard metrics be collected."
               }
             }
           },
@@ -10891,8 +10902,7 @@
         "properties": {
           "tensorboard": {
             "type": "boolean",
-            "description": "Should tensorboard metrics be collected.",
-            "default": true
+            "description": "Should tensorboard metrics be collected."
           }
         }
       },
