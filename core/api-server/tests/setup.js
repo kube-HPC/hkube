@@ -3,7 +3,7 @@ const stateManager = require('../lib/state/state-manager');
 const { algorithms, pipelines } = require('./mocks');
 
 before(async function () {
-    this.timeout(5000)
+    this.timeout(15000)
     mockery.enable({
         warnOnReplace: false,
         warnOnUnregistered: false,
