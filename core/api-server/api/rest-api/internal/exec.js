@@ -17,7 +17,7 @@ const routes = () => {
         res.jobId = jobId;
         next();
     });
-    router.all('/exec/stored/pipeline', methods(['POST']), logger(), async (req, res, next) => {
+    router.all('/exec/stored/trigger', methods(['POST']), logger(), async (req, res, next) => {
         const jobId = await Internal.runStoredPipeline(req.body);
         res.json({ jobId });
         res.jobId = jobId;
@@ -42,8 +42,9 @@ const routes = () => {
         res.jobId = jobId;
         next();
     });
-    router.all('/exec/clean/:jobId?', methods(['POST']), logger(), async (req, res, next) => {
-        const jobId = await Execution.cleanJob(req.body);
+    router.all('/exec/clean', methods(['POST']), logger(), async (req, res, next) => {
+        const { jobId } = req.body;
+        await Execution.cleanJob({ jobId });
         res.json({ message: 'OK' });
         res.jobId = jobId;
         next();

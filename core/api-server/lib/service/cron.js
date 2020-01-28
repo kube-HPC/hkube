@@ -37,7 +37,7 @@ class ExecutionService {
     async runStoredCron(options) {
         validator.validateStoredInternal(options);
         const jobId = this._createCronJobID(options, uuid());
-        return execution._runStored({ pipeline: options, jobId, types: [pipelineTypes.CRON, pipelineTypes.STORED] });
+        return execution._runStored({ pipeline: options, jobId, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON] });
     }
 
     async startCronJob(options) {
@@ -63,7 +63,7 @@ class ExecutionService {
     }
 
     _createCronJobID(options, uid) {
-        return ['cron', options.experimentName, options.name, uid].join(':');
+        return [options.experimentName, pipelineTypes.CRON, options.name, uid].join(':');
     }
 }
 

@@ -12,7 +12,7 @@ class ApiServer {
                 const jobId = [req.body.name, uuidv4()].join('.');
                 res.json({ jobId });
             });
-            app.post('/internal/v1/exec/stored/pipeline', (req, res) => {
+            app.post('/internal/v1/exec/stored/trigger', (req, res) => {
                 const jobId = [req.body.parentJobId, req.body.name, uuidv4()].join('.');
                 res.json({ jobId });
             });

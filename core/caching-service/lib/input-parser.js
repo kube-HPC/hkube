@@ -15,14 +15,6 @@ const splitInputToNodes = (input, nodes) => {
     return filteredNodes;
 };
 
-const aggregateInput = (nodes, successors) => {
-    successors.forEach((s) => {
-        const currentNode = nodes.find(n => n.nodeName === s.id);
-        splitInputToNodes(currentNode.input, successors);
-    });
-};
-
 module.exports = {
-    splitInputToNodes,
-    aggregateInput
+    splitInputToNodes
 };

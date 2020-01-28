@@ -1,8 +1,9 @@
-const packageJson = require(process.cwd() + '/package.json'); // eslint-disable-line 
+const packageJson = require(process.cwd() + '/package.json');
 const formatters = require('../../lib/utils/formatters');
 
 const config = {};
 config.serviceName = packageJson.name;
+config.version = packageJson.version;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 
 config.rest = {
@@ -37,10 +38,10 @@ config.apiServer = {
     port: process.env.API_SERVER_SERVICE_PORT || 3000,
     base_path: 'api/v1'
 };
+
 config.consumer = {
     concurrency: 10000
 };
-
 
 config.metrics = {
     collectDefault: true,
@@ -60,8 +61,6 @@ config.tracer = {
     }
 };
 
-
-//storage settings
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
 config.s3 = {
