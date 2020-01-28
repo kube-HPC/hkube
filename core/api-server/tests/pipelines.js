@@ -23,7 +23,6 @@ describe('Pipelines', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline results no_such_id Not Found');
         });
-
         it('should throw validation error of order property', async () => {
             const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
             const options = {
@@ -34,7 +33,6 @@ describe('Pipelines', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain("data.order should be equal to one of the allowed values");
         });
-
         it('should throw validation error of limit should be >= 1', async () => {
             const qs = querystring.stringify({ name: 'pipe', limit: 0 });
             const options = {
@@ -99,7 +97,6 @@ describe('Pipelines', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal('pipeline status no_such_id Not Found');
         });
-
         it('should throw validation error of order property', async () => {
             const qs = querystring.stringify({ name: 'pipe', order: 'bla' });
             const options = {
@@ -140,7 +137,7 @@ describe('Pipelines', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal("data.limit should be integer");
         });
-        it.skip('should succeed to get pipelines results', async () => {
+        it('should succeed to get pipelines results', async () => {
             const pipeline = 'flow1';
             const optionsRun = {
                 uri: restUrl + '/exec/raw',
@@ -169,12 +166,8 @@ describe('Pipelines', () => {
             expect(response.response.statusCode).to.equal(HttpStatus.OK);
             expect(result).to.deep.equal(data);
             expect(response.body[0]).to.have.property('jobId');
-            expect(response.body[0]).to.have.property('data');
-            expect(response.body[0]).to.have.property('storageModule');
             expect(response.body[0]).to.have.property('status');
-            expect(response.body[0]).to.have.property('timeTook');
             expect(response.body[0]).to.have.property('timestamp');
         })
     });
-
 });
