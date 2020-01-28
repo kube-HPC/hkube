@@ -70,6 +70,15 @@ const algorithmQueueTemplate = {
                                         key: 'ALGORITHM_QUEUE_INTERVAL'
                                     }
                                 }
+                            },
+                            {
+                                name: 'PRODUCER_UPDATE_INTERVAL',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'ALGORITHM_QUEUE_PRODUCER_UPDATE_INTERVAL'
+                                    }
+                                }
                             }
                         ]
                     }
