@@ -50,63 +50,102 @@ describe('Internal', () => {
         expect(response.body).to.have.property('message');
         expect(response.body.message).to.equal('OK');
     });
-    it('should run triggered cron pipelines and get the results', async () => {
-        const requests = 5;
-        const limit = 3;
-        const pipeline = 'cron-test';
-        const results = [];
-        const options = {
-            uri: restUrl + '/store/pipelines',
-            body: {
-                name: pipeline,
-                nodes: [
-                    {
-                        "nodeName": "green",
-                        "algorithmName": "green-alg",
-                        "input": [
-                            "@flowInput"
-                        ]
-                    }
-                ],
-                flowInput: {
-                    "files": {
-                        "link": "links-1"
-                    }
+    describe('Cron', () => {
+        it('should run cron pipelines with experiment', async () => {
+            const pipelineName = 'cron-test-experiment';
+            const options1 = {
+                uri: `${restUrl}/store/pipelines`,
+                body: {
+                    name: pipelineName,
+                    experimentName: 'my-new-experiment',
+                    nodes: [
+                        {
+                            nodeName: 'green',
+                            algorithmName: 'green-alg',
+                            input: ['flowInput']
+                        }
+                    ]
                 }
-            }
-        };
-        await request(options);
+            };
+            await request(options1);
 
-        // run the rest of the triggered pipelines
-        for (let i = 0; i < requests; i++) {
+            const options2 = {
+                uri: `${internalUrl}/exec/stored/cron`,
+                body: {
+                    name: pipelineName
+                }
+            };
+            const response = await request(options2);
+            expect(response.body.jobId).to.include(options1.body.experimentName);
+        })
+        it('should run cron pipelines without experiment', async () => {
+            const pipeline = clone(pipelines[0]);
             const options = {
                 uri: `${internalUrl}/exec/stored/cron`,
                 body: {
-                    name: pipeline
+                    name: pipeline.name
                 }
             };
-            const res = await request(options);
-            await workerStub.done({ jobId: res.body.jobId, data: i });
-            results.push(res.body.jobId);
-        }
+            const response = await request(options);
+            expect(response.body.jobId).to.include('main');
+        })
+        it('should run triggered cron pipelines and get the results', async () => {
+            const requests = 5;
+            const limit = 3;
+            const pipeline = 'cron-test';
+            const results = [];
+            const options = {
+                uri: restUrl + '/store/pipelines',
+                body: {
+                    name: pipeline,
+                    nodes: [
+                        {
+                            "nodeName": "green",
+                            "algorithmName": "green-alg",
+                            "input": [
+                                "@flowInput"
+                            ]
+                        }
+                    ],
+                    flowInput: {
+                        "files": {
+                            "link": "links-1"
+                        }
+                    }
+                }
+            };
+            await request(options);
 
-        // get the cron results
-        const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit });
-        const opt = {
-            uri: restUrl + `/cron/results/?${qs}`,
-            method: 'GET'
-        };
-        const response = await request(opt);
-        expect(response.response.statusCode).to.equal(HttpStatus.OK);
-        expect(response.body).to.have.lengthOf(limit);
-        expect(response.body[0]).to.have.property('jobId');
-        expect(response.body[0]).to.have.property('data');
-        expect(response.body[0]).to.have.property('storageModule');
-        expect(response.body[0]).to.have.property('status');
-        expect(response.body[0]).to.have.property('timeTook');
-        expect(response.body[0]).to.have.property('timestamp');
-    }).timeout(15000);
+            // run the rest of the triggered pipelines
+            for (let i = 0; i < requests; i++) {
+                const options = {
+                    uri: `${internalUrl}/exec/stored/cron`,
+                    body: {
+                        name: pipeline
+                    }
+                };
+                const res = await request(options);
+                await workerStub.done({ jobId: res.body.jobId, data: i });
+                results.push(res.body.jobId);
+            }
 
+            // get the cron results
+            const qs = querystring.stringify({ name: pipeline, sort: 'desc', limit });
+            const opt = {
+                uri: restUrl + `/cron/results/?${qs}`,
+                method: 'GET'
+            };
+            const response = await request(opt);
+            expect(response.response.statusCode).to.equal(HttpStatus.OK);
+            expect(response.body).to.have.lengthOf(limit);
+            expect(response.body[0]).to.have.property('jobId');
+            expect(response.body[0]).to.have.property('data');
+            expect(response.body[0]).to.have.property('storageModule');
+            expect(response.body[0]).to.have.property('status');
+            expect(response.body[0]).to.have.property('timeTook');
+            expect(response.body[0]).to.have.property('timestamp');
+        }).timeout(15000);
+    });
     describe('Triggers', () => {
         it('should throw error when invalid pipeline name', async () => {
             const options = {

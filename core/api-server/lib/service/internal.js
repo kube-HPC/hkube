@@ -4,7 +4,7 @@ const validator = require('../validation/api-validator');
 const execution = require('./execution');
 
 class InternalService {
-    async runStoredPipeline(options) {
+    async runStoredTriggerPipeline(options) {
         let pipeline = options;
         validator.validateStoredInternal(pipeline);
         const jobId = this._createPipelineJobID(pipeline);
