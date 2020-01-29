@@ -29,8 +29,10 @@ class AlgorithmExecution {
     }
 
     _initProducer(options) {
-        const setting = Object.assign({}, { redis: options.redis });
-        setting.tracer = tracer;
+        const setting = {
+            redis: options.redis,
+            tracer
+        };
         const valid = this._producerSchema(setting);
         if (!valid) {
             throw new Error(validator.errorsText(this._producerSchema.errors));
@@ -140,7 +142,7 @@ class AlgorithmExecution {
             log.warning(`failed to stop executions: ${e.message}`, { component });
         }
         finally {
-            this._executions.forEach(execution => this._finishAlgoExecSpan(execution.taskId));
+            this._executions.forEach(e => this._finishAlgoExecSpan(e.taskId));
             this._executions.clear();
             this._stopping = false;
         }

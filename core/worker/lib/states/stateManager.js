@@ -104,13 +104,12 @@ class StateManager extends EventEmitter {
         this._stateMachine.observe('onAfterTransition', (state) => {
             log.debug(`after entered state: ${state.from} -> ${state.to}`, { component });
 
-            const data = Object.assign(
-                {},
-                { job: this._job },
-                { state: this._stateMachine.state },
-                this.results ? { results: this.results } : null,
-                { isTtlExpired: this._isTtlExpired }
-            );
+            const data = {
+                job: this._job,
+                state: this._stateMachine.state,
+                ...this.results && { results: this.results },
+                isTtlExpired: this._isTtlExpired
+            };
 
             this.emit(stateEvents.stateEntered, data);
             this.emit(stateEvents.stateEntered + this._stateMachine.state, data);
