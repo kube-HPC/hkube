@@ -125,7 +125,7 @@ describe('test', () => {
             })
         });
         it('should send http request to api-server', async () => {
-            const response = await pipelineProducer.produce({ name: 'name', jobId: 'jobId', type: Triggers.PIPELINE });
+            const response = await pipelineProducer.produce({ name: 'name', jobId: 'jobId', type: Triggers.TRIGGER });
             expect(response.body).to.have.property('jobId');
         });
     });
@@ -137,7 +137,7 @@ describe('test', () => {
             })
         });
         it('should send http request to api-server', async () => {
-            const response = await triggerQueue.addTrigger({ name: 'name', jobId: 'jobId', type: Triggers.PIPELINE });
+            const response = await triggerQueue.addTrigger({ name: 'name', jobId: 'jobId', type: Triggers.TRIGGER });
             expect(response.body).to.have.property('jobId');
         });
     });

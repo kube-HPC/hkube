@@ -28,7 +28,7 @@ class PipelineTrigger {
         const pipelinesWithTrigger = pipelines.filter(p => this.hasTrigger(p, result.pipeline));
         pipelinesWithTrigger.forEach((p) => {
             log.info(`pipeline with name ${result.pipeline} was ended and triggered pipeline ${p.name}`, { component: componentName.PIPELINE_TRIGGER });
-            triggerQueue.addTrigger({ name: p.name, jobId: result.jobId, type: Triggers.PIPELINE });
+            triggerQueue.addTrigger({ name: p.name, jobId: result.jobId, type: Triggers.TRIGGER });
         });
     }
 }

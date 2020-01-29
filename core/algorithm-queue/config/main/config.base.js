@@ -25,6 +25,8 @@ config.producer = {
     prefix: 'jobs-workers'
 };
 
+config.producerUpdateInterval = process.env.PRODUCER_UPDATE_INTERVAL || '1000';
+
 config.consumer = {
     concurrency: 10000,
     prefix: 'algorithm-queue'

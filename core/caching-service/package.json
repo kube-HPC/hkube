@@ -1,6 +1,6 @@
 {
   "name": "caching-service",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "",
   "main": "app.js",
   "keywords": [],
@@ -11,7 +11,7 @@
     "@hkube/logger": "^1.0.25",
     "@hkube/parsers": "^1.0.20",
     "@hkube/rest-server": "^1.0.12",
-    "@hkube/storage-manager": "^1.0.60",
+    "@hkube/storage-manager": "^1.0.63",
     "express": "^4.17.0",
     "graphlib": "^2.1.7",
     "lodash.clonedeep": "^4.5.0",

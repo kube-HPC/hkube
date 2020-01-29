@@ -1,15 +1,10 @@
 
-const uuidv4 = require('uuid/v4');
 const cloneDeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const storageManager = require('@hkube/storage-manager');
 const { componentName } = require('./consts/index');
 const { splitInputToNodes } = require('./input-parser');
 const NodesMap = require('../lib/create-graph');
-
-// const { main } = require('@hkube/config').load();
-// const { protocol, host, port, base_path } = main.apiServer;
-
 
 class Runner {
     async init(options) {
@@ -18,13 +13,12 @@ class Runner {
 
     async parse(jobId, nodeName) {
         try {
-            const originalJobId = this._getOriginialJobId(jobId);
-            const pipeline = await this._getStoredExecution(originalJobId);
+            const pipeline = await this._getStoredExecution(jobId);
             const { successors, predecessors } = this._createGraphAndFindRelevantSuccessorsAndPredecessors(pipeline, nodeName);
             const flattenSuccessors = this._flattenSuccessors(successors, nodeName);
             const flattenPredecessors = this._flattenPredecessors(predecessors, nodeName);
-            const subPipeline = this._createSubPipeline(flattenSuccessors, pipeline, originalJobId);
-            const metadataFromPredecessors = await this._collectMetaDataFromPredecessors(originalJobId, flattenPredecessors);
+            const subPipeline = this._createSubPipeline(flattenSuccessors, pipeline);
+            const metadataFromPredecessors = await this._collectMetaDataFromPredecessors(jobId, flattenPredecessors);
             const mergedPipeline = this._mergeSubPipelineWithMetadata(subPipeline, flattenPredecessors, metadataFromPredecessors);
             log.debug(`new pipeline sent for running: ${JSON.stringify(mergedPipeline)} `);
             return mergedPipeline;
@@ -34,10 +28,6 @@ class Runner {
              errorMessage: ${error.message}, stack: ${error.stack}`, { component: componentName.RUNNER });
             throw new Error(`part of the data is missing or incorrect error:${error.message} `);
         }
-    }
-
-    _getOriginialJobId(jobId) {
-        return jobId.split(':caching')[0];
     }
 
     _mergeSubPipelineWithMetadata(subPipeline, flattenPredecessors, metadataFromSuccessors) {
@@ -64,9 +54,8 @@ class Runner {
     }
 
     _createSubPipeline(flattenSuccessors, pipeline) {
-        const uuidSuffix = uuidv4().split('-')[0];
         const deepPipelineExecution = cloneDeep(pipeline);
-        deepPipelineExecution.name = `${pipeline.name}:${uuidSuffix}`;
+        deepPipelineExecution.name = pipeline.name;
         deepPipelineExecution.nodes = [];
         flattenSuccessors.forEach((s) => {
             const node = pipeline.nodes.find(n => n.nodeName === s);

@@ -2,10 +2,9 @@ const { pipelineTypes } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const execution = require('./execution');
-const { uuid } = require('../utils');
 
 class InternalService {
-    async runStoredPipeline(options) {
+    async runStoredTriggerPipeline(options) {
         let pipeline = options;
         validator.validateStoredInternal(pipeline);
         const jobId = this._createPipelineJobID(pipeline);
@@ -14,40 +13,44 @@ class InternalService {
             if (results && results.data) {
                 pipeline = {
                     ...pipeline,
-                    flowInput: results // flowInput must be object
+                    flowInput: { data: results.data } // flowInput must be object
                 };
             }
         }
         const { parentJobId, ...option } = pipeline;
-        return execution._runStored({ pipeline: option, jobId, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED] });
+        return execution._runStored({ pipeline: option, jobId, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
     }
 
     async runStoredSubPipeline(options) {
         validator.validateStoredSubPipeline(options);
-        const jobID = this._createSubPipelineJobID(options);
-        const { jobId, taskId, rootJobId, ...pipeline } = options;
-        pipeline.rootJobId = rootJobId || jobId;
-        return execution._runStored({ pipeline, jobId: jobID, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE] });
+        const pipeline = await this._createPipeline(options);
+        const parentSpan = options.spanId;
+        return execution._runStored({ pipeline, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE] });
     }
 
     async runRawSubPipeline(options) {
         validator.validateRawSubPipeline(options);
-        const jobID = this._createSubPipelineJobID(options);
-        const { jobId, taskId, ...pipeline } = options;
+        const pipeline = await this._createPipeline(options);
         const parentSpan = options.spanId;
-        return execution._run({ pipeline, jobId: jobID, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
+        return execution._run({ pipeline, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
     }
 
-    _createCronJobID(options, uid) {
-        return ['cron', options.name, uid].join(':');
+    async _createPipeline(options) {
+        const { jobId, taskId, rootJobId, ...pipeline } = options;
+        const experimentName = await this._getExperimentName({ jobId });
+        pipeline.rootJobId = rootJobId || jobId;
+        pipeline.experimentName = experimentName;
+        return pipeline;
+    }
+
+    async _getExperimentName(options) {
+        const { jobId } = options;
+        const pipeline = await stateManager.getExecution({ jobId });
+        return (pipeline && pipeline.experimentName) || undefined;
     }
 
     _createPipelineJobID(options) {
         return [options.parentJobId, options.name].join('.');
-    }
-
-    _createSubPipelineJobID(options) {
-        return ['sub', options.name, uuid()].join(':');
     }
 }
 

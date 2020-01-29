@@ -36,8 +36,9 @@ class ExecutionService {
 
     async runStoredCron(options) {
         validator.validateStoredInternal(options);
-        const jobId = this._createCronJobID(options, uuid());
-        return execution._runStored({ pipeline: options, jobId, types: [pipelineTypes.CRON, pipelineTypes.STORED] });
+        const pipeline = await this._createPipeline(options);
+        const jobId = this._createCronJobID(pipeline, uuid());
+        return execution._runStored({ pipeline, jobId, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON] });
     }
 
     async startCronJob(options) {
@@ -62,8 +63,20 @@ class ExecutionService {
         return pipeline;
     }
 
+    async _createPipeline(options) {
+        const { name, experimentName } = options;
+        const storedExperimentName = await this._getExperimentName({ name });
+        return { ...options, experimentName: storedExperimentName || experimentName };
+    }
+
+    async _getExperimentName(options) {
+        const { name } = options;
+        const pipeline = await stateManager.getPipeline({ name });
+        return pipeline && pipeline.experimentName;
+    }
+
     _createCronJobID(options, uid) {
-        return ['cron', options.experimentName, options.name, uid].join(':');
+        return [options.experimentName, pipelineTypes.CRON, options.name, uid].join(':');
     }
 }
 

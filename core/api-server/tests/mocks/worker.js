@@ -7,7 +7,7 @@ class WorkerStub {
         const results = {
             jobId,
             status: 'completed',
-            data: [data],
+            data,
             level: 'info'
         }
         await stateManager.setJobStatus(results);

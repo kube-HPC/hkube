@@ -224,10 +224,13 @@ class ExecutionService {
 
     async cleanJob(options) {
         const { jobId } = options;
+        await stateManager.setJobStatus({ jobId, status: pipelineStatuses.STOPPED, reason: 'clean job' });
         await Promise.all([
             storageManager.hkubeIndex.delete({ jobId }),
             storageManager.hkubeExecutions.delete({ jobId }),
-            stateManager.setJobStatus({ jobId: options.jobId, status: pipelineStatuses.STOPPED, reason: 'clean job' }),
+            storageManager.hkube.delete({ jobId }),
+            storageManager.hkubeResults.delete({ jobId }),
+            storageManager.hkubeMetadata.delete({ jobId }),
             stateManager.deleteRunningPipeline({ jobId }),
             stateManager.deleteExecution({ jobId }),
             stateManager.deleteJobResults({ jobId }),
