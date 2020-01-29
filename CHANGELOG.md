@@ -418,8 +418,6 @@
 
 - support kaniko builds [\#389](https://github.com/kube-HPC/hkube/pull/389) ([yehiyam](https://github.com/yehiyam))
 
-## [v1.1.1008](https://github.com/kube-HPC/hkube/tree/v1.1.1008) (2019-06-24)
-
 ## [v1.1.1007](https://github.com/kube-HPC/hkube/tree/v1.1.1007) (2019-06-23)
 
 **Closed issues:**
