@@ -16,11 +16,15 @@ const _createBoardDeployment = async (deploymentDetails) => {
     await etcd.updateTensorboard(board);
 };
 
-const reconcile = async ({ boards, deployments, versions, registry, clusterOptions, options }) => {
+const reconcile = async ({ boards, deployments, versions, registry, clusterOptions, boardTimeOut, options }) => {
     const normDeployments = normalizeBoardDeployments(deployments);
     const pending = boards.filter(b => b.status === boardStatuses.PENDING);
     const added = pending.filter(a => !normDeployments.find(d => d.boardReference === a.boardReference));
-    const removed = normDeployments.filter(a => !boards.find(d => d.boardReference === a.boardReference));
+    const now = Date.now();
+    const timedOut = boards.filter(b => ((b.startTime + boardTimeOut) < now));
+    await Promise.all(timedOut.map(board => (etcd.deleteTensorboard(board))));
+    const boardsLeft = boards.filter(board => (timedOut.indexOf(board) === -1));
+    const removed = normDeployments.filter(a => !boardsLeft.find(d => d.boardReference === a.boardReference));
     await Promise.all(added.map(a => _createBoardDeployment({ board: a, versions, registry, clusterOptions, options })));
     await Promise.all(removed.map(a => kubernetes.deleteExposedDeployment(a.boardReference, deploymentType)));
 };
