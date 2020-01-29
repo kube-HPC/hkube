@@ -7,10 +7,6 @@
 - subpipeline not shown in dashboard \(no experiment prefix\) [\#680](https://github.com/kube-HPC/hkube/issues/680)
 - Graph nodes color is sometimes wrong [\#657](https://github.com/kube-HPC/hkube/issues/657)
 
-## [v1.2.134](https://github.com/kube-HPC/hkube/tree/v1.2.134) (2020-01-29)
-
-## [v1.2.133](https://github.com/kube-HPC/hkube/tree/v1.2.133) (2020-01-28)
-
 ## [v1.2.132](https://github.com/kube-HPC/hkube/tree/v1.2.132) (2020-01-28)
 
 **Implemented enhancements:**
@@ -31,54 +27,12 @@
 - Add TTL for each Algorithm [\#601](https://github.com/kube-HPC/hkube/issues/601)
 - Allow defining TTL in Algorithm/Node level [\#342](https://github.com/kube-HPC/hkube/issues/342)
 
-## [v1.2.131](https://github.com/kube-HPC/hkube/tree/v1.2.131) (2020-01-26)
-
-## [v1.2.130](https://github.com/kube-HPC/hkube/tree/v1.2.130) (2020-01-26)
-
-## [v1.2.129](https://github.com/kube-HPC/hkube/tree/v1.2.129) (2020-01-26)
-
-## [v1.2.128](https://github.com/kube-HPC/hkube/tree/v1.2.128) (2020-01-23)
-
 ## [v1.2.127](https://github.com/kube-HPC/hkube/tree/v1.2.127) (2020-01-23)
 
 **Closed issues:**
 
 - Run algorithm without creating pipeline for it [\#647](https://github.com/kube-HPC/hkube/issues/647)
 - Algorithm retry [\#602](https://github.com/kube-HPC/hkube/issues/602)
-
-## [v1.2.126](https://github.com/kube-HPC/hkube/tree/v1.2.126) (2020-01-22)
-
-## [v1.2.125](https://github.com/kube-HPC/hkube/tree/v1.2.125) (2020-01-22)
-
-## [v1.2.124](https://github.com/kube-HPC/hkube/tree/v1.2.124) (2020-01-22)
-
-## [v1.2.123](https://github.com/kube-HPC/hkube/tree/v1.2.123) (2020-01-22)
-
-## [v1.2.122](https://github.com/kube-HPC/hkube/tree/v1.2.122) (2020-01-21)
-
-## [v1.2.121](https://github.com/kube-HPC/hkube/tree/v1.2.121) (2020-01-21)
-
-## [v1.2.120](https://github.com/kube-HPC/hkube/tree/v1.2.120) (2020-01-21)
-
-## [v1.2.119](https://github.com/kube-HPC/hkube/tree/v1.2.119) (2020-01-21)
-
-## [v1.2.118](https://github.com/kube-HPC/hkube/tree/v1.2.118) (2020-01-21)
-
-## [v1.2.117](https://github.com/kube-HPC/hkube/tree/v1.2.117) (2020-01-21)
-
-## [v1.2.116](https://github.com/kube-HPC/hkube/tree/v1.2.116) (2020-01-21)
-
-## [v1.2.115](https://github.com/kube-HPC/hkube/tree/v1.2.115) (2020-01-20)
-
-## [v1.2.114](https://github.com/kube-HPC/hkube/tree/v1.2.114) (2020-01-19)
-
-## [v1.2.113](https://github.com/kube-HPC/hkube/tree/v1.2.113) (2020-01-19)
-
-## [v1.2.112](https://github.com/kube-HPC/hkube/tree/v1.2.112) (2020-01-19)
-
-## [v1.2.111](https://github.com/kube-HPC/hkube/tree/v1.2.111) (2020-01-16)
-
-## [v1.2.110](https://github.com/kube-HPC/hkube/tree/v1.2.110) (2020-01-16)
 
 ## [v1.2.109](https://github.com/kube-HPC/hkube/tree/v1.2.109) (2020-01-16)
 
@@ -118,12 +72,6 @@
 - Add pause/resume pipeline [\#344](https://github.com/kube-HPC/hkube/issues/344)
 - Code API: execute command for creating dyanmic algorithm from worker [\#190](https://github.com/kube-HPC/hkube/issues/190)
 
-## [v1.2.106](https://github.com/kube-HPC/hkube/tree/v1.2.106) (2020-01-13)
-
-## [v1.2.105](https://github.com/kube-HPC/hkube/tree/v1.2.105) (2020-01-13)
-
-## [v1.2.104](https://github.com/kube-HPC/hkube/tree/v1.2.104) (2020-01-13)
-
 ## [v1.2.103](https://github.com/kube-HPC/hkube/tree/v1.2.103) (2020-01-13)
 
 **Fixed bugs:**
@@ -139,59 +87,17 @@
 - Put result to storage [\#580](https://github.com/kube-HPC/hkube/issues/580)
 - invalid task status exit [\#548](https://github.com/kube-HPC/hkube/issues/548)
 
-## [v1.2.102](https://github.com/kube-HPC/hkube/tree/v1.2.102) (2020-01-09)
-
-## [v1.2.101](https://github.com/kube-HPC/hkube/tree/v1.2.101) (2020-01-09)
-
-## [v1.2.100](https://github.com/kube-HPC/hkube/tree/v1.2.100) (2020-01-09)
-
-## [v1.2.99](https://github.com/kube-HPC/hkube/tree/v1.2.99) (2020-01-09)
-
-## [v1.2.98](https://github.com/kube-HPC/hkube/tree/v1.2.98) (2020-01-06)
-
-## [v1.2.97](https://github.com/kube-HPC/hkube/tree/v1.2.97) (2020-01-06)
-
 ## [v1.2.96](https://github.com/kube-HPC/hkube/tree/v1.2.96) (2020-01-05)
 
 **Fixed bugs:**
 
 - Update algorithm version while running force = false [\#648](https://github.com/kube-HPC/hkube/issues/648)
 
-## [v1.2.95](https://github.com/kube-HPC/hkube/tree/v1.2.95) (2020-01-05)
-
-## [v1.2.94](https://github.com/kube-HPC/hkube/tree/v1.2.94) (2020-01-05)
-
-## [v1.2.93](https://github.com/kube-HPC/hkube/tree/v1.2.93) (2020-01-02)
-
 ## [v1.2.92](https://github.com/kube-HPC/hkube/tree/v1.2.92) (2020-01-02)
 
 **Implemented enhancements:**
 
 - Github issues cleanup [\#396](https://github.com/kube-HPC/hkube/issues/396)
-
-## [v1.2.91](https://github.com/kube-HPC/hkube/tree/v1.2.91) (2020-01-01)
-
-## [v1.2.90](https://github.com/kube-HPC/hkube/tree/v1.2.90) (2020-01-01)
-
-## [v1.2.89](https://github.com/kube-HPC/hkube/tree/v1.2.89) (2020-01-01)
-
-## [v1.2.88](https://github.com/kube-HPC/hkube/tree/v1.2.88) (2019-12-31)
-
-## [v1.2.87](https://github.com/kube-HPC/hkube/tree/v1.2.87) (2019-12-31)
-
-## [v1.2.86](https://github.com/kube-HPC/hkube/tree/v1.2.86) (2019-12-31)
-
-## [v1.2.85](https://github.com/kube-HPC/hkube/tree/v1.2.85) (2019-12-31)
-
-## [v1.2.84](https://github.com/kube-HPC/hkube/tree/v1.2.84) (2019-12-31)
-
-## [v1.2.83](https://github.com/kube-HPC/hkube/tree/v1.2.83) (2019-12-30)
-
-## [v1.2.82](https://github.com/kube-HPC/hkube/tree/v1.2.82) (2019-12-29)
-
-## [v1.2.81](https://github.com/kube-HPC/hkube/tree/v1.2.81) (2019-12-26)
-
-## [v1.2.80](https://github.com/kube-HPC/hkube/tree/v1.2.80) (2019-12-25)
 
 ## [v1.2.79](https://github.com/kube-HPC/hkube/tree/v1.2.79) (2019-12-25)
 
@@ -202,8 +108,6 @@
 **Closed issues:**
 
 - There is no info on batch errors [\#284](https://github.com/kube-HPC/hkube/issues/284)
-
-## [v1.2.78](https://github.com/kube-HPC/hkube/tree/v1.2.78) (2019-12-24)
 
 ## [v1.2.77](https://github.com/kube-HPC/hkube/tree/v1.2.77) (2019-12-24)
 
@@ -236,27 +140,11 @@
 - Nodes and pipeline results [\#287](https://github.com/kube-HPC/hkube/issues/287)
 - Task Executor Features [\#270](https://github.com/kube-HPC/hkube/issues/270)
 
-## [v1.2.75](https://github.com/kube-HPC/hkube/tree/v1.2.75) (2019-12-18)
-
-## [v1.2.74](https://github.com/kube-HPC/hkube/tree/v1.2.74) (2019-12-18)
-
-## [v1.2.73](https://github.com/kube-HPC/hkube/tree/v1.2.73) (2019-12-17)
-
 ## [v1.2.72](https://github.com/kube-HPC/hkube/tree/v1.2.72) (2019-12-17)
 
 **Closed issues:**
 
 - Algorithm name length issue [\#259](https://github.com/kube-HPC/hkube/issues/259)
-
-## [v1.2.71](https://github.com/kube-HPC/hkube/tree/v1.2.71) (2019-12-17)
-
-## [v1.2.70](https://github.com/kube-HPC/hkube/tree/v1.2.70) (2019-12-17)
-
-## [v1.2.69](https://github.com/kube-HPC/hkube/tree/v1.2.69) (2019-12-17)
-
-## [v1.2.68](https://github.com/kube-HPC/hkube/tree/v1.2.68) (2019-12-16)
-
-## [v1.2.67](https://github.com/kube-HPC/hkube/tree/v1.2.67) (2019-12-16)
 
 ## [v1.2.66](https://github.com/kube-HPC/hkube/tree/v1.2.66) (2019-12-16)
 
@@ -274,10 +162,6 @@
 - Large CPU algorithm will not be scheduled [\#233](https://github.com/kube-HPC/hkube/issues/233)
 - When stopping pipeline need to clear data from etcd [\#200](https://github.com/kube-HPC/hkube/issues/200)
 
-## [v1.2.65](https://github.com/kube-HPC/hkube/tree/v1.2.65) (2019-12-12)
-
-## [v1.2.64](https://github.com/kube-HPC/hkube/tree/v1.2.64) (2019-12-12)
-
 ## [v1.2.63](https://github.com/kube-HPC/hkube/tree/v1.2.63) (2019-12-12)
 
 **Fixed bugs:**
@@ -294,15 +178,11 @@
 
 - Improve the dashboard [\#544](https://github.com/kube-HPC/hkube/issues/544)
 
-## [v1.2.61](https://github.com/kube-HPC/hkube/tree/v1.2.61) (2019-12-12)
-
 ## [v1.2.60](https://github.com/kube-HPC/hkube/tree/v1.2.60) (2019-12-11)
 
 **Closed issues:**
 
 - insert to storage on result [\#571](https://github.com/kube-HPC/hkube/issues/571)
-
-## [v1.2.59](https://github.com/kube-HPC/hkube/tree/v1.2.59) (2019-12-09)
 
 ## [v1.2.58](https://github.com/kube-HPC/hkube/tree/v1.2.58) (2019-12-08)
 
@@ -326,69 +206,11 @@
 
 - Direct call from dashboard to API-Server [\#570](https://github.com/kube-HPC/hkube/issues/570)
 
-## [v1.2.55](https://github.com/kube-HPC/hkube/tree/v1.2.55) (2019-11-27)
-
-## [v1.2.54](https://github.com/kube-HPC/hkube/tree/v1.2.54) (2019-11-27)
-
-## [v1.1.1086](https://github.com/kube-HPC/hkube/tree/v1.1.1086) (2019-11-20)
-
-## [v1.2.53](https://github.com/kube-HPC/hkube/tree/v1.2.53) (2019-11-19)
-
-## [v1.2.52](https://github.com/kube-HPC/hkube/tree/v1.2.52) (2019-11-19)
-
-## [v1.2.51](https://github.com/kube-HPC/hkube/tree/v1.2.51) (2019-11-18)
-
-## [v1.2.50](https://github.com/kube-HPC/hkube/tree/v1.2.50) (2019-11-17)
-
-## [v1.2.49](https://github.com/kube-HPC/hkube/tree/v1.2.49) (2019-11-17)
-
-## [v1.2.48](https://github.com/kube-HPC/hkube/tree/v1.2.48) (2019-11-14)
-
-## [v1.2.47](https://github.com/kube-HPC/hkube/tree/v1.2.47) (2019-11-12)
-
-## [v1.2.46](https://github.com/kube-HPC/hkube/tree/v1.2.46) (2019-11-10)
-
-## [v1.2.45](https://github.com/kube-HPC/hkube/tree/v1.2.45) (2019-11-10)
-
 ## [v1.2.44](https://github.com/kube-HPC/hkube/tree/v1.2.44) (2019-11-10)
 
 **Closed issues:**
 
 - Move to husky? [\#483](https://github.com/kube-HPC/hkube/issues/483)
-
-## [v1.2.43](https://github.com/kube-HPC/hkube/tree/v1.2.43) (2019-11-07)
-
-## [v1.2.42](https://github.com/kube-HPC/hkube/tree/v1.2.42) (2019-11-07)
-
-## [v1.2.41](https://github.com/kube-HPC/hkube/tree/v1.2.41) (2019-11-07)
-
-## [v1.2.40](https://github.com/kube-HPC/hkube/tree/v1.2.40) (2019-11-07)
-
-## [v1.2.39](https://github.com/kube-HPC/hkube/tree/v1.2.39) (2019-11-07)
-
-## [v1.2.38](https://github.com/kube-HPC/hkube/tree/v1.2.38) (2019-11-06)
-
-## [v1.2.37](https://github.com/kube-HPC/hkube/tree/v1.2.37) (2019-11-06)
-
-## [v1.2.36](https://github.com/kube-HPC/hkube/tree/v1.2.36) (2019-11-06)
-
-## [v1.2.35](https://github.com/kube-HPC/hkube/tree/v1.2.35) (2019-11-05)
-
-## [v1.2.34](https://github.com/kube-HPC/hkube/tree/v1.2.34) (2019-11-05)
-
-## [v1.2.33](https://github.com/kube-HPC/hkube/tree/v1.2.33) (2019-11-05)
-
-## [v1.2.32](https://github.com/kube-HPC/hkube/tree/v1.2.32) (2019-11-04)
-
-## [v1.2.31](https://github.com/kube-HPC/hkube/tree/v1.2.31) (2019-11-04)
-
-## [v1.2.30](https://github.com/kube-HPC/hkube/tree/v1.2.30) (2019-10-31)
-
-## [v1.2.29](https://github.com/kube-HPC/hkube/tree/v1.2.29) (2019-10-31)
-
-## [v1.2.28](https://github.com/kube-HPC/hkube/tree/v1.2.28) (2019-10-30)
-
-## [v1.2.27](https://github.com/kube-HPC/hkube/tree/v1.2.27) (2019-10-29)
 
 ## [v1.2.26](https://github.com/kube-HPC/hkube/tree/v1.2.26) (2019-10-28)
 
@@ -407,34 +229,6 @@
 - Add option for algorithms to execute another algorithms using API [\#288](https://github.com/kube-HPC/hkube/issues/288)
 - Update doc on hkube.io [\#191](https://github.com/kube-HPC/hkube/issues/191)
 
-## [v1.2.25](https://github.com/kube-HPC/hkube/tree/v1.2.25) (2019-10-23)
-
-## [v1.2.24](https://github.com/kube-HPC/hkube/tree/v1.2.24) (2019-10-22)
-
-## [v1.2.23](https://github.com/kube-HPC/hkube/tree/v1.2.23) (2019-10-10)
-
-## [v1.2.22](https://github.com/kube-HPC/hkube/tree/v1.2.22) (2019-10-07)
-
-## [v1.2.21](https://github.com/kube-HPC/hkube/tree/v1.2.21) (2019-10-07)
-
-## [v1.2.20](https://github.com/kube-HPC/hkube/tree/v1.2.20) (2019-10-07)
-
-## [v1.2.19](https://github.com/kube-HPC/hkube/tree/v1.2.19) (2019-10-07)
-
-## [v1.2.18](https://github.com/kube-HPC/hkube/tree/v1.2.18) (2019-10-07)
-
-## [v1.2.17](https://github.com/kube-HPC/hkube/tree/v1.2.17) (2019-10-07)
-
-## [v1.2.16](https://github.com/kube-HPC/hkube/tree/v1.2.16) (2019-10-06)
-
-## [v1.2.15](https://github.com/kube-HPC/hkube/tree/v1.2.15) (2019-10-06)
-
-## [v1.2.14](https://github.com/kube-HPC/hkube/tree/v1.2.14) (2019-10-06)
-
-## [v1.2.13](https://github.com/kube-HPC/hkube/tree/v1.2.13) (2019-10-06)
-
-## [v1.2.12](https://github.com/kube-HPC/hkube/tree/v1.2.12) (2019-10-06)
-
 ## [v1.2.11](https://github.com/kube-HPC/hkube/tree/v1.2.11) (2019-10-03)
 
 **Implemented enhancements:**
@@ -452,25 +246,11 @@
 - Check high availability of K8s masters [\#217](https://github.com/kube-HPC/hkube/issues/217)
 - Reduce intervals for resource-manager and task-executor [\#205](https://github.com/kube-HPC/hkube/issues/205)
 
-## [v1.2.10](https://github.com/kube-HPC/hkube/tree/v1.2.10) (2019-09-22)
-
 ## [v1.2.9](https://github.com/kube-HPC/hkube/tree/v1.2.9) (2019-09-19)
 
 **Fixed bugs:**
 
 - inconsistent datatypes return on code api execId and pipelineId  [\#502](https://github.com/kube-HPC/hkube/issues/502)
-
-## [v1.2.8](https://github.com/kube-HPC/hkube/tree/v1.2.8) (2019-09-19)
-
-## [v1.2.7](https://github.com/kube-HPC/hkube/tree/v1.2.7) (2019-09-19)
-
-## [v1.2.6](https://github.com/kube-HPC/hkube/tree/v1.2.6) (2019-09-19)
-
-## [v1.2.5](https://github.com/kube-HPC/hkube/tree/v1.2.5) (2019-09-18)
-
-## [v1.2.4](https://github.com/kube-HPC/hkube/tree/v1.2.4) (2019-09-04)
-
-## [v1.2.3](https://github.com/kube-HPC/hkube/tree/v1.2.3) (2019-09-04)
 
 ## [v1.2.2](https://github.com/kube-HPC/hkube/tree/v1.2.2) (2019-09-04)
 
@@ -485,21 +265,11 @@
 - race condition in dashboard [\#430](https://github.com/kube-HPC/hkube/issues/430)
 - create a hot worker and than delete it [\#278](https://github.com/kube-HPC/hkube/issues/278)
 
-## [v1.2.1](https://github.com/kube-HPC/hkube/tree/v1.2.1) (2019-09-01)
-
-## [v1.2.0](https://github.com/kube-HPC/hkube/tree/v1.2.0) (2019-09-01)
-
-## [v1.1.1085](https://github.com/kube-HPC/hkube/tree/v1.1.1085) (2019-08-29)
-
 ## [v1.1.1084](https://github.com/kube-HPC/hkube/tree/v1.1.1084) (2019-08-28)
 
 **Fixed bugs:**
 
 - Algorithm readme not updating [\#423](https://github.com/kube-HPC/hkube/issues/423)
-
-## [v1.1.1083](https://github.com/kube-HPC/hkube/tree/v1.1.1083) (2019-08-28)
-
-## [v1.1.1082](https://github.com/kube-HPC/hkube/tree/v1.1.1082) (2019-08-27)
 
 ## [v1.1.1081](https://github.com/kube-HPC/hkube/tree/v1.1.1081) (2019-08-26)
 
@@ -527,32 +297,12 @@
 
 - we should verify that checksum operation for algorithm build is not heavy  [\#488](https://github.com/kube-HPC/hkube/issues/488)
 
-## [v1.1.1079](https://github.com/kube-HPC/hkube/tree/v1.1.1079) (2019-08-21)
-
-## [v1.1.1078](https://github.com/kube-HPC/hkube/tree/v1.1.1078) (2019-08-21)
-
-## [v1.1.1077](https://github.com/kube-HPC/hkube/tree/v1.1.1077) (2019-08-19)
-
-## [v1.1.1076](https://github.com/kube-HPC/hkube/tree/v1.1.1076) (2019-08-19)
-
-## [v1.1.1075](https://github.com/kube-HPC/hkube/tree/v1.1.1075) (2019-08-19)
-
-## [v1.1.1074](https://github.com/kube-HPC/hkube/tree/v1.1.1074) (2019-08-18)
-
-## [v1.1.1073](https://github.com/kube-HPC/hkube/tree/v1.1.1073) (2019-08-18)
-
 ## [v1.1.1072](https://github.com/kube-HPC/hkube/tree/v1.1.1072) (2019-08-18)
 
 **Closed issues:**
 
 - Loading Screen [\#395](https://github.com/kube-HPC/hkube/issues/395)
 - Infinity Table [\#394](https://github.com/kube-HPC/hkube/issues/394)
-
-## [v1.1.1071](https://github.com/kube-HPC/hkube/tree/v1.1.1071) (2019-08-14)
-
-## [v1.1.1070](https://github.com/kube-HPC/hkube/tree/v1.1.1070) (2019-08-14)
-
-## [v1.1.1069](https://github.com/kube-HPC/hkube/tree/v1.1.1069) (2019-08-13)
 
 ## [v1.1.1068](https://github.com/kube-HPC/hkube/tree/v1.1.1068) (2019-08-13)
 
@@ -564,27 +314,11 @@
 
 - Add watch for stop build [\#453](https://github.com/kube-HPC/hkube/issues/453)
 
-## [v1.1.1067](https://github.com/kube-HPC/hkube/tree/v1.1.1067) (2019-08-11)
-
-## [v1.1.1066](https://github.com/kube-HPC/hkube/tree/v1.1.1066) (2019-08-11)
-
-## [v1.1.1065](https://github.com/kube-HPC/hkube/tree/v1.1.1065) (2019-08-11)
-
-## [v1.1.1064](https://github.com/kube-HPC/hkube/tree/v1.1.1064) (2019-08-08)
-
-## [v1.1.1063](https://github.com/kube-HPC/hkube/tree/v1.1.1063) (2019-08-07)
-
-## [v1.1.1062](https://github.com/kube-HPC/hkube/tree/v1.1.1062) (2019-08-07)
-
 ## [v1.1.1061](https://github.com/kube-HPC/hkube/tree/v1.1.1061) (2019-08-07)
 
 **Fixed bugs:**
 
 - building a node algorith, dosent work [\#457](https://github.com/kube-HPC/hkube/issues/457)
-
-## [v1.1.1060](https://github.com/kube-HPC/hkube/tree/v1.1.1060) (2019-08-07)
-
-## [v1.1.1059](https://github.com/kube-HPC/hkube/tree/v1.1.1059) (2019-08-07)
 
 ## [v1.1.1058](https://github.com/kube-HPC/hkube/tree/v1.1.1058) (2019-08-07)
 
@@ -592,49 +326,11 @@
 
 - building a node algorithm [\#464](https://github.com/kube-HPC/hkube/issues/464)
 
-## [v1.1.1057](https://github.com/kube-HPC/hkube/tree/v1.1.1057) (2019-08-07)
-
-## [v1.1.1056](https://github.com/kube-HPC/hkube/tree/v1.1.1056) (2019-08-06)
-
-## [v1.1.1055](https://github.com/kube-HPC/hkube/tree/v1.1.1055) (2019-08-06)
-
-## [v1.1.1054](https://github.com/kube-HPC/hkube/tree/v1.1.1054) (2019-08-06)
-
-## [v1.1.1053](https://github.com/kube-HPC/hkube/tree/v1.1.1053) (2019-08-06)
-
-## [v1.1.1052](https://github.com/kube-HPC/hkube/tree/v1.1.1052) (2019-08-05)
-
-## [v1.1.1051](https://github.com/kube-HPC/hkube/tree/v1.1.1051) (2019-08-05)
-
-## [v1.1.1050](https://github.com/kube-HPC/hkube/tree/v1.1.1050) (2019-08-05)
-
-## [v1.1.1049](https://github.com/kube-HPC/hkube/tree/v1.1.1049) (2019-08-04)
-
-## [v1.1.1048](https://github.com/kube-HPC/hkube/tree/v1.1.1048) (2019-08-04)
-
-## [v1.1.1047](https://github.com/kube-HPC/hkube/tree/v1.1.1047) (2019-08-04)
-
 ## [v1.1.1046](https://github.com/kube-HPC/hkube/tree/v1.1.1046) (2019-08-04)
 
 **Fixed bugs:**
 
 - Stop algorithm build [\#452](https://github.com/kube-HPC/hkube/issues/452)
-
-## [v1.1.1045](https://github.com/kube-HPC/hkube/tree/v1.1.1045) (2019-08-01)
-
-## [v1.1.1044](https://github.com/kube-HPC/hkube/tree/v1.1.1044) (2019-08-01)
-
-## [v1.1.1043](https://github.com/kube-HPC/hkube/tree/v1.1.1043) (2019-08-01)
-
-## [v1.1.1042](https://github.com/kube-HPC/hkube/tree/v1.1.1042) (2019-07-31)
-
-## [v1.1.1041](https://github.com/kube-HPC/hkube/tree/v1.1.1041) (2019-07-31)
-
-## [v1.1.1040](https://github.com/kube-HPC/hkube/tree/v1.1.1040) (2019-07-31)
-
-## [v1.1.1039](https://github.com/kube-HPC/hkube/tree/v1.1.1039) (2019-07-31)
-
-## [v1.1.1038](https://github.com/kube-HPC/hkube/tree/v1.1.1038) (2019-07-31)
 
 ## [v1.1.1037](https://github.com/kube-HPC/hkube/tree/v1.1.1037) (2019-07-30)
 
@@ -642,19 +338,11 @@
 
 - pipelines page [\#443](https://github.com/kube-HPC/hkube/issues/443)
 
-## [v1.1.1036](https://github.com/kube-HPC/hkube/tree/v1.1.1036) (2019-07-30)
-
-## [v1.1.1035](https://github.com/kube-HPC/hkube/tree/v1.1.1035) (2019-07-30)
-
-## [v1.1.1034](https://github.com/kube-HPC/hkube/tree/v1.1.1034) (2019-07-30)
-
 ## [v1.1.1033](https://github.com/kube-HPC/hkube/tree/v1.1.1033) (2019-07-30)
 
 **Fixed bugs:**
 
 - set ingress permission in cleaner role [\#432](https://github.com/kube-HPC/hkube/issues/432)
-
-## [v1.1.1032](https://github.com/kube-HPC/hkube/tree/v1.1.1032) (2019-07-29)
 
 ## [v1.1.1031](https://github.com/kube-HPC/hkube/tree/v1.1.1031) (2019-07-29)
 
@@ -670,19 +358,6 @@
 - edit description. both on pipelines and algorithms [\#404](https://github.com/kube-HPC/hkube/issues/404)
 - drivers page- sort [\#403](https://github.com/kube-HPC/hkube/issues/403)
 
-## [v1.1.1029](https://github.com/kube-HPC/hkube/tree/v1.1.1029) (2019-07-23)
-
-## [v1.1.1028](https://github.com/kube-HPC/hkube/tree/v1.1.1028) (2019-07-23)
-
-## [v1.1.1027](https://github.com/kube-HPC/hkube/tree/v1.1.1027) (2019-07-23)
-
-## [v1.1.1026](https://github.com/kube-HPC/hkube/tree/v1.1.1026) (2019-07-21)
-
-## [v1.1.1025](https://github.com/kube-HPC/hkube/tree/v1.1.1025) (2019-07-21)
-
-## [v1.1.1024](https://github.com/kube-HPC/hkube/tree/v1.1.1024) (2019-07-21)
-
-## [v1.1.1023](https://github.com/kube-HPC/hkube/tree/v1.1.1023) (2019-07-21)
 
 ## [v1.1.1022](https://github.com/kube-HPC/hkube/tree/v1.1.1022) (2019-07-17)
 
@@ -705,14 +380,6 @@
 
 - Suggestions [\#279](https://github.com/kube-HPC/hkube/issues/279)
 
-## [v1.1.1020](https://github.com/kube-HPC/hkube/tree/v1.1.1020) (2019-07-01)
-
-## [v1.1.1019](https://github.com/kube-HPC/hkube/tree/v1.1.1019) (2019-07-01)
-
-## [v1.1.1018](https://github.com/kube-HPC/hkube/tree/v1.1.1018) (2019-06-30)
-
-## [v1.1.1017](https://github.com/kube-HPC/hkube/tree/v1.1.1017) (2019-06-30)
-
 ## [v1.1.1016](https://github.com/kube-HPC/hkube/tree/v1.1.1016) (2019-06-30)
 
 **Closed issues:**
@@ -734,12 +401,6 @@
 **Fixed bugs:**
 
 - Fix API CLI documentation [\#369](https://github.com/kube-HPC/hkube/issues/369)
-
-## [v1.1.1013](https://github.com/kube-HPC/hkube/tree/v1.1.1013) (2019-06-27)
-
-## [v1.1.1012](https://github.com/kube-HPC/hkube/tree/v1.1.1012) (2019-06-27)
-
-## [v1.1.1011](https://github.com/kube-HPC/hkube/tree/v1.1.1011) (2019-06-25)
 
 ## [v1.1.1010](https://github.com/kube-HPC/hkube/tree/v1.1.1010) (2019-06-25)
 
@@ -765,20 +426,12 @@
 
 - Restore missing features [\#381](https://github.com/kube-HPC/hkube/issues/381)
 
-## [v1.1.1006](https://github.com/kube-HPC/hkube/tree/v1.1.1006) (2019-06-20)
-
-## [v1.1.1005](https://github.com/kube-HPC/hkube/tree/v1.1.1005) (2019-06-20)
-
-## [v1.1.1004](https://github.com/kube-HPC/hkube/tree/v1.1.1004) (2019-06-19)
-
 ## [v1.1.1003](https://github.com/kube-HPC/hkube/tree/v1.1.1003) (2019-06-19)
 
 **Merged pull requests:**
 
 - Add issue templates [\#363](https://github.com/kube-HPC/hkube/pull/363) ([denvash](https://github.com/denvash))
 - Create CODE\_OF\_CONDUCT.md [\#361](https://github.com/kube-HPC/hkube/pull/361) ([NassiHarel](https://github.com/NassiHarel))
-
-## [v1.1.1002](https://github.com/kube-HPC/hkube/tree/v1.1.1002) (2019-06-18)
 
 ## [v1.1.1001](https://github.com/kube-HPC/hkube/tree/v1.1.1001) (2019-06-18)
 
@@ -800,16 +453,6 @@
 **Merged pull requests:**
 
 - Update README.md [\#353](https://github.com/kube-HPC/hkube/pull/353) ([denvash](https://github.com/denvash))
-
-## [v1.1.1000](https://github.com/kube-HPC/hkube/tree/v1.1.1000) (2019-06-04)
-
-## [v1.1.5](https://github.com/kube-HPC/hkube/tree/v1.1.5) (2019-06-04)
-
-## [v1.1.4](https://github.com/kube-HPC/hkube/tree/v1.1.4) (2019-06-04)
-
-## [v1.1.3](https://github.com/kube-HPC/hkube/tree/v1.1.3) (2019-06-04)
-
-## [v1.1.2](https://github.com/kube-HPC/hkube/tree/v1.1.2) (2019-06-04)
 
 ## [v1.1.1](https://github.com/kube-HPC/hkube/tree/v1.1.1) (2019-06-04)
 
