@@ -98,13 +98,9 @@ class AlgorithmExecution {
     }
 
     _sendErrorToAlgorithm(task) {
-        if (task.taskId) {
-            const isRelatedTask = this._isRelatedTask(task.taskId);
-            if (!isRelatedTask) {
-                return;
-            }
+        if (task.taskId && !this._isRelatedTask(task.taskId)) {
+            return;
         }
-
         log.info(`sending error to algorithm, error: ${task.error}`, { component });
         this._sendCompleteToAlgorithm({ ...task, command: messages.outgoing.execAlgorithmError });
     }
@@ -168,11 +164,11 @@ class AlgorithmExecution {
         let execId;
         try {
             const data = (message && message.data) || {};
+            execId = data.execId;
             const valid = this._stopAlgorithmSchema(data);
             if (!valid) {
                 throw new Error(validator.errorsText(this._stopAlgorithmSchema.errors));
             }
-            execId = data.execId; // eslint-disable-line
             if (!this._executions.has(execId)) {
                 throw new Error(`unable to find execId ${execId}`);
             }
@@ -190,11 +186,11 @@ class AlgorithmExecution {
         let execId;
         try {
             const data = (message && message.data) || {};
+            execId = data.execId;
             const valid = this._startAlgorithmSchema(data);
             if (!valid) {
                 throw new Error(validator.errorsText(this._startAlgorithmSchema.errors));
             }
-            execId = data.execId; // eslint-disable-line
             if (this._executions.has(execId)) {
                 throw new Error('execution already running');
             }
@@ -282,7 +278,10 @@ class AlgorithmExecution {
                 execNodeName: `${newNodeName}:${algorithmName}`,
                 pipelineName: jobData.pipelineName,
                 priority: jobData.priority,
-                info: jobData.info
+                info: {
+                    ...jobData.info,
+                    extraData: undefined
+                }
             }
         };
         return jobOptions;
