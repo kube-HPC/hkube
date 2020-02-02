@@ -76,7 +76,7 @@ class JobConsumer extends EventEmitter {
     }
 
     pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
-        const { jobId, pipelineName, priority, nodeName, algorithmName, info, spanId, nodeType, metrics, ttl, retry } = jobData;
+        const { jobId, pipelineName, priority, nodeName, execNodeName, algorithmName, info, spanId, nodeType, metrics, ttl, retry } = jobData;
         const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
             acc[cur] = 0.00001;
             return acc;
@@ -92,6 +92,7 @@ class JobConsumer extends EventEmitter {
             spanId,
             nodeType,
             nodeName,
+            execNodeName,
             entranceTime,
             attempts: 0,
             initialBatchLength,

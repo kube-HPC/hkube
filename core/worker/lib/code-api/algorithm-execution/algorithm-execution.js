@@ -77,6 +77,10 @@ class AlgorithmExecution {
     }
 
     async _sendDoneToAlgorithm(task) {
+        const isRelatedTask = this._isRelatedTask(task.taskId);
+        if (!isRelatedTask) {
+            return;
+        }
         const execution = this._executions.get(task.execId);
         if (!execution) {
             return;
@@ -89,7 +93,18 @@ class AlgorithmExecution {
         this._sendCompleteToAlgorithm({ ...task, response: result, command: messages.outgoing.execAlgorithmDone });
     }
 
+    _isRelatedTask(taskId) {
+        return [...this._executions.values()].find(t => t.taskId === taskId);
+    }
+
     _sendErrorToAlgorithm(task) {
+        if (task.taskId) {
+            const isRelatedTask = this._isRelatedTask(task.taskId);
+            if (!isRelatedTask) {
+                return;
+            }
+        }
+
         log.info(`sending error to algorithm, error: ${task.error}`, { component });
         this._sendCompleteToAlgorithm({ ...task, command: messages.outgoing.execAlgorithmError });
     }
@@ -189,7 +204,7 @@ class AlgorithmExecution {
             }
 
             const storage = {};
-            const { jobId, nodeName } = jobData;
+            const { jobId, nodeName, execNodeName } = jobData;
             const parentAlgName = jobData.algorithmName;
             const { algorithmName, input, resultAsRaw } = data;
             const algos = await discovery.getExistingAlgorithms();
@@ -200,7 +215,7 @@ class AlgorithmExecution {
             this._executions.set(execId, { taskId, resultAsRaw });
             const storageInput = await Promise.all(input.map(i => this._mapInputToStorage(i, storage, jobId)));
             const task = { execId, taskId, input: storageInput, storage };
-            const job = this._createJobData({ algorithmName, task, jobData });
+            const job = this._createJobData({ nodeName, execNodeName, algorithmName, task, jobData });
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
             await this._createJob(job, taskId);
@@ -255,16 +270,18 @@ class AlgorithmExecution {
         }
     }
 
-    _createJobData({ algorithmName, task, jobData }) {
+    _createJobData({ nodeName, execNodeName, algorithmName, task, jobData }) {
+        const newNodeName = execNodeName || nodeName;
         const jobOptions = {
             type: algorithmName,
             data: {
                 tasks: [task],
                 jobId: jobData.jobId,
-                nodeName: jobData.nodeName,
+                algorithmName,
+                nodeName: newNodeName,
+                execNodeName: `${newNodeName}:${algorithmName}`,
                 pipelineName: jobData.pipelineName,
                 priority: jobData.priority,
-                algorithmName,
                 info: jobData.info
             }
         };

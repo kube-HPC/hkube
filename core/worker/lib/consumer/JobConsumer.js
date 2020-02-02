@@ -96,6 +96,7 @@ class JobConsumer extends EventEmitter {
                 status: constants.JOB_STATUS.ACTIVE,
                 execId: this._job.data.execId,
                 nodeName: this._job.data.nodeName,
+                execNodeName: this._job.data.execNodeName,
                 algorithmName: this._job.data.algorithmName,
                 podName: this._options.kubernetes.pod_name,
                 startTime: Date.now()
@@ -335,6 +336,7 @@ class JobConsumer extends EventEmitter {
             taskId: this._taskId,
             execId: this._job.data.execId,
             nodeName: this._job.data.nodeName,
+            execNodeName: this._job.data.execNodeName,
             algorithmName: this._job.data.algorithmName,
         };
         await etcd.update(data);
@@ -368,6 +370,7 @@ class JobConsumer extends EventEmitter {
                 taskId: this._taskId,
                 execId: this._job.data.execId,
                 nodeName: this._job.data.nodeName,
+                execNodeName: this._job.data.execNodeName,
                 algorithmName: this._job.data.algorithmName,
                 batchIndex: this._batchIndex,
                 endTime: Date.now(),
