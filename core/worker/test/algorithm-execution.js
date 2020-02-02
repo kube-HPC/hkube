@@ -155,7 +155,7 @@ describe('AlgorithmExecutions', () => {
         expect(args).to.have.property('execId');
         expect(args).to.have.property('error');
         expect(args.execId).equals(data.execId);
-        expect(args.error).equals(`execution already running`);
+        expect(args.error).equals(`execution ${data.execId} already running`);
     });
     it('should succeed to create job', async function () {
         const jobData = {
@@ -210,7 +210,7 @@ describe('AlgorithmExecutions', () => {
         };
         spy = sinon.spy(execAlgorithm, '_sendCompleteToAlgorithm');
         await execAlgorithm._startAlgorithmExecution({ data });
-        const execution = execAlgorithm._executions.get(data.execId);
+        const execution = execAlgorithm._findTaskByExecId(data.execId);
         const task = {
             jobId: jobData.jobId,
             taskId: execution.taskId,
@@ -251,7 +251,7 @@ describe('AlgorithmExecutions', () => {
         };
         spy = sinon.spy(execAlgorithm, '_sendCompleteToAlgorithm');
         await execAlgorithm._startAlgorithmExecution({ data });
-        const execution = execAlgorithm._executions.get(data.execId);
+        const execution = execAlgorithm._findTaskByExecId(data.execId);
         const task = {
             jobId: jobData.jobId,
             taskId: execution.taskId,
@@ -292,7 +292,7 @@ describe('AlgorithmExecutions', () => {
         };
         spy = sinon.spy(execAlgorithm, '_sendCompleteToAlgorithm');
         await execAlgorithm._startAlgorithmExecution({ data });
-        const execution = execAlgorithm._executions.get(data.execId);
+        const execution = execAlgorithm._findTaskByExecId(data.execId);
         const task = {
             jobId: jobData.jobId,
             taskId: execution.taskId,
@@ -333,7 +333,7 @@ describe('AlgorithmExecutions', () => {
         };
         spy = sinon.spy(execAlgorithm, '_sendCompleteToAlgorithm');
         await execAlgorithm._startAlgorithmExecution({ data });
-        const execution = execAlgorithm._executions.get(data.execId);
+        const execution = execAlgorithm._findTaskByExecId(data.execId);
         const task = {
             jobId: jobData.jobId,
             taskId: execution.taskId,
