@@ -31,6 +31,7 @@ module.exports = {
         "arrow-body-style": "off",
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
-        "indent": ["warn", 4, { "SwitchCase": 1 }]
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
+        "arrow-parens": "off"
     }
 };

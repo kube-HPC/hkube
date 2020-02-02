@@ -90,6 +90,7 @@ describe('Storage', () => {
             expect(response.body).to.have.property('keys');
             expect(response.body).to.have.property('path');
             expect(response.body).to.have.property('total');
+            expect(response.body.keys).to.have.lengthOf(total);
         });
     });
     describe('/keys/:path', () => {

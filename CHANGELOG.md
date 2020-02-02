@@ -1,0 +1,609 @@
+# Changelog
+
+## [Unreleased](https://github.com/kube-HPC/hkube/tree/HEAD)
+
+**Fixed bugs:**
+
+- subpipeline not shown in dashboard \(no experiment prefix\) [\#680](https://github.com/kube-HPC/hkube/issues/680)
+- Graph nodes color is sometimes wrong [\#657](https://github.com/kube-HPC/hkube/issues/657)
+
+## [v1.2.132](https://github.com/kube-HPC/hkube/tree/v1.2.132) (2020-01-28)
+
+**Implemented enhancements:**
+
+- Support using arbitrary base images [\#563](https://github.com/kube-HPC/hkube/issues/563)
+
+**Fixed bugs:**
+
+- Batch  on Batch [\#676](https://github.com/kube-HPC/hkube/issues/676)
+- Algorithm retry overwrite batchTolerance [\#674](https://github.com/kube-HPC/hkube/issues/674)
+-  git webhook creates an empty version which cause wired behaviors [\#607](https://github.com/kube-HPC/hkube/issues/607)
+- Nodes in pipeline graph are rendered in wrong order [\#358](https://github.com/kube-HPC/hkube/issues/358)
+- workers dont get aborted when there is a requirement for another algorithm [\#201](https://github.com/kube-HPC/hkube/issues/201)
+
+**Closed issues:**
+
+- Missing option for complete pipeline result including non-final nodes [\#673](https://github.com/kube-HPC/hkube/issues/673)
+- Add TTL for each Algorithm [\#601](https://github.com/kube-HPC/hkube/issues/601)
+- Allow defining TTL in Algorithm/Node level [\#342](https://github.com/kube-HPC/hkube/issues/342)
+
+## [v1.2.127](https://github.com/kube-HPC/hkube/tree/v1.2.127) (2020-01-23)
+
+**Closed issues:**
+
+- Run algorithm without creating pipeline for it [\#647](https://github.com/kube-HPC/hkube/issues/647)
+- Algorithm retry [\#602](https://github.com/kube-HPC/hkube/issues/602)
+
+## [v1.2.109](https://github.com/kube-HPC/hkube/tree/v1.2.109) (2020-01-16)
+
+**Fixed bugs:**
+
+- Algorithm version window display other algorithms version of similar algorithm names [\#624](https://github.com/kube-HPC/hkube/issues/624)
+- input for an algorithm after skipped node [\#583](https://github.com/kube-HPC/hkube/issues/583)
+
+**Closed issues:**
+
+- copy worker ID to clipboard - from Node Information form [\#598](https://github.com/kube-HPC/hkube/issues/598)
+
+## [v1.2.108](https://github.com/kube-HPC/hkube/tree/v1.2.108) (2020-01-15)
+
+**Closed issues:**
+
+- ParentID for each Algorithm- feature request [\#597](https://github.com/kube-HPC/hkube/issues/597)
+
+## [v1.2.107](https://github.com/kube-HPC/hkube/tree/v1.2.107) (2020-01-14)
+
+**Implemented enhancements:**
+
+- Need to update the storage-cleaner [\#568](https://github.com/kube-HPC/hkube/issues/568)
+
+**Fixed bugs:**
+
+- no error message when trying to run non existing algorithm or pipeline with code api [\#510](https://github.com/kube-HPC/hkube/issues/510)
+
+**Closed issues:**
+
+- Delete related data after algorithm deletion [\#627](https://github.com/kube-HPC/hkube/issues/627)
+- Cache storage data in worker [\#576](https://github.com/kube-HPC/hkube/issues/576)
+- add simple API for storage [\#554](https://github.com/kube-HPC/hkube/issues/554)
+- Add Graph API & Improve the pipeline graph [\#545](https://github.com/kube-HPC/hkube/issues/545)
+- Expose API for gitlab and github webhook upon push [\#518](https://github.com/kube-HPC/hkube/issues/518)
+- Expose through UI, building algorithm from code in git   [\#517](https://github.com/kube-HPC/hkube/issues/517)
+- Add pause/resume pipeline [\#344](https://github.com/kube-HPC/hkube/issues/344)
+- Code API: execute command for creating dyanmic algorithm from worker [\#190](https://github.com/kube-HPC/hkube/issues/190)
+
+## [v1.2.103](https://github.com/kube-HPC/hkube/tree/v1.2.103) (2020-01-13)
+
+**Fixed bugs:**
+
+- Stop pipeline while running "results" status is completed [\#620](https://github.com/kube-HPC/hkube/issues/620)
+- Algorithm with non-exist image [\#500](https://github.com/kube-HPC/hkube/issues/500)
+- rerun pipeline from cached pipeline [\#326](https://github.com/kube-HPC/hkube/issues/326)
+
+**Closed issues:**
+
+- Dashboard API to change the logger verbosity level [\#609](https://github.com/kube-HPC/hkube/issues/609)
+- We should add metrics and scores to algorithms [\#592](https://github.com/kube-HPC/hkube/issues/592)
+- Put result to storage [\#580](https://github.com/kube-HPC/hkube/issues/580)
+- invalid task status exit [\#548](https://github.com/kube-HPC/hkube/issues/548)
+
+## [v1.2.96](https://github.com/kube-HPC/hkube/tree/v1.2.96) (2020-01-05)
+
+**Fixed bugs:**
+
+- Update algorithm version while running force = false [\#648](https://github.com/kube-HPC/hkube/issues/648)
+
+## [v1.2.92](https://github.com/kube-HPC/hkube/tree/v1.2.92) (2020-01-02)
+
+**Implemented enhancements:**
+
+- Github issues cleanup [\#396](https://github.com/kube-HPC/hkube/issues/396)
+
+## [v1.2.79](https://github.com/kube-HPC/hkube/tree/v1.2.79) (2019-12-25)
+
+**Implemented enhancements:**
+
+- Create package for removing duplicate code [\#573](https://github.com/kube-HPC/hkube/issues/573)
+
+**Closed issues:**
+
+- There is no info on batch errors [\#284](https://github.com/kube-HPC/hkube/issues/284)
+
+## [v1.2.77](https://github.com/kube-HPC/hkube/tree/v1.2.77) (2019-12-24)
+
+**Closed issues:**
+
+- Need to think about common code between pipeline-driver and algorithm queue [\#166](https://github.com/kube-HPC/hkube/issues/166)
+
+## [v1.2.76](https://github.com/kube-HPC/hkube/tree/v1.2.76) (2019-12-24)
+
+**Fixed bugs:**
+
+- batch tasks are not canceled when pipeline fails [\#578](https://github.com/kube-HPC/hkube/issues/578)
+- Jobs cleaner not working [\#532](https://github.com/kube-HPC/hkube/issues/532)
+- not constant execId and pipleineId types in the worker on outgoing messages [\#521](https://github.com/kube-HPC/hkube/issues/521)
+- Batch errors are not visible [\#366](https://github.com/kube-HPC/hkube/issues/366)
+- algorithm queue writes CrashLoopBackOff every 15 seconds [\#239](https://github.com/kube-HPC/hkube/issues/239)
+- Queue cant accept new job after job arrived with state stop [\#225](https://github.com/kube-HPC/hkube/issues/225)
+
+**Closed issues:**
+
+- Remove prefix raw- for raw pipeline [\#615](https://github.com/kube-HPC/hkube/issues/615)
+- Add property "Tags" & "Types" for each pipeline execution [\#614](https://github.com/kube-HPC/hkube/issues/614)
+- Split tests into files [\#520](https://github.com/kube-HPC/hkube/issues/520)
+- Recovery after deploy [\#512](https://github.com/kube-HPC/hkube/issues/512)
+- Versioning for algorithms. [\#487](https://github.com/kube-HPC/hkube/issues/487)
+- Merge state with status [\#422](https://github.com/kube-HPC/hkube/issues/422)
+- we should replace our wrapping implementation for algorithms to work as a package  [\#347](https://github.com/kube-HPC/hkube/issues/347)
+- Running time for each algorithm [\#292](https://github.com/kube-HPC/hkube/issues/292)
+- algorithm builder: features implementation [\#289](https://github.com/kube-HPC/hkube/issues/289)
+- Nodes and pipeline results [\#287](https://github.com/kube-HPC/hkube/issues/287)
+- Task Executor Features [\#270](https://github.com/kube-HPC/hkube/issues/270)
+
+## [v1.2.72](https://github.com/kube-HPC/hkube/tree/v1.2.72) (2019-12-17)
+
+**Closed issues:**
+
+- Algorithm name length issue [\#259](https://github.com/kube-HPC/hkube/issues/259)
+
+## [v1.2.66](https://github.com/kube-HPC/hkube/tree/v1.2.66) (2019-12-16)
+
+**Fixed bugs:**
+
+- ENAMETOOLONG: name too long - due to subpipe of subpipe [\#562](https://github.com/kube-HPC/hkube/issues/562)
+- Cannot run new algorithm after image update [\#509](https://github.com/kube-HPC/hkube/issues/509)
+
+**Closed issues:**
+
+- Update algorithm name [\#530](https://github.com/kube-HPC/hkube/issues/530)
+- Allow stopping a worker from UI [\#321](https://github.com/kube-HPC/hkube/issues/321)
+- Create hkube flow story with blog [\#306](https://github.com/kube-HPC/hkube/issues/306)
+- Download source code [\#302](https://github.com/kube-HPC/hkube/issues/302)
+- Large CPU algorithm will not be scheduled [\#233](https://github.com/kube-HPC/hkube/issues/233)
+- When stopping pipeline need to clear data from etcd [\#200](https://github.com/kube-HPC/hkube/issues/200)
+
+## [v1.2.63](https://github.com/kube-HPC/hkube/tree/v1.2.63) (2019-12-12)
+
+**Fixed bugs:**
+
+- algorithm image name: "must not have leading or trailing whitespace" [\#581](https://github.com/kube-HPC/hkube/issues/581)
+
+**Closed issues:**
+
+- Fix the clean job api [\#569](https://github.com/kube-HPC/hkube/issues/569)
+
+## [v1.2.62](https://github.com/kube-HPC/hkube/tree/v1.2.62) (2019-12-12)
+
+**Closed issues:**
+
+- Improve the dashboard [\#544](https://github.com/kube-HPC/hkube/issues/544)
+
+## [v1.2.60](https://github.com/kube-HPC/hkube/tree/v1.2.60) (2019-12-11)
+
+**Closed issues:**
+
+- insert to storage on result [\#571](https://github.com/kube-HPC/hkube/issues/571)
+
+## [v1.2.58](https://github.com/kube-HPC/hkube/tree/v1.2.58) (2019-12-08)
+
+**Closed issues:**
+
+- Add Event entity [\#234](https://github.com/kube-HPC/hkube/issues/234)
+
+## [v1.2.57](https://github.com/kube-HPC/hkube/tree/v1.2.57) (2019-12-02)
+
+**Fixed bugs:**
+
+- algorithm versions list is copied to all open algorithms [\#593](https://github.com/kube-HPC/hkube/issues/593)
+
+**Closed issues:**
+
+- move examples/algorithm-example-python/ to ----\> own repository [\#408](https://github.com/kube-HPC/hkube/issues/408)
+
+## [v1.2.56](https://github.com/kube-HPC/hkube/tree/v1.2.56) (2019-11-27)
+
+**Implemented enhancements:**
+
+- Direct call from dashboard to API-Server [\#570](https://github.com/kube-HPC/hkube/issues/570)
+
+## [v1.2.44](https://github.com/kube-HPC/hkube/tree/v1.2.44) (2019-11-10)
+
+**Closed issues:**
+
+- Move to husky? [\#483](https://github.com/kube-HPC/hkube/issues/483)
+
+## [v1.2.26](https://github.com/kube-HPC/hkube/tree/v1.2.26) (2019-10-28)
+
+**Fixed bugs:**
+
+- cannot stop code-api algorithm [\#501](https://github.com/kube-HPC/hkube/issues/501)
+- out of memory in the pipeline driver [\#490](https://github.com/kube-HPC/hkube/issues/490)
+- debug worker [\#431](https://github.com/kube-HPC/hkube/issues/431)
+- Image Pull Backof [\#224](https://github.com/kube-HPC/hkube/issues/224)
+
+**Closed issues:**
+
+- check the bull removeOnFail [\#467](https://github.com/kube-HPC/hkube/issues/467)
+- Preschedule: run child node before completion. [\#454](https://github.com/kube-HPC/hkube/issues/454)
+- Moving to docker in docker instead of using machine's docker [\#368](https://github.com/kube-HPC/hkube/issues/368)
+- Add option for algorithms to execute another algorithms using API [\#288](https://github.com/kube-HPC/hkube/issues/288)
+- Update doc on hkube.io [\#191](https://github.com/kube-HPC/hkube/issues/191)
+
+## [v1.2.11](https://github.com/kube-HPC/hkube/tree/v1.2.11) (2019-10-03)
+
+**Implemented enhancements:**
+
+- Change the way jobs are scheduled [\#232](https://github.com/kube-HPC/hkube/issues/232)
+
+**Fixed bugs:**
+
+- no loading screen [\#495](https://github.com/kube-HPC/hkube/issues/495)
+
+**Closed issues:**
+
+- send last pipeline result to algorithm [\#269](https://github.com/kube-HPC/hkube/issues/269)
+- create timer for bootstrap on algorithm [\#241](https://github.com/kube-HPC/hkube/issues/241)
+- Check high availability of K8s masters [\#217](https://github.com/kube-HPC/hkube/issues/217)
+- Reduce intervals for resource-manager and task-executor [\#205](https://github.com/kube-HPC/hkube/issues/205)
+
+## [v1.2.9](https://github.com/kube-HPC/hkube/tree/v1.2.9) (2019-09-19)
+
+**Fixed bugs:**
+
+- inconsistent datatypes return on code api execId and pipelineId  [\#502](https://github.com/kube-HPC/hkube/issues/502)
+
+## [v1.2.2](https://github.com/kube-HPC/hkube/tree/v1.2.2) (2019-09-04)
+
+**Implemented enhancements:**
+
+- Rewrite etcd.hkube [\#184](https://github.com/kube-HPC/hkube/issues/184)
+
+**Fixed bugs:**
+
+- pipeline driver fails and go to recovering mode and no other driver takes the job [\#469](https://github.com/kube-HPC/hkube/issues/469)
+- turning on a cron job for a pipeline [\#442](https://github.com/kube-HPC/hkube/issues/442)
+- race condition in dashboard [\#430](https://github.com/kube-HPC/hkube/issues/430)
+- create a hot worker and than delete it [\#278](https://github.com/kube-HPC/hkube/issues/278)
+
+## [v1.1.1084](https://github.com/kube-HPC/hkube/tree/v1.1.1084) (2019-08-28)
+
+**Fixed bugs:**
+
+- Algorithm readme not updating [\#423](https://github.com/kube-HPC/hkube/issues/423)
+
+## [v1.1.1081](https://github.com/kube-HPC/hkube/tree/v1.1.1081) (2019-08-26)
+
+**Fixed bugs:**
+
+- download pipeline results dosent work [\#468](https://github.com/kube-HPC/hkube/issues/468)
+- stalled job [\#463](https://github.com/kube-HPC/hkube/issues/463)
+- ui crashes if you click on a view before the data was loaded [\#460](https://github.com/kube-HPC/hkube/issues/460)
+- sub pipeline from the algorunner dosent work [\#458](https://github.com/kube-HPC/hkube/issues/458)
+- cpu usage when adding an algorithm [\#444](https://github.com/kube-HPC/hkube/issues/444)
+- node input output details doesn't show [\#441](https://github.com/kube-HPC/hkube/issues/441)
+- pipeline description [\#405](https://github.com/kube-HPC/hkube/issues/405)
+- worker page pod additional details [\#402](https://github.com/kube-HPC/hkube/issues/402)
+- deleting the pipeline-driver-queue when executing a new pipeline [\#290](https://github.com/kube-HPC/hkube/issues/290)
+
+**Closed issues:**
+
+- Refactor Graph [\#478](https://github.com/kube-HPC/hkube/issues/478)
+- Add Dashboard Routing [\#451](https://github.com/kube-HPC/hkube/issues/451)
+- Swagger split into files [\#298](https://github.com/kube-HPC/hkube/issues/298)
+
+## [v1.1.1080](https://github.com/kube-HPC/hkube/tree/v1.1.1080) (2019-08-21)
+
+**Closed issues:**
+
+- we should verify that checksum operation for algorithm build is not heavy  [\#488](https://github.com/kube-HPC/hkube/issues/488)
+
+## [v1.1.1072](https://github.com/kube-HPC/hkube/tree/v1.1.1072) (2019-08-18)
+
+**Closed issues:**
+
+- Loading Screen [\#395](https://github.com/kube-HPC/hkube/issues/395)
+- Infinity Table [\#394](https://github.com/kube-HPC/hkube/issues/394)
+
+## [v1.1.1068](https://github.com/kube-HPC/hkube/tree/v1.1.1068) (2019-08-13)
+
+**Fixed bugs:**
+
+- dashboard crashes  [\#473](https://github.com/kube-HPC/hkube/issues/473)
+
+**Closed issues:**
+
+- Add watch for stop build [\#453](https://github.com/kube-HPC/hkube/issues/453)
+
+## [v1.1.1061](https://github.com/kube-HPC/hkube/tree/v1.1.1061) (2019-08-07)
+
+**Fixed bugs:**
+
+- building a node algorith, dosent work [\#457](https://github.com/kube-HPC/hkube/issues/457)
+
+## [v1.1.1058](https://github.com/kube-HPC/hkube/tree/v1.1.1058) (2019-08-07)
+
+**Fixed bugs:**
+
+- building a node algorithm [\#464](https://github.com/kube-HPC/hkube/issues/464)
+
+## [v1.1.1046](https://github.com/kube-HPC/hkube/tree/v1.1.1046) (2019-08-04)
+
+**Fixed bugs:**
+
+- Stop algorithm build [\#452](https://github.com/kube-HPC/hkube/issues/452)
+
+## [v1.1.1037](https://github.com/kube-HPC/hkube/tree/v1.1.1037) (2019-07-30)
+
+**Fixed bugs:**
+
+- pipelines page [\#443](https://github.com/kube-HPC/hkube/issues/443)
+
+## [v1.1.1033](https://github.com/kube-HPC/hkube/tree/v1.1.1033) (2019-07-30)
+
+**Fixed bugs:**
+
+- set ingress permission in cleaner role [\#432](https://github.com/kube-HPC/hkube/issues/432)
+
+## [v1.1.1031](https://github.com/kube-HPC/hkube/tree/v1.1.1031) (2019-07-29)
+
+**Fixed bugs:**
+
+- all pages "show number of rows in a table" [\#407](https://github.com/kube-HPC/hkube/issues/407)
+
+## [v1.1.1030](https://github.com/kube-HPC/hkube/tree/v1.1.1030) (2019-07-28)
+
+**Fixed bugs:**
+
+- fix docker image parsing [\#433](https://github.com/kube-HPC/hkube/issues/433)
+- edit description. both on pipelines and algorithms [\#404](https://github.com/kube-HPC/hkube/issues/404)
+- drivers page- sort [\#403](https://github.com/kube-HPC/hkube/issues/403)
+
+
+## [v1.1.1022](https://github.com/kube-HPC/hkube/tree/v1.1.1022) (2019-07-17)
+
+**Fixed bugs:**
+
+- Store Algorithm Readme [\#393](https://github.com/kube-HPC/hkube/issues/393)
+- python automated build ignores exceptions on ws.send [\#383](https://github.com/kube-HPC/hkube/issues/383)
+- Fix auto complete [\#382](https://github.com/kube-HPC/hkube/issues/382)
+- add new algorithm from build [\#308](https://github.com/kube-HPC/hkube/issues/308)
+
+**Closed issues:**
+
+- stalled in node lead to failed pipeline [\#412](https://github.com/kube-HPC/hkube/issues/412)
+- json parser for algorithm from build [\#309](https://github.com/kube-HPC/hkube/issues/309)
+- Pipeline Driver not deleting /jobs/tasks/\<JobId\> [\#277](https://github.com/kube-HPC/hkube/issues/277)
+
+## [v1.1.1021](https://github.com/kube-HPC/hkube/tree/v1.1.1021) (2019-07-08)
+
+**Closed issues:**
+
+- Suggestions [\#279](https://github.com/kube-HPC/hkube/issues/279)
+
+## [v1.1.1016](https://github.com/kube-HPC/hkube/tree/v1.1.1016) (2019-06-30)
+
+**Closed issues:**
+
+- update base image tag automatically [\#399](https://github.com/kube-HPC/hkube/issues/399)
+
+## [v1.1.1015](https://github.com/kube-HPC/hkube/tree/v1.1.1015) (2019-06-30)
+
+**Fixed bugs:**
+
+- add/edit algorithm description [\#406](https://github.com/kube-HPC/hkube/issues/406)
+- input output details on a worker [\#401](https://github.com/kube-HPC/hkube/issues/401)
+- view pod logs form the workers tab [\#336](https://github.com/kube-HPC/hkube/issues/336)
+- the UI is very slow [\#333](https://github.com/kube-HPC/hkube/issues/333)
+- pipelines page- show pipeline details [\#327](https://github.com/kube-HPC/hkube/issues/327)
+
+## [v1.1.1014](https://github.com/kube-HPC/hkube/tree/v1.1.1014) (2019-06-30)
+
+**Fixed bugs:**
+
+- Fix API CLI documentation [\#369](https://github.com/kube-HPC/hkube/issues/369)
+
+## [v1.1.1010](https://github.com/kube-HPC/hkube/tree/v1.1.1010) (2019-06-25)
+
+**Fixed bugs:**
+
+- post request endpoints are not correct [\#337](https://github.com/kube-HPC/hkube/issues/337)
+- update algorithm [\#335](https://github.com/kube-HPC/hkube/issues/335)
+- running pipeline with input [\#332](https://github.com/kube-HPC/hkube/issues/332)
+- creating a pipeline with the wizard  [\#331](https://github.com/kube-HPC/hkube/issues/331)
+- filter the jobs table by some key then run "simple" pipeline- ui craches [\#329](https://github.com/kube-HPC/hkube/issues/329)
+
+## [v1.1.1009](https://github.com/kube-HPC/hkube/tree/v1.1.1009) (2019-06-24)
+
+**Merged pull requests:**
+
+- support kaniko builds [\#389](https://github.com/kube-HPC/hkube/pull/389) ([yehiyam](https://github.com/yehiyam))
+
+## [v1.1.1007](https://github.com/kube-HPC/hkube/tree/v1.1.1007) (2019-06-23)
+
+**Closed issues:**
+
+- Restore missing features [\#381](https://github.com/kube-HPC/hkube/issues/381)
+
+## [v1.1.1003](https://github.com/kube-HPC/hkube/tree/v1.1.1003) (2019-06-19)
+
+**Merged pull requests:**
+
+- Add issue templates [\#363](https://github.com/kube-HPC/hkube/pull/363) ([denvash](https://github.com/denvash))
+- Create CODE\_OF\_CONDUCT.md [\#361](https://github.com/kube-HPC/hkube/pull/361) ([NassiHarel](https://github.com/NassiHarel))
+
+## [v1.1.1001](https://github.com/kube-HPC/hkube/tree/v1.1.1001) (2019-06-18)
+
+**Fixed bugs:**
+
+- workers page open pod details crashes the page [\#334](https://github.com/kube-HPC/hkube/issues/334)
+- create pipeline in the ui doesn't show nodes to the pipeline json [\#330](https://github.com/kube-HPC/hkube/issues/330)
+- jobs page - Unnecessary filter icon at the Pipeline status column [\#328](https://github.com/kube-HPC/hkube/issues/328)
+- Fix issue with pipeline rerun [\#312](https://github.com/kube-HPC/hkube/issues/312)
+
+**Closed issues:**
+
+- Switch to WS as default [\#325](https://github.com/kube-HPC/hkube/issues/325)
+- Add memory human readable property [\#311](https://github.com/kube-HPC/hkube/issues/311)
+- Dashboard Refactor [\#310](https://github.com/kube-HPC/hkube/issues/310)
+- Fix issues with env: entry-point and worker-protocol for debug  [\#307](https://github.com/kube-HPC/hkube/issues/307)
+- reduce node\_modules size when building docker by: npm i --production [\#285](https://github.com/kube-HPC/hkube/issues/285)
+
+**Merged pull requests:**
+
+- Update README.md [\#353](https://github.com/kube-HPC/hkube/pull/353) ([denvash](https://github.com/denvash))
+
+## [v1.1.1](https://github.com/kube-HPC/hkube/tree/v1.1.1) (2019-06-04)
+
+**Implemented enhancements:**
+
+- Add a tool-tip to icons in main menu bar when menu is collapsed [\#315](https://github.com/kube-HPC/hkube/issues/315)
+- Move to Node v10 [\#210](https://github.com/kube-HPC/hkube/issues/210)
+- Add rate-limiter to api-server [\#21](https://github.com/kube-HPC/hkube/issues/21)
+
+**Fixed bugs:**
+
+- Problem in selected Algorithm logs tab, in pipeline graph view. [\#313](https://github.com/kube-HPC/hkube/issues/313)
+- worker that got a stopped job dosent clear well [\#296](https://github.com/kube-HPC/hkube/issues/296)
+- simulator get stuck only monitor server restart helps for not long [\#295](https://github.com/kube-HPC/hkube/issues/295)
+- error key in json was added even when no error is the pipeline [\#286](https://github.com/kube-HPC/hkube/issues/286)
+- trigger service will not exit if unable to reconnect to ETCD  [\#275](https://github.com/kube-HPC/hkube/issues/275)
+- pipeline should report finish only if result was successfully saved to storage and not before. [\#257](https://github.com/kube-HPC/hkube/issues/257)
+- driver should report error if process failed due to memory usage more than 256MB [\#256](https://github.com/kube-HPC/hkube/issues/256)
+- reconciler should kill redundant pipeline-drivers if defined less than actual running drivers [\#255](https://github.com/kube-HPC/hkube/issues/255)
+- a pipeline that worked stopped working and fails after crashLoopBackOff [\#243](https://github.com/kube-HPC/hkube/issues/243)
+- add empty LocationConstraint \(production bug\) [\#240](https://github.com/kube-HPC/hkube/issues/240)
+- CrashLoopBackOff when algorithm exit and pipeline stopped [\#238](https://github.com/kube-HPC/hkube/issues/238)
+- sometimes storgeInfo not exists [\#237](https://github.com/kube-HPC/hkube/issues/237)
+- delete algorithm after all pipelines completed and pipeline was deleted is not working [\#235](https://github.com/kube-HPC/hkube/issues/235)
+- task executor sometimes request for double the workers it really needs [\#227](https://github.com/kube-HPC/hkube/issues/227)
+- resource allocation for a pod is not as described  [\#220](https://github.com/kube-HPC/hkube/issues/220)
+- failed to start pipeline if "input" was missing from pipeline descriptor [\#216](https://github.com/kube-HPC/hkube/issues/216)
+- last algorithm in a batch is taking to much time to complete [\#215](https://github.com/kube-HPC/hkube/issues/215)
+- ttl reason for exparation time should be in a real time not epoch [\#212](https://github.com/kube-HPC/hkube/issues/212)
+- override stored pipeline options [\#209](https://github.com/kube-HPC/hkube/issues/209)
+- algorithm operator stuck when etcd is failed to connect [\#206](https://github.com/kube-HPC/hkube/issues/206)
+-  unable to find handler for job [\#204](https://github.com/kube-HPC/hkube/issues/204)
+- transition is invalid in current state [\#203](https://github.com/kube-HPC/hkube/issues/203)
+- Cannot read property 'filter' of undefined [\#202](https://github.com/kube-HPC/hkube/issues/202)
+- Pipeline that failed get stopped status instead of failed [\#198](https://github.com/kube-HPC/hkube/issues/198)
+- delete an algorithm is not possible [\#197](https://github.com/kube-HPC/hkube/issues/197)
+- resource manager request more resources than aviliable [\#196](https://github.com/kube-HPC/hkube/issues/196)
+- algorithm that failed and threw an error stays up in the system and not getting cleaned/deleted  [\#193](https://github.com/kube-HPC/hkube/issues/193)
+- stop pipeline doesn't work [\#192](https://github.com/kube-HPC/hkube/issues/192)
+- algorithm queue scores was not ordered when new job added during scoring update [\#188](https://github.com/kube-HPC/hkube/issues/188)
+- wait any return wrong number of results.  [\#187](https://github.com/kube-HPC/hkube/issues/187)
+- failed algorithm return null response in the results [\#177](https://github.com/kube-HPC/hkube/issues/177)
+- execute a request and immediately stop it, the request remain in status "sttoping" [\#175](https://github.com/kube-HPC/hkube/issues/175)
+- Make triggers pipeline work the other way [\#173](https://github.com/kube-HPC/hkube/issues/173)
+- pipeline result is null/empty [\#167](https://github.com/kube-HPC/hkube/issues/167)
+- Fix AlgorithmQueue active count [\#163](https://github.com/kube-HPC/hkube/issues/163)
+- logs from the algorithm are sometimes dont written to the elastic search logs [\#148](https://github.com/kube-HPC/hkube/issues/148)
+- pod stopped working, show an error that need to be tracked [\#147](https://github.com/kube-HPC/hkube/issues/147)
+- max retries of an algorithm should fail the pipeline [\#146](https://github.com/kube-HPC/hkube/issues/146)
+- large batch size doesnt run [\#144](https://github.com/kube-HPC/hkube/issues/144)
+- Etcd periodic cleaner [\#142](https://github.com/kube-HPC/hkube/issues/142)
+- Pipeline request using pipeline which isn't stored in the repository of pipeline descriptors [\#43](https://github.com/kube-HPC/hkube/issues/43)
+- When stopping pipeline while worker is init [\#40](https://github.com/kube-HPC/hkube/issues/40)
+- worker tries to fetch null data from storage provider [\#39](https://github.com/kube-HPC/hkube/issues/39)
+- Run batch on node results not working due to new storage feature [\#38](https://github.com/kube-HPC/hkube/issues/38)
+- apak algo dont deal with stop [\#26](https://github.com/kube-HPC/hkube/issues/26)
+- when stopping an apak pipeline the amount of watchers is increasing  [\#25](https://github.com/kube-HPC/hkube/issues/25)
+- exec stored with a large amount of rows in the body of the request returns a 413 error "payload to large" [\#20](https://github.com/kube-HPC/hkube/issues/20)
+- batch tolerance 0% sets the default to 80 [\#19](https://github.com/kube-HPC/hkube/issues/19)
+- inconsistency batch tolerance behaviour [\#18](https://github.com/kube-HPC/hkube/issues/18)
+- max retry on failing pods should return an error and close pipeline   [\#17](https://github.com/kube-HPC/hkube/issues/17)
+- logs are taken very long to be written to ES [\#14](https://github.com/kube-HPC/hkube/issues/14)
+- pipelines that sometimes do not end the run \(inconsistent\) [\#13](https://github.com/kube-HPC/hkube/issues/13)
+- results of a pipeline comes with a big delay [\#12](https://github.com/kube-HPC/hkube/issues/12)
+- pending pipelines that were stopped before starting never being stopped [\#11](https://github.com/kube-HPC/hkube/issues/11)
+- get status of a pipeline after some nodes has finished  [\#10](https://github.com/kube-HPC/hkube/issues/10)
+- worker crashes after timeout between the worker and the algorithm [\#8](https://github.com/kube-HPC/hkube/issues/8)
+- the '0' result or false result are not returned to the api-server [\#5](https://github.com/kube-HPC/hkube/issues/5)
+- inconsistent end status received after PL completed [\#2](https://github.com/kube-HPC/hkube/issues/2)
+
+**Closed issues:**
+
+- Clean docker trash after build [\#303](https://github.com/kube-HPC/hkube/issues/303)
+- Add stream support in FS storage adapter [\#301](https://github.com/kube-HPC/hkube/issues/301)
+- GPU resource management seems to no work well [\#297](https://github.com/kube-HPC/hkube/issues/297)
+- bucket name should include cluster name also to be able support multiple clients from different clusters [\#294](https://github.com/kube-HPC/hkube/issues/294)
+- Need to re-enter tasks to queue after stalled [\#260](https://github.com/kube-HPC/hkube/issues/260)
+- Simplify API for adding algorithm to HKUBE [\#250](https://github.com/kube-HPC/hkube/issues/250)
+- Add description field to pipeline [\#245](https://github.com/kube-HPC/hkube/issues/245)
+- reduce logs on file watch error [\#244](https://github.com/kube-HPC/hkube/issues/244)
+- test issue [\#242](https://github.com/kube-HPC/hkube/issues/242)
+- validate exec raw  run without trigger [\#231](https://github.com/kube-HPC/hkube/issues/231)
+- resource manager request for more resources the cluster have, it results in workers stuck on pending status and dosent exit alnoe [\#230](https://github.com/kube-HPC/hkube/issues/230)
+- batch on empty array not working [\#229](https://github.com/kube-HPC/hkube/issues/229)
+- validate deep calls of trigger pipelines not exceed the limitation [\#228](https://github.com/kube-HPC/hkube/issues/228)
+- Check why pipeline-driver has retry job [\#222](https://github.com/kube-HPC/hkube/issues/222)
+- Insufficient cpu for pipeline drivers [\#219](https://github.com/kube-HPC/hkube/issues/219)
+- Check if exec/tree still works [\#211](https://github.com/kube-HPC/hkube/issues/211)
+- stop pipeline if expired \#186 \#195 [\#208](https://github.com/kube-HPC/hkube/issues/208)
+- unable to create job with capital letter [\#199](https://github.com/kube-HPC/hkube/issues/199)
+- Add expiration time [\#195](https://github.com/kube-HPC/hkube/issues/195)
+- Add support for /internal/sub-pipelines & /internal/stop [\#194](https://github.com/kube-HPC/hkube/issues/194)
+- Review ETCD tree architecture [\#189](https://github.com/kube-HPC/hkube/issues/189)
+- Add delete execution after job completed [\#186](https://github.com/kube-HPC/hkube/issues/186)
+- Add watch state for all jobs in etcd [\#183](https://github.com/kube-HPC/hkube/issues/183)
+- Create common k8s pods npm package [\#182](https://github.com/kube-HPC/hkube/issues/182)
+- storage cleaner  [\#181](https://github.com/kube-HPC/hkube/issues/181)
+- Implement stop in pipeline-driver-queue [\#180](https://github.com/kube-HPC/hkube/issues/180)
+- etcd issues when saving large data [\#179](https://github.com/kube-HPC/hkube/issues/179)
+- When pipeline failed, need to send stop to all workers \(batch\) [\#178](https://github.com/kube-HPC/hkube/issues/178)
+- change the pipeline name on /exec/raw  [\#176](https://github.com/kube-HPC/hkube/issues/176)
+- add validation to pipeline/algorithms name [\#174](https://github.com/kube-HPC/hkube/issues/174)
+- add pipelines results stored/raw [\#172](https://github.com/kube-HPC/hkube/issues/172)
+- pipeline-driver queue support [\#171](https://github.com/kube-HPC/hkube/issues/171)
+- Add prometues cpu metric  [\#169](https://github.com/kube-HPC/hkube/issues/169)
+- enternceTime [\#168](https://github.com/kube-HPC/hkube/issues/168)
+- Implement stop in algorithm-queue [\#164](https://github.com/kube-HPC/hkube/issues/164)
+- When we have triggers of pipelines we get very long jobId which cause error in minio [\#161](https://github.com/kube-HPC/hkube/issues/161)
+- Fix pipeline-driver-queue issue [\#160](https://github.com/kube-HPC/hkube/issues/160)
+- Change the resource manager to support the pipeline driver queue [\#152](https://github.com/kube-HPC/hkube/issues/152)
+- Create pipeline driver queue [\#151](https://github.com/kube-HPC/hkube/issues/151)
+- Add pre-commit script to package.json [\#150](https://github.com/kube-HPC/hkube/issues/150)
+- Validate `algorithmName` in nodes pipeline and exists in store [\#149](https://github.com/kube-HPC/hkube/issues/149)
+- Need to think about required cpu vs actual cpu [\#145](https://github.com/kube-HPC/hkube/issues/145)
+- Scale api-server [\#143](https://github.com/kube-HPC/hkube/issues/143)
+- Add unit parsing to /algorithms API [\#140](https://github.com/kube-HPC/hkube/issues/140)
+- Handle algorithm deletion [\#138](https://github.com/kube-HPC/hkube/issues/138)
+- S3 Buckets limit [\#137](https://github.com/kube-HPC/hkube/issues/137)
+- Add API for algorithms store [\#136](https://github.com/kube-HPC/hkube/issues/136)
+- Katacoda [\#135](https://github.com/kube-HPC/hkube/issues/135)
+- Add WS adapter [\#134](https://github.com/kube-HPC/hkube/issues/134)
+- ETCD cleanup & storing results on custom storage [\#131](https://github.com/kube-HPC/hkube/issues/131)
+- Add trigger tracking [\#130](https://github.com/kube-HPC/hkube/issues/130)
+- Landing Page [\#127](https://github.com/kube-HPC/hkube/issues/127)
+- api server should strore input in custom storage  [\#126](https://github.com/kube-HPC/hkube/issues/126)
+- resource executor meeting  status  [\#125](https://github.com/kube-HPC/hkube/issues/125)
+- Resource Allocation [\#124](https://github.com/kube-HPC/hkube/issues/124)
+- View statistics of algorithm's pending requests in a graph view [\#112](https://github.com/kube-HPC/hkube/issues/112)
+- View statistics of pipeline's pending requests in a graph view [\#104](https://github.com/kube-HPC/hkube/issues/104)
+- NFRs Version 100 [\#85](https://github.com/kube-HPC/hkube/issues/85)
+- NFRs ver. Beta1 [\#79](https://github.com/kube-HPC/hkube/issues/79)
+- Receiving 8 pipeline requests within an hour [\#78](https://github.com/kube-HPC/hkube/issues/78)
+- Concurrent execution of 4 pipeline requests [\#77](https://github.com/kube-HPC/hkube/issues/77)
+- Pipeline request with a batch of 1,000 algorithms [\#76](https://github.com/kube-HPC/hkube/issues/76)
+- HKube execution overheads [\#75](https://github.com/kube-HPC/hkube/issues/75)
+- High Availability for algorithm services [\#74](https://github.com/kube-HPC/hkube/issues/74)
+- High Availability for HKube infrastructure services - version Beta1 [\#73](https://github.com/kube-HPC/hkube/issues/73)
+- Pipelines' execution management [\#66](https://github.com/kube-HPC/hkube/issues/66)
+- Retry algorithm execution, if system resource error \(e.g. VM/ Docker failure\) occurred during the algorithm execution [\#65](https://github.com/kube-HPC/hkube/issues/65)
+- Cancel pipeline execution, if the maximum retries for execution of failed algorithm exceeded [\#62](https://github.com/kube-HPC/hkube/issues/62)
+- production jaeger deployment [\#37](https://github.com/kube-HPC/hkube/issues/37)
+- The name of the pipeline will be its identifier [\#35](https://github.com/kube-HPC/hkube/issues/35)
+- Part or all of the inputs of algorithm are taken from the pipeline's request \[R3\] \[R6\] [\#34](https://github.com/kube-HPC/hkube/issues/34)
+- Batch size is determined by the pipeline's input [\#30](https://github.com/kube-HPC/hkube/issues/30)
+- Define algorithms which will be executed in the beginning of the pipeline \[R8\] [\#27](https://github.com/kube-HPC/hkube/issues/27)
+- api server should return data instead of custom-storage link [\#24](https://github.com/kube-HPC/hkube/issues/24)
+- data to custom storage should support stream   [\#23](https://github.com/kube-HPC/hkube/issues/23)
+- stop pipeline sometimes don't work [\#9](https://github.com/kube-HPC/hkube/issues/9)
+- validation on flowInput on store pipeline [\#7](https://github.com/kube-HPC/hkube/issues/7)
+- results responses comes with jobid object [\#6](https://github.com/kube-HPC/hkube/issues/6)
+- cancel completed PL. [\#4](https://github.com/kube-HPC/hkube/issues/4)
+- each time a PL is finished, the results api should be updated [\#3](https://github.com/kube-HPC/hkube/issues/3)
+
+
+
+\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*

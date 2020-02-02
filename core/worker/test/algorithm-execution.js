@@ -21,6 +21,19 @@ describe('AlgorithmExecutions', () => {
         execAlgorithm._watching = false;
         execAlgorithm._executions.clear();
     });
+    it('should cache algorithm list', async () => {
+        const algsBefore = await etcd.getExistingAlgorithms();
+        let options = { name: 'alg' + uuid(), data: 'bla' };
+        await etcd.createAlgorithmType(options);
+        const algsAfter = await etcd.getExistingAlgorithms();
+        expect(algsAfter).to.deep.eql(algsBefore);
+
+    })
+    it('should cache algorithm list when called in rapid succession', async () => {
+        const results = await Promise.all(Array.from(Array(30)).map(etcd.getExistingAlgorithms));
+        expect(results).to.have.lengthOf(30)
+
+    })
     it('should fail with no execId', async function () {
         spy = sinon.spy(execAlgorithm, '_sendErrorToAlgorithm');
         await execAlgorithm._startAlgorithmExecution(null);
