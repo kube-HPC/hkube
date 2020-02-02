@@ -49,7 +49,7 @@ class Boards {
         const existingBoard = await stateManager.getTensorboard({ id });
         const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(boardInfo);
         const boardReference = randomString();
-        const boardLink = `hkube/board/${boardReference}`;
+        const boardLink = `hkube/board/${boardReference}/`;
         const board = {
             id,
             boardReference,
