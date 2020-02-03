@@ -765,6 +765,7 @@ describe('Store/Algorithms', () => {
                         gitKind: "github"
                     },
                     env: 'nodejs',
+                    baseImage: 'my-new-base/image',
                     type: "Git"
                 }
                 const payload = JSON.stringify(body);
