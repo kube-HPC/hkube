@@ -22,10 +22,10 @@ class ApiServerClient {
      * @param {object} subPipeline
      * @param {string} type RAW or STORED from const/postSubPipelineType.js
      */
-    postSubPipeline(subPipeline, type) {
+    postSubPipeline(subPipeline, type, subPipelineId) {
         const apiUrl = `${this._apiBaseUrl}${type}`;
         log.info(`send post ${type} request to subPipeline ${subPipeline.jobId}`);
-        return this._postRequest(subPipeline, apiUrl);
+        return this._postRequest(subPipeline, apiUrl, subPipelineId);
     }
 
     /**
@@ -46,9 +46,9 @@ class ApiServerClient {
      * @param {string} apiUrl
      * @throws {object} error
      */
-    async _postRequest(body, apiUrl) {
+    async _postRequest(body, apiUrl, subPipelineId) {
         const uuid = uuidv4();
-        this.startSpan(uuid, body.jobId, body.taskId, apiUrl);
+        this.startSpan(uuid, body.jobId, body.taskId, subPipelineId, apiUrl);
         const topWorkerSpan = tracer.topSpan(uuid);
         body.spanId = topWorkerSpan.context();  // eslint-disable-line
         const response = await request({
@@ -61,7 +61,7 @@ class ApiServerClient {
         return response;
     }
 
-    startSpan(uuid, jobId, taskId, apiUrl) {
+    startSpan(uuid, jobId, taskId, subPipelineId, apiUrl) {
         const spanOptions = {
             name: 'httpPostRequest',
             id: uuid,
@@ -71,7 +71,7 @@ class ApiServerClient {
                 taskId
             }
         };
-        const topWorkerSpan = tracer.topSpan(taskId);
+        const topWorkerSpan = tracer.topSpan(subPipelineId);
         if (topWorkerSpan) {
             spanOptions.parent = topWorkerSpan.context();
         }
