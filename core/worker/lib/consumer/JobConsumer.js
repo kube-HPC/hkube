@@ -47,7 +47,7 @@ class JobConsumer extends EventEmitter {
         }));
         const { algoMetricsDir } = options;
         this._algoMetricsDir = algoMetricsDir;
-        this._options = Object.assign({}, options);
+        this._options = options;
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
         // create another tracer for the algorithm
@@ -360,7 +360,7 @@ class JobConsumer extends EventEmitter {
                     (tensorboard.path || tensorboard.error) && (metricsPath = { tensorboard });
                 }
             }
-            const resData = Object.assign({
+            const resData = {
                 status,
                 error,
                 reason,
@@ -371,8 +371,9 @@ class JobConsumer extends EventEmitter {
                 algorithmName: this._job.data.algorithmName,
                 batchIndex: this._batchIndex,
                 endTime: Date.now(),
-                metricsPath
-            }, storageResult);
+                metricsPath,
+                ...storageResult
+            };
 
             this._job.error = error;
             await etcd.update(resData);

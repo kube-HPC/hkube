@@ -14,6 +14,7 @@ class Operator {
     async init(options = {}) {
         this._intervalMs = options.intervalMs;
         this._boardsIntervalMs = options.boardsIntervalMs;
+        this._boardTimeOut = options.boardTimeOut;
         if (options.healthchecks.logExternalRequests) {
             logWrappers([
                 '_interval',
@@ -47,7 +48,7 @@ class Operator {
             const algorithms = await etcd.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
-                this._tenosrboards({ ...configMap }, options),
+                this._tenosrboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options),
             ]);
@@ -93,7 +94,7 @@ class Operator {
         });
     }
 
-    async _tenosrboards({ versions, registry, clusterOptions }, options) {
+    async _tenosrboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
         const boards = await etcd.getTensorboards();
         if (boards.length === 0) {
             return;
@@ -106,6 +107,7 @@ class Operator {
             versions,
             registry,
             clusterOptions,
+            boardTimeOut,
             options,
         });
     }

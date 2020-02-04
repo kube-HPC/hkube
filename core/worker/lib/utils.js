@@ -11,7 +11,7 @@ const cacheResults = (fn, ttl) => {
             return cache.data;
         }
         if (cache.updating) {
-            return cache.data;
+            return fn(...args);
         }
         cache.updating = true;
         try {
