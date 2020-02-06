@@ -72,7 +72,7 @@ const applyPipelineDriverImage = (inputSpec, image) => {
 const applyMounts = (inputSpec, mounts = []) => {
     let spec = clonedeep(inputSpec);
     mounts.forEach((m, i) => {
-        const name = `${m.pvcName}-${i}``${m.pvcName}-${i}`;
+        const name = `${m.pvcName}-${i}`;
         spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
             name,
             mountPath: m.path
