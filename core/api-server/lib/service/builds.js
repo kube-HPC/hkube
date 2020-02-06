@@ -102,9 +102,9 @@ class Builds {
         if (result.shouldBuild) {
             const version = newAlgorithm.gitRepository.commit.id;
             buildId = this._createBuildID(newAlgorithm.name);
-            const { env, name, gitRepository, type } = newAlgorithm;
+            const { env, name, gitRepository, type, baseImage } = newAlgorithm;
             validator.validateAlgorithmBuildFromGit({ env });
-            await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, type });
+            await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, type, baseImage });
         }
         return { buildId, messages };
     }
