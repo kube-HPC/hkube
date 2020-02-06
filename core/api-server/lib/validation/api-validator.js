@@ -28,6 +28,7 @@ class ApiValidator {
         validatorInstance.addFormat('experiment-name', this._validateExperimentName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
         validatorInstance.addFormat('algorithm-image', this._validateAlgorithmImage);
+        validatorInstance.addFormat('algorithm-mount-pvc', this._validateAlgorithmMountPvc);
         validatorInstance.addFormat('algorithm-memory', this._validateMemory);
         validatorInstance.addFormat('path', this._validatePath);
         formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
@@ -294,6 +295,10 @@ class ApiValidator {
 
     _validateAlgorithmImage(image) {
         return regex.ALGORITHM_IMAGE_REGEX.test(image);
+    }
+
+    _validateAlgorithmMountPvc(name) {
+        return name && regex.PVC_NAME_REGEX.test(name) && name.length < 64;
     }
 
     _validateMemory(memory) {
