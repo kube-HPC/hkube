@@ -159,15 +159,84 @@ describe('jobCreator', () => {
         });
 
         it('should apply with binary storage', () => {
-            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, algorithmOptions:{binary: true} });
-            expect(res.spec.template.spec.containers[0].env).to.deep.include({name: 'WORKER_BINARY', value: 'true'})
-            expect(res.spec.template.spec.containers[1].env).to.deep.include({name: 'WORKER_BINARY', value: 'true'})
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, algorithmOptions: { binary: true } });
+            expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'WORKER_BINARY', value: 'true' })
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'WORKER_BINARY', value: 'true' })
+        });
+
+        it('should apply mounts', () => {
+            const mounts = [
+                {
+                    pvcName: 'mypvc',
+                    path: '/mnt/stam'
+                },
+                {
+                    pvcName: 'mypvc2',
+                    path: '/tmp/foo'
+                }
+            ]
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts });
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'mypvc-0',
+                    persistentVolumeClaim: { claimName: mounts[0].pvcName }
+                }
+            );
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'mypvc-0',
+                    mountPath: mounts[0].path
+                }
+            );
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'mypvc2-1',
+                    persistentVolumeClaim: { claimName: mounts[1].pvcName }
+                }
+            );
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'mypvc2-1',
+                    mountPath: mounts[1].path
+                }
+            );
+
+        });
+        it('should apply 0 mounts', () => {
+
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, mounts: [] });
+            expect(res.spec.template.spec.volumes).to.have.length(3)
+
+        });
+        it('should apply no mounts', () => {
+
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
+            expect(res.spec.template.spec.volumes).to.have.length(3)
+        });
+        it('should apply opengl params', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, algorithmOptions: { opengl: true } });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISPLAY', value: ':0' })
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'NVIDIA_DRIVER_CAPABILITIES', value: 'all' })
+            expect(res.spec.template.spec.volumes).to.deep.include(
+                {
+                    name: 'xsocket',
+                    hostPath: {
+                        path: '/tmp/.X11-unix'
+                    }
+                }
+            );
+            expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
+                {
+                    name: 'xsocket',
+                    mountPath: '/tmp/.X11-unix'
+                }
+            );
         });
 
         it('should apply without binary storage', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
-            expect(res.spec.template.spec.containers[0].env).to.deep.not.include({name: 'WORKER_BINARY', value: 'true'})
-            expect(res.spec.template.spec.containers[1].env).to.deep.not.include({name: 'WORKER_BINARY', value: 'true'})
+            expect(res.spec.template.spec.containers[0].env).to.deep.not.include({ name: 'WORKER_BINARY', value: 'true' })
+            expect(res.spec.template.spec.containers[1].env).to.deep.not.include({ name: 'WORKER_BINARY', value: 'true' })
         });
 
         it('should apply with worker and resources', () => {

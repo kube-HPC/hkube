@@ -69,6 +69,47 @@ const applyPipelineDriverImage = (inputSpec, image) => {
     return applyImage(inputSpec, image, CONTAINERS.PIPELINE_DRIVER);
 };
 
+const applyMounts = (inputSpec, mounts = []) => {
+    let spec = clonedeep(inputSpec);
+    mounts.forEach((m, i) => {
+        const name = `${m.pvcName}-${i}`;
+        spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
+            name,
+            mountPath: m.path
+        });
+        spec = applyVolumes(spec, {
+            name,
+            persistentVolumeClaim: {
+                claimName: m.pvcName
+            }
+        });
+    });
+    return spec;
+};
+
+const applyOpengl = (inputSpec, options, algorithmOptions = {}) => {
+    let spec = clonedeep(inputSpec);
+    const { isPrivileged } = options.kubernetes;
+    const { opengl } = algorithmOptions;
+    if (!isPrivileged || !opengl) {
+        return spec;
+    }
+    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { DISPLAY: ':0' });
+    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { NVIDIA_DRIVER_CAPABILITIES: 'all' });
+    // TODO: do we need it?  spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { NVIDIA_VISIBLE_DEVICES: 'all' });
+    spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
+        name: 'xsocket',
+        mountPath: '/tmp/.X11-unix'
+    });
+    spec = applyVolumes(spec, {
+        name: 'xsocket',
+        hostPath: {
+            path: '/tmp/.X11-unix'
+        }
+    });
+    return spec;
+};
+
 const applyLogging = (inputSpec, options) => {
     let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
@@ -105,7 +146,7 @@ const applyLogging = (inputSpec, options) => {
     return spec;
 };
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -138,6 +179,8 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyEntryPoint(spec, entryPoint);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.WORKER, 'task-executor-configmap');
     spec = applyLogging(spec, options);
+    spec = applyOpengl(spec, options, algorithmOptions);
+    spec = applyMounts(spec, mounts);
 
     return spec;
 };

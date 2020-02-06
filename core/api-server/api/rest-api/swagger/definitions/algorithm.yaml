@@ -32,7 +32,20 @@ properties:
         type: boolean
         description: pending algorithm
         default: false
+      binary:
+        type: boolean
+        description: serialization mode for algorithm communication
+      opengl:
+        type: boolean
+        description: should algorithm support XGL context creation (mount X socket)
     default: {}
+  mounts:
+    type: array
+    description: a list of volumes to mount into the algorithm
+    items: 
+      $ref: "#/components/schemas/algorithmMount"
+    uniqueItems: true
+    example: []
   gitRepository:
     type: object
     properties:

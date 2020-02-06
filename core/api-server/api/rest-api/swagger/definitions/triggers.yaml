@@ -6,6 +6,7 @@ properties:
     items:
       type: string
       minLength: 1
+    uniqueItems: true
   cron:
     type: object
     properties:

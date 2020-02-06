@@ -6,6 +6,8 @@ algorithmName:
   $ref: ./algorithmName.yaml
 algorithmImage:
   $ref: ./algorithmImage.yaml
+algorithmMount:
+  $ref: ./algorithmMount.yaml
 algorithmEnv:
   $ref: ./algorithmEnv.yaml
 algorithmFileExt:
