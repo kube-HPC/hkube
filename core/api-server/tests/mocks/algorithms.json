@@ -21,12 +21,9 @@
             "pending": false
         },
         "gitRepository": {
-            "repository": {
-                "url": "https://gitlab.com/maty21/anomaly",
-                "webUrl": "https://gitlab.com/maty21/anomaly",
-                "branchName": "master",
-                "gitKind": "gitlab"
-            }
+            "url": "https://gitlab.com/maty21/anomaly",
+            "branchName": "master",
+            "gitKind": "gitlab"
         },
         "env": "nodejs",
         "entryPoint": "./app.js",
@@ -42,11 +39,9 @@
             "pending": false
         },
         "gitRepository": {
-            "repository": {
-                "url": "https://github.com/maty21/statistisc",
-                "webUrl": "https://github.com/maty21/statistisc",
-                "branchName": "master"
-            }
+            "url": "https://github.com/maty21/statistisc",
+            "webUrl": "https://github.com/maty21/statistisc",
+            "branchName": "master"
         },
         "env": "nodejs",
         "entryPoint": "./app.js",
