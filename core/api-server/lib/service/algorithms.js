@@ -15,7 +15,9 @@ const gitDataAdapter = require('./githooks/git-data-adapter');
 const component = require('../../lib/consts/componentNames').ALGORITHMS_SERVICE;
 
 class AlgorithmStore {
-    init() {
+    init(config) {
+        this._debugUrl = config.debugUrl.path;
+
         stateManager.on('build-completed', async (build) => {
             const { algorithmName, algorithmImage } = build;
             const algorithm = await stateManager.getAlgorithm({ name: algorithmName });
@@ -209,6 +211,9 @@ class AlgorithmStore {
             }
             if (!newAlgorithm.algorithmImage && buildId) {
                 newAlgorithm.options.pending = true;
+            }
+            if (newAlgorithm.options.debug) {
+                newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
             }
 
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));

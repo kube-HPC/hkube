@@ -29,6 +29,13 @@ config.cachingServer = {
     prefix: 'cache'
 };
 
+config.debugUrl = {
+    protocol: process.env.DEBUG_PROTOCOL,
+    host: process.env.DEBUG_HOST,
+    port: process.env.DEBUG_PORT,
+    path: 'hkube/debug'
+};
+
 config.addDefaultAlgorithms = process.env.ADD_DEFAULT_ALGORITHMS || true;
 
 config.swagger = {
