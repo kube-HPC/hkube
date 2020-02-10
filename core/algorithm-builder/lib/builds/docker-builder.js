@@ -132,7 +132,7 @@ const _gitClone = async ({ url, commitId, dest }) => {
 };
 
 const _downloadFromGit = async ({ dest, gitRepository }) => {
-    await _gitClone({ url: gitRepository.cloneUrl, commitId: gitRepository.commit.id, dest });
+    await _gitClone({ url: gitRepository.repository.cloneUrl, commitId: gitRepository.commit.id, dest });
 };
 
 const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
