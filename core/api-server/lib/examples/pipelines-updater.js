@@ -53,7 +53,7 @@ class PipelinesUpdater {
             let experimentsList = await this._getByType('experiment');
             log.info(`found ${experimentsList.length} experiments using the ${options.defaultStorage} storage`);
             experimentsList = await this._setDiff('experiment', experiments, experimentsList);
-            await Promise.all(experiments.map(d => stateManager.setExperiment(d)));
+            await Promise.all(experimentsList.map(d => stateManager.setExperiment(d)));
         }
         catch (error) {
             log.warning(`failed to upload default experiments. ${error.message}`);

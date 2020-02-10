@@ -199,7 +199,7 @@ class SubPipelineHandler {
                 log.warning(`ignore stopSubPipeline: alg subPipelineId ${subPipelineId} not found`, { component });
                 throw new Error(`cannot stop subPipeline - not found: ${subPipelineId}`);
             }
-            const reason = `stopped by algorithm: ${data && data.reason}`;
+            const reason = `stopped by algorithm: ${data.reason}`;
             this._stopSubPipeline(subPipelineJobId, reason);
         }
         catch (e) {
