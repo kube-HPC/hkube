@@ -21,7 +21,13 @@ class GitService {
         catch (error) {
             throw new InvalidDataError(`${error.message} (${url})`);
         }
-        return lastCommit.data[0];
+        const data = lastCommit.data[0];
+        const commit = {
+            id: data.sha,
+            timestamp: data.commit.committer.date,
+            message: data.commit.message
+        };
+        return commit;
     }
 
     async getGitlabLastCommit({ url, branchName = 'master', token = null }) {
@@ -38,7 +44,13 @@ class GitService {
             showPagination: true,
             ref_name: branchName
         });
-        return lastCommit.data[0];
+        const data = lastCommit.data[0];
+        const commit = {
+            id: data.id,
+            timestamp: data.committed_date,
+            message: data.message
+        };
+        return commit;
     }
 
     _parseGithubUrlRepo(url) {

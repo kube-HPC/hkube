@@ -196,7 +196,7 @@ class AlgorithmStore {
                 newAlgorithm = merge({}, newAlgorithm, result.algorithm);
             }
             else if (payload.type === buildTypes.GIT && payload.gitRepository) {
-                if (payload.algorithmImage) {
+                if (payload.algorithmImage && !payload.gitRepository.webUrl) {
                     throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
                 }
                 newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
