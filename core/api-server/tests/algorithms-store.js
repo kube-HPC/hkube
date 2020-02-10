@@ -754,10 +754,10 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(MESSAGES.GIT_AND_IMAGE);
             });
-            it('should create build with last commit data', async () => {
+            it('should apply twice and create one build', async () => {
                 const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
                 const name = uuid();
-                const body = {
+                const algorithm = {
                     name,
                     gitRepository: {
                         url,
@@ -768,13 +768,20 @@ describe('Store/Algorithms', () => {
                     baseImage: 'my-new-base/image',
                     type: "Git"
                 }
-                const payload = JSON.stringify(body);
-                const options = {
+                const options1 = {
                     uri: applyPath,
-                    body: { payload }
+                    body: { payload: JSON.stringify(algorithm) }
                 };
-                const res = await request(options);
-                expect(res.body).to.have.property('buildId');
+                const res1 = await request(options1);
+
+                const options2 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(res1.body.algorithm) }
+                };
+                const res2 = await request(options2);
+
+                expect(res1.body).to.have.property('buildId');
+                expect(res2.body).to.not.have.property('buildId');
             });
             it('should create build with last commit data', async () => {
                 const name = uuid();
