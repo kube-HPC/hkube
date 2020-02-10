@@ -9,10 +9,8 @@ const data = {
             timestamp: "2019-08-28T14:18:54Z",
             message: "Update README.md"
         },
-        repository: {
-            url: "https://github.com/maty21/statistisc"
-        },
-        webhookType: "github", "type": "Git"
+        url: "https://github.com/maty21/statistisc",
+        webhookType: "github"
     },
     type: "Git",
     status: "pending",
