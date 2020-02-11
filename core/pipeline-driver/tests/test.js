@@ -179,7 +179,7 @@ describe('Test', function () {
                 await taskRunner.start(job)
                 await delay(200);
                 const node = taskRunner._nodes.getNode('green');
-                taskRunner._handleTaskEvent({ jobId, taskId: jobId, taskId: node.taskId, status });
+                taskRunner._handleTaskEvent({ jobId, taskId: node.taskId, status });
             });
         });
         describe('CreateJobErrors', function () {

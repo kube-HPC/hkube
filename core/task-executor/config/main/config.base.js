@@ -26,7 +26,7 @@ config.etcd = {
 config.driversSetting = {
     name: 'pipeline-driver',
     minAmount: parseInt(process.env.PIPELINE_DRIVERS_AMOUNT || 30, 10),
-    scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.2, 10),
+    scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.2),
     reconcileInterval: parseInt(process.env.PIPELINE_DRIVERS_RECONCILE_INTERVAL || 30000, 10)
 };
 

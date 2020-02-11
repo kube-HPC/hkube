@@ -7,7 +7,7 @@ const Regex = {
     PVC_NAME_REGEX: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,
     ALGORITHM_IMAGE_REGEX: /^\S*$/,
     BOARD_ID: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,
-    PATH: /^([A-z0-9.\\-|/])*[^\s]\1*$/
+    PATH: /^([A-Za-z0-9.\\-|/])*[^\s]\1*$/
 };
 
 module.exports = Regex;
