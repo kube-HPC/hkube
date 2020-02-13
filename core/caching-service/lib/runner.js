@@ -34,20 +34,18 @@ class Runner {
         subPipeline.nodes.forEach((n) => {
             const dependentNodes = splitInputToNodes(n.input, flattenPredecessors);
             // finish adding caching
-            if (dependentNodes) {
-                n.parentOutput = []; //eslint-disable-line
-                dependentNodes.forEach((dn) => {
-                    const metadata = metadataFromSuccessors.find(ms => ms.id === dn);
-                    if (metadata) {
-                        n.parentOutput.push(...metadata.metadata);
-                    }
-                    else {
-                        log.error(`couldn't find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
-                    }
-                });
-                if (n.parentOutput.length === 0) {
-                    n.parentOutput = null;//eslint-disable-line
+            n.parentOutput = []; //eslint-disable-line
+            dependentNodes.forEach((dn) => {
+                const metadata = metadataFromSuccessors.find(ms => ms.id === dn);
+                if (metadata) {
+                    n.parentOutput.push(...metadata.metadata);
                 }
+                else {
+                    log.error(`couldn't find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
+                }
+            });
+            if (n.parentOutput.length === 0) {
+                n.parentOutput = null;//eslint-disable-line
             }
         });
         return subPipeline;

@@ -295,7 +295,7 @@ class Worker {
         }
         const { data } = message;
         if (!data || !data.name) {
-            log.warning(`invalid startSpan message: ${JSON.stringify(message, 2, null)}`);
+            log.warning(`invalid startSpan message: ${JSON.stringify(message, null, 2)}`);
             return;
         }
         const spanOptions = {
@@ -334,7 +334,7 @@ class Worker {
         }
         const { data } = message;
         if (!data) {
-            log.warning(`invalid finishSpan message: ${JSON.stringify(message, 2, null)}`);
+            log.warning(`invalid finishSpan message: ${JSON.stringify(message, null, 2)}`);
             return;
         }
         const topSpan = jobConsumer.algTracer.topSpan(jobConsumer.taskId);

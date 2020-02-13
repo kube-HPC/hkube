@@ -7,7 +7,7 @@ const init = async () => {
         const { config } = configIt.load({ cwd: __dirname });
         _handleErrors();
 
-        nodejsWrapper = new NodejsWrapper();
+        const nodejsWrapper = new NodejsWrapper();
         nodejsWrapper.loadAlgorithm(config.algorithm);
         nodejsWrapper.connectToWorker(config.socket);
     }

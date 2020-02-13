@@ -23,7 +23,6 @@ module.exports = {
         "import/newline-after-import": "off",
         "max-len": ["error", 200],
         "brace-style": ["error", "stroustrup"],
-        "indent": ["warn", 4],
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
         "linebreake-style": "off",
