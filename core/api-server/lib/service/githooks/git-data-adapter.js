@@ -25,8 +25,8 @@ class GitDataAdapter {
 
     async _githubInfo(payload) {
         const gitRepository = this._adaptRepoUrl(payload.gitRepository);
-        const { webUrl, branchName } = gitRepository;
-        const commit = await gitService.getGithubLastCommit({ url: webUrl, branchName });
+        const { webUrl, branchName, token } = gitRepository;
+        const commit = await gitService.getGithubLastCommit({ url: webUrl, branchName, token });
 
         return {
             ...payload,

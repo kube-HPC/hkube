@@ -821,6 +821,26 @@ describe('Store/Algorithms', () => {
                 const res2 = await request(options);
                 expect(res2.body).to.not.have.property('buildId');
             });
+            it.skip('should create build from private repo', async () => {
+                const url = 'https://github.com/NassiHarel/build-git';
+                const name = uuid();
+                const algorithm = {
+                    name,
+                    gitRepository: {
+                        url,
+                        token: '1234',
+                        gitKind: 'github'
+                    },
+                    env: 'python',
+                    type: 'Git'
+                }
+                const options1 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(algorithm) }
+                };
+                const res1 = await request(options1);
+                expect(res1.body).to.have.property('buildId');
+            });
         });
         describe('Code', () => {
             it('should succeed to apply algorithm with first build', async () => {
@@ -1048,14 +1068,15 @@ describe('Store/Algorithms', () => {
             });
         })
         describe('Gitlab', () => {
-            it('Gitlab-should create build with last commit data', async () => {
-                const url = 'https://gitlab.com/maty21/anomaly.git';
+            // this test is actually perform an HTTP request
+            it.skip('should create build with last commit data', async () => {
+                const url = 'https://gitlab.com/nassih/build-git.git';
                 const name = uuid();
                 const body = {
                     name,
                     gitRepository: {
                         url,
-                        //token: '1111',
+                        token: '1234',
                         gitKind: "gitlab"
                     },
                     env: 'nodejs',

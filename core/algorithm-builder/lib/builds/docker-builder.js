@@ -1,4 +1,5 @@
 const path = require('path');
+const urlLib = require('url');
 const Stream = require('stream');
 const { promisify } = require('util');
 const fse = require('fs-extra');
@@ -122,17 +123,33 @@ const _downloadFile = async ({ buildId, src, dest, fileExt, overwrite }) => {
     await fse.remove(src);
 };
 
-const _gitClone = async ({ url, commitId, dest }) => {
-    try {
-        await gitClone(url, dest, { checkout: commitId });
+const _parseGitUrl = (url) => {
+    const parsedUrl = urlLib.parse(url);
+    const [, owner, repo] = parsedUrl.pathname.split('/');
+    return {
+        owner,
+        repo,
+        protocol: parsedUrl.protocol,
+        host: parsedUrl.hostname
+    };
+};
+
+const _createGitTokenUrl = ({ url, token, kind }) => {
+    const { protocol, host, owner, repo } = _parseGitUrl(url);
+    let gitToken = token;
+    if (kind === 'gitlab') {
+        gitToken = `gitlab-ci-token:${token}`;
     }
-    catch (error) {
-        log.error(`error on cloning from ${url} - ${error}`, { component });
-    }
+    return `${protocol}//${gitToken}@${host}/${owner}/${repo}`;
 };
 
 const _downloadFromGit = async ({ dest, gitRepository }) => {
-    await _gitClone({ url: gitRepository.cloneUrl, commitId: gitRepository.commit.id, dest });
+    const { cloneUrl, token, commit } = gitRepository;
+    let gitUrl = cloneUrl;
+    if (token) {
+        gitUrl = _createGitTokenUrl({ url: gitUrl, token, kind: gitRepository.gitKind });
+    }
+    await gitClone(gitUrl, dest, { checkout: commit.id });
 };
 
 const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
@@ -141,7 +158,6 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     await fse.copy(envr, buildPath);
     await fse.move(dest, `${buildPath}/algorithm_unique_folder`, { overwrite });
 };
-
 
 const _removeFolder = async ({ folder }) => {
     if (folder) {
