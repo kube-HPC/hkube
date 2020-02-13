@@ -166,6 +166,51 @@
         }
     },
     {
+        "name": "flow4",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "#@flowInput.files.links"
+                ],
+                "metrics": {
+                    "tensorboard": true
+                }
+            }
+        ],
+        "flowInput": {
+            "inp": [
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+            ]
+        }
+    },
+    {
         "name": "webhookFlow1",
         "nodes": [
             {

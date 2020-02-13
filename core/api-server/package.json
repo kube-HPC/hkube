@@ -30,6 +30,7 @@
         "js-yaml": "^3.13.1",
         "json-refs": "^3.0.13",
         "lodash.merge": "^4.6.2",
+        "lodash.mergewith": "^4.6.2",
         "lodash.orderby": "^4.6.0",
         "md5": "^2.2.1",
         "moment": "^2.24.0",
