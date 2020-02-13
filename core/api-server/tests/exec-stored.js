@@ -116,5 +116,26 @@ describe('Executions', () => {
             const res2 = await request(optionsGET);
             expect(res2.body.types).to.eql([pipelineTypes.STORED]);
         });
+        it('should succeed to execute and override flowInput', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'flow4',
+                    flowInput: {
+                        inp: [
+                            [],
+                            []
+                        ]
+                    }
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.flowInputOrig).to.eql(options.body.flowInput);
+        });
     });
 });

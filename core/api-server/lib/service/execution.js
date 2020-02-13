@@ -1,4 +1,4 @@
-const merge = require('lodash.merge');
+const mergeWith = require('lodash.mergewith');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 const { pipelineTypes, pipelineStatuses } = require('@hkube/consts');
@@ -57,7 +57,7 @@ class ExecutionService {
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
-        const newPipeline = merge(storedPipeline, pipeline);
+        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' ? src || obj : undefined));
         return this._run({ pipeline: newPipeline, jobId, options: { parentSpan: pipeline.spanId }, types });
     }
 
