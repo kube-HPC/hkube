@@ -255,9 +255,7 @@ class TaskRunner extends EventEmitter {
                     if (task && task.status !== g.status) {
                         const t = {
                             ...g,
-                            result: task.result,
-                            status: task.status,
-                            error: task.error
+                            ...task
                         };
                         this._handleTaskEvent(t);
                     }

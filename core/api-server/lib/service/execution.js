@@ -64,7 +64,7 @@ class ExecutionService {
     async _run(payload) {
         let { pipeline, jobId } = payload;
         const { types } = payload;
-        const { alreadyExecuted, state, parentSpan } = payload.options || {};
+        const { alreadyExecuted, parentSpan } = payload.options || {};
         validator.addPipelineDefaults(pipeline);
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
@@ -85,14 +85,12 @@ class ExecutionService {
                 };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
-            const startTime = Date.now();
-            const status = state || pipelineStatuses.PENDING;
-            const pipelineObject = { ...pipeline, jobId, startTime, lastRunResult, types };
+            const pipelineObject = { ...pipeline, jobId, startTime: Date.now(), lastRunResult, types };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
             await stateManager.setExecution(pipelineObject);
             await stateManager.setRunningPipeline(pipelineObject);
-            await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status, level: levels.INFO.name });
+            await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return jobId;
@@ -206,11 +204,8 @@ class ExecutionService {
         if (!this.isPausedState(jobStatus.status)) {
             throw new InvalidDataError(`unable to resume pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        const pipeline = await stateManager.getExecution({ jobId });
-        if (!pipeline) {
-            throw new ResourceNotFoundError('pipeline', options.name);
-        }
-        return this._run({ pipeline, jobId, types: pipeline.types, options: { alreadyExecuted: true, state: pipelineStatuses.RESUMED } });
+        await stateManager.updateJobStatus({ jobId, status: pipelineStatuses.RESUMED, level: levels.INFO.name });
+        await producer.createJob({ jobId });
     }
 
     async getTree(options) {
