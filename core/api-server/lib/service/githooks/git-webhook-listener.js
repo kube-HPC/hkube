@@ -23,7 +23,7 @@ class GitWebhookListener {
     }
 
     async _checkRegistration({ url, branchName }) {
-        const algorithmList = await stateManager.getAlgorithms();
+        const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
         return algorithmList.filter(a => a.gitRepository && url === a.gitRepository.webUrl && branchName === a.gitRepository.branchName);
     }
 

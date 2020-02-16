@@ -162,7 +162,7 @@ class ApiValidator {
     }
 
     async validateAlgorithmExists(pipeline) {
-        const result = await stateManager.getAlgorithms();
+        const result = await stateManager.algorithms.store.list({ limit: 1000 });
         const algorithms = new Set(result.map(x => x.name));
         pipeline.nodes.forEach((node) => {
             if (!algorithms.has(node.algorithmName)) {
@@ -172,19 +172,18 @@ class ApiValidator {
     }
 
     async validateExperimentExists(experimentName) {
-        const result = await stateManager.getExperiment({ experimentName });
+        const result = await stateManager.experiments.get({ experimentName });
         if (result === null) {
             throw new ResourceNotFoundError('experiment', experimentName);
         }
     }
-
 
     async validateConcurrentPipelines(pipelines, jobId) {
         if (pipelines.options && pipelines.options.concurrentPipelines) {
             const { concurrentPipelines } = pipelines.options;
             const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
             if (jobIdPrefix) {
-                const result = await stateManager.getRunningPipelines({ jobId: jobIdPrefix[0] });
+                const result = await stateManager.executions.running.list({ jobId: jobIdPrefix[0] });
                 if (result.length >= concurrentPipelines) {
                     throw new InvalidDataError(`maximum number [${concurrentPipelines}] of concurrent pipelines has been reached`);
                 }

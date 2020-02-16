@@ -19,7 +19,7 @@ const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatus
 class Builds {
     async getBuild(options) {
         validator.validateBuildId(options);
-        const response = await stateManager.getBuild(options);
+        const response = await stateManager.algorithms.builds.get(options);
         if (!response) {
             throw new ResourceNotFoundError('build', options.buildId);
         }
@@ -28,7 +28,7 @@ class Builds {
 
     async getBuilds(options) {
         validator.validateResultList(options);
-        const response = await stateManager.getBuilds(options);
+        const response = await stateManager.algorithms.builds.list(options);
         return response;
     }
 
@@ -43,7 +43,7 @@ class Builds {
             endTime: null,
             startTime: Date.now()
         };
-        return stateManager.setBuild(build);
+        return stateManager.algorithms.builds.set(build);
     }
 
     async stopBuild(options) {
@@ -58,7 +58,7 @@ class Builds {
             status: buildStatuses.STOPPED,
             endTime: Date.now()
         };
-        await stateManager.updateBuild(buildData);
+        await stateManager.algorithms.builds.update(buildData);
     }
 
     async rerunBuild(options) {

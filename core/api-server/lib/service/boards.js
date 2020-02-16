@@ -8,7 +8,7 @@ const graph = require('./graph');
 const execution = require('./execution');
 class Boards {
     async getTensorboard(options) {
-        const response = await stateManager.getTensorboard(options);
+        const response = await stateManager.tensorboard.get(options);
         if (!response) {
             throw new ResourceNotFoundError('board', options.id);
         }
@@ -16,12 +16,12 @@ class Boards {
     }
 
     async getTensorboards(options) {
-        const response = await stateManager.getTensorboards(options);
+        const response = await stateManager.tensorboard.list(options);
         return response;
     }
 
     async stopTensorboard(options) {
-        const deleteResult = await stateManager.deleteTensorBoard(options);
+        const deleteResult = await stateManager.tensorboard.delete(options);
         const deleted = parseInt(deleteResult.deleted, 10);
         if (deleted === 0) {
             throw new ResourceNotFoundError('board', options.id);
@@ -46,7 +46,7 @@ class Boards {
         const type = (taskId && 'task') || (jobId && 'batch') || 'node';
         const boardInfo = ((type === 'node') && options) || { ...options, ...(await this.getBoardInfo(options, type)) };
         const id = this.generateId(boardInfo, type);
-        const existingBoard = await stateManager.getTensorboard({ id });
+        const existingBoard = await stateManager.tensorboard.get({ id });
         const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(boardInfo);
         const boardReference = randomString();
         const boardLink = `hkube/board/${boardReference}/`;
@@ -67,10 +67,10 @@ class Boards {
             if (existingBoard.status === boardStatuses.RUNNING || existingBoard.status === boardStatuses.PENDING) {
                 throw new ActionNotAllowed('board: already started', `board ${JSON.stringify(options)} \n already started and is in ${board.status} status`);
             }
-            return stateManager.updateTensorBoard(board, type);
+            return stateManager.tensorboard.update(board);
         }
 
-        stateManager.setTensorboard(board);
+        stateManager.tensorboard.set(board);
         return id;
     }
 
