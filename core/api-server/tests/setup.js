@@ -12,9 +12,9 @@ before(async function () {
     mockery.registerSubstitute('@octokit/rest', process.cwd() + '/tests/mocks/octokit.js');
     const bootstrap = require('../bootstrap');
     const config = await bootstrap.init();
-    await stateManager._etcd._client.client.delete().all();
-    await Promise.all(pipelines.map(p => stateManager.setPipeline(p)));
-    await Promise.all(algorithms.map(p => stateManager.setAlgorithm(p)));
+    await stateManager._client.client.delete().all();
+    await Promise.all(pipelines.map(p => stateManager.pipelines.set(p)));
+    await Promise.all(algorithms.map(p => stateManager.algorithms.store.set(p)));
 
     const baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
     const restUrl = `${baseUrl}/${config.rest.prefix}/v1`;

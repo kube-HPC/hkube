@@ -21,7 +21,7 @@ class ExecutionService {
     async getCronStatus(options) {
         validator.validateResultList(options);
         const jobId = this._createCronJobID(options);
-        const response = await stateManager.getJobStatuses({ ...options, jobId });
+        const response = await stateManager.jobs.status.list({ ...options, jobId });
         if (response.length === 0) {
             throw new ResourceNotFoundError('cron status', options.name);
         }
@@ -29,7 +29,7 @@ class ExecutionService {
     }
 
     async getCronList(options) {
-        let pipelines = await stateManager.getPipelines(options, l => l.triggers && l.triggers.cron);
+        let pipelines = await stateManager.pipelines.list(options, l => l.triggers && l.triggers.cron);
         pipelines = pipelines.map(p => ({ name: p.name, cron: p.triggers.cron }));
         return pipelines;
     }
@@ -51,7 +51,7 @@ class ExecutionService {
 
     async _toggleCronJob(options, toggle) {
         validator.validateCronRequest(options);
-        const pipeline = await stateManager.getPipeline(options);
+        const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -59,7 +59,7 @@ class ExecutionService {
         objectPath.set(pipeline, 'triggers.cron.enabled', toggle);
         objectPath.set(pipeline, 'triggers.cron.pattern', options.pattern || pattern || '0 * * * *');
         await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: pipeline });
-        await stateManager.setPipeline(pipeline);
+        await stateManager.pipelines.set(pipeline);
         return pipeline;
     }
 
@@ -71,7 +71,7 @@ class ExecutionService {
 
     async _getExperimentName(options) {
         const { name } = options;
-        const pipeline = await stateManager.getPipeline({ name });
+        const pipeline = await stateManager.pipelines.get({ name });
         return pipeline && pipeline.experimentName;
     }
 

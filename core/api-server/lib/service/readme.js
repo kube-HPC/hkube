@@ -7,7 +7,7 @@ class Readme {
     async getPipeline(options) {
         const { name } = options;
         validator.validatePipelineName(options.name);
-        const pipeline = await stateManager.getPipeline(options);
+        const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -36,7 +36,7 @@ class Readme {
     async _updatePipelineReadme(options) {
         const { name, data } = options;
         validator.validatePipelineName(options.name);
-        const pipeline = await stateManager.getPipeline(options);
+        const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -47,7 +47,7 @@ class Readme {
     async deletePipeline(options) {
         const { name } = options;
         validator.validatePipelineName(name);
-        const pipeline = await stateManager.getPipeline(options);
+        const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
@@ -58,7 +58,7 @@ class Readme {
     async getAlgorithm(options) {
         const { name } = options;
         validator.validateName(options);
-        const algorithm = await stateManager.getAlgorithm(options);
+        const algorithm = await stateManager.algorithms.store.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
@@ -87,7 +87,7 @@ class Readme {
     async _updateAlgorithmReadme(options) {
         const { name, data } = options;
         validator.validateUpdateAlgorithm(options);
-        const algorithm = await stateManager.getAlgorithm(options);
+        const algorithm = await stateManager.algorithms.store.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
@@ -98,7 +98,7 @@ class Readme {
     async deleteAlgorithm(options) {
         const { name } = options;
         validator.validateName(options);
-        const algorithm = await stateManager.getAlgorithm(options);
+        const algorithm = await stateManager.algorithms.store.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }

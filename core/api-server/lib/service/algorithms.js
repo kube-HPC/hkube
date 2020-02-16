@@ -2,7 +2,7 @@
 const merge = require('lodash.merge');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
-const { buildTypes } = require('@hkube/consts');
+const { buildTypes, buildStatuses } = require('@hkube/consts');
 const log = require('@hkube/logger').GetLogFromContanier();
 const executionService = require('./execution');
 const pipelineService = require('./pipelines');
@@ -18,16 +18,19 @@ class AlgorithmStore {
     init(config) {
         this._debugUrl = config.debugUrl.path;
 
-        stateManager.on('build-completed', async (build) => {
+        stateManager.algorithms.builds.on('change', async (build) => {
+            if (build.status !== buildStatuses.COMPLETED) {
+                return;
+            }
             const { algorithmName, algorithmImage } = build;
-            const algorithm = await stateManager.getAlgorithm({ name: algorithmName });
+            const algorithm = await stateManager.algorithms.store.get({ name: algorithmName });
             if (!algorithm) {
                 log.error(`unable to find algorithm "${algorithmName}"`, { component });
                 return;
             }
 
             let currentImage;
-            const algorithmVersion = await stateManager.getAlgorithmVersions({ name: algorithmName });
+            const algorithmVersion = await stateManager.algorithms.versions.list({ name: algorithmName });
             if (algorithmVersion.length === 0) {
                 currentImage = algorithmImage;
             }
@@ -36,13 +39,13 @@ class AlgorithmStore {
             }
             const newAlgorithm = merge({}, algorithm, { algorithmImage: currentImage, options: { pending: false } });
             await this.storeAlgorithm(newAlgorithm);
-            await stateManager.setAlgorithmVersion({ ...newAlgorithm, algorithmImage });
+            await stateManager.algorithms.versions.set({ ...newAlgorithm, algorithmImage });
         });
     }
 
     async updateAlgorithm(options) {
         validator.validateAlgorithmName(options);
-        const alg = await stateManager.getAlgorithm(options);
+        const alg = await stateManager.algorithms.store.get(options);
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
@@ -53,7 +56,7 @@ class AlgorithmStore {
     async deleteAlgorithm(options) {
         validator.validateAlgorithmDelete(options);
         const { name, force } = options;
-        const algorithm = await stateManager.getAlgorithm({ name });
+        const algorithm = await stateManager.algorithms.store.get({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
@@ -68,8 +71,8 @@ class AlgorithmStore {
             else {
                 const buildPaths = versions.filter(v => v.fileInfo).map(v => v.fileInfo.path);
                 await this._deleteAll(buildPaths, (a) => storageManager.delete({ path: a }));
-                const buildsRes = await this._deleteAll(builds, (a) => stateManager.deleteBuild(a));
-                const versionRes = await this._deleteAll(versions, (a) => stateManager.deleteAlgorithmVersion(a));
+                const buildsRes = await this._deleteAll(builds, (a) => stateManager.algorithms.builds.delete(a));
+                const versionRes = await this._deleteAll(versions, (a) => stateManager.algorithms.versions.delete(a));
                 const pipelineRes = await this._deleteAll(pipelines, (a) => pipelineService.deletePipelineFromStore(a));
                 const execRes = await this._deleteAll(executions, (a) => executionService.stopJob(a));
 
@@ -85,7 +88,7 @@ class AlgorithmStore {
         }
         await storageManager.hkubeStore.delete({ type: 'readme/algorithms', name });
         await storageManager.hkubeStore.delete({ type: 'algorithm', name });
-        await stateManager.deleteAlgorithm({ name });
+        await stateManager.algorithms.store.delete({ name });
         return summary;
     }
 
@@ -122,10 +125,10 @@ class AlgorithmStore {
     async _findAlgorithmDependencies(name) {
         const limit = 1000;
         const [builds, versions, pipelines, executions] = await Promise.all([
-            stateManager.getBuilds({ buildId: name, limit }, n => n.algorithmName === name),
-            stateManager.getAlgorithmVersions({ name, limit }, n => n.name === name),
-            stateManager.getPipelines({ limit }, this._findAlgorithmInNodes(name)),
-            stateManager.getRunningPipelines({ limit }, this._findAlgorithmInNodes(name))
+            stateManager.algorithms.builds.list({ buildId: name, limit }, n => n.algorithmName === name),
+            stateManager.algorithms.versions.list({ name, limit }, n => n.name === name),
+            stateManager.pipelines.list({ limit }, this._findAlgorithmInNodes(name)),
+            stateManager.executions.running.list({ limit }, this._findAlgorithmInNodes(name))
         ]);
         return { builds, versions, pipelines, executions };
     }
@@ -136,7 +139,7 @@ class AlgorithmStore {
 
     async getAlgorithm(options) {
         validator.validateName(options);
-        const algorithm = await stateManager.getAlgorithm(options);
+        const algorithm = await stateManager.algorithms.store.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
@@ -144,17 +147,18 @@ class AlgorithmStore {
     }
 
     async getAlgorithms(options) {
-        return stateManager.getAlgorithms(options);
+        const { limit } = options || {};
+        return stateManager.algorithms.store.list({ ...options, limit: limit || 1000 });
     }
 
     async storeAlgorithm(options) {
         await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
-        await stateManager.setAlgorithm(options);
+        await stateManager.algorithms.store.set(options);
     }
 
     async insertAlgorithm(options) {
         validator.validateAlgorithmName(options);
-        const alg = await stateManager.getAlgorithm(options);
+        const alg = await stateManager.algorithms.store.get(options);
         if (alg) {
             throw new ResourceExistsError('algorithm', options.name);
         }
@@ -163,7 +167,7 @@ class AlgorithmStore {
     }
 
     async getAlgorithmsQueueList() {
-        return stateManager.getAlgorithmsQueueList();
+        return stateManager.algorithms.queue.list();
     }
 
     // TODO: need to refactor this function to override image in a right way
@@ -178,7 +182,7 @@ class AlgorithmStore {
             const { overrideImage } = options || {};
             validator.validateApplyAlgorithm(payload);
 
-            const oldAlgorithm = await stateManager.getAlgorithm(payload);
+            const oldAlgorithm = await stateManager.algorithms.store.get(payload);
             if (oldAlgorithm && oldAlgorithm.type !== payload.type) {
                 throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${payload.type}"`);
             }
@@ -237,16 +241,16 @@ class AlgorithmStore {
     async _versioning(overrideImage, oldAlgorithm, newAlgorithm, payload) {
         let version = false;
         if (!oldAlgorithm && newAlgorithm.algorithmImage) {
-            await stateManager.setAlgorithmVersion(newAlgorithm);
+            await stateManager.algorithms.versions.set(newAlgorithm);
             version = true;
         }
         else if (oldAlgorithm && oldAlgorithm.algorithmImage && payload.algorithmImage && oldAlgorithm.algorithmImage !== payload.algorithmImage) {
             version = true;
             if (overrideImage) {
-                await stateManager.setAlgorithmVersion(oldAlgorithm);
+                await stateManager.algorithms.versions.set(oldAlgorithm);
             }
             else {
-                await stateManager.setAlgorithmVersion(newAlgorithm);
+                await stateManager.algorithms.versions.set(newAlgorithm);
             }
         }
         return version;

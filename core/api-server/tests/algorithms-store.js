@@ -98,9 +98,9 @@ describe('Store/Algorithms', () => {
             const resAlg = await request(algorithm);
             await request(store);
             await request(exec);
-            await stateManager.setAlgorithmVersion(resAlg.body);
-            await stateManager.setBuild({ buildId: `${algorithmName}-1`, algorithmName });
-            await stateManager.setBuild({ buildId: `${algorithmName}-2`, algorithmName });
+            await stateManager.algorithms.versions.set(resAlg.body);
+            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-1`, algorithmName });
+            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-2`, algorithmName });
 
             const optionsDelete = {
                 uri: `${restPath}/${algorithmName}?force=false`,
@@ -142,7 +142,7 @@ describe('Store/Algorithms', () => {
 
             await request(storePipeline);
             await request(execPipeline);
-            await stateManager.setAlgorithmVersion({ ...resApply.body.algorithm, algorithmImage });
+            await stateManager.algorithms.versions.set({ ...resApply.body.algorithm, algorithmImage });
 
             const optionsDelete = {
                 uri: `${restPath}/${algorithmName}?force=true`,
@@ -162,9 +162,9 @@ describe('Store/Algorithms', () => {
                 }
             };
             const resAlg = await request(algorithm);
-            await stateManager.setAlgorithmVersion(resAlg.body);
-            await stateManager.setBuild({ buildId: `${algorithmName}-1`, algorithmName });
-            await stateManager.setBuild({ buildId: `${algorithmName}-2`, algorithmName });
+            await stateManager.algorithms.versions.set(resAlg.body);
+            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-1`, algorithmName });
+            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-2`, algorithmName });
 
             const optionsDelete = {
                 uri: `${restPath}/${algorithmName}?force=false`,
@@ -432,7 +432,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.body).to.has.lengthOf(limit);
-            await stateManager._etcd.algorithms.store.delete({ name: 'stress' }, { isPrefix: true })
+            await stateManager.algorithms.store.delete({ name: 'stress' }, { isPrefix: true })
         });
         it('should succeed to store algorithm', async () => {
             const body = {
@@ -1054,7 +1054,7 @@ describe('Store/Algorithms', () => {
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
                 const res1 = await request({ uri: `${restPath}/apply`, formData });
-                await stateManager.setBuild({ buildId: res1.body.buildId, algorithmName, algorithmImage, status: 'completed' });
+                await stateManager.algorithms.builds.set({ buildId: res1.body.buildId, algorithmName, algorithmImage, status: 'completed' });
                 await delay(2000);
 
                 const { options, ...restProps } = res1.body.algorithm;

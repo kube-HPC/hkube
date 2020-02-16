@@ -42,8 +42,8 @@ describe('Webhooks', () => {
                     status: 'completed',
                     data: [{ res1: 400 }, { res2: 500 }]
                 }
-                await stateManager.setJobStatus(results);
-                await stateManager.setJobResults(results);
+                await stateManager.jobs.status.set(results);
+                await stateManager.jobs.results.set(results);
             });
         });
         it('should throw webhooks validation error of should match format "url', async () => {
@@ -133,7 +133,7 @@ describe('Webhooks', () => {
                 level: 'info',
                 data: [{ res1: 400 }, { res2: 500 }]
             }
-            await stateManager.setJobResults(results);
+            await stateManager.jobs.results.set(results);
 
             await delay(1000);
 
@@ -301,7 +301,7 @@ describe('Webhooks', () => {
                 data: [{ res1: 400 }, { res2: 500 }]
             }
 
-            await stateManager.setJobResults(results);
+            await stateManager.jobs.results.set(results);
 
             await delay(2000);
 
