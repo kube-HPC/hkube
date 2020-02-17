@@ -204,7 +204,7 @@ class ExecutionService {
         if (!this.isPausedState(jobStatus.status)) {
             throw new InvalidDataError(`unable to resume pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        await stateManager.updateJobStatus({ jobId, status: pipelineStatuses.RESUMED, level: levels.INFO.name });
+        await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.RESUMED, level: levels.INFO.name });
         await producer.createJob({ jobId });
     }
 
