@@ -90,7 +90,7 @@ class ExecutionService {
             await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
             await stateManager.executions.stored.set(pipelineObject);
             await stateManager.executions.running.set(pipelineObject);
-            await stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status, level: levels.INFO.name });
+            await stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return jobId;
