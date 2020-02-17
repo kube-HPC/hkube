@@ -5,6 +5,7 @@ const storageManager = require('@hkube/storage-manager');
 const { componentName } = require('./consts/index');
 const { splitInputToNodes } = require('./input-parser');
 const NodesMap = require('../lib/create-graph');
+const graphService = require('./graph-service');
 
 class Runner {
     async init(options) {
@@ -112,9 +113,10 @@ class Runner {
     async _collectMetaDataFromPredecessors(jobId, flattenPredecessors) {
         let metadata = null;
         try {
+            const graph = await graphService.getGraph(jobId);
             metadata = await Promise.all(flattenPredecessors.map(async p => ({
                 id: p,
-                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(jobId, p)
+                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(graph, p)
             })));
         }
         catch (error) {
@@ -123,18 +125,17 @@ class Runner {
         return metadata;
     }
 
-    async _getMetaDataFromStorageAndCreateDescriptior(jobId, nodeName) {
+    async _getMetaDataFromStorageAndCreateDescriptior(graph, nodeName) {
         try {
-            const metadataPathList = await storageManager.hkubeMetadata.list({ jobId, nodeName });
-            const metadataList = await Promise.all(metadataPathList.map(async (path) => {
-                const metadata = await storageManager.get(path);
+            const node = graph.nodes.find(n => n.nodeName === nodeName);
+            const tasks = node.batch && node.batch.length > 0 ? node.batch : [node];
+            const metadataList = tasks.map((task) => {
                 return {
                     node: nodeName,
                     type: 'waitNode',
-                    result: metadata.result
+                    result: task.output
                 };
-            }));
-
+            });
             return metadataList;
         }
         catch (error) {
