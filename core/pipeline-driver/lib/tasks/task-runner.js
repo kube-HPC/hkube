@@ -31,7 +31,6 @@ class TaskRunner extends EventEmitter {
         this._error = null;
         this.pipeline = null;
         this._paused = false;
-        this._nodeRuns = new Set();
         this._init(options);
     }
 
@@ -370,6 +369,7 @@ class TaskRunner extends EventEmitter {
         this._error = null;
         this._driverStatus = null;
         this._jobStatus = null;
+        this._nodeRuns = new Set();
     }
 
     async _runNode(nodeName, parentOutput, index) {
