@@ -31,6 +31,7 @@ class TaskRunner extends EventEmitter {
         this._error = null;
         this.pipeline = null;
         this._paused = false;
+        this._nodeRuns = new Set();
         this._init(options);
     }
 
@@ -378,6 +379,12 @@ class TaskRunner extends EventEmitter {
             if (node.status !== taskStatuses.CREATING && node.status !== taskStatuses.PRESCHEDULE) {
                 return;
             }
+            if (this._nodeRuns.has(nodeName)) {
+                log.error(`node ${nodeName} was already running, status: ${node.status}`, { component });
+                return;
+            }
+            this._nodeRuns.add(nodeName);
+
             log.info(`node ${nodeName} is ready to run`, { component });
             this._checkPreschedule(nodeName);
 
