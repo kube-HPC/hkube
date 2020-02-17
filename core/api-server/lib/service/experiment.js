@@ -5,7 +5,7 @@ const { ResourceNotFoundError } = require('../errors');
 class Experiment {
     async getExperiment(options) {
         const { name } = options;
-        const experiment = await stateManager.getExperiment(options);
+        const experiment = await stateManager.experiments.get(options);
         if (!experiment) {
             throw new ResourceNotFoundError('experiment', name);
         }
@@ -13,15 +13,15 @@ class Experiment {
     }
 
     async insertExperiment(options) {
-        return stateManager.setExperiment(options);
+        return stateManager.experiments.set(options);
     }
 
     async experimentsList(options) {
-        return stateManager.experimentsList(options);
+        return stateManager.experiments.list(options);
     }
 
     async deleteExperiment(options) {
-        const res = await stateManager.deleteExperiment(options);
+        const res = await stateManager.experiments.delete(options);
         const msg = res.deleted === '0' ? 'deleted operation has failed' : 'deleted successfully ';
         return msg;
     }

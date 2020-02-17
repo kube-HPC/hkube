@@ -53,7 +53,7 @@ class ExecutionService {
 
     async _runStored(options) {
         const { pipeline, jobId, types } = options;
-        const storedPipeline = await stateManager.getPipeline({ name: pipeline.name });
+        const storedPipeline = await stateManager.pipelines.get({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
@@ -88,9 +88,9 @@ class ExecutionService {
             const pipelineObject = { ...pipeline, jobId, startTime: Date.now(), lastRunResult, types };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
-            await stateManager.setExecution(pipelineObject);
-            await stateManager.setRunningPipeline(pipelineObject);
-            await stateManager.setJobStatus({ jobId, pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name });
+            await stateManager.executions.stored.set(pipelineObject);
+            await stateManager.executions.running.set(pipelineObject);
+            await stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status, level: levels.INFO.name });
             await producer.createJob({ jobId, parentSpan: span.context() });
             span.finish();
             return jobId;
@@ -111,7 +111,7 @@ class ExecutionService {
 
     async getJobStatus(options) {
         validator.validateJobID(options);
-        const status = await stateManager.getJobStatus({ jobId: options.jobId });
+        const status = await stateManager.jobs.status.get({ jobId: options.jobId });
         if (!status) {
             throw new ResourceNotFoundError('status', options.jobId);
         }
@@ -120,7 +120,7 @@ class ExecutionService {
 
     async getPipeline(options) {
         validator.validateJobID(options);
-        const pipeline = await stateManager.getExecution({ jobId: options.jobId });
+        const pipeline = await stateManager.executions.stored.get({ jobId: options.jobId });
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.jobId);
         }
@@ -129,7 +129,7 @@ class ExecutionService {
 
     async getJobResult(options) {
         validator.validateJobID(options);
-        const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
+        const jobStatus = await stateManager.jobs.status.get({ jobId: options.jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('status', options.jobId);
         }
@@ -155,7 +155,7 @@ class ExecutionService {
 
     async getPipelinesStatus(options) {
         validator.validateResultList(options);
-        const response = await stateManager.getJobStatuses({ ...options, jobId: `${options.experimentName}:${options.name}` });
+        const response = await stateManager.jobs.status.list({ ...options, jobId: `${options.experimentName}:${options.name}` });
         if (response.length === 0) {
             throw new ResourceNotFoundError('pipeline status', options.name);
         }
@@ -163,12 +163,12 @@ class ExecutionService {
     }
 
     async getRunningPipelines() {
-        return stateManager.getRunningPipelines();
+        return stateManager.executions.running.list();
     }
 
     async stopJob(options) {
         validator.validateStopPipeline(options);
-        const jobStatus = await stateManager.getJobStatus({ jobId: options.jobId });
+        const jobStatus = await stateManager.jobs.status.get({ jobId: options.jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('jobId', options.jobId);
         }
@@ -176,28 +176,28 @@ class ExecutionService {
             throw new InvalidDataError(`unable to stop pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
         const { jobId } = options;
-        const pipeline = await stateManager.getExecution({ jobId });
-        await stateManager.updateJobStatus({ jobId, status: pipelineStatuses.STOPPED, reason: options.reason, level: levels.INFO.name });
-        await stateManager.setJobResults({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: pipelineStatuses.STOPPED });
+        const pipeline = await stateManager.executions.stored.get({ jobId });
+        await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.STOPPED, reason: options.reason, level: levels.INFO.name });
+        await stateManager.jobs.results.set({ jobId, startTime: pipeline.startTime, pipeline: pipeline.name, reason: options.reason, status: pipelineStatuses.STOPPED });
     }
 
     async pauseJob(options) {
         validator.validateJobID(options);
         const { jobId } = options;
-        const jobStatus = await stateManager.getJobStatus({ jobId });
+        const jobStatus = await stateManager.jobs.status.get({ jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('jobId', jobId);
         }
         if (!this.isActiveState(jobStatus.status)) {
             throw new InvalidDataError(`unable to pause pipeline ${jobStatus.pipeline} because its in ${jobStatus.status} status`);
         }
-        await stateManager.updateJobStatus({ jobId, status: pipelineStatuses.PAUSED, level: levels.INFO.name });
+        await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.PAUSED, level: levels.INFO.name });
     }
 
     async resumeJob(options) {
         validator.validateJobID(options);
         const { jobId } = options;
-        const jobStatus = await stateManager.getJobStatus({ jobId });
+        const jobStatus = await stateManager.jobs.status.get({ jobId });
         if (!jobStatus) {
             throw new ResourceNotFoundError('jobId', jobId);
         }
@@ -210,7 +210,7 @@ class ExecutionService {
 
     async getTree(options) {
         validator.validateJobID(options);
-        const jobs = await stateManager.getExecutionsTree({ jobId: options.jobId });
+        const jobs = await stateManager.jobs.status.getExecutionsTree({ jobId: options.jobId });
         if (jobs == null || jobs.length === 0) {
             throw new ResourceNotFoundError('jobs', options.jobId);
         }
@@ -219,19 +219,19 @@ class ExecutionService {
 
     async cleanJob(options) {
         const { jobId } = options;
-        await stateManager.setJobStatus({ jobId, status: pipelineStatuses.STOPPED, reason: 'clean job' });
+        await stateManager.jobs.status.set({ jobId, status: pipelineStatuses.STOPPED, reason: 'clean job' });
         await Promise.all([
             storageManager.hkubeIndex.delete({ jobId }),
             storageManager.hkubeExecutions.delete({ jobId }),
             storageManager.hkube.delete({ jobId }),
             storageManager.hkubeResults.delete({ jobId }),
             storageManager.hkubeMetadata.delete({ jobId }),
-            stateManager.deleteRunningPipeline({ jobId }),
-            stateManager.deleteExecution({ jobId }),
-            stateManager.deleteJobResults({ jobId }),
-            stateManager.deleteJobStatus({ jobId }),
-            stateManager.deleteWebhook({ jobId, type: WebhookTypes.PROGRESS }),
-            stateManager.deleteWebhook({ jobId, type: WebhookTypes.RESULT }),
+            stateManager.executions.running.delete({ jobId }),
+            stateManager.executions.stored.delete({ jobId }),
+            stateManager.jobs.results.delete({ jobId }),
+            stateManager.jobs.status.delete({ jobId }),
+            stateManager.webhooks.delete({ jobId, type: WebhookTypes.PROGRESS }),
+            stateManager.webhooks.delete({ jobId, type: WebhookTypes.RESULT }),
             producer.stopJob({ jobId })
         ]);
     }
@@ -243,7 +243,7 @@ class ExecutionService {
     async _getLastPipeline(jobId) {
         const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
         if (jobIdPrefix) {
-            const result = await stateManager.getJobResultsAsRaw({ jobId: jobIdPrefix[0], limit: 1, sort: 'desc' });
+            const result = await stateManager.jobs.results.list({ jobId: jobIdPrefix[0], limit: 1, sort: 'desc' });
             if (result.length > 0) {
                 return (({ timestamp, status, timeTook }) => ({ timestamp, status, timeTook }))(result[0]);
             }

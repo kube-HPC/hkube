@@ -45,7 +45,7 @@ class InternalService {
 
     async _getExperimentName(options) {
         const { jobId } = options;
-        const pipeline = await stateManager.getExecution({ jobId });
+        const pipeline = await stateManager.executions.stored.get({ jobId });
         return (pipeline && pipeline.experimentName) || undefined;
     }
 
