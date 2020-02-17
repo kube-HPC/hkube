@@ -8,18 +8,15 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.7",
+    "@hkube/etcd": "^5.0.21",
     "@hkube/logger": "^1.0.25",
     "@hkube/parsers": "^1.0.20",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
-    "@hkube/storage-manager": "^1.0.63",
     "express": "^4.17.0",
     "graphlib": "^2.1.7",
     "lodash.clonedeep": "^4.5.0",
-    "lodash.clonedeepwith": "^4.5.0",
-    "request": "^2.88.0",
-    "requestretry": "^4.0.0",
-    "uuid": "^3.3.2"
+    "lodash.clonedeepwith": "^4.5.0"
   },
   "devDependencies": {
     "body-parser": "^1.19.0",
@@ -32,7 +29,6 @@
     "eslint-plugin-import": "^2.17.2",
     "mocha": "^6.1.4",
     "nyc": "^14.1.1",
-    "request": "^2.88.0",
     "sinon": "^7.3.2"
   },
   "scripts": {

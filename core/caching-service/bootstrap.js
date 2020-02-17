@@ -1,7 +1,6 @@
 
 const Logger = require('@hkube/logger');
 const configIt = require('@hkube/config');
-const storageManager = require('@hkube/storage-manager')
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const { componentName } = require('./lib/consts/index');
@@ -17,7 +16,6 @@ class Bootstrap {
     async init() {
         try {
             this._handleErrors();
-            storageManager.init(main, log);
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
             await Promise.all(modules.map(m => require(m).init(main)));
         }

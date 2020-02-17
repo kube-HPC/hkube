@@ -1,7 +1,7 @@
 
 const cloneDeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
-const storageManager = require('@hkube/storage-manager');
+const Etcd = require('@hkube/etcd');
 const { componentName } = require('./consts/index');
 const { splitInputToNodes } = require('./input-parser');
 const NodesMap = require('../lib/create-graph');
@@ -10,6 +10,7 @@ const graphService = require('./graph-service');
 class Runner {
     async init(options) {
         this._options = options;
+        this._etcd = new Etcd(options.etcd);
     }
 
     async parse(jobId, nodeName) {
@@ -94,7 +95,7 @@ class Runner {
 
     async _getStoredExecution(jobId) {
         try {
-            return storageManager.hkubeExecutions.get({ jobId });
+            return this._etcd.executions.stored.get({ jobId });
         }
         catch (error) {
             log.error(`cant find execution for jobId ${jobId}`, { component: componentName.RUNNER });
