@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const querystring = require('querystring');
 const HttpStatus = require('http-status-codes');
-const graphAdapter = require('../lib/state/graph-adapter');
+const graphService = require('../lib/service/graph');
 const graph = require('./mocks/graph.json');
 const { request } = require('./utils');
 let restUrl;
@@ -10,7 +10,7 @@ describe('Graph', () => {
     before(async () => {
         restUrl = global.testParams.restUrl;
         internalUrl = global.testParams.internalUrl;
-        await graphAdapter.setGraph({ key: graph.jobId, data: graph });
+        await graphService.setGraph({ jobId: graph.jobId, data: graph });
     });
     describe('/graph/raw', () => {
         let restPath = null;
