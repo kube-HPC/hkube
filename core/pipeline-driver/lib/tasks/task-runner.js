@@ -236,8 +236,12 @@ class TaskRunner extends EventEmitter {
                 ...n,
                 ...pNode,
                 batch: n.batch || [],
-                input: n.input
+                input: n.input,
+                result: n.output
             };
+            node.batch.forEach(b => {
+                b.result = b.output; // eslint-disable-line
+            });
             this._nodes._graph.setNode(node.nodeName, node);
         });
     }
