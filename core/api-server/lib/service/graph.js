@@ -1,6 +1,6 @@
 const orderBy = require('lodash.orderby');
-const validator = require('../validation/api-validator');
 const { Persistency } = require('@hkube/dag');
+const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
 
 class GraphService {
