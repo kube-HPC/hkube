@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
 const { boardStatuses } = require('@hkube/consts');
-const graphAdapter = require('../lib/state/graph-adapter');
+const graphService = require('../lib/service/graph');
 const graph = require('./mocks/graph.json');
 
 let restBoardPath;
@@ -49,7 +49,7 @@ describe('Boards', () => {
                 }
             };
             const response1 = await request(options1);
-            await graphAdapter.setGraph({ key: response1.body.jobId, data: graph });
+            await graphService.setGraph({ jobId: response1.body.jobId, data: graph });
             let options = {
                 uri: restPath,
                 method: 'POST',
@@ -84,7 +84,7 @@ describe('Boards', () => {
                 }
             };
             const response1 = await request(options1);
-            await graphAdapter.setGraph({ key: response1.body.jobId, data: graph });
+            await graphService.setGraph({ jobId: response1.body.jobId, data: graph });
             let options = {
                 uri: restPath,
                 method: 'POST',
@@ -133,7 +133,7 @@ describe('Boards', () => {
                 }
             };
             const response1 = await request(options1);
-            await graphAdapter.setGraph({ key: response1.body.jobId, data: graph })
+            await graphService.setGraph({ jobId: response1.body.jobId, data: graph })
             const options = {
                 uri: restPath,
                 method: 'POST',
@@ -164,7 +164,7 @@ describe('Boards', () => {
                 }
             };
             const response1 = await request(options1);
-            await graphAdapter.setGraph({ key: response1.body.jobId, data: graph })
+            await graphService.setGraph({ jobId: response1.body.jobId, data: graph })
             const options = {
                 uri: restPath,
                 method: 'POST',
