@@ -1,16 +1,17 @@
 
 const cloneDeep = require('lodash.clonedeep');
+const { Persistency } = require('@hkube/dag');
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { componentName } = require('./consts/index');
 const { splitInputToNodes } = require('./input-parser');
 const NodesMap = require('../lib/create-graph');
-const graphService = require('./graph-service');
 
 class Runner {
     async init(options) {
         this._options = options;
         this._etcd = new Etcd(options.etcd);
+        this._graphPersistency = new Persistency({ connection: options.redis });
     }
 
     async parse(jobId, nodeName) {
@@ -40,7 +41,7 @@ class Runner {
             dependentNodes.forEach((dn) => {
                 const metadata = metadataFromSuccessors.find(ms => ms.id === dn);
                 if (metadata) {
-                    n.parentOutput.push(...metadata.metadata);
+                    n.parentOutput.push(metadata.metadata);
                 }
                 else {
                     log.error(`couldn't find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
@@ -114,7 +115,8 @@ class Runner {
     async _collectMetaDataFromPredecessors(jobId, flattenPredecessors) {
         let metadata = null;
         try {
-            const graph = await graphService.getGraph(jobId);
+            const jsonGraph = await this._graphPersistency.getGraph({ jobId });
+            const graph = JSON.parse(jsonGraph);
             metadata = await Promise.all(flattenPredecessors.map(async p => ({
                 id: p,
                 metadata: await this._getMetaDataFromStorageAndCreateDescriptior(graph, p)
@@ -128,16 +130,25 @@ class Runner {
 
     async _getMetaDataFromStorageAndCreateDescriptior(graph, nodeName) {
         try {
+            let result;
             const node = graph.nodes.find(n => n.nodeName === nodeName);
-            const tasks = node.batch && node.batch.length > 0 ? node.batch : [node];
-            const metadataList = tasks.map((task) => {
-                return {
+
+            if (node.batch && node.batch.length > 0) {
+                result = {
                     node: nodeName,
                     type: 'waitNode',
-                    result: task.output
+                    result: node.batch.map(b => b.output)
                 };
-            });
-            return metadataList;
+            }
+            else {
+                result = {
+                    node: nodeName,
+                    type: 'waitNode',
+                    result: node.output
+
+                };
+            }
+            return result;
         }
         catch (error) {
             log.error(`fail to get metadata from custom resource ${error}`, { component: componentName.RUNNER });
@@ -146,6 +157,5 @@ class Runner {
         }
     }
 }
-
 
 module.exports = new Runner();

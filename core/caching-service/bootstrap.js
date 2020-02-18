@@ -8,8 +8,7 @@ const component = componentName.MAIN;
 
 const modules = [
     './lib/api/rest',
-    './lib/runner',
-    './lib/graph-service'
+    './lib/runner'
 ];
 
 class Bootstrap {
