@@ -1,7 +1,8 @@
 
 const cloneDeep = require('lodash.clonedeep');
+const { Persistency } = require('@hkube/dag');
 const log = require('@hkube/logger').GetLogFromContainer();
-const storageManager = require('@hkube/storage-manager');
+const Etcd = require('@hkube/etcd');
 const { componentName } = require('./consts/index');
 const { splitInputToNodes } = require('./input-parser');
 const NodesMap = require('../lib/create-graph');
@@ -9,6 +10,8 @@ const NodesMap = require('../lib/create-graph');
 class Runner {
     async init(options) {
         this._options = options;
+        this._etcd = new Etcd(options.etcd);
+        this._graphPersistency = new Persistency({ connection: options.redis });
     }
 
     async parse(jobId, nodeName) {
@@ -38,7 +41,7 @@ class Runner {
             dependentNodes.forEach((dn) => {
                 const metadata = metadataFromSuccessors.find(ms => ms.id === dn);
                 if (metadata) {
-                    n.parentOutput.push(...metadata.metadata);
+                    n.parentOutput.push(metadata.metadata);
                 }
                 else {
                     log.error(`couldn't find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
@@ -93,7 +96,7 @@ class Runner {
 
     async _getStoredExecution(jobId) {
         try {
-            return storageManager.hkubeExecutions.get({ jobId });
+            return this._etcd.executions.stored.get({ jobId });
         }
         catch (error) {
             log.error(`cant find execution for jobId ${jobId}`, { component: componentName.RUNNER });
@@ -112,9 +115,11 @@ class Runner {
     async _collectMetaDataFromPredecessors(jobId, flattenPredecessors) {
         let metadata = null;
         try {
+            const jsonGraph = await this._graphPersistency.getGraph({ jobId });
+            const graph = JSON.parse(jsonGraph);
             metadata = await Promise.all(flattenPredecessors.map(async p => ({
                 id: p,
-                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(jobId, p)
+                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(graph, p)
             })));
         }
         catch (error) {
@@ -123,19 +128,27 @@ class Runner {
         return metadata;
     }
 
-    async _getMetaDataFromStorageAndCreateDescriptior(jobId, nodeName) {
+    async _getMetaDataFromStorageAndCreateDescriptior(graph, nodeName) {
         try {
-            const metadataPathList = await storageManager.hkubeMetadata.list({ jobId, nodeName });
-            const metadataList = await Promise.all(metadataPathList.map(async (path) => {
-                const metadata = await storageManager.get(path);
-                return {
+            let result;
+            const node = graph.nodes.find(n => n.nodeName === nodeName);
+
+            if (node.batch && node.batch.length > 0) {
+                result = {
                     node: nodeName,
                     type: 'waitNode',
-                    result: metadata.result
+                    result: node.batch.map(b => b.output)
                 };
-            }));
+            }
+            else {
+                result = {
+                    node: nodeName,
+                    type: 'waitNode',
+                    result: node.output
 
-            return metadataList;
+                };
+            }
+            return result;
         }
         catch (error) {
             log.error(`fail to get metadata from custom resource ${error}`, { component: componentName.RUNNER });
@@ -144,6 +157,5 @@ class Runner {
         }
     }
 }
-
 
 module.exports = new Runner();

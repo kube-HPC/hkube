@@ -380,7 +380,6 @@ class JobConsumer extends EventEmitter {
 
             this._job.error = error;
             await etcd.update(resData);
-            await this._putMetadata(resData);
             log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
         this._summarizeMetrics(status);
@@ -420,15 +419,6 @@ class JobConsumer extends EventEmitter {
         }
         catch (err) {
             log.warning(`failed to report metrics:${this._jobId} task:${this._taskId}`, { component }, err);
-        }
-    }
-
-    async _putMetadata(metadata) {
-        try {
-            await storageManager.hkubeMetadata.put({ jobId: this._jobId, taskId: this._taskId, data: metadata });
-        }
-        catch (err) {
-            log.error(`failed to store Metadata job:${this._jobId} task:${this._taskId}, ${err}`, { component }, err);
         }
     }
 

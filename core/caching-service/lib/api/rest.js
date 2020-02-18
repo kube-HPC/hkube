@@ -1,11 +1,10 @@
 const RestServer = require('@hkube/rest-server');
 const Logger = require('@hkube/logger');
 const component = require('../../lib/consts/component-name').REST_API;
-
-const rest = new RestServer();
 const router = require('./route');
-
+const rest = new RestServer();
 const log = Logger.GetLogFromContanier();
+
 class Rest {
     async init(options) {
         return new Promise((resolve, reject) => {
@@ -21,7 +20,6 @@ class Rest {
                 name: options.serviceName,
             };
             rest.on('error', (data) => {
-                //    const { route, jobId, pipelineName } = data.res._internalMetadata || {};
                 log.error(`Error response, status=${data.status}`, { component });
             });
             rest.start(this.opt).then((data) => {
