@@ -4,8 +4,8 @@ const isEqual = require('lodash.isequal');
 const deep = require('deep-get-set');
 const flatten = require('flat');
 const logger = require('@hkube/logger');
+const { Persistency } = require('@hkube/dag');
 const { taskStatuses } = require('@hkube/consts');
-const RedisStorage = require('./redis-storage-adapter');
 const components = require('../consts/componentNames');
 const INTERVAL = 4000;
 let log;
@@ -17,8 +17,9 @@ class GraphStore {
         this._currentJobID = null;
     }
 
-    init() {
+    init(options) {
         log = logger.GetLogFromContainer();
+        this._persistency = new Persistency({ connection: options.redis });
     }
 
     async start(jobId, nodeMap) {
@@ -36,8 +37,21 @@ class GraphStore {
         this._currentJobID = null;
     }
 
-    getGraph(options) {
-        return RedisStorage.getGraph({ jobId: options.jobId });
+    async getGraph(options) {
+        const jsonGraph = await this._persistency.getGraph({ jobId: options.jobId });
+        const graph = this._tryParseJSON(jsonGraph);
+        return graph;
+    }
+
+    _tryParseJSON(json) {
+        let parsed;
+        try {
+            parsed = JSON.parse(json);
+        }
+        catch (e) {
+            log.warning('failed to parse json graph', { component: components.GRAPH_STORE });
+        }
+        return parsed;
     }
 
     _storeInterval() {
@@ -70,7 +84,7 @@ class GraphStore {
         const filterGraph = this._filterData(graph);
         if (!isEqual(this._lastGraph, filterGraph)) {
             this._lastGraph = filterGraph;
-            await RedisStorage.updateGraph({ jobId: this._currentJobID, data: { jobId: this._currentJobID, timestamp: Date.now(), ...filterGraph } });
+            await this._persistency.setGraph({ jobId: this._currentJobID, data: { jobId: this._currentJobID, timestamp: Date.now(), ...filterGraph } });
         }
     }
 

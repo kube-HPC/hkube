@@ -10,10 +10,10 @@ const log = new Logger(main.serviceName, logger);
 const modules = [
     require('./api/rest-api/app-server'),
     require('./lib/state/state-manager'),
-    require('./lib/state/graph-adapter'),
     require('./lib/producer/jobs-producer'),
     require('./lib/examples/pipelines-updater'),
     require('./lib/webhook/webhooks-handler'),
+    require('./lib/service/graph'),
     require('./lib/service/algorithms'),
     require('./lib/service/caching'),
     require('./lib/service/storage')
