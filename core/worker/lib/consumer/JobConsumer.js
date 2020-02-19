@@ -14,7 +14,7 @@ const { metricsNames, Components } = require('../consts');
 const dataExtractor = require('./data-extractor');
 const constants = require('./consts');
 const JobProvider = require('./job-provider');
-const { logMessages } = require('../consts');
+const { logMessages, workerStates } = require('../consts');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
@@ -353,6 +353,9 @@ class JobConsumer extends EventEmitter {
         let storageResult = {};
         const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
+        if (status === workerStates.exit) {
+            return;
+        }
         if (shouldCompleteJob) {
             let metricsPath;
             if (!error && status === constants.JOB_STATUS.SUCCEED) {
