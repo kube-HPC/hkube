@@ -52,20 +52,23 @@ class ExecutionService {
     }
 
     async _runStored(options) {
-        const { pipeline, jobId, types } = options;
+        const { pipeline, jobId, rootJobId, types } = options;
         const storedPipeline = await stateManager.pipelines.get({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
         const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' ? src || obj : undefined));
-        return this._run({ pipeline: newPipeline, jobId, options: { parentSpan: pipeline.spanId }, types });
+        return this._run({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan: pipeline.spanId }, types });
     }
 
     async _run(payload) {
         let { pipeline, jobId } = payload;
-        const { types } = payload;
+        const { types, rootJobId } = payload;
         const { alreadyExecuted, parentSpan } = payload.options || {};
+
         validator.addPipelineDefaults(pipeline);
+        validator.validatePipeline(pipeline);
+
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
         }
@@ -85,7 +88,7 @@ class ExecutionService {
                 };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
-            const pipelineObject = { ...pipeline, jobId, startTime: Date.now(), lastRunResult, types };
+            const pipelineObject = { ...pipeline, jobId, rootJobId, startTime: Date.now(), lastRunResult, types };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
             await stateManager.executions.stored.set(pipelineObject);

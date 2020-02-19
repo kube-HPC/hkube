@@ -69,7 +69,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data should NOT have additional properties');
+            expect(response.body.error.message).to.equal('data should NOT have additional properties (stam)');
         });
         it('should fail on no such node or job', async () => {
             const options = {
@@ -231,7 +231,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data should NOT have additional properties');
+            expect(response.body.error.message).to.equal('data should NOT have additional properties (additionalProps)');
         });
         it('should throw validation error of duplicate node', async () => {
             const options = {

@@ -74,12 +74,16 @@ class ApiValidator {
         this._validate(this._definitionsInternal.storedSubPipeline, pipeline, false);
     }
 
+    validatePipeline(pipeline) {
+        this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true });
+    }
+
     validateRunRawPipeline(pipeline) {
         this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true });
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(this._definitions.storedPipelineRequest, pipeline, false, { checkFlowInput: true });
+        this._validate(this._definitions.storedPipelineRequest, pipeline, false);
     }
 
     validateCaching(request) {
@@ -205,9 +209,12 @@ class ApiValidator {
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
             const { errors } = validatorInstance;
-            let error = validatorInstance.errorsText(errors);
+            let error = validatorInstance.errorsText(errors, { extraInfo: true });
             if (errors[0].params && errors[0].params.allowedValues) {
                 error += ` (${errors[0].params.allowedValues.join(',')})`;
+            }
+            else if (errors[0].params && errors[0].params.additionalProperty) {
+                error += ` (${errors[0].params.additionalProperty})`;
             }
             throw new InvalidDataError(error);
         }
@@ -352,12 +359,12 @@ class ApiValidator {
     }
 
     wrapErrorMessageFn(wrappedFn) {
-        const errorsTextWapper = (errors) => {
+        const errorsTextWapper = (errors, options) => {
             let message;
             if (errors) {
                 message = this.getCustomMessage(errors[0]);
             }
-            return message || wrappedFn(errors);
+            return message || wrappedFn(errors, options);
         };
         return errorsTextWapper;
     }
