@@ -98,6 +98,7 @@ class Worker {
                 return;
             }
             if (jobConsumer.isConsumerPaused) {
+                this._clearInactiveTimeout();
                 await jobConsumer.resume();
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
@@ -295,7 +296,7 @@ class Worker {
         }
         const { data } = message;
         if (!data || !data.name) {
-            log.warning(`invalid startSpan message: ${JSON.stringify(message, 2, null)}`);
+            log.warning(`invalid startSpan message: ${JSON.stringify(message, null, 2)}`);
             return;
         }
         const spanOptions = {
@@ -334,7 +335,7 @@ class Worker {
         }
         const { data } = message;
         if (!data) {
-            log.warning(`invalid finishSpan message: ${JSON.stringify(message, 2, null)}`);
+            log.warning(`invalid finishSpan message: ${JSON.stringify(message, null, 2)}`);
             return;
         }
         const topSpan = jobConsumer.algTracer.topSpan(jobConsumer.taskId);
@@ -420,10 +421,7 @@ class Worker {
 
     _handleTimeout(state) {
         if (state === workerStates.ready) {
-            if (this._inactiveTimer) {
-                clearTimeout(this._inactiveTimer);
-                this._inactiveTimer = null;
-            }
+            this._clearInactiveTimeout();
             if (!jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
                 log.info(`starting inactive timeout for worker ${this._inactiveTimeoutMs / 1000} seconds`, { component });
                 this._inactiveTimer = setTimeout(() => {
@@ -436,6 +434,13 @@ class Worker {
         }
         else if (this._inactiveTimer) {
             log.info(`worker is active (${state}). Clearing inactive timeout`, { component });
+            clearTimeout(this._inactiveTimer);
+            this._inactiveTimer = null;
+        }
+    }
+
+    _clearInactiveTimeout() {
+        if (this._inactiveTimer) {
             clearTimeout(this._inactiveTimer);
             this._inactiveTimer = null;
         }

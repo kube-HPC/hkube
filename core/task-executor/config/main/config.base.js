@@ -26,7 +26,7 @@ config.etcd = {
 config.driversSetting = {
     name: 'pipeline-driver',
     minAmount: parseInt(process.env.PIPELINE_DRIVERS_AMOUNT || 30, 10),
-    scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.2, 10),
+    scalePercent: parseFloat(process.env.PIPELINE_DRIVERS_SCALE_PERCENT || 0.2),
     reconcileInterval: parseInt(process.env.PIPELINE_DRIVERS_RECONCILE_INTERVAL || 30000, 10)
 };
 
@@ -46,7 +46,8 @@ config.resources = {
     },
     defaultQuota: {
         'limits.cpu': parseFloat(process.env.DEFAULT_QUOTA_CPU) || 30,
-        'limits.memory': process.env.DEFAULT_QUOTA_MEM || '20Gi'
+        'limits.memory': process.env.DEFAULT_QUOTA_MEM || '20Gi',
+        'requests.nvidia.com/gpu': process.env.DEFAULT_QUOTA_GPU || 0
     },
     useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
 }

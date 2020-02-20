@@ -101,9 +101,9 @@ class KubernetesApi {
         };
         const quota = await this._client.resourcequotas.get();
         const hard = objectPath.get(quota, 'body.items.0.spec.hard', this._defaultQuota);
-        const cpu = hard['limits.cpu'] || 0;
-        const memory = hard['limits.memory'] || 0;
-        const gpu = hard['requests.nvidia.com/gpu'] || 0;
+        const cpu = hard['limits.cpu'] || this._defaultQuota['limits.cpu'];
+        const memory = hard['limits.memory'] || this._defaultQuota['limits.memory'];
+        const gpu = hard['requests.nvidia.com/gpu'] || this._defaultQuota['requests.nvidia.com/gpu'];
 
         const node = {
             metadata: {

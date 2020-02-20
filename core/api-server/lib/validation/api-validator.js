@@ -28,6 +28,7 @@ class ApiValidator {
         validatorInstance.addFormat('experiment-name', this._validateExperimentName);
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
         validatorInstance.addFormat('algorithm-image', this._validateAlgorithmImage);
+        validatorInstance.addFormat('algorithm-mount-pvc', this._validateAlgorithmMountPvc);
         validatorInstance.addFormat('algorithm-memory', this._validateMemory);
         validatorInstance.addFormat('path', this._validatePath);
         formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
@@ -73,12 +74,16 @@ class ApiValidator {
         this._validate(this._definitionsInternal.storedSubPipeline, pipeline, false);
     }
 
+    validatePipeline(pipeline) {
+        this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true });
+    }
+
     validateRunRawPipeline(pipeline) {
         this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true });
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(this._definitions.storedPipelineRequest, pipeline, false, { checkFlowInput: false });
+        this._validate(this._definitions.storedPipelineRequest, pipeline, false);
     }
 
     validateCaching(request) {
@@ -161,7 +166,7 @@ class ApiValidator {
     }
 
     async validateAlgorithmExists(pipeline) {
-        const result = await stateManager.getAlgorithms();
+        const result = await stateManager.algorithms.store.list({ limit: 1000 });
         const algorithms = new Set(result.map(x => x.name));
         pipeline.nodes.forEach((node) => {
             if (!algorithms.has(node.algorithmName)) {
@@ -171,19 +176,18 @@ class ApiValidator {
     }
 
     async validateExperimentExists(experimentName) {
-        const result = await stateManager.getExperiment({ experimentName });
+        const result = await stateManager.experiments.get({ experimentName });
         if (result === null) {
             throw new ResourceNotFoundError('experiment', experimentName);
         }
     }
-
 
     async validateConcurrentPipelines(pipelines, jobId) {
         if (pipelines.options && pipelines.options.concurrentPipelines) {
             const { concurrentPipelines } = pipelines.options;
             const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
             if (jobIdPrefix) {
-                const result = await stateManager.getRunningPipelines({ jobId: jobIdPrefix[0] });
+                const result = await stateManager.executions.running.list({ jobId: jobIdPrefix[0] });
                 if (result.length >= concurrentPipelines) {
                     throw new InvalidDataError(`maximum number [${concurrentPipelines}] of concurrent pipelines has been reached`);
                 }
@@ -205,9 +209,12 @@ class ApiValidator {
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
             const { errors } = validatorInstance;
-            let error = validatorInstance.errorsText(errors);
+            let error = validatorInstance.errorsText(errors, { extraInfo: true });
             if (errors[0].params && errors[0].params.allowedValues) {
                 error += ` (${errors[0].params.allowedValues.join(',')})`;
+            }
+            else if (errors[0].params && errors[0].params.additionalProperty) {
+                error += ` (${errors[0].params.additionalProperty})`;
             }
             throw new InvalidDataError(error);
         }
@@ -296,6 +303,10 @@ class ApiValidator {
         return regex.ALGORITHM_IMAGE_REGEX.test(image);
     }
 
+    _validateAlgorithmMountPvc(name) {
+        return name && regex.PVC_NAME_REGEX.test(name) && name.length < 64;
+    }
+
     _validateMemory(memory) {
         try {
             const mem = converter.getMemoryInMi(memory);
@@ -348,12 +359,12 @@ class ApiValidator {
     }
 
     wrapErrorMessageFn(wrappedFn) {
-        const errorsTextWapper = (errors) => {
+        const errorsTextWapper = (errors, options) => {
             let message;
             if (errors) {
                 message = this.getCustomMessage(errors[0]);
             }
-            return message || wrappedFn(errors);
+            return message || wrappedFn(errors, options);
         };
         return errorsTextWapper;
     }

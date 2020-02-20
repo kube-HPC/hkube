@@ -32,7 +32,7 @@ class PipelinesUpdater {
             if (options.addDefaultAlgorithms !== 'false') {
                 algorithmsStoreList = await this._setDiff('algorithm', algorithms, algorithmsStoreList);
             }
-            await Promise.all(algorithmsStoreList.map(a => stateManager.setAlgorithm(a)));
+            await Promise.all(algorithmsStoreList.map(a => stateManager.algorithms.store.set(a)));
         }
         catch (error) {
             log.warning(`failed to recover algorithms. ${error.message}`);
@@ -41,7 +41,7 @@ class PipelinesUpdater {
 
     async _pipelineDriversTemplate() {
         try {
-            await Promise.all(drivers.map(d => stateManager.setPipelineDriverTemplate(d)));
+            await Promise.all(drivers.map(d => stateManager.pipelineDrivers.store.set(d)));
         }
         catch (error) {
             log.warning(`failed to upload default drivers. ${error.message}`);
@@ -53,7 +53,7 @@ class PipelinesUpdater {
             let experimentsList = await this._getByType('experiment');
             log.info(`found ${experimentsList.length} experiments using the ${options.defaultStorage} storage`);
             experimentsList = await this._setDiff('experiment', experiments, experimentsList);
-            await Promise.all(experiments.map(d => stateManager.setExperiment(d)));
+            await Promise.all(experimentsList.map(d => stateManager.experiments.set(d)));
         }
         catch (error) {
             log.warning(`failed to upload default experiments. ${error.message}`);
@@ -65,7 +65,7 @@ class PipelinesUpdater {
             const pipelinesStoreList = await this._getByType('pipeline');
             log.info(`found ${pipelinesStoreList.length} pipeline using the ${options.defaultStorage} storage`);
             const pipelineList = await this._setDiff('pipeline', pipelines, pipelinesStoreList);
-            await Promise.all(pipelineList.map(p => stateManager.setPipeline(p)));
+            await Promise.all(pipelineList.map(p => stateManager.pipelines.set(p)));
         }
         catch (error) {
             log.warning(`failed to recover pipelines. ${error.message}`);

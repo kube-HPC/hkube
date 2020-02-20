@@ -17,15 +17,14 @@ class GitWebhookListener {
         }
         return Promise.all(algorithms.map(a => this._storeBuildData({
             ...a,
-            gitRepository: { ...a.gitRepository.repository, commit: gitDetails.commit },
+            gitRepository: { ...a.gitRepository, commit: gitDetails.commit },
             algorithmImage: null
         })));
     }
 
     async _checkRegistration({ url, branchName }) {
-        const algorithmList = await stateManager.getAlgorithms();
-        return algorithmList.filter(a => url === (a.gitRepository && a.gitRepository.repository && a.gitRepository.repository.webUrl)
-            && branchName === (a.gitRepository && a.gitRepository.repository && a.gitRepository.repository.branchName));
+        const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
+        return algorithmList.filter(a => a.gitRepository && url === a.gitRepository.webUrl && branchName === a.gitRepository.branchName);
     }
 
     async _storeBuildData(data) {

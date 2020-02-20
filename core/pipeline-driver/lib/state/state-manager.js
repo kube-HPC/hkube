@@ -156,10 +156,6 @@ class StateManager extends EventEmitter {
         return this._etcd.jobs.tasks.delete(options, { isPrefix: true });
     }
 
-    stopJob(options) {
-        return this._etcd.jobs.status.set({ jobId: options.jobId, status: DriverStates.STOPPED });
-    }
-
     watchJobStatus(options) {
         return this._etcd.jobs.status.watch(options);
     }

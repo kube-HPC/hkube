@@ -10,10 +10,10 @@ class WorkerStub {
             data,
             level: 'info'
         }
-        await stateManager.setJobStatus(results);
+        await stateManager.jobs.status.set(results);
         results.data = {};
         results.data.storageInfo = await storageManager.hkubeResults.put({ jobId: results.jobId, data });
-        await stateManager.setJobResults(results);
+        await stateManager.jobs.results.set(results);
     }
 }
 

@@ -88,7 +88,7 @@ const _clearCreatedJobsList = (now, options) => {
 };
 
 const _processAllRequests = (
-    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources, useResourceLimits },
+    { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources },
     { createPromises, createDetails, reconcileResult }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
@@ -122,10 +122,10 @@ const _processAllRequests = (
         const algorithmTemplate = algorithmTemplates[algorithmName];
         const algorithmImage = setAlgorithmImage(algorithmTemplate, versions, registry);
         const workerImage = setWorkerImage(algorithmTemplate, versions, registry);
-        const resourceRequests = createContainerResource(algorithmTemplate, useResourceLimits);
-        const workerResourceRequests = createContainerResource(workerResources, useResourceLimits);
+        const resourceRequests = createContainerResource(algorithmTemplate);
+        const workerResourceRequests = createContainerResource(workerResources);
 
-        const { workerEnv, algorithmEnv, nodeSelector, entryPoint, options: algorithmOptions } = algorithmTemplate;
+        const { workerEnv, algorithmEnv, nodeSelector, entryPoint, options: algorithmOptions, mounts } = algorithmTemplate;
 
         createDetails.push({
             numberOfNewJobs: 1,
@@ -141,7 +141,8 @@ const _processAllRequests = (
                 resourceRequests,
                 workerResourceRequests,
                 clusterOptions,
-                algorithmOptions
+                algorithmOptions,
+                mounts
             }
         });
         if (!reconcileResult[algorithmName]) {
@@ -405,7 +406,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             gpu: consts.GPU_RATIO_PRESSURE,
             mem: consts.MEMORY_RATIO_PRESSURE
         },
-        nodes: _getNodeStats(normResources, merged.mergedWorkers)
+        nodes: _getNodeStats(normResources)
     });
     return reconcileResult;
 };

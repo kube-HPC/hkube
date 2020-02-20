@@ -236,8 +236,12 @@ class TaskRunner extends EventEmitter {
                 ...n,
                 ...pNode,
                 batch: n.batch || [],
-                input: n.input
+                input: n.input,
+                result: n.output
             };
+            node.batch.forEach(b => {
+                b.result = b.output; // eslint-disable-line
+            });
             this._nodes._graph.setNode(node.nodeName, node);
         });
     }
@@ -255,9 +259,7 @@ class TaskRunner extends EventEmitter {
                     if (task && task.status !== g.status) {
                         const t = {
                             ...g,
-                            result: task.result,
-                            status: task.status,
-                            error: task.error
+                            ...task
                         };
                         this._handleTaskEvent(t);
                     }
@@ -371,6 +373,7 @@ class TaskRunner extends EventEmitter {
         this._error = null;
         this._driverStatus = null;
         this._jobStatus = null;
+        this._nodeRuns = new Set();
     }
 
     async _runNode(nodeName, parentOutput, index) {
@@ -380,6 +383,12 @@ class TaskRunner extends EventEmitter {
             if (node.status !== taskStatuses.CREATING && node.status !== taskStatuses.PRESCHEDULE) {
                 return;
             }
+            if (this._nodeRuns.has(nodeName)) {
+                log.error(`node ${nodeName} was already running, status: ${node.status}`, { component });
+                return;
+            }
+            this._nodeRuns.add(nodeName);
+
             log.info(`node ${nodeName} is ready to run`, { component });
             this._checkPreschedule(nodeName);
 

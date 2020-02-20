@@ -1,5 +1,4 @@
 const Logger = require('@hkube/logger');
-const { buildTypes } = require('@hkube/consts');
 const gitService = require('./git-service');
 const component = require('../../consts/componentNames');
 const { WEBHOOKS } = require('../../consts/builds');
@@ -25,50 +24,42 @@ class GitDataAdapter {
     }
 
     async _githubInfo(payload) {
-        const repoData = payload.gitRepository.repository ? payload.gitRepository.repository : payload.gitRepository;
-        const gitRepository = this._adaptRepoUrl(repoData);
+        const gitRepository = this._adaptRepoUrl(payload.gitRepository);
         const { webUrl, branchName, token } = gitRepository;
-        const lastCommit = await gitService.getGithubLastCommit({ url: webUrl, branchName, token });
+        const commit = await gitService.getGithubLastCommit({ url: webUrl, branchName, token });
 
         return {
             ...payload,
-            gitRepository: this._gitAdapter({
-                repository: gitRepository,
-                commits: [{
-                    id: lastCommit.sha,
-                    timestamp: lastCommit.commit.committer.date,
-                    message: lastCommit.commit.message
-                }]
-            }),
-            type: buildTypes.GIT
+            gitRepository: {
+                ...payload.gitRepository,
+                ...gitRepository,
+                commit
+            }
         };
     }
 
     async _gitlabInfo(payload) {
         const gitRepository = this._adaptRepoUrl(payload.gitRepository);
         const { webUrl, branchName, token } = gitRepository;
-        const lastCommit = await gitService.getGitlabLastCommit({ url: webUrl, branchName, token });
+        const commit = await gitService.getGitlabLastCommit({ url: webUrl, branchName, token });
+
         return {
             ...payload,
-            gitRepository: this._gitAdapter({
-                repository: gitRepository,
-                commits: [{
-                    id: lastCommit.id,
-                    timestamp: lastCommit.committed_date,
-                    message: lastCommit.message
-                }]
-            }),
-            type: buildTypes.GIT
+            gitRepository: {
+                ...payload.gitRepository,
+                ...gitRepository,
+                commit
+            }
         };
     }
 
     _adaptRepoUrl(gitRepository) {
-        const { url } = gitRepository;
+        const { url, branchName, token } = gitRepository;
         const webUrl = url.endsWith('.git') ? url.slice(0, -4) : url;
         const cloneUrl = !url.endsWith('.git') ? `${url}.git` : url;
         return {
-            branchName: gitRepository.branchName,
-            token: gitRepository.token,
+            branchName,
+            token,
             webUrl,
             cloneUrl,
             url
@@ -97,13 +88,14 @@ class GitDataAdapter {
         return ref.split('/')[2];
     }
 
-    _adapter(commit, repository, branchName, webhookType) {
-        const { url, webUrl, cloneUrl, token } = repository;
+    _adapter(commit, gitRepository, branchName, webhookType) {
+        const { url, webUrl, cloneUrl, token } = gitRepository;
+        const repository = { url, webUrl, cloneUrl, branchName, token };
+
         return {
             commit,
-            repository: { url, webUrl, cloneUrl, branchName, token },
-            webhookType,
-            type: buildTypes.GIT
+            repository,
+            webhookType
         };
     }
 }

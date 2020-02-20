@@ -96,9 +96,6 @@ class Operator {
 
     async _tenosrboards({ versions, registry, clusterOptions, boardTimeOut }, options) {
         const boards = await etcd.getTensorboards();
-        if (boards.length === 0) {
-            return;
-        }
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.TENSORBOARD}` });
 
         await tensorboardReconciler.reconcile({

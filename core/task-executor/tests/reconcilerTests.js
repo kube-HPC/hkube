@@ -381,6 +381,61 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
 
+        it('should add mounts', async () => {
+            const algorithm = 'green-alg';
+            const mounts = [
+                {
+                    pvcName: 'mypvc',
+                    path: '/mnt/stam'
+                },
+                {
+                    pvcName: 'mypvc2',
+                    path: '/tmp/foo'
+                }
+            ]
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerEnv: {
+                    myEnv: 'myValue'
+                },
+                algorithmEnv: {
+                    myAlgoEnv: 'myAlgoValue'
+                },
+                mounts
+            };
+
+            const testOptions = { ...options, defaultStorage: 'fs' };
+            const res = await reconciler.reconcile({
+                options: testOptions,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].volumeMounts).to.deep.include({
+                name: 'mypvc-0',
+                mountPath: mounts[0].path
+            });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include({
+                name: 'mypvc-0',
+                persistentVolumeClaim: { claimName: mounts[0].pvcName }
+            });
+        });
+
         it('should add Privileged flag by default', async () => {
             const algorithm = 'green-alg';
             algorithmTemplates[algorithm] = {

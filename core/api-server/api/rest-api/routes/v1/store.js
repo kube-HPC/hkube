@@ -6,7 +6,6 @@ const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
 const logger = require('../../middlewares/logger');
 const upload = multer({ dest: 'uploads/zipped/' });
-const debugUrlPrefix = 'hkube/debug';
 
 const routes = (option) => {
     const router = express.Router();
@@ -67,8 +66,7 @@ const routes = (option) => {
     router.post('/algorithms/debug', logger(), async (req, res, next) => {
         const algorithm = req.body;
         const debug = {
-            ...req.body,
-            data: { path: `${debugUrlPrefix}/${algorithm.name}` },
+            ...algorithm,
             options: { debug: true }
         };
         const response = await algorithmStore.insertAlgorithm(debug);

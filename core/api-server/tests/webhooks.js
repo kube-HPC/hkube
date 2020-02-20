@@ -11,6 +11,74 @@ describe('Webhooks', () => {
         nock('http://my-webhook-server-2').persist().post('/webhook/result').reply(200);
         nock('http://my-webhook-server-2').persist().post('/webhook/progress').reply(200);
     });
+    describe('Validation', () => {
+        it('should throw webhooks validation error of result should match format "url', async () => {
+            const options = {
+                uri: restUrl + '/exec/raw',
+                body: {
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    webhooks: {
+                        result: 'not_a_url'
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('data.webhooks.result should match format "url"');
+        });
+        it('should throw webhooks validation error of progress should match format "url', async () => {
+            const options = {
+                uri: restUrl + '/exec/raw',
+                body: {
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    webhooks: {
+                        progress: 'not_a_url'
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('data.webhooks.progress should match format "url"');
+        });
+        it('should throw webhooks validation error of NOT have additional properties', async () => {
+            const options = {
+                uri: restUrl + '/exec/raw',
+                body: {
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    webhooks: {
+                        no_such_prop: 'http://localhost'
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties (no_such_prop)');
+        });
+    });
     describe('Results', () => {
         it('should succeed to send webhook result', async () => {
             return new Promise(async (resolve) => {
@@ -42,53 +110,9 @@ describe('Webhooks', () => {
                     status: 'completed',
                     data: [{ res1: 400 }, { res2: 500 }]
                 }
-                await stateManager.setJobStatus(results);
-                await stateManager.setJobResults(results);
+                await stateManager.jobs.status.set(results);
+                await stateManager.jobs.results.set(results);
             });
-        });
-        it('should throw webhooks validation error of should match format "url', async () => {
-            const options = {
-                uri: restUrl + '/exec/raw',
-                body: {
-                    name: 'string',
-                    nodes: [
-                        {
-                            nodeName: 'string',
-                            algorithmName: 'green-alg',
-                            input: []
-                        }
-                    ],
-                    webhooks: {
-                        result: 'not_a_url'
-                    }
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.webhooks.result should match format "url"');
-        });
-        it('should throw webhooks validation error of NOT have additional properties', async () => {
-            const options = {
-                uri: restUrl + '/exec/raw',
-                body: {
-                    name: 'string',
-                    nodes: [
-                        {
-                            nodeName: 'string',
-                            algorithmName: 'green-alg',
-                            input: []
-                        }
-                    ],
-                    webhooks: {
-                        result2: 'http://localhost'
-                    }
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
         });
         it('should succeed to store pipeline with webhooks', async () => {
             const options = {
@@ -133,7 +157,7 @@ describe('Webhooks', () => {
                 level: 'info',
                 data: [{ res1: 400 }, { res2: 500 }]
             }
-            await stateManager.setJobResults(results);
+            await stateManager.jobs.results.set(results);
 
             await delay(1000);
 
@@ -179,50 +203,6 @@ describe('Webhooks', () => {
                 };
                 await request(stored);
             });
-        });
-        it('should throw webhooks validation error of should match format "url', async () => {
-            const options = {
-                uri: restUrl + '/exec/raw',
-                body: {
-                    name: 'string',
-                    nodes: [
-                        {
-                            nodeName: 'string',
-                            algorithmName: 'green-alg',
-                            input: []
-                        }
-                    ],
-                    webhooks: {
-                        progress: 'not_a_url'
-                    }
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.webhooks.progress should match format "url"');
-        });
-        it('should throw webhooks validation error of NOT have additional properties', async () => {
-            const options = {
-                uri: restUrl + '/exec/raw',
-                body: {
-                    name: 'string',
-                    nodes: [
-                        {
-                            nodeName: 'string',
-                            algorithmName: 'green-alg',
-                            input: []
-                        }
-                    ],
-                    webhooks: {
-                        progress2: 'http://localhost'
-                    }
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data.webhooks should NOT have additional properties');
         });
         it('should succeed to store pipeline with webhooks', async () => {
             const options = {
@@ -301,7 +281,7 @@ describe('Webhooks', () => {
                 data: [{ res1: 400 }, { res2: 500 }]
             }
 
-            await stateManager.setJobResults(results);
+            await stateManager.jobs.results.set(results);
 
             await delay(2000);
 

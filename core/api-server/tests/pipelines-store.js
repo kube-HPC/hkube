@@ -242,7 +242,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data should NOT have additional properties');
+            expect(response.body.error.message).to.equal('data should NOT have additional properties (additionalProps)');
         });
         it('should throw conflict error', async () => {
             const pipeline = clone(pipelines[0]);

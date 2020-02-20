@@ -10,7 +10,6 @@ let log;
 const modules = [
     require('./lib/producer/jobs-producer'),
     require('./lib/consumer/jobs-consumer'),
-    require('./lib/datastore/redis-storage-adapter'),
     require('./lib/metrics/pipeline-metrics'),
     require('./lib/datastore/graph-store')
 ];

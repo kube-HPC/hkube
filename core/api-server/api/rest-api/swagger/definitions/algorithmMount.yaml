@@ -1,0 +1,15 @@
+type: object
+properties:
+  pvcName:
+    type: string
+    format: algorithm-mount-pvc
+    minLength: 1
+    description: name of an existing kubernetes pvc (persistent volume claim)
+  path:
+    type: string
+    format: path
+    minLength: 1
+    description: the mount path in the algorithm container
+required:
+  - pvcName
+  - path

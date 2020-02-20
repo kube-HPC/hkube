@@ -31,24 +31,10 @@ describe('Executions', () => {
             expect(response.body.error.message).to.equal('jobId no_such_id Not Found');
         });
         it('should succeed to resume', async () => {
-            const stored = {
-                uri: restUrl + '/exec/stored',
-                body: { name: 'flow1' }
-            };
-            const res1 = await request(stored);
+            const res1 = await request({ uri: `${restUrl}/exec/stored`, body: { name: 'flow1' } });
             const { jobId } = res1.body;
-
-            const pause = {
-                uri: restUrl + '/exec/pause',
-                body: { jobId }
-            };
-            await request(pause);
-
-            const resume = {
-                uri: restPath,
-                body: { jobId }
-            };
-            const response = await request(resume);
+            await request({ uri: `${restUrl}/exec/pause`, body: { jobId } });
+            const response = await request({ uri: restPath, body: { jobId } });
             expect(response.body).to.have.property('message');
             expect(response.body.message).to.equal('OK');
         });
