@@ -65,7 +65,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('data should NOT have additional properties');
+            expect(response.body.error.message).to.equal('data should NOT have additional properties (nodes)');
         });
         it('should throw pipeline not found', async () => {
             const options = {
@@ -90,6 +90,18 @@ describe('Executions', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal(validationMessages.PIPELINE_NAME_FORMAT);
+        });
+        it('should throw unable to find flowInput', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'flowInput'
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('unable to find flowInput.files.links');
         });
         it('should succeed and return job id', async () => {
             const options = {
@@ -120,7 +132,7 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    name: 'flow4',
+                    name: 'override-flowInput',
                     flowInput: {
                         inp: [
                             [],
