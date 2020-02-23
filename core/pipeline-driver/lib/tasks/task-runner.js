@@ -93,7 +93,7 @@ class TaskRunner extends EventEmitter {
                 this._taskComplete(task);
                 break;
             default:
-                log.error(`invalid task status ${task.status}`, { component, jobId: this._jobId });
+                log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
                 break;
         }
     }
