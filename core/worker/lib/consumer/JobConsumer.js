@@ -10,11 +10,9 @@ const fse = require('fs-extra');
 const pathLib = require('path');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
-const { metricsNames, Components } = require('../consts');
+const { metricsNames, Components, logMessages, jobStatus } = require('../consts');
 const dataExtractor = require('./data-extractor');
-const constants = require('./consts');
 const JobProvider = require('./job-provider');
-const { logMessages } = require('../consts');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
@@ -36,6 +34,16 @@ class JobConsumer extends EventEmitter {
         this.jobCurrentTime = null;
         this._hotWorker = false;
         this._algTracer = null;
+        this._storageProtocols = {
+            byRaw: {
+                get: this._tryExtractDataFromStorage.bind(this),
+                set: this._putResultToStorage.bind(this)
+            },
+            byRef: {
+                get: (data) => ({ data }),
+                set: (data) => data
+            }
+        };
     }
 
     async init(options) {
@@ -84,21 +92,14 @@ class JobConsumer extends EventEmitter {
 
             if (this._execId) {
                 const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
-                if (watchExecutionState && watchExecutionState.status === constants.WATCH_STATE.STOPPED) {
+                if (watchExecutionState && watchExecutionState.status === jobStatus.WATCH_STATE.STOPPED) {
                     await this.finishJob();
                     return;
                 }
             }
 
-            await etcd.update({
-                jobId: this._jobId,
-                taskId: this._taskId,
-                status: constants.JOB_STATUS.ACTIVE,
-                execId: this._job.data.execId,
-                nodeName: this._job.data.nodeName,
-                parentNodeName: this._job.data.parentNodeName,
-                algorithmName: this._job.data.algorithmName,
-                podName: this._options.kubernetes.pod_name,
+            await this.updateStatus({
+                status: jobStatus.JOB_STATUS.ACTIVE,
                 startTime: Date.now()
             });
 
@@ -113,6 +114,11 @@ class JobConsumer extends EventEmitter {
         stateManager.on('finish', () => {
             this.finishBullJob();
         });
+    }
+
+    setStorage(type) {
+        this._putStorage = this._storageProtocols[type].set;
+        this._getStorage = this._storageProtocols[type].get;
     }
 
     _isCompletedState({ status }) {
@@ -147,6 +153,7 @@ class JobConsumer extends EventEmitter {
         this._pipelineName = job.data.pipelineName;
         this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
         this._retry = job.data.retry;
+        this.jobCurrentTime = new Date();
     }
 
     async _stopJob(job, status) {
@@ -275,7 +282,7 @@ class JobConsumer extends EventEmitter {
     _getStatus(data) {
         const { state, results, isTtlExpired } = data;
         const workerStatus = state;
-        let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
+        let status = state === jobStatus.JOB_STATUS.WORKING ? jobStatus.JOB_STATUS.ACTIVE : state;
         let error = null;
         let reason = null;
         const shouldCompleteJob = this._shouldNormalExit(results);
@@ -283,11 +290,11 @@ class JobConsumer extends EventEmitter {
         if (results != null) {
             error = results.error && results.error.message;
             reason = results.error && results.error.reason;
-            status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
+            status = error ? jobStatus.JOB_STATUS.FAILED : jobStatus.JOB_STATUS.SUCCEED;
         }
         if (isTtlExpired) {
             error = logMessages.algorithmTtlExpired;
-            status = constants.JOB_STATUS.FAILED;
+            status = jobStatus.JOB_STATUS.FAILED;
         }
         const resultData = results && results.data;
         return {
@@ -301,8 +308,7 @@ class JobConsumer extends EventEmitter {
     }
 
     async extractData(jobInfo) {
-        this.jobCurrentTime = new Date();
-        const { error, data } = await this._tryExtractDataFromStorage(jobInfo);
+        const { error, data } = await this._getStorage(jobInfo);
         if (error) {
             log.error(`failed to extract data input: ${error.message}`, { component }, error);
             stateManager.done({ error });
@@ -331,15 +337,26 @@ class JobConsumer extends EventEmitter {
         }
         const data = {
             warning,
-            status: constants.JOB_STATUS.WARNING,
+            status: jobStatus.JOB_STATUS.WARNING
+        };
+        await this.updateStatus(data);
+    }
+
+    async updateStatus(data = {}) {
+        await etcd.update({ ...this._getState(), ...data });
+    }
+
+    _getState() {
+        return {
             jobId: this._jobId,
             taskId: this._taskId,
             execId: this._job.data.execId,
             nodeName: this._job.data.nodeName,
             parentNodeName: this._job.data.parentNodeName,
             algorithmName: this._job.data.algorithmName,
+            podName: this._options.kubernetes.pod_name,
+            batchIndex: this._batchIndex
         };
-        await etcd.update(data);
     }
 
     async finishJob(data = {}, isTtlExpired) {
@@ -355,8 +372,8 @@ class JobConsumer extends EventEmitter {
 
         if (shouldCompleteJob) {
             let metricsPath;
-            if (!error && status === constants.JOB_STATUS.SUCCEED) {
-                storageResult = await this._putResult(resultData);
+            if (!error && status === jobStatus.JOB_STATUS.SUCCEED) {
+                storageResult = await this._putStorage(resultData);
                 if (!(this.jobData.metrics && this.jobData.metrics.tensorboard === false)) {
                     const tensorboard = await this._putAlgoMetrics();
                     (tensorboard.path || tensorboard.error) && (metricsPath = { tensorboard });
@@ -366,29 +383,22 @@ class JobConsumer extends EventEmitter {
                 status,
                 error,
                 reason,
-                jobId: this._jobId,
-                taskId: this._taskId,
-                execId: this._job.data.execId,
-                nodeName: this._job.data.nodeName,
-                parentNodeName: this._job.data.parentNodeName,
-                algorithmName: this._job.data.algorithmName,
-                batchIndex: this._batchIndex,
                 endTime: Date.now(),
                 metricsPath,
                 ...storageResult
             };
 
             this._job.error = error;
-            await etcd.update(resData);
+            await this.updateStatus(resData);
             log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
         this._summarizeMetrics(status);
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
     }
 
-    _summarizeMetrics(jobStatus) {
+    _summarizeMetrics(status) {
         try {
-            if (jobStatus === constants.JOB_STATUS.FAILED) {
+            if (status === jobStatus.JOB_STATUS.FAILED) {
                 metrics.get(metricsNames.worker_failed).inc({
                     labelValues: {
                         pipeline_name: this._pipelineName,
@@ -396,7 +406,7 @@ class JobConsumer extends EventEmitter {
                     }
                 });
             }
-            else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
+            else if (status === jobStatus.JOB_STATUS.SUCCEED) {
                 metrics.get(metricsNames.worker_succeeded).inc({
                     labelValues: {
                         pipeline_name: this._pipelineName,
@@ -407,13 +417,13 @@ class JobConsumer extends EventEmitter {
             metrics.get(metricsNames.worker_net).end({
                 id: this._taskId,
                 labelValues: {
-                    status: jobStatus
+                    status
                 }
             });
             metrics.get(metricsNames.worker_runtime).end({
                 id: this._taskId,
                 labelValues: {
-                    status: jobStatus
+                    status
                 }
             });
         }
@@ -422,10 +432,10 @@ class JobConsumer extends EventEmitter {
         }
     }
 
-    async _putResult(data) {
+    async _putResultToStorage(data) {
         let result = null;
         let error;
-        let status = constants.JOB_STATUS.SUCCEED;
+        let status = jobStatus.JOB_STATUS.SUCCEED;
         try {
             if (data === undefined) {
                 // eslint-disable-next-line no-param-reassign
@@ -444,7 +454,7 @@ class JobConsumer extends EventEmitter {
         catch (err) {
             log.error(`failed to store data job:${this._jobId} task:${this._taskId}, ${err}`, { component }, err);
             error = err.message;
-            status = constants.JOB_STATUS.FAILED;
+            status = jobStatus.JOB_STATUS.FAILED;
         }
         finally {
             // eslint-disable-next-line no-unsafe-finally

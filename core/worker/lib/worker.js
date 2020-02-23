@@ -5,13 +5,15 @@ const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
-const { stateEvents, workerStates, workerCommands, Components } = require('../lib/consts');
+const { stateEvents, workerStates, workerCommands, Components, jobStatus, protocols } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
+const encodingHelper = require('./helpers/encoding');
 const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
+const { EncodingProtocols, StorageProtocols, DefaultEncodingProtocol, DefaultStorageProtocol } = protocols;
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
@@ -41,6 +43,25 @@ class Worker {
         this._setInactiveTimeout();
         this._isInit = true;
         this._doTheBootstrap();
+    }
+
+    _initAlgorithmSettings() {
+        const isBinary = this._options.workerCommunication.config.binary;
+        const workerEncodingProtocol = isBinary ? EncodingProtocols.BSON : DefaultEncodingProtocol;
+        const workerStorageProtocol = StorageProtocols.BY_REF;
+        const storageProtocols = this._algorithmSettings.storageProtocols || DefaultStorageProtocol;
+        const encodingProtocols = this._algorithmSettings.encodingProtocols || DefaultEncodingProtocol;
+
+        const storage = this._resolveConfig(storageProtocols, workerStorageProtocol, DefaultStorageProtocol);
+        const encoding = this._resolveConfig(encodingProtocols, workerEncodingProtocol, DefaultEncodingProtocol);
+        jobConsumer.setStorage(storage);
+        encodingHelper.setEncoding(encoding);
+    }
+
+    _resolveConfig(algorithmProtocols, workerProtocol, defaultVal) {
+        const algorithmProtocolsArray = algorithmProtocols.split(',');
+        const value = algorithmProtocolsArray.includes(workerProtocol) ? workerProtocol : defaultVal;
+        return value;
     }
 
     _setInactiveTimeout() {
@@ -130,17 +151,19 @@ class Worker {
             return;
         }
         this._isBootstrapped = true;
+        this._initAlgorithmSettings();
         log.info('starting bootstrap state', { component });
         stateManager.bootstrap();
         log.info('finished bootstrap state', { component });
     }
 
     _registerToConnectionEvents() {
-        algoRunnerCommunication.on('connection', () => {
+        algoRunnerCommunication.on('connection', (options) => {
             this._isConnected = true;
             if (stateManager.state === workerStates.exit) {
                 return;
             }
+            this._algorithmSettings = options || {};
             this._doTheBootstrap();
         });
         algoRunnerCommunication.on('disconnect', async (reason) => {
@@ -183,6 +206,9 @@ class Worker {
     _registerToCommunicationEvents() {
         algoRunnerCommunication.on(messages.incomming.initialized, () => {
             stateManager.start();
+        });
+        algoRunnerCommunication.on(messages.incomming.storing, async (message) => {
+            await jobConsumer.updateStatus({ status: jobStatus.JOB_STATUS.STORING, ...message.data });
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
