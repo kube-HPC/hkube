@@ -587,15 +587,14 @@ class TaskRunner extends EventEmitter {
     }
 
     _updateTaskState(taskId, task) {
-        const { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
-        const state = { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath };
+        const { status, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
+        const state = { status, error, reason, podName, warning, retries, startTime, endTime, metricsPath };
         const result = {
+            ...task.result,
             taskId,
-            result,
             discovery: podName
         };
-
-        return this._nodes.updateTaskState(taskId, state);
+        return this._nodes.updateTaskState(taskId, { ...state, result });
     }
 
     _createJob(options, batch) {
