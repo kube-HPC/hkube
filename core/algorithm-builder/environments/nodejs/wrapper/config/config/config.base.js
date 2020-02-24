@@ -1,4 +1,6 @@
 const config = module.exports = {};
+config.clusterName = process.env.CLUSTER_NAME || 'local';
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 
 config.socket = {
     port: process.env.WORKER_SOCKET_PORT || 3000,
@@ -11,6 +13,12 @@ config.socket = {
 config.algorithm = {
     path: process.env.ALGORITHM_PATH || 'algorithm_unique_folder',
     entryPoint: process.env.ALGORITHM_ENTRY_POINT || 'index.js'
+};
+
+config.algorithmDiscovery = {
+    host: process.env.POD_NAME || '127.0.0.1',
+    port: process.env.DISCOVERY_PORT || 9020,
+    binary: true
 };
 
 config.s3 = {
@@ -30,18 +38,15 @@ config.capabilities = {
     encodingProtocols: 'json,bson'
 };
 
-config.storage = {
-    enableCache: !!process.env.ENABLE_WORKER_CACHE,
-    type: process.env.DEFAULT_STORAGE || 's3',
-    clusterName: process.env.CLUSTER_NAME || 'local',
-    adapters: {
-        s3: {
-            connection: config.s3,
-            moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
-        },
-        fs: {
-            connection: config.fs,
-            moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
-        }
+config.enableCache = !!process.env.ENABLE_WORKER_CACHE;
+
+config.storageAdapters = {
+    s3: {
+        connection: config.s3,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
+    },
+    fs: {
+        connection: config.fs,
+        moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
