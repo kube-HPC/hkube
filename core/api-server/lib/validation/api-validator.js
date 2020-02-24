@@ -74,8 +74,8 @@ class ApiValidator {
         this._validate(this._definitionsInternal.storedSubPipeline, pipeline, false);
     }
 
-    validatePipeline(pipeline) {
-        this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true });
+    validatePipeline(pipeline, options = {}) {
+        this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true, ...options });
     }
 
     validateRunRawPipeline(pipeline) {
@@ -204,7 +204,7 @@ class ApiValidator {
         }
     }
 
-    _validateInner(validatorInstance, schema, obj, options) {
+    _validateInner(validatorInstance, schema, obj, options = { checkFlowInput: false, validateNodes: true }) {
         const object = obj || {};
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
@@ -218,7 +218,7 @@ class ApiValidator {
             }
             throw new InvalidDataError(error);
         }
-        if (object.nodes) {
+        if (object.nodes && options.validateNodes !== false) {
             this._validateNodes(object, options);
         }
     }

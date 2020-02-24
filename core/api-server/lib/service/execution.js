@@ -28,13 +28,13 @@ class ExecutionService {
 
     async runCaching(options) {
         validator.validateCaching(options);
-        const { jobId, nodeName } = options;
-        const { error, pipeline } = await cachingService.exec({ jobId, nodeName });
+        const { error, pipeline } = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName });
         if (error) {
             throw new InvalidDataError(error.message);
         }
-        const types = [...new Set([...pipeline.types || [], pipelineTypes.NODE])];
-        return this._run({ pipeline, options: { alreadyExecuted: true }, types });
+        const { jobId, flowInputOrig, startTime, lastRunResult, types, ...restPipeline } = pipeline;
+        const newTypes = [...new Set([...types || [], pipelineTypes.NODE])];
+        return this._run({ pipeline: restPipeline, options: { alreadyExecuted: true, validateNodes: false }, types: newTypes });
     }
 
     async runAlgorithm(options) {
@@ -64,10 +64,10 @@ class ExecutionService {
     async _run(payload) {
         let { pipeline, jobId } = payload;
         const { types, rootJobId } = payload;
-        const { alreadyExecuted, parentSpan } = payload.options || {};
+        const { alreadyExecuted, validateNodes, parentSpan } = payload.options || {};
 
         validator.addPipelineDefaults(pipeline);
-        validator.validatePipeline(pipeline);
+        validator.validatePipeline(pipeline, { validateNodes });
 
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
