@@ -14,15 +14,14 @@ class KubernetesApi extends EventEmitter {
 
         try {
             this._client = new KubernetesClient(options.kubernetes);
-            log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
-
             const kubeVersionRaw = await this._client.versions.get();
             this.kubeVersion = {
                 ...kubeVersionRaw.body,
                 major: formatters.parseInt(kubeVersionRaw.body.major, 1),
                 minor: formatters.parseInt(kubeVersionRaw.body.minor, 9)
             };
-            log.info(`kubernetes version: ${this.kubeVersion.major}:${this.kubeVersion.minor}`);
+            const version = `${this.kubeVersion.major}:${this.kubeVersion.minor}`;
+            log.info(`Initialized kubernetes client with version: ${version}, url: ${this._client._config.url}`, { component });
         }
         catch (error) {
             log.error(`Error initializing kubernetes. error: ${error.message}`, { component }, error);

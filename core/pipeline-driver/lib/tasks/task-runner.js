@@ -90,11 +90,11 @@ class TaskRunner extends EventEmitter {
             case 'storing':
             case taskStatuses.FAILED:
             case taskStatuses.SUCCEED:
-                const prevTask = this._setTaskState(task); // eslint-disable
+                const prevTask = this._setTaskState(task); // eslint-disable-line
                 this._taskComplete({ ...task, prevStatus: prevTask && prevTask.prevStatus });
                 break;
             default:
-                log.error(`invalid task status ${task.status}`, { component, jobId: this._jobId });
+                log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
                 break;
         }
     }
@@ -577,7 +577,16 @@ class TaskRunner extends EventEmitter {
         if (execId) {
             this._nodes.updateAlgorithmExecution(task);
         }
-        const prevStatus = this._updateTaskState(taskId, task);
+
+        let result;
+        if (task.status === 'storing') {
+            result = {
+                ...task.result,
+                taskId: task.taskId,
+                discovery: task.podName
+            };
+        }
+        const prevStatus = this._updateTaskState(taskId, { ...task, result });
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
@@ -587,14 +596,9 @@ class TaskRunner extends EventEmitter {
     }
 
     _updateTaskState(taskId, task) {
-        const { status, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
-        const state = { status, error, reason, podName, warning, retries, startTime, endTime, metricsPath };
-        const result = {
-            ...task.result,
-            taskId,
-            discovery: podName
-        };
-        return this._nodes.updateTaskState(taskId, { ...state, result });
+        const { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
+        const state = { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath };
+        return this._nodes.updateTaskState(taskId, state);
     }
 
     _createJob(options, batch) {

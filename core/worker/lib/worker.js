@@ -47,19 +47,20 @@ class Worker {
 
     _initAlgorithmSettings() {
         const isBinary = this._options.workerCommunication.config.binary;
-        const workerEncodingProtocol = isBinary ? EncodingProtocols.BSON : DefaultEncodingProtocol;
-        const workerStorageProtocol = StorageProtocols.BY_REF;
-        const storageProtocols = this._algorithmSettings.storageProtocols || DefaultStorageProtocol;
-        const encodingProtocols = this._algorithmSettings.encodingProtocols || DefaultEncodingProtocol;
+        const workerEncoding = isBinary ? EncodingProtocols.BSON : DefaultEncodingProtocol;
+        const workerStorage = StorageProtocols.BY_REF;
+        const algorithmStorage = this._algorithmSettings.storageProtocols;
+        const algorithmEncoding = this._algorithmSettings.encodingProtocols;
 
-        const storage = this._resolveConfig(storageProtocols, workerStorageProtocol, DefaultStorageProtocol);
-        const encoding = this._resolveConfig(encodingProtocols, workerEncodingProtocol, DefaultEncodingProtocol);
+        const storage = this._resolveConfig(algorithmStorage, workerStorage, DefaultStorageProtocol);
+        const encoding = this._resolveConfig(algorithmEncoding, workerEncoding, DefaultEncodingProtocol);
         jobConsumer.setStorage(storage);
         encodingHelper.setEncoding(encoding);
+        log.info(`algorithm protocols [storage ${algorithmStorage}][encoding ${algorithmEncoding}], chosen protocols: [storage ${storage}][encoding: ${encoding}]`, { component });
     }
 
     _resolveConfig(algorithmProtocols, workerProtocol, defaultVal) {
-        const algorithmProtocolsArray = algorithmProtocols.split(',');
+        const algorithmProtocolsArray = (algorithmProtocols && algorithmProtocols.split(',')) || defaultVal;
         const value = algorithmProtocolsArray.includes(workerProtocol) ? workerProtocol : defaultVal;
         return value;
     }
@@ -208,7 +209,7 @@ class Worker {
             stateManager.start();
         });
         algoRunnerCommunication.on(messages.incomming.storing, async (message) => {
-            await jobConsumer.updateStatus({ status: jobStatus.JOB_STATUS.STORING, ...message.data });
+            await jobConsumer.updateStatus({ status: jobStatus.JOB_STATUS.STORING, result: message.data });
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
