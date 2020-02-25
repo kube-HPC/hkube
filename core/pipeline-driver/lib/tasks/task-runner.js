@@ -578,7 +578,14 @@ class TaskRunner extends EventEmitter {
             this._nodes.updateAlgorithmExecution(task);
         }
 
-        const prevStatus = this._updateTaskState(taskId, task);
+        let result;
+        if (task.status === 'storing') {
+            result = {
+                ...task.result,
+                taskId
+            };
+        }
+        const prevStatus = this._updateTaskState(taskId, { ...task, result });
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
