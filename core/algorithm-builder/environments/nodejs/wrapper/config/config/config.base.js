@@ -24,7 +24,7 @@ config.algorithmDiscovery = {
 config.s3 = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    endpoint: process.env.S3_ENDPOINT_URL,
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
     binary: !!process.env.STORAGE_BINARY
 };
 
