@@ -14,7 +14,7 @@ class DataExtractor {
     async extract(input, storage, tracerStart) {
         const result = clone(input);
         const flatObj = flatten(input);
-        if (!this.isStorageEqueal(storage, this.oldStorage)) {
+        if (!this.isStorageEqual(storage, this.oldStorage)) {
             this.storageCache = Object.create(null);
         }
         this.oldStorage = storage;
@@ -61,7 +61,7 @@ class DataExtractor {
         return data;
     }
 
-    isStorageEqueal(storage1, storage2) {
+    isStorageEqual(storage1, storage2) {
         if (storage1 && storage2) {
             const links1 = Object.values(storage1).map(s => s.storageInfo.path).sort();
             const links2 = Object.values(storage2).map(s => s.storageInfo.path).sort();

@@ -8,7 +8,7 @@ const workerCommands = require('./worker-commands');
 const metricsNames = require('./metrics-names');
 const logMessages = require('./log-messages');
 const jobStatus = require('./job-status');
-const protocols = require('./protocols');
+const protocolTypes = require('./protocol-types');
 
 module.exports = {
     Components,
@@ -21,5 +21,5 @@ module.exports = {
     metricsNames,
     logMessages,
     jobStatus,
-    protocols
+    protocolTypes
 };

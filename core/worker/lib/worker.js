@@ -5,7 +5,7 @@ const stateManager = require('./states/stateManager');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
-const { stateEvents, workerStates, workerCommands, Components, jobStatus, protocols } = require('../lib/consts');
+const { stateEvents, workerStates, workerCommands, Components, jobStatus, protocolTypes } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
@@ -13,7 +13,7 @@ const execAlgorithms = require('./code-api/algorithm-execution/algorithm-executi
 const encodingHelper = require('./helpers/encoding');
 const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
-const { EncodingProtocols, StorageProtocols, DefaultEncodingProtocol, DefaultStorageProtocol } = protocols;
+const { EncodingProtocols, StorageProtocols, DefaultEncodingProtocol, DefaultStorageProtocol } = protocolTypes;
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
@@ -56,7 +56,19 @@ class Worker {
         const encoding = this._resolveConfig(algorithmEncoding, workerEncoding, DefaultEncodingProtocol);
         jobConsumer.setStorage(storage);
         encodingHelper.setEncoding(encoding);
-        log.info(`algorithm protocols [storage ${algorithmStorage}][encoding ${algorithmEncoding}], chosen protocols: [storage ${storage}][encoding: ${encoding}]`, { component });
+
+        let message = '';
+        if (!algorithmStorage && !algorithmEncoding) {
+            message += 'there are no algorithm protocols';
+        }
+        else {
+            message += `found algorithm protocols ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
+        }
+        log.info(`${message}, chosen protocols: ${this._formatProtocol({ storage, encoding })}`, { component });
+    }
+
+    _formatProtocol(protocols) {
+        return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `[${k} ${v}]`) : '';
     }
 
     _resolveConfig(algorithmProtocols, workerProtocol, defaultVal) {
