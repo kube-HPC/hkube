@@ -166,10 +166,10 @@ class SubPipelineHandler {
     /**
      * Handle subPipeline job error
      * @param {string} error error message
-     * @param {string} subPipelineId internal algorothm subpipeline Id
+     * @param {string} subPipelineId internal algorithm subpipeline Id
      */
     async _handleJobError(error, subPipelineId) {
-        log.warning(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
+        log.error(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
         algoRunnerCommunication.send({
             command: messages.outgoing.subPipelineError,
             data: {
@@ -244,7 +244,7 @@ class SubPipelineHandler {
     /**
      * finish subPipeline span for algorithm
      * @param subPipelineId
-     * @param status subPieline status when finished
+     * @param status subPipeline status when finished
      * @param error for status=FAILED: error object or message, for status=STOP: stop reason
      */
     _finishSubPipelineSpan(subPipelineId, status, error) {
