@@ -77,7 +77,7 @@ class TaskRunner extends EventEmitter {
             case taskStatuses.CRASHED: {
                 const data = { ...task, endTime: Date.now(), status: taskStatuses.FAILED };
                 this._setTaskState(data);
-                this._taskComplete(task);
+                this._onTaskError(task);
                 break;
             }
             case taskStatuses.WARNING: {
@@ -88,10 +88,16 @@ class TaskRunner extends EventEmitter {
                 this._setTaskState(task);
                 break;
             case 'storing':
+                this._setTaskState(task);
+                this._onStoring(task);
+                break;
             case taskStatuses.FAILED:
+                this._setTaskState(task);
+                this._onTaskError(task);
+                break;
             case taskStatuses.SUCCEED:
-                const prevTask = this._setTaskState(task); // eslint-disable-line
-                this._taskComplete({ ...task, prevStatus: prevTask && prevTask.prevStatus });
+                this._setTaskState(task);
+                this._onTaskComplete(task);
                 break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -523,10 +529,10 @@ class TaskRunner extends EventEmitter {
         this._nodes.addBatch(node);
         this._nodes.setNode({ nodeName: options.node.nodeName, result: [], status: taskStatuses.SKIPPED });
         this._setTaskState(node);
-        this._taskComplete(node);
+        this._onTaskComplete(node);
     }
 
-    _taskComplete(task) {
+    _onTaskError(task) {
         if (!this._active) {
             return;
         }
@@ -534,13 +540,24 @@ class TaskRunner extends EventEmitter {
         if (error) {
             this.stop({ error, nodeName: task.nodeName });
         }
-        else {
-            if (task.prevStatus !== 'storing') {
-                this._nodes.updateCompletedTask(task);
-            }
-            if (this._nodes.isAllNodesCompleted()) {
-                this.stop();
-            }
+        else if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
+        }
+    }
+
+    _onStoring(task) {
+        if (!this._active) {
+            return;
+        }
+        this._nodes.runNextNodes(task);
+    }
+
+    _onTaskComplete() {
+        if (!this._active) {
+            return;
+        }
+        if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
         }
     }
 
@@ -571,33 +588,25 @@ class TaskRunner extends EventEmitter {
 
     _setTaskState(task) {
         if (!this._active) {
-            return null;
+            return;
         }
         const { taskId, execId, status, error } = task;
         if (execId) {
             this._nodes.updateAlgorithmExecution(task);
         }
 
-        let result;
-        if (task.status === 'storing') {
-            result = {
-                ...task.result,
-                taskId
-            };
-        }
-        const prevStatus = this._updateTaskState(taskId, { ...task, result });
+        this._updateTaskState(taskId, task);
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
         this._boards.update(task);
         pipelineMetrics.setProgressMetric({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._progress.currentProgress, status: taskStatuses.ACTIVE });
-        return prevStatus;
     }
 
     _updateTaskState(taskId, task) {
         const { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath } = task;
         const state = { status, result, error, reason, podName, warning, retries, startTime, endTime, metricsPath };
-        return this._nodes.updateTaskState(taskId, state);
+        this._nodes.updateTaskState(taskId, state);
     }
 
     _createJob(options, batch) {

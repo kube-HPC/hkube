@@ -41,9 +41,11 @@ config.workerCommunication = {
         },
         maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES,
         pingTimeout: formatters.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000),
-        binary: formatters.parseBool(process.env.WORKER_BINARY, false)
+        binary: formatters.parseBool(process.env.WORKER_BINARY, false),
     }
 };
+
+config.workerCommunication.config.encoding = config.workerCommunication.config.binary ? 'bson' : 'json';
 
 config.jobConsumer = {
     job: {

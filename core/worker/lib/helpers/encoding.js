@@ -1,21 +1,8 @@
-const { binaryDecode, binaryEncode } = require('../helpers/binaryEncoding');
+const { Encoding } = require('@hkube/encoding');
 
-class Encoding {
-    constructor() {
-        this._encodingTypes = {
-            json: {
-                decode: JSON.parse,
-                encode: JSON.stringify
-            },
-            bson: {
-                decode: binaryDecode,
-                encode: binaryEncode
-            }
-        };
-    }
-
+class EncodingHelper {
     setEncoding(type) {
-        this._encoding = this._encodingTypes[type];
+        this._encoding = new Encoding({ type });
     }
 
     decode(...args) {
@@ -27,5 +14,4 @@ class Encoding {
     }
 }
 
-
-module.exports = new Encoding();
+module.exports = new EncodingHelper();

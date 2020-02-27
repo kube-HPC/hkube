@@ -13,7 +13,7 @@ const execAlgorithms = require('./code-api/algorithm-execution/algorithm-executi
 const encodingHelper = require('./helpers/encoding');
 const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
-const { EncodingProtocols, StorageProtocols, DefaultEncodingProtocol, DefaultStorageProtocol } = protocolTypes;
+const { StorageProtocols, DefaultEncodingProtocol, DefaultStorageProtocol } = protocolTypes;
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
@@ -46,11 +46,10 @@ class Worker {
     }
 
     _initAlgorithmSettings() {
-        const isBinary = this._options.workerCommunication.config.binary;
-        const workerEncoding = isBinary ? EncodingProtocols.BSON : DefaultEncodingProtocol;
+        const workerEncoding = this._options.workerCommunication.config.encoding;
         const workerStorage = StorageProtocols.BY_REF;
-        const algorithmStorage = this._algorithmSettings.storageProtocols;
-        const algorithmEncoding = this._algorithmSettings.encodingProtocols;
+        const algorithmStorage = this._algorithmSettings.storage;
+        const algorithmEncoding = this._algorithmSettings.encoding;
 
         const storage = this._resolveConfig(algorithmStorage, workerStorage, DefaultStorageProtocol);
         const encoding = this._resolveConfig(algorithmEncoding, workerEncoding, DefaultEncodingProtocol);
@@ -68,7 +67,7 @@ class Worker {
     }
 
     _formatProtocol(protocols) {
-        return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `[${k} ${v}]`) : '';
+        return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `[${k} ${v}]`).join('') : '';
     }
 
     _resolveConfig(algorithmProtocols, workerProtocol, defaultVal) {

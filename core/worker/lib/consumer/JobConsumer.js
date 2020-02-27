@@ -1,8 +1,8 @@
 const EventEmitter = require('events');
 const recursive = require('recursive-readdir');
-const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer, metrics, utils } = require('@hkube/metrics');
+const { dataAdapter } = require('@hkube/worker-data-adapter');
 const storageManager = require('@hkube/storage-manager');
 const { pipelineStatuses, taskStatuses, retryPolicy } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
@@ -11,7 +11,6 @@ const pathLib = require('path');
 const stateManager = require('../states/stateManager');
 const etcd = require('../states/discovery');
 const { metricsNames, Components, logMessages, jobStatus } = require('../consts');
-const dataExtractor = require('./data-extractor');
 const JobProvider = require('./job-provider');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
@@ -59,6 +58,7 @@ class JobConsumer extends EventEmitter {
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
         // create another tracer for the algorithm
+        await dataAdapter.init(options);
         this._algTracer = await tracer.createTracer(this.getAlgorithmType(), options.tracer);
 
         if (this._consumer) {
@@ -323,7 +323,7 @@ class JobConsumer extends EventEmitter {
             };
         }
         try {
-            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, partial(tracer.startSpan, this.getTracer('storage-get')));
+            const input = await dataAdapter.getData(jobInfo.input, jobInfo.storage, partial(tracer.startSpan, this.getTracer('storage-get')));
             return { data: { ...jobInfo, input } };
         }
         catch (error) {
@@ -367,13 +367,12 @@ class JobConsumer extends EventEmitter {
         if (this._execId) {
             await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
-        let storageResult = {};
         const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
         if (shouldCompleteJob) {
             let metricsPath;
             if (!error && status === jobStatus.JOB_STATUS.SUCCEED) {
-                storageResult = await this._putStorage(resultData);
+                await this._putStorage(resultData);
                 if (!(this.jobData.metrics && this.jobData.metrics.tensorboard === false)) {
                     const tensorboard = await this._putAlgoMetrics();
                     (tensorboard.path || tensorboard.error) && (metricsPath = { tensorboard });
@@ -384,8 +383,7 @@ class JobConsumer extends EventEmitter {
                 error,
                 reason,
                 endTime: Date.now(),
-                metricsPath,
-                ...storageResult
+                metricsPath
             };
 
             this._job.error = error;
@@ -437,17 +435,16 @@ class JobConsumer extends EventEmitter {
         let error;
         let status = jobStatus.JOB_STATUS.SUCCEED;
         try {
-            if (data === undefined) {
-                // eslint-disable-next-line no-param-reassign
-                data = null;
-            }
-            const storageInfo = await storageManager.hkube.put({
+            await this.updateStatus({ status: jobStatus.JOB_STATUS.STORING, result: data });
+            const storageInfo = await dataAdapter.setData({
                 jobId: this._job.data.jobId, taskId: this._job.data.taskId, data
             }, tracer.startSpan.bind(tracer, this.getTracer('storage-put')));
 
-            const object = { [this._job.data.nodeName]: data };
+            const { nodeName, info } = this._job.data;
+            const metadata = dataAdapter.createMetadata({ nodeName, data, savePaths: info.savePaths });
+
             result = {
-                metadata: parser.objectToMetadata(object, this._job.data.info.savePaths),
+                metadata,
                 storageInfo
             };
         }

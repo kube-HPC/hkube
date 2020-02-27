@@ -17,8 +17,7 @@ function getConfig() {
     };
 }
 
-describe('data-extractor tests', () => {
-
+describe.skip('data-extractor tests', () => {
     afterEach(async function () {
         spy && spy.restore();
         spy2 && spy2.restore();

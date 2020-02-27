@@ -8,7 +8,10 @@ config.socket = {
     protocol: process.env.WORKER_SOCKET_PROTOCOL || 'ws',
     url: process.env.WORKER_SOCKET_URL || null,
     binary: !!process.env.WORKER_BINARY
+
 };
+
+config.socket.encoding = config.socket.binary ? 'bson' : 'json';
 
 config.algorithm = {
     path: process.env.ALGORITHM_PATH || 'algorithm_unique_folder',
@@ -34,8 +37,8 @@ config.fs = {
 };
 
 config.capabilities = {
-    storageProtocols: 'byRaw,byRef',
-    encodingProtocols: 'json,bson'
+    storage: 'byRaw,byRef',
+    encoding: 'json,bson'
 };
 
 config.enableCache = !!process.env.ENABLE_WORKER_CACHE;
