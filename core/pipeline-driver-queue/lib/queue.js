@@ -95,8 +95,8 @@ class Queue extends Events {
         return this.queue.length;
     }
 
-    get get() {
-        return this.queue;
+    getQueue(filter = () => true) {
+        return this.queue.filter(filter);
     }
 
     set intervalRunningStatus(status) {

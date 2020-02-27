@@ -184,15 +184,19 @@ class ApiValidator {
 
     async validateConcurrentPipelines(pipelines, jobId) {
         if (pipelines.options && pipelines.options.concurrentPipelines) {
-            const { concurrentPipelines } = pipelines.options;
+            const { amount, rejectOnFailure } = pipelines.options.concurrentPipelines;
             const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
             if (jobIdPrefix) {
                 const result = await stateManager.executions.running.list({ jobId: jobIdPrefix[0] });
-                if (result.length >= concurrentPipelines) {
-                    throw new InvalidDataError(`maximum number [${concurrentPipelines}] of concurrent pipelines has been reached`);
+                if (result.length >= amount) {
+                    if (rejectOnFailure) {
+                        throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
+                    }
+                    return true;
                 }
             }
         }
+        return false;
     }
 
     _validate(schema, object, useDefaults, options) {

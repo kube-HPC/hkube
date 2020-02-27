@@ -76,7 +76,7 @@ class ExecutionService {
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
             await validator.validateAlgorithmExists(pipeline);
-            await validator.validateConcurrentPipelines(pipeline, jobId);
+            const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },
@@ -94,7 +94,7 @@ class ExecutionService {
             await stateManager.executions.stored.set(pipelineObject);
             await stateManager.executions.running.set(pipelineObject);
             await stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name });
-            await producer.createJob({ jobId, parentSpan: span.context() });
+            await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
             return jobId;
         }

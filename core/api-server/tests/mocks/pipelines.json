@@ -372,7 +372,7 @@
         "triggers": {}
     },
     {
-        "name": "concurrentPipelines",
+        "name": "concurrentPipelinesReject",
         "nodes": [
             {
                 "nodeName": "green",
@@ -386,7 +386,30 @@
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug",
             "ttl": 3600,
-            "concurrentPipelines": 2
+            "concurrentPipelines": {
+                "amount": 2
+            }
+        }
+    },
+    {
+        "name": "concurrentPipelinesResolve",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "flowInput"
+                ]
+            }
+        ],
+        "options": {
+            "batchTolerance": 100,
+            "progressVerbosityLevel": "debug",
+            "ttl": 3600,
+            "concurrentPipelines": {
+                "amount": 2,
+                "rejectOnFailure": false
+            }
         }
     }
 ]
