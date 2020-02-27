@@ -7,6 +7,7 @@ const { componentName } = require('../consts');
 const component = componentName.JOBS_PRODUCER;
 const persistence = require('../persistency/persistence');
 const queueRunner = require('../queue-runner');
+const JOB_ID_PREFIX_REGEX = /.+:(.+:)?/;
 
 class JobProducer {
     constructor() {
@@ -36,7 +37,7 @@ class JobProducer {
 
     async _checkQueue() {
         try {
-            if (queueRunner.queue.get.length > 0) {
+            if (queueRunner.queue.getQueue(q => !q.maxExceeded).length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
                     await this.createJob();
@@ -53,7 +54,7 @@ class JobProducer {
 
     async _updateState() {
         try {
-            const queue = [...queueRunner.queue.get];
+            const queue = [...queueRunner.queue.getQueue()];
             if (!isEqual(queue, this._lastData)) {
                 await queueRunner.queue.persistenceStore(queue);
                 this._lastData = queue;
@@ -74,8 +75,10 @@ class JobProducer {
             log.info(`${Events.ACTIVE} ${data.jobId}`, { component, jobId: data.jobId, status: Events.ACTIVE });
         }).on(Events.COMPLETED, (data) => {
             log.info(`${Events.COMPLETED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.COMPLETED });
+            this._checkMaxExceeded(data.jobId);
         }).on(Events.FAILED, (data) => {
             log.info(`${Events.FAILED} ${data.jobId}, ${data.error}`, { component, jobId: data.jobId, status: Events.FAILED });
+            this._checkMaxExceeded(data.jobId);
         }).on(Events.STALLED, (data) => {
             log.warning(`${Events.STALLED} ${data.jobId}`, { component, jobId: data.jobId, status: Events.STALLED });
         }).on(Events.CRASHED, async (data) => {
@@ -86,6 +89,18 @@ class JobProducer {
             persistence.setJobStatus({ jobId, pipeline: pipeline.name, status, error, level: 'error' });
             persistence.setJobResults({ jobId, pipeline: pipeline.name, status, error, startTime: pipeline.startTime });
         });
+    }
+
+    _checkMaxExceeded(jobId) {
+        const prefix = jobId.match(JOB_ID_PREFIX_REGEX);
+        if (prefix) {
+            const jobIdPrefix = prefix[0];
+            const maxExceeded = queueRunner.queue.getQueue(q => q.maxExceeded).find(q => q.jobId.startsWith(jobIdPrefix));
+            if (maxExceeded) {
+                log.info('found and disable job that marked as maxExceeded', { component });
+                maxExceeded.maxExceeded = false;
+            }
+        }
     }
 
     _pipelineToJob(pipeline) {
