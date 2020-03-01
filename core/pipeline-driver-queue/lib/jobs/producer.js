@@ -37,7 +37,8 @@ class JobProducer {
 
     async _checkQueue() {
         try {
-            if (queueRunner.queue.getQueue(q => !q.maxExceeded).length > 0) {
+            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+            if (queue.length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
                     await this.createJob();
@@ -95,10 +96,10 @@ class JobProducer {
         const prefix = jobId.match(JOB_ID_PREFIX_REGEX);
         if (prefix) {
             const jobIdPrefix = prefix[0];
-            const maxExceeded = queueRunner.queue.getQueue(q => q.maxExceeded).find(q => q.jobId.startsWith(jobIdPrefix));
-            if (maxExceeded) {
-                log.info('found and disable job that marked as maxExceeded', { component });
-                maxExceeded.maxExceeded = false;
+            const job = queueRunner.queue.getQueue(q => q.maxExceeded).find(q => q.jobId.startsWith(jobIdPrefix));
+            if (job) {
+                log.info(`found and disable job with prefix ${jobIdPrefix} that marked as maxExceeded`, { component });
+                job.maxExceeded = false;
             }
         }
     }
