@@ -16,7 +16,7 @@ post:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/defaultResponse"
+            $ref: "#/components/schemas/defaultResponseWithName"
     "400":
       description: bad request
       content:
