@@ -37,7 +37,8 @@ class JobProducer {
 
     async _checkQueue() {
         try {
-            if (queueRunner.queue.getQueue(q => !q.maxExceeded).length > 0) {
+            const queue = queueRunner.queue.getQueue(q => !q.maxExceeded);
+            if (queue.length > 0) {
                 const pendingAmount = await this._redisQueue.getWaitingCount();
                 if (pendingAmount === 0) {
                     await this.createJob();
