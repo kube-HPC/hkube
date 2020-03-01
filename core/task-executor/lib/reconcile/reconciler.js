@@ -511,5 +511,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
 module.exports = {
     reconcile,
-    _clearCreatedJobsList
+    _clearCreatedJobsList,
+    _updateCapacity
 };

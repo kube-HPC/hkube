@@ -39,6 +39,7 @@ describe('reconciler', () => {
     beforeEach(() => {
         clearCount();
         reconciler._clearCreatedJobsList(Date.now() + 100000, options);
+        reconciler._updateCapacity(1000)
         normResources = normalizeResources(resources);
         globalSettings.useResourceLimits = false;
         globalSettings.applyResources = false;
