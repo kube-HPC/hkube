@@ -10,9 +10,10 @@ const { spawn } = require('child_process');
 const { buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
+const jsyaml = require('js-yaml');
 const { STATES, PROGRESS } = require('../consts/States');
 const component = require('../consts/components').DOCKER_BUILDER;
-const { KANIKO } = require('../consts/buildModes');
+const { KANIKO, OPENSHIFT } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
 const kubernetes = require('../helpers/kubernetes');
 
@@ -230,6 +231,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
+    const algorithmImageNoRegistry = `${algorithmName}:v${version}`;
     const packages = packagesRepo[env];
     const baseImageName = await _getBaseImageVersion(baseImage || packages.defaultBaseImage);
 
@@ -237,7 +239,8 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         '--img', algorithmImage,
         '--rmi', rmi,
         '--buildPath', buildPath,
-        '--baseImage', baseImageName
+        '--baseImage', baseImageName,
+        '--buildId', buildId
     ];
 
     // docker pull
@@ -263,6 +266,52 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         _argsHelper(args, '--insecure', docker.push.insecure);
         _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
         _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
+    }
+    else if (buildMode === OPENSHIFT) {
+        _argsHelper(args, '--algorithmName', algorithmName);
+
+        const buildConf = {
+            apiVersion: 'build.openshift.io/v1',
+            kind: 'BuildConfig',
+            metadata: {
+                name: buildId,
+            },
+            spec: {
+                source: {
+                    binary: {},
+                    type: "Binary"
+                },
+                output: {
+                    to: {
+                        kind: 'ImageStreamTag',
+                        name: algorithmImageNoRegistry
+                    }
+                },
+                strategy: {
+                    dockerStrategy: {
+                        dockerfilePath: './dockerfile/Dockerfile',
+                    },
+                    type: 'Docker'
+                }
+            }
+
+        }
+        const buildConfYaml = jsyaml.dump(buildConf);
+        await fse.writeFile(path.join(tmpFolder, 'commands', 'buildConfig.yaml'), buildConfYaml);
+        const imageStream = {
+            apiVersion: 'image.openshift.io/v1',
+            kind: 'ImageStream',
+            metadata:{
+                name: algorithmName,
+            },
+            spec:{
+                lookupPolicy: {
+                    local: true
+                }
+            }
+        }
+        const imageStreamYaml = jsyaml.dump(imageStream);
+        await fse.writeFile(path.join(tmpFolder, 'commands', 'imageStream.yaml'), imageStreamYaml);
     }
     let updating = false
     const resultUpdater = async (result) => {
