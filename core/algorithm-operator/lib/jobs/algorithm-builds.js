@@ -5,8 +5,8 @@ const { applyEnvToContainer, applyStorage, applyVolumeMounts: applyVolumeMount, 
     applyPrivileged, applySecret, applyResourceRequests } = require('@hkube/kubernetes-client').utils;
 const { applyImage, createContainerResourceByFactor } = require('../helpers/kubernetes-utils');
 const components = require('../consts/componentNames');
-const { ALGORITHM_BUILDS, KANIKO } = require('../consts/containers');
-const { jobTemplate, kanikoContainer, dockerVolumes, kanikoVolumes } = require('../templates/algorithm-builder');
+const { ALGORITHM_BUILDS, KANIKO, OC_BUILDER } = require('../consts/containers');
+const { jobTemplate, kanikoContainer, dockerVolumes, kanikoVolumes, openshiftContainer, openshiftVolumes } = require('../templates/algorithm-builder');
 const CONTAINERS = require('../consts/containers');
 const { settings } = require('../helpers/settings');
 
@@ -29,6 +29,13 @@ const applyKanikoContainer = (inputSpec, versions, registry) => {
     let spec = clonedeep(inputSpec);
     spec.spec.template.spec.containers.push(kanikoContainer);
     spec = applyImage(spec, KANIKO, versions, registry);
+    return spec;
+};
+
+const applyOpenshiftContainer = (inputSpec, versions, registry) => {
+    let spec = clonedeep(inputSpec);
+    spec.spec.template.spec.containers.push(openshiftContainer);
+    spec = applyImage(spec, OC_BUILDER, versions, registry);
     return spec;
 };
 
@@ -73,17 +80,25 @@ const createBuildJobSpec = ({ buildId, versions, secret, registry, options }) =>
         spec = applyResources(spec, settings.resourcesMain, CONTAINERS.ALGORITHM_BUILDS);
     }
 
-    if (options.buildMode !== 'kaniko') {
+    if (options.buildMode === 'docker') {
         spec = applyVolumes(spec, dockerVolumes.volumes);
         spec = applyVolumeMounts(spec, ALGORITHM_BUILDS, dockerVolumes.volumeMounts);
         spec = applyPrivileged(spec, true, ALGORITHM_BUILDS);
     }
-    else {
+    else if (options.buildMode === 'kaniko') {
         spec = applyVolumes(spec, kanikoVolumes.volumes);
         spec = applyVolumeMounts(spec, ALGORITHM_BUILDS, kanikoVolumes.volumeMounts);
         spec = applyKanikoContainer(spec, versions, registry);
         if (settings.applyResourceLimits) {
             spec = applyResources(spec, settings.resourcesBuilder, CONTAINERS.KANIKO);
+        }
+    }
+    else if (options.buildMode === 'openshift') {
+        spec = applyVolumes(spec, openshiftVolumes.volumes);
+        spec = applyVolumeMounts(spec, ALGORITHM_BUILDS, openshiftVolumes.volumeMounts);
+        spec = applyOpenshiftContainer(spec, versions, registry);
+        if (settings.applyResourceLimits) {
+            spec = applyResources(spec, settings.resourcesBuilder, CONTAINERS.OC_BUILDER);
         }
     }
 
