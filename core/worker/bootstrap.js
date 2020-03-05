@@ -9,6 +9,9 @@ const worker = require('./lib/worker');
 let log;
 
 const modules = [
+    require('./lib/metrics/metrics.js'),
+    require('./lib/tracing/tracing.js'),
+    require('./lib/boards/boards.js'),
     require('./lib/states/stateManager.js'),
     require('./lib/states/discovery.js'),
     require('./lib/algorithm-communication/workerCommunication.js'),
@@ -26,8 +29,7 @@ class Bootstrap {
             const { main, logger } = configIt.load();
             this._handleErrors();
 
-            // only init the logger if it is not already initialized. Used for testing
-            log = log || new Logger(main.serviceName, logger);
+            log = new Logger(main.serviceName, logger);
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             monitor.on('ready', (data) => {

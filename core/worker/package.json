@@ -36,8 +36,6 @@
         "deep-get-set": "^1.1.0",
         "delay": "^4.3.0",
         "express": "^4.17.1",
-        "flat": "^5.0.0",
-        "forward-emitter": "^0.1.1",
         "fs-extra": "^8.1.0",
         "javascript-state-machine": "^3.1.0",
         "lodash.isequal": "^4.5.0",

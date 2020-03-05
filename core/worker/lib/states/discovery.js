@@ -56,7 +56,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async stopAlgorithmExecution(options) {
-        return this._etcd.algorithms.executions.set({ ...options, status: jobStatus.WATCH_STATE.STOPPED });
+        return this._etcd.algorithms.executions.set({ ...options, status: jobStatus.STOPPED });
     }
 
     async watchAlgorithmExecutions(options) {

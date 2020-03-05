@@ -1,7 +1,7 @@
 const Logger = require('@hkube/logger');
-const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses, retryPolicy, taskStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
+const tracing = require('./tracing/tracing.js');
 const jobConsumer = require('./consumer/JobConsumer');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
@@ -13,7 +13,7 @@ const execAlgorithms = require('./code-api/algorithm-execution/algorithm-executi
 const encodingHelper = require('./helpers/encoding');
 const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
-const { StorageProtocols, DefaultEncodingProtocol, DefaultStorageProtocol } = protocolTypes;
+const { DefaultEncodingProtocol, DefaultStorageProtocol } = protocolTypes;
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
@@ -46,34 +46,23 @@ class Worker {
     }
 
     _initAlgorithmSettings() {
-        const workerEncoding = this._options.workerCommunication.config.encoding;
-        const workerStorage = StorageProtocols.BY_REF;
         const algorithmStorage = this._algorithmSettings.storage;
         const algorithmEncoding = this._algorithmSettings.encoding;
 
-        const storage = this._resolveConfig(algorithmStorage, workerStorage, DefaultStorageProtocol);
-        const encoding = this._resolveConfig(algorithmEncoding, workerEncoding, DefaultEncodingProtocol);
+        const storage = algorithmStorage || DefaultStorageProtocol;
+        const encoding = algorithmEncoding || DefaultEncodingProtocol;
         jobConsumer.setStorage(storage);
         encodingHelper.setEncoding(encoding);
 
-        let message = '';
-        if (!algorithmStorage && !algorithmEncoding) {
-            message += 'there are no algorithm protocols';
-        }
-        else {
-            message += `found algorithm protocols ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
+        let message = 'unable to found algorithm protocols';
+        if (algorithmStorage && algorithmEncoding) {
+            message = `found algorithm protocols ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
         }
         log.info(`${message}, chosen protocols: ${this._formatProtocol({ storage, encoding })}`, { component });
     }
 
     _formatProtocol(protocols) {
         return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `[${k} ${v}]`).join('') : '';
-    }
-
-    _resolveConfig(algorithmProtocols, workerProtocol, defaultVal) {
-        const algorithmProtocolsArray = (algorithmProtocols && algorithmProtocols.split(',')) || defaultVal;
-        const value = algorithmProtocolsArray.includes(workerProtocol) ? workerProtocol : defaultVal;
-        return value;
     }
 
     _setInactiveTimeout() {
@@ -220,7 +209,7 @@ class Worker {
             stateManager.start();
         });
         algoRunnerCommunication.on(messages.incomming.storing, async (message) => {
-            await jobConsumer.updateStatus({ status: jobStatus.JOB_STATUS.STORING, result: message.data });
+            await jobConsumer.setStoringStatus(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
@@ -333,32 +322,8 @@ class Worker {
             return;
         }
         const { data } = message;
-        if (!data || !data.name) {
-            log.warning(`invalid startSpan message: ${JSON.stringify(message, null, 2)}`);
-            return;
-        }
-        const spanOptions = {
-            name: data.name,
-            id: jobConsumer.taskId,
-            tags: {
-                ...data.tags,
-                jobId: jobConsumer.jobId,
-                taskId: jobConsumer.taskId,
-            }
-        };
-        // set parent span
-        if (!jobConsumer.algTracer.topSpan(jobConsumer.taskId)) {
-            const topWorkerSpan = tracer.topSpan(jobConsumer.taskId);
-            if (topWorkerSpan) {
-                spanOptions.parent = topWorkerSpan.context();
-            }
-            else {
-                //         log.warning('temp log message: no top span in start alg span');
-                spanOptions.parent = jobConsumer._job.data.spanId;
-            }
-        }
-        // start span
-        jobConsumer.algTracer.startSpan(spanOptions);
+        const { jobId, taskId } = jobConsumer;
+        tracing.startAlgorithmSpan({ data, jobId, taskId });
     }
 
     /**
@@ -372,20 +337,8 @@ class Worker {
             return;
         }
         const { data } = message;
-        if (!data) {
-            log.warning(`invalid finishSpan message: ${JSON.stringify(message, null, 2)}`);
-            return;
-        }
-        const topSpan = jobConsumer.algTracer.topSpan(jobConsumer.taskId);
-        if (topSpan) {
-            if (data.tags) {
-                topSpan.addTag(data.tags);
-            }
-            topSpan.finish(data.error);
-        }
-        else {
-            log.warning('got finishSpan request but algorithm span stack is empty!');
-        }
+        const { taskId } = jobConsumer;
+        tracing.finishAlgorithmSpan({ data, taskId });
     }
 
     async handleExit(code, jobId) {

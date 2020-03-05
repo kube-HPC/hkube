@@ -11,4 +11,4 @@ const StorageProtocols = {
 const DefaultStorageProtocol = StorageProtocols.BY_RAW;
 const DefaultEncodingProtocol = EncodingProtocols.JSON;
 
-module.exports = { EncodingProtocols, StorageProtocols, DefaultEncodingProtocol, DefaultStorageProtocol };
+module.exports = { DefaultEncodingProtocol, DefaultStorageProtocol };

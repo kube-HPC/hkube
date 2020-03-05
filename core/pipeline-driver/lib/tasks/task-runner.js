@@ -549,7 +549,7 @@ class TaskRunner extends EventEmitter {
         if (!this._active) {
             return;
         }
-        this._nodes.runNextNodes(task);
+        this._nodes.updateCompletedTask(task);
     }
 
     _onTaskComplete() {
