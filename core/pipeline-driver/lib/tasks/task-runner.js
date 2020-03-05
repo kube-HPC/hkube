@@ -87,7 +87,7 @@ class TaskRunner extends EventEmitter {
             case taskStatuses.ACTIVE:
                 this._setTaskState(task);
                 break;
-            case 'storing':
+            case taskStatuses.STORING:
                 this._setTaskState(task);
                 this._onStoring(task);
                 break;
