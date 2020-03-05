@@ -161,13 +161,13 @@ const workerService = (algorithmName = '') => ({
     }
 });
 
-const workerIngress = (algorithmName = '', { ingressHost, ingressPrefix = '' } = {}) => ({
+const workerIngress = (algorithmName = '', { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => ({
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
         name: `ingress-worker-${algorithmName}`,
         annotations: {
-            'nginx.ingress.kubernetes.io/rewrite-target': '/',
+            'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
             'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
             'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
         },
@@ -182,7 +182,7 @@ const workerIngress = (algorithmName = '', { ingressHost, ingressPrefix = '' } =
             {
                 http: {
                     paths: [{
-                        path: `${ingressPrefix}/hkube/debug/${algorithmName}`,
+                        path: ingressUseRegex ? `${ingressPrefix}/hkube/debug/${algorithmName}(/|$)(.*)` : `${ingressPrefix}/hkube/debug/${algorithmName}`,
                         backend: {
                             serviceName: `worker-service-${algorithmName}`,
                             servicePort: 80

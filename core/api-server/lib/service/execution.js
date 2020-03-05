@@ -28,13 +28,13 @@ class ExecutionService {
 
     async runCaching(options) {
         validator.validateCaching(options);
-        const { jobId, nodeName } = options;
-        const { error, pipeline } = await cachingService.exec({ jobId, nodeName });
+        const { error, pipeline } = await cachingService.exec({ jobId: options.jobId, nodeName: options.nodeName });
         if (error) {
             throw new InvalidDataError(error.message);
         }
-        const types = [...new Set([...pipeline.types || [], pipelineTypes.NODE])];
-        return this._run({ pipeline, options: { alreadyExecuted: true }, types });
+        const { jobId, flowInputOrig, startTime, lastRunResult, types, ...restPipeline } = pipeline;
+        const newTypes = [...new Set([...types || [], pipelineTypes.NODE])];
+        return this._run({ pipeline: restPipeline, options: { alreadyExecuted: true, validateNodes: false }, types: newTypes });
     }
 
     async runAlgorithm(options) {
@@ -52,20 +52,23 @@ class ExecutionService {
     }
 
     async _runStored(options) {
-        const { pipeline, jobId, types } = options;
+        const { pipeline, jobId, rootJobId, parentSpan, types } = options;
         const storedPipeline = await stateManager.pipelines.get({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
         const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' ? src || obj : undefined));
-        return this._run({ pipeline: newPipeline, jobId, options: { parentSpan: pipeline.spanId }, types });
+        return this._run({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
     }
 
     async _run(payload) {
         let { pipeline, jobId } = payload;
-        const { types } = payload;
-        const { alreadyExecuted, parentSpan } = payload.options || {};
+        const { types, rootJobId } = payload;
+        const { alreadyExecuted, validateNodes, parentSpan } = payload.options || {};
+
         validator.addPipelineDefaults(pipeline);
+        validator.validatePipeline(pipeline, { validateNodes });
+
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
         }
@@ -73,7 +76,7 @@ class ExecutionService {
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
             await validator.validateAlgorithmExists(pipeline);
-            await validator.validateConcurrentPipelines(pipeline, jobId);
+            const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },
@@ -85,13 +88,13 @@ class ExecutionService {
                 };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
-            const pipelineObject = { ...pipeline, jobId, startTime: Date.now(), lastRunResult, types };
+            const pipelineObject = { ...pipeline, jobId, rootJobId, startTime: Date.now(), lastRunResult, types };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
             await stateManager.executions.stored.set(pipelineObject);
             await stateManager.executions.running.set(pipelineObject);
             await stateManager.jobs.status.set({ jobId, pipeline: pipeline.name, status: pipelineStatuses.PENDING, level: levels.INFO.name });
-            await producer.createJob({ jobId, parentSpan: span.context() });
+            await producer.createJob({ jobId, maxExceeded, parentSpan: span.context() });
             span.finish();
             return jobId;
         }

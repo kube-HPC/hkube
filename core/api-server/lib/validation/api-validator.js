@@ -74,12 +74,16 @@ class ApiValidator {
         this._validate(this._definitionsInternal.storedSubPipeline, pipeline, false);
     }
 
+    validatePipeline(pipeline, options = {}) {
+        this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true, ...options });
+    }
+
     validateRunRawPipeline(pipeline) {
         this._validate(this._definitions.pipeline, pipeline, false, { checkFlowInput: true });
     }
 
     validateRunStoredPipeline(pipeline) {
-        this._validate(this._definitions.storedPipelineRequest, pipeline, false, { checkFlowInput: true });
+        this._validate(this._definitions.storedPipelineRequest, pipeline, false);
     }
 
     validateCaching(request) {
@@ -180,15 +184,19 @@ class ApiValidator {
 
     async validateConcurrentPipelines(pipelines, jobId) {
         if (pipelines.options && pipelines.options.concurrentPipelines) {
-            const { concurrentPipelines } = pipelines.options;
+            const { amount, rejectOnFailure } = pipelines.options.concurrentPipelines;
             const jobIdPrefix = jobId.match(regex.JOB_ID_PREFIX_REGEX);
             if (jobIdPrefix) {
                 const result = await stateManager.executions.running.list({ jobId: jobIdPrefix[0] });
-                if (result.length >= concurrentPipelines) {
-                    throw new InvalidDataError(`maximum number [${concurrentPipelines}] of concurrent pipelines has been reached`);
+                if (result.length >= amount) {
+                    if (rejectOnFailure) {
+                        throw new InvalidDataError(`maximum number [${amount}] of concurrent pipelines has been reached`);
+                    }
+                    return true;
                 }
             }
         }
+        return false;
     }
 
     _validate(schema, object, useDefaults, options) {
@@ -200,18 +208,21 @@ class ApiValidator {
         }
     }
 
-    _validateInner(validatorInstance, schema, obj, options) {
+    _validateInner(validatorInstance, schema, obj, options = { checkFlowInput: false, validateNodes: true }) {
         const object = obj || {};
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
             const { errors } = validatorInstance;
-            let error = validatorInstance.errorsText(errors);
+            let error = validatorInstance.errorsText(errors, { extraInfo: true });
             if (errors[0].params && errors[0].params.allowedValues) {
                 error += ` (${errors[0].params.allowedValues.join(',')})`;
             }
+            else if (errors[0].params && errors[0].params.additionalProperty) {
+                error += ` (${errors[0].params.additionalProperty})`;
+            }
             throw new InvalidDataError(error);
         }
-        if (object.nodes) {
+        if (object.nodes && options.validateNodes !== false) {
             this._validateNodes(object, options);
         }
     }
@@ -352,12 +363,12 @@ class ApiValidator {
     }
 
     wrapErrorMessageFn(wrappedFn) {
-        const errorsTextWapper = (errors) => {
+        const errorsTextWapper = (errors, options) => {
             let message;
             if (errors) {
                 message = this.getCustomMessage(errors[0]);
             }
-            return message || wrappedFn(errors);
+            return message || wrappedFn(errors, options);
         };
         return errorsTextWapper;
     }

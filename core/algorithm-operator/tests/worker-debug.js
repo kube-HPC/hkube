@@ -52,7 +52,28 @@ describe('jobCreator', () => {
             expect(deploymentSpec).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:v1.2.3' });
             expect(ingressSpec).to.nested.include({ 'spec.rules[0].host': clusterOptions.ingressHost });
             expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': `${clusterOptions.ingressPrefix}/hkube/debug/myalgo1` });
-
+            expect(ingressSpec.metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]).to.eql('/');
+        });
+        it('should use ingress regex', () => {
+            const versions = {
+                "versions": [
+                    {
+                        "project": "worker",
+                        "tag": "v1.2.3"
+                    }
+                ]
+            };
+            const clusterOptions = {
+                ingressHost: 'foo.bar.com',
+                ingressPrefix: '/myprefix',
+                ingressUseRegex: 'true'
+            }
+            const { deploymentSpec, ingressSpec } = createKindsSpec({ algorithmName: 'myalgo1', options, versions, clusterOptions });
+            expect(deploymentSpec).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
+            expect(deploymentSpec).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/worker:v1.2.3' });
+            expect(ingressSpec).to.nested.include({ 'spec.rules[0].host': clusterOptions.ingressHost });
+            expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': `${clusterOptions.ingressPrefix}/hkube/debug/myalgo1(/|$)(.*)` });
+            expect(ingressSpec.metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]).to.eql('/$2');
         });
     });
 });

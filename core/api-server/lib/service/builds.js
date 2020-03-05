@@ -13,7 +13,7 @@ const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
-const { uuid } = require('../utils');
+const { randomString } = require('../utils');
 const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatuses.ACTIVE];
 
 class Builds {
@@ -184,7 +184,7 @@ class Builds {
     }
 
     _createBuildID(algorithmName) {
-        return [algorithmName, uuid()].join('-');
+        return [algorithmName, randomString({ length: 6 })].join('-');
     }
 
     _incVersion(oldAlgorithm, newAlgorithm) {
