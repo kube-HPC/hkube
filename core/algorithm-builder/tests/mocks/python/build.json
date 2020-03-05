@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "fileExt": "gz",
     "status": "pending",
-    "baseImage": "tensorflow/tensorflow:1.13.1-py3",
+    "baseImage": "",
     "error": null,
     "stack": null,
     "result": null,

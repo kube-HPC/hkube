@@ -226,12 +226,55 @@ const _createURL = (options) => {
     return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
 };
 
+const _createOpenshiftConfigs = async (args, tmpFolder, docker, buildId, algorithmImage) => {
+    _argsHelper(args, '--tmpFolder', tmpFolder);
+    const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
+    const dockerCredsSecret = {
+        apiVersion: 'v1',
+        data: {
+            '.dockerconfigjson': `${Buffer.from(JSON.stringify(dockerCreds)).toString('base64')}`
+        },
+        kind: 'Secret',
+        metadata: {
+            name: 'build-registry-secret',
+        },
+        type: 'kubernetes.io/dockerconfigjson'
+    };
+    const dockerCredsSecretYaml = jsyaml.dump(dockerCredsSecret);
+    await fse.writeFile(path.join(tmpFolder, 'commands', 'dockerCredsSecret.yaml'), dockerCredsSecretYaml);
+    const buildConf = {
+        apiVersion: 'build.openshift.io/v1',
+        kind: 'BuildConfig',
+        metadata: {
+            name: buildId,
+        },
+        spec: {
+            source: {
+                binary: {},
+                type: "Binary"
+            },
+            output: {
+                to: {
+                    kind: 'DockerImage',
+                    name: algorithmImage
+                }
+            },
+            strategy: {
+                dockerStrategy: {
+                    dockerfilePath: './dockerfile/Dockerfile',
+                },
+                type: 'Docker'
+            }
+        }
+    };
+    const buildConfYaml = jsyaml.dump(buildConf);
+    await fse.writeFile(path.join(tmpFolder, 'commands', 'buildConfig.yaml'), buildConfYaml);
+}
 
 const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
-    const algorithmImageNoRegistry = `${algorithmName}:v${version}`;
     const packages = packagesRepo[env];
     const baseImageName = await _getBaseImageVersion(baseImage || packages.defaultBaseImage);
 
@@ -268,50 +311,21 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
     }
     else if (buildMode === OPENSHIFT) {
-        _argsHelper(args, '--algorithmName', algorithmName);
-
-        const buildConf = {
-            apiVersion: 'build.openshift.io/v1',
-            kind: 'BuildConfig',
-            metadata: {
-                name: buildId,
-            },
-            spec: {
-                source: {
-                    binary: {},
-                    type: "Binary"
-                },
-                output: {
-                    to: {
-                        kind: 'ImageStreamTag',
-                        name: algorithmImageNoRegistry
-                    }
-                },
-                strategy: {
-                    dockerStrategy: {
-                        dockerfilePath: './dockerfile/Dockerfile',
-                    },
-                    type: 'Docker'
-                }
-            }
-
-        }
-        const buildConfYaml = jsyaml.dump(buildConf);
-        await fse.writeFile(path.join(tmpFolder, 'commands', 'buildConfig.yaml'), buildConfYaml);
-        const imageStream = {
-            apiVersion: 'image.openshift.io/v1',
-            kind: 'ImageStream',
-            metadata:{
-                name: algorithmName,
-            },
-            spec:{
-                lookupPolicy: {
-                    local: true
-                }
-            }
-        }
-        const imageStreamYaml = jsyaml.dump(imageStream);
-        await fse.writeFile(path.join(tmpFolder, 'commands', 'imageStream.yaml'), imageStreamYaml);
+        await _createOpenshiftConfigs(args, tmpFolder, docker, buildId, algorithmImage);
+        // const imageStream = {
+        //     apiVersion: 'image.openshift.io/v1',
+        //     kind: 'ImageStream',
+        //     metadata:{
+        //         name: algorithmName,
+        //     },
+        //     spec:{
+        //         lookupPolicy: {
+        //             local: true
+        //         }
+        //     }
+        // }
+        // const imageStreamYaml = jsyaml.dump(imageStream);
+        // await fse.writeFile(path.join(tmpFolder, 'commands', 'imageStream.yaml'), imageStreamYaml);
     }
     let updating = false
     const resultUpdater = async (result) => {
@@ -358,6 +372,8 @@ const _progress = (progress) => {
         return prog;
     };
 };
+
+
 
 const runBuild = async (options) => {
     let build;
@@ -420,3 +436,5 @@ module.exports = {
     runBash,
     buildAlgorithmImage
 };
+
+
