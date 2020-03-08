@@ -102,34 +102,38 @@ const _clearCreatedJobsList = (now, options) => {
 
 const _processAllRequests = (
     { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources },
-    { createDetails, reconcileResult, toResume }
+    { createDetails, reconcileResult, toResume, scheduledRequests }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
         const { algorithmName, hotWorker } = r;
         const idleWorkerIndex = idleWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (idleWorkerIndex !== -1) {
             // there is idle worker. don't do anything
-            idleWorkers.splice(idleWorkerIndex, 1);
+            const [worker] = idleWorkers.splice(idleWorkerIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
 
         const pendingWorkerIndex = pendingWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (pendingWorkerIndex !== -1) {
             // there is a pending worker.
-            pendingWorkers.splice(pendingWorkerIndex, 1);
+            const [worker] = pendingWorkers.splice(pendingWorkerIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
         const jobsCreatedIndex = jobsCreated.findIndex(w => w.algorithmName === algorithmName);
         if (jobsCreatedIndex !== -1) {
             // there is a pending worker.
-            jobsCreated.splice(jobsCreatedIndex, 1);
+            const [worker] = jobsCreated.splice(jobsCreatedIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
         const pausedWorkerIndex = pausedWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (pausedWorkerIndex !== -1) {
             // there is paused worker. wake it up
             toResume.push({ ...(pausedWorkers[pausedWorkerIndex]) });
-            pausedWorkers.splice(pausedWorkerIndex, 1);
+            const [worker] = pausedWorkers.splice(pausedWorkerIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
         const algorithmTemplate = algorithmTemplates[algorithmName];
@@ -212,127 +216,47 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
         return prev;
     }, {})).map(([k, v]) => ({ algorithmName: k, count: v.count, list: v.list }));
 
-    log.info(JSON.stringify(skippedTypes.map(s => ({ name: s.algorithmName, count: s.count })), null, 2));
+    // log.info(JSON.stringify(skippedTypes.map(s => ({ name: s.algorithmName, count: s.count })), null, 2));
 
     const skippedLocal = clonedeep(skipped);
     const idleWorkersLocal = clonedeep(idleWorkers);
     let activeWorkersLocal = clonedeep(activeWorkers);
     const notUsedWorkers = activeWorkersLocal.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
     const usedWorkers = activeWorkersLocal.filter(w => skippedTypes.find(d => d.algorithmName === w.algorithmName));
-    skippedLocal.forEach(() => {
+    const toStopActive = [];
+    skippedLocal.forEach((s) => {
         let worker = idleWorkersLocal.shift();
         if (!worker) {
             worker = notUsedWorkers.shift();
-        }
-        if (!worker) {
-            worker = usedWorkers.shift();
         }
         if (worker) {
             activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
             _createStopDetails({ worker, algorithmTemplates, stopDetails });
         }
+        else {
+            toStopActive.push(s);
+        }
     });
 
-    // idleWorkers.forEach((r) => {
-    //     const algorithmTemplate = algorithmTemplates[r.algorithmName];
-    //     if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-    //         return;
-    //     }
-    //     const resourceRequests = createContainerResource(algorithmTemplate);
-    //     stopDetails.push({
-    //         count: 1,
-    //         details: {
-    //             algorithmName: r.algorithmName,
-    //             resourceRequests,
-    //             nodeName: r.job ? r.job.nodeName : null,
-    //             podName: r.podName,
-    //             id: r.id
 
-
-    //         }
-    //     });
-    //     missingCount -= 1;
-    // });
-
-    // const activeTypes = Object.entries(activeWorkers.reduce((prev, cur, index) => {
-    //     if (!prev[cur.algorithmName]) {
-    //         prev[cur.algorithmName] = {
-    //             count: 0,
-    //             list: []
-    //         };
-    //     }
-    //     prev[cur.algorithmName].count += ((index + 1) ** 0.7);
-    //     prev[cur.algorithmName].list.push(cur);
-    //     return prev;
-    // }, {})).map(([k, v]) => ({ algorithmName: k, count: v.count, list: v.list }));
-
-    // const notUsedAlgorithms = activeTypes.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
-
-    // notUsedAlgorithms.forEach((r) => {
-    //     if (missingCount === 0) {
-    //         return;
-    //     }
-    //     const algorithmTemplate = algorithmTemplates[r.algorithmName];
-    //     if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-    //         return;
-    //     }
-    //     const resourceRequests = createContainerResource(algorithmTemplate);
-    //     r.list.forEach((w) => {
-    //         if (missingCount === 0) {
-    //             return;
-    //         }
-    //         stopDetails.push({
-    //             count: 1,
-    //             details: {
-    //                 algorithmName: r.algorithmName,
-    //                 resourceRequests,
-    //                 nodeName: w.job ? w.job.nodeName : null,
-    //                 podName: w.podName,
-    //                 id: w.id
-
-    //             }
-    //         });
-    //         missingCount -= 1;
-    //     });
-    // });
-
-    // if (missingCount === 0) {
-    //     return;
-    // }
-
-    // const usedAlgorithms = activeTypes
-    //     .filter(w => skippedTypes.find(d => d.algorithmName === w.algorithmName))
-    //     .map(s => ({ ...s, score: skippedTypes.find(d => d.algorithmName === s.algorithmName).count }));
-
-    // const sortedActiveTypes = usedAlgorithms.sort((a, b) => a.score - b.score);
-    // log.info(JSON.stringify(sortedActiveTypes.map(s => ({ name: s.algorithmName, count: s.count, score: s.score })), null, 2));
-
-    // sortedActiveTypes.forEach((r) => {
-    //     if (missingCount === 0) {
-    //         return;
-    //     }
-    //     const algorithmTemplate = algorithmTemplates[r.algorithmName];
-    //     if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-    //         return;
-    //     }
-    //     const resourceRequests = createContainerResource(algorithmTemplate);
-    //     r.list.forEach((w) => {
-    //         if (missingCount === 0) {
-    //             return;
-    //         }
-    //         stopDetails.push({
-    //             count: 1,
-    //             details: {
-    //                 algorithmName: r.algorithmName,
-    //                 resourceRequests,
-    //                 nodeName: w.job ? w.job.nodeName : null,
-    //                 podName: w.podName,
-    //                 id: w.id
-    //             }
-    //         });
-    //         missingCount -= 1;
-    //     });
-    // });
+    toStopActive.forEach(() => {
+        let worker;
+        if (!worker) {
+            // const workerIndex = usedWorkers.findIndex(w => !scheduledRequests.find(d => d.algorithmName === w.algorithmName));
+            // if (workerIndex !== -1) {
+            //     [worker] = usedWorkers.splice(workerIndex, 1);
+            //     const scheduledRequestsIndex = scheduledRequests.findIndex(d => d.algorithmName === worker.algorithmName);
+            //     if (scheduledRequestsIndex !== -1) {
+            //         scheduledRequestsIndex.splice(scheduledRequestsIndex, 1);
+            //     }
+            // }
+        }
+        worker = usedWorkers.shift();
+        if (worker) {
+            activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
+            _createStopDetails({ worker, algorithmTemplates, stopDetails });
+        }
+    });
 };
 
 const _calcStats = (data) => {
@@ -395,6 +319,28 @@ const _getNodeStats = (normResources) => {
     return statsPerNode;
 };
 
+const calcRatio = (totalRequests, capacity) => {
+    const requestTypes = totalRequests.reduce((prev, cur) => {
+        if (!prev.algorithms[cur.algorithmName]) {
+            prev.algorithms[cur.algorithmName] = {
+                count: 0,
+                list: []
+            };
+        }
+        prev.algorithms[cur.algorithmName].count += 1;
+        prev.algorithms[cur.algorithmName].list.push(cur);
+        prev.total += 1;
+        return prev;
+    }, { total: 0, algorithms: {} });
+    Object.keys(requestTypes.algorithms).forEach(k => {
+        requestTypes.algorithms[k].ratio = requestTypes.algorithms[k].count / requestTypes.total;
+        if (capacity) {
+            requestTypes.algorithms[k].required = requestTypes.algorithms[k].ratio * capacity;
+        }
+    });
+    return requestTypes;
+};
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
     // _clearPausedJobsList(null, options);
@@ -417,6 +363,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const createPromises = [];
     const reconcileResult = {};
     const toResume = [];
+    const scheduledRequests = [];
     const idleWorkers = clonedeep(mergedWorkers.filter(w => _idleWorkerFilter(w)));
     const activeWorkers = clonedeep(mergedWorkers.filter(w => _activeWorkerFilter(w)));
     const pausedWorkers = clonedeep(mergedWorkers.filter(w => _pausedWorkerFilter(w)));
@@ -425,19 +372,35 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _updateCapacity(idleWorkers.length + activeWorkers.length + createdJobsList.length + jobsCreated.length);
 
+    // get stats
+    const workerTypes = calcRatio(mergedWorkers);
 
     const totalRequests = normalizeHotRequests(normRequests.slice(0, Math.round(totalCapacityNow * 3)), algorithmTemplates);
-    log.info(`capacity = ${totalCapacityNow}, totalRequests=${totalRequests.length}`);
+    log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
+    const requestTypes = calcRatio(totalRequests, totalCapacityNow);
+    log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
+    log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
+    // cut requests based on ratio
+    const cutRequests = [];
+    totalRequests.forEach(r => {
+        const ratios = calcRatio(cutRequests, totalCapacityNow);
+        const { required } = requestTypes.algorithms[r.algorithmName];
+        if (!ratios.algorithms[r.algorithmName] || ratios.algorithms[r.algorithmName].count < required) {
+            cutRequests.push(r);
+        }
+    });
+    const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
+    log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
 
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: totalRequests, registry, clusterOptions, workerResources
+            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
         },
         {
-            createDetails, reconcileResult, toResume
+            createDetails, reconcileResult, toResume, scheduledRequests
         }
     );
-    const { created, skipped } = matchJobsToResources(createDetails, normResources);
+    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests);
     created.forEach((j) => {
         createdJobsList.push(j);
     });
@@ -454,7 +417,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     }, { cpu: 0, gpu: 0, memory: 0 });
 
     _findWorkersToStop({
-        skipped, idleWorkers, activeWorkers, algorithmTemplates
+        skipped, idleWorkers, activeWorkers, algorithmTemplates, scheduledRequests
     }, { stopDetails });
 
     const { toStop } = pauseAccordingToResources(
@@ -468,7 +431,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         log.trace(`creating ${created.length} algorithms....`, { component });
     }
 
-    log.info(`to stop: ${JSON.stringify(toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))}`);
+    log.info(`to stop: ${JSON.stringify(toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
     const toStopFiltered = [];
     toStop.forEach(s => {
         const index = toResume.findIndex(tr => tr.algorithmName === s.algorithmName);
@@ -480,7 +443,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         }
     });
 
-    log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))}`);
+    log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
 
     const exitWorkersPromises = exitWorkers.map(r => _exitWorker(r));
     const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));
