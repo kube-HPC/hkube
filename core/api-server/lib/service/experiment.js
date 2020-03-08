@@ -12,18 +12,18 @@ class Experiment {
         return experiment;
     }
 
-    async insertExperiment(options) {
+    insertExperiment(options) {
         return stateManager.experiments.set(options);
     }
 
-    async experimentsList(options) {
+    experimentsList(options) {
         return stateManager.experiments.list(options);
     }
 
     async deleteExperiment(options) {
         const res = await stateManager.experiments.delete(options);
-        const msg = res.deleted === '0' ? 'deleted operation has failed' : 'deleted successfully ';
-        return msg;
+        const message = res.deleted === '0' ? 'deleted operation has failed' : 'deleted successfully ';
+        return { message, name: options.name };
     }
 }
 

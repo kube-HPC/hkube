@@ -166,10 +166,10 @@ class SubPipelineHandler {
     /**
      * Handle subPipeline job error
      * @param {string} error error message
-     * @param {string} subPipelineId internal algorothm subpipeline Id
+     * @param {string} subPipelineId internal algorithm subpipeline Id
      */
     async _handleJobError(error, subPipelineId) {
-        log.warning(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
+        log.error(`SubPipeline job error: ${error}, alg subPipelineId: ${subPipelineId}`, { component });
         algoRunnerCommunication.send({
             command: messages.outgoing.subPipelineError,
             data: {
@@ -213,14 +213,13 @@ class SubPipelineHandler {
      * @param subPipelineId subpipeline internal algorithm id
      * @param subPipelineJobId subPipeline jobId in hkube
      */
-    _startSubPipelineSpan(subPipelineName, subPipelineId, subPipelineJobId) {
+    _startSubPipelineSpan(subPipelineName, subPipelineId) {
         try {
             const name = `subpipeline ${subPipelineName} start invoked`;
             const spanOptions = {
                 name,
                 id: subPipelineId,
                 tags: {
-                    subPipelineJobId,
                     subPipelineId,
                     jobId: jobConsumer.jobId,
                     taskId: jobConsumer.taskId
@@ -245,7 +244,7 @@ class SubPipelineHandler {
     /**
      * finish subPipeline span for algorithm
      * @param subPipelineId
-     * @param status subPieline status when finished
+     * @param status subPipeline status when finished
      * @param error for status=FAILED: error object or message, for status=STOP: stop reason
      */
     _finishSubPipelineSpan(subPipelineId, status, error) {
@@ -278,6 +277,8 @@ class SubPipelineHandler {
             subPipelineId = data.subPipelineId; // eslint-disable-line
             const subPipeline = data.subPipeline; // eslint-disable-line
             log.info(`got startSubPipeline ${subPipeline.name} from algorithm`, { component });
+            // start subPipeline span
+            this._startSubPipelineSpan(subPipeline.name, subPipelineId);
 
             // send subPipelineStarted to alg
             algoRunnerCommunication.send({
@@ -287,19 +288,19 @@ class SubPipelineHandler {
                 }
             });
 
+
             // post subPipeline
             const { jobId, taskId } = jobConsumer;
             const { rootJobId } = jobConsumer._job.data.info;
             const subPipelineToPost = { ...subPipeline, jobId, taskId, rootJobId }; // add jobId, taskId
-            const response = await apiServerClient.postSubPipeline(subPipelineToPost, subPipelineType);
+            const response = await apiServerClient.postSubPipeline(subPipelineToPost, subPipelineType, subPipelineId);
             if (response) {
                 const subPipelineJobId = response.jobId;
                 // map jobId/subPipelineId
                 this._jobId2InternalIdMap.set(subPipelineJobId, subPipelineId);
                 log.info(`SubPipeline posted, alg subPipelineId=${subPipelineId}, jobId=${subPipelineJobId}`, { component });
-
-                // start subPipeline span
-                this._startSubPipelineSpan(subPipeline.name, subPipelineId, subPipelineJobId);
+                const sbInvokedTrace = tracer.topSpan(subPipelineId);
+                sbInvokedTrace.addTag({ subPipelineJobId });
 
                 // watch results
                 const result = await discovery.watchJobResults({ jobId: subPipelineJobId });

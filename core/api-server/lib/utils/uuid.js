@@ -5,8 +5,8 @@ const uuid = () => {
     return uuidV4();
 };
 
-const randomString = () => {
-    return cryptoRandomString({ length: 4, characters: '0123456789abcdefghijklmnopqrstuvwxyz' });
+const randomString = ({ length = 4 } = {}) => {
+    return cryptoRandomString({ length, characters: '0123456789abcdefghijklmnopqrstuvwxyz' });
 };
 
 module.exports = {

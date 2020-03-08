@@ -36,7 +36,7 @@ class JobConsumer {
 
     async _handleJob(job) {
         try {
-            const { jobId, spanId } = job.data;
+            const { jobId } = job.data;
             const pipeline = await persistence.getExecution({ jobId });
             if (!pipeline) {
                 throw new Error(`unable to find pipeline for job ${jobId}`);
@@ -47,7 +47,7 @@ class JobConsumer {
                 await this._stopJob(jobId, jobStatus.status);
             }
             else {
-                await this._queueJob(pipeline, jobId, spanId);
+                await this._queueJob(pipeline, job.data);
             }
         }
         catch (error) {
@@ -64,15 +64,14 @@ class JobConsumer {
         queueRunner.queue.remove(jobId);
     }
 
-    async _queueJob(pipeline, jobId, spanId) {
-        const job = this._pipelineToQueueAdapter(pipeline, jobId, spanId);
+    async _queueJob(pipeline, jobData) {
+        const job = this._pipelineToQueueAdapter(pipeline, jobData);
         queueRunner.queue.enqueue(job);
     }
 
-    _pipelineToQueueAdapter(pipeline, jobId, spanId) {
+    _pipelineToQueueAdapter(pipeline, jobData) {
         return {
-            jobId,
-            spanId,
+            ...jobData,
             pipelineName: pipeline.name,
             priority: pipeline.priority,
             entranceTime: Date.now(),

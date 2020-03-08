@@ -42,7 +42,7 @@ describe('Test', () => {
                     queue = new Queue();
                     queue.updateHeuristic(heuristicBoilerPlate(80, heuristic));
                     queue.enqueue(stubTemplate());
-                    const q = queue.get;
+                    const q = queue.getQueue();
                     expect(q[0].score).to.eql(80);
                 });
                 it('should added to queue ordered', async () => {
@@ -51,9 +51,9 @@ describe('Test', () => {
                     queue.enqueue(stubTemplate({ score: 80 }));
                     queue.enqueue(stubTemplate({ score: 60 }));
                     queue.enqueue(stubTemplate({ score: 90 }));
-                    expect(queue.get[0].score).to.eql(90);
-                    expect(queue.get[1].score).to.eql(80);
-                    expect(queue.get[2].score).to.eql(60);
+                    expect(queue.getQueue()[0].score).to.eql(90);
+                    expect(queue.getQueue()[1].score).to.eql(80);
+                    expect(queue.getQueue()[2].score).to.eql(60);
                 });
             });
             describe('remove', () => {
@@ -66,7 +66,7 @@ describe('Test', () => {
                     });
                     queue.remove(stubJob.jobId);
                     await _semaphore.done();
-                    const q = queue.get;
+                    const q = queue.getQueue();
                     expect(q).to.have.length(0);
                 });
                 it('should not removed from queue when there is no matched id', async () => {
@@ -92,7 +92,7 @@ describe('Test', () => {
                     });
                     const job = queue.dequeue();
                     await _semaphore.done({ doneAmount: 1 });
-                    const q = queue.get;
+                    const q = queue.getQueue();
                     expect(job.jobId).to.be.eql(stubJob.jobId);
                     expect(q).to.have.length(0);
                 });
@@ -118,7 +118,7 @@ describe('Test', () => {
             it('check-that-heuristics-sets-to-latestScore', async () => {
                 const stubJob = stubTemplate();
                 queueRunner.queue.enqueue(stubJob);
-                const q = queueRunner.queue.get;
+                const q = queueRunner.queue.getQueue();
                 expect(q[0].score).to.be.above(0);
                 expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
                 expect(q[0].calculated.latestScores).to.have.property('ENTRANCE_TIME');
@@ -131,7 +131,7 @@ describe('Test', () => {
             const jobs = generateArr(100);
             await queueRunner.queue.persistenceStore(jobs);
             await queueRunner.queue.persistencyLoad();
-            const q = queueRunner.queue.get;
+            const q = queueRunner.queue.getQueue();
             expect(q.length).to.be.greaterThan(98);
         });
     });

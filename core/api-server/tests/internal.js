@@ -216,10 +216,7 @@ describe('Internal', () => {
                 body: {
                     name: pipeline.name,
                     jobId: response1.body.jobId,
-                    taskId: `taskId:${uuid()} `,
-                    flowInput: {
-                        bla: 'bla'
-                    }
+                    taskId: `taskId:${uuid()} `
                 }
             };
             const response2 = await request(options2);
@@ -232,10 +229,7 @@ describe('Internal', () => {
                 body: {
                     name: pipeline.name,
                     jobId: `jobId - ${uuid()} `,
-                    taskId: `taskId - ${uuid()} `,
-                    flowInput: {
-                        bla: 'bla'
-                    }
+                    taskId: `taskId - ${uuid()} `
                 }
             };
             const res1 = await request(options);
@@ -254,18 +248,15 @@ describe('Internal', () => {
                     name: pipeline.name,
                     nodes: [
                         {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "@flowInput"
+                            nodeName: "green",
+                            algorithmName: "green-alg",
+                            input: [
+                                "data"
                             ]
                         }
                     ],
-                    jobId: `jobId - ${uuid()} `,
-                    taskId: `taskId - ${uuid()} `,
-                    flowInput: {
-                        bla: 'bla'
-                    }
+                    jobId: `jobId-${uuid()}`,
+                    taskId: `taskId-${uuid()}`
                 }
             };
             const response = await request(options);
@@ -279,18 +270,15 @@ describe('Internal', () => {
                     name: pipeline.name,
                     nodes: [
                         {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "@flowInput"
+                            nodeName: "green",
+                            algorithmName: "green-alg",
+                            input: [
+                                "data"
                             ]
                         }
                     ],
-                    jobId: `jobId - ${uuid()} `,
-                    taskId: `taskId - ${uuid()} `,
-                    flowInput: {
-                        bla: 'bla'
-                    }
+                    jobId: `jobId-${uuid()}`,
+                    taskId: `taskId-${uuid()}`
                 }
             };
             const res1 = await request(options);
@@ -321,8 +309,8 @@ describe('Internal', () => {
                         }
                     ],
                     flowInput: {
-                        "files": {
-                            "link": "links-1"
+                        files: {
+                            link: "links-1"
                         }
                     },
                     triggers: {

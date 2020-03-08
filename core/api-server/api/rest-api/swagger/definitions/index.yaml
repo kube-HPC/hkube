@@ -36,6 +36,8 @@ cronRequest:
   $ref: ./cronRequest.yaml
 defaultResponse:
   $ref: ./defaultResponse.yaml
+defaultResponseWithName:
+  $ref: ./defaultResponseWithName.yaml
 error:
   $ref: ./error.yaml
 execTreeNode:

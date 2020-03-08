@@ -84,13 +84,13 @@ const boardService = (boardReference = '') => ({
     }
 });
 
-const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '' } = {}) => ({
+const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', ingressUseRegex = false } = {}) => ({
     apiVersion: 'extensions/v1beta1',
     kind: 'Ingress',
     metadata: {
         name: `ingress-board-${boardReference}`,
         annotations: {
-            'nginx.ingress.kubernetes.io/rewrite-target': '/',
+            'nginx.ingress.kubernetes.io/rewrite-target': ingressUseRegex ? '/$2' : '/',
             'nginx.ingress.kubernetes.io/ssl-redirect': 'false',
             'nginx.ingress.kubernetes.io/proxy-read-timeout': '50000'
         },
@@ -105,7 +105,7 @@ const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '' } =
             {
                 http: {
                     paths: [{
-                        path: `${ingressPrefix}/hkube/board/${boardReference}`,
+                        path: ingressUseRegex ? `${ingressPrefix}/hkube/board/${boardReference}(/|$)(.*)` : `${ingressPrefix}/hkube/board/${boardReference}`,
                         backend: {
                             serviceName: `board-service-${boardReference}`,
                             servicePort: 80
