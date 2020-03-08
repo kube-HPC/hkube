@@ -383,7 +383,7 @@ class TaskRunner extends EventEmitter {
             if (node.status !== taskStatuses.CREATING && node.status !== taskStatuses.PRESCHEDULE) {
                 return;
             }
-            if (this._nodeRuns.has(nodeName)) {
+            if (!index && this._nodeRuns.has(nodeName)) {
                 log.error(`node ${nodeName} was already running, status: ${node.status}`, { component });
                 return;
             }
