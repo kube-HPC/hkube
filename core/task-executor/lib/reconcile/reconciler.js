@@ -454,20 +454,36 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
     // add created and skipped info
+    const workerStats = _calcStats(normWorkers);
+
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;
         res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
+        res.resumed = toResume.filter(c => c.algorithmName === algorithmName).length;
     });
     await etcd.updateDiscovery({
         reconcileResult,
-        actual: _calcStats(normWorkers),
+        actual: workerStats,
         resourcePressure: {
             cpu: consts.CPU_RATIO_PRESSURE,
             gpu: consts.GPU_RATIO_PRESSURE,
             mem: consts.MEMORY_RATIO_PRESSURE
         },
         nodes: _getNodeStats(normResources)
+    });
+    workerStats.stats.forEach((ws) => {
+        const {algorithmName} = ws;
+        if (!reconcileResult[algorithmName]) {
+            reconcileResult[algorithmName] = {
+                created: 0,
+                skipped: 0,
+                paused: 0,
+                resumed: 0,
+                required: 0
+            };  
+        }
+        reconcileResult[algorithmName].active = ws.count;
     });
     return reconcileResult;
 };

@@ -73,7 +73,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
@@ -222,7 +222,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 0, skipped: 4 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 0, skipped: 4, resumed: 0 } });
         });
         it('should only create 40 in one iteration', async () => {
             const size = 40;
@@ -250,7 +250,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ 'hungry-alg': { idle: 0, required: size, paused: 0, created: size, skipped: 0 } });
+            expect(res).to.eql({ 'hungry-alg': { idle: 0, required: size, paused: 0, created: size, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(size);
         });
         it('should work with algorithm with enough resources', async () => {
@@ -279,7 +279,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 4, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 4, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(4);
         });
         it('should work with algorithm with not enough memory', async () => {
@@ -308,7 +308,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 0, skipped: 4 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 4, paused: 0, created: 0, skipped: 4, resumed: 0 } });
         });
         it('should work with custom worker', async () => {
             const algorithm = 'green-alg';
@@ -338,7 +338,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('myregistry:5000/stam/myworker:v2');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
@@ -374,7 +374,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env).to.deep.include({ name: 'myEnv', value: 'myValue' });
@@ -566,7 +566,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0 } });
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(fsVolumeMounts);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(fsVolumes);
