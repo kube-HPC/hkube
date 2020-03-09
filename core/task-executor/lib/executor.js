@@ -20,14 +20,24 @@ class Executor {
             name: metricsNames.TASK_EXECUTOR_JOB_REQUESTS,
             labels: ['algorithmName']
         });
-        metrics.removeMeasure(metricsNames.TASK_EXECUTOR_JOB_CURRENT);
-        this[metricsNames.TASK_EXECUTOR_JOB_CURRENT] = metrics.addGaugeMeasure({
-            name: metricsNames.TASK_EXECUTOR_JOB_CURRENT,
-            labels: ['algorithmName']
-        });
         metrics.removeMeasure(metricsNames.TASK_EXECUTOR_JOB_PAUSED);
         this[metricsNames.TASK_EXECUTOR_JOB_PAUSED] = metrics.addGaugeMeasure({
             name: metricsNames.TASK_EXECUTOR_JOB_PAUSED,
+            labels: ['algorithmName']
+        });
+        metrics.removeMeasure(metricsNames.TASK_EXECUTOR_JOB_RESUMED);
+        this[metricsNames.TASK_EXECUTOR_JOB_RESUMED] = metrics.addGaugeMeasure({
+            name: metricsNames.TASK_EXECUTOR_JOB_RESUMED,
+            labels: ['algorithmName']
+        });
+        metrics.removeMeasure(metricsNames.TASK_EXECUTOR_JOB_SKIPPED);
+        this[metricsNames.TASK_EXECUTOR_JOB_SKIPPED] = metrics.addGaugeMeasure({
+            name: metricsNames.TASK_EXECUTOR_JOB_SKIPPED,
+            labels: ['algorithmName']
+        });
+        metrics.removeMeasure(metricsNames.TASK_EXECUTOR_JOB_ACTIVE);
+        this[metricsNames.TASK_EXECUTOR_JOB_ACTIVE] = metrics.addGaugeMeasure({
+            name: metricsNames.TASK_EXECUTOR_JOB_ACTIVE,
             labels: ['algorithmName']
         });
         if (options.healthchecks.logExternalRequests) {
@@ -105,15 +115,11 @@ class Executor {
             algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
-            this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required, labelValues: { algorithmName } });
-            this[metricsNames.TASK_EXECUTOR_JOB_CURRENT].set({ value: res.idle, labelValues: { algorithmName } });
-            this[metricsNames.TASK_EXECUTOR_JOB_PAUSED].set({ value: res.paused, labelValues: { algorithmName } });
-        });
-        Object.entries(reconcilerResults).forEach(([alg, val]) => {
-            const totalForAlg = Object.values(val).reduce((sum, current) => sum + current);
-            if (totalForAlg) {
-                log.trace(`newConfig: ${alg} => ${JSON.stringify(val, null, 2)}`, { component });
-            }
+            this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required || 0, labelValues: { algorithmName } });
+            this[metricsNames.TASK_EXECUTOR_JOB_SKIPPED].set({ value: res.skipped || 0, labelValues: { algorithmName } });
+            this[metricsNames.TASK_EXECUTOR_JOB_RESUMED].set({ value: res.resumed || 0, labelValues: { algorithmName } });
+            this[metricsNames.TASK_EXECUTOR_JOB_PAUSED].set({ value: res.paused || 0, labelValues: { algorithmName } });
+            this[metricsNames.TASK_EXECUTOR_JOB_ACTIVE].set({ value: res.active || 0, labelValues: { algorithmName } });
         });
     }
 
