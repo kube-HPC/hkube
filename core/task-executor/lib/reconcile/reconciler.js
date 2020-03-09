@@ -223,35 +223,14 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     let activeWorkersLocal = clonedeep(activeWorkers);
     const notUsedWorkers = activeWorkersLocal.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
     const usedWorkers = activeWorkersLocal.filter(w => skippedTypes.find(d => d.algorithmName === w.algorithmName));
-    const toStopActive = [];
-    skippedLocal.forEach((s) => {
+    skippedLocal.forEach(() => {
         let worker = idleWorkersLocal.shift();
         if (!worker) {
             worker = notUsedWorkers.shift();
         }
-        if (worker) {
-            activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
-            _createStopDetails({ worker, algorithmTemplates, stopDetails });
-        }
-        else {
-            toStopActive.push(s);
-        }
-    });
-
-
-    toStopActive.forEach(() => {
-        let worker;
         if (!worker) {
-            // const workerIndex = usedWorkers.findIndex(w => !scheduledRequests.find(d => d.algorithmName === w.algorithmName));
-            // if (workerIndex !== -1) {
-            //     [worker] = usedWorkers.splice(workerIndex, 1);
-            //     const scheduledRequestsIndex = scheduledRequests.findIndex(d => d.algorithmName === worker.algorithmName);
-            //     if (scheduledRequestsIndex !== -1) {
-            //         scheduledRequestsIndex.splice(scheduledRequestsIndex, 1);
-            //     }
-            // }
+            worker = usedWorkers.shift();
         }
-        worker = usedWorkers.shift();
         if (worker) {
             activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
             _createStopDetails({ worker, algorithmTemplates, stopDetails });
@@ -473,7 +452,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         nodes: _getNodeStats(normResources)
     });
     workerStats.stats.forEach((ws) => {
-        const {algorithmName} = ws;
+        const { algorithmName } = ws;
         if (!reconcileResult[algorithmName]) {
             reconcileResult[algorithmName] = {
                 created: 0,
@@ -481,7 +460,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
                 paused: 0,
                 resumed: 0,
                 required: 0
-            };  
+            };
         }
         reconcileResult[algorithmName].active = ws.count;
     });
