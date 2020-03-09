@@ -56,6 +56,14 @@ const jobTemplate = {
                                 }
                             },
                             {
+                                name: 'NAMESPACE',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'metadata.namespace'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
