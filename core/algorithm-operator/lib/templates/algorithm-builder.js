@@ -122,6 +122,14 @@ const openshiftVolumes = {
         {
             name: 'workspace',
             mountPath: '/tmp/workspace'
+        },
+        {
+            name: 'uploads',
+            mountPath: '/hkube/algorithm-builder/uploads'
+        },
+        {
+            name: 'builds',
+            mountPath: '/hkube/algorithm-builder/builds'
         }
     ],
     volumes: [
@@ -135,6 +143,14 @@ const openshiftVolumes = {
         },
         {
             name: 'config',
+            emptyDir: {}
+        },
+        {
+            name: 'uploads',
+            emptyDir: {}
+        },
+        {
+            name: 'builds',
             emptyDir: {}
         }
     ]
