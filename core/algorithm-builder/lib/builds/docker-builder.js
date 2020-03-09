@@ -312,20 +312,6 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     }
     else if (buildMode === OPENSHIFT) {
         await _createOpenshiftConfigs(args, tmpFolder, docker, buildId, algorithmImage);
-        // const imageStream = {
-        //     apiVersion: 'image.openshift.io/v1',
-        //     kind: 'ImageStream',
-        //     metadata:{
-        //         name: algorithmName,
-        //     },
-        //     spec:{
-        //         lookupPolicy: {
-        //             local: true
-        //         }
-        //     }
-        // }
-        // const imageStreamYaml = jsyaml.dump(imageStream);
-        // await fse.writeFile(path.join(tmpFolder, 'commands', 'imageStream.yaml'), imageStreamYaml);
     }
     let updating = false
     const resultUpdater = async (result) => {
