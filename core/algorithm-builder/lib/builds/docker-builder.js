@@ -10,9 +10,10 @@ const { spawn } = require('child_process');
 const { buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
+const jsyaml = require('js-yaml');
 const { STATES, PROGRESS } = require('../consts/States');
 const component = require('../consts/components').DOCKER_BUILDER;
-const { KANIKO } = require('../consts/buildModes');
+const { KANIKO, OPENSHIFT } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
 const kubernetes = require('../helpers/kubernetes');
 
@@ -225,9 +226,78 @@ const _createURL = (options) => {
     return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
 };
 
+const _createDockerCredsConfig = (args, docker, packages) => {
+    const pullRegistry = _createURL(docker.pull);
+    const pushRegistry = _createURL(docker.push);
+    _argsHelper(args, '--dplr', pullRegistry);
+    _argsHelper(args, '--dplu', docker.pull.user);
+    _argsHelper(args, '--dplp', docker.pull.pass);
+    // docker push
+    _argsHelper(args, '--dphr', pushRegistry);
+    _argsHelper(args, '--dphu', docker.push.user);
+    _argsHelper(args, '--dphp', docker.push.pass);
+    // packages
+    _argsHelper(args, '--pckr', packages.registry);
+    _argsHelper(args, '--pckt', packages.token);
+}
+
+const _createKanikoConfigs = async (args, tmpFolder, docker) => {
+    _argsHelper(args, '--tmpFolder', tmpFolder);
+    const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
+    await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
+    _argsHelper(args, '--tmpFolder', tmpFolder);
+    _argsHelper(args, '--insecure_pull', docker.pull.insecure);
+    _argsHelper(args, '--insecure', docker.push.insecure);
+    _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
+    _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
+}
+
+const _createOpenshiftConfigs = async (args, tmpFolder, docker, buildId, algorithmImage) => {
+    _argsHelper(args, '--tmpFolder', tmpFolder);
+    const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
+    const dockerCredsSecret = {
+        apiVersion: 'v1',
+        data: {
+            '.dockerconfigjson': `${Buffer.from(JSON.stringify(dockerCreds)).toString('base64')}`
+        },
+        kind: 'Secret',
+        metadata: {
+            name: 'build-registry-secret',
+        },
+        type: 'kubernetes.io/dockerconfigjson'
+    };
+    const dockerCredsSecretYaml = jsyaml.dump(dockerCredsSecret);
+    await fse.writeFile(path.join(tmpFolder, 'commands', 'dockerCredsSecret.yaml'), dockerCredsSecretYaml);
+    const buildConf = {
+        apiVersion: 'build.openshift.io/v1',
+        kind: 'BuildConfig',
+        metadata: {
+            name: buildId,
+        },
+        spec: {
+            source: {
+                binary: {},
+                type: "Binary"
+            },
+            output: {
+                to: {
+                    kind: 'DockerImage',
+                    name: algorithmImage
+                }
+            },
+            strategy: {
+                dockerStrategy: {
+                    dockerfilePath: './dockerfile/Dockerfile',
+                },
+                type: 'Docker'
+            }
+        }
+    };
+    const buildConfYaml = jsyaml.dump(buildConf);
+    await fse.writeFile(path.join(tmpFolder, 'commands', 'buildConfig.yaml'), buildConfYaml);
+}
 
 const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
-    const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
     const packages = packagesRepo[env];
@@ -237,32 +307,18 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         '--img', algorithmImage,
         '--rmi', rmi,
         '--buildPath', buildPath,
-        '--baseImage', baseImageName
+        '--baseImage', baseImageName,
+        '--buildId', buildId
     ];
 
     // docker pull
-    _argsHelper(args, '--dplr', pullRegistry);
-    _argsHelper(args, '--dplu', docker.pull.user);
-    _argsHelper(args, '--dplp', docker.pull.pass);
-
-    // docker push
-    _argsHelper(args, '--dphr', pushRegistry);
-    _argsHelper(args, '--dphu', docker.push.user);
-    _argsHelper(args, '--dphp', docker.push.pass);
-
-    // packages
-    _argsHelper(args, '--pckr', packages.registry);
-    _argsHelper(args, '--pckt', packages.token);
+    _createDockerCredsConfig(args, docker, packages);
 
     if (buildMode === KANIKO) {
-        _argsHelper(args, '--tmpFolder', tmpFolder);
-        const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
-        await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
-        _argsHelper(args, '--tmpFolder', tmpFolder);
-        _argsHelper(args, '--insecure_pull', docker.pull.insecure);
-        _argsHelper(args, '--insecure', docker.push.insecure);
-        _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
-        _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
+        await _createKanikoConfigs(args, tmpFolder, docker);
+    }
+    else if (buildMode === OPENSHIFT) {
+        await _createOpenshiftConfigs(args, tmpFolder, docker, buildId, algorithmImage);
     }
     let updating = false
     const resultUpdater = async (result) => {
@@ -309,6 +365,8 @@ const _progress = (progress) => {
         return prog;
     };
 };
+
+
 
 const runBuild = async (options) => {
     let build;
@@ -371,3 +429,4 @@ module.exports = {
     runBash,
     buildAlgorithmImage
 };
+
