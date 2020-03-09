@@ -73,9 +73,9 @@ describe('Executions', () => {
             expect(response2.body.nodes).to.deep.equal(options1.body.nodes);
         });
         it('should exec stored pipeline with concurrent and failed if reached the max number', async () => {
-            const rp = await stateManager.executions.running.list({ jobId: 'concurrentPipelines:' });
+            const rp = await stateManager.executions.running.list({ jobId: 'concurrentPipelinesReject:' });
             await Promise.all(rp.map(p => stateManager.executions.running.delete({ jobId: p.jobId })));
-            const pipeline = pipelines.find(p => p.name === 'concurrentPipelines');
+            const pipeline = pipelines.find(p => p.name === 'concurrentPipelinesReject');
 
             const options = {
                 uri: restUrl + '/exec/stored',
@@ -91,7 +91,28 @@ describe('Executions', () => {
 
             const response2 = await request(options);
             expect(response2.body).to.have.property('error');
-            expect(response2.body.error.message).to.equal(`maximum number [${pipeline.options.concurrentPipelines}] of concurrent pipelines has been reached`);
+            expect(response2.body.error.message).to.equal(`maximum number [${pipeline.options.concurrentPipelines.amount}] of concurrent pipelines has been reached`);
+
+        });
+        it('should exec stored pipeline with concurrent and success if reached the max number', async () => {
+            const rp = await stateManager.executions.running.list({ jobId: 'concurrentPipelinesResolve:' });
+            await Promise.all(rp.map(p => stateManager.executions.running.delete({ jobId: p.jobId })));
+            const pipeline = pipelines.find(p => p.name === 'concurrentPipelinesResolve');
+
+            const options = {
+                uri: restUrl + '/exec/stored',
+                body: {
+                    name: pipeline.name
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('jobId');
+
+            const response1 = await request(options);
+            expect(response1.body).to.have.property('jobId');
+
+            const response2 = await request(options);
+            expect(response2.body).to.have.property('jobId');
 
         });
     });

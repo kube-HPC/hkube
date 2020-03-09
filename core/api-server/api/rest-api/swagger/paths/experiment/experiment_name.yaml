@@ -47,19 +47,13 @@ delete:
       required: true
       schema:
         type: string
-    - name: force
-      in: query
-      description: should also delete all related data, e.g.jobs.
-      required: false
-      schema:
-        type: boolean
   responses:
     "200":
       description: action summery
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/defaultResponse"
+            $ref: "#/components/schemas/defaultResponseWithName"
     "400":
       description: bad request
       content:
@@ -67,7 +61,7 @@ delete:
           schema:
             $ref: "#/components/schemas/error"
     "404":
-      description: pipeline Not Found
+      description: experiment Not Found
       content:
         application/json:
           schema:

@@ -27,15 +27,13 @@ const routes = (options) => {
     router.post('/', logger(), async (req, res, next) => {
         const { name, description } = req.body;
         await Experiment.insertExperiment({ name, description });
-        res.json({ message: 'OK' });
-        res.name = name;
+        res.json({ message: 'OK', name });
         next();
     });
     router.delete('/:name?', logger(), async (req, res, next) => {
         const { name } = req.params;
         const response = await Experiment.deleteExperiment({ name });
-        res.json({ message: response });
-        res.name = name;
+        res.json(response);
         next();
     });
 
