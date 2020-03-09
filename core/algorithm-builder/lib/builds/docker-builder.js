@@ -226,6 +226,32 @@ const _createURL = (options) => {
     return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
 };
 
+const _createDockerCredsConfig = (args, docker, packages) => {
+    const pullRegistry = _createURL(docker.pull);
+    const pushRegistry = _createURL(docker.push);
+    _argsHelper(args, '--dplr', pullRegistry);
+    _argsHelper(args, '--dplu', docker.pull.user);
+    _argsHelper(args, '--dplp', docker.pull.pass);
+    // docker push
+    _argsHelper(args, '--dphr', pushRegistry);
+    _argsHelper(args, '--dphu', docker.push.user);
+    _argsHelper(args, '--dphp', docker.push.pass);
+    // packages
+    _argsHelper(args, '--pckr', packages.registry);
+    _argsHelper(args, '--pckt', packages.token);
+}
+
+const _createKanikoConfigs = async (args, tmpFolder, docker) => {
+    _argsHelper(args, '--tmpFolder', tmpFolder);
+    const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
+    await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
+    _argsHelper(args, '--tmpFolder', tmpFolder);
+    _argsHelper(args, '--insecure_pull', docker.pull.insecure);
+    _argsHelper(args, '--insecure', docker.push.insecure);
+    _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
+    _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
+}
+
 const _createOpenshiftConfigs = async (args, tmpFolder, docker, buildId, algorithmImage) => {
     _argsHelper(args, '--tmpFolder', tmpFolder);
     const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
@@ -272,7 +298,6 @@ const _createOpenshiftConfigs = async (args, tmpFolder, docker, buildId, algorit
 }
 
 const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
-    const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
     const packages = packagesRepo[env];
@@ -287,28 +312,10 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     ];
 
     // docker pull
-    _argsHelper(args, '--dplr', pullRegistry);
-    _argsHelper(args, '--dplu', docker.pull.user);
-    _argsHelper(args, '--dplp', docker.pull.pass);
-
-    // docker push
-    _argsHelper(args, '--dphr', pushRegistry);
-    _argsHelper(args, '--dphu', docker.push.user);
-    _argsHelper(args, '--dphp', docker.push.pass);
-
-    // packages
-    _argsHelper(args, '--pckr', packages.registry);
-    _argsHelper(args, '--pckt', packages.token);
+    _createDockerCredsConfig(args, docker, packages);
 
     if (buildMode === KANIKO) {
-        _argsHelper(args, '--tmpFolder', tmpFolder);
-        const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
-        await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
-        _argsHelper(args, '--tmpFolder', tmpFolder);
-        _argsHelper(args, '--insecure_pull', docker.pull.insecure);
-        _argsHelper(args, '--insecure', docker.push.insecure);
-        _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
-        _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
+        await _createKanikoConfigs(args, tmpFolder, docker);
     }
     else if (buildMode === OPENSHIFT) {
         await _createOpenshiftConfigs(args, tmpFolder, docker, buildId, algorithmImage);
@@ -422,5 +429,4 @@ module.exports = {
     runBash,
     buildAlgorithmImage
 };
-
 
