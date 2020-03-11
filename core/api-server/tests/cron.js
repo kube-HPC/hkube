@@ -70,7 +70,13 @@ describe('Cron', () => {
             const optionsRun = {
                 uri: `${internalUrl}/exec/stored/cron`,
                 body: {
-                    name: pipeline
+                    name: pipeline,
+                    priority: 2,
+                    options: {
+                        ttl: 1200,
+                        batchTolerance: 90,
+                        progressVerbosityLevel: "info"
+                    }
                 }
             };
             const data = [100, 200, 300];
