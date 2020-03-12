@@ -2,7 +2,7 @@
 set -eo pipefail
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 mkdir -p $SCRIPTPATH/../environments/python/packages
-versions="python:2.7 python:3.5 python:3.6 python:3.7 tensorflow/tensorflow:1.13.1-py3"
+versions="python:2.7 python:3.5 python:3.6 python:3.7"
 for v in $versions
 do
   echo downloading for $v

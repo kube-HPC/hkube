@@ -64,15 +64,17 @@ class ExecutionService {
     }
 
     async _createPipeline(options) {
-        const { name, experimentName } = options;
-        const storedExperimentName = await this._getExperimentName({ name });
-        return { ...options, experimentName: storedExperimentName || experimentName };
+        const { name } = options;
+        const experimentName = await this._getExperimentName({ name });
+        return { ...options, experimentName };
     }
 
     async _getExperimentName(options) {
         const { name } = options;
         const pipeline = await stateManager.pipelines.get({ name });
-        return pipeline && pipeline.experimentName;
+        const experiment = { name: (pipeline && pipeline.experimentName) || undefined };
+        validator.validateExperimentName(experiment);
+        return experiment.name;
     }
 
     _createCronJobID(options, uid) {

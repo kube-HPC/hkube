@@ -23,6 +23,15 @@ const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
 const MIN_AGE_FOR_STOP = 10 * 1000;
+let totalCapacityNow = 10;
+const _updateCapacity = (algorithmCount) => {
+    const factor = 0.9;
+    const minCapacity = 2;
+    totalCapacityNow = totalCapacityNow * factor + algorithmCount * (1 - factor);
+    if (totalCapacityNow < minCapacity) {
+        totalCapacityNow = minCapacity;
+    }
+};
 
 const _createJob = (jobDetails, options) => {
     const spec = createJobSpec({ ...jobDetails, options });
@@ -59,7 +68,11 @@ const _stopWorker = (worker) => {
         workerId: worker.id, command: commands.stopProcessing, algorithmName: worker.algorithmName, podName: worker.podName
     });
 };
-
+const _resumeWorker = (worker) => {
+    return etcd.sendCommandToWorker({
+        workerId: worker.id, command: commands.startProcessing, algorithmName: worker.algorithmName, podName: worker.podName
+    });
+};
 const _coolDownWorker = (worker) => {
     return etcd.sendCommandToWorker({
         workerId: worker.id, command: commands.coolDown, algorithmName: worker.algorithmName, podName: worker.podName
@@ -89,34 +102,38 @@ const _clearCreatedJobsList = (now, options) => {
 
 const _processAllRequests = (
     { idleWorkers, pausedWorkers, pendingWorkers, algorithmTemplates, versions, jobsCreated, normRequests, registry, clusterOptions, workerResources },
-    { createPromises, createDetails, reconcileResult }
+    { createDetails, reconcileResult, toResume, scheduledRequests }
 ) => {
     for (let r of normRequests) {// eslint-disable-line
         const { algorithmName, hotWorker } = r;
         const idleWorkerIndex = idleWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (idleWorkerIndex !== -1) {
             // there is idle worker. don't do anything
-            idleWorkers.splice(idleWorkerIndex, 1);
+            const [worker] = idleWorkers.splice(idleWorkerIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
-        const pausedWorkerIndex = pausedWorkers.findIndex(w => w.algorithmName === algorithmName);
-        if (pausedWorkerIndex !== -1) {
-            // there is paused worker. wake it up
-            const workerId = pausedWorkers[pausedWorkerIndex].id;
-            createPromises.push(etcd.sendCommandToWorker({ workerId, algorithmName, command: commands.startProcessing }));
-            pausedWorkers.splice(pausedWorkerIndex, 1);
-            continue;
-        }
+
         const pendingWorkerIndex = pendingWorkers.findIndex(w => w.algorithmName === algorithmName);
         if (pendingWorkerIndex !== -1) {
             // there is a pending worker.
-            pendingWorkers.splice(pendingWorkerIndex, 1);
+            const [worker] = pendingWorkers.splice(pendingWorkerIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
         const jobsCreatedIndex = jobsCreated.findIndex(w => w.algorithmName === algorithmName);
         if (jobsCreatedIndex !== -1) {
             // there is a pending worker.
-            jobsCreated.splice(jobsCreatedIndex, 1);
+            const [worker] = jobsCreated.splice(jobsCreatedIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
+            continue;
+        }
+        const pausedWorkerIndex = pausedWorkers.findIndex(w => w.algorithmName === algorithmName);
+        if (pausedWorkerIndex !== -1) {
+            // there is paused worker. wake it up
+            toResume.push({ ...(pausedWorkers[pausedWorkerIndex]) });
+            const [worker] = pausedWorkers.splice(pausedWorkerIndex, 1);
+            scheduledRequests.push({ algorithmName: r.algorithmName, id: worker.id });
             continue;
         }
         const algorithmTemplate = algorithmTemplates[algorithmName];
@@ -158,109 +175,70 @@ const _processAllRequests = (
     }
 };
 
+const _createStopDetails = ({ worker, algorithmTemplates, stopDetails }) => {
+    const algorithmTemplate = algorithmTemplates[worker.algorithmName];
+    if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
+        return;
+    }
+    const resourceRequests = createContainerResource(algorithmTemplate);
+    stopDetails.push({
+        count: 1,
+        details: {
+            algorithmName: worker.algorithmName,
+            resourceRequests,
+            nodeName: worker.job ? worker.job.nodeName : null,
+            podName: worker.podName,
+            id: worker.id
+
+
+        }
+    });
+};
+
 const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemplates }, { stopDetails }) => {
-    let missingCount = skipped.length;
+    const missingCount = skipped.length;
     if (missingCount === 0) {
         return;
     }
 
+    // find stats about required workers
+    log.info(`totalCapacityNow=${totalCapacityNow}, missingCount=${missingCount}`);
 
-    idleWorkers.forEach((r) => {
-        const algorithmTemplate = algorithmTemplates[r.algorithmName];
-        if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-            return;
-        }
-        const resourceRequests = createContainerResource(algorithmTemplate);
-        stopDetails.push({
-            count: 1,
-            details: {
-                algorithmName: r.algorithmName,
-                resourceRequests,
-                nodeName: r.job ? r.job.nodeName : null,
-                podName: r.podName,
-                id: r.id
-
-
-            }
-        });
-        missingCount -= 1;
-    });
-
-    const activeTypes = Object.entries(activeWorkers.reduce((prev, cur, index) => {
+    const skippedTypes = Object.entries(skipped.reduce((prev, cur, index) => {
         if (!prev[cur.algorithmName]) {
             prev[cur.algorithmName] = {
                 count: 0,
                 list: []
             };
         }
-        prev[cur.algorithmName].count += ((index + 1) ** 0.7);
+        prev[cur.algorithmName].count += ((skipped.length - index) ** 0.7);
         prev[cur.algorithmName].list.push(cur);
         return prev;
     }, {})).map(([k, v]) => ({ algorithmName: k, count: v.count, list: v.list }));
-    const skippedTypes = Object.entries(skipped.reduce((prev, cur) => {
-        if (!prev[cur.algorithmName]) {
-            prev[cur.algorithmName] = {
-                count: 0,
-                list: []
-            };
+
+    // log.info(JSON.stringify(skippedTypes.map(s => ({ name: s.algorithmName, count: s.count })), null, 2));
+
+    const skippedLocal = clonedeep(skipped);
+    const idleWorkersLocal = clonedeep(idleWorkers);
+    let activeWorkersLocal = clonedeep(activeWorkers);
+    const notUsedWorkers = activeWorkersLocal.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
+    const usedWorkers = activeWorkersLocal.filter(w => skippedTypes.find(d => d.algorithmName === w.algorithmName));
+    skippedLocal.forEach(() => {
+        let worker = idleWorkersLocal.shift();
+        if (!worker) {
+            worker = notUsedWorkers.shift();
         }
-        prev[cur.algorithmName].count += 1;
-        prev[cur.algorithmName].list.push(cur);
-        return prev;
-    }, {})).map(([k, v]) => ({ algorithmName: k, count: v.count, list: v.list }));
-    const notUsedAlgorithms = activeTypes.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
-
-
-    notUsedAlgorithms.forEach((r) => {
-        const algorithmTemplate = algorithmTemplates[r.algorithmName];
-        if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-            return;
+        if (!worker) {
+            worker = usedWorkers.shift();
         }
-        const resourceRequests = createContainerResource(algorithmTemplate);
-        r.list.forEach((w) => {
-            stopDetails.push({
-                count: 1,
-                details: {
-                    algorithmName: r.algorithmName,
-                    resourceRequests,
-                    nodeName: w.job ? w.job.nodeName : null,
-                    podName: w.podName,
-                    id: w.id
-
-                }
-            });
-            missingCount -= 1;
-        });
+        if (worker) {
+            activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
+            _createStopDetails({ worker, algorithmTemplates, stopDetails });
+        }
     });
-
-    // if (missingCount === 0) {
-    //     return;
-    // }
-
-    // const sortedActiveTypes = activeTypes.sort((a, b) => a.count - b.count);
-    // sortedActiveTypes.forEach((r) => {
-    //     const algorithmTemplate = algorithmTemplates[r.algorithmName];
-    //     if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-    //         return;
-    //     }
-    //     const resourceRequests = createContainerResource(algorithmTemplate);
-    //     r.list.forEach((w) => {
-    //         stopDetails.push({
-    //             count: 1,
-    //             details: {
-    //                 algorithmName: r.algorithmName,
-    //                 resourceRequests,
-    //                 nodeName: w.job ? w.job.nodeName : null,
-    //                 podName: w.podName,
-    //                 id: w.id
-    //             }
-    //         });
-    //         missingCount -= 1;
-    //     });
-    // });
 };
 
-const _calaStats = (data) => {
+const _calcStats = (data) => {
     const stats = Object.values(data.reduce((acc, cur) => {
         if (!acc[cur.algorithmName]) {
             acc[cur.algorithmName] = {
@@ -313,15 +291,38 @@ const _getNodeStats = (normResources) => {
         },
         labels: n.labels,
         workers2: n.workers,
-        workers: _calaStats(n.workers)
+        workers: _calcStats(n.workers)
 
     }
     ));
     return statsPerNode;
 };
 
+const calcRatio = (totalRequests, capacity) => {
+    const requestTypes = totalRequests.reduce((prev, cur) => {
+        if (!prev.algorithms[cur.algorithmName]) {
+            prev.algorithms[cur.algorithmName] = {
+                count: 0,
+                list: []
+            };
+        }
+        prev.algorithms[cur.algorithmName].count += 1;
+        prev.algorithms[cur.algorithmName].list.push(cur);
+        prev.total += 1;
+        return prev;
+    }, { total: 0, algorithms: {} });
+    Object.keys(requestTypes.algorithms).forEach(k => {
+        requestTypes.algorithms[k].ratio = requestTypes.algorithms[k].count / requestTypes.total;
+        if (capacity) {
+            requestTypes.algorithms[k].required = requestTypes.algorithms[k].ratio * capacity;
+        }
+    });
+    return requestTypes;
+};
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
+    // _clearPausedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, pods, j => !j.status.succeeded);
     const merged = mergeWorkers(normWorkers, normJobs);
@@ -330,35 +331,59 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const mergedWorkers = merged.mergedWorkers.filter(w => !exitWorkers.find(e => e.id === w.id));
     const warmUpWorkers = normalizeHotWorkers(mergedWorkers, algorithmTemplates);
     const coolDownWorkers = normalizeColdWorkers(mergedWorkers, algorithmTemplates);
-    const totalRequests = normalizeHotRequests(normRequests, algorithmTemplates);
 
     const isCpuPressure = normResources.allNodes.ratio.cpu > CPU_RATIO_PRESSURE;
     const isMemoryPressure = normResources.allNodes.ratio.memory > MEMORY_RATIO_PRESSURE;
-    if (isCpuPressure || isMemoryPressure) {
+    const isResourcePressure = isCpuPressure || isMemoryPressure;
+    if (isResourcePressure) {
         log.trace(`isCpuPressure: ${isCpuPressure}, isMemoryPressure: ${isMemoryPressure}`, { component });
     }
     const createDetails = [];
     const createPromises = [];
     const reconcileResult = {};
-
+    const toResume = [];
+    const scheduledRequests = [];
     const idleWorkers = clonedeep(mergedWorkers.filter(w => _idleWorkerFilter(w)));
     const activeWorkers = clonedeep(mergedWorkers.filter(w => _activeWorkerFilter(w)));
     const pausedWorkers = clonedeep(mergedWorkers.filter(w => _pausedWorkerFilter(w)));
     const pendingWorkers = clonedeep(merged.extraJobs);
     const jobsCreated = clonedeep(createdJobsList);
 
+    _updateCapacity(idleWorkers.length + activeWorkers.length + createdJobsList.length + jobsCreated.length);
+
+    // get stats
+    const workerTypes = calcRatio(mergedWorkers);
+
+    const totalRequests = normalizeHotRequests(normRequests.slice(0, Math.round(totalCapacityNow * 3)), algorithmTemplates);
+    log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
+    const requestTypes = calcRatio(totalRequests, totalCapacityNow);
+    log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
+    log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
+    // cut requests based on ratio
+    const cutRequests = [];
+    totalRequests.forEach(r => {
+        const ratios = calcRatio(cutRequests, totalCapacityNow);
+        const { required } = requestTypes.algorithms[r.algorithmName];
+        if (!ratios.algorithms[r.algorithmName] || ratios.algorithms[r.algorithmName].count < required) {
+            cutRequests.push(r);
+        }
+    });
+    const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
+    log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
+
     _processAllRequests(
         {
-            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: totalRequests, registry, clusterOptions, workerResources
+            idleWorkers, pausedWorkers, pendingWorkers, normResources, algorithmTemplates, versions, jobsCreated, normRequests: cutRequests, registry, clusterOptions, workerResources
         },
         {
-            createPromises, createDetails, reconcileResult
+            createDetails, reconcileResult, toResume, scheduledRequests
         }
     );
-    const { created, skipped } = matchJobsToResources(createDetails, normResources);
+    const { created, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests);
     created.forEach((j) => {
         createdJobsList.push(j);
     });
+
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -371,7 +396,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     }, { cpu: 0, gpu: 0, memory: 0 });
 
     _findWorkersToStop({
-        skipped, idleWorkers, activeWorkers, algorithmTemplates
+        skipped, idleWorkers, activeWorkers, algorithmTemplates, scheduledRequests
     }, { stopDetails });
 
     const { toStop } = pauseAccordingToResources(
@@ -381,26 +406,44 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         resourcesToFree,
         skipped
     );
-
     if (created.length > 0) {
         log.trace(`creating ${created.length} algorithms....`, { component });
     }
+
+    log.info(`to stop: ${JSON.stringify(toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
+    const toStopFiltered = [];
+    toStop.forEach(s => {
+        const index = toResume.findIndex(tr => tr.algorithmName === s.algorithmName);
+        if (index !== -1) {
+            toResume.splice(index, 1);
+        }
+        else {
+            toStopFiltered.push(s);
+        }
+    });
+
+    log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
+
     const exitWorkersPromises = exitWorkers.map(r => _exitWorker(r));
     const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));
     const coolDownPromises = coolDownWorkers.map(r => _coolDownWorker(r));
-    const stopPromises = toStop.map(r => _stopWorker(r));
+    const stopPromises = toStopFiltered.map(r => _stopWorker(r));
+    const resumePromises = toResume.map(r => _resumeWorker(r));
     createPromises.push(created.map(r => _createJob(r, options)));
 
-    await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises]);
+    await Promise.all([...createPromises, ...stopPromises, ...exitWorkersPromises, ...warmUpPromises, ...coolDownPromises, ...resumePromises]);
     // add created and skipped info
+    const workerStats = _calcStats(normWorkers);
+
     Object.entries(reconcileResult).forEach(([algorithmName, res]) => {
         res.created = created.filter(c => c.algorithmName === algorithmName).length;
         res.skipped = skipped.filter(c => c.algorithmName === algorithmName).length;
         res.paused = toStop.filter(c => c.algorithmName === algorithmName).length;
+        res.resumed = toResume.filter(c => c.algorithmName === algorithmName).length;
     });
     await etcd.updateDiscovery({
         reconcileResult,
-        actual: _calaStats(normWorkers),
+        actual: workerStats,
         resourcePressure: {
             cpu: consts.CPU_RATIO_PRESSURE,
             gpu: consts.GPU_RATIO_PRESSURE,
@@ -408,10 +451,24 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         },
         nodes: _getNodeStats(normResources)
     });
+    workerStats.stats.forEach((ws) => {
+        const { algorithmName } = ws;
+        if (!reconcileResult[algorithmName]) {
+            reconcileResult[algorithmName] = {
+                created: 0,
+                skipped: 0,
+                paused: 0,
+                resumed: 0,
+                required: 0
+            };
+        }
+        reconcileResult[algorithmName].active = ws.count;
+    });
     return reconcileResult;
 };
 
 module.exports = {
     reconcile,
-    _clearCreatedJobsList
+    _clearCreatedJobsList,
+    _updateCapacity
 };

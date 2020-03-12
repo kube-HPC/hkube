@@ -167,7 +167,7 @@ const pauseAccordingToResources = (stopDetails, availableResources, workers, res
     return { toStop };
 };
 
-const matchJobsToResources = (createDetails, availableResources) => {
+const matchJobsToResources = (createDetails, availableResources, scheduledRequests = []) => {
     const created = [];
     const skipped = [];
     const localDetails = clone(createDetails);
@@ -178,7 +178,9 @@ const matchJobsToResources = (createDetails, availableResources) => {
         if (j.numberOfNewJobs > 0) {
             const { shouldAdd, newResources } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
             if (shouldAdd) {
-                created.push({ ...j.jobDetails, createdTime: Date.now() });
+                const toCreate = { ...j.jobDetails, createdTime: Date.now() };
+                created.push(toCreate);
+                scheduledRequests.push({ algorithmName: toCreate.algorithmName });
             }
             else {
                 skipped.push(j.jobDetails);
