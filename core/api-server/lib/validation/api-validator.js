@@ -50,6 +50,10 @@ class ApiValidator {
         this._addDefaults(this._definitions.algorithm, algorithm);
     }
 
+    validateExperimentName(experiment) {
+        this._validate(this._definitions.experiment, experiment, true);
+    }
+
     validateListRange(options) {
         this._validate(this._definitionsInternal.listRange, options);
     }
@@ -63,7 +67,7 @@ class ApiValidator {
     }
 
     validateStoredInternal(pipeline) {
-        this._validate(this._definitionsInternal.pipeline, pipeline, true);
+        this._validate(this._definitionsInternal.pipeline, pipeline, false);
     }
 
     validateRawSubPipeline(pipeline) {

@@ -5,7 +5,7 @@ const { pipelineTypes } = require('@hkube/consts');
 const { uuid } = require('../lib/utils');
 const querystring = require('querystring');
 const { pipelines, workerStub } = require('./mocks');
-const { request } = require('./utils');
+const { request, delay } = require('./utils');
 let restUrl, internalUrl;
 
 describe('Internal', () => {
@@ -180,6 +180,34 @@ describe('Internal', () => {
             };
             const res2 = await request(optionsGET);
             expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER]);
+        });
+        it('should run stored trigger pipeline and merge parent flowInput', async () => {
+            const flow2 = pipelines.find(p => p.name === 'flow2')
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1'
+                }
+            };
+            const res1 = await request(options1);
+            const jobId = res1.body.jobId;
+            const data = { prop: 42 };
+            await workerStub.done({ jobId, data });
+            await delay(500)
+            const options2 = {
+                uri: `${internalUrl}/exec/stored/trigger`,
+                body: {
+                    name: 'flow2',
+                    parentJobId: jobId
+                }
+            };
+            const res2 = await request(options2);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res2.body.jobId}`,
+                method: 'GET'
+            };
+            const res3 = await request(optionsGET);
+            expect(res3.body.flowInputOrig).to.eql({ ...flow2.flowInput, parent: data });
         });
         it('should succeed without reaching too many request', async () => {
             const requests = 10;
