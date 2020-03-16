@@ -1,7 +1,8 @@
 const settingsFactory = () => (
     {
         useResourceLimits: false,
-        applyResources: false
+        applyResources: false,
+        labels: {}
     }
 );
 
@@ -14,6 +15,7 @@ const setFromConfig = (config) => {
     }
     settings.useResourceLimits = config.resources.useResourceLimits;
     settings.applyResources = config.resources.enable;
+    settings.labels = config.kubernetes.labels;
 };
 
 module.exports = {

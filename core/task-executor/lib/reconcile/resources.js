@@ -44,7 +44,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     nodeForSchedule.free.gpu -= requestedGpu;
     nodeForSchedule.free.memory -= requestedMemory;
 
-    return { shouldAdd: true, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes } } };
+    return { shouldAdd: true, node: nodeForSchedule.name, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes } } };
 };
 
 const _sortWorkers = (a, b) => {
@@ -176,9 +176,9 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
     // loop over all the job types one by one and assign until it can't fit in any node
     const cb = (j) => {
         if (j.numberOfNewJobs > 0) {
-            const { shouldAdd, newResources } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
+            const { shouldAdd, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
             if (shouldAdd) {
-                const toCreate = { ...j.jobDetails, createdTime: Date.now() };
+                const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
                 created.push(toCreate);
                 scheduledRequests.push({ algorithmName: toCreate.algorithmName });
             }
