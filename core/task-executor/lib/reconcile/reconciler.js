@@ -18,7 +18,7 @@ const { normalizeWorkers,
     mergeWorkers } = require('./normalize');
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
-const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
+const { matchJobsToResources, pauseAccordingToResources, parseResources } = require('./resources');
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
@@ -175,13 +175,13 @@ const _processAllRequests = (
     }
 };
 
-const _createStopDetails = ({ worker, algorithmTemplates, stopDetails }) => {
+const _createStopDetails = ({ worker, algorithmTemplates }) => {
     const algorithmTemplate = algorithmTemplates[worker.algorithmName];
     if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-        return;
+        return null;
     }
     const resourceRequests = createContainerResource(algorithmTemplate);
-    stopDetails.push({
+    return {
         count: 1,
         details: {
             algorithmName: worker.algorithmName,
@@ -189,10 +189,8 @@ const _createStopDetails = ({ worker, algorithmTemplates, stopDetails }) => {
             nodeName: worker.job ? worker.job.nodeName : null,
             podName: worker.podName,
             id: worker.id
-
-
         }
-    });
+    };
 };
 
 const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemplates }, { stopDetails }) => {
@@ -223,17 +221,37 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     let activeWorkersLocal = clonedeep(activeWorkers);
     const notUsedWorkers = activeWorkersLocal.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
     const usedWorkers = activeWorkersLocal.filter(w => skippedTypes.find(d => d.algorithmName === w.algorithmName));
-    skippedLocal.forEach(() => {
-        let worker = idleWorkersLocal.shift();
-        if (!worker) {
-            worker = notUsedWorkers.shift();
-        }
-        if (!worker) {
-            worker = usedWorkers.shift();
-        }
-        if (worker) {
-            activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
-            _createStopDetails({ worker, algorithmTemplates, stopDetails });
+
+    skippedLocal.forEach((s) => {
+        let skippedResources = parseResources(s);
+        const needMoreResources = ({ requestedCpu, memoryRequests, requestedGpu }) => {
+            return requestedCpu > 0 || memoryRequests > 0 || requestedGpu > 0;
+        };
+
+        const _subtractResources = (resources, { requestedCpu, memoryRequests, requestedGpu }) => {
+            const newResources = {
+                requestedCpu: resources.requestedCpu - requestedCpu,
+                memoryRequests: resources.memoryRequests - memoryRequests,
+                requestedGpu: resources.requestedGpu - requestedGpu
+            };
+            return newResources;
+        };
+
+        while ((idleWorkersLocal.length > 0 || notUsedWorkers.length > 0 || usedWorkers.length > 0) && needMoreResources(skippedResources)) {
+            let worker = idleWorkersLocal.shift();
+            if (!worker) {
+                worker = notUsedWorkers.shift();
+            }
+            if (!worker) {
+                worker = usedWorkers.shift();
+            }
+            if (worker) {
+                activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
+                const toStop = _createStopDetails({ worker, algorithmTemplates });
+
+                skippedResources = _subtractResources(skippedResources, parseResources(toStop.details));
+                stopDetails.push(toStop);
+            }
         }
     });
 };

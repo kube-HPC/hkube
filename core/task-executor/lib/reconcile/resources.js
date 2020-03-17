@@ -62,6 +62,38 @@ function _scheduleAlgorithmToNode(nodeList, { requestedCpu, requestedGpu, memory
     return nodeForSchedule;
 }
 
+const _subtractResources = (resources, {requestedCpu, memoryRequests, requestedGpu}) => {
+    if (resources.free) {
+        resources.free = {
+            cpu: resources.free.cpu + requestedCpu,
+            memory: resources.free.memory + memoryRequests,
+            gpu: resources.free.gpu + requestedGpu
+        };
+    }
+    if (resources.requests) {
+        resources.requests = {
+            cpu: resources.requests.cpu - requestedCpu,
+            memory: resources.requests.memory - memoryRequests,
+            gpu: resources.requests.gpu - requestedGpu
+        };
+    }
+    if (resources.ratio) {
+        resources.ratio = {
+            cpu: resources.requests.cpu / resources.total.cpu,
+            memory: resources.requests.memory / resources.total.memory,
+            gpu: resources.total.gpu ? resources.requests.gpu / resources.total.gpu : 0
+        };
+    }
+};
+
+const parseResources = (worker) => {
+    const requestedCpu = parse.getCpuInCore('' + worker.resourceRequests.requests.cpu);
+    const memoryRequests = parse.getMemoryInMi(worker.resourceRequests.requests.memory);
+    const requestedGpu = worker.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
+
+    return { requestedCpu, memoryRequests, requestedGpu };
+};
+
 const _updateNodeResources = (nodeList, nodeName, { requestedCpu, requestedGpu, memoryRequests }) => {
     const nodeListLocal = nodeList.slice();
     const nodeIndex = nodeListLocal.findIndex(n => n.name === nodeName);
@@ -69,23 +101,7 @@ const _updateNodeResources = (nodeList, nodeName, { requestedCpu, requestedGpu, 
         return nodeListLocal;
     }
     const node = clone(nodeListLocal[nodeIndex]);
-    node.free = {
-        cpu: node.free.cpu + requestedCpu,
-        memory: node.free.memory + memoryRequests,
-        gpu: node.free.gpu + requestedGpu
-    };
-    node.requests = {
-        cpu: node.requests.cpu - requestedCpu,
-        memory: node.requests.memory - memoryRequests,
-        gpu: node.requests.gpu - requestedGpu
-
-    };
-    node.ratio = {
-        cpu: node.requests.cpu / node.total.cpu,
-        memory: node.requests.memory / node.total.memory,
-        gpu: node.total.gpu ? node.requests.gpu / node.total.gpu : 0
-
-    };
+    _subtractResources(node, {requestedCpu, memoryRequests, requestedGpu});
 
     nodeListLocal[nodeIndex] = node;
     return nodeListLocal;
@@ -100,9 +116,7 @@ const _findWorkersToStop = (nodeList, algorithmName, resources) => {
         while (workers.length) {
             workersToStop = [];
             const worker = workers.shift();
-            const requestedCpu = parse.getCpuInCore('' + worker.resourceRequests.requests.cpu);
-            const memoryRequests = parse.getMemoryInMi(worker.resourceRequests.requests.memory);
-            const requestedGpu = worker.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
+            const { requestedCpu, requestedGpu, memoryRequests } = parseResources(worker);
             nodeListLocal = _updateNodeResources(nodeListLocal, n.name, { requestedCpu, requestedGpu, memoryRequests });
             workersToStop.push(worker);
             foundNode = _scheduleAlgorithmToNode(nodeListLocal, resources);
@@ -142,9 +156,8 @@ const pauseAccordingToResources = (stopDetails, availableResources, workers, res
     let localDetails = stopDetails.map(sd => sd.details);
     const localResources = clone(availableResources);
     skippedRequests.forEach((r) => {
-        const requestedCpu = parse.getCpuInCore('' + r.resourceRequests.requests.cpu);
-        const memoryRequests = parse.getMemoryInMi(r.resourceRequests.requests.memory);
-        const requestedGpu = r.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
+        const { requestedCpu, requestedGpu, memoryRequests } = parseResources(r);
+
         // select just the nodes that match this request. sort from largest free space to smalles
         let nodeList = localResources.nodeList.filter(n => nodeSelectorFilter(n.labels, r.nodeSelector)).sort((a, b) => b.free.cpu - a.free.cpu);
         nodeList = matchWorkersToNodes(nodeList, localDetails);
@@ -205,5 +218,6 @@ module.exports = {
     shouldAddJob,
     pauseAccordingToResources,
     _sortWorkers,
-    matchWorkersToNodes
+    matchWorkersToNodes,
+    parseResources
 };
