@@ -76,10 +76,10 @@ const _extractFile = async ({ src, dest, fileExt, overwrite }) => {
     });
 };
 
-const runBash = ({ command, args, resultUpdater = () => { } }) => {
+const runBash = ({ command, envs, resultUpdater = () => { } }) => {
     return new Promise((resolve, reject) => {
         log.info(`running ${command}`, { component });
-        const build = spawn(command, args);
+        const build = spawn(command, [], { env: { ...process.env, ...envs } });
         let data = '';
         let error = '';
 
@@ -166,12 +166,11 @@ const _removeFolder = async ({ folder }) => {
     }
 };
 
-const _argsHelper = (args, key, value) => {
+const _envsHelper = (envs, key, value) => {
     if (value) {
-        args.push(key);
-        args.push(value);
+        envs[key] = `${value}`;
     }
-    return args;
+    return envs;
 };
 
 const _dockerCredentialsHelper = (registryOrig, user, password) => {
@@ -226,34 +225,33 @@ const _createURL = (options) => {
     return path.join(_fixUrl(options.registry), options.namespace).replace(/\s/g, '');
 };
 
-const _createDockerCredsConfig = (args, docker, packages) => {
+const _createDockerCredsConfig = (envs, docker, packages) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
-    _argsHelper(args, '--dplr', pullRegistry);
-    _argsHelper(args, '--dplu', docker.pull.user);
-    _argsHelper(args, '--dplp', docker.pull.pass);
+    _envsHelper(envs, 'DOCKER_PULL_REGISTRY', pullRegistry);
+    _envsHelper(envs, 'DOCKER_PULL_USER', docker.pull.user);
+    _envsHelper(envs, 'DOCKER_PULL_PASS', docker.pull.pass);
     // docker push
-    _argsHelper(args, '--dphr', pushRegistry);
-    _argsHelper(args, '--dphu', docker.push.user);
-    _argsHelper(args, '--dphp', docker.push.pass);
+    _envsHelper(envs, 'DOCKER_PUSH_REGISTRY', pushRegistry);
+    _envsHelper(envs, 'DOCKER_PUSH_USER', docker.push.user);
+    _envsHelper(envs, 'DOCKER_PUSH_PASS', docker.push.pass);
     // packages
-    _argsHelper(args, '--pckr', packages.registry);
-    _argsHelper(args, '--pckt', packages.token);
+    _envsHelper(envs, 'PACKAGES_REGISTRY', packages.registry);
+    _envsHelper(envs, 'PACKAGES_TOKEN', packages.token);
 }
 
-const _createKanikoConfigs = async (args, tmpFolder, docker) => {
-    _argsHelper(args, '--tmpFolder', tmpFolder);
+const _createKanikoConfigs = async (envs, tmpFolder, docker) => {
+    _envsHelper(envs, 'TMP_FOLDER', tmpFolder);
     const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
     await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
-    _argsHelper(args, '--tmpFolder', tmpFolder);
-    _argsHelper(args, '--insecure_pull', docker.pull.insecure);
-    _argsHelper(args, '--insecure', docker.push.insecure);
-    _argsHelper(args, '--skip_tls_verify_pull', docker.pull.skip_tls_verify);
-    _argsHelper(args, '--skip_tls_verify', docker.push.skip_tls_verify);
+    _envsHelper(envs, 'INSECURE_PULLl', docker.pull.insecure);
+    _envsHelper(envs, 'INSECURE', docker.push.insecure);
+    _envsHelper(envs, 'SKIP_TLS_VERIFY_PULL', docker.pull.skip_tls_verify);
+    _envsHelper(envs, 'SKIP_TLS_VERIFY', docker.push.skip_tls_verify);
 }
 
-const _createOpenshiftConfigs = async (args, tmpFolder, docker, buildId, algorithmImage) => {
-    _argsHelper(args, '--tmpFolder', tmpFolder);
+const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorithmImage) => {
+    _envsHelper(envs, 'TMP_FOLDER', tmpFolder);
     const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
     const dockerCredsSecret = {
         apiVersion: 'v1',
@@ -303,22 +301,21 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     const packages = packagesRepo[env];
     const baseImageName = await _getBaseImageVersion(baseImage || packages.defaultBaseImage);
 
-    const args = [
-        '--img', algorithmImage,
-        '--rmi', rmi,
-        '--buildPath', buildPath,
-        '--baseImage', baseImageName,
-        '--buildId', buildId
-    ];
+    const envs = {};
+    _envsHelper(envs, 'IMAGE_NAME', algorithmImage);
+    _envsHelper(envs, 'REMOVE_IMAGE', rmi);
+    _envsHelper(envs, 'BUILD_PATH', buildPath);
+    _envsHelper(envs, 'BASE_IMAGE', baseImageName);
+    _envsHelper(envs, 'BUILD_ID', buildId);
 
     // docker pull
-    _createDockerCredsConfig(args, docker, packages);
+    _createDockerCredsConfig(envs, docker, packages);
 
     if (buildMode === KANIKO) {
-        await _createKanikoConfigs(args, tmpFolder, docker);
+        await _createKanikoConfigs(envs, tmpFolder, docker);
     }
     else if (buildMode === OPENSHIFT) {
-        await _createOpenshiftConfigs(args, tmpFolder, docker, buildId, algorithmImage);
+        await _createOpenshiftConfigs(envs, tmpFolder, docker, buildId, algorithmImage);
     }
     let updating = false
     const resultUpdater = async (result) => {
@@ -329,7 +326,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
         await stateManger.updateBuild({ buildId, result, timestamp: Date.now() });
         updating = false
     }
-    const output = await runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, args, resultUpdater });
+    const output = await runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, envs, resultUpdater });
     return { output, algorithmImage };
 };
 
