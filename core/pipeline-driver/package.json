@@ -21,10 +21,10 @@
     "@hkube/storage-manager": "^1.0.60",
     "async": "^3.1.1",
     "clone": "^2.1.2",
-    "deep-get-set": "^1.1.0",
     "flat": "^5.0.0",
     "lodash.isequal": "^4.5.0",
-    "lodash.throttle": "^4.1.1"
+    "lodash.throttle": "^4.1.1",
+    "object-path": "^0.11.4"
   },
   "devDependencies": {
     "chai": "^4.2.0",
