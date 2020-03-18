@@ -20,7 +20,8 @@ const modules = [
     require('./lib/algorithm-logging/logging-proxy.js'),
     require('./lib/helpers/api-server-client.js'),
     require('./lib/code-api/subpipeline/subpipeline.js'),
-    require('./lib/code-api/algorithm-execution/algorithm-execution.js')
+    require('./lib/code-api/algorithm-execution/algorithm-execution.js'),
+    require('./lib/storage/storage.js')
 ];
 
 class Bootstrap {

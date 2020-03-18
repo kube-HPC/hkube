@@ -3,9 +3,10 @@ const { pipelineStatuses, retryPolicy, taskStatuses } = require('@hkube/consts')
 const stateManager = require('./states/stateManager');
 const tracing = require('./tracing/tracing.js');
 const jobConsumer = require('./consumer/JobConsumer');
+const storageHelper = require('./storage/storage');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
-const { stateEvents, workerStates, workerCommands, Components, jobStatus, protocolTypes } = require('../lib/consts');
+const { stateEvents, workerStates, workerCommands, Components, protocolTypes } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
@@ -51,7 +52,7 @@ class Worker {
 
         const storage = algorithmStorage || DefaultStorageProtocol;
         const encoding = algorithmEncoding || DefaultEncodingProtocol;
-        jobConsumer.setStorage(storage);
+        storageHelper.setStorage(storage);
         encodingHelper.setEncoding(encoding);
 
         let message = 'unable to found algorithm protocols';
@@ -463,7 +464,7 @@ class Worker {
                 case workerStates.ready:
                     break;
                 case workerStates.init: {
-                    const { error, data } = await jobConsumer.extractData(job.data);
+                    const { error, data } = await storageHelper.extractData(job.data);
                     if (!error) {
                         algoRunnerCommunication.send({
                             command: messages.outgoing.initialize,

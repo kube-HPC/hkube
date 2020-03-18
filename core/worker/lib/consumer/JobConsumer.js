@@ -1,11 +1,10 @@
 const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const { dataAdapter } = require('@hkube/worker-data-adapter');
 const { pipelineStatuses, taskStatuses, retryPolicy } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
+const storage = require('../storage/storage');
 const stateManager = require('../states/stateManager');
-const tracing = require('../tracing/tracing.js');
 const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
 const etcd = require('../states/discovery');
@@ -31,10 +30,6 @@ class JobConsumer extends EventEmitter {
         this.workerStartingTime = new Date();
         this.jobCurrentTime = null;
         this._hotWorker = false;
-        this._storageProtocols = {
-            byRaw: this._tryExtractDataFromStorage.bind(this),
-            byRef: (data) => ({ data })
-        };
     }
 
     async init(options) {
@@ -47,8 +42,6 @@ class JobConsumer extends EventEmitter {
         this._options = options;
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
-        // create another tracer for the algorithm
-        await dataAdapter.init(options);
 
         if (this._consumer) {
             this._consumer.removeAllListeners();
@@ -102,10 +95,6 @@ class JobConsumer extends EventEmitter {
         stateManager.on('finish', () => {
             this.finishBullJob();
         });
-    }
-
-    setStorage(type) {
-        this._getStorage = this._storageProtocols[type];
     }
 
     _isCompletedState({ status }) {
@@ -231,30 +220,6 @@ class JobConsumer extends EventEmitter {
         };
     }
 
-    async extractData(jobInfo) {
-        const { error, data } = await this._getStorage(jobInfo);
-        if (error) {
-            log.error(`failed to extract data input: ${error.message}`, { component }, error);
-            stateManager.done({ error });
-        }
-        return { error, data };
-    }
-
-    async _tryExtractDataFromStorage(jobInfo) {
-        function partial(func, argsBound) {
-            return (args) => {
-                return func.call(tracer, { ...argsBound, tags: { ...argsBound.tags, ...args } });
-            };
-        }
-        try {
-            const input = await dataAdapter.getData(jobInfo.input, jobInfo.storage, partial(tracer.startSpan, tracing.getTracer({ name: 'storage-get', jobId: this._jobId, taskId: this._taskId })));
-            return { data: { ...jobInfo, input } };
-        }
-        catch (error) {
-            return { error };
-        }
-    }
-
     async sendWarning(warning) {
         if (!this._jobId) {
             return;
@@ -328,9 +293,9 @@ class JobConsumer extends EventEmitter {
             const { jobId, taskId, nodeName, info } = this._job.data;
 
             if (this._lastStatus !== jobStatus.STORING) {
-                const storageInfo = dataAdapter.createStorageInfo({ jobId, taskId, nodeName, data, savePaths: info.savePaths });
+                const storageInfo = storage.createStorageInfo({ jobId, taskId, nodeName, data, savePaths: info.savePaths });
                 await this.setStoringStatus(storageInfo);
-                await dataAdapter.setData({ jobId, taskId, data }, tracer.startSpan.bind(tracer, tracing.getTracer({ name: 'storage-put', jobId, taskId })));
+                await storage.setData({ jobId, taskId, data });
             }
         }
         catch (err) {
