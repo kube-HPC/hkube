@@ -12,6 +12,7 @@ algorithm_unique_folder
 
 # Python
 __pycache__/
+.pytest_cache
 *.py[cod]
 
 # Logs

@@ -25,8 +25,8 @@ class Storage {
         this._getStorage = this._storageProtocols[type];
     }
 
-    async extractData(jobInfo) {
-        const { error, data } = await this._getStorage(jobInfo);
+    async extractData(options) {
+        const { error, data } = await this._getStorage(options);
         if (error) {
             log.error(`failed to extract data input: ${error.message}`, { component }, error);
             stateManager.done({ error });
@@ -34,15 +34,16 @@ class Storage {
         return { error, data };
     }
 
-    async _tryExtractDataFromStorage(jobInfo) {
+    async _tryExtractDataFromStorage(options) {
         function partial(func, argsBound) {
             return (args) => {
                 return func.call(tracer, { ...argsBound, tags: { ...argsBound.tags, ...args } });
             };
         }
         try {
-            const input = await dataAdapter.getData(jobInfo.input, jobInfo.storage, partial(tracer.startSpan, tracing.getTracer({ name: 'storage-get', jobId: this._jobId, taskId: this._taskId })));
-            return { data: { ...jobInfo, input } };
+            const { jobId, taskId } = options;
+            const input = await dataAdapter.getData(options.input, options.storage, partial(tracer.startSpan, tracing.getTracer({ name: 'storage-get', jobId, taskId })));
+            return { data: { ...options, input } };
         }
         catch (error) {
             return { error };
