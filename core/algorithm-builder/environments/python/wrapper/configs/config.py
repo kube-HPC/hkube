@@ -12,7 +12,7 @@ class Config:
     }
     discovery = {
         "host": os.environ.get('POD_NAME', '127.0.0.1'),
-        "port": os.environ.get('DISCOVERY_PORT', 9020),
+        "port": os.environ.get('DISCOVERY_PORT', 9021),
         "encoding": os.environ.get('DISCOVERY_ENCODING', 'bson')
     }
     algorithm = {

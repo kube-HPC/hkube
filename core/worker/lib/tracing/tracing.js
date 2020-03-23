@@ -9,9 +9,8 @@ class Tracing {
 
     async init(options) {
         log = Logger.GetLogFromContainer();
-        this._options = options;
-        this._algorithmName = this._options.jobConsumer.job.type;
-        this._algTracer = await tracer.createTracer(this._algorithmName, options.tracer);
+        const algorithmName = options.jobConsumer.job.type;
+        this._algTracer = await tracer.createTracer(algorithmName, options.tracer);
     }
 
     getTracer({ name, jobId, taskId }) {

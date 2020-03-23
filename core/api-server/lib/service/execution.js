@@ -79,7 +79,7 @@ class ExecutionService {
             const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
-                const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },
+                const storageInfo = await storageManager.hkube.put({ jobId, taskId: 'flowInput', data: pipeline.flowInput },
                     tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 pipeline = {
                     ...pipeline,

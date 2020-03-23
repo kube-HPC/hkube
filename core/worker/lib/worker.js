@@ -1,7 +1,7 @@
 const Logger = require('@hkube/logger');
 const { pipelineStatuses, retryPolicy, taskStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
-const tracing = require('./tracing/tracing.js');
+const tracing = require('./tracing/tracing');
 const jobConsumer = require('./consumer/JobConsumer');
 const storageHelper = require('./storage/storage');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
