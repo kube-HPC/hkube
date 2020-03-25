@@ -40,6 +40,7 @@
         "javascript-state-machine": "^3.1.0",
         "lodash.isequal": "^4.5.0",
         "object-path": "^0.11.4",
+        "performance-now": "^2.1.0",
         "recursive-readdir": "^2.2.2",
         "request": "^2.88.0",
         "request-promise": "^4.2.5",

@@ -57,7 +57,7 @@ class Storage {
             const { jobId, taskId, input, flatInput, useCache, storage } = options;
             const tracerStart = partial(tracer.startSpan, tracing.getTracer({ name: 'storage-get', jobId, taskId }));
             const newInput = await dataAdapter.getData({ input, flatInput, useCache, storage, tracerStart: null });
-            return { data: { ...options, input: newInput } };
+            return { data: { ...options, input: newInput, flatInput: null } };
         }
         catch (error) {
             return { error };

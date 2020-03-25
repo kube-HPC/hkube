@@ -1,3 +1,4 @@
+const now = require('performance-now');
 const Logger = require('@hkube/logger');
 const { pipelineStatuses, retryPolicy, taskStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
@@ -18,6 +19,8 @@ const { DefaultEncodingProtocol, DefaultStorageProtocol } = protocolTypes;
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
+
+let startTime;
 
 class Worker {
     constructor() {
@@ -455,6 +458,9 @@ class Worker {
                     this.handleExit(0, jobId);
                     break;
                 case workerStates.results:
+                    const end = now();
+                    const diff = (end - startTime).toFixed(3);
+                    log.error(`Execution time ${diff} ms`);
                     this._handleTtlEnd();
                     reason = `parent algorithm entered state ${state}`;
                     await this._stopAllPipelinesAndExecutions({ jobId, reason });
@@ -464,6 +470,7 @@ class Worker {
                 case workerStates.ready:
                     break;
                 case workerStates.init: {
+                    startTime = now();
                     const { error, data } = await storageHelper.extractData(job.data);
                     if (!error) {
                         algoRunnerCommunication.send({
