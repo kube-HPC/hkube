@@ -244,7 +244,7 @@ const _createKanikoConfigs = async (envs, tmpFolder, docker) => {
     _envsHelper(envs, 'TMP_FOLDER', tmpFolder);
     const dockerCreds = _createDockerCredentials(docker.pull, docker.push);
     await fse.writeJson(path.join(tmpFolder, 'commands', 'config.json'), dockerCreds, { spaces: 2 });
-    _envsHelper(envs, 'INSECURE_PULLl', docker.pull.insecure);
+    _envsHelper(envs, 'INSECURE_PULL', docker.pull.insecure);
     _envsHelper(envs, 'INSECURE', docker.push.insecure);
     _envsHelper(envs, 'SKIP_TLS_VERIFY_PULL', docker.pull.skip_tls_verify);
     _envsHelper(envs, 'SKIP_TLS_VERIFY', docker.push.skip_tls_verify);
