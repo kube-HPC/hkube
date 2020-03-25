@@ -18,7 +18,7 @@ const { normalizeWorkers,
     mergeWorkers } = require('./normalize');
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
-const { matchJobsToResources, pauseAccordingToResources } = require('./resources');
+const { matchJobsToResources, pauseAccordingToResources, parseResources } = require('./resources');
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
@@ -175,13 +175,13 @@ const _processAllRequests = (
     }
 };
 
-const _createStopDetails = ({ worker, algorithmTemplates, stopDetails }) => {
+const _createStopDetails = ({ worker, algorithmTemplates }) => {
     const algorithmTemplate = algorithmTemplates[worker.algorithmName];
     if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
-        return;
+        return null;
     }
     const resourceRequests = createContainerResource(algorithmTemplate);
-    stopDetails.push({
+    return {
         count: 1,
         details: {
             algorithmName: worker.algorithmName,
@@ -189,10 +189,8 @@ const _createStopDetails = ({ worker, algorithmTemplates, stopDetails }) => {
             nodeName: worker.job ? worker.job.nodeName : null,
             podName: worker.podName,
             id: worker.id
-
-
         }
-    });
+    };
 };
 
 const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemplates }, { stopDetails }) => {
@@ -202,7 +200,7 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     }
 
     // find stats about required workers
-    log.info(`totalCapacityNow=${totalCapacityNow}, missingCount=${missingCount}`);
+    // log.info(`totalCapacityNow=${totalCapacityNow}, missingCount=${missingCount}`);
 
     const skippedTypes = Object.entries(skipped.reduce((prev, cur, index) => {
         if (!prev[cur.algorithmName]) {
@@ -223,17 +221,37 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
     let activeWorkersLocal = clonedeep(activeWorkers);
     const notUsedWorkers = activeWorkersLocal.filter(w => !skippedTypes.find(d => d.algorithmName === w.algorithmName));
     const usedWorkers = activeWorkersLocal.filter(w => skippedTypes.find(d => d.algorithmName === w.algorithmName));
-    skippedLocal.forEach(() => {
-        let worker = idleWorkersLocal.shift();
-        if (!worker) {
-            worker = notUsedWorkers.shift();
-        }
-        if (!worker) {
-            worker = usedWorkers.shift();
-        }
-        if (worker) {
-            activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
-            _createStopDetails({ worker, algorithmTemplates, stopDetails });
+
+    skippedLocal.forEach((s) => {
+        let skippedResources = parseResources(s);
+        const needMoreResources = ({ requestedCpu, memoryRequests, requestedGpu }) => {
+            return requestedCpu > 0 || memoryRequests > 0 || requestedGpu > 0;
+        };
+
+        const _subtractResources = (resources, { requestedCpu, memoryRequests, requestedGpu }) => {
+            const newResources = {
+                requestedCpu: resources.requestedCpu - requestedCpu,
+                memoryRequests: resources.memoryRequests - memoryRequests,
+                requestedGpu: resources.requestedGpu - requestedGpu
+            };
+            return newResources;
+        };
+
+        while ((idleWorkersLocal.length > 0 || notUsedWorkers.length > 0 || usedWorkers.length > 0) && needMoreResources(skippedResources)) {
+            let worker = idleWorkersLocal.shift();
+            if (!worker) {
+                worker = notUsedWorkers.shift();
+            }
+            if (!worker) {
+                worker = usedWorkers.shift();
+            }
+            if (worker) {
+                activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
+                const toStop = _createStopDetails({ worker, algorithmTemplates });
+
+                skippedResources = _subtractResources(skippedResources, parseResources(toStop.details));
+                stopDetails.push(toStop);
+            }
         }
     });
 };
@@ -260,11 +278,6 @@ const _calcStats = (data) => {
 const _getNodeStats = (normResources) => {
     const localResources = clonedeep(normResources);
     const resourcesWithWorkers = localResources.nodeList;
-    // const resourcesWithWorkers = matchWorkersToNodes(localResources.nodeList, workers.map(w => ({
-    //     algorithmName: w.algorithmName,
-    //     nodeName: w.job.nodeName,
-    //     workerStatus: w.workerStatus
-    // })));
     const statsPerNode = resourcesWithWorkers.map(n => ({
         name: n.name,
         total: {
@@ -322,7 +335,6 @@ const calcRatio = (totalRequests, capacity) => {
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
-    // _clearPausedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
     const normJobs = normalizeJobs(jobs, pods, j => !j.status.succeeded);
     const merged = mergeWorkers(normWorkers, normJobs);
@@ -352,13 +364,13 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     _updateCapacity(idleWorkers.length + activeWorkers.length + createdJobsList.length + jobsCreated.length);
 
     // get stats
-    const workerTypes = calcRatio(mergedWorkers);
+    // const workerTypes = calcRatio(mergedWorkers);
 
     const totalRequests = normalizeHotRequests(normRequests.slice(0, Math.round(totalCapacityNow * 3)), algorithmTemplates);
-    log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
+    // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow);
-    log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
-    log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
+    // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
+    // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
     // cut requests based on ratio
     const cutRequests = [];
     totalRequests.forEach(r => {
@@ -368,8 +380,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             cutRequests.push(r);
         }
     });
-    const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
-    log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
+    // const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
+    // log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) =>
+    // ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
 
     _processAllRequests(
         {
@@ -410,7 +423,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         log.trace(`creating ${created.length} algorithms....`, { component });
     }
 
-    log.info(`to stop: ${JSON.stringify(toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
+    // log.info(`to stop: ${JSON.stringify(toStop.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
     const toStopFiltered = [];
     toStop.forEach(s => {
         const index = toResume.findIndex(tr => tr.algorithmName === s.algorithmName);
@@ -422,7 +435,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         }
     });
 
-    log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
+    // log.info(`to stop: ${JSON.stringify(toStopFiltered.map(s => ({ n: s.algorithmName, id: s.id })))}, toResume: ${JSON.stringify(toResume.map(s => ({ n: s.algorithmName, id: s.id })))} `);
 
     const exitWorkersPromises = exitWorkers.map(r => _exitWorker(r));
     const warmUpPromises = warmUpWorkers.map(r => _warmUpWorker(r));

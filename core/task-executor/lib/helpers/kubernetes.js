@@ -13,6 +13,7 @@ class KubernetesApi {
         log = Logger.GetLogFromContainer();
         this._client = new KubernetesClient(options.kubernetes);
         this._isNamespaced = options.kubernetes.isNamespaced;
+        this._hasNodeList = options.kubernetes.hasNodeList;
         this._defaultQuota = options.resources.defaultQuota;
         log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
         if (options.healthchecks.logExternalRequests) {
@@ -127,7 +128,20 @@ class KubernetesApi {
         return { pods, nodes };
     }
 
+    async _getNamespacedWithNodeListResources() {
+        const pods = await this._client.pods.all(true);
+        const nodesConfigMap = await this._client.configMaps.get({ name: 'hkube-nodes' });
+        let nodes = { items: [] };
+        if (nodesConfigMap && nodesConfigMap.body.data['nodes.json']) {
+            nodes = JSON.parse(nodesConfigMap.body.data['nodes.json']);
+        }
+        return { pods, nodes: {body: nodes} };
+    }
+
     async getResourcesPerNode() {
+        if (this._isNamespaced && this._hasNodeList) {
+            return this._getNamespacedWithNodeListResources();
+        }
         if (this._isNamespaced) {
             return this._getNamespacedResources();
         }
