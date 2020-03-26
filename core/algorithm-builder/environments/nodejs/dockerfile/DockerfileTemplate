@@ -1,7 +1,4 @@
 # First build
-ARG baseImage
-ARG packagesRegistry
-ARG packagesToken
 
 FROM ${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"

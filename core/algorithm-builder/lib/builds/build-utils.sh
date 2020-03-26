@@ -80,21 +80,25 @@ dockerBuildOpenshift() {
 }
 
 dockerBuildKaniko() {
-  image=${IMAGE_NAME}
-  buildPath=${BUILD_PATH}
-  workspace="${TMP_FOLDER}/workspace"
-  commands="${TMP_FOLDER}/commands"
-  baseImage=${BASE_IMAGE}
-  packagesRegistry=${PACKAGES_REGISTRY}
-  packagesToken=${PACKAGES_TOKEN}
-  insecure=${INSECURE}
-  insecure_pull=${INSECURE_PULL}
-  skip_tls_verify=${SKIP_TLS_VERIFY}
-  skip_tls_verify_pull=${SKIP_TLS_VERIFY_PULL}
+  export image=${IMAGE_NAME}
+  export buildPath=${BUILD_PATH}
+  export workspace="${TMP_FOLDER}/workspace"
+  export commands="${TMP_FOLDER}/commands"
+  export baseImage=${BASE_IMAGE}
+  export packagesRegistry=${PACKAGES_REGISTRY}
+  export packagesToken=${PACKAGES_TOKEN}
+  export insecure=${INSECURE}
+  export insecure_pull=${INSECURE_PULL}
+  export skip_tls_verify=${SKIP_TLS_VERIFY}
+  export skip_tls_verify_pull=${SKIP_TLS_VERIFY_PULL}
 
   echo "Building image ${image}"
   echo copy context from ${buildPath} to ${workspace}
   cp -r ${buildPath}/* ${workspace}
+  
+  envsubst < ${workspace}/dockerfile/DockerfileTemplate > ${workspace}/dockerfile/Dockerfile
+  sed -i '/^ARG /d' ${workspace}/dockerfile/Dockerfile
+
   options=""
   if [[ $insecure == true ]]; then options="${options} --insecure"; fi
   if [[ $insecure_pull == true ]]; then options="${options} --insecure-pull"; fi
@@ -102,7 +106,7 @@ dockerBuildKaniko() {
   if [[ $skip_tls_verify_pull == true ]]; then options="${options} --skip-tls-verify-pull"; fi
   
   echo "/kaniko/executor \
-    --dockerfile ./dockerfile/DockerfileTemplate \
+    --dockerfile ./dockerfile/Dockerfile \
     ${options} --context dir:///workspace/ \
     --build-arg packagesRegistry=${packagesRegistry} \
     --build-arg packagesToken=${packagesToken} \

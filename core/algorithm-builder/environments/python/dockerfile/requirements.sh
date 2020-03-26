@@ -6,7 +6,6 @@ PACKAGES_REGISTRY=$1
 PACKAGES_TOKEN=$2
 REQUIRMENTS=./algorithm_unique_folder/requirements.txt
 TRUSTED_HOST=pypi.python.org
-
 # install hkube + dependencies
 echo install hkube + dependencies
 if [ ! -z ${PACKAGES_REGISTRY} ]; then
