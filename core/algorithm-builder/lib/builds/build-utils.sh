@@ -66,11 +66,12 @@ dockerBuildOpenshift() {
   touch ${commands}/output
   touch ${commands}/start
   tail -f ${commands}/output& PID=$!
+  disown ${PID}
   while [ ! -f "${commands}/done" ]; do
     sleep 1s
   done
 
-  kill $PID
+  kill ${PID}
   echo build done
   if [ -f "${commands}/code_ok" ]; then
     exit_code=0
@@ -117,11 +118,12 @@ dockerBuildKaniko() {
   touch ${commands}/output
   touch ${commands}/start
   tail -f ${commands}/output& PID=$!
+  disown ${PID}
   while [ ! -f "${commands}/done" ]; do
     sleep 1s
   done
 
-  kill $PID
+  kill ${PID}
   echo build done
   if [ -f "${commands}/code_ok" ]; then
     exit_code=0
