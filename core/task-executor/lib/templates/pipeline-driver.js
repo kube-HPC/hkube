@@ -63,11 +63,11 @@ const template = {
                                 }
                             },
                             {
-                                name: 'STORAGE_BINARY',
+                                name: 'STORAGE_ENCODING',
                                 valueFrom: {
                                     configMapKeyRef: {
                                         name: 'task-executor-configmap',
-                                        key: 'STORAGE_BINARY'
+                                        key: 'STORAGE_ENCODING'
                                     }
                                 }
                             },

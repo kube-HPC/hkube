@@ -42,7 +42,7 @@ class WsWorkerCommunication extends EventEmitter {
                     log.debug('listening', { component });
                 });
                 if (!options.httpServer) {
-                    server.listen(options.connection.port, () => {
+                    server.listen(options.port, () => {
                         return resolve();
                     });
                 }

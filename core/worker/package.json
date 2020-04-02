@@ -20,7 +20,7 @@
     "dependencies": {
         "@hkube/config": "^2.0.7",
         "@hkube/consts": "^1.0.19",
-        "@hkube/encoding": "^1.0.4",
+        "@hkube/encoding": "^1.0.7",
         "@hkube/etcd": "^5.0.19",
         "@hkube/kubernetes-client": "^1.0.28",
         "@hkube/logger": "^1.0.25",

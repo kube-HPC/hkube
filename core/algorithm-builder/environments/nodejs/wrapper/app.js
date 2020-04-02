@@ -8,7 +8,7 @@ const init = async () => {
 
         const nodejsWrapper = new NodejsWrapper();
         nodejsWrapper.loadAlgorithm(config.algorithm);
-        nodejsWrapper.connectToWorker(config);
+        await nodejsWrapper.connectToWorker(config);
     }
     catch (error) {
         _onInitFailed(error);

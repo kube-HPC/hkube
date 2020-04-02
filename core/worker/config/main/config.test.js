@@ -2,8 +2,7 @@ const formatter = require(process.cwd() + '/lib/helpers/formatters');
 
 const config = {};
 config.workerCommunication = {
-    adapterName: 'loopback',
-    config: {}
+    adapterName: 'loopback'
 };
 
 config.jobConsumer = {

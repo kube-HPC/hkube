@@ -56,6 +56,7 @@ function getConfig() {
                     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
                     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
                 },
+                encoding: process.env.STORAGE_ENCODING || 'bson',
                 moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
             }
         },

@@ -71,21 +71,21 @@ config.etcd = {
 config.s3 = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
-    binary: parseBool(process.env.STORAGE_BINARY, false)
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
 };
 
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
-    binary: parseBool(process.env.STORAGE_BINARY, false)
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
 };
 
 config.storageAdapters = {
     s3: {
         connection: config.s3,
+        encoding: process.env.STORAGE_ENCODING || 'bson',
         moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
     },
     etcd: {
+        encoding: process.env.STORAGE_ENCODING || 'bson',
         connection: config.etcd,
         moduleName: process.env.STORAGE_MODULE || '@hkube/etcd-adapter'
     },
@@ -95,6 +95,7 @@ config.storageAdapters = {
     },
     fs: {
         connection: config.fs,
+        encoding: process.env.STORAGE_ENCODING || 'bson',
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };

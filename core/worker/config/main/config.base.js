@@ -1,7 +1,6 @@
 const packageJson = require(process.cwd() + '/package.json');
 const formatters = require(process.cwd() + '/lib/helpers/formatters');
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
-const storageBinary = formatters.parseBool(process.env.STORAGE_BINARY, false);
 
 const config = {};
 
@@ -39,15 +38,14 @@ config.apiServer = {
     basePath: 'internal/v1/exec/'
 };
 
+config.defaultStorageProtocol = process.env.DEFAULT_STORAGE_MODE || 'byRaw';
+config.defaultWorkerAlgorithmEncoding = process.env.DEFAULT_WORKER_ALGORITHM_ENCODING || 'json';
+
 config.workerCommunication = {
     adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || 'ws',
-    config: {
-        connection: {
-            port: process.env.WORKER_SOCKET_PORT || 3000
-        },
-        maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES,
-        pingTimeout: formatters.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000)
-    }
+    port: process.env.WORKER_SOCKET_PORT || 3000,
+    maxPayload: process.env.WORKER_SOCKET_MAX_PAYLOAD_BYTES,
+    pingTimeout: formatters.parseInt(process.env.WORKER_SOCKET_PING_TIMEOUT, 30000)
 };
 
 config.jobConsumer = {
@@ -94,18 +92,17 @@ config.kubernetes = {
 config.s3 = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
-    binary: storageBinary
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
 };
 
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
-    binary: storageBinary
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
 };
 
 config.storageAdapters = {
     s3: {
         connection: config.s3,
+        encoding: process.env.STORAGE_ENCODING || 'bson',
         moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
     },
     etcd: {
@@ -118,6 +115,7 @@ config.storageAdapters = {
     },
     fs: {
         connection: config.fs,
+        encoding: process.env.STORAGE_ENCODING || 'bson',
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };

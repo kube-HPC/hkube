@@ -7,7 +7,7 @@ const jobConsumer = require('./consumer/JobConsumer');
 const storageHelper = require('./storage/storage');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const discovery = require('./states/discovery');
-const { stateEvents, workerStates, workerCommands, Components, protocolTypes } = require('../lib/consts');
+const { stateEvents, workerStates, workerCommands, Components } = require('../lib/consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
@@ -15,7 +15,6 @@ const execAlgorithms = require('./code-api/algorithm-execution/algorithm-executi
 const encodingHelper = require('./helpers/encoding');
 const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
-const { DefaultEncodingProtocol, DefaultStorageProtocol } = protocolTypes;
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
 let log;
@@ -50,11 +49,10 @@ class Worker {
     }
 
     _initAlgorithmSettings() {
-        const algorithmStorage = this._algorithmSettings.storage;
-        const algorithmEncoding = this._algorithmSettings.encoding;
+        const { storage: algorithmStorage, encoding: algorithmEncoding } = this._algorithmSettings;
 
-        const storage = algorithmStorage || DefaultStorageProtocol;
-        const encoding = algorithmEncoding || DefaultEncodingProtocol;
+        const storage = algorithmStorage || this._options.defaultStorageProtocol;
+        const encoding = algorithmEncoding || this._options.defaultWorkerAlgorithmEncoding;
         storageHelper.setStorage(storage);
         encodingHelper.setEncoding(encoding);
 

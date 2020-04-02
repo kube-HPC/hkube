@@ -46,7 +46,7 @@ class WorkerCommunication extends EventEmitter {
                 this.emit(topic, message);
             });
         });
-        await this.adapter.init(options.config);
+        await this.adapter.init(options);
     }
 
     /**

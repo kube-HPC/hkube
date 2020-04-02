@@ -76,29 +76,20 @@ class JobConsumer extends EventEmitter {
     }
 
     pipelineToQueueAdapter(jobData, taskData, initialBatchLength) {
-        const { jobId, pipelineName, priority, nodeName, parentNodeName, algorithmName, info, spanId, nodeType, metrics, ttl, retry } = jobData;
         const latestScores = Object.values(heuristicsName).reduce((acc, cur) => {
             acc[cur] = 0.00001;
             return acc;
         }, {});
         const batchIndex = taskData.batchIndex || 0;
         const entranceTime = Date.now();
+
         return {
-            jobId,
-            pipelineName,
-            algorithmName,
-            priority,
-            info,
-            spanId,
-            nodeType,
-            nodeName,
-            parentNodeName,
+            ...jobData,
+            ...taskData,
             entranceTime,
             attempts: 0,
             initialBatchLength,
-            metrics,
-            ttl,
-            retry,
+            batchIndex,
             calculated: {
                 latestScores,
                 //  score: '1-100',
@@ -107,14 +98,12 @@ class JobConsumer extends EventEmitter {
                     batchIndex: {}
                 }
             },
-            ...taskData,
-            batchIndex
         };
     }
 
     queueTasksBuilder(job) {
-        const { tasks } = job.data;
-        const taskList = tasks.map(task => this.pipelineToQueueAdapter(job.data, task, tasks.length));
+        const { tasks, ...jobData } = job.data;
+        const taskList = tasks.map(task => this.pipelineToQueueAdapter(jobData, task, tasks.length));
         queueRunner.queue.add(taskList);
         job.done();
     }
