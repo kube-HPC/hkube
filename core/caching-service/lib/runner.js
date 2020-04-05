@@ -5,7 +5,7 @@ const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { componentName } = require('./consts/index');
 const { splitInputToNodes } = require('./input-parser');
-const NodesMap = require('../lib/create-graph');
+const NodesMap = require('./create-graph');
 
 class Runner {
     async init(options) {
