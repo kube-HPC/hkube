@@ -2,8 +2,9 @@ const cryptoRandomString = require('crypto-random-string');
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
-const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage, applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts } = require('@hkube/kubernetes-client').utils;
-const { components, containers } = require('../consts');
+const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage,
+    applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation } = require('@hkube/kubernetes-client').utils;
+const { components, containers, gpuVendors } = require('../consts');
 const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
@@ -13,8 +14,24 @@ const randomString = () => {
     return cryptoRandomString({ length: 30 });
 };
 
-const applyAlgorithmResourceRequests = (inputSpec, resourceRequests) => {
-    return applyResourceRequests(inputSpec, resourceRequests, CONTAINERS.ALGORITHM);
+const applyAlgorithmResourceRequests = (inputSpec, resourceRequests, node) => {
+    if (!resourceRequests) {
+        return inputSpec;
+    }
+    let spec = clonedeep(inputSpec);
+    const gpu = resourceRequests.limits[gpuVendors.NVIDIA];
+    if (gpu) {
+        spec = applyAnnotation(spec, { [gpuVendors.NVIDIA]: gpu });
+    }
+    if (!Number.isInteger(gpu)) {
+        // remove resource of GPU from template, and add node selector
+        delete resourceRequests.requests[gpuVendors.NVIDIA];
+        delete resourceRequests.limits[gpuVendors.NVIDIA];
+        spec = applyNodeSelector(spec, { 'kubernetes.io/hostname': node });
+    }
+    spec = applyResourceRequests(spec, resourceRequests, CONTAINERS.ALGORITHM);
+
+    return spec;
 };
 
 const applyWorkerResourceRequests = (inputSpec, workerResourceRequests) => {
@@ -146,7 +163,7 @@ const applyLogging = (inputSpec, options) => {
     return spec;
 };
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });

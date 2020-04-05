@@ -13,7 +13,11 @@ config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
     isNamespaced: formatter.parseBool(process.env.IS_NAMESPACED, false),
+    hasNodeList: formatter.parseBool(process.env.HAS_NODE_LIST, false),
     isPrivileged: formatter.parseBool(process.env.IS_PRIVILEGED, true),
+    labels: {
+        gpu: process.env.GPU_NODE_SELECTOR_LABEL || 'hkube-gpu'
+    }
 };
 
 config.etcd = {
@@ -50,6 +54,7 @@ config.resources = {
         'requests.nvidia.com/gpu': process.env.DEFAULT_QUOTA_GPU || 0
     },
     useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
+
 }
 
 config.healthchecks = {

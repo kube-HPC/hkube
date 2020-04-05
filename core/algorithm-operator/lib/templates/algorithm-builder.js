@@ -1,4 +1,4 @@
-const { ALGORITHM_BUILDS, KANIKO } = require('../../lib/consts/containers');
+const { ALGORITHM_BUILDS, KANIKO, OC_BUILDER } = require('../../lib/consts/containers');
 
 const jobTemplate = {
     apiVersion: 'batch/v1',
@@ -52,6 +52,14 @@ const jobTemplate = {
                                     configMapKeyRef: {
                                         name: 'algorithm-operator-configmap',
                                         key: 'DEFAULT_STORAGE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'NAMESPACE',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'metadata.namespace'
                                     }
                                 }
                             },
@@ -113,7 +121,48 @@ const kanikoVolumes = {
         }
     ]
 };
-
+const openshiftVolumes = {
+    volumeMounts: [
+        {
+            name: 'commands',
+            mountPath: '/tmp/commands'
+        },
+        {
+            name: 'workspace',
+            mountPath: '/tmp/workspace'
+        },
+        {
+            name: 'uploads',
+            mountPath: '/hkube/algorithm-builder/uploads'
+        },
+        {
+            name: 'builds',
+            mountPath: '/hkube/algorithm-builder/builds'
+        }
+    ],
+    volumes: [
+        {
+            name: 'commands',
+            emptyDir: {}
+        },
+        {
+            name: 'workspace',
+            emptyDir: {}
+        },
+        {
+            name: 'config',
+            emptyDir: {}
+        },
+        {
+            name: 'uploads',
+            emptyDir: {}
+        },
+        {
+            name: 'builds',
+            emptyDir: {}
+        }
+    ]
+};
 const kanikoContainer = {
     name: KANIKO,
     image: `hkube/${KANIKO}`,
@@ -128,10 +177,29 @@ const kanikoContainer = {
         }
     ],
 };
-
+const openshiftContainer = {
+    name: OC_BUILDER,
+    image: `hkube/${OC_BUILDER}`,
+    volumeMounts: [
+        {
+            name: 'commands',
+            mountPath: '/commands'
+        },
+        {
+            name: 'workspace',
+            mountPath: '/workspace'
+        },
+        {
+            name: 'config',
+            mountPath: '/.kube'
+        }
+    ],
+};
 module.exports = {
     jobTemplate,
     kanikoContainer,
+    openshiftContainer,
     dockerVolumes,
-    kanikoVolumes
+    kanikoVolumes,
+    openshiftVolumes
 };

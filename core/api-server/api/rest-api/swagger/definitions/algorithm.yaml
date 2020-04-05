@@ -12,7 +12,7 @@ properties:
     minimum: 0
     description: algorithm cpu
   gpu:
-    type: integer
+    type: number
     minimum: 0
     description: algorithm gpu
   mem:

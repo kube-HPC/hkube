@@ -203,20 +203,27 @@ const parseGpu = (gpu) => {
     if (!gpu || !gpu[gpuVendors.NVIDIA]) {
         return 0;
     }
-    return parseInt(gpu[gpuVendors.NVIDIA], 10);
+    return parseFloat(gpu[gpuVendors.NVIDIA]);
+};
+
+const _getGpuSpec = (pod) => {
+    let limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits', 0)));
+
+    if (!limitsGpu) {
+        limitsGpu = parseGpu(objectPath.get(pod, 'metadata.annotations', null));
+    }
+    const requestGpu = limitsGpu;
+    return { limitsGpu, requestGpu };
 };
 
 const _getRequestsAndLimits = (pod) => {
     const { useResourceLimits } = globalSettings;
     const limitsCpu = sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.limits.cpu', '0m')));
-    const limitsGpu = sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.limits', 0)));
+    const { limitsGpu, requestGpu } = _getGpuSpec(pod);
     const limitsMem = sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.limits.memory', 0)));
     const requestCpu = useResourceLimits && limitsCpu
         ? limitsCpu
         : sumBy(pod.spec.containers, c => parse.getCpuInCore(objectPath.get(c, 'resources.requests.cpu', '0m')));
-    const requestGpu = useResourceLimits && limitsGpu
-        ? limitsGpu
-        : sumBy(pod.spec.containers, c => parseGpu(objectPath.get(c, 'resources.requests', 0)));
     const requestMem = useResourceLimits && limitsMem
         ? limitsMem
         : sumBy(pod.spec.containers, c => parse.getMemoryInMi(objectPath.get(c, 'resources.requests.memory', 0)));

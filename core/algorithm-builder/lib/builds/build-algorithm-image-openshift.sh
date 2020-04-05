@@ -5,7 +5,7 @@ set -e
 source $PWD/lib/builds/build-utils.sh
 
 printEnvs
-dockerBuildKaniko
+dockerBuildOpenshift
 ret=${exit_code}
 echo build finished with code $ret
 echo

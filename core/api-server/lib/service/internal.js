@@ -5,20 +5,20 @@ const execution = require('./execution');
 
 class InternalService {
     async runStoredTriggerPipeline(options) {
-        let pipeline = options;
-        validator.validateStoredInternal(pipeline);
-        const jobId = this._createPipelineJobID(pipeline);
-        if (pipeline.parentJobId) {
-            const results = await stateManager.getJobResult({ jobId: pipeline.parentJobId });
+        validator.validateStoredInternal(options);
+        let newPipeline = options;
+        const jobId = this._createPipelineJobID(newPipeline);
+        if (newPipeline.parentJobId) {
+            const results = await stateManager.getJobResult({ jobId: newPipeline.parentJobId });
             if (results && results.data) {
-                pipeline = {
-                    ...pipeline,
-                    flowInput: { data: results.data } // flowInput must be object
+                newPipeline = {
+                    ...newPipeline,
+                    flowInput: { parent: results.data }
                 };
             }
         }
-        const { parentJobId, ...option } = pipeline;
-        return execution._runStored({ pipeline: option, jobId, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
+        const { pipeline } = await this._createPipeline(newPipeline);
+        return execution._runStored({ pipeline, jobId, flowInputNoMerge: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
     }
 
     async runStoredSubPipeline(options) {
@@ -34,8 +34,8 @@ class InternalService {
     }
 
     async _createPipeline(options) {
-        const { jobId, taskId, rootJobId, spanId, ...pipeline } = options;
-        const experimentName = await this._getExperimentName({ jobId });
+        const { jobId, taskId, parentJobId, rootJobId, spanId, ...pipeline } = options;
+        const experimentName = await this._getExperimentName({ jobId: jobId || parentJobId });
         pipeline.experimentName = experimentName;
         return { pipeline, rootJobId: rootJobId || jobId, parentSpan: spanId };
     }
@@ -43,7 +43,9 @@ class InternalService {
     async _getExperimentName(options) {
         const { jobId } = options;
         const pipeline = await stateManager.executions.stored.get({ jobId });
-        return (pipeline && pipeline.experimentName) || undefined;
+        const experiment = { name: (pipeline && pipeline.experimentName) || undefined };
+        validator.validateExperimentName(experiment);
+        return experiment.name;
     }
 
     _createPipelineJobID(options) {
