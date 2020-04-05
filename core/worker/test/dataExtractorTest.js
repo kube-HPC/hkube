@@ -21,7 +21,7 @@ describe('StorageHelper', () => {
             storageHelper.init(config);
             storageHelper.setStorage('byRaw')
         });
-        it.only('store data and validate extraction no cache', async () => {
+        it('store data and validate extraction no cache', async () => {
             const config = getConfig();
             const link = await storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId + "-1", data: { data: { engine: 'deep' } } });
             const link2 = await storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId + "-2", data: { myValue: 1973 } });
@@ -30,7 +30,8 @@ describe('StorageHelper', () => {
                 storage: {
                     'guid-5': { storageInfo: link, path: 'data.engine' },
                     'guid-6': { storageInfo: link2, path: 'myValue' }
-                }
+                },
+                startSpan: () => {}
             }
             const result = await storageHelper.extractData({ ...data, ...config });
             expect(result.data.input).to.eql(['test-param', true, 12345, 'deep', 1973]);
@@ -39,7 +40,8 @@ describe('StorageHelper', () => {
             const data = {
                 input: ['test-param', true, 12345],
                 storage: {
-                }
+                },
+                startSpan: () => {}
             }
             const result = await storageHelper.extractData(data);
             expect(result.data.input).to.eql(['test-param', true, 12345]);
@@ -53,7 +55,8 @@ describe('StorageHelper', () => {
                 storage: {
                     'guid-5': { storageInfo: link, path: 'data.engine' },
                     'guid-6': { storageInfo: link2, path: 'myValue' }
-                }
+                },
+                startSpan: () => {}
             }
             const result1 = await storageHelper.extractData(data);
             expect(result1.data.input).to.eql(['test-param', true, 12345, 'deep', 1973]);
@@ -65,7 +68,8 @@ describe('StorageHelper', () => {
                 storage: {
                     'guid-2': { storageInfo: link2, path: 'myValue' },
                     'guid-1': { storageInfo: link, path: 'data.engine' }
-                }
+                },
+                startSpan: () => {}
             }
             const result2 = await storageHelper.extractData(data2);
             expect(result2.data.input).to.eql(['test-param', true, 12345, 'deep', 1973]);
@@ -82,7 +86,8 @@ describe('StorageHelper', () => {
                 storage: {
                     'guid-5': { storageInfo: link, path: 'data.engine' },
                     'guid-6': { storageInfo: link2, path: 'myValue' }
-                }
+                },
+                startSpan: () => {}
             }
             const result1 = await storageHelper.extractData(data1);
             expect(result1.data.input).to.eql(['test-param', true, 12345, 'deep', 1973]);
@@ -94,7 +99,8 @@ describe('StorageHelper', () => {
                 storage: {
                     'guid-2': { storageInfo: link2, path: 'myValue' },
                     'guid-1': { storageInfo: link, path: 'data.engine' }
-                }
+                },
+                startSpan: () => {}
             }
 
             const result2 = await storageHelper.extractData(data2);
@@ -107,7 +113,8 @@ describe('StorageHelper', () => {
                 storage: {
                     'guid-2': { storageInfo: link3, path: 'myOtherValue' },
                     'guid-1': { storageInfo: link, path: 'data.engine' }
-                }
+                },
+                startSpan: () => {}
             }
             const result3 = await storageHelper.extractData(data3);
             expect(result3.data.input).to.eql(['test-param', true, 12345, 'deep', 1010]);
