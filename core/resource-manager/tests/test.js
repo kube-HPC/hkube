@@ -40,6 +40,7 @@ describe('Test', function () {
         mockery.registerSubstitute('@hkube/prometheus-client', `${process.cwd()}/tests/mocks/adapters/prometheus-client-mock.js`);
         mockery.registerSubstitute('@hkube/kubernetes-client', `${process.cwd()}/tests/mocks/adapters/kubernetes-client-mock.js`);
         mockery.registerSubstitute('../../store/store-manager', `${process.cwd()}/tests/mocks/adapters/store-manager.js`);
+        mockery.registerSubstitute('../store-manager', `${process.cwd()}/tests/mocks/adapters/store-manager.js`);
         mockery.registerSubstitute('../adapters/settings', `${process.cwd()}/tests/mocks/adapters/adapter-settings.js`);
         mockery.registerSubstitute('../metrics/settings', `${process.cwd()}/tests/mocks/adapters/metric-settings.js`);
 
