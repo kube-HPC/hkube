@@ -336,7 +336,7 @@ const calcRatio = (totalRequests, capacity) => {
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
-    const normJobs = normalizeJobs(jobs, pods, j => !j.status.succeeded);
+    const normJobs = normalizeJobs(jobs, pods, j => (!j.status.succeeded && !j.status.failed));
     const merged = mergeWorkers(normWorkers, normJobs);
     const normRequests = normalizeRequests(algorithmRequests);
     const exitWorkers = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);

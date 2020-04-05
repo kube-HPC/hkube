@@ -26,7 +26,7 @@ const _stopDriver = (driver) => {
 
 const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, normResources, settings, registry, options, clusterOptions } = {}) => {
     const normDrivers = normalizeDrivers(drivers);
-    const normJobs = normalizeDriversJobs(jobs, j => !j.status.succeeded);
+    const normJobs = normalizeDriversJobs(jobs, j => (!j.status.succeeded && !j.status.failed));
     const normRequests = normalizeDriversRequests(driversRequests);
     const { name, pods } = normalizeDriversAmount(normJobs, normRequests, settings);
     const createDetails = [];
