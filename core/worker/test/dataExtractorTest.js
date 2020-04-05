@@ -21,10 +21,10 @@ describe('StorageHelper', () => {
             storageHelper.init(config);
             storageHelper.setStorage('byRaw')
         });
-        it('store data and validate extraction no cache', async () => {
+        it.only('store data and validate extraction no cache', async () => {
             const config = getConfig();
-            const link = await storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId, data: { data: { engine: 'deep' } } });
-            const link2 = await storageManager.hkube.put({ jobId: config.jobId, taskId: "5", data: { myValue: 1973 } });
+            const link = await storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId + "-1", data: { data: { engine: 'deep' } } });
+            const link2 = await storageManager.hkube.put({ jobId: config.jobId, taskId: config.taskId + "-2", data: { myValue: 1973 } });
             const data = {
                 input: ['test-param', true, 12345, '$$guid-5', '$$guid-6'],
                 storage: {

@@ -3,7 +3,7 @@ const Logger = require('@hkube/logger');
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
 const objectPath = require('object-path');
 const delay = require('delay');
-const component = require('../../lib/consts').Components.K8S;
+const component = require('../consts').Components.K8S;
 const formatters = require('./formatters');
 
 let log;

@@ -50,13 +50,14 @@ class Storage {
     }
 
     async _tryExtractDataFromStorage(options) {
-        const partial = (func, argsBound) => (args) => {
-            return func.call(tracer, { ...argsBound, tags: { ...argsBound.tags, ...args } });
-        };
+        function partial(func, argsBound) {
+            return (args) => {
+                return func.call(tracer, { ...argsBound, tags: { ...argsBound.tags, ...args } });
+            };
+        }
         try {
             const { jobId, taskId, input, flatInput, useCache, storage } = options;
-            const tracerStart = partial(tracer.startSpan, tracing.getTracer({ name: 'storage-get', jobId, taskId }));
-            const newInput = await dataAdapter.getData({ input, flatInput, useCache, storage, tracerStart: null });
+            const newInput = await dataAdapter.getData({ input, flatInput, useCache, storage, tracerStart: partial(tracer.startSpan, tracing.getTracer({ name: 'storage-get', jobId, taskId })) });
             return { data: { ...options, input: newInput, flatInput: null } };
         }
         catch (error) {

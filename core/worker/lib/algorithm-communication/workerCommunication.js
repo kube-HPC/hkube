@@ -7,7 +7,7 @@ const socketAdapter = require('./socket-io');
 const loopbackAdapter = require('./loopback');
 const { adapters } = require('./consts');
 const messages = require('./messages');
-const component = require('../../lib/consts').Components.COMMUNICATIONS;
+const component = require('../consts').Components.COMMUNICATIONS;
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
