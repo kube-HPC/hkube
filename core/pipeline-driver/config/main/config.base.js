@@ -1,6 +1,4 @@
 const packageJson = require(process.cwd() + '/package.json');
-const formatters = require('../../lib/utils/formatters');
-
 const config = module.exports = {};
 
 config.serviceName = packageJson.name;
