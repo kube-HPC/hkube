@@ -1,7 +1,7 @@
 const objectPath = require('object-path');
 const storageManager = require('@hkube/storage-manager');
 const { pipelineTypes } = require('@hkube/consts');
-const execution = require('../../lib/service/execution');
+const execution = require('./execution');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');

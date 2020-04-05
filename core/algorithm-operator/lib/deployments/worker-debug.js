@@ -20,7 +20,7 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
-const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, workerEnv, options, algorithmOptions }) => {
+const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, workerEnv, options }) => {
     if (!algorithmName) {
         const msg = 'Unable to create deployment spec. algorithmName is required';
         log.error(msg, { component });
