@@ -157,13 +157,6 @@ describe('jobCreator', () => {
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
             expect(res.metadata.name).to.include('myalgo1-');
         });
-
-        it('should apply with binary storage', () => {
-            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, algorithmOptions: { binary: true } });
-            expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'WORKER_BINARY', value: 'true' })
-            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'WORKER_BINARY', value: 'true' })
-        });
-
         it('should apply mounts', () => {
             const mounts = [
                 {
@@ -232,13 +225,6 @@ describe('jobCreator', () => {
                 }
             );
         });
-
-        it('should apply without binary storage', () => {
-            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options });
-            expect(res.spec.template.spec.containers[0].env).to.deep.not.include({ name: 'WORKER_BINARY', value: 'true' })
-            expect(res.spec.template.spec.containers[1].env).to.deep.not.include({ name: 'WORKER_BINARY', value: 'true' })
-        });
-
         it('should apply with worker and resources', () => {
             globalSettings.applyResources = true;
 

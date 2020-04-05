@@ -32,9 +32,6 @@ properties:
         type: boolean
         description: pending algorithm
         default: false
-      binary:
-        type: boolean
-        description: serialization mode for algorithm communication
       opengl:
         type: boolean
         description: should algorithm support XGL context creation (mount X socket)
