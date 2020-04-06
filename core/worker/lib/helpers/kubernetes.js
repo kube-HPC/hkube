@@ -22,6 +22,7 @@ class KubernetesApi extends EventEmitter {
                 major: formatters.parseInt(kubeVersionRaw.body.major, 1),
                 minor: formatters.parseInt(kubeVersionRaw.body.minor, 9)
             };
+            this.namespace = options.kubernetes.namespace || 'default';
             log.info(`kubernetes version: ${this.kubeVersion.major}:${this.kubeVersion.minor}`);
         }
         catch (error) {

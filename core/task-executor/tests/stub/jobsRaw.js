@@ -6,6 +6,68 @@ const twoCompleted = {
         apiVersion: 'batch/v1',
         kind: 'Job',
         metadata: {
+          creationTimestamp: '2020-04-05T08:17:54Z',
+          labels: {
+            'algorithm-name': 'eval-alg',
+            core: 'true',
+            group: 'hkube',
+            'metrics-group': 'workers',
+            type: 'worker'
+          },
+          name: 'eval-alg-252e3991290315254b66cb8f8aa0f7',
+          namespace: 'hkube',
+          resourceVersion: '18268968',
+          selfLink: '/apis/batch/v1/namespaces/hkube/jobs/eval-alg-252e3991290315254b66cb8f8aa0f7',
+          uid: 'f2e81d51-7715-11ea-8f86-408d5cb60346'
+        },
+        spec: {
+          template: {
+            metadata: {
+              creationTimestamp: null,
+              labels: {
+                'algorithm-name': 'eval-alg',
+                'controller-uid': 'f2e81d51-7715-11ea-8f86-408d5cb60346',
+                group: 'hkube',
+                'job-name': 'eval-alg-252e3991290315254b66cb8f8aa0f7',
+                'metrics-group': 'workers',
+                type: 'worker'
+              }
+            },
+            spec: {
+              containers: [
+                {
+                  image: 'hkube/worker:v1.2.55',
+                  imagePullPolicy: 'IfNotPresent',
+                  name: 'worker',
+                },
+                {
+                  image: 'hkube/algorunner:v1.2.8',
+                  imagePullPolicy: 'IfNotPresent',
+                  name: 'algorunner',
+                }
+              ],
+            }
+          }
+        },
+        status: {
+          conditions: [
+            {
+              lastProbeTime: '2020-04-05T08:18:02Z',
+              lastTransitionTime: '2020-04-05T08:18:02Z',
+              message: 'Job has reached the specified backoff limit',
+              reason: 'BackoffLimitExceeded',
+              status: 'True',
+              type: 'Failed'
+            }
+          ],
+          failed: 1,
+          startTime: '2020-04-05T08:17:54Z'
+        }
+      },
+      {
+        apiVersion: 'batch/v1',
+        kind: 'Job',
+        metadata: {
           creationTimestamp: '2018-06-07T08:46:11Z',
           labels: {
             'algorithm-name': 'eval-alg',
