@@ -22,13 +22,14 @@ const applyAlgorithmResourceRequests = (inputSpec, resourceRequests, node) => {
     const gpu = resourceRequests.limits[gpuVendors.NVIDIA];
     if (gpu) {
         spec = applyAnnotation(spec, { [gpuVendors.NVIDIA]: gpu });
+        if (!Number.isInteger(gpu)) {
+            // remove resource of GPU from template, and add node selector
+            delete resourceRequests.requests[gpuVendors.NVIDIA];
+            delete resourceRequests.limits[gpuVendors.NVIDIA];
+            spec = applyNodeSelector(spec, { 'kubernetes.io/hostname': node });
+        }
     }
-    if (!Number.isInteger(gpu)) {
-        // remove resource of GPU from template, and add node selector
-        delete resourceRequests.requests[gpuVendors.NVIDIA];
-        delete resourceRequests.limits[gpuVendors.NVIDIA];
-        spec = applyNodeSelector(spec, { 'kubernetes.io/hostname': node });
-    }
+
     spec = applyResourceRequests(spec, resourceRequests, CONTAINERS.ALGORITHM);
 
     return spec;
