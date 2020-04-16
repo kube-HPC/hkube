@@ -1,0 +1,7 @@
+const DEFAULT_EXPERIMENT_NAME = 'main';
+const DEFAULT_EXPERIMENT_ERROR = `${DEFAULT_EXPERIMENT_NAME} experiment cannot be deleted`;
+
+module.exports = {
+    DEFAULT_EXPERIMENT_NAME,
+    DEFAULT_EXPERIMENT_ERROR
+};
