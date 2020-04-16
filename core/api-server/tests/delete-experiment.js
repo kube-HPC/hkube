@@ -12,7 +12,7 @@ describe('Experiment', () => {
         before(() => {
             restPath = `${restUrl}/experiment`;
         });
-        it.only('should fail to delete main experiment', async () => {
+        it('should fail to delete main experiment', async () => {
             const options = {
                 uri: restPath + '/main',
                 method: 'DELETE'
