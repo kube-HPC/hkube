@@ -60,7 +60,21 @@ class StorageService {
     }
 
     getByPath({ path }) {
-        return storageManager.storage.get({ path });
+        return storageManager.storage.seek({ path });
+    }
+
+    seek(options){
+        const file = pathLib.join(this._baseDirectory, options.path);
+        fs.stat(file, function(err, stats) {
+            const fileSize = stats.size;
+            const bytesToRead = 5; 
+            const position = fileSize - bytesToRead;   
+             fs.open(file, 'r', function(errOpen, fd) {
+               fs.read(fd, Buffer.alloc(bytesToRead), 0, bytesToRead, position, function(errRead, bytesRead, buffer) {
+                 console.log(buffer.toString('utf8'));
+               });
+             });
+           });
     }
 }
 

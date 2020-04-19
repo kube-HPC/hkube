@@ -72,11 +72,11 @@ class StateManager extends EventEmitter {
                     parent = topSpan.context();
                 }
                 span = tracer.startSpan({ name: 'set job result', parent, tags: { jobId: options.jobId } });
-                const startSpan = tracer.startSpan.bind(tracer, { name: 'storage-get', parent: span.context() });
+                // const startSpan = tracer.startSpan.bind(tracer, { name: 'storage-get', parent: span.context() });
 
                 const data = await Promise.all(options.data.map(async (a) => {
                     if (a.result && a.result.storageInfo) {
-                        const result = await storageManager.get(a.result.storageInfo, startSpan);
+                        const result = a.result.storageInfo; // await storageManager.get(a.result.storageInfo, startSpan);
                         return { ...a, result };
                     }
                     return a;
