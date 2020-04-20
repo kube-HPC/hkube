@@ -1,6 +1,8 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const Etcd = require('@hkube/etcd');
+const prettyBytes = require('pretty-bytes');
+const unitsConverter = require('@hkube/units-converter');
 const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
@@ -13,11 +15,13 @@ class StateManager extends EventEmitter {
         const options = option || {};
         this.setJobStatus = this.setJobStatus.bind(this);
         this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
-        this._podName = options.podName;
+        this._podName = options.kubernetes.podName;
         this._lastDiscovery = null;
         this._driverId = this._etcd.discovery._instanceId;
         this._etcd.discovery.register({ data: this._defaultDiscovery() });
         this._discoveryMethod = options.discoveryMethod || function noop() { };
+        this._storageResultsThreshold = unitsConverter.getMemoryInBytes(options.storageResultsThreshold);
+        this._useStorageMetadata = options.useStorageMetadata;
         this._subscribe();
         this._watchDrivers();
     }
@@ -72,11 +76,23 @@ class StateManager extends EventEmitter {
                     parent = topSpan.context();
                 }
                 span = tracer.startSpan({ name: 'set job result', parent, tags: { jobId: options.jobId } });
-                // const startSpan = tracer.startSpan.bind(tracer, { name: 'storage-get', parent: span.context() });
+                const startSpan = tracer.startSpan.bind(tracer, { name: 'storage-get', parent: span.context() });
 
                 const data = await Promise.all(options.data.map(async (a) => {
                     if (a.result && a.result.storageInfo) {
-                        const result = a.result.storageInfo; // await storageManager.get(a.result.storageInfo, startSpan);
+                        let result;
+                        let objSize = a.result.storageInfo.size;
+                        if (!objSize && this._useStorageMetadata) {
+                            result = await storageManager.getMetadata(a.result.storageInfo, startSpan);
+                            objSize = result.size;
+                        }
+                        if (objSize < this._storageResultsThreshold) {
+                            result = await storageManager.get(a.result.storageInfo, startSpan, { customEncode: true });
+                        }
+                        else {
+                            const message = `data too large (${prettyBytes(objSize)}), use the stream api`;
+                            result = { ...a.result.storageInfo, message };
+                        }
                         return { ...a, result };
                     }
                     return a;

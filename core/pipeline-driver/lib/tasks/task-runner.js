@@ -39,9 +39,7 @@ class TaskRunner extends EventEmitter {
             log = logger.GetLogFromContainer();
         }
         this._stateManager = new StateManager({
-            etcd: options.etcd,
-            serviceName: options.serviceName,
-            podName: options.kubernetes.podName,
+            ...options,
             discoveryMethod: this._getDiscoveryData.bind(this)
         });
         this._stateManager.on(commands.stopProcessing, (data) => {
