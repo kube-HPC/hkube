@@ -3,10 +3,10 @@ const http = require('http');
 const WebSocket = require('ws');
 const url = require('url');
 const Logger = require('@hkube/logger');
+const { Encoding } = require('@hkube/encoding');
 const Validator = require('ajv');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const component = require('../consts').Components.COMMUNICATIONS;
-const encoding = require('../helpers/encoding');
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
@@ -53,10 +53,14 @@ class WsWorkerCommunication extends EventEmitter {
         });
     }
 
+    setEncodingType(type) {
+        this._encoding = new Encoding({ type });
+    }
+
     _registerSocketMessages(socket) {
         this._socket = socket;
         socket.on('message', (data) => {
-            const payload = encoding.decode(data);
+            const payload = this._encoding.decode(data);
             log.debug(`got message ${payload.command}`, { component });
             this.emit(payload.command, payload);
         });
@@ -81,7 +85,7 @@ class WsWorkerCommunication extends EventEmitter {
             log.warning(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
-        this._socket.send(encoding.encode(message));
+        this._socket.send(this._encoding.encode(message));
     }
 }
 

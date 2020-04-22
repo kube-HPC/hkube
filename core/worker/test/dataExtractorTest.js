@@ -19,7 +19,7 @@ describe('StorageHelper', () => {
         before(async function () {
             config = testParams.config;
             storageHelper.init(config);
-            storageHelper.setStorage('byRaw')
+            storageHelper.setStorageType('byRaw')
         });
         it('store data and validate extraction no cache', async () => {
             const config = getConfig();

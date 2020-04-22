@@ -5,13 +5,12 @@ const tracing = require('./tracing/tracing');
 const jobConsumer = require('./consumer/JobConsumer');
 const storageHelper = require('./storage/storage');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
-const discovery = require('./states/discovery');
+const discovery = require('./states/stateAdapter');
 const { stateEvents, workerStates, workerCommands, Components } = require('./consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
-const encodingHelper = require('./helpers/encoding');
 const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
@@ -50,18 +49,18 @@ class Worker {
 
         const storage = algorithmStorage || this._options.defaultStorageProtocol;
         const encoding = algorithmEncoding || this._options.defaultWorkerAlgorithmEncoding;
-        storageHelper.setStorage(storage);
-        encodingHelper.setEncoding(encoding);
+        storageHelper.setStorageType(storage);
+        algoRunnerCommunication.setEncodingType(encoding);
 
-        let message = 'unable to found algorithm protocols';
+        let message = 'algorithm protocols: none';
         if (algorithmStorage && algorithmEncoding) {
-            message = `found algorithm protocols ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
+            message = `algorithm protocols: ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
         }
         log.info(`${message}, chosen protocols: ${this._formatProtocol({ storage, encoding })}`, { component });
     }
 
     _formatProtocol(protocols) {
-        return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `[${k} ${v}]`).join('') : '';
+        return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `${v} ${k}`).join(' & ') : '';
     }
 
     _setInactiveTimeout() {

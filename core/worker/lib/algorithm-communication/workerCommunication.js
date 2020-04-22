@@ -49,6 +49,10 @@ class WorkerCommunication extends EventEmitter {
         await this.adapter.init(options);
     }
 
+    setEncodingType(type) {
+        this.adapter.setEncodingType && this.adapter.setEncodingType(type);
+    }
+
     /**
      *
      * @param {any} message the message to send to the algoRunner.

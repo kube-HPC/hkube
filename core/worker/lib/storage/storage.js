@@ -1,8 +1,6 @@
 const isEqual = require('lodash.isequal');
 const Logger = require('@hkube/logger');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
-const { tracer } = require('@hkube/metrics');
-const tracing = require('../tracing/tracing.js');
 const stateManager = require('../states/stateManager');
 const { Components } = require('../consts');
 const component = Components.STORAGE;
@@ -11,10 +9,6 @@ let log;
 class Storage {
     constructor() {
         this.oldStorage = null;
-        this._storageProtocols = {
-            byRaw: this._tryExtractDataFromStorage.bind(this),
-            byRef: (data) => ({ data })
-        };
     }
 
     async init(options) {
@@ -22,8 +16,10 @@ class Storage {
         await dataAdapter.init(options);
     }
 
-    setStorage(type) {
-        this._getStorage = this._storageProtocols[type];
+    setStorageType(type) {
+        const storage = require(`./storage-${type}`);
+        this._getStorage = storage.getResultFromStorage.bind(storage);
+        this._setStorage = storage.setResultToStorage.bind(storage);
     }
 
     async extractData(options) {
@@ -49,31 +45,8 @@ class Storage {
         return { error, data };
     }
 
-    _startSpanBound(func, argsBound) {
-        return (args) => {
-            return func.call(tracer, { ...argsBound, tags: { ...argsBound.tags, ...args } });
-        };
-    }
-
-    async _tryExtractDataFromStorage(options) {
-        try {
-            const { jobId, taskId, input, flatInput, useCache, storage, startSpan } = options;
-            const tracerStart = startSpan || this._startSpanBound(tracer.startSpan, tracing.getTracer({ name: 'storage-get', jobId, taskId }));
-            const newInput = await dataAdapter.getData({ input, flatInput, useCache, storage, tracerStart });
-            return { data: { ...options, input: newInput, flatInput: null } };
-        }
-        catch (error) {
-            return { error };
-        }
-    }
-
-    createStorageInfo(options) {
-        return dataAdapter.createStorageInfo(options);
-    }
-
-    setData(options) {
-        const { jobId, taskId } = options;
-        return dataAdapter.setData(options, tracer.startSpan.bind(tracer, tracing.getTracer({ name: 'storage-put', jobId, taskId })));
+    setStorage(options) {
+        return this._setStorage(options);
     }
 
     _isStorageEqual(storage1, storage2) {

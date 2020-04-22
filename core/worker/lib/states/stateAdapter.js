@@ -6,7 +6,7 @@ const { EventMessages, Components, jobStatus } = require('../consts');
 const component = Components.ETCD;
 let log;
 
-class EtcdDiscovery extends EventEmitter {
+class StateAdapter extends EventEmitter {
     constructor() {
         super();
         this._etcd = null;
@@ -134,4 +134,4 @@ class EtcdDiscovery extends EventEmitter {
     }
 }
 
-module.exports = new EtcdDiscovery();
+module.exports = new StateAdapter();

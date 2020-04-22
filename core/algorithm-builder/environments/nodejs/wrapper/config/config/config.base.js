@@ -17,7 +17,7 @@ config.algorithm = {
     entryPoint: process.env.ALGORITHM_ENTRY_POINT || 'index.js'
 };
 
-config.algorithmDiscovery = {
+config.discovery = {
     host: process.env.POD_NAME || '127.0.0.1',
     port: process.env.DISCOVERY_PORT || 9020,
     encoding: process.env.DISCOVERY_ENCODING || 'bson'

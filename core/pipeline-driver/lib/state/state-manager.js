@@ -81,6 +81,7 @@ class StateManager extends EventEmitter {
                 const data = await Promise.all(options.data.map(async (a) => {
                     if (a.result && a.result.storageInfo) {
                         let result;
+                        let info;
                         let objSize = a.result.storageInfo.size;
                         if (!objSize && this._useStorageMetadata) {
                             result = await storageManager.getMetadata(a.result.storageInfo, startSpan);
@@ -91,9 +92,9 @@ class StateManager extends EventEmitter {
                         }
                         else {
                             const message = `data too large (${prettyBytes(objSize)}), use the stream api`;
-                            result = { ...a.result.storageInfo, message };
+                            info = { ...a.result.storageInfo, message };
                         }
-                        return { ...a, result };
+                        return { ...a, result, info };
                     }
                     return a;
                 }));

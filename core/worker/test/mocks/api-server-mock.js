@@ -2,7 +2,7 @@ const uuidv4 = require('uuid/v4');
 const vm = require('vm');
 const { pipelineStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
-const discovery = require('../../lib/states/discovery');
+const discovery = require('../../lib/states/stateAdapter');
 const { ApiServerPostTypes } = require('../../lib/consts');
 const EventEmitter = require('events');
 

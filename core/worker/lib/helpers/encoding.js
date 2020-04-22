@@ -1,7 +1,7 @@
 const { Encoding } = require('@hkube/encoding');
 
 class EncodingHelper {
-    setEncoding(type) {
+    setEncodingType(type) {
         this._encoding = new Encoding({ type });
     }
 

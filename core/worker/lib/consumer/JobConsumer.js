@@ -7,7 +7,7 @@ const storage = require('../storage/storage');
 const stateManager = require('../states/stateManager');
 const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
-const etcd = require('../states/discovery');
+const stateAdapter = require('../states/stateAdapter');
 const { Components, logMessages, jobStatus } = require('../consts');
 const JobProvider = require('./job-provider');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
@@ -62,7 +62,7 @@ class JobConsumer extends EventEmitter {
                 return;
             }
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
-            const watchState = await etcd.watch({ jobId: job.data.jobId });
+            const watchState = await stateAdapter.watch({ jobId: job.data.jobId });
             if (watchState && this._isCompletedState({ status: watchState.status })) {
                 await this._stopJob(job, watchState.status);
                 return;
@@ -72,7 +72,7 @@ class JobConsumer extends EventEmitter {
             this._setJob(job);
 
             if (this._execId) {
-                const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
+                const watchExecutionState = await stateAdapter.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
                 if (watchExecutionState && this._isCompletedState({ status: watchExecutionState.status })) {
                     await this.finishJob();
                     return;
@@ -133,7 +133,7 @@ class JobConsumer extends EventEmitter {
     }
 
     async _stopJob(job, status) {
-        await etcd.unwatch({ jobId: job.data.jobId });
+        await stateAdapter.unwatch({ jobId: job.data.jobId });
         log.info(`job ${job.data.jobId} already in ${status} status`);
         job.done();
     }
@@ -172,7 +172,7 @@ class JobConsumer extends EventEmitter {
 
     async updateDiscovery(data) {
         const discoveryInfo = this.getDiscoveryData(data);
-        await etcd.updateDiscovery(discoveryInfo);
+        await stateAdapter.updateDiscovery(discoveryInfo);
     }
 
     getDiscoveryData(data) {
@@ -233,7 +233,8 @@ class JobConsumer extends EventEmitter {
 
     async updateStatus(data = {}) {
         this._lastStatus = data.status;
-        await etcd.update({ ...this._getState(), ...data });
+        this._lastStorageInfo = data.result && data.result.storageInfo;
+        await stateAdapter.update({ ...this._getState(), ...data });
     }
 
     _getState() {
@@ -253,9 +254,9 @@ class JobConsumer extends EventEmitter {
         if (!this._job) {
             return;
         }
-        await etcd.unwatch({ jobId: this._jobId });
+        await stateAdapter.unwatch({ jobId: this._jobId });
         if (this._execId) {
-            await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
+            await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
         const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
@@ -263,7 +264,7 @@ class JobConsumer extends EventEmitter {
             let storageResult;
             let metricsPath;
             if (!error && status === jobStatus.SUCCEED) {
-                storageResult = await this._putResultToStorage(resultData);
+                storageResult = await storage.setStorage({ data: resultData, jobData: this._job.data, lastStorageInfo: this._lastStorageInfo, lastStatus: this._lastStatus });
                 if (!(this.jobData.metrics && this.jobData.metrics.tensorboard === false)) {
                     const tensorboard = await boards.putAlgoMetrics(this.jobData, this.jobCurrentTime);
                     (tensorboard.path || tensorboard.error) && (metricsPath = { tensorboard });
@@ -284,32 +285,6 @@ class JobConsumer extends EventEmitter {
         }
         metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
-    }
-
-    async _putResultToStorage(data) {
-        let error;
-        let status = jobStatus.SUCCEED;
-        try {
-            const { jobId, taskId, nodeName, info } = this._job.data;
-
-            if (this._lastStatus !== jobStatus.STORING) {
-                const storageInfo = storage.createStorageInfo({ jobId, taskId, nodeName, data, savePaths: info.savePaths });
-                await this.setStoringStatus(storageInfo);
-                await storage.setData({ jobId, taskId, data });
-            }
-        }
-        catch (err) {
-            log.error(`failed to store data job:${this._jobId} task:${this._taskId}, ${err}`, { component }, err);
-            error = err.message;
-            status = jobStatus.FAILED;
-        }
-        finally {
-            // eslint-disable-next-line no-unsafe-finally
-            return {
-                status,
-                error
-            };
-        }
     }
 
     setStoringStatus(data) {

@@ -4,17 +4,17 @@ const delay = require('delay');
 const uuid = require('uuid/v4');
 const execAlgorithm = require('../lib/code-api/algorithm-execution/algorithm-execution');
 const jobConsumer = require('../lib/consumer/JobConsumer');
-const etcd = require('../lib/states/discovery');
+const stateAdapter = require('../lib/states/stateAdapter');
 
 describe('AlgorithmExecutions', () => {
     let spy;
     before(function () {
         let options = { name: 'black-alg', data: 'bla' };
-        etcd.createAlgorithmType(options);
+        atateAdapter.createAlgorithmType(options);
     });
     after(function () {
         let options = { name: 'black-alg', data: 'bla' };
-        etcd.deleteAlgorithmType(options);
+        stateAdapter.deleteAlgorithmType(options);
     });
     afterEach(function () {
         spy && spy.restore();
@@ -22,15 +22,15 @@ describe('AlgorithmExecutions', () => {
         execAlgorithm._executions.clear();
     });
     it('should cache algorithm list', async () => {
-        const algsBefore = await etcd.getExistingAlgorithms();
+        const algsBefore = await stateAdapter.getExistingAlgorithms();
         let options = { name: 'alg' + uuid(), data: 'bla' };
-        await etcd.createAlgorithmType(options);
-        const algsAfter = await etcd.getExistingAlgorithms();
+        await stateAdapter.createAlgorithmType(options);
+        const algsAfter = await stateAdapter.getExistingAlgorithms();
         expect(algsAfter).to.deep.eql(algsBefore);
 
     })
     it('should cache algorithm list when called in rapid succession', async () => {
-        const results = await Promise.all(Array.from(Array(30)).map(etcd.getExistingAlgorithms));
+        const results = await Promise.all(Array.from(Array(30)).map(stateAdapter.getExistingAlgorithms));
         expect(results).to.have.lengthOf(30)
 
     })
@@ -217,7 +217,7 @@ describe('AlgorithmExecutions', () => {
             status: 'succeed',
             execId: data.execId
         }
-        await etcd.update(task);
+        await stateAdapter.update(task);
         await delay(500);
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
@@ -258,7 +258,7 @@ describe('AlgorithmExecutions', () => {
             status: 'failed',
             execId: data.execId
         }
-        await etcd.update(task);
+        await stateAdapter.update(task);
         await delay(500);
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
@@ -299,7 +299,7 @@ describe('AlgorithmExecutions', () => {
             status: 'stalled',
             execId: data.execId
         }
-        await etcd.update(task);
+        await stateAdapter.update(task);
         await delay(500);
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
@@ -340,7 +340,7 @@ describe('AlgorithmExecutions', () => {
             status: 'crashed',
             execId: data.execId
         }
-        await etcd.update(task);
+        await stateAdapter.update(task);
         await delay(500);
         await delay(500);
         const args = spy.getCalls()[0].args[0];

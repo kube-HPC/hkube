@@ -144,7 +144,7 @@ describe('worker SubPipeline test', () => {
         adapter.send({ command: messages.outgoing.initialize, data: algData });
         setTimeout(() => {
             // stop pipeline
-            const discovery = require('../lib/states/discovery');
+            const discovery = require('../lib/states/stateAdapter');
             const subPipelineJobId = subPipelineHandler.getSubPipelineJobId('trueSubPipeline');
             discovery.emit(pipelineStatuses.STOPPED, { jobId: jobConsumer.jobId, reason: 'test' });
             // ensure subPipeline was stopped

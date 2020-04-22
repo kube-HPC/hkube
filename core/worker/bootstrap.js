@@ -13,7 +13,7 @@ const modules = [
     require('./lib/tracing/tracing.js'),
     require('./lib/boards/boards.js'),
     require('./lib/states/stateManager.js'),
-    require('./lib/states/discovery.js'),
+    require('./lib/states/stateAdapter.js'),
     require('./lib/algorithm-communication/workerCommunication.js'),
     require('./lib/consumer/JobConsumer.js'),
     require('./lib/helpers/kubernetes.js'),
