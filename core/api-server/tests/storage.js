@@ -3,6 +3,7 @@ const querystring = require('querystring');
 const storageManager = require('@hkube/storage-manager');
 const HttpStatus = require('http-status-codes');
 const { Encoding } = require('@hkube/encoding');
+const { uuid } = require('../lib/utils');
 const { request } = require('./utils');
 let restUrl;
 let encoding;
@@ -225,6 +226,48 @@ describe('Storage', () => {
             };
             const response = await request(options);
             expect(response.body.name).to.eql(alg);
+        });
+    });
+    describe('/download/custom/:path', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/storage/download/custom`;
+        });
+        it('should throw key Not Found', async () => {
+            const value = 'local-hkube-store/algorithm/no_such_stream';
+            const options = {
+                uri: `${restPath}/${value}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.message).to.equal(`value ${value} Not Found`);
+        });
+        it.skip('should return specific download data', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = { prop: "hello" };
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data }, null, { customEncode: true });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(data);
+        });
+        it('should return specific download buffer', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = Buffer.alloc(10, '0xdd')
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data }, null, { customEncode: true });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(data.toString('utf-8'));
         });
     });
 });

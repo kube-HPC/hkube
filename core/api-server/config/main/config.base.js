@@ -6,6 +6,7 @@ config.serviceName = packageJson.name;
 const secured = !!process.env.API_SERVER_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
 
 config.version = packageJson.version;
 

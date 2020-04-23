@@ -49,8 +49,16 @@ class StorageService {
         return Promise.all(this.prefixesTypes.map(path => this._getKeysByPath({ path, ...options })));
     }
 
-    async getStream({ path }) {
-        return storageManager.getStream({ path });
+    async getStream(options) {
+        return storageManager.getStream(options);
+    }
+
+    async getMetadata({ path }) {
+        return storageManager.getMetadata({ path });
+    }
+
+    async seek(options) {
+        return storageManager.seek(options);
     }
 
     _formatResponse({ path, keys, sort, order, from, to }) {
@@ -60,7 +68,7 @@ class StorageService {
     }
 
     getByPath({ path }) {
-        return storageManager.storage.get({ path });
+        return storageManager.storage.get({ path }, null, { customEncode: true });
     }
 }
 

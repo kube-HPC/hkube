@@ -6,7 +6,7 @@ config.version = packageJson.version;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
-config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '90Ki';
+config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
 config.useStorageMetadata = process.env.ENABLE_STORAGE_METADATA || true;
 
 config.jobs = {
