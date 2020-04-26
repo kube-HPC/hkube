@@ -248,9 +248,10 @@ const _findWorkersToStop = ({ skipped, idleWorkers, activeWorkers, algorithmTemp
             if (worker) {
                 activeWorkersLocal = activeWorkersLocal.filter(w => w.id !== worker.id);
                 const toStop = _createStopDetails({ worker, algorithmTemplates });
-
-                skippedResources = _subtractResources(skippedResources, parseResources(toStop.details));
-                stopDetails.push(toStop);
+                if (toStop) {
+                    skippedResources = _subtractResources(skippedResources, parseResources(toStop.details));
+                    stopDetails.push(toStop);
+                }
             }
         }
     });
