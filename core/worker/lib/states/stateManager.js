@@ -54,7 +54,7 @@ class StateManager extends EventEmitter {
                 onInvalidTransition: (transition, from, to) => {
                     if (!this._debugMode) {
                         log.warning(`transition (${transition}) not allowed from that state: ${from} -> ${to}`, { component });
-                        this.exit();
+                        this.exit({ shouldCompleteJob: false });
                     }
                 }
             }
