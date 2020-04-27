@@ -7,11 +7,11 @@ class Storage {
 
     async setResultToStorage(options) {
         const status = jobStatus.SUCCEED;
-        const { lastStorageInfo } = options;
+        // const { lastStorageInfo } = options;
 
         return {
             status,
-            storageInfo: lastStorageInfo
+            // storageInfo: lastStorageInfo
         };
     }
 }

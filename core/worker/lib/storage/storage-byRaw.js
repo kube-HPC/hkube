@@ -28,33 +28,27 @@ class Storage {
     async setResultToStorage(options) {
         let error;
         let status = jobStatus.SUCCEED;
-        const { jobData, data, lastStorageInfo, lastStatus } = options;
+        const { jobData, data } = options;
         const { jobId, taskId, nodeName, info } = jobData;
+        let storageInfo;
 
-        let storageInfo = lastStorageInfo;
         try {
-            if (lastStatus !== jobStatus.STORING) {
-                const startSpan = tracer.startSpan.bind(tracer, tracing.getTracer({ name: 'storage-put', jobId, taskId }));
-                const encodedData = dataAdapter.encode(data);
-
-                storageInfo = dataAdapter.createStorageInfo({ jobId, taskId, nodeName, data, encodedData, savePaths: info.savePaths });
-                await dataAdapter.setData({ jobId, taskId, data }, startSpan);
-                await jobConsumer.setStoringStatus(storageInfo);
-            }
+            const startSpan = tracer.startSpan.bind(tracer, tracing.getTracer({ name: 'storage-put', jobId, taskId }));
+            const encodedData = dataAdapter.encode(data);
+            storageInfo = dataAdapter.createStorageInfo({ jobId, taskId, nodeName, data, encodedData, savePaths: info.savePaths });
+            await dataAdapter.setData({ jobId, taskId, data }, startSpan);
+            await jobConsumer.setStoringStatus(storageInfo);
         }
         catch (err) {
             log.error(`failed to store data job:${jobId} task:${taskId}, ${err}`, { component }, err);
             error = err.message;
             status = jobStatus.FAILED;
         }
-        finally {
-            // eslint-disable-next-line no-unsafe-finally
-            return {
-                status,
-                error,
-                storageInfo
-            };
-        }
+        return {
+            status,
+            error,
+            storageInfo
+        };
     }
 }
 

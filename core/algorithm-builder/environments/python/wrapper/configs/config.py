@@ -17,7 +17,7 @@ algorithm = {
 }
 storage = {
     "clusterName": os.environ.get('CLUSTER_NAME', 'local'),
-    "type": os.environ.get('STORAGE_TYPE', 'fs'),
+    "type": os.environ.get('DEFAULT_STORAGE', 'fs'),
     "mode": os.environ.get('STORAGE_MODE', 'byRef'),
     "encoding": os.environ.get('STORAGE_ENCODING', 'bson'),
     "fs": {

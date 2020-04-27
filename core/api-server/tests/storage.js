@@ -203,6 +203,75 @@ describe('Storage', () => {
             expect(body.name).to.eql(alg);
         });
     });
+    describe('/stream/custom:path', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/storage/stream/custom`;
+        });
+        it('should throw stream Not Found', async () => {
+            const value = 'local-hkube-store/algorithm/no_such_stream';
+            const options = {
+                uri: `${restPath}/${value}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
+        });
+        it('should stream with custom encode: true and value: null', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = null;
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(data);
+        });
+        it('should stream with custom encode: false and value: null', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = null;
+            const encoded = encoding.encode(data).toString();
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: false } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(encoded);
+        });
+        it('should stream with custom encode: true and value: buffer', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = Buffer.alloc(10, '0xdd')
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(data.toString('utf-8'));
+        });
+        it('should stream with custom encode: flase and value: buffer', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = Buffer.alloc(10, '0xdd')
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { ignoreEncode: true } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(data.toString('utf-8'));
+        });
+    });
     describe('/download/:path', () => {
         let restPath = null;
         before(() => {
@@ -243,12 +312,12 @@ describe('Storage', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`value ${value} Not Found`);
         });
-        it.skip('should return specific download data', async () => {
+        it('should download with custom encode: true and value: null', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
-            const data = { prop: "hello" };
+            const data = null;
             const path = storageManager.hkube.createPath({ jobId, taskId });
-            const result = await storageManager.storage.put({ path, data }, null, { customEncode: true });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
             const options = {
                 uri: `${restPath}/${result.path}`,
                 method: 'GET'
@@ -256,12 +325,39 @@ describe('Storage', () => {
             const response = await request(options);
             expect(response.body).to.equal(data);
         });
-        it('should return specific download buffer', async () => {
+        it('should download with custom encode: false and value: null', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = null;
+            const encoded = encoding.encode(data).toString();
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: false } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(encoded);
+        });
+        it('should download with custom encode: true and value: buffer', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
             const data = Buffer.alloc(10, '0xdd')
             const path = storageManager.hkube.createPath({ jobId, taskId });
-            const result = await storageManager.storage.put({ path, data }, null, { customEncode: true });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(data.toString('utf-8'));
+        });
+        it('should download with custom encode: flase and value: buffer', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = Buffer.alloc(10, '0xdd')
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { ignoreEncode: true } });
             const options = {
                 uri: `${restPath}/${result.path}`,
                 method: 'GET'

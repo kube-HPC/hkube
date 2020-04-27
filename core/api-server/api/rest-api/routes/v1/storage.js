@@ -1,8 +1,5 @@
 
 const express = require('express');
-const pathLib = require('path');
-const prettyBytes = require('pretty-bytes');
-const unitsConverter = require('@hkube/units-converter');
 const logger = require('../../middlewares/logger');
 const storage = require('../../../../lib/service/storage');
 const { ResourceNotFoundError, InvalidDataError } = require('../../../../lib/errors');
@@ -21,13 +18,6 @@ const handleStreamError = (err, path, res, next) => {
     next(handleStorageError(err, 'stream', path));
 };
 
-const checkDataSize = async (size, storageResultsThreshold) => {
-    if (size >= storageResultsThreshold) {
-        // currently we are not supporting huge decoding
-        throw new Error(`data too large (${prettyBytes(size)}), use the stream api`);
-    }
-};
-
 const streamApi = (res, stream, path, next) => {
     stream.on('error', err => handleStreamError(err, path, res, next));
     stream.pipe(res);
@@ -39,48 +29,18 @@ const downloadApi = (res, stream, path, next) => {
     streamApi(res, stream, path, next);
 };
 
-const downloadJson = async (res, options) => {
-    const data = await storage.getByPath(options, { customEncode: true });
+const downloadJson = async (res, data) => {
     res.set('Content-disposition', 'attachment; filename=hkubeResult');
     res.set('Content-Type', 'application/json');
     res.json(data);
 };
 
-const customStorage = async (res, path, streamFn, storageResultsThreshold, next) => {
-    const metadata = await storage.getMetadata({ path });
-    const totalLength = metadata.size;
-
-    // read last 3 bytes for footer length and magic number
-    const lastBytes = await storage.seek({ path, end: -3 });
-    const magicNumber = lastBytes.slice(1, lastBytes.length).toString('hex');
-
-    // check if hkube encoding is here
-    if (magicNumber === '484b') {
-        // check the footer length and get the footer
-        const footerLength = lastBytes.slice(0, 1)[0];
-        const footer = await storage.seek({ path, start: totalLength - footerLength, end: totalLength });
-        const dataType = footer[2];
-
-        // this data is encoded, so we should decode it
-        if (dataType === 2) {
-            checkDataSize(totalLength, storageResultsThreshold);
-            await downloadJson(res, { path });
-        }
-        else {
-            // this data is not encoded, we should stream it (without footer)
-            const stream = await storage.getStream({ path, start: 0, end: totalLength - footerLength - 1 });
-            streamFn(res, stream, path, next);
-        }
-    }
-    else {
-        const stream = await storage.getStream({ path });
-        streamFn(res, stream, path, next);
-    }
+const hasData = (obj) => {
+    return Object.prototype.hasOwnProperty.call(obj, 'data');
 };
 
 const routes = (options) => {
     const router = express.Router();
-    const storageResultsThreshold = unitsConverter.getMemoryInBytes(options.storageResultsThreshold);
 
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
@@ -145,7 +105,10 @@ const routes = (options) => {
         const path = req.params[0];
         try {
             const metadata = await storage.getMetadata({ path });
-            checkDataSize(metadata.size, storageResultsThreshold);
+            const result = storage.checkDataSize(metadata.size);
+            if (result.error) {
+                throw new Error(result.error);
+            }
             const response = await storage.getByPath({ path });
             res.json(response);
             next();
@@ -157,10 +120,16 @@ const routes = (options) => {
     router.get('/stream/custom/*', logger(), async (req, res, next) => {
         const path = req.params[0];
         try {
-            await customStorage(res, path, streamApi, storageResultsThreshold, next);
+            const response = await storage.getCustomFormat({ path });
+            if (response.stream) {
+                streamApi(res, response.stream, path, next);
+            }
+            else if (hasData(response)) {
+                downloadJson(res, response.data);
+            }
         }
         catch (e) {
-            next(handleStorageError(e, 'value', path));
+            next(handleStorageError(e, 'stream', path));
         }
     });
     router.get('/stream/*', logger(), async (req, res, next) => {
@@ -171,7 +140,13 @@ const routes = (options) => {
     router.get('/download/custom/*', logger(), async (req, res, next) => {
         const path = req.params[0];
         try {
-            await customStorage(res, path, downloadApi, storageResultsThreshold, next);
+            const response = await storage.getCustomFormat({ path });
+            if (response.stream) {
+                downloadApi(res, response.stream, path, next);
+            }
+            else if (hasData(response)) {
+                downloadJson(res, response.data);
+            }
         }
         catch (e) {
             next(handleStorageError(e, 'value', path));

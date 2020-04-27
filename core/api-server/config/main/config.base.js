@@ -7,6 +7,7 @@ const secured = !!process.env.API_SERVER_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
+const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 config.version = packageJson.version;
 
@@ -111,7 +112,7 @@ config.fs = {
 config.storageAdapters = {
     s3: {
         connection: config.s3,
-        encoding: process.env.STORAGE_ENCODING || 'bson',
+        encoding: storageEncoding,
         moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
     },
     etcd: {
@@ -124,7 +125,7 @@ config.storageAdapters = {
     },
     fs: {
         connection: config.fs,
-        encoding: process.env.STORAGE_ENCODING || 'bson',
+        encoding: storageEncoding,
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };

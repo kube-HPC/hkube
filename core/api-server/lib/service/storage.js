@@ -57,8 +57,12 @@ class StorageService {
         return storageManager.getMetadata({ path });
     }
 
-    async seek(options) {
-        return storageManager.seek(options);
+    checkDataSize(size) {
+        return storageManager.checkDataSize(size);
+    }
+
+    async getCustomFormat(options) {
+        return storageManager.getCustomFormat(options);
     }
 
     _formatResponse({ path, keys, sort, order, from, to }) {
@@ -68,7 +72,7 @@ class StorageService {
     }
 
     getByPath({ path }) {
-        return storageManager.storage.get({ path }, null, { customEncode: true });
+        return storageManager.storage.get({ path, encodeOptions: { customEncode: true } });
     }
 }
 

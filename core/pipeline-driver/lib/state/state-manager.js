@@ -1,8 +1,6 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const Etcd = require('@hkube/etcd');
-const prettyBytes = require('pretty-bytes');
-const unitsConverter = require('@hkube/units-converter');
 const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
@@ -20,8 +18,6 @@ class StateManager extends EventEmitter {
         this._driverId = this._etcd.discovery._instanceId;
         this._etcd.discovery.register({ data: this._defaultDiscovery() });
         this._discoveryMethod = options.discoveryMethod || function noop() { };
-        this._storageResultsThreshold = unitsConverter.getMemoryInBytes(options.storageResultsThreshold);
-        this._useStorageMetadata = options.useStorageMetadata;
         this._subscribe();
         this._watchDrivers();
     }
@@ -83,16 +79,16 @@ class StateManager extends EventEmitter {
                         let result;
                         let info;
                         let objSize = a.result.storageInfo.size;
-                        if (!objSize && this._useStorageMetadata) {
+                        if (!objSize) {
                             result = await storageManager.getMetadata(a.result.storageInfo, startSpan);
                             objSize = result.size;
                         }
-                        if (objSize < this._storageResultsThreshold) {
-                            result = await storageManager.get(a.result.storageInfo, startSpan, { customEncode: true });
+                        const resSize = storageManager.checkDataSize(objSize);
+                        if (!resSize.error) {
+                            result = await storageManager.get({ ...a.result.storageInfo, encodeOptions: { customEncode: true } }, startSpan);
                         }
                         else {
-                            const message = `data too large (${prettyBytes(objSize)}), use the stream api`;
-                            info = { ...a.result.storageInfo, message };
+                            info = { ...a.result.storageInfo, message: resSize.error };
                         }
                         return { ...a, result, info };
                     }
