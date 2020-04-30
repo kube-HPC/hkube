@@ -9,7 +9,7 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory) 
     const freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESSURE));
     const freeGpu = node.free.gpu - (node.total.gpu * (1 - GPU_RATIO_PRESSURE));
     const freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
-    return lessWithTolerance(requestedCpu, freeCpu) && requestedMemory < freeMemory && lessWithTolerance(requestedGpu, freeGpu);
+    return requestedCpu < freeCpu && requestedMemory < freeMemory && lessWithTolerance(requestedGpu, freeGpu);
 };
 
 const nodeSelectorFilter = (labels, nodeSelector) => {
