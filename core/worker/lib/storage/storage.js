@@ -2,7 +2,7 @@ const isEqual = require('lodash.isequal');
 const Logger = require('@hkube/logger');
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const stateManager = require('../states/stateManager');
-const { Components } = require('../consts');
+const { Components, jobStatus } = require('../consts');
 const component = Components.STORAGE;
 let log;
 
@@ -45,8 +45,23 @@ class Storage {
         return { error, data };
     }
 
-    setStorage(options) {
-        return this._setStorage(options);
+    async setStorage(options) {
+        let error;
+        let storageInfo;
+        let status = jobStatus.SUCCEED;
+        try {
+            storageInfo = await this._setStorage(options);
+        }
+        catch (err) {
+            log.error(`failed to store data ${err}`, { component }, err);
+            error = err.message;
+            status = jobStatus.FAILED;
+        }
+        return {
+            status,
+            error,
+            storageInfo
+        };
     }
 
     _isStorageEqual(storage1, storage2) {

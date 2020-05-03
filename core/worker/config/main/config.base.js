@@ -7,8 +7,9 @@ const config = {};
 config.serviceName = packageJson.name;
 config.version = packageJson.version;
 
-config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
+config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 config.hotWorker = formatters.parseBool(process.env.HOT_WORKER);
 config.debugMode = formatters.parseBool(process.env.DEBUG_MODE);
@@ -102,7 +103,7 @@ config.fs = {
 config.storageAdapters = {
     s3: {
         connection: config.s3,
-        encoding: process.env.STORAGE_ENCODING || 'bson',
+        encoding: storageEncoding,
         moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
     },
     etcd: {
@@ -115,7 +116,7 @@ config.storageAdapters = {
     },
     fs: {
         connection: config.fs,
-        encoding: process.env.STORAGE_ENCODING || 'bson',
+        encoding: storageEncoding,
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };

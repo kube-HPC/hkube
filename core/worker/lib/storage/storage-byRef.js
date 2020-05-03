@@ -1,18 +1,12 @@
-const { jobStatus } = require('../consts');
 
 class Storage {
     async getResultFromStorage(data) {
         return { data };
     }
 
-    async setResultToStorage(options) {
-        const status = jobStatus.SUCCEED;
-        // const { lastStorageInfo } = options;
-
-        return {
-            status,
-            // storageInfo: lastStorageInfo
-        };
+    async setResultToStorage() {
+        // Nothing to do for now, already handled by wrapper
+        return undefined;
     }
 }
 
