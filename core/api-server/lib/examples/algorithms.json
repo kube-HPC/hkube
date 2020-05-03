@@ -12,6 +12,42 @@
         "type": "Image"
     },
     {
+        "name": "eval-alg1",
+        "algorithmImage": "hkube/algorunner",
+        "cpu": 1,
+        "mem": "1Gi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
+    },
+    {
+        "name": "eval-alg2",
+        "algorithmImage": "hkube/algorunner",
+        "cpu": 1,
+        "mem": "1Gi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
+    },
+    {
+        "name": "eval-alg3",
+        "algorithmImage": "hkube/algorunner",
+        "cpu": 1,
+        "mem": "1Gi",
+        "options": {
+            "debug": false,
+            "pending": false
+        },
+        "minHotWorkers": 0,
+        "type": "Image"
+    },
+    {
         "name": "green-alg",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.1,
@@ -60,30 +96,6 @@
         "type": "Image"
     },
     {
-        "name": "python2",
-        "algorithmImage": "hkube/algorithm-example-python",
-        "cpu": 0.5,
-        "mem": "256Mi",
-        "options": {
-            "debug": false,
-            "pending": false
-        },
-        "minHotWorkers": 0,
-        "type": "Image"
-    },
-    {
-        "name": "python3",
-        "algorithmImage": "hkube/algorithm-example-python",
-        "cpu": 0.5,
-        "mem": "256Mi",
-        "options": {
-            "debug": false,
-            "pending": false
-        },
-        "minHotWorkers": 0,
-        "type": "Image"
-    },
-    {
         "name": "python3",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.5,
@@ -97,30 +109,6 @@
     },
     {
         "name": "nodejs-new",
-        "algorithmImage": "hkube/algorunner",
-        "cpu": 1,
-        "mem": "1Gi",
-        "options": {
-            "debug": false,
-            "pending": false
-        },
-        "minHotWorkers": 0,
-        "type": "Image"
-    },
-    {
-        "name": "nodejs-new",
-        "algorithmImage": "hkube/algorunner",
-        "cpu": 1,
-        "mem": "1Gi",
-        "options": {
-            "debug": false,
-            "pending": false
-        },
-        "minHotWorkers": 0,
-        "type": "Image"
-    },
-    {
-        "name": "nodejs-old",
         "algorithmImage": "hkube/algorunner",
         "cpu": 1,
         "mem": "1Gi",
