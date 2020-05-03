@@ -1,13 +1,53 @@
 # Changelog
 
-## [Unreleased](https://github.com/kube-HPC/hkube/tree/HEAD)
+## [v1.2.186](https://github.com/kube-HPC/hkube/tree/v1.2.186) (2020-04-30)
+
+**Implemented enhancements:**
+- Max concurrent pipelines [\#741](https://github.com/kube-HPC/hkube/pull/741) ([NassiHarel](https://github.com/NassiHarel))
+- Tensorboard [\#652](https://github.com/kube-HPC/hkube/issues/652)
+
+**Fixed bugs:**
+
+- Fail algorithm build need to remove the Stop button [\#774](https://github.com/kube-HPC/hkube/issues/774)
+- Build algorithm fail from time to time [\#769](https://github.com/kube-HPC/hkube/issues/769)
+- Partial gpu support [\#772](https://github.com/kube-HPC/hkube/pull/772) ([yehiyam](https://github.com/yehiyam))
+- Allow user to set node graph direction [\#642](https://github.com/kube-HPC/hkube/issues/642)
+- triggered pipeline input data [\#756](https://github.com/kube-HPC/hkube/issues/756)
+- cron pipeline priority default overwrite the stored [\#754](https://github.com/kube-HPC/hkube/issues/754)
+- GUI - create pipeline need to change the concurrent Pipelines to object [\#742](https://github.com/kube-HPC/hkube/issues/742)
+- Download  pipeline result file contain  binary data [\#734](https://github.com/kube-HPC/hkube/issues/734)
+- build algorithm from github long name  [\#713](https://github.com/kube-HPC/hkube/issues/713)
+- Code API  "Node information" does not displayed  [\#625](https://github.com/kube-HPC/hkube/issues/625)
+- Fail to execute sub-pipline [\#735](https://github.com/kube-HPC/hkube/issues/735)
+- inconsistent flowInput validation [\#725](https://github.com/kube-HPC/hkube/issues/725)
+- workers of a batch in a failed pipeline still running [\#638](https://github.com/kube-HPC/hkube/issues/638)
+- No errors in dashboard when triggers fail [\#739](https://github.com/kube-HPC/hkube/issues/739)
+- disable Hkube metadata [\#728](https://github.com/kube-HPC/hkube/issues/728)
+- resume multiple batch pipeline  [\#719](https://github.com/kube-HPC/hkube/issues/719)
+- pipeline execution input overwritten by pipeline original inut [\#716](https://github.com/kube-HPC/hkube/issues/716)
+- github private  repository need to add username  [\#715](https://github.com/kube-HPC/hkube/issues/715)
+- Github branch does not create new build [\#714](https://github.com/kube-HPC/hkube/issues/714)
+- No taskId on refreshing node's logs. [\#702](https://github.com/kube-HPC/hkube/issues/702)
+- pre schedule of algorithm that timed out and exited with non 0 code  [\#639](https://github.com/kube-HPC/hkube/issues/639)
+- Can't get result's indexed item [\#662](https://github.com/kube-HPC/hkube/issues/662)
+- tensors board [\#687](https://github.com/kube-HPC/hkube/issues/687)
+- Configure pipeline to call other pipeline\(or sub pipe line\) [\#605](https://github.com/kube-HPC/hkube/issues/605)
+- Allow user to specify different npm repository for builds [\#387](https://github.com/kube-HPC/hkube/issues/387)
+- Error applying algorithm defined from github [\#699](https://github.com/kube-HPC/hkube/issues/699)
+- invalid task status exit [\#710](https://github.com/kube-HPC/hkube/issues/710)
+- algorithm-builder ignores baseImage property in git mode [\#695](https://github.com/kube-HPC/hkube/issues/695)
+- No pipeline stats after experiments feature [\#693](https://github.com/kube-HPC/hkube/issues/693)
+- Add Trigger type to pipelines Types [\#691](https://github.com/kube-HPC/hkube/issues/691)
+- Logs fetched twice [\#689](https://github.com/kube-HPC/hkube/issues/689)
+- add form data to components in the UI [\#582](https://github.com/kube-HPC/hkube/issues/582)
+
+
+## [v1.2.132](https://github.com/kube-HPC/hkube/tree/v1.2.132) (2020-01-28)
 
 **Fixed bugs:**
 
 - subpipeline not shown in dashboard \(no experiment prefix\) [\#680](https://github.com/kube-HPC/hkube/issues/680)
 - Graph nodes color is sometimes wrong [\#657](https://github.com/kube-HPC/hkube/issues/657)
-
-## [v1.2.132](https://github.com/kube-HPC/hkube/tree/v1.2.132) (2020-01-28)
 
 **Implemented enhancements:**
 
