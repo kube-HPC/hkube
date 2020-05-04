@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver",
-  "version": "1.2.51",
+  "version": "1.3.0",
   "description": "pipeline execution based on DAG",
   "main": "app.js",
   "directories": {
