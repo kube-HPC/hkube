@@ -4,7 +4,7 @@ const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
-const discovery = require('../../states/stateAdapter');
+const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
 const { EventMessages, ApiServerPostTypes, workerStates, Components } = require('../../consts');
 const apiServerClient = require('../../helpers/api-server-client');
@@ -30,19 +30,19 @@ class SubPipelineHandler {
 
     _registerToEtcdEvents() {
         // handle subpipeline job completed
-        discovery.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.COMPLETED}`, (result) => {
+        stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.COMPLETED}`, (result) => {
             const subpipelineId = this._getAndCleanAlgSubPipelineId(result);
             this._handleSubPipelineCompleted(result, subpipelineId);
         });
 
         // handle subpipeline job stopped
-        discovery.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.STOPPED}`, (result) => {
+        stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.STOPPED}`, (result) => {
             const subpipelineId = this._getAndCleanAlgSubPipelineId(result);
             this._handleSubPipelineStopped(result, subpipelineId);
         });
 
         // handle subpipeline job failed
-        discovery.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.FAILED}`, (result) => {
+        stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.FAILED}`, (result) => {
             const subPipelineId = this._getAndCleanAlgSubPipelineId(result);
             if (!this._validateWorkingState('send subPipelineError')) {
                 return;
@@ -95,7 +95,7 @@ class SubPipelineHandler {
      */
     async unwatchJobResults(subPipelineJobId) {
         try {
-            await discovery.unWatchJobResults({ jobId: subPipelineJobId });
+            await stateAdapter.unWatchJobResults({ jobId: subPipelineJobId });
         }
         catch (error) {
             log.warning(`error during unWatchJobResults for jobId: ${subPipelineJobId}: ${error.message}`, { component });
@@ -303,7 +303,7 @@ class SubPipelineHandler {
                 sbInvokedTrace.addTag({ subPipelineJobId });
 
                 // watch results
-                const result = await discovery.watchJobResults({ jobId: subPipelineJobId });
+                const result = await stateAdapter.watchJobResults({ jobId: subPipelineJobId });
                 if (result) {
                     log.info(`got immediate results, status=${result.status}, jobId: ${subPipelineJobId}`, { component });
                     const algSubPipelineId = this._getAndCleanAlgSubPipelineId({ ...result, jobId: subPipelineJobId });

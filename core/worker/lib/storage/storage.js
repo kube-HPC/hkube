@@ -17,7 +17,7 @@ class Storage {
     }
 
     setStorageType(type) {
-        const storage = require(`./storage-${type}`);
+        const storage = require(`./storage-${type}`); // eslint-disable-line
         this._getStorage = storage.getResultFromStorage.bind(storage);
         this._setStorage = storage.setResultToStorage.bind(storage);
     }

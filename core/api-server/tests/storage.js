@@ -8,7 +8,7 @@ const { request } = require('./utils');
 let restUrl;
 let encoding;
 
-describe('Storage', () => {
+describe.only('Storage', () => {
     before(async () => {
         restUrl = global.testParams.restUrl;
         const config = global.testParams.config;
@@ -218,19 +218,6 @@ describe('Storage', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
         });
-        it('should stream with custom encode: true and value: null', async () => {
-            const jobId = `jobId-${uuid()}`;
-            const taskId = `taskId-${uuid()}`;
-            const data = null;
-            const path = storageManager.hkube.createPath({ jobId, taskId });
-            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
-            const options = {
-                uri: `${restPath}/${result.path}`,
-                method: 'GET'
-            };
-            const response = await request(options);
-            expect(response.body).to.equal(data);
-        });
         it('should stream with custom encode: false and value: null', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
@@ -245,10 +232,37 @@ describe('Storage', () => {
             const response = await request(options);
             expect(response.body).to.equal(encoded);
         });
+        it('should stream with custom encode: false and value: object', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = { mydata: 'myData' };
+            const encoded = encoding.encode(data).toString();
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: false } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(encoded);
+        });
+        it('should stream with custom encode: true and value: null', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = null;
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.equal(data);
+        });
         it('should stream with custom encode: true and value: buffer', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
-            const data = Buffer.alloc(10, '0xdd')
+            const data = Buffer.alloc(10, 0xdd)
             const path = storageManager.hkube.createPath({ jobId, taskId });
             const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
             const options = {
@@ -257,6 +271,19 @@ describe('Storage', () => {
             };
             const response = await request(options);
             expect(response.body).to.equal(data.toString('utf-8'));
+        });
+        it('should stream with custom encode: true and value: object', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = new Array(100).fill({ mydata: 'myData', myProp: 'myProp', value: "newstrvalue" });
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: true } });
+            const options = {
+                uri: `${restPath}/${result.path}`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.eql(data);
         });
         it('should stream with custom encode: flase and value: buffer', async () => {
             const jobId = `jobId-${uuid()}`;

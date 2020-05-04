@@ -61,8 +61,8 @@ class StorageService {
         return storageManager.checkDataSize(size);
     }
 
-    async getCustomFormat(options) {
-        return storageManager.getCustomFormat(options);
+    async getCustomStream(options) {
+        return storageManager.getCustomStream(options);
     }
 
     _formatResponse({ path, keys, sort, order, from, to }) {

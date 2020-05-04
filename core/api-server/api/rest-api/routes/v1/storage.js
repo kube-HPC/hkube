@@ -29,16 +29,6 @@ const downloadApi = (res, stream, path, next) => {
     streamApi(res, stream, path, next);
 };
 
-const downloadJson = async (res, data) => {
-    res.set('Content-disposition', 'attachment; filename=hkubeResult');
-    res.set('Content-Type', 'application/json');
-    res.json(data);
-};
-
-const hasData = (obj) => {
-    return Object.prototype.hasOwnProperty.call(obj, 'data');
-};
-
 const routes = (options) => {
     const router = express.Router();
 
@@ -120,13 +110,8 @@ const routes = (options) => {
     router.get('/stream/custom/*', logger(), async (req, res, next) => {
         const path = req.params[0];
         try {
-            const response = await storage.getCustomFormat({ path });
-            if (response.stream) {
-                streamApi(res, response.stream, path, next);
-            }
-            else if (hasData(response)) {
-                downloadJson(res, response.data);
-            }
+            const stream = await storage.getCustomStream({ path });
+            streamApi(res, stream, path, next);
         }
         catch (e) {
             next(handleStorageError(e, 'stream', path));
@@ -140,13 +125,8 @@ const routes = (options) => {
     router.get('/download/custom/*', logger(), async (req, res, next) => {
         const path = req.params[0];
         try {
-            const response = await storage.getCustomFormat({ path });
-            if (response.stream) {
-                downloadApi(res, response.stream, path, next);
-            }
-            else if (hasData(response)) {
-                downloadJson(res, response.data);
-            }
+            const stream = await storage.getCustomStream({ path });
+            downloadApi(res, stream, path, next);
         }
         catch (e) {
             next(handleStorageError(e, 'value', path));

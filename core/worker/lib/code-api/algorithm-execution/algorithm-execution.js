@@ -6,7 +6,7 @@ const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const { Producer } = require('@hkube/producer-consumer');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
-const discovery = require('../../states/stateAdapter');
+const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
 const { Components, taskEvents } = require('../../consts');
 const jobConsumer = require('../../consumer/JobConsumer');
@@ -41,22 +41,27 @@ class AlgorithmExecution {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(taskEvents.SUCCEED, (task) => {
+        stateAdapter.on(taskEvents.STORING, (task) => {
             this._sendDoneToAlgorithm(task);
             this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.taskId);
         });
-        discovery.on(taskEvents.FAILED, (task) => {
+        stateAdapter.on(taskEvents.SUCCEED, (task) => {
+            this._sendDoneToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
+            this._deleteExecution(task.taskId);
+        });
+        stateAdapter.on(taskEvents.FAILED, (task) => {
             this._sendErrorToAlgorithm(task);
             this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.taskId);
         });
-        discovery.on(taskEvents.STALLED, (task) => {
+        stateAdapter.on(taskEvents.STALLED, (task) => {
             this._sendErrorToAlgorithm(task);
             this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.taskId);
         });
-        discovery.on(taskEvents.CRASHED, (task) => {
+        stateAdapter.on(taskEvents.CRASHED, (task) => {
             this._sendErrorToAlgorithm(task);
             this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.taskId);
@@ -112,14 +117,14 @@ class AlgorithmExecution {
     async _unWatchTasks({ jobId }) {
         if (this._watching) {
             this._watching = false;
-            await discovery.unWatchTasks({ jobId });
+            await stateAdapter.unWatchTasks({ jobId });
         }
     }
 
     async _watchTasks({ jobId }) {
         if (!this._watching) {
             this._watching = true;
-            await discovery.watchTasks({ jobId });
+            await stateAdapter.watchTasks({ jobId });
         }
     }
 
@@ -144,7 +149,7 @@ class AlgorithmExecution {
                 return response;
             }
             log.info(`stopping ${this._executions.size} executions`, { component });
-            response = await Promise.all([...this._executions.keys()].map(taskId => discovery.stopAlgorithmExecution({ jobId, taskId })));
+            response = await Promise.all([...this._executions.keys()].map(taskId => stateAdapter.stopAlgorithmExecution({ jobId, taskId })));
         }
         catch (e) {
             log.warning(`failed to stop executions: ${e.message}`, { component });
@@ -172,7 +177,7 @@ class AlgorithmExecution {
             }
             const { jobId } = jobConsumer.jobData;
             this._finishAlgoExecSpan(task.taskId);
-            await discovery.stopAlgorithmExecution({ jobId, taskId: task.taskId, reason: data.reason });
+            await stateAdapter.stopAlgorithmExecution({ jobId, taskId: task.taskId, reason: data.reason });
         }
         catch (e) {
             this._sendErrorToAlgorithm({ execId, error: e.message });
@@ -201,7 +206,7 @@ class AlgorithmExecution {
             const { jobId, nodeName } = jobData;
             const parentAlgName = jobData.algorithmName;
             const { algorithmName, input, resultAsRaw } = data;
-            const algos = await discovery.getExistingAlgorithms();
+            const algos = await stateAdapter.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }

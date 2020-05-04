@@ -5,7 +5,7 @@ const tracing = require('./tracing/tracing');
 const jobConsumer = require('./consumer/JobConsumer');
 const storageHelper = require('./storage/storage');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
-const discovery = require('./states/stateAdapter');
+const stateAdapter = require('./states/stateAdapter');
 const { stateEvents, workerStates, workerCommands, Components } = require('./consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
@@ -74,35 +74,35 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(pipelineStatuses.COMPLETED, (data) => {
+        stateAdapter.on(pipelineStatuses.COMPLETED, (data) => {
             this._stopPipeline({ status: data.status });
         });
-        discovery.on(pipelineStatuses.FAILED, (data) => {
+        stateAdapter.on(pipelineStatuses.FAILED, (data) => {
             this._stopPipeline({ status: data.status });
         });
-        discovery.on(pipelineStatuses.STOPPED, (data) => {
+        stateAdapter.on(pipelineStatuses.STOPPED, (data) => {
             this._stopPipeline({ status: data.status, reason: data.reason });
         });
-        discovery.on(workerCommands.coolDown, async () => {
+        stateAdapter.on(workerCommands.coolDown, async () => {
             log.info('got coolDown event', { component });
             jobConsumer.hotWorker = false;
             await jobConsumer.updateDiscovery({ state: stateManager.state });
             this._setInactiveTimeout();
         });
-        discovery.on(workerCommands.warmUp, async () => {
+        stateAdapter.on(workerCommands.warmUp, async () => {
             log.info('got warmUp event', { component });
             jobConsumer.hotWorker = true;
             await jobConsumer.updateDiscovery({ state: stateManager.state });
             this._setInactiveTimeout();
         });
-        discovery.on(workerCommands.stopProcessing, async () => {
+        stateAdapter.on(workerCommands.stopProcessing, async () => {
             if (!jobConsumer.isConsumerPaused) {
                 await jobConsumer.pause();
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
             }
         });
-        discovery.on(workerCommands.exit, async (event) => {
+        stateAdapter.on(workerCommands.exit, async (event) => {
             log.info(`got ${event.status.command} command, message ${event.message}`, { component });
             await jobConsumer.updateDiscovery({ state: 'exit' });
             const data = {
@@ -113,7 +113,7 @@ class Worker {
             };
             stateManager.exit(data);
         });
-        discovery.on(workerCommands.startProcessing, async () => {
+        stateAdapter.on(workerCommands.startProcessing, async () => {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
@@ -372,7 +372,7 @@ class Worker {
 
     _tryDeleteWorkerState() {
         try {
-            return discovery.deleteWorkerState();
+            return stateAdapter.deleteWorkerState();
         }
         catch (err) {
             log.warning(`Failed to delete worker states ${err}`, { component });

@@ -1,7 +1,7 @@
 const config = module.exports = {};
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
-config.storageMode = process.env.STORAGE_MODE || 'byRef';
+config.storageMode = 'byRef';
 config.enableCache = !!process.env.ENABLE_WORKER_CACHE;
 
 config.socket = {

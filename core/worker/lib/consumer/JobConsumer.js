@@ -232,7 +232,6 @@ class JobConsumer extends EventEmitter {
     }
 
     async updateStatus(data = {}) {
-        this._lastStorageInfo = data.result && data.result.storageInfo;
         await stateAdapter.update({ ...this._getState(), ...data });
     }
 
@@ -263,7 +262,7 @@ class JobConsumer extends EventEmitter {
             let storageResult;
             let metricsPath;
             if (!error && status === jobStatus.SUCCEED) {
-                storageResult = await storage.setStorage({ data: resultData, jobData: this._job.data, lastStorageInfo: this._lastStorageInfo });
+                storageResult = await storage.setStorage({ data: resultData, jobData: this._job.data });
                 if (!(this.jobData.metrics && this.jobData.metrics.tensorboard === false)) {
                     const tensorboard = await boards.putAlgoMetrics(this.jobData, this.jobCurrentTime);
                     (tensorboard.path || tensorboard.error) && (metricsPath = { tensorboard });
