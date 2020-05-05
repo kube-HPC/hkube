@@ -39,7 +39,7 @@ config.apiServer = {
     basePath: 'internal/v1/exec/'
 };
 
-config.defaultStorageProtocol = process.env.DEFAULT_STORAGE_MODE || 'byRaw';
+config.defaultStorageProtocol = process.env.DEFAULT_STORAGE_MODE || 'v1';
 config.defaultWorkerAlgorithmEncoding = process.env.DEFAULT_WORKER_ALGORITHM_ENCODING || 'json';
 
 config.workerCommunication = {

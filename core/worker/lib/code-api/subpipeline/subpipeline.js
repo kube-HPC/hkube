@@ -1,6 +1,5 @@
 const Logger = require('@hkube/logger');
 const Validator = require('ajv');
-const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses } = require('@hkube/consts');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
@@ -26,6 +25,11 @@ class SubPipelineHandler {
         this._stopSubPipelineSchema = validator.compile(stopSubPipeline);
         this._registerToEtcdEvents();
         this._registerToAlgEvents();
+    }
+
+    setStorageType(type) {
+        const subpipeline = require(`./subpipeline-${type}`); // eslint-disable-line
+        this._getStorage = subpipeline.getResultFromStorage.bind(subpipeline);
     }
 
     _registerToEtcdEvents() {
@@ -129,7 +133,7 @@ class SubPipelineHandler {
         }
         // get subpipeline results from storage
         try {
-            const res = await storageManager.get(result.data.storageInfo);
+            const res = await this._getStorage(result.data);
             algoRunnerCommunication.send({
                 command: messages.outgoing.subPipelineDone,
                 data: {

@@ -50,6 +50,8 @@ class Worker {
         const storage = algorithmStorage || this._options.defaultStorageProtocol;
         const encoding = algorithmEncoding || this._options.defaultWorkerAlgorithmEncoding;
         storageHelper.setStorageType(storage);
+        execAlgorithms.setStorageType(storage);
+        subPipeline.setStorageType(storage);
         algoRunnerCommunication.setEncodingType(encoding);
 
         let message = 'algorithm protocols: none';

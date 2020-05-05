@@ -72,6 +72,7 @@ class JobConsumer extends EventEmitter {
             this._setJob(job);
 
             if (this._execId) {
+                log.info('starting as algorithm code api', { component });
                 const watchExecutionState = await stateAdapter.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
                 if (watchExecutionState && this._isCompletedState({ status: watchExecutionState.status })) {
                     await this.finishJob();

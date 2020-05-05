@@ -8,7 +8,7 @@ const { Producer } = require('@hkube/producer-consumer');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
-const { Components, taskEvents } = require('../../consts');
+const { taskEvents, Components } = require('../../consts');
 const jobConsumer = require('../../consumer/JobConsumer');
 const { producerSchema, startAlgorithmSchema, stopAlgorithmSchema } = require('./schema');
 const validator = new Validator({ useDefaults: true, coerceTypes: false });
@@ -28,29 +28,19 @@ class AlgorithmExecution {
         this._registerToAlgorithmEvents();
     }
 
-    _initProducer(options) {
-        const setting = {
-            redis: options.redis,
-            tracer
-        };
-        const valid = this._producerSchema(setting);
-        if (!valid) {
-            throw new Error(validator.errorsText(this._producerSchema.errors));
-        }
-        this._producer = new Producer({ setting });
+    setStorageType(type) {
+        const execAlgorithms = require(`./algorithm-execution-${type}`); // eslint-disable-line
+        this._getStorage = execAlgorithms.getResultFromStorage.bind(execAlgorithms);
+        this._setStorage = execAlgorithms.setInputToStorage.bind(execAlgorithms);
+
+        execAlgorithms.on('data-ready', (task) => {
+            this._sendDoneToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
+            this._deleteExecution(task.taskId);
+        });
     }
 
     _registerToEtcdEvents() {
-        stateAdapter.on(taskEvents.STORING, (task) => {
-            this._sendDoneToAlgorithm(task);
-            this._finishAlgoExecSpan(task.taskId);
-            this._deleteExecution(task.taskId);
-        });
-        stateAdapter.on(taskEvents.SUCCEED, (task) => {
-            this._sendDoneToAlgorithm(task);
-            this._finishAlgoExecSpan(task.taskId);
-            this._deleteExecution(task.taskId);
-        });
         stateAdapter.on(taskEvents.FAILED, (task) => {
             this._sendErrorToAlgorithm(task);
             this._finishAlgoExecSpan(task.taskId);
@@ -66,6 +56,18 @@ class AlgorithmExecution {
             this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.taskId);
         });
+    }
+
+    _initProducer(options) {
+        const setting = {
+            redis: options.redis,
+            tracer
+        };
+        const valid = this._producerSchema(setting);
+        if (!valid) {
+            throw new Error(validator.errorsText(this._producerSchema.errors));
+        }
+        this._producer = new Producer({ setting });
     }
 
     _registerToAlgorithmEvents() {
@@ -86,12 +88,9 @@ class AlgorithmExecution {
         if (!execution) {
             return;
         }
-        let { result } = task;
-        if (execution.resultAsRaw && task.result && task.result.storageInfo) {
-            result = await storageManager.get(task.result.storageInfo);
-        }
+        const response = await this._getStorage({ resultAsRaw: execution.resultAsRaw, result: task.result });
         log.debug('sending done to algorithm', { component });
-        this._sendCompleteToAlgorithm({ ...task, response: result, command: messages.outgoing.execAlgorithmDone });
+        this._sendCompleteToAlgorithm({ ...task, response, command: messages.outgoing.execAlgorithmDone });
     }
 
     _sendErrorToAlgorithm(task) {
@@ -189,6 +188,7 @@ class AlgorithmExecution {
         try {
             const data = (message && message.data) || {};
             execId = data.execId;
+            const { storageInput } = data;
             const valid = this._startAlgorithmSchema(data);
             if (!valid) {
                 throw new Error(validator.errorsText(this._startAlgorithmSchema.errors));
@@ -212,8 +212,8 @@ class AlgorithmExecution {
             }
             const taskId = this._createTaskID({ nodeName, algorithmName });
             this._executions.set(taskId, { taskId, execId, resultAsRaw });
-            const storageInput = await Promise.all(input.map(i => this._mapInputToStorage(i, storage, jobId)));
-            const task = { execId, taskId, input: storageInput, storage };
+            const newInput = await this._setStorage({ input, storage, jobId, storageInput });
+            const task = { execId, taskId, input: newInput, storage };
             const job = this._createJobData({ nodeName, algorithmName, task, jobData });
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
@@ -263,6 +263,10 @@ class AlgorithmExecution {
     }
 
     _finishAlgoExecSpan(taskId) {
+        const execution = this._executions.get(taskId);
+        if (!execution) {
+            return;
+        }
         const topSpan = tracer.topSpan(taskId);
         if (topSpan) {
             topSpan.finish();
