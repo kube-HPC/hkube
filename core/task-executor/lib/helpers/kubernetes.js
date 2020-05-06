@@ -34,7 +34,7 @@ class KubernetesApi {
     }
 
     async createJob({ spec, jobDetails = {} }) {
-        log.info(`Creating job ${spec.metadata.name} ${jobDetails.hotWorker ? '[hot-worker]' : ''}`, { component });
+        log.info(`Creating job ${spec.metadata.name}${jobDetails.hotWorker ? ' [hot-worker]' : ''}`, { component });
         try {
             const res = await this._client.jobs.create({ spec });
             return res;

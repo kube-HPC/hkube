@@ -22,15 +22,19 @@ describe('normalize', () => {
         });
         it('should ignore completed jobs', () => {
             const res = normalizeJobs(twoCompleted, null, j => !j.status.succeeded);
-            expect(res).to.have.lengthOf(1);
+            expect(res).to.have.lengthOf(2);
         });
         it('should ignore active jobs', () => {
             const res = normalizeJobs(twoCompleted, null, j => j.status.succeeded);
             expect(res).to.have.lengthOf(2);
         });
+        it('should ignore completed and failed jobs', () => {
+            const res = normalizeJobs(twoCompleted, null, j => (!j.status.succeeded && !j.status.failed));
+            expect(res).to.have.lengthOf(1);
+        });
         it('should return all jobs', () => {
             const res = normalizeJobs(twoCompleted);
-            expect(res).to.have.lengthOf(3);
+            expect(res).to.have.lengthOf(4);
         });
     });
     describe('normalize workers', () => {

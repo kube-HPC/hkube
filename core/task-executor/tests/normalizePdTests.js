@@ -17,15 +17,19 @@ describe('normalize pipeline driver', () => {
         });
         it('should ignore completed jobs', () => {
             const res = normalizeDriversJobs(twoCompleted, j => !j.status.succeeded);
-            expect(res).to.have.lengthOf(1);
+            expect(res).to.have.lengthOf(2);
         });
         it('should ignore active jobs', () => {
             const res = normalizeDriversJobs(twoCompleted, j => j.status.succeeded);
             expect(res).to.have.lengthOf(2);
         });
+        it('should ignore completed and failed jobs', () => {
+            const res = normalizeDriversJobs(twoCompleted, j => (!j.status.succeeded && !j.status.failed));
+            expect(res).to.have.lengthOf(1);
+        });
         it('should return all jobs', () => {
             const res = normalizeDriversJobs(twoCompleted);
-            expect(res).to.have.lengthOf(3);
+            expect(res).to.have.lengthOf(4);
         });
     });
     describe('normalize drivers', () => {
