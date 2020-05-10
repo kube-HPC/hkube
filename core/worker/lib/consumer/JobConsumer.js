@@ -286,8 +286,8 @@ class JobConsumer extends EventEmitter {
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
     }
 
-    setStoringStatus(data) {
-        return this.updateStatus({ status: jobStatus.STORING, result: { ...data, taskId: this._taskId } });
+    setStoringStatus(result) {
+        return this.updateStatus({ status: jobStatus.STORING, result });
     }
 
     currentTaskInfo() {

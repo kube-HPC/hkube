@@ -84,7 +84,7 @@
         "type": "Image"
     },
     {
-        "name": "python2",
+        "name": "python-alg1",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.5,
         "mem": "256Mi",
@@ -96,7 +96,7 @@
         "type": "Image"
     },
     {
-        "name": "python3",
+        "name": "python-alg2",
         "algorithmImage": "hkube/algorithm-example-python",
         "cpu": 0.5,
         "mem": "256Mi",
@@ -108,7 +108,7 @@
         "type": "Image"
     },
     {
-        "name": "nodejs-new",
+        "name": "python-alg3",
         "algorithmImage": "hkube/algorunner",
         "cpu": 1,
         "mem": "1Gi",

@@ -8,7 +8,7 @@ const { request } = require('./utils');
 let restUrl;
 let encoding;
 
-describe.only('Storage', () => {
+describe('Storage', () => {
     before(async () => {
         restUrl = global.testParams.restUrl;
         const config = global.testParams.config;
