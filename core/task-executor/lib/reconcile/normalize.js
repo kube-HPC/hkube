@@ -288,7 +288,7 @@ const normalizeResources = ({ pods, nodes } = {}) => {
         accumulator[nodeName].limits.cpu += limitsCpu;
         accumulator[nodeName].limits.gpu += limitsGpu;
         accumulator[nodeName].limits.memory += limitsMem;
-        if (pod.metadata.labels.type === 'worker') {
+        if (objectPath.get(pod, 'metadata.labels.type') === 'worker') {
             accumulator[nodeName].workersTotal.cpu += requestCpu;
             accumulator[nodeName].workersTotal.gpu += requestGpu;
             accumulator[nodeName].workersTotal.memory += requestMem;

@@ -11,6 +11,7 @@ class Runner {
     async init(options) {
         this._options = options;
         this._etcd = new Etcd(options.etcd);
+        await this._etcd.jobs.status.watch({ jobId: 'hookWatch' });
         this._graphPersistency = new Persistency({ connection: options.redis });
     }
 

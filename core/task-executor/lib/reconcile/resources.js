@@ -1,13 +1,15 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
-const { consts, gpuVendors } = require('../consts');
+const { consts, gpuVendors } = require('../../lib/consts');
+const { lessWithTolerance } = require('../../lib/helpers/compare');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
+
 
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory) => {
     const freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESSURE));
     const freeGpu = node.free.gpu - (node.total.gpu * (1 - GPU_RATIO_PRESSURE));
     const freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
-    return requestedCpu < freeCpu && requestedMemory < freeMemory && requestedGpu <= freeGpu;
+    return requestedCpu < freeCpu && requestedMemory < freeMemory && lessWithTolerance(requestedGpu, freeGpu);
 };
 
 const nodeSelectorFilter = (labels, nodeSelector) => {
@@ -62,7 +64,7 @@ function _scheduleAlgorithmToNode(nodeList, { requestedCpu, requestedGpu, memory
     return nodeForSchedule;
 }
 
-const _subtractResources = (resources, {requestedCpu, memoryRequests, requestedGpu}) => {
+const _subtractResources = (resources, { requestedCpu, memoryRequests, requestedGpu }) => {
     if (resources.free) {
         resources.free = {
             cpu: resources.free.cpu + requestedCpu,
@@ -101,7 +103,7 @@ const _updateNodeResources = (nodeList, nodeName, { requestedCpu, requestedGpu, 
         return nodeListLocal;
     }
     const node = clone(nodeListLocal[nodeIndex]);
-    _subtractResources(node, {requestedCpu, memoryRequests, requestedGpu});
+    _subtractResources(node, { requestedCpu, memoryRequests, requestedGpu });
 
     nodeListLocal[nodeIndex] = node;
     return nodeListLocal;

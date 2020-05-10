@@ -94,7 +94,7 @@ const template = {
                 restartPolicy: 'Never'
             }
         },
-        backoffLimit: 4
+        backoffLimit: 0
     }
 };
 
