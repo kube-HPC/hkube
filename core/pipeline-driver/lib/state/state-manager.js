@@ -94,6 +94,7 @@ class StateManager extends EventEmitter {
                     }
                     return a;
                 }));
+                this._removeUndefined(data);
                 const storageInfo = await storageManager.hkubeResults.put({ jobId: options.jobId, data }, tracer.startSpan.bind(tracer, { name: 'storage-put', parent: span.context() }));
                 storageResults = { storageInfo };
             }
@@ -105,6 +106,10 @@ class StateManager extends EventEmitter {
             span && span.finish(storageError);
         }
         return { storageError, storageResults };
+    }
+
+    _removeUndefined(data) {
+        data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));
     }
 
     async setJobResults(options) {

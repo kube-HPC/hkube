@@ -17,6 +17,10 @@ config.jobConsumer = {
     }
 };
 
+config.kubernetes = {
+    isLocal: true,
+};
+
 config.timeouts = {
     stop: 10000, // timeout to stop the algorithm in ms
     inactive: formatter.parseInt(process.env.INACTIVE_WORKER_TIMEOUT_MS, 600 * 1000),

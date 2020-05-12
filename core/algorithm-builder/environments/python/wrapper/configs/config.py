@@ -1,4 +1,11 @@
 import os
+
+
+def getIntEnv(name, defaultValue):
+    strValue = os.environ.get(name, defaultValue)
+    return int(strValue)
+
+
 socket = {
     "port": os.environ.get('WORKER_SOCKET_PORT', "3000"),
     "host": os.environ.get('WORKER_SOCKET_HOST', "127.0.0.1"),
@@ -7,9 +14,11 @@ socket = {
     "encoding": os.environ.get('WORKER_ALGORITHM_ENCODING', 'bson')
 }
 discovery = {
-    "host": os.environ.get('POD_NAME', 'localhost'),
+    "host": os.environ.get('POD_NAME', '127.0.0.1'),
     "port": os.environ.get('DISCOVERY_PORT', 9020),
-    "encoding": os.environ.get('DISCOVERY_ENCODING', 'bson')
+    "encoding": os.environ.get('DISCOVERY_ENCODING', 'bson'),
+    "timeout": getIntEnv('DISCOVERY_TIMEOUT', 60),
+    "maxCacheSize": getIntEnv('DISCOVERY_MAX_CACHE_SIZE', 500)
 }
 algorithm = {
     "path": os.environ.get('ALGORITHM_PATH', "algorithm_unique_folder"),
