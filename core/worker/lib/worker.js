@@ -58,11 +58,11 @@ class Worker {
         if (algorithmStorage && algorithmEncoding) {
             message = `algorithm protocols: ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
         }
-        log.info(`${message}, chosen protocols: ${this._formatProtocol({ storage, encoding })}`, { component });
+        log.info(`${message}. chosen protocols: ${this._formatProtocol({ storage, encoding })}`, { component });
     }
 
     _formatProtocol(protocols) {
-        return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `${v} ${k}`).join(' & ') : '';
+        return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `${k}:${v}`).join(',') : '';
     }
 
     _setInactiveTimeout() {

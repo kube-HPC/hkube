@@ -27,6 +27,7 @@ class Storage {
         const flatInput = dataAdapter.flatInput({ input, storage });
 
         let useCache = true;
+        this._uniqueDiscovery(storage);
         if (!this._isStorageEqual(storage, this.oldStorage)) {
             useCache = false;
         }
@@ -71,6 +72,27 @@ class Storage {
             return isEqual(links1, links2);
         }
         return storage1 === storage2;
+    }
+
+    _uniqueDiscovery(storage) {
+        Object.entries(storage).forEach(([k, v]) => {
+            if (!Array.isArray(v)) {
+                return;
+            }
+            const uniqueList = [];
+            v.filter(i => i.discovery).forEach((item) => {
+                const { taskId, storageInfo, ...rest } = item;
+                const { host, port } = item.discovery;
+                let uniqueItem = uniqueList.find(x => x.discovery.host === host && x.discovery.port === port);
+
+                if (!uniqueItem) {
+                    uniqueItem = { ...rest, tasks: [] };
+                    uniqueList.push(uniqueItem);
+                }
+                uniqueItem.tasks.push(taskId);
+            });
+            storage[k] = uniqueList; // eslint-disable-line
+        });
     }
 
     _extractPaths(storage) {

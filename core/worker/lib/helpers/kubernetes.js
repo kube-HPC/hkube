@@ -24,7 +24,6 @@ class KubernetesApi extends EventEmitter {
             const version = `${this.kubeVersion.major}:${this.kubeVersion.minor}`;
             log.info(`Initialized kubernetes client with version: ${version}, url: ${this._client._config.url}`, { component });
             this.namespace = options.kubernetes.namespace || 'default';
-
         }
         catch (error) {
             log.error(`Error initializing kubernetes. error: ${error.message}`, { component }, error);
