@@ -14,7 +14,7 @@ socket = {
     "encoding": os.environ.get('WORKER_ALGORITHM_ENCODING', 'bson')
 }
 discovery = {
-    "host": os.environ.get('POD_NAME', 'localhost'),
+    "host": os.environ.get('POD_NAME', '127.0.0.1'),
     "port": os.environ.get('DISCOVERY_PORT', 9020),
     "encoding": os.environ.get('DISCOVERY_ENCODING', 'bson'),
     "timeout": getIntEnv('DISCOVERY_TIMEOUT', 60),

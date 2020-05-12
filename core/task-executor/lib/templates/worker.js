@@ -101,6 +101,42 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'DISCOVERY_PORT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_PORT'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_TIMEOUT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_TIMEOUT'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_MAX_CACHE_SIZE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_MAX_CACHE_SIZE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'WORKER_ALGORITHM_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'WORKER_ALGORITHM_ENCODING'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
@@ -161,6 +197,42 @@ const workerTemplate = {
                                     configMapKeyRef: {
                                         name: 'task-executor-configmap',
                                         key: 'DISCOVERY_ENCODING'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_PORT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_PORT'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_TIMEOUT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_TIMEOUT'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_MAX_CACHE_SIZE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_MAX_CACHE_SIZE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'WORKER_ALGORITHM_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'WORKER_ALGORITHM_ENCODING'
                                     }
                                 }
                             },
