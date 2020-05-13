@@ -102,7 +102,7 @@ class Storage {
                 paths.push(v.storageInfo.path);
             }
             else if (Array.isArray(v)) {
-                paths.push(...v.map(p => p.storageInfo.path));
+                paths.push(...v.filter(p => p.storageInfo).map(p => p.storageInfo.path));
             }
         });
         return paths.sort();
