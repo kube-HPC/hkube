@@ -39,7 +39,7 @@ config.apiServer = {
     basePath: 'internal/v1/exec/'
 };
 
-config.defaultStorageProtocol = process.env.DEFAULT_STORAGE_MODE || 'v1';
+config.defaultStorageProtocol = process.env.DEFAULT_STORAGE_PROTOCOL || 'v1';
 config.defaultWorkerAlgorithmEncoding = process.env.DEFAULT_WORKER_ALGORITHM_ENCODING || 'json';
 
 config.workerCommunication = {
@@ -68,7 +68,6 @@ config.discovery = {
     timeout: process.env.DISCOVERY_TIMEOUT || 60000,
     maxCacheSize: process.env.DISCOVERY_MAX_CACHE_SIZE || 500
 };
-
 
 config.timeouts = {
     stop: 10000 // timeout to stop the algorithm in ms

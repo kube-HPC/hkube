@@ -26,7 +26,7 @@ describe('Storage', () => {
                 method: 'GET'
             };
             const response = await request(options);
-            expect(response.body.storage).to.equal(global.testParams.config.defaultStorage);
+            expect(response.body.type).to.equal(global.testParams.config.defaultStorage);
         });
     });
     describe('/prefix/types', () => {

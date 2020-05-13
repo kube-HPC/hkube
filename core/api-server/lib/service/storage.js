@@ -9,9 +9,7 @@ class StorageService {
     }
 
     getInfo() {
-        return {
-            storage: this.config.defaultStorage,
-        };
+        return storageManager.getInfo();
     }
 
     get prefixesTypes() {
