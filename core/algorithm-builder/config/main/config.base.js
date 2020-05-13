@@ -46,10 +46,15 @@ config.packagesRepo = {
         registry: process.env.PIP_REGISTRY || '',
         token: process.env.PIP_TOKEN || '',
         defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.7'
+    },
+    java: {
+        registry: process.env.MAVEN_REGISTRY || 'https://oss.sonatype.org/content/repositories/snapshots',
+        defaultBaseImage: process.env.JAVA_DEFAULT_BASE_IMAGE || 'maven'
     }
+
 };
 
-config.tmpFolder = process.env.TMP_FOLDER || '/tmp';
+config.tmpFolder = process.env.TMP_FOLDER || '/home/golanha/tempo';
 
 config.buildDirs = {
     ZIP: 'uploads/zipped',

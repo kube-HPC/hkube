@@ -1,0 +1,13 @@
+FROM ${baseImage} 
+LABEL maintainer="hkube.dev@gmail.com"
+RUN mkdir -p /hkube-logs
+
+COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
+COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/
+WORKDIR /hkube/algorithm-runner
+RUN mvn dependency:get -Dartifact=io.hkube:java-algo-parent:1.0-SNAPSHOT:pom -DremoteRepositories=${packagesRegistry}
+RUN mvn dependency:get -Dartifact=io.hkube:wrapper:1.0-SNAPSHOT:jar:wide -DremoteRepositories=${packagesRegistry} -Ddest=/hkube/algorithm-runner/wrapper.jar
+WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
+RUN mvn package -DremoteRepositories=${packagesRegistry}
+WORKDIR /hkube/algorithm-runner
+CMD ["/bin/sh", "-c", "java -jar wrapper.jar ./encapsulated-algorithm.jar  2>&1 |tee /hkube-logs/stdout.log"]
