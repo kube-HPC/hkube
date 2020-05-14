@@ -8,7 +8,15 @@
 set -eo pipefail
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export OUT_VALUES_DIR=${DIR}/../deployment/
-export REPOS=${REPOS:-$(lerna list)}
+mkdir -p ${OUT_VALUES_DIR}
+export ALL_REPOS=$(lerna list)
+export REPOS=${ALL_REPOS}
+# export REPOS=""
+# for i in ${ALL_REPOS}; do
+#   echo $i
+#   $(git diff --quiet HEAD Algorithms_Storage_V2-2)
+# done
+
 export TRAVIS_PULL_REQUEST=true
 export TRAVIS_PULL_REQUEST_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 export PREV_BUILD_ID=$(cat ${OUT_VALUES_DIR}BUILD_ID)
@@ -26,8 +34,8 @@ do
     VERSION=v$(jq -r .version ./core/${REPO}/package.json)
     VERSION=${VERSION}-${TRAVIS_PULL_REQUEST_BRANCH}-${TRAVIS_JOB_NUMBER}
     echo building ${REPO}:${VERSION}
-    # export PRIVATE_REGISTRY=docker.io/hkube
-    # lerna run --scope $REPO build --stream
+    export PRIVATE_REGISTRY=docker.io/hkube
+    lerna run --scope $REPO build --stream
     yq w -i ${OUT_VALUES} $(echo ${REPO}|tr '-' '_').image.tag ${VERSION} 
 
     echo "build done for ${REPO}"
