@@ -13,6 +13,7 @@ export TRAVIS_PULL_REQUEST=true
 export TRAVIS_PULL_REQUEST_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 export PREV_BUILD_ID=$(cat ${OUT_VALUES_DIR}BUILD_ID)
 export PREV_BUILD_ID=${PREV_BUILD_ID:-"0"}
+
 echo PREV_BUILD_ID=$PREV_BUILD_ID
 export TRAVIS_JOB_NUMBER=${BUILD_ID:-$((PREV_BUILD_ID+1))}
 
