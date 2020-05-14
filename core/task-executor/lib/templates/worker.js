@@ -58,6 +58,14 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'POD_IP',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'status.podIP'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'POD_NAME',
                                 valueFrom: {
                                     fieldRef: {
@@ -172,6 +180,14 @@ const workerTemplate = {
                             {
                                 name: 'ALGO_METRICS_DIR',
                                 value: `${algoMetricsDir}`
+                            },
+                            {
+                                name: 'POD_IP',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'status.podIP'
+                                    }
+                                }
                             },
                             {
                                 name: 'DEFAULT_STORAGE',
