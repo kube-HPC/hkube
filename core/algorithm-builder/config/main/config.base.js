@@ -54,7 +54,7 @@ config.packagesRepo = {
 
 };
 
-config.tmpFolder = process.env.TMP_FOLDER || '/home/golanha/tempo';
+config.tmpFolder = process.env.TMP_FOLDER || '/tmp';
 
 config.buildDirs = {
     ZIP: 'uploads/zipped',
