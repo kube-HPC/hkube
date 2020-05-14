@@ -17,6 +17,25 @@ const { KANIKO, OPENSHIFT } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
 const kubernetes = require('../helpers/kubernetes');
 
+const wrapperVersions = {
+    nodejs: {
+        file: 'package.json',
+        parse: (file) => {
+            const parsed = JSON.parse(file);
+            return parsed.dependencies['@hkube/nodejs-wrapper']
+        }
+    },
+    python: {
+        file: 'requirements.txt',
+        parse: (file) => {
+            const reg = /([a-z]\w*)==\s*([^;]*)/g
+            const firstLine = file.split('\n')[0];
+            const res = reg.exec(firstLine);
+            return res[2];
+        }
+    }
+}
+
 const gitClone = promisify(_clone);
 
 const _ensureDirs = async (dirs) => {
@@ -217,6 +236,19 @@ const _getBaseImageVersion = async (baseImage) => {
     return imageName;
 };
 
+const _getWrapperVersion = async (env) => {
+    let wrapperVersion = '';
+    try {
+        const wrapper = wrapperVersions[env];
+        const file = await fse.readFile(`environments/${env}/wrapper/${wrapper.file}`, 'utf8');
+        wrapperVersion = wrapper.parse(file);
+    }
+    catch (error) {
+        log.error(error.message, { component });
+    }
+    return wrapperVersion;
+};
+
 const _fixUrl = (url) => {
     return url.replace(/\/+$/, '');
 };
@@ -299,6 +331,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
     const packages = packagesRepo[env];
+    const wrapperVersion = await _getWrapperVersion(env);
     const baseImageName = await _getBaseImageVersion(baseImage || packages.defaultBaseImage);
 
     const envs = {};
@@ -307,6 +340,7 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     _envsHelper(envs, 'BUILD_PATH', buildPath);
     _envsHelper(envs, 'BASE_IMAGE', baseImageName);
     _envsHelper(envs, 'BUILD_ID', buildId);
+    _envsHelper(envs, 'WRAPPER_VERSION', wrapperVersion);
 
     // docker pull
     _createDockerCredsConfig(envs, docker, packages);
@@ -362,8 +396,6 @@ const _progress = (progress) => {
         return prog;
     };
 };
-
-
 
 const runBuild = async (options) => {
     let build;

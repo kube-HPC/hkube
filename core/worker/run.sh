@@ -13,7 +13,7 @@ function EPHYMERAL_PORT(){
     done
 }
 
-source ~/venv/bin/activate; 
+source ~/venv3/bin/activate; 
 export $(cat ~/dev/env/.env); 
 
 

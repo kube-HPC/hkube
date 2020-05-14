@@ -192,6 +192,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyHotWorker(spec, hotWorker);
     spec = applyEntryPoint(spec, entryPoint);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.WORKER, 'task-executor-configmap');
+    spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM, 'task-executor-configmap');
     spec = applyLogging(spec, options);
     spec = applyOpengl(spec, options, algorithmOptions);
     spec = applyMounts(spec, mounts);
