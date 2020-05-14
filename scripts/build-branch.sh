@@ -25,8 +25,8 @@ do
     VERSION=v$(jq -r .version ./core/${REPO}/package.json)
     VERSION=${VERSION}-${TRAVIS_PULL_REQUEST_BRANCH}-${TRAVIS_JOB_NUMBER}
     echo building ${REPO}:${VERSION}
-    # export PRIVATE_REGISTRY=docker.io/hkube
-    # lerna run --scope $REPO build
+    export PRIVATE_REGISTRY=docker.io/hkube
+    lerna run --scope $REPO build --stream
     yq n $(echo ${REPO}|tr '-' '_').image.tag ${VERSION} >> ${OUT_VALUES}
 
     echo "build done for ${REPO}"
