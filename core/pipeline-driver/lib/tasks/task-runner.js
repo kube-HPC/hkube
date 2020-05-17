@@ -413,6 +413,9 @@ class TaskRunner extends EventEmitter {
                 input: result.input,
                 storage: result.storage
             };
+
+            this._uniqueDiscovery(result.storage);
+
             if (index && result.batch) {
                 await this._runWaitAnyBatch(options);
             }
@@ -429,6 +432,31 @@ class TaskRunner extends EventEmitter {
         catch (error) {
             this.stop({ error, nodeName });
         }
+    }
+
+    _uniqueDiscovery(storage) {
+        Object.entries(storage).forEach(([k, v]) => {
+            if (!Array.isArray(v)) {
+                return;
+            }
+            const discoveryList = v.filter(i => i.discovery);
+            if (discoveryList.length === 0) {
+                return;
+            }
+            const uniqueList = [];
+            discoveryList.forEach((item) => {
+                const { taskId, storageInfo, ...rest } = item;
+                const { host, port } = item.discovery;
+                let uniqueItem = uniqueList.find(x => x.discovery.host === host && x.discovery.port === port);
+
+                if (!uniqueItem) {
+                    uniqueItem = { ...rest, tasks: [] };
+                    uniqueList.push(uniqueItem);
+                }
+                uniqueItem.tasks.push(taskId);
+            });
+            storage[k] = uniqueList; // eslint-disable-line
+        });
     }
 
     async _checkPreschedule(nodeName) {

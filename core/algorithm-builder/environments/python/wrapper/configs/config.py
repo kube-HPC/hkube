@@ -6,6 +6,11 @@ def getIntEnv(name, defaultValue):
     return int(strValue)
 
 
+def getBoolEnv(name, defaultValue):
+    strValue = os.environ.get(name, defaultValue)
+    return strValue.lower() == 'true'
+
+
 socket = {
     "port": os.environ.get('WORKER_SOCKET_PORT', "3000"),
     "host": os.environ.get('WORKER_SOCKET_HOST', "127.0.0.1"),
@@ -17,6 +22,7 @@ discovery = {
     "host": os.environ.get('POD_IP', '127.0.0.1'),
     "port": os.environ.get('DISCOVERY_PORT', 9020),
     "encoding": os.environ.get('DISCOVERY_ENCODING', 'bson'),
+    "enable": getBoolEnv('DISCOVERY_ENABLE', 'True'),
     "timeout": getIntEnv('DISCOVERY_TIMEOUT', 60),
     "maxCacheSize": getIntEnv('DISCOVERY_MAX_CACHE_SIZE', 500)
 }

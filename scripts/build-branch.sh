@@ -10,7 +10,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export OUT_VALUES_DIR=${DIR}/../deployment/
 mkdir -p ${OUT_VALUES_DIR}
 export ALL_REPOS=$(lerna list)
-export REPOS=${ALL_REPOS}
+export REPOS=${REPOS:-${ALL_REPOS}}
 # export REPOS=""
 # for i in ${ALL_REPOS}; do
 #   echo $i
