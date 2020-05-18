@@ -30,8 +30,8 @@ class AlgorithmExecution {
 
     setStorageType(type) {
         const execAlgorithms = require(`./algorithm-execution-${type}`); // eslint-disable-line
-        this._getStorage = execAlgorithms.getResultFromStorage.bind(execAlgorithms);
-        this._setStorage = execAlgorithms.setInputToStorage.bind(execAlgorithms);
+        this._getStorage = (...args) => execAlgorithms.getResultFromStorage(...args);
+        this._setStorage = (...args) => execAlgorithms.setInputToStorage(...args);
 
         execAlgorithms.on('data-ready', (task) => {
             this._sendDoneToAlgorithm(task);

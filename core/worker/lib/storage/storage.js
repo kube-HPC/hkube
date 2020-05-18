@@ -8,7 +8,7 @@ let log;
 
 class Storage {
     constructor() {
-        this.oldStorage = null;
+        this._oldStorage = null;
     }
 
     async init(options) {
@@ -18,20 +18,15 @@ class Storage {
 
     setStorageType(type) {
         const storage = require(`./storage-${type}`); // eslint-disable-line
-        this._getStorage = storage.getResultFromStorage.bind(storage);
-        this._setStorage = storage.setResultToStorage.bind(storage);
+        this._getStorage = (...args) => storage.getResultFromStorage(...args);
+        this._setStorage = (...args) => storage.setResultToStorage(...args);
     }
 
     async extractData(options) {
         const { input, storage } = options;
         const flatInput = dataAdapter.flatInput({ input, storage });
-
-        let useCache = true;
-
-        if (!this._isStorageEqual(storage, this.oldStorage)) {
-            useCache = false;
-        }
-        this.oldStorage = storage;
+        const useCache = this._isStorageEqual(storage, this._oldStorage);
+        this._oldStorage = storage;
 
         const newOptions = {
             useCache,

@@ -29,7 +29,7 @@ class SubPipelineHandler {
 
     setStorageType(type) {
         const subpipeline = require(`./subpipeline-${type}`); // eslint-disable-line
-        this._getStorage = subpipeline.getResultFromStorage.bind(subpipeline);
+        this._getStorage = (...args) => subpipeline.getResultFromStorage(...args);
     }
 
     _registerToEtcdEvents() {
