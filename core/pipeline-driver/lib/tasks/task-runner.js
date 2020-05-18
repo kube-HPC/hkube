@@ -555,7 +555,7 @@ class TaskRunner extends EventEmitter {
         this._nodes.addBatch(node);
         this._nodes.setNode({ nodeName: options.node.nodeName, result: [], status: taskStatuses.SKIPPED });
         this._setTaskState(node);
-        this._onTaskComplete(node);
+        this._updateAndCheckAllTask(node);
     }
 
     _onTaskError(task) {
@@ -572,6 +572,17 @@ class TaskRunner extends EventEmitter {
             if (this._nodes.isAllNodesCompleted()) {
                 this.stop();
             }
+        }
+    }
+
+    _updateAndCheckAllTask(task) {
+        if (!this._active) {
+            return;
+        }
+        this._nodes.updateCompletedTask(task);
+
+        if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
         }
     }
 
