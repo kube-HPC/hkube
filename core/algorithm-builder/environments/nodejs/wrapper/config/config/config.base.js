@@ -22,7 +22,7 @@ config.discovery = {
     port: process.env.DISCOVERY_PORT || 9020,
     encoding: process.env.DISCOVERY_ENCODING || 'bson',
     enable: !!process.env.DISCOVERY_ENABLE,
-    timeout: process.env.DISCOVERY_TIMEOUT || 60000,
+    timeout: process.env.DISCOVERY_TIMEOUT || 15000,
     maxCacheSize: process.env.DISCOVERY_MAX_CACHE_SIZE || 500
 };
 
