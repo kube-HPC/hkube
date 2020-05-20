@@ -1,6 +1,7 @@
 FROM ${baseImage} 
 LABEL maintainer="hkube.dev@gmail.com"
 RUN mkdir -p /hkube-logs
+COPY ./algorithm_unique_folder/src/main/resources/settings.xml /root/.m2/settings.xml
 COPY ./jars/* /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/

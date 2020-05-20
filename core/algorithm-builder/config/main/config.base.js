@@ -49,6 +49,8 @@ config.packagesRepo = {
     },
     java: {
         registry: process.env.MAVEN_REGISTRY || 'https://oss.sonatype.org/content/repositories/snapshots',
+        token: process.env.MAVEN_TOKEN || '',
+        token: process.env.MAVEN_USER || 'golanha',
         defaultBaseImage: process.env.JAVA_DEFAULT_BASE_IMAGE || 'maven'
     }
 

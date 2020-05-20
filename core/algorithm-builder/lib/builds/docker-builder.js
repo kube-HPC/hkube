@@ -237,6 +237,7 @@ const _createDockerCredsConfig = (envs, docker, packages) => {
     _envsHelper(envs, 'DOCKER_PUSH_PASS', docker.push.pass);
     // packages
     _envsHelper(envs, 'PACKAGES_REGISTRY', packages.registry);
+    _envsHelper(envs, 'PACKAGES_REGISTRY_USER', packages.user);
     _envsHelper(envs, 'PACKAGES_TOKEN', packages.token);
 }
 
