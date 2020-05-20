@@ -1,5 +1,8 @@
 FROM ${baseImage} 
 LABEL maintainer="hkube.dev@gmail.com"
+ENV PACKAGES_REGISTRY_USER ${PACKAGES_REGISTRY_USER}
+ENV PACKAGES_TOKEN ${PACKAGES_TOKEN}
+RUN export
 RUN mkdir -p /hkube-logs
 COPY ./algorithm_unique_folder/src/main/resources/settings.xml /root/.m2/settings.xml
 COPY ./jars/* /hkube/algorithm-runner/
