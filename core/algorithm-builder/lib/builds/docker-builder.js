@@ -239,6 +239,7 @@ const _createDockerCredsConfig = (envs, docker, packages) => {
     _envsHelper(envs, 'PACKAGES_REGISTRY', packages.registry);
     _envsHelper(envs, 'PACKAGES_REGISTRY_USER', packages.user);
     _envsHelper(envs, 'PACKAGES_TOKEN', packages.token);
+    _envsHelper(envs, 'javaWrapperVersion', '1.0-SNAPSHOT');
 }
 
 const _createKanikoConfigs = async (envs, tmpFolder, docker) => {
