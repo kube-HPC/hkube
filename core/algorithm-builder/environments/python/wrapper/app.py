@@ -9,7 +9,7 @@ monkey.patch_all()
 def main():
     print("starting algorithm runner")
     alg = Algorunner()
-    alg.loadAlgorithm(config.algorithm)
+    alg.loadAlgorithm(config)
     jobs = alg.connectToWorker(config)
     gevent.joinall(jobs)
 

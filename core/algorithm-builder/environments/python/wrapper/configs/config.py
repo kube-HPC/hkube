@@ -44,3 +44,18 @@ storage = {
         "endpoint": os.environ.get('AWS_ENDPOINT', 'http://127.0.0.1:9000')
     }
 }
+tracer = {
+    "config": {
+        'sampler': {
+            'type': 'const',
+            'param': 1,
+        },
+        'local_agent': {
+            'reporting_host': os.environ.get('JAEGER_AGENT_SERVICE_HOST', 'localhost'),
+            'reporting_port': os.environ.get('JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY', os.environ.get('JAEGER_AGENT_SERVICE_PORT', "6831")),
+        },
+        'logging': True,
+    },
+    "service_name": os.environ.get('ALGORITHM_NAME', 'algorithm')
+}
+
