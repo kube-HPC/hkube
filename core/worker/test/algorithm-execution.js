@@ -10,7 +10,7 @@ describe('AlgorithmExecutions', () => {
     let spy;
     before(function () {
         let options = { name: 'black-alg', data: 'bla' };
-        atateAdapter.createAlgorithmType(options);
+        stateAdapter.createAlgorithmType(options);
     });
     after(function () {
         let options = { name: 'black-alg', data: 'bla' };

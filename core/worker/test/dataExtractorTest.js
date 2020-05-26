@@ -21,7 +21,7 @@ describe('StorageHelper', () => {
             storageHelper.init(config);
             storageHelper.setStorageType('v1')
         });
-        it.only('store data and validate extraction no cache', async () => {
+        it('store data and validate extraction no cache', async () => {
             const config = getConfig();
             const taskId1 = config.taskId + "-1";
             const taskId2 = config.taskId + "-2";
@@ -29,7 +29,7 @@ describe('StorageHelper', () => {
             const link1 = await storageManager.hkube.put({ jobId: config.jobId, taskId: taskId1, data: { data: { engine: 'deep' } } });
             const link2 = await storageManager.hkube.put({ jobId: config.jobId, taskId: taskId2, data: { myValue: 1973 } });
             const data = {
-                input: ['test-param', true, 12345, '$$guid-5', '$$guid-6'],
+                input: ['test-param', true, 12345, '$$guid-5'],
                 storage: {
                     'guid-5': [
                         { storageInfo: link1, discovery, taskId: taskId1, path: 'data.engine' },
@@ -39,7 +39,7 @@ describe('StorageHelper', () => {
                 startSpan: () => { }
             }
             const result = await storageHelper.extractData({ ...data, ...config });
-            expect(result.data.input).to.eql(['test-param', true, 12345, 'deep', 1973]);
+            expect(result.data.input).to.eql(['test-param', true, 12345, ['deep', 1973]]);
         });
         it('Extraction with empty storage', async () => {
             const data = {

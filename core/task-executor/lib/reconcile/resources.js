@@ -1,7 +1,7 @@
 const clone = require('lodash.clonedeep');
 const parse = require('@hkube/units-converter');
-const { consts, gpuVendors } = require('../../lib/consts');
-const { lessWithTolerance } = require('../../lib/helpers/compare');
+const { consts, gpuVendors } = require('../consts');
+const { lessWithTolerance } = require('../helpers/compare');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 
 
