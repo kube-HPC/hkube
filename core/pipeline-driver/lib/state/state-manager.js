@@ -109,7 +109,7 @@ class StateManager extends EventEmitter {
     }
 
     _removeUndefined(data) {
-        data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));
+        data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));  // eslint-disable-line
     }
 
     async setJobResults(options) {
