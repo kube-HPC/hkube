@@ -41,7 +41,9 @@ storage = {
     "s3": {
         "accessKeyId": os.environ.get('AWS_ACCESS_KEY_ID', 'AKIAIOSFODNN7EXAMPLE'),
         "secretAccessKey": os.environ.get('AWS_SECRET_ACCESS_KEY', 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'),
-        "endpoint": os.environ.get('AWS_ENDPOINT', 'http://127.0.0.1:9000')
+        "endpoint": os.environ.get('AWS_ENDPOINT', 'http://127.0.0.1:9000'),
+        "region": os.environ.get('S3_REGION',''),
+        "bucketName": os.environ.get('S3_BUCKET_NAME',None),
     }
 }
 tracer = {
@@ -52,10 +54,10 @@ tracer = {
         },
         'local_agent': {
             'reporting_host': os.environ.get('JAEGER_AGENT_SERVICE_HOST', 'localhost'),
-            'reporting_port': os.environ.get('JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY', os.environ.get('JAEGER_AGENT_SERVICE_PORT', "6831")),
+            'reporting_port': os.environ.get('JAEGER_AGENT_SERVICE_PORT_JAEGER_COMPACT', "6831"),
         },
         'logging': True,
     },
-    "service_name": os.environ.get('ALGORITHM_NAME', 'algorithm')
+    "service_name": os.environ.get('ALGORITHM_TYPE', 'algorithm')
 }
 

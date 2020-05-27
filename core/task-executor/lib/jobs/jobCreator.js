@@ -48,10 +48,11 @@ const applyEnvToContainerFromSecretOrConfigMap = (inputSpec, containerName, inpu
 };
 
 const applyAlgorithmName = (inputSpec, algorithmName) => {
-    const spec = clonedeep(inputSpec);
+    let spec = clonedeep(inputSpec);
     objectPath.set(spec, 'metadata.labels.algorithm-name', algorithmName);
     objectPath.set(spec, 'spec.template.metadata.labels.algorithm-name', algorithmName);
-    return applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_TYPE: algorithmName });
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_TYPE: algorithmName });
+    return applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { ALGORITHM_TYPE: algorithmName });
 };
 
 const applyName = (inputSpec, algorithmName) => {

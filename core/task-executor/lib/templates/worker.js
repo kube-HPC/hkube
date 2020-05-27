@@ -261,6 +261,14 @@ const workerTemplate = {
                                     }
                                 }
                             },
+                            {
+                                name: 'JAEGER_AGENT_SERVICE_HOST',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'status.hostIP'
+                                    }
+                                }
+                            },
                         ]
                     }
                 ],
