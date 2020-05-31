@@ -540,8 +540,8 @@ class TaskRunner extends EventEmitter {
                     storage: inp.storage
                 });
                 this._nodes.addBatch(batch);
-                this._setTaskState(batch);
             });
+            this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
             await this._createJob(options, options.node.batch);
         }
     }
