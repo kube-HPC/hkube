@@ -103,15 +103,6 @@ const deploymentDebugTemplate = (algorithmName = '') => ({
                                 }
                             },
                             {
-                                name: 'DISCOVERY_ENCODING',
-                                valueFrom: {
-                                    configMapKeyRef: {
-                                        name: 'algorithm-operator-configmap',
-                                        key: 'DISCOVERY_ENCODING'
-                                    }
-                                }
-                            },
-                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
