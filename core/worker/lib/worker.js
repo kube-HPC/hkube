@@ -47,7 +47,7 @@ class Worker {
     _initAlgorithmSettings() {
         const { storage: algorithmStorage, encoding: algorithmEncoding } = this._algorithmSettings;
 
-        const storage = algorithmStorage || this._options.defaultStorageProtocol;
+        const storage = (!this._debugMode && algorithmStorage) || this._options.defaultStorageProtocol;
         const encoding = algorithmEncoding || this._options.defaultWorkerAlgorithmEncoding;
         storageHelper.setStorageType(storage);
         execAlgorithms.setStorageType(storage);
