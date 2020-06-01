@@ -179,9 +179,10 @@ class ApiValidator {
         });
     }
 
-    async validateExperimentExists(experimentName) {
-        const result = await stateManager.experiments.get({ experimentName });
-        if (result === null) {
+    async validateExperimentExists(pipeline) {
+        const { experimentName } = pipeline;
+        const result = await stateManager.experiments.get({ name: experimentName });
+        if (!result) {
             throw new ResourceNotFoundError('experiment', experimentName);
         }
     }
