@@ -13,6 +13,15 @@ class Tracing {
         this._algTracer = await tracer.createTracer(algorithmName, options.tracer);
     }
 
+    getTopSpan(taskId) {
+        let parent = null;
+        const topWorkerSpan = tracer.topSpan(taskId);
+        if (topWorkerSpan) {
+            parent = topWorkerSpan.context();
+        }
+        return parent;
+    }
+
     getTracer({ name, jobId, taskId }) {
         let parent = null;
         const topWorkerSpan = tracer.topSpan(taskId);

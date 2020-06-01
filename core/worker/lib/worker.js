@@ -472,12 +472,15 @@ class Worker {
                     }
                     break;
                 }
-                case workerStates.working:
+                case workerStates.working: {
                     this._handleTtlStart(job);
+                    const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
                     algoRunnerCommunication.send({
-                        command: messages.outgoing.start
+                        command: messages.outgoing.start,
+                        spanId
                     });
                     break;
+                }
                 case workerStates.shutdown:
                     break;
                 case workerStates.error:
