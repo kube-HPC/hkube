@@ -4,7 +4,7 @@ const { pipelineStatuses } = require('@hkube/consts');
 const { tracer } = require('@hkube/metrics');
 const { Producer, Events } = require('@hkube/producer-consumer');
 const stateManager = require('../state/state-manager');
-const component = require('../../lib/consts/componentNames').JOBS_PRODUCER;
+const component = require('../consts/componentNames').JOBS_PRODUCER;
 
 class JobProducer {
     init(options) {
