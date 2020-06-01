@@ -23,6 +23,15 @@ const wrapperVersions = {
         parse: (file) => {
             const parsed = JSON.parse(file);
             return parsed.dependencies['@hkube/nodejs-wrapper']
+        },
+        override: async (file, version) => {
+            try {
+                const content = await fse.readJSON(file);
+                content.dependencies['@hkube/nodejs-wrapper'] = version;
+                await fse.writeJSON(file, content);
+            } catch (error) {
+                log.error(`unable to override version. Error: ${error.message}`, { component })
+            }
         }
     },
     python: {
@@ -32,7 +41,18 @@ const wrapperVersions = {
             const firstLine = file.split('\n')[0];
             const res = reg.exec(firstLine);
             return res[2];
+        },
+        override: async (file, version) => {
+            try {
+                const content = await fse.readFile(file,'utf8');
+                const regex = /(hkube-python-wrapper[=>]=)(.*)/
+                const replaced=content.replace(regex, `$1${version}`)
+                await fse.writeFile(file, replaced);
+            } catch (error) {
+                log.error(`unable to override version. Error: ${error.message}`, { component })
+            }
         }
+
     }
 }
 
@@ -236,7 +256,10 @@ const _getBaseImageVersion = async (baseImage) => {
     return imageName;
 };
 
-const _getWrapperVersion = async (env) => {
+const _getWrapperVersion = async (env, version) => {
+    if (version) {
+        return version
+    }
     let wrapperVersion = '';
     try {
         const wrapper = wrapperVersions[env];
@@ -327,13 +350,20 @@ const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorit
     await fse.writeFile(path.join(tmpFolder, 'commands', 'buildConfig.yaml'), buildConfYaml);
 }
 
+const _overrideVersion = async (env, buildPath, version) => {
+    if (version) {
+        const wrapper = wrapperVersions[env];
+        await wrapper.override(path.join(buildPath, 'wrapper', wrapper.file), version);
+    }
+}
+
 const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
     const pushRegistry = _createURL(docker.push);
     const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
     const packages = packagesRepo[env];
-    const wrapperVersion = await _getWrapperVersion(env);
+    const wrapperVersion = await _getWrapperVersion(env, packages.wrapperVersion);
+    await _overrideVersion(env, buildPath, wrapperVersion)
     const baseImageName = await _getBaseImageVersion(baseImage || packages.defaultBaseImage);
-
     const envs = {};
     _envsHelper(envs, 'IMAGE_NAME', algorithmImage);
     _envsHelper(envs, 'REMOVE_IMAGE', rmi);

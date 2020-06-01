@@ -40,12 +40,14 @@ config.packagesRepo = {
     nodejs: {
         registry: process.env.NPM_REGISTRY || '',
         token: process.env.NPM_TOKEN || '',
-        defaultBaseImage: process.env.NODE_DEFAULT_BASE_IMAGE || 'node:10.17-slim'
+        defaultBaseImage: process.env.NODE_DEFAULT_BASE_IMAGE || 'node:10.17-slim',
+        wrapperVersion: process.env.NODE_WRAPPER_VERSION || ''
     },
     python: {
         registry: process.env.PIP_REGISTRY || '',
         token: process.env.PIP_TOKEN || '',
-        defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.7'
+        defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.7',
+        wrapperVersion: process.env.PYTHON_WRAPPER_VERSION || ''
     }
 };
 
