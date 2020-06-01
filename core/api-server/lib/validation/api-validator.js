@@ -7,8 +7,8 @@ const regex = require('../consts/regex');
 const stateManager = require('../state/state-manager');
 const validationMessages = require('../consts/validationMessages');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
-const validator = new Validator({ useDefaults: false, coerceTypes: true });
-const defaulter = new Validator({ useDefaults: true, coerceTypes: true });
+const validator = new Validator({ useDefaults: false, coerceTypes: true, nullable: true });
+const defaulter = new Validator({ useDefaults: true, coerceTypes: true, nullable: true });
 const MIN_MEMORY = 4;
 const formatMessages = new Map();
 
