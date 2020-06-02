@@ -477,7 +477,7 @@ class Worker {
                     const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
                     algoRunnerCommunication.send({
                         command: messages.outgoing.start,
-                        spanId
+                        data: { spanId }
                     });
                     break;
                 }
