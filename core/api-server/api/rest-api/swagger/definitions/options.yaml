@@ -23,6 +23,7 @@ properties:
       rejectOnFailure:
         type: boolean
         default: true
+    additionalProperties: false
   progressVerbosityLevel:
     type: string
     default: info
