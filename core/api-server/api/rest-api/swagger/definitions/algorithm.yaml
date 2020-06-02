@@ -100,15 +100,12 @@ properties:
     default: 0
   algorithmEnv:
     type: object
-    nullable: true
     description: key value environment variables for algorithm
   workerEnv:
     type: object
-    nullable: true
     description: key value environment variables for worker
   nodeSelector:
     type: object
-    nullable: true
     description: key value labels for nodes constraint
     additionalProperties:
       type: string
