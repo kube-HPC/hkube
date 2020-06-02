@@ -71,6 +71,24 @@ const jobTemplate = {
                                         key: 'CLUSTER_NAME'
                                     }
                                 }
+                            },
+                            {
+                                name: 'NODE_WRAPPER_VERSION',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'NODE_WRAPPER_VERSION'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'PYTHON_WRAPPER_VERSION',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'PYTHON_WRAPPER_VERSION'
+                                    }
+                                }
                             }
                         ]
                     }
