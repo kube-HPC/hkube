@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@hkube/config": "^2.0.7",
-    "@hkube/nodejs-wrapper": "^2.0.7"
+    "@hkube/nodejs-wrapper": "^2.0.9"
   },
   "devDependencies": {}
 }

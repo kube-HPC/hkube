@@ -465,9 +465,11 @@ class Worker {
                 case workerStates.init: {
                     const { error, data } = await storageHelper.extractData(job.data);
                     if (!error) {
+                        const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
+
                         algoRunnerCommunication.send({
                             command: messages.outgoing.initialize,
-                            data
+                            data: { ...data, spanId }
                         });
                     }
                     break;
