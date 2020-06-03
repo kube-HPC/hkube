@@ -13,8 +13,21 @@ function EPHYMERAL_PORT(){
     done
 }
 
-source ~/venv3/bin/activate; 
-export $(cat ~/dev/env/.env); 
+ENV_FILE=~/dev/env/.env
+
+if [[ -z "${VEVN}" ]]; then
+    echo "no VENV"
+else
+    VIRTUAL_ENV=~/$VEVN/bin/activate
+    echo "using virtual env $VIRTUAL_ENV"
+    source $VIRTUAL_ENV
+fi
+
+if [[ -f "$ENV_FILE" ]]; then
+    echo "using env file ${ENV_FILE}"
+    export $(cat ~/dev/env/.env); 
+fi
+
 
 
 export WORKER_SOCKET_PORT=$(EPHYMERAL_PORT)
@@ -22,6 +35,7 @@ export DISCOVERY_PORT=$(EPHYMERAL_PORT)
 export METRICS_PORT=$(EPHYMERAL_PORT)
 # export POD_NAME="alg-${WORKER_SOCKET_PORT}"
 export ALGORITHM_TYPE=${ALG_TYPE}
+
 
 echo "WORKER_SOCKET_PORT=$WORKER_SOCKET_PORT"
 echo "ALGORITHM_TYPE=$ALGORITHM_TYPE"
