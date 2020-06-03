@@ -48,3 +48,13 @@ config.storageAdapters = {
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };
+
+config.tracer = {
+    tracerConfig: {
+        serviceName: process.env.ALGORITHM_NAME || 'algorithm',
+        reporter: {
+            agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
+            agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832
+        }
+    }
+};
