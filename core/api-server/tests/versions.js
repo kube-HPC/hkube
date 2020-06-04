@@ -153,7 +153,6 @@ describe('Versions/Algorithms', () => {
             expect(res.body.error.message).to.equal(`algorithm ${body.name} Not Found`);
         });
         it('should throw error of running pipelines dependent on algorithm', async function () {
-            this.timeout(5000);
             const name = `my-alg-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';

@@ -1046,7 +1046,6 @@ describe('Store/Algorithms', () => {
                 expect(res2.body.version).to.equal('1.0.1');
             });
             it('should succeed to watch completed build', async function () {
-                this.timeout(5000);
                 const algorithmName = `my-alg-${uuid()}`;
                 const algorithmImage = `${algorithmName}-image`
                 const formData = {
