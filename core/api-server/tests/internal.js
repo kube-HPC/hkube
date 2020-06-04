@@ -154,32 +154,30 @@ describe('Internal', () => {
             const response = await request(options);
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
-        it.skip('should succeed and return job id', async () => {
-            const options = {
-                uri: `${internalUrl}/exec/stored/trigger`,
+        it('should run stored pipeline and update rootJobId and types', async () => {
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
                 body: {
-                    name: 'flow1',
-                    parentJobId: uuid()
+                    name: 'flow1'
                 }
             };
-            const response = await request(options);
-            expect(response.body).to.have.property('jobId');
-        });
-        it.skip('should run stored pipeline and update right types', async () => {
-            const options = {
+            const res1 = await request(options1);
+            const jobId = res1.body.jobId;
+            const options2 = {
                 uri: `${internalUrl}/exec/stored/trigger`,
                 body: {
-                    name: 'flow1',
-                    parentJobId: uuid()
+                    name: 'flow2',
+                    parentJobId: jobId
                 }
             };
-            const res1 = await request(options);
+            const res2 = await request(options2);
             const optionsGET = {
-                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                uri: `${restUrl}/exec/pipelines/${res2.body.jobId}`,
                 method: 'GET'
             };
-            const res2 = await request(optionsGET);
-            expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER]);
+            const res3 = await request(optionsGET);
+            expect(res3.body.rootJobId).to.eql(jobId);
+            expect(res3.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER]);
         });
         it('should run stored trigger pipeline and merge parent flowInput', async () => {
             const flow2 = pipelines.find(p => p.name === 'flow2')
@@ -209,16 +207,24 @@ describe('Internal', () => {
             const res3 = await request(optionsGET);
             expect(res3.body.flowInputOrig).to.eql({ ...flow2.flowInput, parent: data });
         });
-        it.skip('should succeed without reaching too many request', async () => {
+        it('should succeed without reaching too many request', async () => {
             const requests = 10;
             const promises = [];
             const pipeline = 'flow1';
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1'
+                }
+            };
+            const res1 = await request(options1);
+            const jobId = res1.body.jobId;
             for (let i = 0; i < requests; i++) {
                 const options = {
                     uri: `${internalUrl}/exec/stored/trigger`,
                     body: {
                         name: pipeline,
-                        parentJobId: uuid()
+                        parentJobId: jobId
                     }
                 };
                 promises.push(request(options));
