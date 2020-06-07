@@ -417,6 +417,23 @@ describe('Test', function () {
             expect(black.status).to.equals('preschedule');
             expect(black.batch[0].input).to.lengthOf(2);
         });
+        it('should start pipeline and update graph on failure', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines[0];
+            await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await taskRunner.start(job);
+            await taskRunner.stop({ error: 'error' });
+            const graph = await graphStore.getGraph({ jobId });
+            expect(graph.nodes[0].status).to.equal('failed');
+            expect(graph.nodes[1].status).to.equal('failed');
+            expect(graph.nodes[2].status).to.equal('failed');
+            expect(graph.nodes[3].status).to.equal('failed');
+        });
     });
     describe('Progress', function () {
         beforeEach(() => {
