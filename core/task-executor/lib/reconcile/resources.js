@@ -5,10 +5,20 @@ const { lessWithTolerance } = require('../helpers/compare');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 
 
-const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory) => {
-    const freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESSURE));
-    const freeGpu = node.free.gpu - (node.total.gpu * (1 - GPU_RATIO_PRESSURE));
-    const freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
+const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
+    let freeCpu; 
+    let freeGpu; 
+    let freeMemory;
+    if (useResourcePressure) {
+        freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESSURE));
+        freeGpu = node.free.gpu - (node.total.gpu * (1 - GPU_RATIO_PRESSURE));
+        freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
+    }
+    else {
+        freeCpu = node.free.cpu;
+        freeGpu = node.free.gpu;
+        freeMemory = node.free.memory;
+    }
     return requestedCpu < freeCpu && requestedMemory < freeMemory && lessWithTolerance(requestedGpu, freeGpu);
 };
 
@@ -60,7 +70,7 @@ const _sortWorkers = (a, b) => {
 };
 
 function _scheduleAlgorithmToNode(nodeList, { requestedCpu, requestedGpu, memoryRequests }) {
-    const nodeForSchedule = nodeList.find(n => findNodeForSchedule(n, requestedCpu, requestedGpu, memoryRequests));
+    const nodeForSchedule = nodeList.find(n => findNodeForSchedule(n, requestedCpu, requestedGpu, memoryRequests, false));
     return nodeForSchedule;
 }
 

@@ -76,6 +76,7 @@ class ExecutionService {
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
             await validator.validateAlgorithmExists(pipeline);
+            await validator.validateExperimentExists(pipeline);
             const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
