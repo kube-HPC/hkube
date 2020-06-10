@@ -234,6 +234,7 @@ class ExecutionService {
             stateManager.executions.stored.delete({ jobId }),
             stateManager.jobs.results.delete({ jobId }),
             stateManager.jobs.status.delete({ jobId }),
+            stateManager.jobs.tasks.delete({ jobId }),
             stateManager.webhooks.delete({ jobId, type: WebhookTypes.PROGRESS }),
             stateManager.webhooks.delete({ jobId, type: WebhookTypes.RESULT }),
             producer.stopJob({ jobId })
