@@ -124,7 +124,7 @@ class Builds {
     }
 
     async _fileInfo(file) {
-        const bufferExt = readChunk.sync(file.path, 0, minimumBytes);
+        const bufferExt = await readChunk(file.path, 0, minimumBytes);
         let fileExt = await fileType.fromBuffer(bufferExt);
         if (fileExt) {
             fileExt = fileExt.ext;
@@ -135,7 +135,8 @@ class Builds {
         }
 
         const checksum = await this._checkSum(file.path);
-        const fileSize = fse.statSync(file.path).size;
+        const stat = await fse.stat(file.path);
+        const fileSize = stat.size;
         return { fileExt, checksum, fileSize };
     }
 

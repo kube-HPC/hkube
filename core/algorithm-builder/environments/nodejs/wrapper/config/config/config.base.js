@@ -1,8 +1,8 @@
 const config = module.exports = {};
+const { parseBool } = require(process.cwd() + '/utils/formatters');
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.storageMode = process.env.STORAGE_PROTOCOL || 'v2';
-config.enableCache = !!process.env.ENABLE_WORKER_CACHE;
 
 config.socket = {
     port: process.env.WORKER_SOCKET_PORT || 3000,
@@ -21,7 +21,7 @@ config.discovery = {
     host: process.env.POD_IP || '127.0.0.1',
     port: process.env.DISCOVERY_PORT || 9020,
     encoding: process.env.DISCOVERY_ENCODING || 'bson',
-    enable: !!process.env.DISCOVERY_ENABLE,
+    enable: parseBool(process.env.DISCOVERY_ENABLE, true),
     timeout: process.env.DISCOVERY_TIMEOUT || 15000,
     maxCacheSize: process.env.DISCOVERY_MAX_CACHE_SIZE || 500
 };
