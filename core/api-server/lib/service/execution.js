@@ -52,12 +52,12 @@ class ExecutionService {
     }
 
     async _runStored(options) {
-        const { pipeline, jobId, rootJobId, parentSpan, types, flowInputNoMerge } = options;
+        const { pipeline, jobId, rootJobId, parentSpan, types, flowInputMerge } = options;
         const storedPipeline = await stateManager.pipelines.get({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
-        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' && !flowInputNoMerge ? src || obj : undefined));
+        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' && flowInputMerge ? undefined : src || obj));
         return this._run({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
     }
 
