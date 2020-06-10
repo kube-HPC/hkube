@@ -24,7 +24,7 @@ describe('Experiment', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('main experiment cannot be deleted');
         });
-        it('should delete experiment with all releted data', async () => {
+        it('should delete experiment with all related data', async () => {
             const pipeline = 'pipeline';
             const experiment = 'experimentWithRelations';
             // add experiment
@@ -76,7 +76,6 @@ describe('Experiment', () => {
             };
             const response = await request(options4);
 
-            const response1 = await storageManager.hkubeIndex.list({ jobId });
             const response2 = await storageManager.hkubeExecutions.list({ jobId });
             const response3 = await storageManager.hkube.list({ jobId });
             const response4 = await storageManager.hkubeResults.list({ jobId });
@@ -89,7 +88,6 @@ describe('Experiment', () => {
             const response11 = await stateManager.webhooks.get({ jobId, type: WebhookTypes.PROGRESS });
             const response12 = await stateManager.webhooks.get({ jobId, type: WebhookTypes.RESULT });
 
-            expect(response1).to.have.lengthOf(0);
             expect(response2).to.have.lengthOf(0);
             expect(response3).to.have.lengthOf(0);
             expect(response4).to.have.lengthOf(0);
