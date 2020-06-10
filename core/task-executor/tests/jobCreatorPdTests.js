@@ -177,10 +177,10 @@ describe('PipelineDriverJobCreator', () => {
                 }
             });
             expect(res.spec.template.spec.containers[0].env).to.deep.include({
-                name: 'STORAGE_BINARY',
+                name: 'STORAGE_ENCODING',
                 valueFrom: {
                     configMapKeyRef: {
-                        key: 'STORAGE_BINARY',
+                        key: 'STORAGE_ENCODING',
                         name: 'task-executor-configmap'
                     }
                 }

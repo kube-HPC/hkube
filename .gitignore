@@ -89,3 +89,4 @@ typings/
 .vscode
 .DS_Store
 **/.clinic
+deployment

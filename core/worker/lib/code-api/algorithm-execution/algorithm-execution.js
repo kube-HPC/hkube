@@ -6,9 +6,9 @@ const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const { Producer } = require('@hkube/producer-consumer');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
-const discovery = require('../../states/discovery');
+const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
-const { Components, taskEvents } = require('../../consts');
+const { taskEvents, Components } = require('../../consts');
 const jobConsumer = require('../../consumer/JobConsumer');
 const { producerSchema, startAlgorithmSchema, stopAlgorithmSchema } = require('./schema');
 const validator = new Validator({ useDefaults: true, coerceTypes: false });
@@ -28,6 +28,36 @@ class AlgorithmExecution {
         this._registerToAlgorithmEvents();
     }
 
+    setStorageType(type) {
+        const execAlgorithms = require(`./algorithm-execution-${type}`); // eslint-disable-line
+        this._getStorage = (...args) => execAlgorithms.getResultFromStorage(...args);
+        this._setStorage = (...args) => execAlgorithms.setInputToStorage(...args);
+
+        execAlgorithms.on('data-ready', (task) => {
+            this._sendDoneToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
+            this._deleteExecution(task.taskId);
+        });
+    }
+
+    _registerToEtcdEvents() {
+        stateAdapter.on(taskEvents.FAILED, (task) => {
+            this._sendErrorToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
+            this._deleteExecution(task.taskId);
+        });
+        stateAdapter.on(taskEvents.STALLED, (task) => {
+            this._sendErrorToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
+            this._deleteExecution(task.taskId);
+        });
+        stateAdapter.on(taskEvents.CRASHED, (task) => {
+            this._sendErrorToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
+            this._deleteExecution(task.taskId);
+        });
+    }
+
     _initProducer(options) {
         const setting = {
             redis: options.redis,
@@ -38,29 +68,6 @@ class AlgorithmExecution {
             throw new Error(validator.errorsText(this._producerSchema.errors));
         }
         this._producer = new Producer({ setting });
-    }
-
-    _registerToEtcdEvents() {
-        discovery.on(taskEvents.SUCCEED, (task) => {
-            this._sendDoneToAlgorithm(task);
-            this._finishAlgoExecSpan(task.taskId);
-            this._deleteExecution(task.taskId);
-        });
-        discovery.on(taskEvents.FAILED, (task) => {
-            this._sendErrorToAlgorithm(task);
-            this._finishAlgoExecSpan(task.taskId);
-            this._deleteExecution(task.taskId);
-        });
-        discovery.on(taskEvents.STALLED, (task) => {
-            this._sendErrorToAlgorithm(task);
-            this._finishAlgoExecSpan(task.taskId);
-            this._deleteExecution(task.taskId);
-        });
-        discovery.on(taskEvents.CRASHED, (task) => {
-            this._sendErrorToAlgorithm(task);
-            this._finishAlgoExecSpan(task.taskId);
-            this._deleteExecution(task.taskId);
-        });
     }
 
     _registerToAlgorithmEvents() {
@@ -81,12 +88,9 @@ class AlgorithmExecution {
         if (!execution) {
             return;
         }
-        let { result } = task;
-        if (execution.resultAsRaw && task.result && task.result.storageInfo) {
-            result = await storageManager.get(task.result.storageInfo);
-        }
+        const response = await this._getStorage({ resultAsRaw: execution.resultAsRaw, result: task.result });
         log.debug('sending done to algorithm', { component });
-        this._sendCompleteToAlgorithm({ ...task, response: result, command: messages.outgoing.execAlgorithmDone });
+        this._sendCompleteToAlgorithm({ ...task, response, command: messages.outgoing.execAlgorithmDone });
     }
 
     _sendErrorToAlgorithm(task) {
@@ -112,14 +116,14 @@ class AlgorithmExecution {
     async _unWatchTasks({ jobId }) {
         if (this._watching) {
             this._watching = false;
-            await discovery.unWatchTasks({ jobId });
+            await stateAdapter.unWatchTasks({ jobId });
         }
     }
 
     async _watchTasks({ jobId }) {
         if (!this._watching) {
             this._watching = true;
-            await discovery.watchTasks({ jobId });
+            await stateAdapter.watchTasks({ jobId });
         }
     }
 
@@ -144,7 +148,7 @@ class AlgorithmExecution {
                 return response;
             }
             log.info(`stopping ${this._executions.size} executions`, { component });
-            response = await Promise.all([...this._executions.keys()].map(taskId => discovery.stopAlgorithmExecution({ jobId, taskId })));
+            response = await Promise.all([...this._executions.keys()].map(taskId => stateAdapter.stopAlgorithmExecution({ jobId, taskId })));
         }
         catch (e) {
             log.warning(`failed to stop executions: ${e.message}`, { component });
@@ -172,7 +176,7 @@ class AlgorithmExecution {
             }
             const { jobId } = jobConsumer.jobData;
             this._finishAlgoExecSpan(task.taskId);
-            await discovery.stopAlgorithmExecution({ jobId, taskId: task.taskId, reason: data.reason });
+            await stateAdapter.stopAlgorithmExecution({ jobId, taskId: task.taskId, reason: data.reason });
         }
         catch (e) {
             this._sendErrorToAlgorithm({ execId, error: e.message });
@@ -184,6 +188,7 @@ class AlgorithmExecution {
         try {
             const data = (message && message.data) || {};
             execId = data.execId;
+            const { storageInput } = data;
             const valid = this._startAlgorithmSchema(data);
             if (!valid) {
                 throw new Error(validator.errorsText(this._startAlgorithmSchema.errors));
@@ -201,14 +206,14 @@ class AlgorithmExecution {
             const { jobId, nodeName } = jobData;
             const parentAlgName = jobData.algorithmName;
             const { algorithmName, input, resultAsRaw } = data;
-            const algos = await discovery.getExistingAlgorithms();
+            const algos = await stateAdapter.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }
             const taskId = this._createTaskID({ nodeName, algorithmName });
             this._executions.set(taskId, { taskId, execId, resultAsRaw });
-            const storageInput = await Promise.all(input.map(i => this._mapInputToStorage(i, storage, jobId)));
-            const task = { execId, taskId, input: storageInput, storage };
+            const newInput = await this._setStorage({ input, storage, jobId, storageInput });
+            const task = { execId, taskId, input: newInput, storage };
             const job = this._createJobData({ nodeName, algorithmName, task, jobData });
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
@@ -258,6 +263,10 @@ class AlgorithmExecution {
     }
 
     _finishAlgoExecSpan(taskId) {
+        const execution = this._executions.get(taskId);
+        if (!execution) {
+            return;
+        }
         const topSpan = tracer.topSpan(taskId);
         if (topSpan) {
             topSpan.finish();

@@ -9,8 +9,11 @@ const worker = require('./lib/worker');
 let log;
 
 const modules = [
+    require('./lib/metrics/metrics.js'),
+    require('./lib/tracing/tracing.js'),
+    require('./lib/boards/boards.js'),
     require('./lib/states/stateManager.js'),
-    require('./lib/states/discovery.js'),
+    require('./lib/states/stateAdapter.js'),
     require('./lib/algorithm-communication/workerCommunication.js'),
     require('./lib/consumer/JobConsumer.js'),
     require('./lib/helpers/kubernetes.js'),
@@ -18,7 +21,7 @@ const modules = [
     require('./lib/helpers/api-server-client.js'),
     require('./lib/code-api/subpipeline/subpipeline.js'),
     require('./lib/code-api/algorithm-execution/algorithm-execution.js'),
-    require('./lib/consumer/data-extractor.js')
+    require('./lib/storage/storage.js')
 ];
 
 class Bootstrap {
@@ -27,8 +30,7 @@ class Bootstrap {
             const { main, logger } = configIt.load();
             this._handleErrors();
 
-            // only init the logger if it is not already initialized. Used for testing
-            log = log || new Logger(main.serviceName, logger);
+            log = new Logger(main.serviceName, logger);
             log.info(`running application with env: ${configIt.env()}, version: ${main.version}, node: ${process.versions.node}`, { component });
 
             monitor.on('ready', (data) => {
