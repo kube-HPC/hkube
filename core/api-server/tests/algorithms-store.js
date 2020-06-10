@@ -1335,7 +1335,7 @@ describe('Store/Algorithms', () => {
                 const response3 = await request(request3);
                 expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
-            it.only('should succeed to add and delete algorithmEnv', async () => {
+            it('should succeed to add and delete algorithmEnv', async () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
