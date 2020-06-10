@@ -1,5 +1,4 @@
 
-
 class Trigger {
     constructor(options) {
         this.name = options.name;

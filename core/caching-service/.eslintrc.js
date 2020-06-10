@@ -30,6 +30,7 @@ module.exports = {
         "object-curly-newline": "off",
         "newline-per-chained-call": "off",
         "arrow-body-style": "off",
+        "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "chai-friendly/no-unused-expressions": 2

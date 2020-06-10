@@ -1,7 +1,7 @@
 
 const clone = require('clone');
 const isEqual = require('lodash.isequal');
-const deep = require('deep-get-set');
+const objectPath = require('object-path');
 const flatten = require('flat');
 const logger = require('@hkube/logger');
 const { Persistency } = require('@hkube/dag');
@@ -156,11 +156,11 @@ class GraphStore {
         const result = clone(node.input);
         const flatObj = flatten(node.input);
 
-        Object.entries(flatObj).forEach(([objectPath, value]) => {
-            if (typeof value === 'string' && value.startsWith('$$')) {
-                const key = value.substring(2);
+        Object.entries(flatObj).forEach(([k, v]) => {
+            if (typeof v === 'string' && v.startsWith('$$')) {
+                const key = v.substring(2);
                 const link = node.storage[key];
-                deep(result, objectPath, link.storageInfo);
+                objectPath.set(result, k, link.storageInfo);
             }
         });
         return result;

@@ -1,5 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const stateManager = require('../../store/store-manager');
+const stateManager = require('../store-manager');
 const component = require('../../consts/components').DRIVERS_QUEUE;
 
 class StoreAdapter {
