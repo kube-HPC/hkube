@@ -6,15 +6,12 @@ const execution = require('./execution');
 class InternalService {
     async runStoredTriggerPipeline(options) {
         validator.validateStoredInternal(options);
-        let newPipeline = options;
+        const newPipeline = options;
         const jobId = this._createPipelineJobID(newPipeline);
         if (newPipeline.parentJobId) {
             const results = await stateManager.getJobResult({ jobId: newPipeline.parentJobId });
             if (results && results.data) {
-                newPipeline = {
-                    ...newPipeline,
-                    flowInput: { parent: results.data }
-                };
+                newPipeline.flowInput = { parent: results.data };
             }
         }
         const { pipeline } = await this._createPipeline(newPipeline);

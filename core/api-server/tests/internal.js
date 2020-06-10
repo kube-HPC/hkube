@@ -207,7 +207,7 @@ describe('Internal', () => {
                 method: 'GET'
             };
             const res3 = await request(optionsGET);
-            expect(res3.body.flowInputOrig).to.eql({ ...flow2.flowInput, parent: data });
+            expect(res3.body.flowInput).to.eql({ ...flow2.flowInput, parent: data });
         });
         it('should succeed without reaching too many request', async () => {
             const requests = 10;

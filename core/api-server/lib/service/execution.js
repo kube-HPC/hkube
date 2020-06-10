@@ -32,7 +32,7 @@ class ExecutionService {
         if (error) {
             throw new InvalidDataError(error.message);
         }
-        const { jobId, flowInputOrig, startTime, lastRunResult, types, ...restPipeline } = pipeline;
+        const { jobId, flowInputMetadata, startTime, lastRunResult, types, ...restPipeline } = pipeline;
         const newTypes = [...new Set([...types || [], pipelineTypes.NODE])];
         return this._run({ pipeline: restPipeline, options: { alreadyExecuted: true, validateNodes: false }, types: newTypes });
     }
@@ -62,7 +62,8 @@ class ExecutionService {
     }
 
     async _run(payload) {
-        let { pipeline, jobId } = payload;
+        let { jobId } = payload;
+        const { pipeline } = payload;
         const { types, rootJobId } = payload;
         const { alreadyExecuted, validateNodes, parentSpan } = payload.options || {};
 
@@ -80,13 +81,8 @@ class ExecutionService {
             const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
-                const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },
-                    tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
-                pipeline = {
-                    ...pipeline,
-                    flowInput: { metadata, storageInfo },
-                    flowInputOrig: pipeline.flowInput
-                };
+                const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
+                pipeline.flowInputMetadata = { metadata, storageInfo };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
             const pipelineObject = { ...pipeline, jobId, rootJobId, startTime: Date.now(), lastRunResult, types };
