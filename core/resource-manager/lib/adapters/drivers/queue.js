@@ -1,4 +1,4 @@
-const Adapter = require('./../Adapter');
+const Adapter = require('../Adapter');
 const stateManager = require('../../store/store-manager');
 
 class PipelineDriversQueueAdapter extends Adapter {

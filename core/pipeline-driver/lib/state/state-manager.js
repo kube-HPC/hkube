@@ -13,7 +13,7 @@ class StateManager extends EventEmitter {
         const options = option || {};
         this.setJobStatus = this.setJobStatus.bind(this);
         this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
-        this._podName = options.podName;
+        this._podName = options.kubernetes.podName;
         this._lastDiscovery = null;
         this._driverId = this._etcd.discovery._instanceId;
         this._etcd.discovery.register({ data: this._defaultDiscovery() });
@@ -76,11 +76,25 @@ class StateManager extends EventEmitter {
 
                 const data = await Promise.all(options.data.map(async (a) => {
                     if (a.result && a.result.storageInfo) {
-                        const result = await storageManager.get(a.result.storageInfo, startSpan);
-                        return { ...a, result };
+                        let result;
+                        let info;
+                        let objSize = a.result.storageInfo.size;
+                        if (!objSize) {
+                            result = await storageManager.getMetadata(a.result.storageInfo, startSpan);
+                            objSize = result.size;
+                        }
+                        const resSize = storageManager.checkDataSize(objSize);
+                        if (!resSize.error) {
+                            result = await storageManager.get({ ...a.result.storageInfo, encodeOptions: { customEncode: true } }, startSpan);
+                        }
+                        else {
+                            info = { ...a.result.storageInfo, message: resSize.error };
+                        }
+                        return { ...a, result, info };
                     }
                     return a;
                 }));
+                this._removeUndefined(data);
                 const storageInfo = await storageManager.hkubeResults.put({ jobId: options.jobId, data }, tracer.startSpan.bind(tracer, { name: 'storage-put', parent: span.context() }));
                 storageResults = { storageInfo };
             }
@@ -92,6 +106,10 @@ class StateManager extends EventEmitter {
             span && span.finish(storageError);
         }
         return { storageError, storageResults };
+    }
+
+    _removeUndefined(data) {
+        data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));  // eslint-disable-line
     }
 
     async setJobResults(options) {
