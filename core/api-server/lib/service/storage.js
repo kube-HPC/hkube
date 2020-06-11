@@ -6,6 +6,7 @@ const validator = require('../validation/api-validator');
 class StorageService {
     init(config) {
         this.config = config;
+        this.maxStorageFetchKeys = config.maxStorageFetchKeys;
     }
 
     getInfo() {
@@ -38,7 +39,7 @@ class StorageService {
     }
 
     async _getKeysByPath({ path, sort, order, from, to }) {
-        const keys = await storageManager.storage.listWithStats({ path });
+        const keys = await storageManager.storage.listWithStats({ path, maxKeys: this.maxStorageFetchKeys });
         return this._formatResponse({ path, keys, sort, order, from, to });
     }
 

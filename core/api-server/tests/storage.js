@@ -3,14 +3,16 @@ const querystring = require('querystring');
 const storageManager = require('@hkube/storage-manager');
 const HttpStatus = require('http-status-codes');
 const { Encoding } = require('@hkube/encoding');
-const { uuid } = require('../lib/utils');
 const { request } = require('./utils');
+const { randomString: uuid } = require('../lib/utils');
 let restUrl;
+let maxStorageFetchKeys;
 let encoding;
 
 describe('Storage', () => {
     before(async () => {
         restUrl = global.testParams.restUrl;
+        maxStorageFetchKeys = global.testParams.config.maxStorageFetchKeys;
         const config = global.testParams.config;
         const storage = config.storageAdapters[config.defaultStorage]
         encoding = new Encoding({ type: storage.encoding })
@@ -150,6 +152,19 @@ describe('Storage', () => {
             };
             const response = await request(options);
             expect(response.body.keys).to.have.lengthOf(total);
+        });
+        it('should limit the return to max keys', async () => {
+            const length = 140;
+            const jobId = `job-${uuid()}`;
+            const options = {
+                uri: `${restPath}/local-hkube`,
+                method: 'GET'
+            };
+            const array = Array.from({ length }, (v, k) => k + 0);
+            await Promise.all(array.map(a => storageManager.hkube.put({ jobId, taskId: `task-${a}`, data: `data-${a}` })));
+
+            const response = await request(options);
+            expect(response.body.keys).to.have.lengthOf(maxStorageFetchKeys);
         });
     });
     describe('/values/:path', () => {

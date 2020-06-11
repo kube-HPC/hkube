@@ -1,4 +1,5 @@
 const packageJson = require(process.cwd() + '/package.json');
+const formatter = require(process.cwd() + '/lib/utils/formatters');
 
 const config = {};
 config.serviceName = packageJson.name;
@@ -6,6 +7,7 @@ config.serviceName = packageJson.name;
 const secured = !!process.env.API_SERVER_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
+config.maxStorageFetchKeys = formatter.parseInt(process.env.MAX_STORAGE_FETCH_KEYS, 100);
 config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
 const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
