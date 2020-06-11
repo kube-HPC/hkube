@@ -405,7 +405,7 @@ class TaskRunner extends EventEmitter {
             this._checkPreschedule(nodeName);
 
             const parse = {
-                flowInput: this.pipeline.flowInput,
+                flowInputMetadata: this.pipeline.flowInputMetadata,
                 nodeInput: node.input,
                 parentOutput: node.parentOutput || parentOutput,
                 batchOperation: node.batchOperation,

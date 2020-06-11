@@ -31,7 +31,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
@@ -80,7 +80,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
@@ -128,7 +128,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
@@ -176,7 +176,7 @@
                 ]
             }
         ],
-        "flowInput": {}
+        "flowInputMetadata": {}
     },
     {
         "name": "resultBatch",
@@ -207,7 +207,7 @@
                 ]
             }
         ],
-        "flowInput": {}
+        "flowInputMetadata": {}
     },
     {
         "name": "simple-wait-batch",
@@ -245,7 +245,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
@@ -296,7 +296,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
@@ -345,7 +345,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
@@ -394,7 +394,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
@@ -447,7 +447,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
@@ -488,7 +488,7 @@
                 ]
             }
         ],
-        "flowInput": {
+        "flowInputMetadata": {
             "metadata": {
                 "flowInput": {
                     "type": "object"
