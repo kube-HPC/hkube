@@ -338,6 +338,26 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('jobId');
         });
+        it('should succeed to run with null flowInput', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'exec_raw',
+                    nodes: [
+                        {
+                            nodeName: 'string',
+                            algorithmName: 'green-alg',
+                            input: ["@flowInput.inputs"]
+                        }
+                    ],
+                    flowInput: {
+                        inputs: null
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('jobId');
+        });
         it('should succeed to execute with right types', async () => {
             const options = {
                 uri: restPath,

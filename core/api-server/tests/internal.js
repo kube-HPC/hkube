@@ -144,7 +144,7 @@ describe('Internal', () => {
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('timeTook');
             expect(response.body[0]).to.have.property('timestamp');
-        }).timeout(15000);
+        });
     });
     describe('Triggers', () => {
         it('should throw error when invalid pipeline name', async () => {
@@ -154,32 +154,30 @@ describe('Internal', () => {
             const response = await request(options);
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
-        it('should succeed and return job id', async () => {
-            const options = {
-                uri: `${internalUrl}/exec/stored/trigger`,
+        it('should run stored pipeline and update rootJobId and types', async () => {
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
                 body: {
-                    name: 'flow1',
-                    parentJobId: uuid()
+                    name: 'flow1'
                 }
             };
-            const response = await request(options);
-            expect(response.body).to.have.property('jobId');
-        });
-        it('should run stored pipeline and update right types', async () => {
-            const options = {
+            const res1 = await request(options1);
+            const jobId = res1.body.jobId;
+            const options2 = {
                 uri: `${internalUrl}/exec/stored/trigger`,
                 body: {
-                    name: 'flow1',
-                    parentJobId: uuid()
+                    name: 'flow2',
+                    parentJobId: jobId
                 }
             };
-            const res1 = await request(options);
+            const res2 = await request(options2);
             const optionsGET = {
-                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                uri: `${restUrl}/exec/pipelines/${res2.body.jobId}`,
                 method: 'GET'
             };
-            const res2 = await request(optionsGET);
-            expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER]);
+            const res3 = await request(optionsGET);
+            expect(res3.body.rootJobId).to.eql(jobId);
+            expect(res3.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER]);
         });
         it('should run stored trigger pipeline and merge parent flowInput', async () => {
             const flow2 = pipelines.find(p => p.name === 'flow2')
@@ -213,12 +211,20 @@ describe('Internal', () => {
             const requests = 10;
             const promises = [];
             const pipeline = 'flow1';
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1'
+                }
+            };
+            const res1 = await request(options1);
+            const jobId = res1.body.jobId;
             for (let i = 0; i < requests; i++) {
                 const options = {
                     uri: `${internalUrl}/exec/stored/trigger`,
                     body: {
                         name: pipeline,
-                        parentJobId: uuid()
+                        parentJobId: jobId
                     }
                 };
                 promises.push(request(options));
@@ -227,6 +233,89 @@ describe('Internal', () => {
             const jobs = response.map(r => r.body.jobId);
             expect(jobs).to.have.lengthOf(requests);
             expect(jobs.every(j => j.includes(pipeline))).to.equal(true);
+        });
+        it('should run triggered pipelines and the executions tree', async function () {
+            const requests = 5;
+            const pipeline = 'trigger-test';
+            const results = [];
+
+            // insert 10 triggered pipelines
+            for (let i = 1; i < requests; i++) {
+                const body = {
+                    name: `${pipeline}-${i}`,
+                    nodes: [
+                        {
+                            "nodeName": "green",
+                            "algorithmName": "green-alg",
+                            "input": [
+                                "@flowInput"
+                            ]
+                        }
+                    ],
+                    flowInput: {
+                        files: {
+                            link: "links-1"
+                        }
+                    },
+                    triggers: {
+                        pipelines: [
+                            `${pipeline}-${(i + 1)}`
+                        ]
+                    }
+                }
+                const options = {
+                    uri: restUrl + '/store/pipelines',
+                    body
+                };
+                await request(options);
+            }
+
+            // run the first pipeline
+            const options = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: `${pipeline}-${1}`
+                }
+            };
+
+            const response = await request(options);
+            const firstJobId = response.body.jobId;
+            let jobId = response.body.jobId
+            results.push(jobId);
+
+            // run the rest of the triggered pipelines
+            for (let i = 1; i < requests; i++) {
+                const name = `${pipeline}-${(i + 1)}`;
+                const options = {
+                    uri: `${internalUrl}/exec/stored/trigger`,
+                    body: {
+                        name,
+                        parentJobId: jobId
+                    }
+                };
+                const res = await request(options);
+                jobId = res.body.jobId
+                results.push(jobId);
+            }
+
+            // get the exec tree
+            const opt = {
+                uri: restUrl + `/exec/tree/${firstJobId}`,
+                method: 'GET'
+            };
+            const tree = await request(opt);
+            expect(tree.body).to.have.property('children');
+            expect(tree.body).to.have.property('jobId');
+            expect(tree.body).to.have.property('name');
+        });
+        it('should failed if jobId not found', async () => {
+            const options = {
+                method: 'GET',
+                uri: restUrl + `/exec/tree/${uuid()}`
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
         });
     });
     describe('SubPipeline', () => {
@@ -327,81 +416,6 @@ describe('Internal', () => {
             };
             const res2 = await request(optionsGET);
             expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE]);
-        });
-        it('should run triggered pipelines and the executions tree', async function () {
-            this.timeout(15000);
-            const requests = 5;
-            const pipeline = 'trigger-test';
-            const results = [];
-
-            // insert 10 triggered pipelines
-            for (let i = 1; i < requests; i++) {
-                const body = {
-                    name: `${pipeline}-${i}`,
-                    nodes: [
-                        {
-                            "nodeName": "green",
-                            "algorithmName": "green-alg",
-                            "input": [
-                                "@flowInput"
-                            ]
-                        }
-                    ],
-                    flowInput: {
-                        files: {
-                            link: "links-1"
-                        }
-                    },
-                    triggers: {
-                        pipelines: [
-                            `${pipeline}-${(i + 1)}`
-                        ]
-                    }
-                }
-                const options = {
-                    uri: restUrl + '/store/pipelines',
-                    body
-                };
-                await request(options);
-            }
-
-            // run the first pipeline
-            const options = {
-                uri: `${restUrl}/exec/stored`,
-                body: {
-                    name: `${pipeline}-${1}`
-                }
-            };
-
-            const response = await request(options);
-            const firstJobId = response.body.jobId;
-            let jobId = response.body.jobId
-            results.push(jobId);
-
-            // run the rest of the triggered pipelines
-            for (let i = 1; i < requests; i++) {
-                const name = `${pipeline}-${(i + 1)}`;
-                const options = {
-                    uri: `${internalUrl}/exec/stored/trigger`,
-                    body: {
-                        name,
-                        parentJobId: jobId
-                    }
-                };
-                const res = await request(options);
-                jobId = res.body.jobId
-                results.push(jobId);
-            }
-
-            // get the exec tree
-            const opt = {
-                uri: restUrl + `/exec/tree/${firstJobId}`,
-                method: 'GET'
-            };
-            const tree = await request(opt);
-            expect(tree.body[0]).to.have.property('children');
-            expect(tree.body[0]).to.have.property('jobId');
-            expect(tree.body[0]).to.have.property('name');
         });
     });
 });
