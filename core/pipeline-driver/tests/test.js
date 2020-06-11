@@ -259,7 +259,6 @@ describe('Test', function () {
                 done: () => { }
             }
             const pipeline = pipelines.find(p => p.name === 'batch');
-            const node = pipeline.nodes[0];
             await stateManager.setExecution({ jobId, ...pipeline });
             await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
             await taskRunner.start(job);
