@@ -40,8 +40,9 @@ class Runner {
             // finish adding caching
             n.parentOutput = []; //eslint-disable-line
             dependentNodes.forEach((dn) => {
-                const metadata = metadataFromSuccessors.find(ms => ms.id === dn);
+                const metadata = metadataFromSuccessors.find(ms => ms.id === dn.nodeName);
                 if (metadata) {
+                    metadata.metadata.type = dn.type;
                     n.parentOutput.push(metadata.metadata);
                 }
                 else {
@@ -57,14 +58,7 @@ class Runner {
 
     _createSubPipeline(flattenSuccessors, pipeline) {
         const deepPipelineExecution = cloneDeep(pipeline);
-        deepPipelineExecution.name = pipeline.name;
-        deepPipelineExecution.nodes = [];
-        flattenSuccessors.forEach((s) => {
-            const node = pipeline.nodes.find(n => n.nodeName === s);
-            if (node) {
-                deepPipelineExecution.nodes.push(node);
-            }
-        });
+        deepPipelineExecution.nodes = pipeline.nodes.filter(n => flattenSuccessors.includes(n.nodeName));
         return deepPipelineExecution;
     }
 
@@ -137,16 +131,13 @@ class Runner {
             if (node.batch && node.batch.length > 0) {
                 result = {
                     node: nodeName,
-                    type: 'waitNode',
                     result: node.batch.map(b => b.output)
                 };
             }
             else {
                 result = {
                     node: nodeName,
-                    type: 'waitNode',
                     result: node.output
-
                 };
             }
             return result;
