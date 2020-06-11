@@ -32,9 +32,6 @@ properties:
         type: boolean
         description: pending algorithm
         default: false
-      binary:
-        type: boolean
-        description: serialization mode for algorithm communication
       opengl:
         type: boolean
         description: should algorithm support XGL context creation (mount X socket)
@@ -100,15 +97,12 @@ properties:
     default: 0
   algorithmEnv:
     type: object
-    nullable: true
     description: key value environment variables for algorithm
   workerEnv:
     type: object
-    nullable: true
     description: key value environment variables for worker
   nodeSelector:
     type: object
-    nullable: true
     description: key value labels for nodes constraint
     additionalProperties:
       type: string

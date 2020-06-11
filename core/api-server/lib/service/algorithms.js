@@ -187,7 +187,7 @@ class AlgorithmStore {
                 throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${payload.type}"`);
             }
 
-            newAlgorithm = merge({}, oldAlgorithm, payload);
+            newAlgorithm = { ...oldAlgorithm, ...payload };
             validator.addAlgorithmDefaults(newAlgorithm);
 
             if (payload.type === buildTypes.CODE && file.path) {

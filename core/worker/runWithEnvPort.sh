@@ -32,16 +32,14 @@ function EPHYMERAL_PORT(){
 }
 
 export port=$(EPHYMERAL_PORT)
-echo using port $port
-#export METRICS_PORT=$(EPHYMERAL_PORT)
-echo METRICS_PORT $METRICS_PORT
+echo "using port $port"
+echo "METRICS_PORT $METRICS_PORT"
 
-#run_parallel "sleep 1" "sleep 2"
 export alg=$1
 export ALGO_COMMAND=${2:-"node ../algorunner/app"}
 echo "Running ${ALGO_COMMAND}"
 export ALGORITHM_LOG_FILE_NAME=algorunner_${port}.log
-echo worker for algorithm ${alg}
+echo "worker for algorithm ${alg}"
 
 export ALGORITHM_TYPE=${alg}
 export WORKER_SOCKET_PORT=${port}
@@ -53,4 +51,3 @@ ${ALGO_COMMAND} > ${BASE_LOGS_PATH}${ALGORITHM_LOG_FILE_NAME} 2>&1 & PID_LIST+="
 echo ${PID_LIST}
 trap "kill $PID_LIST" SIGINT
 wait $PID_LIST
-#run_parallel "node app worker" "python3 ../algoPackage/wrapper/wrapper.py"

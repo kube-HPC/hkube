@@ -30,6 +30,9 @@ properties:
     description: Array of tags
     items:
       $ref: "#/components/schemas/tag"
+  rootJobId:
+    type: string
+    description: the root job id of the current tree
 additionalProperties: false
 required:
   - name

@@ -13,7 +13,7 @@ const uuid = require('uuid/v4');
 const { workerStates } = require('../lib/consts');
 const storageManager = require('@hkube/storage-manager');
 const delay = require('delay');
-const etcd = require('../lib/states/discovery');
+const stateAdapter = require('../lib/states/stateAdapter');
 
 let spy, producer;
 
@@ -56,6 +56,7 @@ function getConfig() {
                     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
                     endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
                 },
+                encoding: process.env.STORAGE_ENCODING || 'bson',
                 moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
             }
         },
@@ -82,7 +83,7 @@ describe('consumer tests', () => {
     });
     it('if job already stopped return and finish job', async () => {
         const config = getConfig();
-        await etcd._etcd.jobs.status.set({ jobId: config.jobId, status: pipelineStatuses.STOPPED });
+        await stateAdapter._etcd.jobs.status.set({ jobId: config.jobId, status: pipelineStatuses.STOPPED });
         spy = sinon.spy(consumer, '_stopJob');
         consumer._jobProvider.emit('job', {
             data: {

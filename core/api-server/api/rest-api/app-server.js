@@ -42,7 +42,7 @@ class AppServer {
                 const file = path.basename(f, '.js');
                 routes.push({
                     route: path.join('/', prefix, v, file),
-                    router: require('./' + path.join('routes', v, file))({ version: v, file })  // eslint-disable-line
+                    router: require('./' + path.join('routes', v, file))({ ...options, version: v, file })  // eslint-disable-line
                 });
             });
         });

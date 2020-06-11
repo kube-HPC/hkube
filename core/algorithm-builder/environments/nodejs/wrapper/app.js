@@ -1,7 +1,6 @@
 const configIt = require('@hkube/config');
 const NodejsWrapper = require('@hkube/nodejs-wrapper');
 
-
 const init = async () => {
     try {
         const { config } = configIt.load({ cwd: __dirname });
@@ -9,7 +8,7 @@ const init = async () => {
 
         const nodejsWrapper = new NodejsWrapper();
         nodejsWrapper.loadAlgorithm(config.algorithm);
-        nodejsWrapper.connectToWorker(config.socket);
+        await nodejsWrapper.connectToWorker(config);
     }
     catch (error) {
         _onInitFailed(error);

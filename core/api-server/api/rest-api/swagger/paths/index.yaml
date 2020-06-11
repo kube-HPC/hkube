@@ -127,5 +127,9 @@
   $ref: ./storage/values.yaml
 /storage/stream/{path}:
   $ref: ./storage/stream.yaml
+/storage/stream/custom/{path}:
+  $ref: ./storage/stream.yaml
 /storage/download/{path}:
+  $ref: ./storage/download.yaml
+/storage/download/custom/{path}:
   $ref: ./storage/download.yaml

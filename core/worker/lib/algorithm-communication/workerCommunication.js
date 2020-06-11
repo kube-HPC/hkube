@@ -7,7 +7,7 @@ const socketAdapter = require('./socket-io');
 const loopbackAdapter = require('./loopback');
 const { adapters } = require('./consts');
 const messages = require('./messages');
-const component = require('../../lib/consts').Components.COMMUNICATIONS;
+const component = require('../consts').Components.COMMUNICATIONS;
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
@@ -46,7 +46,11 @@ class WorkerCommunication extends EventEmitter {
                 this.emit(topic, message);
             });
         });
-        await this.adapter.init(options.config);
+        await this.adapter.init(options);
+    }
+
+    setEncodingType(type) {
+        this.adapter.setEncodingType && this.adapter.setEncodingType(type);
     }
 
     /**
