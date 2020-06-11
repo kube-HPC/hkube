@@ -1,11 +1,12 @@
 const EventEmitter = require('events');
 const http = require('http');
 const WebSocket = require('ws');
+const url = require('url');
 const Logger = require('@hkube/logger');
+const { Encoding } = require('@hkube/encoding');
 const Validator = require('ajv');
 const schema = require('./schema').socketWorkerCommunicationSchema;
 const component = require('../consts').Components.COMMUNICATIONS;
-const { binaryDecode, binaryEncode } = require('../helpers/binaryEncoding');
 const validator = new Validator({ useDefaults: true, coerceTypes: true });
 let log;
 
@@ -25,21 +26,14 @@ class WsWorkerCommunication extends EventEmitter {
                 if (!valid) {
                     return reject(new Error(validator.errorsText(validator.errors)));
                 }
-                if (option.binary) {
-                    this._parse = binaryDecode;
-                    this._stringify = binaryEncode;
-                }
-                else {
-                    this._parse = JSON.parse;
-                    this._stringify = JSON.stringify;
-                }
                 const server = options.httpServer || http.createServer();
                 this._socketServer = new WebSocket.Server({ server, maxPayload: options.maxPayload });
 
-                this._socketServer.on('connection', (socket) => {
+                this._socketServer.on('connection', (socket, opt) => {
+                    const data = url.parse(opt.url, true).query;
                     log.info('Connected!!!', { component });
                     this._registerSocketMessages(socket);
-                    this.emit('connection');
+                    this.emit('connection', data);
                 });
                 this._socketServer.on('error', (error) => {
                     log.error(`error ${error}`, { component });
@@ -48,7 +42,7 @@ class WsWorkerCommunication extends EventEmitter {
                     log.debug('listening', { component });
                 });
                 if (!options.httpServer) {
-                    server.listen(options.connection.port, () => {
+                    server.listen(options.port, () => {
                         return resolve();
                     });
                 }
@@ -59,10 +53,14 @@ class WsWorkerCommunication extends EventEmitter {
         });
     }
 
+    setEncodingType(type) {
+        this._encoding = new Encoding({ type });
+    }
+
     _registerSocketMessages(socket) {
         this._socket = socket;
         socket.on('message', (data) => {
-            const payload = this._parse(data);
+            const payload = this._encoding.decode(data);
             log.debug(`got message ${payload.command}`, { component });
             this.emit(payload.command, payload);
         });
@@ -87,7 +85,7 @@ class WsWorkerCommunication extends EventEmitter {
             log.warning(`Error sending message to algorithm command ${message.command}. error: ${error.message}`, { component }, error);
             throw error;
         }
-        this._socket.send(this._stringify(message));
+        this._socket.send(this._encoding.encode(message));
     }
 }
 

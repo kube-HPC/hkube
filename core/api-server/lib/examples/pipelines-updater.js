@@ -39,9 +39,13 @@ class PipelinesUpdater {
         }
     }
 
-    async _pipelineDriversTemplate() {
+    async _pipelineDriversTemplate(options) {
         try {
-            await Promise.all(drivers.map(d => stateManager.pipelineDrivers.store.set(d)));
+            let driversTemplate = drivers;
+            if (options.pipelineDriversResources) {
+                driversTemplate = drivers.map(d => ({ ...d, ...options.pipelineDriversResources }));
+            }
+            await Promise.all(driversTemplate.map(d => stateManager.pipelineDrivers.store.set(d)));
         }
         catch (error) {
             log.warning(`failed to upload default drivers. ${error.message}`);

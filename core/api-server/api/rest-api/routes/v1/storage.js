@@ -1,6 +1,5 @@
 
 const express = require('express');
-const pathLib = require('path');
 const logger = require('../../middlewares/logger');
 const storage = require('../../../../lib/service/storage');
 const { ResourceNotFoundError, InvalidDataError } = require('../../../../lib/errors');
@@ -19,8 +18,20 @@ const handleStreamError = (err, path, res, next) => {
     next(handleStorageError(err, 'stream', path));
 };
 
+const streamApi = (res, stream, path, next) => {
+    stream.on('error', err => handleStreamError(err, path, res, next));
+    stream.pipe(res);
+};
+
+const downloadApi = (res, stream, path, next) => {
+    res.setHeader('Content-disposition', 'attachment; filename=hkubeResult');
+    res.setHeader('Content-type', 'application/octet-stream');
+    streamApi(res, stream, path, next);
+};
+
 const routes = (options) => {
     const router = express.Router();
+
     router.get('/', (req, res, next) => {
         res.json({ message: `${options.version} ${options.file} api` });
         next();
@@ -83,6 +94,11 @@ const routes = (options) => {
     router.get('/values/*', logger(), async (req, res, next) => {
         const path = req.params[0];
         try {
+            const metadata = await storage.getMetadata({ path });
+            const result = storage.checkDataSize(metadata.size);
+            if (result.error) {
+                throw new Error(result.error);
+            }
             const response = await storage.getByPath({ path });
             res.json(response);
             next();
@@ -91,20 +107,35 @@ const routes = (options) => {
             next(handleStorageError(e, 'value', path));
         }
     });
+    router.get('/stream/custom/*', logger(), async (req, res, next) => {
+        const path = req.params[0];
+        try {
+            const stream = await storage.getCustomStream({ path });
+            streamApi(res, stream, path, next);
+        }
+        catch (e) {
+            next(handleStorageError(e, 'stream', path));
+        }
+    });
     router.get('/stream/*', logger(), async (req, res, next) => {
         const path = req.params[0];
         const stream = await storage.getStream({ path });
-        stream.on('error', err => handleStreamError(err, path, res, next));
-        stream.pipe(res);
+        streamApi(res, stream, path, next);
+    });
+    router.get('/download/custom/*', logger(), async (req, res, next) => {
+        const path = req.params[0];
+        try {
+            const stream = await storage.getCustomStream({ path });
+            downloadApi(res, stream, path, next);
+        }
+        catch (e) {
+            next(handleStorageError(e, 'value', path));
+        }
     });
     router.get('/download/*', logger(), async (req, res, next) => {
         const path = req.params[0];
         const stream = await storage.getStream({ path });
-        const filename = pathLib.basename(path);
-        stream.on('error', err => handleStreamError(err, path, res, next));
-        res.setHeader('Content-disposition', `attachment; filename=${filename}`);
-        res.setHeader('Content-type', 'application/octet-stream');
-        stream.pipe(res);
+        downloadApi(res, stream, path, next);
     });
 
     return router;

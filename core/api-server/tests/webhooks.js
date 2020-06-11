@@ -243,7 +243,6 @@ describe('Webhooks', () => {
             expect(response.body.error.message).to.equal('webhook no_such Not Found');
         });
         it('should succeed and return webhooks progress', async function () {
-            this.timeout(5000);
             const options1 = {
                 uri: restUrl + '/exec/stored',
                 body: { name: 'webhookFlow2' }
@@ -267,7 +266,6 @@ describe('Webhooks', () => {
             expect(response2.body).to.have.property('responseStatus');
         });
         it('should succeed and return webhook by jobId', async function () {
-            this.timeout(5000);
             const options1 = {
                 uri: restUrl + '/exec/stored',
                 body: { name: 'webhookFlow2' }
