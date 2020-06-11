@@ -36,6 +36,11 @@ properties:
         minimum: 1
         default: 3
         example: 1
+  batchOperation:
+    type: string
+    enum:
+      - indexed
+      - cartesian
 required:
   - nodeName
   - algorithmName

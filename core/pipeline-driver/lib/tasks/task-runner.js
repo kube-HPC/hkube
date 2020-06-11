@@ -408,6 +408,7 @@ class TaskRunner extends EventEmitter {
                 flowInput: this.pipeline.flowInput,
                 nodeInput: node.input,
                 parentOutput: node.parentOutput || parentOutput,
+                batchOperation: node.batchOperation,
                 index
             };
             const result = parser.parse(parse);
