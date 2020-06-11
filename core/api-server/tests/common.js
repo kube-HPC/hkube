@@ -3,11 +3,29 @@ const HttpStatus = require('http-status-codes');
 const swagger = require('../api/rest-api/swagger.json')
 const { request } = require('./utils');
 const httpMethods = ['GET', 'POST', 'PUT', 'DELETE'];
-
+const stateManager = require('../lib/state/state-manager');
+let updater;
 describe('Common', () => {
     before(() => {
+        updater = require('../lib/examples/pipelines-updater');
         restUrl = global.testParams.restUrl;
     });
+    describe('Pipeline template', () => {
+        it('should apply defaults', async () => {
+            await updater._pipelineDriversTemplate({})
+            const template = await stateManager._client.get('/pipelineDrivers/store/pipeline-driver',{ isPrefix : false });
+            expect(template).to.exist;
+            expect(template.mem).to.eql(2048)
+            expect(template.cpu).to.eql(0.15)
+        });
+        it('should apply from config', async () => {
+            await updater._pipelineDriversTemplate({pipelineDriversResources: {mem: 300, cpu: 0.6}})
+            const template = await stateManager._client.get('/pipelineDrivers/store/pipeline-driver',{ isPrefix : false });
+            expect(template).to.exist;
+            expect(template.mem).to.eql(300)
+            expect(template.cpu).to.eql(0.6)
+        });
+    })
     describe('Method Not Allowed', () => {
         Object.entries(swagger.paths).forEach(([k, v]) => {
             it(`${k} - should throw Method Not Allowed`, async () => {
@@ -29,7 +47,7 @@ describe('Common', () => {
             });
         });
     });
-    describe.skip('should NOT have additional properties', () => {
+    describe('should NOT have additional properties', () => {
         Object.entries(swagger.paths).forEach(([k, v]) => {
             it(`${k} - should NOT have additional properties`, async () => {
                 const method = Object.keys(v).map(m => m.toUpperCase()).find(m => m === 'POST');
@@ -52,7 +70,7 @@ describe('Common', () => {
                 if (response.body.error && response.body.error.code === HttpStatus.BAD_REQUEST) {
                     expect(response.body).to.have.property('error');
                     expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                    expect(response.body.error.message).to.equal('Method Not Allowed');
+                    expect(response.body.error.message).to.equal('data should NOT have additional properties (no_such_prop)');
                 }
             });
         });

@@ -1,11 +1,12 @@
 const Logger = require('@hkube/logger');
-const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses, retryPolicy, taskStatuses } = require('@hkube/consts');
 const stateManager = require('./states/stateManager');
+const tracing = require('./tracing/tracing');
 const jobConsumer = require('./consumer/JobConsumer');
+const storageHelper = require('./storage/storage');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
-const discovery = require('./states/discovery');
-const { stateEvents, workerStates, workerCommands, Components } = require('../lib/consts');
+const stateAdapter = require('./states/stateAdapter');
+const { stateEvents, workerStates, workerCommands, Components } = require('./consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
@@ -43,6 +44,27 @@ class Worker {
         this._doTheBootstrap();
     }
 
+    _initAlgorithmSettings() {
+        const { storage: algorithmStorage, encoding: algorithmEncoding } = this._algorithmSettings;
+
+        const storage = (!this._debugMode && algorithmStorage) || this._options.defaultStorageProtocol;
+        const encoding = algorithmEncoding || this._options.defaultWorkerAlgorithmEncoding;
+        storageHelper.setStorageType(storage);
+        execAlgorithms.setStorageType(storage);
+        subPipeline.setStorageType(storage);
+        algoRunnerCommunication.setEncodingType(encoding);
+
+        let message = 'algorithm protocols: none';
+        if (algorithmStorage && algorithmEncoding) {
+            message = `algorithm protocols: ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
+        }
+        log.info(`${message}. chosen protocols: ${this._formatProtocol({ storage, encoding })}`, { component });
+    }
+
+    _formatProtocol(protocols) {
+        return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `${k}:${v}`).join(',') : '';
+    }
+
     _setInactiveTimeout() {
         if (jobConsumer.isConsumerPaused) {
             this._inactiveTimeoutMs = this._options.timeouts.inactivePaused || 0;
@@ -54,35 +76,35 @@ class Worker {
     }
 
     _registerToEtcdEvents() {
-        discovery.on(pipelineStatuses.COMPLETED, (data) => {
+        stateAdapter.on(pipelineStatuses.COMPLETED, (data) => {
             this._stopPipeline({ status: data.status });
         });
-        discovery.on(pipelineStatuses.FAILED, (data) => {
+        stateAdapter.on(pipelineStatuses.FAILED, (data) => {
             this._stopPipeline({ status: data.status });
         });
-        discovery.on(pipelineStatuses.STOPPED, (data) => {
+        stateAdapter.on(pipelineStatuses.STOPPED, (data) => {
             this._stopPipeline({ status: data.status, reason: data.reason });
         });
-        discovery.on(workerCommands.coolDown, async () => {
+        stateAdapter.on(workerCommands.coolDown, async () => {
             log.info('got coolDown event', { component });
             jobConsumer.hotWorker = false;
             await jobConsumer.updateDiscovery({ state: stateManager.state });
             this._setInactiveTimeout();
         });
-        discovery.on(workerCommands.warmUp, async () => {
+        stateAdapter.on(workerCommands.warmUp, async () => {
             log.info('got warmUp event', { component });
             jobConsumer.hotWorker = true;
             await jobConsumer.updateDiscovery({ state: stateManager.state });
             this._setInactiveTimeout();
         });
-        discovery.on(workerCommands.stopProcessing, async () => {
+        stateAdapter.on(workerCommands.stopProcessing, async () => {
             if (!jobConsumer.isConsumerPaused) {
                 await jobConsumer.pause();
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
             }
         });
-        discovery.on(workerCommands.exit, async (event) => {
+        stateAdapter.on(workerCommands.exit, async (event) => {
             log.info(`got ${event.status.command} command, message ${event.message}`, { component });
             await jobConsumer.updateDiscovery({ state: 'exit' });
             const data = {
@@ -93,7 +115,7 @@ class Worker {
             };
             stateManager.exit(data);
         });
-        discovery.on(workerCommands.startProcessing, async () => {
+        stateAdapter.on(workerCommands.startProcessing, async () => {
             if (stateManager.state === workerStates.exit) {
                 return;
             }
@@ -130,17 +152,19 @@ class Worker {
             return;
         }
         this._isBootstrapped = true;
+        this._initAlgorithmSettings();
         log.info('starting bootstrap state', { component });
         stateManager.bootstrap();
         log.info('finished bootstrap state', { component });
     }
 
     _registerToConnectionEvents() {
-        algoRunnerCommunication.on('connection', () => {
+        algoRunnerCommunication.on('connection', (options) => {
             this._isConnected = true;
             if (stateManager.state === workerStates.exit) {
                 return;
             }
+            this._algorithmSettings = options || {};
             this._doTheBootstrap();
         });
         algoRunnerCommunication.on('disconnect', async (reason) => {
@@ -183,6 +207,9 @@ class Worker {
     _registerToCommunicationEvents() {
         algoRunnerCommunication.on(messages.incomming.initialized, () => {
             stateManager.start();
+        });
+        algoRunnerCommunication.on(messages.incomming.storing, async (message) => {
+            await jobConsumer.setStoringStatus(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
@@ -295,32 +322,8 @@ class Worker {
             return;
         }
         const { data } = message;
-        if (!data || !data.name) {
-            log.warning(`invalid startSpan message: ${JSON.stringify(message, null, 2)}`);
-            return;
-        }
-        const spanOptions = {
-            name: data.name,
-            id: jobConsumer.taskId,
-            tags: {
-                ...data.tags,
-                jobId: jobConsumer.jobId,
-                taskId: jobConsumer.taskId,
-            }
-        };
-        // set parent span
-        if (!jobConsumer.algTracer.topSpan(jobConsumer.taskId)) {
-            const topWorkerSpan = tracer.topSpan(jobConsumer.taskId);
-            if (topWorkerSpan) {
-                spanOptions.parent = topWorkerSpan.context();
-            }
-            else {
-                //         log.warning('temp log message: no top span in start alg span');
-                spanOptions.parent = jobConsumer._job.data.spanId;
-            }
-        }
-        // start span
-        jobConsumer.algTracer.startSpan(spanOptions);
+        const { jobId, taskId } = jobConsumer;
+        tracing.startAlgorithmSpan({ data, jobId, taskId });
     }
 
     /**
@@ -334,20 +337,8 @@ class Worker {
             return;
         }
         const { data } = message;
-        if (!data) {
-            log.warning(`invalid finishSpan message: ${JSON.stringify(message, null, 2)}`);
-            return;
-        }
-        const topSpan = jobConsumer.algTracer.topSpan(jobConsumer.taskId);
-        if (topSpan) {
-            if (data.tags) {
-                topSpan.addTag(data.tags);
-            }
-            topSpan.finish(data.error);
-        }
-        else {
-            log.warning('got finishSpan request but algorithm span stack is empty!');
-        }
+        const { taskId } = jobConsumer;
+        tracing.finishAlgorithmSpan({ data, taskId });
     }
 
     async handleExit(code, jobId) {
@@ -383,7 +374,7 @@ class Worker {
 
     _tryDeleteWorkerState() {
         try {
-            return discovery.deleteWorkerState();
+            return stateAdapter.deleteWorkerState();
         }
         catch (err) {
             log.warning(`Failed to delete worker states ${err}`, { component });
@@ -472,21 +463,26 @@ class Worker {
                 case workerStates.ready:
                     break;
                 case workerStates.init: {
-                    const { error, data } = await jobConsumer.extractData(job.data);
+                    const { error, data } = await storageHelper.extractData(job.data);
                     if (!error) {
+                        const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
+
                         algoRunnerCommunication.send({
                             command: messages.outgoing.initialize,
-                            data
+                            data: { ...data, spanId }
                         });
                     }
                     break;
                 }
-                case workerStates.working:
+                case workerStates.working: {
                     this._handleTtlStart(job);
+                    const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
                     algoRunnerCommunication.send({
-                        command: messages.outgoing.start
+                        command: messages.outgoing.start,
+                        data: { spanId }
                     });
                     break;
+                }
                 case workerStates.shutdown:
                     break;
                 case workerStates.error:

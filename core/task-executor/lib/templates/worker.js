@@ -58,6 +58,14 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'POD_IP',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'status.podIP'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'POD_NAME',
                                 valueFrom: {
                                     fieldRef: {
@@ -83,11 +91,56 @@ const workerTemplate = {
                                 }
                             },
                             {
-                                name: 'STORAGE_BINARY',
+                                name: 'STORAGE_ENCODING',
                                 valueFrom: {
                                     configMapKeyRef: {
                                         name: 'task-executor-configmap',
-                                        key: 'STORAGE_BINARY'
+                                        key: 'STORAGE_ENCODING'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_ENCODING'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_PORT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_PORT'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_TIMEOUT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_TIMEOUT'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_MAX_CACHE_SIZE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_MAX_CACHE_SIZE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'WORKER_ALGORITHM_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'WORKER_ALGORITHM_ENCODING'
                                     }
                                 }
                             },
@@ -117,7 +170,7 @@ const workerTemplate = {
                                     }
                                 }
                             },
-                            
+
                         ],
                     },
                     {
@@ -127,7 +180,95 @@ const workerTemplate = {
                             {
                                 name: 'ALGO_METRICS_DIR',
                                 value: `${algoMetricsDir}`
-                            }
+                            },
+                            {
+                                name: 'POD_IP',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'status.podIP'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DEFAULT_STORAGE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DEFAULT_STORAGE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'STORAGE_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'STORAGE_ENCODING'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_ENCODING'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_PORT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_PORT'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_TIMEOUT',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_TIMEOUT'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_MAX_CACHE_SIZE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_MAX_CACHE_SIZE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'WORKER_ALGORITHM_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'WORKER_ALGORITHM_ENCODING'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'CLUSTER_NAME',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'CLUSTER_NAME'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'JAEGER_AGENT_SERVICE_HOST',
+                                valueFrom: {
+                                    fieldRef: {
+                                        fieldPath: 'status.hostIP'
+                                    }
+                                }
+                            },
                         ]
                     }
                 ],

@@ -52,12 +52,12 @@ class ExecutionService {
     }
 
     async _runStored(options) {
-        const { pipeline, jobId, rootJobId, parentSpan, types, flowInputNoMerge } = options;
+        const { pipeline, jobId, rootJobId, parentSpan, types, flowInputMerge } = options;
         const storedPipeline = await stateManager.pipelines.get({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
-        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' && !flowInputNoMerge ? src || obj : undefined));
+        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' && flowInputMerge ? undefined : src || obj));
         return this._run({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
     }
 
@@ -80,7 +80,7 @@ class ExecutionService {
             const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
-                const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },
+                const storageInfo = await storageManager.hkube.put({ jobId, taskId: 'flowInput', data: pipeline.flowInput },
                     tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 pipeline = {
                     ...pipeline,
@@ -214,11 +214,11 @@ class ExecutionService {
 
     async getTree(options) {
         validator.validateJobID(options);
-        const jobs = await stateManager.jobs.status.getExecutionsTree({ jobId: options.jobId });
-        if (jobs == null || jobs.length === 0) {
-            throw new ResourceNotFoundError('jobs', options.jobId);
+        const tree = await stateManager.triggers.tree.get({ jobId: options.jobId });
+        if (!tree) {
+            throw new ResourceNotFoundError('tree', options.jobId);
         }
-        return jobs;
+        return tree;
     }
 
     async cleanJob(options) {
@@ -234,6 +234,7 @@ class ExecutionService {
             stateManager.executions.stored.delete({ jobId }),
             stateManager.jobs.results.delete({ jobId }),
             stateManager.jobs.status.delete({ jobId }),
+            stateManager.jobs.tasks.delete({ jobId }),
             stateManager.webhooks.delete({ jobId, type: WebhookTypes.PROGRESS }),
             stateManager.webhooks.delete({ jobId, type: WebhookTypes.RESULT }),
             producer.stopJob({ jobId })

@@ -49,16 +49,20 @@ class ExecutionService {
         return this._toggleCronJob(options, false);
     }
 
-    async _toggleCronJob(options, toggle) {
+    async _toggleCronJob(options, enabled) {
         validator.validateCronRequest(options);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        const pattern = objectPath.get(pipeline, 'triggers.cron.pattern');
-        objectPath.set(pipeline, 'triggers.cron.enabled', toggle);
-        objectPath.set(pipeline, 'triggers.cron.pattern', options.pattern || pattern || '0 * * * *');
-        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: pipeline });
+        return this.updateCronJob(pipeline, { pattern: options.pattern, enabled });
+    }
+
+    async updateCronJob(pipeline, { pattern, enabled }) {
+        const cronPattern = objectPath.get(pipeline, 'triggers.cron.pattern');
+        objectPath.set(pipeline, 'triggers.cron.enabled', enabled);
+        objectPath.set(pipeline, 'triggers.cron.pattern', pattern || cronPattern || '0 * * * *');
+        await storageManager.hkubeStore.put({ type: 'pipeline', name: pipeline.name, data: pipeline });
         await stateManager.pipelines.set(pipeline);
         return pipeline;
     }

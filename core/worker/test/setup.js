@@ -9,4 +9,8 @@ before(async function () {
     await storageManager.init(config, null, true);
     await bootstrap.init();
     workerCommunication.adapter.start();
+
+    global.testParams = {
+        config
+    }
 })

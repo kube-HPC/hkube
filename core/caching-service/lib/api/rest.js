@@ -1,6 +1,6 @@
 const RestServer = require('@hkube/rest-server');
 const Logger = require('@hkube/logger');
-const component = require('../../lib/consts/component-name').REST_API;
+const component = require('../consts/component-name').REST_API;
 const router = require('./route');
 const rest = new RestServer();
 const log = Logger.GetLogFromContanier();
