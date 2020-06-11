@@ -348,7 +348,7 @@ describe('Internal', () => {
             };
             const response3 = await request(options3);
             expect(response2.body).to.have.property('jobId');
-            expect(response3.body.flowInputOrig).to.eql({ ...pipeline.flowInput, ...flowInput });
+            expect(response3.body.flowInput).to.eql({ ...pipeline.flowInput, ...flowInput });
         });
         it('should run stored subPipeline and update right types', async function () {
             const pipeline = clone(pipelines[0]);
