@@ -15,4 +15,5 @@ config.timeouts = {
     algorithmDisconnected: formatter.parseInt(process.env.ALGORITHM_DISCONNECTED_TIMEOUT_MS, 120 * 1000)
 };
 
+
 module.exports = config;

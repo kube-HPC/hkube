@@ -5,10 +5,8 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const workerCommunication = require('../lib/algorithm-communication/workerCommunication');
 const config = {
-    workerCommunication:
-    {
-        adapterName: 'loopback',
-        config: {}
+    workerCommunication: {
+        adapterName: 'loopback'
     }
 };
 describe('worker communication', () => {

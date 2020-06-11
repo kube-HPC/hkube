@@ -26,7 +26,7 @@ const _filterChangedDeployments = (deployment, algorithms, versions, registry, c
     if (!algorithm) {
         return false;
     }
-    const { deploymentSpec } = createKindsSpec({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, algorithmOptions: algorithm.options, workerEnv: algorithm.workerEnv });
+    const { deploymentSpec } = createKindsSpec({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, workerEnv: algorithm.workerEnv });
     const imageChanged = deploymentSpec.spec.template.spec.containers[0].image !== deployment.imageFull;
 
     const customizer = (a, b) => objectPath.get(a, 'valueFrom.fieldRef') || objectPath.get(b, 'valueFrom.fieldRef');
@@ -48,7 +48,7 @@ const reconcile = async ({ kubernetesKinds, algorithms, versions, registry, clus
         log.debug(`added:\n ${JSON.stringify(added, null, 2)}\nremoved:\n${JSON.stringify(removed, null, 2)}`, { component });
     }
     for (let algorithm of added) { // eslint-disable-line
-        await _createKinds({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, algorithmOptions: algorithm.options, workerEnv: algorithm.workerEnv }); // eslint-disable-line
+        await _createKinds({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, workerEnv: algorithm.workerEnv }); // eslint-disable-line
     }
     for (let algorithm of removed) { // eslint-disable-line
         await etcd.removeAlgorithmData(algorithm.algorithmName); // eslint-disable-line
@@ -57,7 +57,7 @@ const reconcile = async ({ kubernetesKinds, algorithms, versions, registry, clus
     for (let deployment of updated) { // eslint-disable-line
         const algorithm = algorithms.find(a => a.name === deployment.algorithmName);
         if (algorithm) {
-            await _updateDeployment({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, algorithmOptions: algorithm.options, workerEnv: algorithm.workerEnv }); // eslint-disable-line
+            await _updateDeployment({ algorithmName: algorithm.name, versions, registry, clusterOptions, options, workerEnv: algorithm.workerEnv }); // eslint-disable-line
         }
     }
 

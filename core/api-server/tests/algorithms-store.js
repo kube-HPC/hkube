@@ -1345,7 +1345,9 @@ describe('Store/Algorithms', () => {
                 }
                 const apply2 = {
                     name: apply1.name,
-                    algorithmEnv: null
+                    algorithmEnv: {
+                        storage_env: 's3'
+                    }
                 }
                 const uri = restPath + '/apply';
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
@@ -1362,7 +1364,8 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                expect(response3.body.algorithmEnv).to.be.null;
+                expect(response3.body.algorithmEnv.storage_env).to.eql('s3');
+                expect(response3.body.algorithmEnv.stam_env).to.not.exist;
             });
         });
     });

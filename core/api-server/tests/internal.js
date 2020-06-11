@@ -328,16 +328,27 @@ describe('Internal', () => {
                 }
             };
             const response1 = await request(options1);
+            const flowInput = {
+                data: 33
+            };
             const options2 = {
                 uri: `${internalUrl}/exec/stored/subPipeline`,
                 body: {
                     name: pipeline.name,
                     jobId: response1.body.jobId,
-                    taskId: `taskId:${uuid()} `
+                    taskId: `taskId:${uuid()}`,
+                    flowInput
                 }
             };
             const response2 = await request(options2);
+
+            const options3 = {
+                uri: `${restUrl}/exec/pipelines/${response2.body.jobId}`,
+                method: 'GET'
+            };
+            const response3 = await request(options3);
             expect(response2.body).to.have.property('jobId');
+            expect(response3.body.flowInputOrig).to.eql({ ...pipeline.flowInput, ...flowInput });
         });
         it('should run stored subPipeline and update right types', async function () {
             const pipeline = clone(pipelines[0]);

@@ -1,4 +1,4 @@
-const { orderBy, mapToArray } = require('../utils/utils');
+const { orderBy, mapToArray } = require('./utils');
 const MAX_SCORE = 10;
 
 const order = (queue) => {

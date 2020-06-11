@@ -8,6 +8,7 @@ node_modules
 /jspm_packages
 environments/*/packages
 algorithm_unique_folder
+!algorithm_unique_folder/__init__.py
 
 # Python
 __pycache__/

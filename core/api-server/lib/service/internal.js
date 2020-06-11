@@ -18,7 +18,6 @@ class InternalService {
         if (results && results.data) {
             pipeline.flowInput = { parent: results.data };
         }
-
         await stateManager.triggers.tree.set({ name, rootJobName, jobId, rootJobId, parentJobId });
         return execution._runStored({ pipeline, jobId, rootJobId, flowInputNoMerge: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER] });
     }
@@ -26,7 +25,7 @@ class InternalService {
     async runStoredSubPipeline(options) {
         validator.validateStoredSubPipeline(options);
         const { pipeline, rootJobId, parentSpan } = await this._createPipeline(options);
-        return execution._runStored({ pipeline, rootJobId, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE] });
+        return execution._runStored({ pipeline, rootJobId, options: { parentSpan }, flowInputMerge: true, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE] });
     }
 
     async runRawSubPipeline(options) {

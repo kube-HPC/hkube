@@ -2,13 +2,11 @@ const EventEmitter = require('events');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const { cacheResults } = require('../utils');
-const { EventMessages, Components } = require('../consts');
-const { WATCH_STATE } = require('../consumer/consts');
-
+const { EventMessages, Components, jobStatus } = require('../consts');
 const component = Components.ETCD;
 let log;
 
-class EtcdDiscovery extends EventEmitter {
+class StateAdapter extends EventEmitter {
     constructor() {
         super();
         this._etcd = null;
@@ -58,7 +56,7 @@ class EtcdDiscovery extends EventEmitter {
     }
 
     async stopAlgorithmExecution(options) {
-        return this._etcd.algorithms.executions.set({ ...options, status: WATCH_STATE.STOPPED });
+        return this._etcd.algorithms.executions.set({ ...options, status: jobStatus.STOPPED });
     }
 
     async watchAlgorithmExecutions(options) {
@@ -136,4 +134,4 @@ class EtcdDiscovery extends EventEmitter {
     }
 }
 
-module.exports = new EtcdDiscovery();
+module.exports = new StateAdapter();

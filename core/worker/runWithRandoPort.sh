@@ -53,7 +53,10 @@ node app worker& PID_LIST+=" $!";
 
 pushd .
 cd ${ALGOCWD}
-${ALGO_COMMAND} > ${BASE_LOGS_PATH}${ALGORITHM_LOG_FILE_NAME} 2>&1 & PID_LIST+=" $!"
+${ALGO_COMMAND} 
+
+#> ${BASE_LOGS_PATH}${ALGORITHM_LOG_FILE_NAME} 2>&1 & PID_LIST+=" $!"
+
 popd
 echo ${PID_LIST}
 trap "kill $PID_LIST" SIGINT
