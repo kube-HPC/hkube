@@ -8,6 +8,8 @@ const secured = !!process.env.API_SERVER_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.maxStorageFetchKeys = formatter.parseInt(process.env.MAX_STORAGE_FETCH_KEYS, 100);
+config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
+const storageEncoding = process.env.STORAGE_ENCODING || 'bson';
 
 config.version = packageJson.version;
 
@@ -78,7 +80,7 @@ config.clusterName = process.env.CLUSTER_NAME || 'local';
 
 config.pipelineDriversResources = {
     cpu: parseFloat(process.env.PIPELINE_DRIVER_CPU || 0.15),
-    mem: parseFloat(process.env.PIPELINE_DRIVER_MEM || 256)
+    mem: parseFloat(process.env.PIPELINE_DRIVER_MEM || 2048)
 };
 
 config.metrics = {
@@ -102,18 +104,17 @@ config.tracer = {
 config.s3 = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
-    binary: formatter.parseBool(process.env.STORAGE_BINARY, false)
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
 };
 
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
-    binary: formatter.parseBool(process.env.STORAGE_BINARY, false)
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
 };
 
 config.storageAdapters = {
     s3: {
         connection: config.s3,
+        encoding: storageEncoding,
         moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
     },
     etcd: {
@@ -126,6 +127,7 @@ config.storageAdapters = {
     },
     fs: {
         connection: config.fs,
+        encoding: storageEncoding,
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };

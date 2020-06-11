@@ -37,8 +37,8 @@ class SocketWorkerCommunication extends EventEmitter {
                     this.emit('connection');
                 });
                 if (!options.httpServer) {
-                    log.info(`socket-io adapter is listening on port ${options.connection.port}`, { component });
-                    server.listen(options.connection.port, () => {
+                    log.info(`socket-io adapter is listening on port ${options.port}`, { component });
+                    server.listen(options.port, () => {
                         return resolve();
                     });
                 }

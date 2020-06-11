@@ -10,9 +10,7 @@ class StorageService {
     }
 
     getInfo() {
-        return {
-            storage: this.config.defaultStorage,
-        };
+        return storageManager.getInfo();
     }
 
     get prefixesTypes() {
@@ -50,8 +48,20 @@ class StorageService {
         return Promise.all(this.prefixesTypes.map(path => this._getKeysByPath({ path, ...options })));
     }
 
-    async getStream({ path }) {
-        return storageManager.getStream({ path });
+    async getStream(options) {
+        return storageManager.getStream(options);
+    }
+
+    async getMetadata({ path }) {
+        return storageManager.getMetadata({ path });
+    }
+
+    checkDataSize(size) {
+        return storageManager.checkDataSize(size);
+    }
+
+    async getCustomStream(options) {
+        return storageManager.getCustomStream(options);
     }
 
     _formatResponse({ path, keys, sort, order, from, to }) {
@@ -61,7 +71,7 @@ class StorageService {
     }
 
     getByPath({ path }) {
-        return storageManager.storage.get({ path });
+        return storageManager.storage.get({ path, encodeOptions: { customEncode: true } });
     }
 }
 
