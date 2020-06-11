@@ -3,7 +3,7 @@ const { stateEvents, workerStates } = require('../lib/consts');
 const delay = require('delay');
 const { expect } = require('chai');
 const sinon = require('sinon');
-const etcd = require('../lib/states/discovery');
+const stateAdapter = require('../lib/states/stateAdapter');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 
 describe('state machine', () => {
@@ -62,7 +62,7 @@ describe('state machine', () => {
         stateMachine.prepare();
         stateMachine.start();
         stateMachine.done();
-        etcd.workers.set({ workerId: etcd.discovery._instanceId, status: { command: 'stopProcessing' } });
+        stateAdapter.workers.set({ workerId: stateAdapter.discovery._instanceId, status: { command: 'stopProcessing' } });
         await delay(600);
         expect(jobConsumer._consumerPaused).to.eql(false);
     });

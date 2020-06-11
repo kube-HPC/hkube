@@ -48,10 +48,11 @@ const applyEnvToContainerFromSecretOrConfigMap = (inputSpec, containerName, inpu
 };
 
 const applyAlgorithmName = (inputSpec, algorithmName) => {
-    const spec = clonedeep(inputSpec);
+    let spec = clonedeep(inputSpec);
     objectPath.set(spec, 'metadata.labels.algorithm-name', algorithmName);
     objectPath.set(spec, 'spec.template.metadata.labels.algorithm-name', algorithmName);
-    return applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_TYPE: algorithmName });
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_TYPE: algorithmName });
+    return applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { ALGORITHM_TYPE: algorithmName });
 };
 
 const applyName = (inputSpec, algorithmName) => {
@@ -184,10 +185,6 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_IMAGE: algorithmImage });
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
-    if (algorithmOptions && algorithmOptions.binary) {
-        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_BINARY: 'true' });
-        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { WORKER_BINARY: 'true' });
-    }
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
     if (settings.applyResources) {
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
@@ -196,6 +193,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyHotWorker(spec, hotWorker);
     spec = applyEntryPoint(spec, entryPoint);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.WORKER, 'task-executor-configmap');
+    spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM, 'task-executor-configmap');
     spec = applyLogging(spec, options);
     spec = applyOpengl(spec, options, algorithmOptions);
     spec = applyMounts(spec, mounts);

@@ -299,7 +299,7 @@ describe('Test', function () {
 
             expect(spy.calledOnce).to.equal(true);
         });
-        it('should recover big pipeline', async function () {
+        it.skip('should recover big pipeline', async function () {
             const jobId = `jobid-recovery-${uuidv4()}`;
             const job = {
                 data: { jobId },
@@ -318,9 +318,10 @@ describe('Test', function () {
             nodesMap.setNode(node1);
             nodesMap.setNode(node2);
             nodesMap.setNode(node3);
-            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
-            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
-            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
+
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'storing' });
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'storing' });
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'storing' });
 
             await stateManager._etcd.jobs.status.set({ jobId, status: 'active' });
             await stateManager.setExecution({ jobId, ...pipeline });
@@ -331,6 +332,10 @@ describe('Test', function () {
             expect(taskRunner._active).to.equal(true);
             expect(taskRunner._driverStatus).to.equal('active');
             expect(taskRunner._jobStatus).to.equal('active');
+
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
+            await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
 
             await delay(5000);
             expect(taskRunner._active).to.equal(false);
@@ -391,7 +396,7 @@ describe('Test', function () {
             expect(spy.calledOnce).to.equal(true);
             expect(call.args[0].error.message).to.equal(error);
         });
-        it('should wait any', async function () {
+        it.skip('should wait any', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const job = {
                 data: { jobId },
@@ -416,6 +421,23 @@ describe('Test', function () {
 
             expect(black.status).to.equals('preschedule');
             expect(black.batch[0].input).to.lengthOf(2);
+        });
+        it('should start pipeline and update graph on failure', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines[0];
+            await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await taskRunner.start(job);
+            await taskRunner.stop({ error: 'error' });
+            const graph = await graphStore.getGraph({ jobId });
+            expect(graph.nodes[0].status).to.equal('failed');
+            expect(graph.nodes[1].status).to.equal('failed');
+            expect(graph.nodes[2].status).to.equal('failed');
+            expect(graph.nodes[3].status).to.equal('failed');
         });
     });
     describe('Progress', function () {

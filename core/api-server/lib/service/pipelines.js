@@ -27,6 +27,7 @@ class PipelineStore {
 
     async deletePipelineFromStore(options) {
         await storageManager.hkubeStore.delete({ type: 'pipeline', name: options.name });
+        await storageManager.hkubeStore.delete({ type: 'readme/pipeline', name: options.name });
         return stateManager.pipelines.delete(options);
     }
 

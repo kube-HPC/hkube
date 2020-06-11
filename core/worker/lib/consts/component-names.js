@@ -13,7 +13,8 @@ const Components = {
     ALGORITHM_EXECUTION: 'Algorithm-Execution',
     SUB_PIPELINE: 'SubPipeline',
     JOB_PROVIDER: 'JobProvider',
-    K8S: 'k8s'
+    K8S: 'k8s',
+    STORAGE: 'Storage'
 };
 
 module.exports = Components;

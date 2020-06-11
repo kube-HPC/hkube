@@ -1,15 +1,12 @@
+const { parser } = require('@hkube/parsers');
+
 const splitInputToNodes = (input, nodes) => {
     const filteredNodes = [];
     input.forEach((i) => {
-        if (typeof i === 'string') {
-            const findAt = i.split('@')[1];
-            if (findAt) {
-                const node = findAt.split('.')[0];
-                const filteredInput = nodes.find(n => n === node);
-                if (filteredInput) {
-                    filteredNodes.push(filteredInput);
-                }
-            }
+        const nodesData = parser.extractNodesFromInput(i);
+        const nodesNames = nodesData.filter(n => nodes.includes(n.nodeName));
+        if (nodesNames.length > 0) {
+            filteredNodes.push(...nodesNames);
         }
     });
     return filteredNodes;

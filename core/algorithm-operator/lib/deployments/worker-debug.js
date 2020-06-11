@@ -20,7 +20,7 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
-const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, workerEnv, options, algorithmOptions }) => {
+const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, workerEnv, options }) => {
     if (!algorithmName) {
         const msg = 'Unable to create deployment spec. algorithmName is required';
         log.error(msg, { component });
@@ -34,7 +34,6 @@ const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, wo
     deploymentSpec = applyImage(deploymentSpec, CONTAINERS.ALGORITHM_DEBUG, versions, registry);
     deploymentSpec = applyAlgorithmName(deploymentSpec, algorithmName, CONTAINERS.ALGORITHM_DEBUG);
     deploymentSpec = applyStorage(deploymentSpec, options.defaultStorage, CONTAINERS.ALGORITHM_DEBUG, 'algorithm-operator-configmap');
-    deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.ALGORITHM_DEBUG, { WORKER_BINARY: `${algorithmOptions && algorithmOptions.binary}` });
     const ingressSpec = workerIngress(algorithmName, clusterOptions);
     const serviceSpec = workerService(algorithmName);
 

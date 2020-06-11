@@ -5,7 +5,7 @@ const parse = require('@hkube/units-converter');
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
-const { commands, components, consts, gpuVendors } = require('../../lib/consts');
+const { commands, components, consts, gpuVendors } = require('../consts');
 const component = components.RECONCILER;
 
 const { normalizeWorkers,

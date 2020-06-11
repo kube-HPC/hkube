@@ -6,12 +6,11 @@ const validator = require('../validation/api-validator');
 class StorageService {
     init(config) {
         this.config = config;
+        this.maxStorageFetchKeys = config.maxStorageFetchKeys;
     }
 
     getInfo() {
-        return {
-            storage: this.config.defaultStorage,
-        };
+        return storageManager.getInfo();
     }
 
     get prefixesTypes() {
@@ -40,7 +39,7 @@ class StorageService {
     }
 
     async _getKeysByPath({ path, sort, order, from, to }) {
-        const keys = await storageManager.storage.listWithStats({ path });
+        const keys = await storageManager.storage.listWithStats({ path, maxKeys: this.maxStorageFetchKeys });
         return this._formatResponse({ path, keys, sort, order, from, to });
     }
 
@@ -49,8 +48,20 @@ class StorageService {
         return Promise.all(this.prefixesTypes.map(path => this._getKeysByPath({ path, ...options })));
     }
 
-    async getStream({ path }) {
-        return storageManager.getStream({ path });
+    async getStream(options) {
+        return storageManager.getStream(options);
+    }
+
+    async getMetadata({ path }) {
+        return storageManager.getMetadata({ path });
+    }
+
+    checkDataSize(size) {
+        return storageManager.checkDataSize(size);
+    }
+
+    async getCustomStream(options) {
+        return storageManager.getCustomStream(options);
     }
 
     _formatResponse({ path, keys, sort, order, from, to }) {
@@ -60,7 +71,7 @@ class StorageService {
     }
 
     getByPath({ path }) {
-        return storageManager.storage.get({ path });
+        return storageManager.storage.get({ path, encodeOptions: { customEncode: true } });
     }
 }
 
