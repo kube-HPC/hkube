@@ -43,10 +43,9 @@ class Storage {
 
     async setStorage(options) {
         let error;
-        let storageInfo;
         let status = jobStatus.SUCCEED;
         try {
-            storageInfo = await this._setStorage(options);
+            await this._setStorage(options);
         }
         catch (err) {
             log.error(`failed to store data ${err}`, { component }, err);
@@ -55,8 +54,7 @@ class Storage {
         }
         return {
             status,
-            error,
-            storageInfo
+            error
         };
     }
 
