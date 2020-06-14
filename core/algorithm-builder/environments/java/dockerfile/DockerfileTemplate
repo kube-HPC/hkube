@@ -13,4 +13,4 @@ RUN mvn org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  -Df
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
 RUN mvn package -DremoteRepositories=${packagesRegistry}
 WORKDIR /hkube/algorithm-runner
-CMD ["/bin/sh", "-c", "java -jar wrapper.jar ./encapsulated-algorithm.jar  2>&1 |tee /hkube-logs/stdout.log"]
+CMD ["/bin/sh", "-c", "java -jar wrapper.jar ./algorithm_unique_folder/encapsulated-algorithm.jar  2>&1 |tee /hkube-logs/stdout.log"]
