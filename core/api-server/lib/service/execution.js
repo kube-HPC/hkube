@@ -76,7 +76,7 @@ class ExecutionService {
 
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
-            pipeline = await this.buildPipeline(pipeline);
+            pipeline = await this._buildPipelineOfPipelines(pipeline);
             await validator.validateAlgorithmExists(pipeline);
             await validator.validateExperimentExists(pipeline);
             const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
@@ -102,7 +102,7 @@ class ExecutionService {
         }
     }
 
-    async buildPipeline(pipeline) {
+    async _buildPipelineOfPipelines(pipeline) {
         let newPipeline = pipeline;
         const pipelinesNodes = pipeline.nodes.filter(p => p.pipelineName);
         if (pipelinesNodes.length > 0) {
@@ -171,11 +171,9 @@ class ExecutionService {
     }
 
     _mapNodes(node, pipelines) {
-        let pipelineNodes;
         if (node.pipelineName) {
             const pipeline = pipelines.find(p => p.name === node.pipelineName);
-            pipelineNodes = pipeline.nodes;
-            const nodes = this._mapInput(pipelineNodes, node.nodeName);
+            const nodes = this._mapInput(pipeline.nodes, node.nodeName);
             return nodes;
         }
         return [node];
