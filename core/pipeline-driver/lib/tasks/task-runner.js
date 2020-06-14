@@ -424,14 +424,11 @@ class TaskRunner extends EventEmitter {
 
             this._uniqueDiscovery(result.storage);
 
-            if (index && result.batch) {
-                await this._runWaitAnyBatch(options);
+            if (result.batch) {
+                await this._runNodeBatch(options);
             }
             else if (index) {
                 await this._runWaitAny(options);
-            }
-            else if (result.batch) {
-                await this._runNodeBatch(options);
             }
             else {
                 await this._runNodeSimple(options);
@@ -500,24 +497,6 @@ class TaskRunner extends EventEmitter {
             this._setTaskState(waitAny);
             await this._createJob(options, batch);
         }
-    }
-
-    // TODO: CHECK THIS
-    _runWaitAnyBatch(options) {
-        const waitNode = this._nodes.getWaitAny(options.node.nodeName, options.index);
-        options.input.forEach((inp, ind) => {
-            const batch = new Batch({
-                nodeName: waitNode.nodeName,
-                batchIndex: (ind + 1),
-                algorithmName: waitNode.algorithmName,
-                extraData: waitNode.extraData,
-                status: taskStatuses.CREATING,
-                input: inp
-            });
-            this._nodes.addBatch(batch);
-            this._setTaskState(batch);
-            this._createJob(batch);
-        });
     }
 
     async _runNodeSimple(options) {

@@ -10,11 +10,11 @@
   "dependencies": {
     "@hkube/config": "^2.0.7",
     "@hkube/consts": "^1.0.21",
-    "@hkube/dag": "^2.0.2",
+    "@hkube/dag": "^2.0.3",
     "@hkube/etcd": "^5.0.23",
     "@hkube/logger": "^1.0.25",
     "@hkube/metrics": "^1.0.39",
-    "@hkube/parsers": "^2.0.4",
+    "@hkube/parsers": "^2.0.5",
     "@hkube/producer-consumer": "^1.0.46",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
