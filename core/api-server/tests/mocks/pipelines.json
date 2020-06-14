@@ -411,5 +411,101 @@
                 "rejectOnFailure": false
             }
         }
+    },
+    {
+        "name": "pipeInPipe-1",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput.files.link"
+                ]
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "link": "links-1"
+            }
+        }
+    },
+    {
+        "name": "pipeInPipe-2",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": []
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    {
+                        "first": "@green.data.result",
+                        "second": "Bla"
+                    }
+                ]
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    {
+                        "first": "@yellow",
+                        "second": "@yellow.path",
+                        "third": "bla"
+                    }
+                ]
+            },
+            {
+                "nodeName": "eval",
+                "algorithmName": "eval-alg",
+                "input": [
+                    {
+                        "first": "@yellow",
+                        "second": "@yellow.path",
+                        "third": "bla"
+                    }
+                ]
+            }
+        ],
+        "flowInput": {
+            "files": {
+                "xlink": "links-2"
+            },
+            "newFiles": {
+                "link": "links-1"
+            }
+        }
+    },
+    {
+        "name": "pipeInPipe-3",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": []
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": []
+            }
+        ]
     }
 ]
