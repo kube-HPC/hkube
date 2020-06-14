@@ -1046,7 +1046,6 @@ describe('Store/Algorithms', () => {
                 expect(res2.body.version).to.equal('1.0.1');
             });
             it('should succeed to watch completed build', async function () {
-                this.timeout(5000);
                 const algorithmName = `my-alg-${uuid()}`;
                 const algorithmImage = `${algorithmName}-image`
                 const formData = {
@@ -1334,6 +1333,39 @@ describe('Store/Algorithms', () => {
                 };
                 const response3 = await request(request3);
                 expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
+            });
+            it('should succeed to add and delete algorithmEnv', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    algorithmEnv: {
+                        storage_env: 's3',
+                        stam_env: 'v344'
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmEnv: {
+                        storage_env: 's3'
+                    }
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body.algorithmEnv.storage_env).to.eql('s3');
+                expect(response3.body.algorithmEnv.stam_env).to.not.exist;
             });
         });
     });

@@ -5,7 +5,7 @@ const parse = require('@hkube/units-converter');
 const { createJobSpec } = require('../jobs/jobCreator');
 const kubernetes = require('../helpers/kubernetes');
 const etcd = require('../helpers/etcd');
-const { commands, components, consts, gpuVendors } = require('../../lib/consts');
+const { commands, components, consts, gpuVendors } = require('../consts');
 const component = components.RECONCILER;
 
 const { normalizeWorkers,
@@ -27,9 +27,13 @@ let totalCapacityNow = 10;
 const _updateCapacity = (algorithmCount) => {
     const factor = 0.9;
     const minCapacity = 2;
+    const maxCapacity = 50;
     totalCapacityNow = totalCapacityNow * factor + algorithmCount * (1 - factor);
     if (totalCapacityNow < minCapacity) {
         totalCapacityNow = minCapacity;
+    }
+    if (totalCapacityNow > maxCapacity) {
+        totalCapacityNow = maxCapacity;
     }
 };
 
@@ -365,11 +369,11 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     _updateCapacity(idleWorkers.length + activeWorkers.length + createdJobsList.length + jobsCreated.length);
 
     // get stats
-    // const workerTypes = calcRatio(mergedWorkers);
 
     const totalRequests = normalizeHotRequests(normRequests.slice(0, Math.round(totalCapacityNow * 3)), algorithmTemplates);
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow);
+    // const workerTypes = calcRatio(mergedWorkers);
     // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
     // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
     // cut requests based on ratio
@@ -383,7 +387,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     });
     // const cutRequestTypes = calcRatio(cutRequests, totalCapacityNow);
     // log.info(`cut-requests = ${JSON.stringify(Object.entries(cutRequestTypes.algorithms).map(([k, v]) =>
-    // ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
+    //     ({ name: k, count: v.count, req: v.required })).sort((a, b) => a.name - b.name), null, 2)}`);
 
     _processAllRequests(
         {

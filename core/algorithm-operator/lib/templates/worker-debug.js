@@ -94,6 +94,15 @@ const deploymentDebugTemplate = (algorithmName = '') => ({
                                 }
                             },
                             {
+                                name: 'STORAGE_ENCODING',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'algorithm-operator-configmap',
+                                        key: 'STORAGE_ENCODING'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {

@@ -4,9 +4,9 @@ const { pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const log = require('@hkube/logger').GetLogFromContainer();
 const stateManager = require('../state/state-manager');
-const component = require('../../lib/consts/componentNames').WEBHOOK_HANDLER;
+const component = require('../consts/componentNames').WEBHOOK_HANDLER;
 const { States, Types } = require('./States');
-const { metricsNames } = require('../../lib/consts/metricsNames');
+const { metricsNames } = require('../consts/metricsNames');
 const CompletedState = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 
 class WebhooksHandler {

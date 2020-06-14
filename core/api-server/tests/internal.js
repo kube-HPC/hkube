@@ -144,7 +144,7 @@ describe('Internal', () => {
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('timeTook');
             expect(response.body[0]).to.have.property('timestamp');
-        }).timeout(15000);
+        });
     });
     describe('Triggers', () => {
         it('should throw error when invalid pipeline name', async () => {
@@ -154,32 +154,30 @@ describe('Internal', () => {
             const response = await request(options);
             expect(response.body.error.message).to.equal(`data should have required property 'name'`);
         });
-        it('should succeed and return job id', async () => {
-            const options = {
-                uri: `${internalUrl}/exec/stored/trigger`,
+        it('should run stored pipeline and update rootJobId and types', async () => {
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
                 body: {
-                    name: 'flow1',
-                    parentJobId: uuid()
+                    name: 'flow1'
                 }
             };
-            const response = await request(options);
-            expect(response.body).to.have.property('jobId');
-        });
-        it('should run stored pipeline and update right types', async () => {
-            const options = {
+            const res1 = await request(options1);
+            const jobId = res1.body.jobId;
+            const options2 = {
                 uri: `${internalUrl}/exec/stored/trigger`,
                 body: {
-                    name: 'flow1',
-                    parentJobId: uuid()
+                    name: 'flow2',
+                    parentJobId: jobId
                 }
             };
-            const res1 = await request(options);
+            const res2 = await request(options2);
             const optionsGET = {
-                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                uri: `${restUrl}/exec/pipelines/${res2.body.jobId}`,
                 method: 'GET'
             };
-            const res2 = await request(optionsGET);
-            expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER]);
+            const res3 = await request(optionsGET);
+            expect(res3.body.rootJobId).to.eql(jobId);
+            expect(res3.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.TRIGGER]);
         });
         it('should run stored trigger pipeline and merge parent flowInput', async () => {
             const flow2 = pipelines.find(p => p.name === 'flow2')
@@ -207,18 +205,26 @@ describe('Internal', () => {
                 method: 'GET'
             };
             const res3 = await request(optionsGET);
-            expect(res3.body.flowInputOrig).to.eql({ ...flow2.flowInput, parent: data });
+            expect(res3.body.flowInput).to.eql({ ...flow2.flowInput, parent: data });
         });
         it('should succeed without reaching too many request', async () => {
             const requests = 10;
             const promises = [];
             const pipeline = 'flow1';
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: 'flow1'
+                }
+            };
+            const res1 = await request(options1);
+            const jobId = res1.body.jobId;
             for (let i = 0; i < requests; i++) {
                 const options = {
                     uri: `${internalUrl}/exec/stored/trigger`,
                     body: {
                         name: pipeline,
-                        parentJobId: uuid()
+                        parentJobId: jobId
                     }
                 };
                 promises.push(request(options));
@@ -228,97 +234,7 @@ describe('Internal', () => {
             expect(jobs).to.have.lengthOf(requests);
             expect(jobs.every(j => j.includes(pipeline))).to.equal(true);
         });
-    });
-    describe('SubPipeline', () => {
-        it('should run stored subPipeline', async function () {
-            const pipeline = clone(pipelines[0]);
-            const options1 = {
-                uri: `${restUrl}/exec/stored`,
-                body: {
-                    name: pipeline.name
-                }
-            };
-            const response1 = await request(options1);
-            const options2 = {
-                uri: `${internalUrl}/exec/stored/subPipeline`,
-                body: {
-                    name: pipeline.name,
-                    jobId: response1.body.jobId,
-                    taskId: `taskId:${uuid()} `
-                }
-            };
-            const response2 = await request(options2);
-            expect(response2.body).to.have.property('jobId');
-        });
-        it('should run stored subPipeline and update right types', async function () {
-            const pipeline = clone(pipelines[0]);
-            const options = {
-                uri: `${internalUrl}/exec/stored/subPipeline`,
-                body: {
-                    name: pipeline.name,
-                    jobId: `jobId - ${uuid()} `,
-                    taskId: `taskId - ${uuid()} `
-                }
-            };
-            const res1 = await request(options);
-            const optionsGET = {
-                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
-                method: 'GET'
-            };
-            const res2 = await request(optionsGET);
-            expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE]);
-        });
-        it('should run raw subPipeline', async function () {
-            const pipeline = clone(pipelines[0]);
-            const options = {
-                uri: `${internalUrl}/exec/raw/subPipeline`,
-                body: {
-                    name: pipeline.name,
-                    nodes: [
-                        {
-                            nodeName: "green",
-                            algorithmName: "green-alg",
-                            input: [
-                                "data"
-                            ]
-                        }
-                    ],
-                    jobId: `jobId-${uuid()}`,
-                    taskId: `taskId-${uuid()}`
-                }
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('jobId');
-        });
-        it('should run raw subPipeline and update right types', async function () {
-            const pipeline = clone(pipelines[0]);
-            const options = {
-                uri: `${internalUrl}/exec/raw/subPipeline`,
-                body: {
-                    name: pipeline.name,
-                    nodes: [
-                        {
-                            nodeName: "green",
-                            algorithmName: "green-alg",
-                            input: [
-                                "data"
-                            ]
-                        }
-                    ],
-                    jobId: `jobId-${uuid()}`,
-                    taskId: `taskId-${uuid()}`
-                }
-            };
-            const res1 = await request(options);
-            const optionsGET = {
-                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
-                method: 'GET'
-            };
-            const res2 = await request(optionsGET);
-            expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE]);
-        });
         it('should run triggered pipelines and the executions tree', async function () {
-            this.timeout(15000);
             const requests = 5;
             const pipeline = 'trigger-test';
             const results = [];
@@ -388,9 +304,118 @@ describe('Internal', () => {
                 method: 'GET'
             };
             const tree = await request(opt);
-            expect(tree.body[0]).to.have.property('children');
-            expect(tree.body[0]).to.have.property('jobId');
-            expect(tree.body[0]).to.have.property('name');
+            expect(tree.body).to.have.property('children');
+            expect(tree.body).to.have.property('jobId');
+            expect(tree.body).to.have.property('name');
+        });
+        it('should failed if jobId not found', async () => {
+            const options = {
+                method: 'GET',
+                uri: restUrl + `/exec/tree/${uuid()}`
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+        });
+    });
+    describe('SubPipeline', () => {
+        it('should run stored subPipeline', async function () {
+            const pipeline = clone(pipelines[0]);
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: pipeline.name
+                }
+            };
+            const response1 = await request(options1);
+            const flowInput = {
+                data: 33
+            };
+            const options2 = {
+                uri: `${internalUrl}/exec/stored/subPipeline`,
+                body: {
+                    name: pipeline.name,
+                    jobId: response1.body.jobId,
+                    taskId: `taskId:${uuid()}`,
+                    flowInput
+                }
+            };
+            const response2 = await request(options2);
+
+            const options3 = {
+                uri: `${restUrl}/exec/pipelines/${response2.body.jobId}`,
+                method: 'GET'
+            };
+            const response3 = await request(options3);
+            expect(response2.body).to.have.property('jobId');
+            expect(response3.body.flowInput).to.eql({ ...pipeline.flowInput, ...flowInput });
+        });
+        it('should run stored subPipeline and update right types', async function () {
+            const pipeline = clone(pipelines[0]);
+            const options = {
+                uri: `${internalUrl}/exec/stored/subPipeline`,
+                body: {
+                    name: pipeline.name,
+                    jobId: `jobId - ${uuid()} `,
+                    taskId: `taskId - ${uuid()} `
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE]);
+        });
+        it('should run raw subPipeline', async function () {
+            const pipeline = clone(pipelines[0]);
+            const options = {
+                uri: `${internalUrl}/exec/raw/subPipeline`,
+                body: {
+                    name: pipeline.name,
+                    nodes: [
+                        {
+                            nodeName: "green",
+                            algorithmName: "green-alg",
+                            input: [
+                                "data"
+                            ]
+                        }
+                    ],
+                    jobId: `jobId-${uuid()}`,
+                    taskId: `taskId-${uuid()}`
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('jobId');
+        });
+        it('should run raw subPipeline and update right types', async function () {
+            const pipeline = clone(pipelines[0]);
+            const options = {
+                uri: `${internalUrl}/exec/raw/subPipeline`,
+                body: {
+                    name: pipeline.name,
+                    nodes: [
+                        {
+                            nodeName: "green",
+                            algorithmName: "green-alg",
+                            input: [
+                                "data"
+                            ]
+                        }
+                    ],
+                    jobId: `jobId-${uuid()}`,
+                    taskId: `taskId-${uuid()}`
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.types).to.eql([pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE]);
         });
     });
 });

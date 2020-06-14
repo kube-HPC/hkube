@@ -39,9 +39,7 @@ class TaskRunner extends EventEmitter {
             log = logger.GetLogFromContainer();
         }
         this._stateManager = new StateManager({
-            etcd: options.etcd,
-            serviceName: options.serviceName,
-            podName: options.kubernetes.podName,
+            ...options,
             discoveryMethod: this._getDiscoveryData.bind(this)
         });
         this._stateManager.on(commands.stopProcessing, (data) => {
@@ -77,7 +75,7 @@ class TaskRunner extends EventEmitter {
             case taskStatuses.CRASHED: {
                 const data = { ...task, endTime: Date.now(), status: taskStatuses.FAILED };
                 this._setTaskState(data);
-                this._taskComplete(task);
+                this._onTaskError(task);
                 break;
             }
             case taskStatuses.WARNING: {
@@ -87,10 +85,17 @@ class TaskRunner extends EventEmitter {
             case taskStatuses.ACTIVE:
                 this._setTaskState(task);
                 break;
+            case taskStatuses.STORING:
+                this._setTaskState(task);
+                this._onStoring(task);
+                break;
             case taskStatuses.FAILED:
+                this._setTaskState(task);
+                this._onTaskError(task);
+                break;
             case taskStatuses.SUCCEED:
                 this._setTaskState(task);
-                this._taskComplete(task);
+                this._onTaskComplete(task);
                 break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -202,6 +207,13 @@ class TaskRunner extends EventEmitter {
         let data;
         if (err) {
             error = err.message;
+            const activeStates = [taskStatuses.CREATING, taskStatuses.ACTIVE, taskStatuses.PRESCHEDULE];
+            const nodes = this._nodes._getNodesAsFlat();
+            nodes.forEach((n) => {
+                if (activeStates.includes(n.status)) {
+                    n.status = taskStatuses.FAILED;  // eslint-disable-line
+                }
+            });
         }
         else {
             data = this._nodes.pipelineResults();
@@ -393,9 +405,10 @@ class TaskRunner extends EventEmitter {
             this._checkPreschedule(nodeName);
 
             const parse = {
-                flowInput: this.pipeline.flowInput,
+                flowInputMetadata: this.pipeline.flowInputMetadata,
                 nodeInput: node.input,
                 parentOutput: node.parentOutput || parentOutput,
+                batchOperation: node.batchOperation,
                 index
             };
             const result = parser.parse(parse);
@@ -408,6 +421,9 @@ class TaskRunner extends EventEmitter {
                 input: result.input,
                 storage: result.storage
             };
+
+            this._uniqueDiscovery(result.storage);
+
             if (index && result.batch) {
                 await this._runWaitAnyBatch(options);
             }
@@ -424,6 +440,31 @@ class TaskRunner extends EventEmitter {
         catch (error) {
             this.stop({ error, nodeName });
         }
+    }
+
+    _uniqueDiscovery(storage) {
+        Object.entries(storage).forEach(([k, v]) => {
+            if (!Array.isArray(v)) {
+                return;
+            }
+            const discoveryList = v.filter(i => i.discovery);
+            if (discoveryList.length === 0) {
+                return;
+            }
+            const uniqueList = [];
+            discoveryList.forEach((item) => {
+                const { taskId, storageInfo, ...rest } = item;
+                const { host, port } = item.discovery;
+                let uniqueItem = uniqueList.find(x => x.discovery.host === host && x.discovery.port === port);
+
+                if (!uniqueItem) {
+                    uniqueItem = { ...rest, tasks: [] };
+                    uniqueList.push(uniqueItem);
+                }
+                uniqueItem.tasks.push(taskId);
+            });
+            storage[k] = uniqueList; // eslint-disable-line
+        });
     }
 
     async _checkPreschedule(nodeName) {
@@ -507,8 +548,8 @@ class TaskRunner extends EventEmitter {
                     storage: inp.storage
                 });
                 this._nodes.addBatch(batch);
-                this._setTaskState(batch);
             });
+            this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
             await this._createJob(options, options.node.batch);
         }
     }
@@ -522,10 +563,10 @@ class TaskRunner extends EventEmitter {
         this._nodes.addBatch(node);
         this._nodes.setNode({ nodeName: options.node.nodeName, result: [], status: taskStatuses.SKIPPED });
         this._setTaskState(node);
-        this._taskComplete(node);
+        this._updateAndCheckAllTask(node);
     }
 
-    _taskComplete(task) {
+    _onTaskError(task) {
         if (!this._active) {
             return;
         }
@@ -539,6 +580,33 @@ class TaskRunner extends EventEmitter {
             if (this._nodes.isAllNodesCompleted()) {
                 this.stop();
             }
+        }
+    }
+
+    _updateAndCheckAllTask(task) {
+        if (!this._active) {
+            return;
+        }
+        this._nodes.updateCompletedTask(task);
+
+        if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
+        }
+    }
+
+    _onStoring(task) {
+        if (!this._active) {
+            return;
+        }
+        this._nodes.updateCompletedTask(task);
+    }
+
+    _onTaskComplete() {
+        if (!this._active) {
+            return;
+        }
+        if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
         }
     }
 
@@ -575,6 +643,7 @@ class TaskRunner extends EventEmitter {
         if (execId) {
             this._nodes.updateAlgorithmExecution(task);
         }
+
         this._updateTaskState(taskId, task);
 
         log.debug(`task ${status} ${taskId} ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name, taskId });

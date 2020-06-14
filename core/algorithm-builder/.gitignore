@@ -9,6 +9,7 @@ node_modules
 environments/*/packages
 environments/*/jars
 algorithm_unique_folder
+!algorithm_unique_folder/__init__.py
 
 # Python
 __pycache__/

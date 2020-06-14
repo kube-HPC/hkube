@@ -1,7 +1,13 @@
-
+const objectPath = require('object-path');
+const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
+const validator = require('../validation/api-validator');
+const executionService = require('./execution');
+const cronService = require('./cron');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 const defaultExperiment = require('../consts/defaultExperiment');
+const limit = 1000;
+
 class Experiment {
     async getExperiment(options) {
         const { name } = options;
@@ -12,8 +18,10 @@ class Experiment {
         return experiment;
     }
 
-    insertExperiment(options) {
-        return stateManager.experiments.set(options);
+    async insertExperiment(options) {
+        validator.validateExperimentName(options);
+        await stateManager.experiments.set(options);
+        await storageManager.hkubeStore.put({ type: 'experiment', name: options.name, data: options });
     }
 
     experimentsList(options) {
@@ -21,12 +29,38 @@ class Experiment {
     }
 
     async deleteExperiment(options) {
-        if (defaultExperiment.DEFAULT_EXPERIMENT_NAME === options.name) {
-            throw new ActionNotAllowed(defaultExperiment.DEFAULT_EXPERIMENT_ERROR, options.name);
+        const { name: experimentName } = options;
+        if (defaultExperiment.DEFAULT_EXPERIMENT_NAME === experimentName) {
+            throw new ActionNotAllowed(defaultExperiment.DEFAULT_EXPERIMENT_ERROR, experimentName);
         }
+        await validator.validateExperimentExists({ experimentName });
+        await this._stopAllCrons(experimentName);
+        await this._cleanAll(experimentName);
+        return this._deleteExperiment(options);
+    }
+
+    async _deleteExperiment(options) {
+        const { name } = options;
+        await storageManager.hkubeStore.delete({ type: 'experiment', name });
         const res = await stateManager.experiments.delete(options);
-        const message = res.deleted === '0' ? 'deleted operation has failed' : 'deleted successfully ';
-        return { message, name: options.name };
+        const message = res.deleted === '0' ? 'deleted operation has failed' : 'deleted successfully';
+        return { message, name };
+    }
+
+    async _stopAllCrons(experimentName) {
+        const pipelines = await stateManager.pipelines.list({ limit }, (p) => this._hasCron(p, experimentName));
+        await Promise.all(pipelines.map(p => cronService.updateCronJob(p, { enabled: false })));
+    }
+
+    _hasCron(pipeline, experimentName) {
+        const enabled = objectPath.get(pipeline, 'triggers.cron.enabled');
+        return pipeline.experimentName === experimentName && enabled;
+    }
+
+    async _cleanAll(experimentName) {
+        const jobId = `${experimentName}:`;
+        const pipelines = await stateManager.executions.stored.list({ jobId });
+        await Promise.all(pipelines.map(p => executionService.cleanJob({ jobId: p.jobId })));
     }
 }
 

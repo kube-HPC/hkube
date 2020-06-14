@@ -9,7 +9,7 @@ const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const WebhookTypes = require('../webhook/States').Types;
-const regex = require('../../lib/consts/regex');
+const regex = require('../consts/regex');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
 const { uuid } = require('../utils');
 const ActiveStates = [pipelineStatuses.PENDING, pipelineStatuses.CREATING, pipelineStatuses.ACTIVE, pipelineStatuses.RESUMED, pipelineStatuses.PAUSED];
@@ -32,7 +32,7 @@ class ExecutionService {
         if (error) {
             throw new InvalidDataError(error.message);
         }
-        const { jobId, flowInputOrig, startTime, lastRunResult, types, ...restPipeline } = pipeline;
+        const { jobId, flowInputMetadata, startTime, lastRunResult, types, ...restPipeline } = pipeline;
         const newTypes = [...new Set([...types || [], pipelineTypes.NODE])];
         return this._run({ pipeline: restPipeline, options: { alreadyExecuted: true, validateNodes: false }, types: newTypes });
     }
@@ -52,17 +52,18 @@ class ExecutionService {
     }
 
     async _runStored(options) {
-        const { pipeline, jobId, rootJobId, parentSpan, types, flowInputNoMerge } = options;
+        const { pipeline, jobId, rootJobId, parentSpan, types, flowInputMerge } = options;
         const storedPipeline = await stateManager.pipelines.get({ name: pipeline.name });
         if (!storedPipeline) {
             throw new ResourceNotFoundError('pipeline', pipeline.name);
         }
-        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' && !flowInputNoMerge ? src || obj : undefined));
+        const newPipeline = mergeWith(storedPipeline, pipeline, (obj, src, key) => (key === 'flowInput' && flowInputMerge ? undefined : src || obj));
         return this._run({ pipeline: newPipeline, jobId, rootJobId, options: { parentSpan }, types });
     }
 
     async _run(payload) {
-        let { pipeline, jobId } = payload;
+        let { jobId } = payload;
+        const { pipeline } = payload;
         const { types, rootJobId } = payload;
         const { alreadyExecuted, validateNodes, parentSpan } = payload.options || {};
 
@@ -76,16 +77,12 @@ class ExecutionService {
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
             await validator.validateAlgorithmExists(pipeline);
+            await validator.validateExperimentExists(pipeline);
             const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
-                const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput },
-                    tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
-                pipeline = {
-                    ...pipeline,
-                    flowInput: { metadata, storageInfo },
-                    flowInputOrig: pipeline.flowInput
-                };
+                const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
+                pipeline.flowInputMetadata = { metadata, storageInfo };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
             const pipelineObject = { ...pipeline, jobId, rootJobId, startTime: Date.now(), lastRunResult, types };
@@ -213,11 +210,11 @@ class ExecutionService {
 
     async getTree(options) {
         validator.validateJobID(options);
-        const jobs = await stateManager.jobs.status.getExecutionsTree({ jobId: options.jobId });
-        if (jobs == null || jobs.length === 0) {
-            throw new ResourceNotFoundError('jobs', options.jobId);
+        const tree = await stateManager.triggers.tree.get({ jobId: options.jobId });
+        if (!tree) {
+            throw new ResourceNotFoundError('tree', options.jobId);
         }
-        return jobs;
+        return tree;
     }
 
     async cleanJob(options) {
@@ -233,6 +230,7 @@ class ExecutionService {
             stateManager.executions.stored.delete({ jobId }),
             stateManager.jobs.results.delete({ jobId }),
             stateManager.jobs.status.delete({ jobId }),
+            stateManager.jobs.tasks.delete({ jobId }),
             stateManager.webhooks.delete({ jobId, type: WebhookTypes.PROGRESS }),
             stateManager.webhooks.delete({ jobId, type: WebhookTypes.RESULT }),
             producer.stopJob({ jobId })

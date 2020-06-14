@@ -12,7 +12,7 @@ const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
 const gitDataAdapter = require('./githooks/git-data-adapter');
-const component = require('../../lib/consts/componentNames').ALGORITHMS_SERVICE;
+const component = require('../consts/componentNames').ALGORITHMS_SERVICE;
 
 class AlgorithmStore {
     init(config) {
@@ -187,7 +187,7 @@ class AlgorithmStore {
                 throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${payload.type}"`);
             }
 
-            newAlgorithm = merge({}, oldAlgorithm, payload);
+            newAlgorithm = { ...oldAlgorithm, ...payload };
             validator.addAlgorithmDefaults(newAlgorithm);
 
             if (payload.type === buildTypes.CODE && file.path) {

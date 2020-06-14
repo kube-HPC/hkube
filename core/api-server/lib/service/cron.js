@@ -1,7 +1,7 @@
 const objectPath = require('object-path');
 const storageManager = require('@hkube/storage-manager');
 const { pipelineTypes } = require('@hkube/consts');
-const execution = require('../../lib/service/execution');
+const execution = require('./execution');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
@@ -49,16 +49,20 @@ class ExecutionService {
         return this._toggleCronJob(options, false);
     }
 
-    async _toggleCronJob(options, toggle) {
+    async _toggleCronJob(options, enabled) {
         validator.validateCronRequest(options);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        const pattern = objectPath.get(pipeline, 'triggers.cron.pattern');
-        objectPath.set(pipeline, 'triggers.cron.enabled', toggle);
-        objectPath.set(pipeline, 'triggers.cron.pattern', options.pattern || pattern || '0 * * * *');
-        await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: pipeline });
+        return this.updateCronJob(pipeline, { pattern: options.pattern, enabled });
+    }
+
+    async updateCronJob(pipeline, { pattern, enabled }) {
+        const cronPattern = objectPath.get(pipeline, 'triggers.cron.pattern');
+        objectPath.set(pipeline, 'triggers.cron.enabled', enabled);
+        objectPath.set(pipeline, 'triggers.cron.pattern', pattern || cronPattern || '0 * * * *');
+        await storageManager.hkubeStore.put({ type: 'pipeline', name: pipeline.name, data: pipeline });
         await stateManager.pipelines.set(pipeline);
         return pipeline;
     }

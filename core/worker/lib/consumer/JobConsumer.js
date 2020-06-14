@@ -1,20 +1,15 @@
 const EventEmitter = require('events');
-const recursive = require('recursive-readdir');
-const { parser } = require('@hkube/parsers');
 const { Consumer } = require('@hkube/producer-consumer');
-const { tracer, metrics, utils } = require('@hkube/metrics');
-const storageManager = require('@hkube/storage-manager');
+const { tracer } = require('@hkube/metrics');
 const { pipelineStatuses, taskStatuses, retryPolicy } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
-const fse = require('fs-extra');
-const pathLib = require('path');
+const storage = require('../storage/storage');
 const stateManager = require('../states/stateManager');
-const etcd = require('../states/discovery');
-const { metricsNames, Components } = require('../consts');
-const dataExtractor = require('./data-extractor');
-const constants = require('./consts');
+const boards = require('../boards/boards');
+const metricsHelper = require('../metrics/metrics');
+const stateAdapter = require('../states/stateAdapter');
+const { Components, logMessages, jobStatus } = require('../consts');
 const JobProvider = require('./job-provider');
-const { logMessages } = require('../consts');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
@@ -35,7 +30,6 @@ class JobConsumer extends EventEmitter {
         this.workerStartingTime = new Date();
         this.jobCurrentTime = null;
         this._hotWorker = false;
-        this._algTracer = null;
     }
 
     async init(options) {
@@ -45,13 +39,9 @@ class JobConsumer extends EventEmitter {
                 ...metadata, ...this.currentTaskInfo()
             })
         }));
-        const { algoMetricsDir } = options;
-        this._algoMetricsDir = algoMetricsDir;
         this._options = options;
         this._options.jobConsumer.setting.redis = options.redis;
         this._options.jobConsumer.setting.tracer = tracer;
-        // create another tracer for the algorithm
-        this._algTracer = await tracer.createTracer(this.getAlgorithmType(), options.tracer);
 
         if (this._consumer) {
             this._consumer.removeAllListeners();
@@ -59,7 +49,6 @@ class JobConsumer extends EventEmitter {
             this._job = null;
         }
         this._hotWorker = this._options.hotWorker;
-        this._registerMetrics();
         this._consumer = new Consumer(this._options.jobConsumer);
         this._jobProvider = new JobProvider(options);
         this._jobProvider.init(this._consumer);
@@ -73,32 +62,26 @@ class JobConsumer extends EventEmitter {
                 return;
             }
             log.info(`execute job ${job.data.jobId} with inputs: ${JSON.stringify(job.data.input)}`, { component });
-            const watchState = await etcd.watch({ jobId: job.data.jobId });
+            const watchState = await stateAdapter.watch({ jobId: job.data.jobId });
             if (watchState && this._isCompletedState({ status: watchState.status })) {
                 await this._stopJob(job, watchState.status);
                 return;
             }
 
-            this._initMetrics(job);
+            metricsHelper.initMetrics(job);
             this._setJob(job);
 
             if (this._execId) {
-                const watchExecutionState = await etcd.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
-                if (watchExecutionState && watchExecutionState.status === constants.WATCH_STATE.STOPPED) {
+                log.info('starting as algorithm code api', { component });
+                const watchExecutionState = await stateAdapter.watchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
+                if (watchExecutionState && this._isCompletedState({ status: watchExecutionState.status })) {
                     await this.finishJob();
                     return;
                 }
             }
 
-            await etcd.update({
-                jobId: this._jobId,
-                taskId: this._taskId,
-                status: constants.JOB_STATUS.ACTIVE,
-                execId: this._job.data.execId,
-                nodeName: this._job.data.nodeName,
-                parentNodeName: this._job.data.parentNodeName,
-                algorithmName: this._job.data.algorithmName,
-                podName: this._options.kubernetes.pod_name,
+            await this.updateStatus({
+                status: jobStatus.ACTIVE,
                 startTime: Date.now()
             });
 
@@ -147,36 +130,13 @@ class JobConsumer extends EventEmitter {
         this._pipelineName = job.data.pipelineName;
         this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
         this._retry = job.data.retry;
+        this.jobCurrentTime = new Date();
     }
 
     async _stopJob(job, status) {
-        await etcd.unwatch({ jobId: job.data.jobId });
+        await stateAdapter.unwatch({ jobId: job.data.jobId });
         log.info(`job ${job.data.jobId} already in ${status} status`);
         job.done();
-    }
-
-    _initMetrics(job) {
-        const { pipelineName } = job.data;
-        metrics.get(metricsNames.worker_started).inc({
-            labelValues: {
-                pipeline_name: pipelineName,
-                algorithm_name: this._options.jobConsumer.job.type
-            }
-        });
-        metrics.get(metricsNames.worker_net).start({
-            id: job.data.taskId,
-            labelValues: {
-                pipeline_name: pipelineName,
-                algorithm_name: this._options.jobConsumer.job.type
-            }
-        });
-        metrics.get(metricsNames.worker_runtime).start({
-            id: job.data.taskId,
-            labelValues: {
-                pipeline_name: pipelineName,
-                algorithm_name: this._options.jobConsumer.job.type
-            }
-        });
     }
 
     async pause() {
@@ -213,20 +173,17 @@ class JobConsumer extends EventEmitter {
 
     async updateDiscovery(data) {
         const discoveryInfo = this.getDiscoveryData(data);
-        await etcd.updateDiscovery(discoveryInfo);
+        await stateAdapter.updateDiscovery(discoveryInfo);
     }
 
     getDiscoveryData(data) {
-        const {
-            workerStatus, jobStatus, error
-        } = this._getStatus(data);
+        const { workerStatus, error } = this._getStatus(data);
         const discoveryInfo = {
             jobId: this._jobId,
             taskId: this._taskId,
             pipelineName: this._pipelineName,
             jobData: this._jobData,
             workerStatus,
-            jobStatus,
             workerStartingTime: this.workerStartingTime,
             jobCurrentTime: this.jobCurrentTime,
             workerPaused: this.isConsumerPaused,
@@ -236,46 +193,10 @@ class JobConsumer extends EventEmitter {
         return discoveryInfo;
     }
 
-    _registerMetrics() {
-        metrics.removeMeasure(metricsNames.worker_net);
-        metrics.addTimeMeasure({
-            name: metricsNames.worker_net,
-            labels: ['pipeline_name', 'algorithm_name', 'status'],
-            description: 'Algorithm runtime histogram',
-            buckets: utils.arithmatcSequence(30, 0, 2)
-                .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
-        });
-        metrics.removeMeasure(metricsNames.worker_succeeded);
-        metrics.addCounterMeasure({
-            name: metricsNames.worker_succeeded,
-            description: 'Number of times the algorithm has completed',
-            labels: ['pipeline_name', 'algorithm_name'],
-        });
-        metrics.removeMeasure(metricsNames.worker_runtime);
-        metrics.addSummary({
-            name: metricsNames.worker_runtime,
-            description: 'Algorithm runtime summary',
-            labels: ['pipeline_name', 'algorithm_name', 'status'],
-            percentiles: [0.5]
-        });
-        metrics.removeMeasure(metricsNames.worker_started);
-        metrics.addCounterMeasure({
-            name: metricsNames.worker_started,
-            description: 'Number of times the algorithm has started',
-            labels: ['pipeline_name', 'algorithm_name'],
-        });
-        metrics.removeMeasure(metricsNames.worker_failed);
-        metrics.addCounterMeasure({
-            name: metricsNames.worker_failed,
-            description: 'Number of times the algorithm has failed',
-            labels: ['pipeline_name', 'algorithm_name'],
-        });
-    }
-
     _getStatus(data) {
         const { state, results, isTtlExpired } = data;
         const workerStatus = state;
-        let status = state === constants.JOB_STATUS.WORKING ? constants.JOB_STATUS.ACTIVE : state;
+        let status = state === jobStatus.WORKING ? jobStatus.ACTIVE : state;
         let error = null;
         let reason = null;
         const shouldCompleteJob = this._shouldNormalExit(results);
@@ -283,11 +204,11 @@ class JobConsumer extends EventEmitter {
         if (results != null) {
             error = results.error && results.error.message;
             reason = results.error && results.error.reason;
-            status = error ? constants.JOB_STATUS.FAILED : constants.JOB_STATUS.SUCCEED;
+            status = error ? jobStatus.FAILED : jobStatus.SUCCEED;
         }
         if (isTtlExpired) {
             error = logMessages.algorithmTtlExpired;
-            status = constants.JOB_STATUS.FAILED;
+            status = jobStatus.FAILED;
         }
         const resultData = results && results.data;
         return {
@@ -300,65 +221,51 @@ class JobConsumer extends EventEmitter {
         };
     }
 
-    async extractData(jobInfo) {
-        this.jobCurrentTime = new Date();
-        const { error, data } = await this._tryExtractDataFromStorage(jobInfo);
-        if (error) {
-            log.error(`failed to extract data input: ${error.message}`, { component }, error);
-            stateManager.done({ error });
-        }
-        return { error, data };
-    }
-
-    async _tryExtractDataFromStorage(jobInfo) {
-        function partial(func, argsBound) {
-            return (args) => {
-                return func.call(tracer, { ...argsBound, tags: { ...argsBound.tags, ...args } });
-            };
-        }
-        try {
-            const input = await dataExtractor.extract(jobInfo.input, jobInfo.storage, partial(tracer.startSpan, this.getTracer('storage-get')));
-            return { data: { ...jobInfo, input } };
-        }
-        catch (error) {
-            return { error };
-        }
-    }
-
     async sendWarning(warning) {
         if (!this._jobId) {
             return;
         }
         const data = {
             warning,
-            status: constants.JOB_STATUS.WARNING,
+            status: jobStatus.WARNING
+        };
+        await this.updateStatus(data);
+    }
+
+    async updateStatus(data = {}) {
+        await stateAdapter.update({ ...this._getState(), ...data });
+    }
+
+    _getState() {
+        return {
             jobId: this._jobId,
             taskId: this._taskId,
             execId: this._job.data.execId,
             nodeName: this._job.data.nodeName,
             parentNodeName: this._job.data.parentNodeName,
             algorithmName: this._job.data.algorithmName,
+            podName: this._options.kubernetes.pod_name,
+            batchIndex: this._batchIndex
         };
-        await etcd.update(data);
     }
 
     async finishJob(data = {}, isTtlExpired) {
         if (!this._job) {
             return;
         }
-        await etcd.unwatch({ jobId: this._jobId });
+        await stateAdapter.unwatch({ jobId: this._jobId });
         if (this._execId) {
-            await etcd.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
+            await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
-        let storageResult = {};
         const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
         if (shouldCompleteJob) {
+            let storageResult;
             let metricsPath;
-            if (!error && status === constants.JOB_STATUS.SUCCEED) {
-                storageResult = await this._putResult(resultData);
+            if (!error && status === jobStatus.SUCCEED) {
+                storageResult = await storage.setStorage({ data: resultData, jobData: this._job.data });
                 if (!(this.jobData.metrics && this.jobData.metrics.tensorboard === false)) {
-                    const tensorboard = await this._putAlgoMetrics();
+                    const tensorboard = await boards.putAlgoMetrics(this.jobData, this.jobCurrentTime);
                     (tensorboard.path || tensorboard.error) && (metricsPath = { tensorboard });
                 }
             }
@@ -366,140 +273,21 @@ class JobConsumer extends EventEmitter {
                 status,
                 error,
                 reason,
-                jobId: this._jobId,
-                taskId: this._taskId,
-                execId: this._job.data.execId,
-                nodeName: this._job.data.nodeName,
-                parentNodeName: this._job.data.parentNodeName,
-                algorithmName: this._job.data.algorithmName,
-                batchIndex: this._batchIndex,
                 endTime: Date.now(),
                 metricsPath,
                 ...storageResult
             };
 
             this._job.error = error;
-            await etcd.update(resData);
+            await this.updateStatus(resData);
             log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
-        this._summarizeMetrics(status);
+        metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
     }
 
-    _summarizeMetrics(jobStatus) {
-        try {
-            if (jobStatus === constants.JOB_STATUS.FAILED) {
-                metrics.get(metricsNames.worker_failed).inc({
-                    labelValues: {
-                        pipeline_name: this._pipelineName,
-                        algorithm_name: this.getAlgorithmType()
-                    }
-                });
-            }
-            else if (jobStatus === constants.JOB_STATUS.SUCCEED) {
-                metrics.get(metricsNames.worker_succeeded).inc({
-                    labelValues: {
-                        pipeline_name: this._pipelineName,
-                        algorithm_name: this.getAlgorithmType()
-                    }
-                });
-            }
-            metrics.get(metricsNames.worker_net).end({
-                id: this._taskId,
-                labelValues: {
-                    status: jobStatus
-                }
-            });
-            metrics.get(metricsNames.worker_runtime).end({
-                id: this._taskId,
-                labelValues: {
-                    status: jobStatus
-                }
-            });
-        }
-        catch (err) {
-            log.warning(`failed to report metrics:${this._jobId} task:${this._taskId}`, { component }, err);
-        }
-    }
-
-    async _putResult(data) {
-        let result = null;
-        let error;
-        let status = constants.JOB_STATUS.SUCCEED;
-        try {
-            if (data === undefined) {
-                // eslint-disable-next-line no-param-reassign
-                data = null;
-            }
-            const storageInfo = await storageManager.hkube.put({
-                jobId: this._job.data.jobId, taskId: this._job.data.taskId, data
-            }, tracer.startSpan.bind(tracer, this.getTracer('storage-put')));
-
-            const object = { [this._job.data.nodeName]: data };
-            result = {
-                metadata: parser.objectToMetadata(object, this._job.data.info.savePaths),
-                storageInfo
-            };
-        }
-        catch (err) {
-            log.error(`failed to store data job:${this._jobId} task:${this._taskId}, ${err}`, { component }, err);
-            error = err.message;
-            status = constants.JOB_STATUS.FAILED;
-        }
-        finally {
-            // eslint-disable-next-line no-unsafe-finally
-            return {
-                status,
-                result,
-                error
-            };
-        }
-    }
-
-    async _putAlgoMetrics() {
-        let path = null;
-        let error;
-        try {
-            const formatedDate = this.jobCurrentTime.toLocaleString().split('/').join('-');
-            const files = await recursive(this._algoMetricsDir);
-            const { taskId, jobId, nodeName, pipelineName } = this.jobData;
-            const paths = await Promise.all(files.map((file) => {
-                const stream = fse.createReadStream(file);
-                const fileName = file.replace(this._algoMetricsDir, '');
-                return storageManager.hkubeAlgoMetrics.putStream(
-                    { pipelineName, taskId, jobId, nodeName, data: stream, formatedDate, fileName, stream }
-                );
-            }));
-            const separatedPath = paths[0] && paths[0].path.split(pathLib.sep);
-            path = separatedPath && separatedPath.slice(0, separatedPath.length - 1).join(pathLib.sep);
-        }
-        catch (err) {
-            error = err.message;
-        }
-        finally {
-            // eslint-disable-next-line no-unsafe-finally
-            return {
-                path,
-                error
-            };
-        }
-    }
-
-    getTracer(name) {
-        let parent = null;
-        const topWorkerSpan = tracer.topSpan(this._taskId);
-        if (topWorkerSpan) {
-            parent = topWorkerSpan.context();
-        }
-        return {
-            name,
-            id: this._taskId,
-            parent,
-            tags: {
-                jobId: this._jobId,
-                taskId: this._taskId
-            }
-        };
+    setStoringStatus(result) {
+        return this.updateStatus({ status: jobStatus.STORING, result });
     }
 
     currentTaskInfo() {
@@ -534,10 +322,6 @@ class JobConsumer extends EventEmitter {
 
     getAlgorithmType() {
         return this._options.jobConsumer.job.type;
-    }
-
-    get algTracer() {
-        return this._algTracer;
     }
 }
 

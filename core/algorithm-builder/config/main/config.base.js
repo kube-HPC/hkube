@@ -40,12 +40,14 @@ config.packagesRepo = {
     nodejs: {
         registry: process.env.NPM_REGISTRY || '',
         token: process.env.NPM_TOKEN || '',
-        defaultBaseImage: process.env.NODE_DEFAULT_BASE_IMAGE || 'node:10.17-slim'
+        defaultBaseImage: process.env.NODE_DEFAULT_BASE_IMAGE || 'node:10.17-slim',
+        wrapperVersion: process.env.NODE_WRAPPER_VERSION || ''
     },
     python: {
         registry: process.env.PIP_REGISTRY || '',
         token: process.env.PIP_TOKEN || '',
-        defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.7'
+        defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.7',
+        wrapperVersion: process.env.PYTHON_WRAPPER_VERSION || ''
     },
     java: {
         registry: process.env.MAVEN_REGISTRY || 'https://oss.sonatype.org/content/repositories/snapshots',
@@ -78,21 +80,21 @@ config.etcd = {
 config.s3 = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIAIOSFODNN7EXAMPLE',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
-    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000',
-    binary: parseBool(process.env.STORAGE_BINARY, false)
+    endpoint: process.env.S3_ENDPOINT_URL || 'http://127.0.0.1:9000'
 };
 
 config.fs = {
-    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage',
-    binary: parseBool(process.env.STORAGE_BINARY, false)
+    baseDirectory: process.env.BASE_FS_ADAPTER_DIRECTORY || '/var/tmp/fs/storage'
 };
 
 config.storageAdapters = {
     s3: {
         connection: config.s3,
+        encoding: process.env.STORAGE_ENCODING || 'bson',
         moduleName: process.env.STORAGE_MODULE || '@hkube/s3-adapter'
     },
     etcd: {
+        encoding: process.env.STORAGE_ENCODING || 'bson',
         connection: config.etcd,
         moduleName: process.env.STORAGE_MODULE || '@hkube/etcd-adapter'
     },
@@ -102,6 +104,7 @@ config.storageAdapters = {
     },
     fs: {
         connection: config.fs,
+        encoding: process.env.STORAGE_ENCODING || 'bson',
         moduleName: process.env.STORAGE_MODULE || '@hkube/fs-adapter'
     }
 };

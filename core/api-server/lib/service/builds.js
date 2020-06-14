@@ -15,6 +15,7 @@ const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
 const { randomString } = require('../utils');
 const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatuses.ACTIVE];
+const minimumBytes = 4100;
 
 class Builds {
     async getBuild(options) {
@@ -123,8 +124,8 @@ class Builds {
     }
 
     async _fileInfo(file) {
-        const bufferExt = readChunk.sync(file.path, 0, fileType.minimumBytes);
-        let fileExt = fileType(bufferExt);
+        const bufferExt = await readChunk(file.path, 0, minimumBytes);
+        let fileExt = await fileType.fromBuffer(bufferExt);
         if (fileExt) {
             fileExt = fileExt.ext;
         }
@@ -134,7 +135,8 @@ class Builds {
         }
 
         const checksum = await this._checkSum(file.path);
-        const fileSize = fse.statSync(file.path).size;
+        const stat = await fse.stat(file.path);
+        const fileSize = stat.size;
         return { fileExt, checksum, fileSize };
     }
 

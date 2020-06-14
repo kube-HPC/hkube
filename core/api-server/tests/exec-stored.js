@@ -147,7 +147,7 @@ describe('Executions', () => {
                 method: 'GET'
             };
             const res2 = await request(optionsGET);
-            expect(res2.body.flowInputOrig).to.eql(options.body.flowInput);
+            expect(res2.body.flowInput).to.eql(options.body.flowInput);
         });
     });
 });
