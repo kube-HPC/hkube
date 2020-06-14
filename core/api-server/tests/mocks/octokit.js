@@ -21,4 +21,4 @@ class Octokit {
     }
 }
 
-module.exports = Octokit;
+module.exports = { Octokit };

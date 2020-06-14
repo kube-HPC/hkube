@@ -762,7 +762,10 @@ describe('Store/Algorithms', () => {
                     gitRepository: {
                         url,
                         token: '1111',
-                        gitKind: "github"
+                        gitKind: "github",
+                        commit: {
+                            id: uuid()
+                        }
                     },
                     env: 'nodejs',
                     baseImage: 'my-new-base/image',
