@@ -433,10 +433,10 @@ describe('Test', function () {
             await taskRunner.start(job);
             await taskRunner.stop({ error: 'error' });
             const graph = await graphStore.getGraph({ jobId });
-            expect(graph.nodes[0].status).to.equal('failed');
-            expect(graph.nodes[1].status).to.equal('failed');
-            expect(graph.nodes[2].status).to.equal('failed');
-            expect(graph.nodes[3].status).to.equal('failed');
+            expect(graph.nodes[0].status).to.equal('stopped');
+            expect(graph.nodes[1].status).to.equal('stopped');
+            expect(graph.nodes[2].status).to.equal('stopped');
+            expect(graph.nodes[3].status).to.equal('stopped');
         });
     });
     describe('Progress', function () {
