@@ -211,7 +211,7 @@ class TaskRunner extends EventEmitter {
             const nodes = this._nodes._getNodesAsFlat();
             nodes.forEach((n) => {
                 if (activeStates.includes(n.status)) {
-                    n.status = taskStatuses.FAILED;  // eslint-disable-line
+                    n.status = pipelineStatuses.STOPPED;  // eslint-disable-line
                 }
             });
         }
