@@ -4,13 +4,13 @@ const urlLib = require('url');
 const { InvalidDataError } = require('../../errors');
 
 class GitService {
-    async getGithubCommit({ url, commitId, branchName, token }) {
+    async getGithubCommit({ url, commitId, tag, branchName, token }) {
         let lastCommit;
         const { owner, repo } = this._parseGitUrl(url);
         const params = {
             owner,
             repo,
-            sha: commitId || branchName,
+            sha: commitId || tag || branchName,
             per_page: 1,
             page: 1
         };
@@ -30,14 +30,14 @@ class GitService {
         return commit;
     }
 
-    async getGitlabCommit({ url, commitId, branchName, token }) {
+    async getGitlabCommit({ url, commitId, tag, branchName, token }) {
         let lastCommit;
         const { host, owner, repo } = this._parseGitUrl(url);
         const params = {
             perPage: 1,
             maxPages: 1,
             showPagination: false,
-            ref_name: commitId || branchName
+            ref_name: commitId || tag || branchName
         };
         try {
             const services = new ProjectsBundle({ host, token });

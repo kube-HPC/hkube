@@ -3,6 +3,7 @@ const gitService = require('./git-service');
 const component = require('../../consts/componentNames');
 const { WEBHOOKS } = require('../../consts/builds');
 const log = Logger.GetLogFromContanier();
+
 class GitDataAdapter {
     constructor() {
         this.adapterRegister = {
@@ -10,8 +11,8 @@ class GitDataAdapter {
             [WEBHOOKS.GITLAB]: this._gitlabAdapter.bind(this)
         };
         this.infoRegister = {
-            [WEBHOOKS.GITHUB]: this._githubInfo.bind(this),
-            [WEBHOOKS.GITLAB]: this._gitlabInfo.bind(this)
+            [WEBHOOKS.GITHUB]: gitService.getGithubCommit.bind(gitService),
+            [WEBHOOKS.GITLAB]: gitService.getGitlabCommit.bind(gitService)
         };
     }
 
@@ -19,29 +20,11 @@ class GitDataAdapter {
         return this.adapterRegister[type](data);
     }
 
-    getInfoAndAdapt(payload) {
-        return this.infoRegister[payload.gitRepository.gitKind](payload);
-    }
-
-    async _githubInfo(payload) {
+    async getInfoAndAdapt(payload) {
+        const getGithubCommit = this.infoRegister[payload.gitRepository.gitKind];
         const gitRepository = this._adaptRepoUrl(payload.gitRepository);
-        const { webUrl, commitId, branchName, token } = gitRepository;
-        const commit = await gitService.getGithubCommit({ url: webUrl, commitId, branchName, token });
-
-        return {
-            ...payload,
-            gitRepository: {
-                ...payload.gitRepository,
-                ...gitRepository,
-                commit
-            }
-        };
-    }
-
-    async _gitlabInfo(payload) {
-        const gitRepository = this._adaptRepoUrl(payload.gitRepository);
-        const { webUrl, commitId, branchName, token } = gitRepository;
-        const commit = await gitService.getGitlabCommit({ url: webUrl, commitId, branchName, token });
+        const { webUrl, commitId, tag, branchName, token } = gitRepository;
+        const commit = await getGithubCommit({ url: webUrl, commitId, tag, branchName, token });
 
         return {
             ...payload,
@@ -54,12 +37,13 @@ class GitDataAdapter {
     }
 
     _adaptRepoUrl(gitRepository) {
-        const { url, commit, branchName, token } = gitRepository;
+        const { url, commit, tag, branchName, token } = gitRepository;
         const webUrl = url.endsWith('.git') ? url.slice(0, -4) : url;
         const cloneUrl = !url.endsWith('.git') ? `${url}.git` : url;
         return {
             branchName,
             commitId: commit && commit.id,
+            tag,
             token,
             webUrl,
             cloneUrl,
