@@ -2,4 +2,4 @@ type: string
 enum:
   - nodejs
   - python
-  - jvm
+  - java
