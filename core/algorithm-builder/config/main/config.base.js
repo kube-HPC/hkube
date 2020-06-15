@@ -48,7 +48,14 @@ config.packagesRepo = {
         token: process.env.PIP_TOKEN || '',
         defaultBaseImage: process.env.PYTHON_DEFAULT_BASE_IMAGE || 'python:3.7',
         wrapperVersion: process.env.PYTHON_WRAPPER_VERSION || ''
+    },
+    java: {
+        registry: process.env.MAVEN_REGISTRY || 'https://oss.sonatype.org/content/repositories/snapshots',
+        token: process.env.MAVEN_TOKEN || '_',
+        user: process.env.MAVEN_USER || '_',
+        defaultBaseImage: process.env.JAVA_DEFAULT_BASE_IMAGE || 'maven'
     }
+
 };
 
 config.tmpFolder = process.env.TMP_FOLDER || '/tmp';

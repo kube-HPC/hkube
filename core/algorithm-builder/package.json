@@ -1,6 +1,6 @@
 {
   "name": "algorithm-builder",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "build algorithm with hkube worker connectivity",
   "author": "Hkube",
   "license": "ISC",
@@ -15,7 +15,8 @@
     "build-env-nodejs": "./lib/builds/build-base-image.sh --env nodejs",
     "build-algorithm": "./lib/builds/build-algorithm-image-docker.sh",
     "download-python-packages": "./dockerfile/get-deps-python.sh",
-    "download-nodejs-packages": "./dockerfile/get-deps-nodejs.sh"
+    "download-nodejs-packages": "./dockerfile/get-deps-nodejs.sh",
+    "download-java-packages": "./dockerfile/get-deps-java.sh"
   },
   "dependencies": {
     "@hkube/config": "^2.0.7",
