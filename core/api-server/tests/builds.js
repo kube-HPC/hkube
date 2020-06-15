@@ -1,5 +1,6 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
+const nock = require('nock');
 const { randomString: uuid } = require('../lib/utils');
 const HttpStatus = require('http-status-codes');
 const querystring = require('querystring');
@@ -7,11 +8,16 @@ const builds = require('../lib/service/builds');
 const { request } = require('./utils');
 const githubSample = require('./mocks/github-sample.json')
 const gitlabSample = require('./mocks/gitlab-sample')
+const commit = require('./mocks/github-commit.json');
 let restUrl;
+
+const baseApi = 'https://api.github.com';
+const hkubeRepo = '/repos/kube-HPC/hkube-green/commits';
 
 describe('Builds', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
+        nock(baseApi).persist().get(hkubeRepo).query(true).reply(HttpStatus.OK, commit.data);
     });
     describe('webhhoks/gitlab', () => {
         let restPath = null;

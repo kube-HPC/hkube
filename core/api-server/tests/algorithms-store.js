@@ -1,15 +1,21 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const { randomString: uuid } = require('../lib/utils');
+const nock = require('nock');
 const HttpStatus = require('http-status-codes');
+const { randomString: uuid } = require('../lib/utils');
 const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms } = require('./mocks');
 const { request, delay, defaultProps } = require('./utils');
+const commit = require('./mocks/github-commit.json');
 let restUrl, restPath, applyPath;
 
+const baseApi = 'https://api.github.com';
 const gitRepo = 'https://github.com/kube-HPC/hkube';
+const hkubeRepo = '/repos/kube-HPC/hkube/commits';
+const emptyGit = '/repos/hkube/empty/commits';
+const fullGit = '/repos/hkube/my.git.foo.bar/commits';
 
 describe('Store/Algorithms', () => {
     before(() => {
@@ -17,6 +23,9 @@ describe('Store/Algorithms', () => {
         restPath = `${restUrl}/store/algorithms`;
         applyPath = `${restPath}/apply`;
         versionsPath = `${restUrl}/versions/algorithms`;
+        nock(baseApi).persist().get(emptyGit).query(true).reply(HttpStatus.BAD_REQUEST, 'Git Repository is empty');
+        nock(baseApi).persist().get(fullGit).query(true).reply(HttpStatus.OK, commit.data);
+        nock(baseApi).persist().get(hkubeRepo).query(true).reply(HttpStatus.OK, commit.data);
     });
     describe('/store/algorithms:name GET', () => {
         it('should throw error algorithm not found', async () => {
@@ -613,7 +622,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body).to.not.have.property('buildId');
             });
             it('should throw validation error of algorithm type cannot be changed', async () => {
-                const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
+                const url = 'https://github.com/hkube/my.git.foo.bar';
                 const body1 = {
                     name: uuid(),
                     gitRepository: {
@@ -732,10 +741,10 @@ describe('Store/Algorithms', () => {
                 };
                 const res = await request(options);
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.equal(`Git Repository is empty. (${url})`);
+                expect(res.body.error.message).to.equal(`Git Repository is empty (${url})`);
             });
             it('should throw error of both image and git is not allowed', async () => {
-                const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
+                const url = 'https://github.com/hkube.gits/my.git.foo.bar';
                 const body = {
                     name: uuid(),
                     algorithmImage: 'my-image',
@@ -755,14 +764,17 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.message).to.equal(MESSAGES.GIT_AND_IMAGE);
             });
             it('should apply twice and create one build', async () => {
-                const url = 'https://github.com/hkube.gits/my.git.foo.bar.git';
+                const url = 'https://github.com/hkube/my.git.foo.bar';
                 const name = uuid();
                 const algorithm = {
                     name,
                     gitRepository: {
                         url,
                         token: '1111',
-                        gitKind: "github"
+                        gitKind: "github",
+                        commit: {
+                            id: uuid()
+                        }
                     },
                     env: 'nodejs',
                     baseImage: 'my-new-base/image',
