@@ -42,6 +42,7 @@ dockerBuildOpenshift() {
   export commands="${TMP_FOLDER}/commands"
   export baseImage=${BASE_IMAGE}
   export packagesRegistry=${PACKAGES_REGISTRY}
+  export packagesRegistryUser=${PACKAGES_REGISTRY_USER}
   export packagesToken=${PACKAGES_TOKEN}
 
   echo "Building image ${image}"
@@ -88,6 +89,7 @@ dockerBuildKaniko() {
   export commands="${TMP_FOLDER}/commands"
   export baseImage=${BASE_IMAGE}
   export packagesRegistry=${PACKAGES_REGISTRY}
+  export packagesRegistryUser=${PACKAGES_REGISTRY_USER}
   export packagesToken=${PACKAGES_TOKEN}
   export insecure=${INSECURE}
   export insecure_pull=${INSECURE_PULL}
@@ -111,6 +113,7 @@ dockerBuildKaniko() {
     --dockerfile ./dockerfile/Dockerfile \
     ${options} --context dir:///workspace/ \
     --build-arg packagesRegistry=${packagesRegistry} \
+    --build-arg packagesRegistryUser=${packagesRegistryUser} \
     --build-arg packagesToken=${packagesToken} \
     --build-arg baseImage=${baseImage} \
     --destination $image" > ${commands}/run

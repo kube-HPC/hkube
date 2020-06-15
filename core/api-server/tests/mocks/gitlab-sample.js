@@ -16,26 +16,26 @@ module.exports = {
         id: 8077802,
         name: 'anomaly',
         description: '',
-        web_url: 'https://gitlab.com/maty21/anomaly',
+        web_url: 'https://gitlab.com/kube-HPC/hkube',
         avatar_url: null,
-        git_ssh_url: 'git@gitlab.com:maty21/anomaly.git',
-        git_http_url: 'https://gitlab.com/maty21/anomaly.git',
+        git_ssh_url: 'git@gitlab.com:kube-HPC/hkube.git',
+        git_http_url: 'https://gitlab.com/kube-HPC/hkube.git',
         namespace: 'maty zisserman',
         visibility_level: 20,
-        path_with_namespace: 'maty21/anomaly',
+        path_with_namespace: 'kube-HPC/hkube',
         default_branch: 'master',
         ci_config_path: null,
-        homepage: 'https://gitlab.com/maty21/anomaly',
-        url: 'git@gitlab.com:maty21/anomaly.git',
-        ssh_url: 'git@gitlab.com:maty21/anomaly.git',
-        http_url: 'https://gitlab.com/maty21/anomaly.git'
+        homepage: 'https://gitlab.com/kube-HPC/hkube',
+        url: 'git@gitlab.com:kube-HPC/hkube.git',
+        ssh_url: 'git@gitlab.com:kube-HPC/hkube.git',
+        http_url: 'https://gitlab.com/kube-HPC/hkube.git'
     },
     commits: [
         {
             id: '4634baa4a363b27421f29182694c9e9f5bc9ef38',
             message: 'Update README.md',
             timestamp: '2019-11-17T13:23:56Z',
-            url: 'https://gitlab.com/maty21/anomaly/commit/4634baa4a363b27421f29182694c9e9f5bc9ef38',
+            url: 'https://gitlab.com/kube-HPC/hkube/commit/4634baa4a363b27421f29182694c9e9f5bc9ef38',
             author: {
                 name: 'maty zisserman',
                 email: 'maty21@gmail.com'
@@ -51,11 +51,11 @@ module.exports = {
     push_options: {},
     repository: {
         name: 'anomaly',
-        url: 'git@gitlab.com:maty21/anomaly.git',
+        url: 'git@gitlab.com:kube-HPC/hkube.git',
         description: '',
-        homepage: 'https://gitlab.com/maty21/anomaly',
-        git_http_url: 'https://gitlab.com/maty21/anomaly.git',
-        git_ssh_url: 'git@gitlab.com:maty21/anomaly.git',
+        homepage: 'https://gitlab.com/kube-HPC/hkube',
+        git_http_url: 'https://gitlab.com/kube-HPC/hkube.git',
+        git_ssh_url: 'git@gitlab.com:kube-HPC/hkube.git',
         visibility_level: 20
     }
 }

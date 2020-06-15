@@ -1,15 +1,8 @@
-const mockery = require('mockery');
 const stateManager = require('../lib/state/state-manager');
 const { algorithms, pipelines, experiments } = require('./mocks');
 
 before(async function () {
     this.timeout(15000)
-    mockery.enable({
-        warnOnReplace: false,
-        warnOnUnregistered: false,
-        useCleanCache: false
-    });
-    mockery.registerSubstitute('@octokit/rest', process.cwd() + '/tests/mocks/octokit.js');
     const bootstrap = require('../bootstrap');
     const config = await bootstrap.init();
     await stateManager._client.client.delete().all();

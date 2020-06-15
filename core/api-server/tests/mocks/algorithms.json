@@ -39,8 +39,8 @@
             "pending": false
         },
         "gitRepository": {
-            "url": "https://github.com/maty21/statistisc",
-            "webUrl": "https://github.com/maty21/statistisc",
+            "url": "https://github.com/kube-HPC/hkube-green",
+            "webUrl": "https://github.com/kube-HPC/hkube-green",
             "branchName": "master"
         },
         "env": "nodejs",
