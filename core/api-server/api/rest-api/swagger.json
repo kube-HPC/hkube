@@ -2966,7 +2966,7 @@
                       "enum": [
                         "nodejs",
                         "python",
-                        "jvm"
+                        "java"
                       ]
                     },
                     "algorithmImage": {
@@ -3511,7 +3511,7 @@
                         "enum": [
                           "nodejs",
                           "python",
-                          "jvm"
+                          "java"
                         ]
                       },
                       "algorithmImage": {
@@ -3703,7 +3703,7 @@
                     "enum": [
                       "nodejs",
                       "python",
-                      "jvm"
+                      "java"
                     ]
                   },
                   "algorithmImage": {
@@ -3950,7 +3950,7 @@
                     "enum": [
                       "nodejs",
                       "python",
-                      "jvm"
+                      "java"
                     ]
                   },
                   "algorithmImage": {
@@ -4183,7 +4183,7 @@
                         "enum": [
                           "nodejs",
                           "python",
-                          "jvm"
+                          "java"
                         ]
                       },
                       "algorithmImage": {
@@ -4375,7 +4375,7 @@
                           "enum": [
                             "nodejs",
                             "python",
-                            "jvm"
+                            "java"
                           ]
                         },
                         "algorithmImage": {
@@ -8268,7 +8268,7 @@
                         "enum": [
                           "nodejs",
                           "python",
-                          "jvm"
+                          "java"
                         ]
                       },
                       "algorithmImage": {
@@ -9995,7 +9995,7 @@
             "enum": [
               "nodejs",
               "python",
-              "jvm"
+              "java"
             ]
           },
           "algorithmImage": {
@@ -10170,7 +10170,7 @@
         "enum": [
           "nodejs",
           "python",
-          "jvm"
+          "java"
         ]
       },
       "algorithmFileExt": {
@@ -10238,7 +10238,7 @@
                 "enum": [
                   "nodejs",
                   "python",
-                  "jvm"
+                  "java"
                 ]
               },
               "algorithmImage": {
@@ -11247,7 +11247,7 @@
             "enum": [
               "nodejs",
               "python",
-              "jvm"
+              "java"
             ]
           }
         },
@@ -11264,7 +11264,7 @@
             "enum": [
               "nodejs",
               "python",
-              "jvm"
+              "java"
             ]
           }
         },
