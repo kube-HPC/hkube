@@ -1,0 +1,46 @@
+{
+    "nodes": [
+        {
+            "nodeName": "A-green",
+            "algorithmName": "green-alg",
+            "input": [
+                "@flowInput.files.link"
+            ]
+        },
+        {
+            "nodeName": "A-yellow",
+            "algorithmName": "yellow-alg",
+            "input": [
+                "@A-green"
+            ]
+        },
+        {
+            "nodeName": "A-black",
+            "algorithmName": "black-alg",
+            "input": [
+                "@A-yellow"
+            ]
+        },
+        {
+            "nodeName": "B-green",
+            "algorithmName": "green-alg",
+            "input": [
+                "@flowInput.files.link"
+            ]
+        },
+        {
+            "nodeName": "B-yellow",
+            "algorithmName": "yellow-alg",
+            "input": [
+                "@B-green"
+            ]
+        },
+        {
+            "nodeName": "B-black",
+            "algorithmName": "black-alg",
+            "input": [
+                "@B-yellow"
+            ]
+        }
+    ]
+}
