@@ -24,6 +24,8 @@ const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 let createdJobsList = [];
 const MIN_AGE_FOR_STOP = 10 * 1000;
 let totalCapacityNow = 10;
+const unscheduledAlgorithms = {};
+
 const _updateCapacity = (algorithmCount) => {
     const factor = 0.9;
     const minCapacity = 2;
@@ -338,6 +340,35 @@ const calcRatio = (totalRequests, capacity) => {
     return requestTypes;
 };
 
+const _removeUnscheduled = (created, algorithms) => {
+    created.forEach((s) => {
+        if (algorithms[s.algorithmName]) {
+            delete algorithms[s.algorithmName];
+        }
+    });
+};
+
+const _addUnscheduled = (skipped, algorithms) => {
+    skipped.forEach((s) => {
+        if (!algorithms[s.algorithmName]) {
+            algorithms[s.algorithmName] = { warning: s.warning, timestamp: s.timestamp };
+        }
+    });
+};
+
+const _checkUnscheduled = (created, skipped, algorithms, timeout) => {
+    _removeUnscheduled(created, algorithms);
+    _addUnscheduled(skipped, algorithms);
+
+    const unscheduled = [];
+    Object.entries(algorithms).forEach(([k, v]) => {
+        if (Date.now() - v.timestamp > timeout) {
+            unscheduled.push({ name: k, warning: v.warning });
+        }
+    });
+    return unscheduled;
+};
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
@@ -402,6 +433,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
+    const unscheduled = _checkUnscheduled(created, skipped, unscheduledAlgorithms, options.algorithmSchedulingWarningTimeoutMs);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -460,6 +492,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         res.resumed = toResume.filter(c => c.algorithmName === algorithmName).length;
     });
     await etcd.updateDiscovery({
+        unscheduled,
         reconcileResult,
         actual: workerStats,
         resourcePressure: {
