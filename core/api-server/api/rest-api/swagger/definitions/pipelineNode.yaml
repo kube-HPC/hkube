@@ -41,10 +41,5 @@ properties:
     enum:
       - indexed
       - cartesian
-oneOf:
-  - required:
-      - nodeName
-      - algorithmName
-  - required:
-      - nodeName
-      - pipelineName
+required:
+  - nodeName

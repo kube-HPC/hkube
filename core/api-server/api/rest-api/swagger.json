@@ -170,19 +170,8 @@
                           ]
                         }
                       },
-                      "oneOf": [
-                        {
-                          "required": [
-                            "nodeName",
-                            "algorithmName"
-                          ]
-                        },
-                        {
-                          "required": [
-                            "nodeName",
-                            "pipelineName"
-                          ]
-                        }
+                      "required": [
+                        "nodeName"
                       ]
                     }
                   },
@@ -1251,19 +1240,8 @@
                             ]
                           }
                         },
-                        "oneOf": [
-                          {
-                            "required": [
-                              "nodeName",
-                              "algorithmName"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "nodeName",
-                              "pipelineName"
-                            ]
-                          }
+                        "required": [
+                          "nodeName"
                         ]
                       }
                     },
@@ -1567,19 +1545,8 @@
                             ]
                           }
                         },
-                        "oneOf": [
-                          {
-                            "required": [
-                              "nodeName",
-                              "algorithmName"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "nodeName",
-                              "pipelineName"
-                            ]
-                          }
+                        "required": [
+                          "nodeName"
                         ]
                       }
                     },
@@ -4977,19 +4944,8 @@
                             ]
                           }
                         },
-                        "oneOf": [
-                          {
-                            "required": [
-                              "nodeName",
-                              "algorithmName"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "nodeName",
-                              "pipelineName"
-                            ]
-                          }
+                        "required": [
+                          "nodeName"
                         ]
                       }
                     },
@@ -5396,19 +5352,8 @@
                               ]
                             }
                           },
-                          "oneOf": [
-                            {
-                              "required": [
-                                "nodeName",
-                                "algorithmName"
-                              ]
-                            },
-                            {
-                              "required": [
-                                "nodeName",
-                                "pipelineName"
-                              ]
-                            }
+                          "required": [
+                            "nodeName"
                           ]
                         }
                       },
@@ -5671,19 +5616,8 @@
                           ]
                         }
                       },
-                      "oneOf": [
-                        {
-                          "required": [
-                            "nodeName",
-                            "algorithmName"
-                          ]
-                        },
-                        {
-                          "required": [
-                            "nodeName",
-                            "pipelineName"
-                          ]
-                        }
+                      "required": [
+                        "nodeName"
                       ]
                     }
                   },
@@ -5922,19 +5856,8 @@
                             ]
                           }
                         },
-                        "oneOf": [
-                          {
-                            "required": [
-                              "nodeName",
-                              "algorithmName"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "nodeName",
-                              "pipelineName"
-                            ]
-                          }
+                        "required": [
+                          "nodeName"
                         ]
                       }
                     },
@@ -6234,19 +6157,8 @@
                           ]
                         }
                       },
-                      "oneOf": [
-                        {
-                          "required": [
-                            "nodeName",
-                            "algorithmName"
-                          ]
-                        },
-                        {
-                          "required": [
-                            "nodeName",
-                            "pipelineName"
-                          ]
-                        }
+                      "required": [
+                        "nodeName"
                       ]
                     }
                   },
@@ -6485,19 +6397,8 @@
                             ]
                           }
                         },
-                        "oneOf": [
-                          {
-                            "required": [
-                              "nodeName",
-                              "algorithmName"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "nodeName",
-                              "pipelineName"
-                            ]
-                          }
+                        "required": [
+                          "nodeName"
                         ]
                       }
                     },
@@ -11524,19 +11425,8 @@
                   ]
                 }
               },
-              "oneOf": [
-                {
-                  "required": [
-                    "nodeName",
-                    "algorithmName"
-                  ]
-                },
-                {
-                  "required": [
-                    "nodeName",
-                    "pipelineName"
-                  ]
-                }
+              "required": [
+                "nodeName"
               ]
             }
           },
@@ -11747,19 +11637,8 @@
             ]
           }
         },
-        "oneOf": [
-          {
-            "required": [
-              "nodeName",
-              "algorithmName"
-            ]
-          },
-          {
-            "required": [
-              "nodeName",
-              "pipelineName"
-            ]
-          }
+        "required": [
+          "nodeName"
         ]
       },
       "metrics": {
