@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.2.72",
+    "version": "1.3.15",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -161,11 +161,28 @@
                               "example": 1
                             }
                           }
+                        },
+                        "batchOperation": {
+                          "type": "string",
+                          "enum": [
+                            "indexed",
+                            "cartesian"
+                          ]
                         }
                       },
-                      "required": [
-                        "nodeName",
-                        "algorithmName"
+                      "oneOf": [
+                        {
+                          "required": [
+                            "nodeName",
+                            "algorithmName"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "nodeName",
+                            "pipelineName"
+                          ]
+                        }
                       ]
                     }
                   },
@@ -212,10 +229,20 @@
                         "example": 80
                       },
                       "concurrentPipelines": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 10000,
-                        "example": 1
+                        "type": "object",
+                        "properties": {
+                          "amount": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000,
+                            "example": 1
+                          },
+                          "rejectOnFailure": {
+                            "type": "boolean",
+                            "default": true
+                          }
+                        },
+                        "additionalProperties": false
                       },
                       "progressVerbosityLevel": {
                         "type": "string",
@@ -249,7 +276,8 @@
                         "items": {
                           "type": "string",
                           "minLength": 1
-                        }
+                        },
+                        "uniqueItems": true
                       },
                       "cron": {
                         "type": "object",
@@ -279,6 +307,10 @@
                       "minLength": 1,
                       "maxLength": 32
                     }
+                  },
+                  "rootJobId": {
+                    "type": "string",
+                    "description": "the root job id of the current tree"
                   }
                 },
                 "additionalProperties": false,
@@ -423,10 +455,20 @@
                         "example": 80
                       },
                       "concurrentPipelines": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 10000,
-                        "example": 1
+                        "type": "object",
+                        "properties": {
+                          "amount": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000,
+                            "example": 1
+                          },
+                          "rejectOnFailure": {
+                            "type": "boolean",
+                            "default": true
+                          }
+                        },
+                        "additionalProperties": false
                       },
                       "progressVerbosityLevel": {
                         "type": "string",
@@ -1200,11 +1242,28 @@
                                 "example": 1
                               }
                             }
+                          },
+                          "batchOperation": {
+                            "type": "string",
+                            "enum": [
+                              "indexed",
+                              "cartesian"
+                            ]
                           }
                         },
-                        "required": [
-                          "nodeName",
-                          "algorithmName"
+                        "oneOf": [
+                          {
+                            "required": [
+                              "nodeName",
+                              "algorithmName"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "nodeName",
+                              "pipelineName"
+                            ]
+                          }
                         ]
                       }
                     },
@@ -1251,10 +1310,20 @@
                           "example": 80
                         },
                         "concurrentPipelines": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 10000,
-                          "example": 1
+                          "type": "object",
+                          "properties": {
+                            "amount": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 10000,
+                              "example": 1
+                            },
+                            "rejectOnFailure": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
                         },
                         "progressVerbosityLevel": {
                           "type": "string",
@@ -1288,7 +1357,8 @@
                           "items": {
                             "type": "string",
                             "minLength": 1
-                          }
+                          },
+                          "uniqueItems": true
                         },
                         "cron": {
                           "type": "object",
@@ -1318,6 +1388,10 @@
                         "minLength": 1,
                         "maxLength": 32
                       }
+                    },
+                    "rootJobId": {
+                      "type": "string",
+                      "description": "the root job id of the current tree"
                     }
                   },
                   "additionalProperties": false,
@@ -1484,11 +1558,28 @@
                                 "example": 1
                               }
                             }
+                          },
+                          "batchOperation": {
+                            "type": "string",
+                            "enum": [
+                              "indexed",
+                              "cartesian"
+                            ]
                           }
                         },
-                        "required": [
-                          "nodeName",
-                          "algorithmName"
+                        "oneOf": [
+                          {
+                            "required": [
+                              "nodeName",
+                              "algorithmName"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "nodeName",
+                              "pipelineName"
+                            ]
+                          }
                         ]
                       }
                     },
@@ -1535,10 +1626,20 @@
                           "example": 80
                         },
                         "concurrentPipelines": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 10000,
-                          "example": 1
+                          "type": "object",
+                          "properties": {
+                            "amount": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 10000,
+                              "example": 1
+                            },
+                            "rejectOnFailure": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
                         },
                         "progressVerbosityLevel": {
                           "type": "string",
@@ -1572,7 +1673,8 @@
                           "items": {
                             "type": "string",
                             "minLength": 1
-                          }
+                          },
+                          "uniqueItems": true
                         },
                         "cron": {
                           "type": "object",
@@ -1602,6 +1704,10 @@
                         "minLength": 1,
                         "maxLength": 32
                       }
+                    },
+                    "rootJobId": {
+                      "type": "string",
+                      "description": "the root job id of the current tree"
                     }
                   },
                   "additionalProperties": false,
@@ -2981,7 +3087,7 @@
                       "description": "algorithm cpu"
                     },
                     "gpu": {
-                      "type": "integer",
+                      "type": "number",
                       "minimum": 0,
                       "description": "algorithm gpu"
                     },
@@ -3004,9 +3110,40 @@
                           "type": "boolean",
                           "description": "pending algorithm",
                           "default": false
+                        },
+                        "opengl": {
+                          "type": "boolean",
+                          "description": "should algorithm support XGL context creation (mount X socket)"
                         }
                       },
                       "default": {}
+                    },
+                    "mounts": {
+                      "type": "array",
+                      "description": "a list of volumes to mount into the algorithm",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "pvcName": {
+                            "type": "string",
+                            "format": "algorithm-mount-pvc",
+                            "minLength": 1,
+                            "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                          },
+                          "path": {
+                            "type": "string",
+                            "format": "path",
+                            "minLength": 1,
+                            "description": "the mount path in the algorithm container"
+                          }
+                        },
+                        "required": [
+                          "pvcName",
+                          "path"
+                        ]
+                      },
+                      "uniqueItems": true,
+                      "example": []
                     },
                     "gitRepository": {
                       "type": "object",
@@ -3526,7 +3663,7 @@
                         "description": "algorithm cpu"
                       },
                       "gpu": {
-                        "type": "integer",
+                        "type": "number",
                         "minimum": 0,
                         "description": "algorithm gpu"
                       },
@@ -3549,9 +3686,40 @@
                             "type": "boolean",
                             "description": "pending algorithm",
                             "default": false
+                          },
+                          "opengl": {
+                            "type": "boolean",
+                            "description": "should algorithm support XGL context creation (mount X socket)"
                           }
                         },
                         "default": {}
+                      },
+                      "mounts": {
+                        "type": "array",
+                        "description": "a list of volumes to mount into the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "pvcName": {
+                              "type": "string",
+                              "format": "algorithm-mount-pvc",
+                              "minLength": 1,
+                              "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                            },
+                            "path": {
+                              "type": "string",
+                              "format": "path",
+                              "minLength": 1,
+                              "description": "the mount path in the algorithm container"
+                            }
+                          },
+                          "required": [
+                            "pvcName",
+                            "path"
+                          ]
+                        },
+                        "uniqueItems": true,
+                        "example": []
                       },
                       "gitRepository": {
                         "type": "object",
@@ -3718,7 +3886,7 @@
                     "description": "algorithm cpu"
                   },
                   "gpu": {
-                    "type": "integer",
+                    "type": "number",
                     "minimum": 0,
                     "description": "algorithm gpu"
                   },
@@ -3741,9 +3909,40 @@
                         "type": "boolean",
                         "description": "pending algorithm",
                         "default": false
+                      },
+                      "opengl": {
+                        "type": "boolean",
+                        "description": "should algorithm support XGL context creation (mount X socket)"
                       }
                     },
                     "default": {}
+                  },
+                  "mounts": {
+                    "type": "array",
+                    "description": "a list of volumes to mount into the algorithm",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "pvcName": {
+                          "type": "string",
+                          "format": "algorithm-mount-pvc",
+                          "minLength": 1,
+                          "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                        },
+                        "path": {
+                          "type": "string",
+                          "format": "path",
+                          "minLength": 1,
+                          "description": "the mount path in the algorithm container"
+                        }
+                      },
+                      "required": [
+                        "pvcName",
+                        "path"
+                      ]
+                    },
+                    "uniqueItems": true,
+                    "example": []
                   },
                   "gitRepository": {
                     "type": "object",
@@ -3965,7 +4164,7 @@
                     "description": "algorithm cpu"
                   },
                   "gpu": {
-                    "type": "integer",
+                    "type": "number",
                     "minimum": 0,
                     "description": "algorithm gpu"
                   },
@@ -3988,9 +4187,40 @@
                         "type": "boolean",
                         "description": "pending algorithm",
                         "default": false
+                      },
+                      "opengl": {
+                        "type": "boolean",
+                        "description": "should algorithm support XGL context creation (mount X socket)"
                       }
                     },
                     "default": {}
+                  },
+                  "mounts": {
+                    "type": "array",
+                    "description": "a list of volumes to mount into the algorithm",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "pvcName": {
+                          "type": "string",
+                          "format": "algorithm-mount-pvc",
+                          "minLength": 1,
+                          "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                        },
+                        "path": {
+                          "type": "string",
+                          "format": "path",
+                          "minLength": 1,
+                          "description": "the mount path in the algorithm container"
+                        }
+                      },
+                      "required": [
+                        "pvcName",
+                        "path"
+                      ]
+                    },
+                    "uniqueItems": true,
+                    "example": []
                   },
                   "gitRepository": {
                     "type": "object",
@@ -4198,7 +4428,7 @@
                         "description": "algorithm cpu"
                       },
                       "gpu": {
-                        "type": "integer",
+                        "type": "number",
                         "minimum": 0,
                         "description": "algorithm gpu"
                       },
@@ -4221,9 +4451,40 @@
                             "type": "boolean",
                             "description": "pending algorithm",
                             "default": false
+                          },
+                          "opengl": {
+                            "type": "boolean",
+                            "description": "should algorithm support XGL context creation (mount X socket)"
                           }
                         },
                         "default": {}
+                      },
+                      "mounts": {
+                        "type": "array",
+                        "description": "a list of volumes to mount into the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "pvcName": {
+                              "type": "string",
+                              "format": "algorithm-mount-pvc",
+                              "minLength": 1,
+                              "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                            },
+                            "path": {
+                              "type": "string",
+                              "format": "path",
+                              "minLength": 1,
+                              "description": "the mount path in the algorithm container"
+                            }
+                          },
+                          "required": [
+                            "pvcName",
+                            "path"
+                          ]
+                        },
+                        "uniqueItems": true,
+                        "example": []
                       },
                       "gitRepository": {
                         "type": "object",
@@ -4390,7 +4651,7 @@
                           "description": "algorithm cpu"
                         },
                         "gpu": {
-                          "type": "integer",
+                          "type": "number",
                           "minimum": 0,
                           "description": "algorithm gpu"
                         },
@@ -4413,9 +4674,40 @@
                               "type": "boolean",
                               "description": "pending algorithm",
                               "default": false
+                            },
+                            "opengl": {
+                              "type": "boolean",
+                              "description": "should algorithm support XGL context creation (mount X socket)"
                             }
                           },
                           "default": {}
+                        },
+                        "mounts": {
+                          "type": "array",
+                          "description": "a list of volumes to mount into the algorithm",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "pvcName": {
+                                "type": "string",
+                                "format": "algorithm-mount-pvc",
+                                "minLength": 1,
+                                "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                              },
+                              "path": {
+                                "type": "string",
+                                "format": "path",
+                                "minLength": 1,
+                                "description": "the mount path in the algorithm container"
+                              }
+                            },
+                            "required": [
+                              "pvcName",
+                              "path"
+                            ]
+                          },
+                          "uniqueItems": true,
+                          "example": []
                         },
                         "gitRepository": {
                           "type": "object",
@@ -4676,11 +4968,28 @@
                                 "example": 1
                               }
                             }
+                          },
+                          "batchOperation": {
+                            "type": "string",
+                            "enum": [
+                              "indexed",
+                              "cartesian"
+                            ]
                           }
                         },
-                        "required": [
-                          "nodeName",
-                          "algorithmName"
+                        "oneOf": [
+                          {
+                            "required": [
+                              "nodeName",
+                              "algorithmName"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "nodeName",
+                              "pipelineName"
+                            ]
+                          }
                         ]
                       }
                     },
@@ -4727,10 +5036,20 @@
                           "example": 80
                         },
                         "concurrentPipelines": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 10000,
-                          "example": 1
+                          "type": "object",
+                          "properties": {
+                            "amount": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 10000,
+                              "example": 1
+                            },
+                            "rejectOnFailure": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
                         },
                         "progressVerbosityLevel": {
                           "type": "string",
@@ -4764,7 +5083,8 @@
                           "items": {
                             "type": "string",
                             "minLength": 1
-                          }
+                          },
+                          "uniqueItems": true
                         },
                         "cron": {
                           "type": "object",
@@ -4794,6 +5114,10 @@
                         "minLength": 1,
                         "maxLength": 32
                       }
+                    },
+                    "rootJobId": {
+                      "type": "string",
+                      "description": "the root job id of the current tree"
                     }
                   },
                   "additionalProperties": false,
@@ -5063,11 +5387,28 @@
                                   "example": 1
                                 }
                               }
+                            },
+                            "batchOperation": {
+                              "type": "string",
+                              "enum": [
+                                "indexed",
+                                "cartesian"
+                              ]
                             }
                           },
-                          "required": [
-                            "nodeName",
-                            "algorithmName"
+                          "oneOf": [
+                            {
+                              "required": [
+                                "nodeName",
+                                "algorithmName"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "nodeName",
+                                "pipelineName"
+                              ]
+                            }
                           ]
                         }
                       },
@@ -5114,10 +5455,20 @@
                             "example": 80
                           },
                           "concurrentPipelines": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 10000,
-                            "example": 1
+                            "type": "object",
+                            "properties": {
+                              "amount": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 10000,
+                                "example": 1
+                              },
+                              "rejectOnFailure": {
+                                "type": "boolean",
+                                "default": true
+                              }
+                            },
+                            "additionalProperties": false
                           },
                           "progressVerbosityLevel": {
                             "type": "string",
@@ -5151,7 +5502,8 @@
                             "items": {
                               "type": "string",
                               "minLength": 1
-                            }
+                            },
+                            "uniqueItems": true
                           },
                           "cron": {
                             "type": "object",
@@ -5181,6 +5533,10 @@
                           "minLength": 1,
                           "maxLength": 32
                         }
+                      },
+                      "rootJobId": {
+                        "type": "string",
+                        "description": "the root job id of the current tree"
                       }
                     },
                     "additionalProperties": false,
@@ -5306,11 +5662,28 @@
                               "example": 1
                             }
                           }
+                        },
+                        "batchOperation": {
+                          "type": "string",
+                          "enum": [
+                            "indexed",
+                            "cartesian"
+                          ]
                         }
                       },
-                      "required": [
-                        "nodeName",
-                        "algorithmName"
+                      "oneOf": [
+                        {
+                          "required": [
+                            "nodeName",
+                            "algorithmName"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "nodeName",
+                            "pipelineName"
+                          ]
+                        }
                       ]
                     }
                   },
@@ -5357,10 +5730,20 @@
                         "example": 80
                       },
                       "concurrentPipelines": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 10000,
-                        "example": 1
+                        "type": "object",
+                        "properties": {
+                          "amount": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000,
+                            "example": 1
+                          },
+                          "rejectOnFailure": {
+                            "type": "boolean",
+                            "default": true
+                          }
+                        },
+                        "additionalProperties": false
                       },
                       "progressVerbosityLevel": {
                         "type": "string",
@@ -5394,7 +5777,8 @@
                         "items": {
                           "type": "string",
                           "minLength": 1
-                        }
+                        },
+                        "uniqueItems": true
                       },
                       "cron": {
                         "type": "object",
@@ -5424,6 +5808,10 @@
                       "minLength": 1,
                       "maxLength": 32
                     }
+                  },
+                  "rootJobId": {
+                    "type": "string",
+                    "description": "the root job id of the current tree"
                   }
                 },
                 "additionalProperties": false,
@@ -5525,11 +5913,28 @@
                                 "example": 1
                               }
                             }
+                          },
+                          "batchOperation": {
+                            "type": "string",
+                            "enum": [
+                              "indexed",
+                              "cartesian"
+                            ]
                           }
                         },
-                        "required": [
-                          "nodeName",
-                          "algorithmName"
+                        "oneOf": [
+                          {
+                            "required": [
+                              "nodeName",
+                              "algorithmName"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "nodeName",
+                              "pipelineName"
+                            ]
+                          }
                         ]
                       }
                     },
@@ -5576,10 +5981,20 @@
                           "example": 80
                         },
                         "concurrentPipelines": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 10000,
-                          "example": 1
+                          "type": "object",
+                          "properties": {
+                            "amount": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 10000,
+                              "example": 1
+                            },
+                            "rejectOnFailure": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
                         },
                         "progressVerbosityLevel": {
                           "type": "string",
@@ -5613,7 +6028,8 @@
                           "items": {
                             "type": "string",
                             "minLength": 1
-                          }
+                          },
+                          "uniqueItems": true
                         },
                         "cron": {
                           "type": "object",
@@ -5643,6 +6059,10 @@
                         "minLength": 1,
                         "maxLength": 32
                       }
+                    },
+                    "rootJobId": {
+                      "type": "string",
+                      "description": "the root job id of the current tree"
                     }
                   },
                   "additionalProperties": false,
@@ -5805,11 +6225,28 @@
                               "example": 1
                             }
                           }
+                        },
+                        "batchOperation": {
+                          "type": "string",
+                          "enum": [
+                            "indexed",
+                            "cartesian"
+                          ]
                         }
                       },
-                      "required": [
-                        "nodeName",
-                        "algorithmName"
+                      "oneOf": [
+                        {
+                          "required": [
+                            "nodeName",
+                            "algorithmName"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "nodeName",
+                            "pipelineName"
+                          ]
+                        }
                       ]
                     }
                   },
@@ -5856,10 +6293,20 @@
                         "example": 80
                       },
                       "concurrentPipelines": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 10000,
-                        "example": 1
+                        "type": "object",
+                        "properties": {
+                          "amount": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10000,
+                            "example": 1
+                          },
+                          "rejectOnFailure": {
+                            "type": "boolean",
+                            "default": true
+                          }
+                        },
+                        "additionalProperties": false
                       },
                       "progressVerbosityLevel": {
                         "type": "string",
@@ -5893,7 +6340,8 @@
                         "items": {
                           "type": "string",
                           "minLength": 1
-                        }
+                        },
+                        "uniqueItems": true
                       },
                       "cron": {
                         "type": "object",
@@ -5923,6 +6371,10 @@
                       "minLength": 1,
                       "maxLength": 32
                     }
+                  },
+                  "rootJobId": {
+                    "type": "string",
+                    "description": "the root job id of the current tree"
                   }
                 },
                 "additionalProperties": false,
@@ -6024,11 +6476,28 @@
                                 "example": 1
                               }
                             }
+                          },
+                          "batchOperation": {
+                            "type": "string",
+                            "enum": [
+                              "indexed",
+                              "cartesian"
+                            ]
                           }
                         },
-                        "required": [
-                          "nodeName",
-                          "algorithmName"
+                        "oneOf": [
+                          {
+                            "required": [
+                              "nodeName",
+                              "algorithmName"
+                            ]
+                          },
+                          {
+                            "required": [
+                              "nodeName",
+                              "pipelineName"
+                            ]
+                          }
                         ]
                       }
                     },
@@ -6075,10 +6544,20 @@
                           "example": 80
                         },
                         "concurrentPipelines": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 10000,
-                          "example": 1
+                          "type": "object",
+                          "properties": {
+                            "amount": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 10000,
+                              "example": 1
+                            },
+                            "rejectOnFailure": {
+                              "type": "boolean",
+                              "default": true
+                            }
+                          },
+                          "additionalProperties": false
                         },
                         "progressVerbosityLevel": {
                           "type": "string",
@@ -6112,7 +6591,8 @@
                           "items": {
                             "type": "string",
                             "minLength": 1
-                          }
+                          },
+                          "uniqueItems": true
                         },
                         "cron": {
                           "type": "object",
@@ -6142,6 +6622,10 @@
                         "minLength": 1,
                         "maxLength": 32
                       }
+                    },
+                    "rootJobId": {
+                      "type": "string",
+                      "description": "the root job id of the current tree"
                     }
                   },
                   "additionalProperties": false,
@@ -8283,7 +8767,7 @@
                         "description": "algorithm cpu"
                       },
                       "gpu": {
-                        "type": "integer",
+                        "type": "number",
                         "minimum": 0,
                         "description": "algorithm gpu"
                       },
@@ -8306,9 +8790,40 @@
                             "type": "boolean",
                             "description": "pending algorithm",
                             "default": false
+                          },
+                          "opengl": {
+                            "type": "boolean",
+                            "description": "should algorithm support XGL context creation (mount X socket)"
                           }
                         },
                         "default": {}
+                      },
+                      "mounts": {
+                        "type": "array",
+                        "description": "a list of volumes to mount into the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "pvcName": {
+                              "type": "string",
+                              "format": "algorithm-mount-pvc",
+                              "minLength": 1,
+                              "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                            },
+                            "path": {
+                              "type": "string",
+                              "format": "path",
+                              "minLength": 1,
+                              "description": "the mount path in the algorithm container"
+                            }
+                          },
+                          "required": [
+                            "pvcName",
+                            "path"
+                          ]
+                        },
+                        "uniqueItems": true,
+                        "example": []
                       },
                       "gitRepository": {
                         "type": "object",
@@ -8724,7 +9239,11 @@
                   "properties": {
                     "name": {
                       "type": "string",
-                      "description": "experiment name"
+                      "description": "experiment name",
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
                     },
                     "description": {
                       "type": "string",
@@ -8809,15 +9328,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "force",
-            "in": "query",
-            "description": "should also delete all related data, e.g.jobs.",
-            "required": false,
-            "schema": {
-              "type": "boolean"
-            }
           }
         ],
         "responses": {
@@ -8829,6 +9339,9 @@
                   "type": "object",
                   "properties": {
                     "message": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string"
                     }
                   }
@@ -8856,7 +9369,7 @@
             }
           },
           "404": {
-            "description": "pipeline Not Found",
+            "description": "experiment Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -8911,7 +9424,11 @@
                 "properties": {
                   "name": {
                     "type": "string",
-                    "description": "experiment name"
+                    "description": "experiment name",
+                    "default": "main",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "experiment-name"
                   },
                   "description": {
                     "type": "string",
@@ -8933,6 +9450,9 @@
                   "type": "object",
                   "properties": {
                     "message": {
+                      "type": "string"
+                    },
+                    "name": {
                       "type": "string"
                     }
                   }
@@ -9017,7 +9537,11 @@
                   "properties": {
                     "name": {
                       "type": "string",
-                      "description": "experiment name"
+                      "description": "experiment name",
+                      "default": "main",
+                      "minLength": 1,
+                      "maxLength": 32,
+                      "format": "experiment-name"
                     },
                     "description": {
                       "type": "string",
@@ -9883,7 +10407,195 @@
         }
       }
     },
+    "/storage/stream/custom/{path}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "stream data",
+        "description": "stream data according to path",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "description": "path to storage",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/storage/download/{path}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "stream data to file",
+        "description": "download data as file according to path",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "path",
+            "description": "path to storage",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/storage/download/custom/{path}": {
       "get": {
         "tags": [
           "Storage"
@@ -10010,7 +10722,7 @@
             "description": "algorithm cpu"
           },
           "gpu": {
-            "type": "integer",
+            "type": "number",
             "minimum": 0,
             "description": "algorithm gpu"
           },
@@ -10033,9 +10745,40 @@
                 "type": "boolean",
                 "description": "pending algorithm",
                 "default": false
+              },
+              "opengl": {
+                "type": "boolean",
+                "description": "should algorithm support XGL context creation (mount X socket)"
               }
             },
             "default": {}
+          },
+          "mounts": {
+            "type": "array",
+            "description": "a list of volumes to mount into the algorithm",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pvcName": {
+                  "type": "string",
+                  "format": "algorithm-mount-pvc",
+                  "minLength": 1,
+                  "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                },
+                "path": {
+                  "type": "string",
+                  "format": "path",
+                  "minLength": 1,
+                  "description": "the mount path in the algorithm container"
+                }
+              },
+              "required": [
+                "pvcName",
+                "path"
+              ]
+            },
+            "uniqueItems": true,
+            "example": []
           },
           "gitRepository": {
             "type": "object",
@@ -10165,6 +10908,27 @@
         "description": "image name as in the docker registry",
         "format": "algorithm-image"
       },
+      "algorithmMount": {
+        "type": "object",
+        "properties": {
+          "pvcName": {
+            "type": "string",
+            "format": "algorithm-mount-pvc",
+            "minLength": 1,
+            "description": "name of an existing kubernetes pvc (persistent volume claim)"
+          },
+          "path": {
+            "type": "string",
+            "format": "path",
+            "minLength": 1,
+            "description": "the mount path in the algorithm container"
+          }
+        },
+        "required": [
+          "pvcName",
+          "path"
+        ]
+      },
       "algorithmEnv": {
         "type": "string",
         "enum": [
@@ -10253,7 +11017,7 @@
                 "description": "algorithm cpu"
               },
               "gpu": {
-                "type": "integer",
+                "type": "number",
                 "minimum": 0,
                 "description": "algorithm gpu"
               },
@@ -10276,9 +11040,40 @@
                     "type": "boolean",
                     "description": "pending algorithm",
                     "default": false
+                  },
+                  "opengl": {
+                    "type": "boolean",
+                    "description": "should algorithm support XGL context creation (mount X socket)"
                   }
                 },
                 "default": {}
+              },
+              "mounts": {
+                "type": "array",
+                "description": "a list of volumes to mount into the algorithm",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "pvcName": {
+                      "type": "string",
+                      "format": "algorithm-mount-pvc",
+                      "minLength": 1,
+                      "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                    },
+                    "path": {
+                      "type": "string",
+                      "format": "path",
+                      "minLength": 1,
+                      "description": "the mount path in the algorithm container"
+                    }
+                  },
+                  "required": [
+                    "pvcName",
+                    "path"
+                  ]
+                },
+                "uniqueItems": true,
+                "example": []
               },
               "gitRepository": {
                 "type": "object",
@@ -10520,6 +11315,17 @@
           }
         }
       },
+      "defaultResponseWithName": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "error": {
         "type": "object",
         "properties": {
@@ -10595,10 +11401,20 @@
             "example": 80
           },
           "concurrentPipelines": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10000,
-            "example": 1
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000,
+                "example": 1
+              },
+              "rejectOnFailure": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "additionalProperties": false
           },
           "progressVerbosityLevel": {
             "type": "string",
@@ -10699,11 +11515,28 @@
                       "example": 1
                     }
                   }
+                },
+                "batchOperation": {
+                  "type": "string",
+                  "enum": [
+                    "indexed",
+                    "cartesian"
+                  ]
                 }
               },
-              "required": [
-                "nodeName",
-                "algorithmName"
+              "oneOf": [
+                {
+                  "required": [
+                    "nodeName",
+                    "algorithmName"
+                  ]
+                },
+                {
+                  "required": [
+                    "nodeName",
+                    "pipelineName"
+                  ]
+                }
               ]
             }
           },
@@ -10750,10 +11583,20 @@
                 "example": 80
               },
               "concurrentPipelines": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 10000,
-                "example": 1
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000,
+                    "example": 1
+                  },
+                  "rejectOnFailure": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "additionalProperties": false
               },
               "progressVerbosityLevel": {
                 "type": "string",
@@ -10787,7 +11630,8 @@
                 "items": {
                   "type": "string",
                   "minLength": 1
-                }
+                },
+                "uniqueItems": true
               },
               "cron": {
                 "type": "object",
@@ -10817,6 +11661,10 @@
               "minLength": 1,
               "maxLength": 32
             }
+          },
+          "rootJobId": {
+            "type": "string",
+            "description": "the root job id of the current tree"
           }
         },
         "additionalProperties": false,
@@ -10890,11 +11738,28 @@
                 "example": 1
               }
             }
+          },
+          "batchOperation": {
+            "type": "string",
+            "enum": [
+              "indexed",
+              "cartesian"
+            ]
           }
         },
-        "required": [
-          "nodeName",
-          "algorithmName"
+        "oneOf": [
+          {
+            "required": [
+              "nodeName",
+              "algorithmName"
+            ]
+          },
+          {
+            "required": [
+              "nodeName",
+              "pipelineName"
+            ]
+          }
         ]
       },
       "metrics": {
@@ -11042,10 +11907,20 @@
                 "example": 80
               },
               "concurrentPipelines": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 10000,
-                "example": 1
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000,
+                    "example": 1
+                  },
+                  "rejectOnFailure": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "additionalProperties": false
               },
               "progressVerbosityLevel": {
                 "type": "string",
@@ -11095,7 +11970,8 @@
             "items": {
               "type": "string",
               "minLength": 1
-            }
+            },
+            "uniqueItems": true
           },
           "cron": {
             "type": "object",
@@ -11181,7 +12057,11 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "experiment name"
+            "description": "experiment name",
+            "default": "main",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "experiment-name"
           },
           "description": {
             "type": "string",
