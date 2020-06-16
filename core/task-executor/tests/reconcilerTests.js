@@ -717,7 +717,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
-        it('should update algorithm that cannot be schedule duo to cpu', async () => {
+        it('should update algorithm that cannot be schedule due to cpu', async () => {
             const algorithm = {
                 name: 'big-cpu',
                 algorithmImage: 'hkube/algorithm-example',
@@ -740,7 +740,7 @@ describe('reconciler', () => {
             expect(alg.warning).to.eql('unable to find available resources (cpu) on 3 nodes');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
-        it('should update algorithm that cannot be schedule duo to memory', async () => {
+        it('should update algorithm that cannot be schedule due to memory', async () => {
             const algorithm = {
                 name: 'big-mem',
                 algorithmImage: 'hkube/algorithm-example',
@@ -763,7 +763,7 @@ describe('reconciler', () => {
             expect(alg.warning).to.eql('unable to find available resources (mem) on 3 nodes');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
-        it('should update algorithm that cannot be schedule duo to gpu', async () => {
+        it('should update algorithm that cannot be schedule due to gpu', async () => {
             const algorithm = {
                 name: 'big-gpu',
                 algorithmImage: 'hkube/algorithm-example',
@@ -787,7 +787,7 @@ describe('reconciler', () => {
             expect(alg.warning).to.eql('unable to find available resources (gpu) on 3 nodes');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
-        it('should update algorithm that cannot be schedule duo to node selector', async () => {
+        it('should update algorithm that cannot be schedule due to node selector', async () => {
             const algorithm = {
                 name: 'node-selector',
                 algorithmImage: 'hkube/algorithm-example',

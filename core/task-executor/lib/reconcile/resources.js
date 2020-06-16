@@ -48,10 +48,10 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
 };
 
 const _createWarning = (nodesBySelector, nodeSelector, nodesForSchedule) => {
-    let warning = '';
+    let warning;
     if (nodesBySelector.length === 0) {
         const ns = Object.entries(nodeSelector).map(([k, v]) => `${k}=${v}`);
-        warning += `unable to find match node for node selector '${ns.join(',')}'`;
+        warning = `unable to find match node for node selector '${ns.join(',')}'`;
     }
     else {
         const resKeys = [];
@@ -60,7 +60,7 @@ const _createWarning = (nodesBySelector, nodeSelector, nodesForSchedule) => {
             resKeys.push(...keys);
         });
         const resources = [...new Set(resKeys)];
-        warning += `unable to find available resources (${resources.join(',')}) on ${nodesForSchedule.length} nodes`;
+        warning = `unable to find available resources (${resources.join(',')}) on ${nodesForSchedule.length} nodes`;
     }
     return warning;
 };
