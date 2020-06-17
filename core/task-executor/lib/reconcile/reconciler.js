@@ -341,11 +341,14 @@ const calcRatio = (totalRequests, capacity) => {
 };
 
 const _removeUnscheduled = (created, algorithms) => {
-    created.forEach((s) => {
-        if (algorithms[s.algorithmName]) {
-            delete algorithms[s.algorithmName];
+    const removed = [];
+    created.forEach((c) => {
+        if (algorithms[c.algorithmName]) {
+            removed.push({ name: c.algorithmName, events: null });
+            delete algorithms[c.algorithmName];
         }
     });
+    return removed;
 };
 
 const _addUnscheduled = (skipped, algorithms) => {
@@ -356,18 +359,24 @@ const _addUnscheduled = (skipped, algorithms) => {
     });
 };
 
-const _checkUnscheduled = (created, skipped, algorithms, timeout) => {
-    _removeUnscheduled(created, algorithms);
+const _checkUnscheduled = async (created, skipped, algorithms, algorithmTemplates, options) => {
+    const removed = _removeUnscheduled(created, algorithms);
     _addUnscheduled(skipped, algorithms);
 
-    const unscheduled = [];
+    const added = [];
     Object.entries(algorithms).forEach(([k, v]) => {
-        if (Date.now() - v.timestamp > timeout) {
-            unscheduled.push({ name: k, warning: v.warning });
+        if (!algorithmTemplates[k]) {
+            delete algorithms[k];
+        }
+        else if (!v.isNotified && Date.now() - v.timestamp > options.algorithmSchedulingWarningTimeoutMs) {
+            v.isNotified = true;
+            added.push({ name: k, events: [v.warning] });
         }
     });
-    return unscheduled;
+    await Promise.all(added.map(d => etcd.addEvent(d)));
+    await Promise.all(removed.map(d => etcd.addEvent(d)));
 };
+
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
@@ -433,7 +442,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
-    const unscheduled = _checkUnscheduled(created, skipped, unscheduledAlgorithms, options.algorithmSchedulingWarningTimeoutMs);
+    await _checkUnscheduled(created, skipped, unscheduledAlgorithms, algorithmTemplates, options);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -492,7 +501,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         res.resumed = toResume.filter(c => c.algorithmName === algorithmName).length;
     });
     await etcd.updateDiscovery({
-        unscheduled,
         reconcileResult,
         actual: workerStats,
         resourcePressure: {

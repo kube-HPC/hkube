@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
+const clone = require('lodash.clonedeep');
 const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 const etcd = require('../lib/helpers/etcd');
@@ -40,7 +41,9 @@ describe('reconciler', () => {
         clearCount();
         reconciler._clearCreatedJobsList(Date.now() + 100000, options);
         reconciler._updateCapacity(1000)
-        normResources = normalizeResources(resources);
+        const res = clone(resources);
+        res.nodes.body.items.push(res.nodeWithLabels);
+        normResources = normalizeResources(res);
         globalSettings.useResourceLimits = false;
         globalSettings.applyResources = false;
     });
@@ -718,12 +721,7 @@ describe('reconciler', () => {
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
         it('should update algorithm that cannot be schedule due to cpu', async () => {
-            const algorithm = {
-                name: 'big-cpu',
-                algorithmImage: 'hkube/algorithm-example',
-                cpu: 25,
-                mem: 100
-            };
+            const algorithm = algorithmTemplates['big-cpu'];
             const data = [
                 { name: algorithm.name },
                 { name: algorithm.name },
@@ -735,18 +733,13 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const discovery = await etcd._etcd.discovery.get({ serviceName: 'task-executor' });
-            const alg = discovery.unscheduled.find(a => a.name === algorithm.name);
-            expect(alg.warning).to.eql('unable to find available resources (cpu) on 3 nodes');
+            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
+            expect(alg.events[0].reason).to.eql('FailedScheduling');
+            expect(alg.events[0].message).to.eql('insufficient cpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to memory', async () => {
-            const algorithm = {
-                name: 'big-mem',
-                algorithmImage: 'hkube/algorithm-example',
-                cpu: 1,
-                mem: 5000000
-            };
+            const algorithm = algorithmTemplates['big-mem'];
             const data = [
                 { name: algorithm.name },
                 { name: algorithm.name },
@@ -758,19 +751,13 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const discovery = await etcd._etcd.discovery.get({ serviceName: 'task-executor' });
-            const alg = discovery.unscheduled.find(a => a.name === algorithm.name);
-            expect(alg.warning).to.eql('unable to find available resources (mem) on 3 nodes');
+            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
+            expect(alg.events[0].reason).to.eql('FailedScheduling');
+            expect(alg.events[0].message).to.eql('insufficient mem (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to gpu', async () => {
-            const algorithm = {
-                name: 'big-gpu',
-                algorithmImage: 'hkube/algorithm-example',
-                cpu: 1,
-                mem: 100,
-                gpu: 10
-            };
+            const algorithm = algorithmTemplates['big-gpu'];
             const data = [
                 { name: algorithm.name },
                 { name: algorithm.name },
@@ -782,21 +769,13 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const discovery = await etcd._etcd.discovery.get({ serviceName: 'task-executor' });
-            const alg = discovery.unscheduled.find(a => a.name === algorithm.name);
-            expect(alg.warning).to.eql('unable to find available resources (gpu) on 3 nodes');
+            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
+            expect(alg.events[0].reason).to.eql('FailedScheduling');
+            expect(alg.events[0].message).to.eql('insufficient gpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to node selector', async () => {
-            const algorithm = {
-                name: 'node-selector',
-                algorithmImage: 'hkube/algorithm-example',
-                cpu: 1,
-                mem: 100,
-                nodeSelector: {
-                    type: 'gpu-extreme'
-                }
-            };
+            const algorithm = algorithmTemplates['node-selector'];
             const data = [
                 { name: algorithm.name },
                 { name: algorithm.name },
@@ -808,17 +787,31 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const discovery = await etcd._etcd.discovery.get({ serviceName: 'task-executor' });
-            const alg = discovery.unscheduled.find(a => a.name === algorithm.name);
-            expect(alg.warning).to.eql(`unable to find match node for node selector 'type=gpu-extreme'`);
+            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
+            expect(alg.events[0].reason).to.eql('FailedScheduling');
+            expect(alg.events[0].message).to.eql(`insufficient node selector (4) 'type=cpu-extreme'`);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
-        it('should update algorithm unschedule and then succeed to schedule', async () => {
-            const algorithm = {
-                name: 'overcome',
-                algorithmImage: 'hkube/algorithm-example',
-                mem: 100
-            };
+        it('should update algorithm that cannot be schedule due to all params', async () => {
+            const algorithm = algorithmTemplates['node-all-params'];
+            const data = [
+                { name: algorithm.name },
+                { name: algorithm.name },
+                { name: algorithm.name }
+            ];
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates: { [algorithm.name]: algorithm },
+                algorithmRequests: [{ data }]
+            });
+            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
+            expect(alg.events[0].reason).to.eql('FailedScheduling');
+            expect(alg.events[0].message).to.eql(`insufficient node selector (3) 'type=gpu-extreme,max=bound', insufficient cpu (1), mem (1), gpu (1)`);
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
+        });
+        it.only('should update algorithm unschedule and then succeed to schedule', async () => {
+            const algorithm = algorithmTemplates['eval-alg'];
             const data = [
                 { name: algorithm.name },
                 { name: algorithm.name },
@@ -835,13 +828,12 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: { ...algorithm, cpu: 1 } }
             };
             const res1 = await reconciler.reconcile(reconcile1);
-            const discovery1 = await etcd._etcd.discovery.get({ serviceName: 'task-executor' });
-            const alg1 = discovery1.unscheduled.find(a => a.name === algorithm.name);
+            const alg1 = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
             const res2 = await reconciler.reconcile(reconcile2);
-            const discovery2 = await etcd._etcd.discovery.get({ serviceName: 'task-executor' });
-            const alg2 = discovery2.unscheduled.find(a => a.name === algorithm.name);
-            expect(alg1.warning).to.eql('unable to find available resources (cpu) on 3 nodes');
-            expect(alg2).to.be.undefined;
+            const alg2 = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
+            expect(alg1.events[0].reason).to.eql('FailedScheduling');
+            expect(alg1.events[0].message).to.eql('insufficient cpu (4)');
+            expect(alg2.events).to.be.undefined;
             expect(res1).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
             expect(res2).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: data.length, skipped: 0, resumed: 0 } });
         });

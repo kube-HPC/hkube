@@ -63,6 +63,7 @@ class Executor {
     }
 
     async _interval(options) {
+        return;
         this._lastIntervalTime = Date.now();
         try {
             const [{ versions, registry, clusterOptions }, resources] = await Promise.all([

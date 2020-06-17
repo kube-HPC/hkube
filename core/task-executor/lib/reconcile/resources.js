@@ -47,22 +47,27 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
     return matched;
 };
 
-const _createWarning = (nodesBySelector, nodeSelector, nodesForSchedule) => {
-    let warning;
-    if (nodesBySelector.length === 0) {
+const _createWarning = (unMatchedNodesBySelector, nodeSelector, nodesForSchedule) => {
+    const messages = [];
+    const reason = 'FailedScheduling';
+    if (unMatchedNodesBySelector > 0) {
         const ns = Object.entries(nodeSelector).map(([k, v]) => `${k}=${v}`);
-        warning = `unable to find match node for node selector '${ns.join(',')}'`;
+        messages.push(`insufficient node selector (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
     }
-    else {
-        const resKeys = [];
-        nodesForSchedule.forEach(n => {
-            const keys = Object.entries(n.details).filter(([, v]) => v === false).map(([k]) => k);
-            resKeys.push(...keys);
+    const resourcesMap = Object.create(null);
+    nodesForSchedule.forEach(n => {
+        Object.entries(n.details).filter(([, v]) => v === false).forEach(([k]) => {
+            if (!resourcesMap[k]) {
+                resourcesMap[k] = 0;
+            }
+            resourcesMap[k] += 1;
         });
-        const resources = [...new Set(resKeys)];
-        warning = `unable to find available resources (${resources.join(',')}) on ${nodesForSchedule.length} nodes`;
+    });
+    if (Object.keys(resourcesMap).length > 0) {
+        const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
+        messages.push(`insufficient ${resources.join(', ')}`);
     }
-    return warning;
+    return { reason, message: messages.join(', ') };
 };
 
 const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
@@ -76,7 +81,8 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
     if (nodesForSchedule.every(n => !n.available)) {
-        const warning = _createWarning(nodesBySelector, jobDetails.nodeSelector, nodesForSchedule);
+        const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
+        const warning = _createWarning(unMatchedNodesBySelector, jobDetails.nodeSelector, nodesForSchedule);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 

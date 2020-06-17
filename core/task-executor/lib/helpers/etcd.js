@@ -98,6 +98,10 @@ class Etcd {
         return arrayToMap(templates);
     }
 
+    async addEvent(options) {
+        return this._etcd.events.set(options);
+    }
+
     async getDriversTemplate() {
         const templates = await this._etcd.pipelineDrivers.store.list();
         return arrayToMap(templates);
