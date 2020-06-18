@@ -6,7 +6,6 @@ const executionService = require('./execution');
 const cronService = require('./cron');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 const defaultExperiment = require('../consts/defaultExperiment');
-const limit = 1000;
 
 class Experiment {
     async getExperiment(options) {
@@ -48,6 +47,7 @@ class Experiment {
     }
 
     async _stopAllCrons(experimentName) {
+        const limit = 1000;
         const pipelines = await stateManager.pipelines.list({ limit }, (p) => this._hasCron(p, experimentName));
         await Promise.all(pipelines.map(p => cronService.updateCronJob(p, { enabled: false })));
     }

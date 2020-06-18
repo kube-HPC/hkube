@@ -1,7 +1,9 @@
 const { expect } = require('chai');
-const { uuid } = require('../lib/utils');
 const HttpStatus = require('http-status-codes');
 const clone = require('clone');
+const { pipelineStatuses } = require('@hkube/consts');
+const stateManager = require('../lib/state/state-manager');
+const { uuid } = require('../lib/utils');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
 let restUrl, restPath;
@@ -58,7 +60,34 @@ describe('Store/Pipelines', () => {
             };
             const response = await request(options);
             expect(response.body).to.have.property('message');
-            expect(response.body.message).to.equal('OK');
+            expect(response.body.message).to.contain('successfully deleted from store');
+        });
+        it('should delete pipeline with some dependencies', async () => {
+            const pipeline = clone(pipelines[0]);
+            const pipelineName = uuid();
+            const optionsInsert = {
+                uri: restPath,
+                body: { ...pipeline, name: pipelineName }
+            };
+            await request(optionsInsert);
+            const options1 = {
+                uri: `${restUrl}/exec/stored`,
+                body: {
+                    name: pipelineName
+                }
+            };
+            await request(options1);
+            await request(options1);
+            const res = await request(options1);
+            const jobId = res.body.jobId;
+            await stateManager.jobs.status.update({ jobId, status: pipelineStatuses.STOPPED });
+
+            const options2 = {
+                uri: `${restPath}/${pipelineName}`,
+                method: 'DELETE'
+            };
+            const response2 = await request(options2);
+            expect(response2.body.message).to.equal(`pipline ${pipelineName} successfully deleted from store, stopped related running pipelines 2/3`);
         });
     });
     describe('/store/pipelines GET', () => {
@@ -136,7 +165,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.nodes[0] should have required property '.nodeName'");
+            expect(response.body.error.message).to.eql("data.nodes[0] should have required property 'nodeName'");
         });
         it('should throw validation error of cron trigger', async () => {
             const pipeline = clone(pipelines[0]);
@@ -183,19 +212,14 @@ describe('Store/Pipelines', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.triggers.pipelines[0] should NOT be shorter than 1 characters');
         });
-        it('should throw validation error of required property nodes.algorithmName', async () => {
+        it.skip('should throw validation error of required property nodes.algorithmName', async () => {
             const options = {
                 uri: restPath,
                 body: {
                     name: 'string',
-                    nodes: [
-                        {
-                            nodeName: 'string',
-                            input: [
-                                {}
-                            ]
-                        }
-                    ]
+                    nodes: [{
+                        nodeName: 'string'
+                    }]
                 }
             };
             const response = await request(options);
