@@ -72,7 +72,7 @@ const _createWarning = (unMatchedNodesBySelector, nodeSelector, nodesForSchedule
 
 const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     if (totalAdded >= MAX_JOBS_PER_TICK) {
-        return { shouldAdd: false, warning: 'max jobs', newResources: { ...availableResources } };
+        return { shouldAdd: false, newResources: { ...availableResources } };
     }
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
     const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
