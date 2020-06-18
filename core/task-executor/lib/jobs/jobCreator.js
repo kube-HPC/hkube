@@ -138,11 +138,13 @@ const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, cluster
     if (!clusterOptions.devModeEnabled) {
         return spec;
     }
+    objectPath.set(spec, 'spec.template.spec.restartPolicy', 'OnFailure');
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { DEV_MODE: 'true' });
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { DEV_MODE: 'true' });
     spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
         name: 'hkube-dev-sources',
         mountPath: '/hkube/algorithm-runner/algorithm_unique_folder',
-        subPath: `/algorithms/${algorithmName}`
+        subPath: `algorithms/${algorithmName}`
     });
     spec = applyVolumes(spec, {
         name: 'hkube-dev-sources',

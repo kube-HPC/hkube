@@ -254,11 +254,12 @@ describe('jobCreator', () => {
                     clusterOptions: { devModeEnabled: true }
                 });
                 expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DEV_MODE', value: 'true' });
+                expect(res.spec.template.spec.containers[0].env).to.deep.include({ name: 'DEV_MODE', value: 'true' });
                 expect(res.spec.template.spec.containers[1].volumeMounts).to.deep.include(
                     {
                         name: 'hkube-dev-sources',
                         mountPath: '/hkube/algorithm-runner/algorithm_unique_folder',
-                        subPath: '/algorithms/myalgo1'
+                        subPath: 'algorithms/myalgo1'
                     }
                 );
                 expect(res.spec.template.spec.volumes).to.deep.include(

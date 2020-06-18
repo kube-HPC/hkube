@@ -12,8 +12,9 @@ RUN ../dockerfile/requirements.sh ${packagesRegistry} ${packagesToken}
 FROM ${baseImage}
 COPY ./wrapper /hkube/algorithm-runner
 COPY ./packages/ /hkube/algorithm-runner/
+COPY ./nodemon ./docker-entrypoint.sh /hkube/
 COPY --from=build /hkube/algorithm-runner/algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 
 WORKDIR /hkube/algorithm-runner
-
+ENTRYPOINT ["/hkube/docker-entrypoint.sh"]
 CMD ["/bin/sh", "-c", "npm start 2>&1 | tee /hkube-logs/stdout.log"]
