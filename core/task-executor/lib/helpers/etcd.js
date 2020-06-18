@@ -15,6 +15,7 @@ class Etcd {
 
     async init(options) {
         log = Logger.GetLogFromContainer();
+        this._serviceName = options.serviceName;
         this._etcd = new EtcdClient(options.etcd);
         log.info(`Initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
         await this._etcd.jobs.status.watch({ jobId: 'hookWatch' });
@@ -99,7 +100,7 @@ class Etcd {
     }
 
     async addEvent(options) {
-        return this._etcd.events.set(options);
+        return this._etcd.events.set({ ...options, source: this._serviceName });
     }
 
     async getDriversTemplate() {

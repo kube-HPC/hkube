@@ -733,9 +733,9 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
-            expect(alg.events[0].reason).to.eql('FailedScheduling');
-            expect(alg.events[0].message).to.eql('insufficient cpu (4)');
+            const events = await etcd._etcd.events.list();
+            expect(events[0].reason).to.eql('FailedScheduling');
+            expect(events[0].message).to.eql('insufficient cpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to memory', async () => {
@@ -751,9 +751,9 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
-            expect(alg.events[0].reason).to.eql('FailedScheduling');
-            expect(alg.events[0].message).to.eql('insufficient mem (4)');
+            const events = await etcd._etcd.events.list();
+            expect(events[0].reason).to.eql('FailedScheduling');
+            expect(events[0].message).to.eql('insufficient mem (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to gpu', async () => {
@@ -769,9 +769,9 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
-            expect(alg.events[0].reason).to.eql('FailedScheduling');
-            expect(alg.events[0].message).to.eql('insufficient gpu (4)');
+            const events = await etcd._etcd.events.list();
+            expect(events[0].reason).to.eql('FailedScheduling');
+            expect(events[0].message).to.eql('insufficient gpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to node selector', async () => {
@@ -787,9 +787,9 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
-            expect(alg.events[0].reason).to.eql('FailedScheduling');
-            expect(alg.events[0].message).to.eql(`insufficient node selector (4) 'type=cpu-extreme'`);
+            const events = await etcd._etcd.events.list();
+            expect(events[0].reason).to.eql('FailedScheduling');
+            expect(events[0].message).to.eql(`insufficient node selector (4) 'type=cpu-extreme'`);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to all params', async () => {
@@ -805,12 +805,12 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const alg = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
-            expect(alg.events[0].reason).to.eql('FailedScheduling');
-            expect(alg.events[0].message).to.eql(`insufficient node selector (3) 'type=gpu-extreme,max=bound', insufficient cpu (1), mem (1), gpu (1)`);
+            const events = await etcd._etcd.events.list();
+            expect(events[0].reason).to.eql('FailedScheduling');
+            expect(events[0].message).to.eql(`insufficient node selector (3) 'type=gpu-extreme,max=bound', insufficient cpu (1), mem (1), gpu (1)`);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
-        it.only('should update algorithm unschedule and then succeed to schedule', async () => {
+        it('should update algorithm unschedule and then succeed to schedule', async () => {
             const algorithm = algorithmTemplates['eval-alg'];
             const data = [
                 { name: algorithm.name },
@@ -828,12 +828,13 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: { ...algorithm, cpu: 1 } }
             };
             const res1 = await reconciler.reconcile(reconcile1);
-            const alg1 = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
+            const events1 = await etcd._etcd.events.list();
             const res2 = await reconciler.reconcile(reconcile2);
-            const alg2 = await etcd._etcd.algorithms.store.get({ name: algorithm.name });
-            expect(alg1.events[0].reason).to.eql('FailedScheduling');
-            expect(alg1.events[0].message).to.eql('insufficient cpu (4)');
-            expect(alg2.events).to.be.undefined;
+            const events2 = await etcd._etcd.events.list();
+            expect(events1[0].reason).to.eql('FailedScheduling');
+            expect(events1[0].message).to.eql('insufficient cpu (4)');
+            expect(events2[0].reason).to.eql('Scheduled');
+            expect(events2[0].message).to.eql('Successfully assigned to node');
             expect(res1).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
             expect(res2).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: data.length, skipped: 0, resumed: 0 } });
         });

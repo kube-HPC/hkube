@@ -438,6 +438,25 @@ describe('Test', function () {
             expect(graph.nodes[2].status).to.equal('stopped');
             expect(graph.nodes[3].status).to.equal('stopped');
         });
+        it('should start pipeline and handle events', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines[1];
+            const algorithmName = pipeline.nodes[0].algorithmName;
+            await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await taskRunner.start(job);
+            await delay(500);
+            const event = { algorithmName, reason: 'FailedScheduling', message: 'msg' };
+            await stateManager._etcd.events.set(event);
+            await delay(500);
+            const node = taskRunner._nodes.getNode('green');
+            expect(node.batch[0].status).to.equal(event.reason);
+            expect(node.warnings[0]).to.equal(event.message);
+        });
     });
     describe('Progress', function () {
         beforeEach(() => {

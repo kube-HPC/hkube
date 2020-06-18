@@ -344,7 +344,7 @@ const _removeUnscheduled = (created, algorithms) => {
     const removed = [];
     created.forEach((c) => {
         if (algorithms[c.algorithmName]) {
-            removed.push({ name: c.algorithmName, events: null });
+            removed.push({ algorithmName: c.algorithmName, reason: 'Scheduled', message: 'Successfully assigned to node' });
             delete algorithms[c.algorithmName];
         }
     });
@@ -370,7 +370,7 @@ const _checkUnscheduled = async (created, skipped, algorithms, algorithmTemplate
         }
         else if (!v.isNotified && Date.now() - v.timestamp > options.algorithmSchedulingWarningTimeoutMs) {
             v.isNotified = true;
-            added.push({ name: k, events: [v.warning] });
+            added.push({ algorithmName: k, type: 'warning', ...v.warning });
         }
     });
     await Promise.all(added.map(d => etcd.addEvent(d)));

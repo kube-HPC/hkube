@@ -33,7 +33,7 @@ module.exports = [
         name: 'big-mem',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 1,
-        mem: '5Gi'
+        mem: '50Gi'
     },
     {
         name: 'big-gpu',
@@ -55,7 +55,7 @@ module.exports = [
         name: 'node-all-params',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 100,
-        mem: '5Gi',
+        mem: '50Gi',
         gpu: 100,
         nodeSelector: {
             type: 'gpu-extreme',
