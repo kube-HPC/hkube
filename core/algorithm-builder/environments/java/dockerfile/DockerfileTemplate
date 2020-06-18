@@ -6,6 +6,7 @@ RUN mkdir -p /hkube-logs
 COPY ./algorithm_unique_folder/src/main/resources/settings.xml /root/.m2/settings.xml
 COPY ./jars/* /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
+COPY ./runJava.sh /hkube/algorithm-runner/
 COPY ./dockerfile/* /hkube/algorithm-runner/dockerfile/
 WORKDIR /hkube/algorithm-runner
 RUN mvn org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  -Dfile=./interfaces.jar -DgroupId=io.hkube -DartifactId=interfaces -Dversion=${javaWrapperVersion} -Dpackaging=jar
@@ -13,4 +14,4 @@ RUN mvn org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  -Df
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
 RUN mvn package -DremoteRepositories=${packagesRegistry}
 WORKDIR /hkube/algorithm-runner
-CMD ["/bin/sh", "-c", "java -jar wrapper.jar ./algorithm_unique_folder/encapsulated-algorithm.jar  2>&1 |tee /hkube-logs/stdout.log"]
+CMD ["/bin/sh", "-c", "./runJava.sh"]
