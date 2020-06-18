@@ -106,8 +106,11 @@ class TaskRunner extends EventEmitter {
 
     _handleEvents(event) {
         if (this._nodes && event.algorithmName) {
-            const nodes = this._nodes.getAllNodes();
-            nodes.filter(n => n.algorithmName === event.algorithmName).forEach(n => {
+            const nodes = this._nodes.getAllNodes().filter(n => n.algorithmName === event.algorithmName);
+            if (nodes.length === 0) {
+                return;
+            }
+            nodes.forEach(n => {
                 if (n.batch.length > 0) {
                     n.batch.forEach(b => {
                         b.status = event.reason;
