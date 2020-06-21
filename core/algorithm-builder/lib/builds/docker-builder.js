@@ -196,6 +196,7 @@ const _prepareBuild = async ({ buildPath, env, dest, overwrite }) => {
     const envr = `environments/${env}`;
     await fse.ensureDir(buildPath);
     await fse.copy(envr, buildPath);
+    await fse.copy('environments/common', buildPath);
     await fse.move(dest, `${buildPath}/algorithm_unique_folder`, { overwrite });
 };
 
