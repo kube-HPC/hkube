@@ -32,12 +32,6 @@ class AlgorithmExecution {
         const execAlgorithms = require(`./algorithm-execution-${type}`); // eslint-disable-line
         this._getStorage = (...args) => execAlgorithms.getResultFromStorage(...args);
         this._setStorage = (...args) => execAlgorithms.setInputToStorage(...args);
-
-        execAlgorithms.on('data-ready', (task) => {
-            this._sendDoneToAlgorithm(task);
-            this._finishAlgoExecSpan(task.taskId);
-            this._deleteExecution(task.taskId);
-        });
     }
 
     _registerToEtcdEvents() {
@@ -55,6 +49,14 @@ class AlgorithmExecution {
             this._sendErrorToAlgorithm(task);
             this._finishAlgoExecSpan(task.taskId);
             this._deleteExecution(task.taskId);
+        });
+        stateAdapter.on(taskEvents.SUCCEED, (task) => {
+            this._sendDoneToAlgorithm(task);
+            this._finishAlgoExecSpan(task.taskId);
+            this._deleteExecution(task.taskId);
+        });
+        stateAdapter.on(taskEvents.STORING, (task) => {
+            this._onStoring(task);
         });
     }
 
@@ -83,12 +85,20 @@ class AlgorithmExecution {
         this._executions.delete(taskId);
     }
 
+    _onStoring(task) {
+        const execution = this._executions.get(task.taskId);
+        if (!execution) {
+            return;
+        }
+        this._executions.set(task.taskId, { ...execution, result: task.result });
+    }
+
     async _sendDoneToAlgorithm(task) {
         const execution = this._executions.get(task.taskId);
         if (!execution) {
             return;
         }
-        const response = await this._getStorage({ resultAsRaw: execution.resultAsRaw, result: task.result });
+        const response = await this._getStorage({ resultAsRaw: execution.resultAsRaw, result: execution.result });
         log.debug('sending done to algorithm', { component });
         this._sendCompleteToAlgorithm({ ...task, response, command: messages.outgoing.execAlgorithmDone });
     }
