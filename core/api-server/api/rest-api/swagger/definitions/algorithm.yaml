@@ -28,6 +28,9 @@ properties:
         type: boolean
         description: debug algorithm locally
         default: false
+      devMode:
+        type: boolean
+        description: runs algorithm with mounted sources to allow rapid development cycles
       pending:
         type: boolean
         description: pending algorithm

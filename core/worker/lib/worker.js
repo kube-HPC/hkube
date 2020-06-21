@@ -35,6 +35,7 @@ class Worker {
         this._inTerminationMode = false;
         this._options = options;
         this._debugMode = options.debugMode;
+        this._devMode = options.devMode;
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
@@ -180,7 +181,7 @@ class Worker {
     }
 
     async _algorithmDisconnect(reason) {
-        if (this._debugMode) {
+        if (this._debugMode || this._devMode) {
             return;
         }
         const type = jobConsumer.getAlgorithmType();

@@ -21,7 +21,7 @@ describe('StorageHelper', () => {
             storageHelper.init(config);
             storageHelper.setStorageType('v1')
         });
-        it('store data and validate extraction no cache', async () => {
+        xit('store data and validate extraction no cache', async () => {
             const config = getConfig();
             const taskId1 = config.taskId + "-1";
             const taskId2 = config.taskId + "-2";
