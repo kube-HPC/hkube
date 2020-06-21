@@ -48,6 +48,7 @@ class TaskRunner extends EventEmitter {
         this._stateManager.on(`job-${pipelineStatuses.STOPPED}`, (d) => this._onStop(d));
         this._stateManager.on(`job-${pipelineStatuses.PAUSED}`, (d) => this._onPause(d));
         this._stateManager.on('task-*', (task) => this._handleTaskEvent(task));
+        this._stateManager.on('events', (event) => this._handleEvents(event));
     }
 
     _onStop(data) {
@@ -100,6 +101,28 @@ class TaskRunner extends EventEmitter {
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
                 break;
+        }
+    }
+
+    _handleEvents(event) {
+        if (this._nodes && event.algorithmName) {
+            const nodes = this._nodes.getAllNodes().filter(n => n.algorithmName === event.algorithmName);
+            if (nodes.length === 0) {
+                return;
+            }
+            nodes.forEach(n => {
+                if (n.batch.length > 0) {
+                    n.batch.forEach(b => {
+                        b.status = event.reason;
+                    });
+                }
+                else {
+                    n.status = event.reason;
+                }
+                n.warnings = n.warnings || [];
+                n.warnings.push(event.message);
+            });
+            this._progressStatus({ status: DriverStates.ACTIVE });
         }
     }
 
@@ -211,7 +234,7 @@ class TaskRunner extends EventEmitter {
             const nodes = this._nodes._getNodesAsFlat();
             nodes.forEach((n) => {
                 if (activeStates.includes(n.status)) {
-                    n.status = pipelineStatuses.STOPPED;  // eslint-disable-line
+                    n.status = pipelineStatuses.STOPPED;
                 }
             });
         }
@@ -252,7 +275,7 @@ class TaskRunner extends EventEmitter {
                 result: n.output
             };
             node.batch.forEach(b => {
-                b.result = b.output; // eslint-disable-line
+                b.result = b.output;
             });
             this._nodes._graph.setNode(node.nodeName, node);
         });
@@ -266,14 +289,20 @@ class TaskRunner extends EventEmitter {
             const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
             if (tasks.size > 0) {
                 const tasksGraph = this._nodes._getNodesAsFlat();
-                tasksGraph.forEach((g) => {
-                    const task = tasks.get(g.taskId);
-                    if (task && task.status !== g.status) {
-                        const t = {
-                            ...g,
-                            ...task
+                tasksGraph.forEach((gTask) => {
+                    const sTask = tasks.get(gTask.taskId);
+                    if (sTask && sTask.status !== gTask.status) {
+                        const task = {
+                            ...gTask,
+                            ...sTask
                         };
-                        this._handleTaskEvent(t);
+                        if (task.status === taskStatuses.SUCCEED && gTask.status !== taskStatuses.STORING) {
+                            this._setTaskState(task);
+                            this._onStoring(task);
+                        }
+                        else {
+                            this._handleTaskEvent(task);
+                        }
                     }
                 });
             }
@@ -460,7 +489,7 @@ class TaskRunner extends EventEmitter {
                 }
                 uniqueItem.tasks.push(taskId);
             });
-            storage[k] = uniqueList; // eslint-disable-line
+            storage[k] = uniqueList;
         });
     }
 

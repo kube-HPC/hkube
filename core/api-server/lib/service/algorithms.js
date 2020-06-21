@@ -203,7 +203,8 @@ class AlgorithmStore {
                 if (payload.algorithmImage && !payload.gitRepository.webUrl) {
                     throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
                 }
-                newAlgorithm = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
+                const gitRepository = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
+                newAlgorithm.gitRepository = gitRepository;
                 const result = await buildsService.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
                 buildId = result.buildId; // eslint-disable-line
                 messages.push(...result.messages);

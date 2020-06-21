@@ -26,6 +26,7 @@ class StateManager extends EventEmitter {
     async init(config) {
         this._config = config;
         this._debugMode = config.debugMode;
+        this._devMode = config.devMode;
         log = Logger.GetLogFromContainer();
         this._initStateMachine();
         this._startInactiveTimer();
@@ -52,7 +53,7 @@ class StateManager extends EventEmitter {
                 onPendingTransition: (transition, from, to) => { // eslint-disable-line
                 },
                 onInvalidTransition: (transition, from, to) => {
-                    if (!this._debugMode) {
+                    if (!this._debugMode && !this._devMode) {
                         log.warning(`transition (${transition}) not allowed from that state: ${from} -> ${to}`, { component });
                         this.exit({ shouldCompleteJob: false });
                     }
