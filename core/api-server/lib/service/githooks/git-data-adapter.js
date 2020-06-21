@@ -23,31 +23,22 @@ class GitDataAdapter {
     async getInfoAndAdapt(payload) {
         const getGithubCommit = this.infoRegister[payload.gitRepository.gitKind];
         const gitRepository = this._adaptRepoUrl(payload.gitRepository);
-        const { webUrl, commitId, tag, branchName, token } = gitRepository;
-        const commit = await getGithubCommit({ url: webUrl, commitId, tag, branchName, token });
+        const commit = await getGithubCommit(gitRepository);
 
         return {
-            ...payload,
-            gitRepository: {
-                ...payload.gitRepository,
-                ...gitRepository,
-                commit
-            }
+            ...gitRepository,
+            commit
         };
     }
 
     _adaptRepoUrl(gitRepository) {
-        const { url, commit, tag, branchName, token } = gitRepository;
+        const { url } = gitRepository;
         const webUrl = url.endsWith('.git') ? url.slice(0, -4) : url;
         const cloneUrl = !url.endsWith('.git') ? `${url}.git` : url;
         return {
-            branchName,
-            commitId: commit && commit.id,
-            tag,
-            token,
+            ...gitRepository,
             webUrl,
-            cloneUrl,
-            url
+            cloneUrl
         };
     }
 
