@@ -8,6 +8,7 @@ config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.intervalMs = process.env.INTERVAL_MS || '3000';
 config.createdJobsTTL = process.env.CREATED_JOBS_TTL || 15 * 1000;
+config.algorithmSchedulingWarningTimeoutMs = process.env.ALGORITHM_SCHEDULING_WARNING_TIMEOUT || 1 * 60 * 1000;
 
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
@@ -40,7 +41,6 @@ config.metrics = {
         port: process.env.METRICS_PORT
     }
 };
-
 
 config.resources = {
     enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false),

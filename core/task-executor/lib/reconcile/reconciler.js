@@ -24,6 +24,8 @@ const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 let createdJobsList = [];
 const MIN_AGE_FOR_STOP = 10 * 1000;
 let totalCapacityNow = 10;
+const unscheduledAlgorithms = {};
+
 const _updateCapacity = (algorithmCount) => {
     const factor = 0.9;
     const minCapacity = 2;
@@ -338,6 +340,44 @@ const calcRatio = (totalRequests, capacity) => {
     return requestTypes;
 };
 
+const _removeUnscheduled = (created, algorithms) => {
+    const removed = [];
+    created.forEach((c) => {
+        if (algorithms[c.algorithmName]) {
+            removed.push({ algorithmName: c.algorithmName, reason: 'Scheduled', message: 'Successfully assigned to node' });
+            delete algorithms[c.algorithmName];
+        }
+    });
+    return removed;
+};
+
+const _addUnscheduled = (skipped, algorithms) => {
+    skipped.forEach((s) => {
+        if (!algorithms[s.algorithmName]) {
+            algorithms[s.algorithmName] = { warning: s.warning, timestamp: s.timestamp };
+        }
+    });
+};
+
+const _checkUnscheduled = async (created, skipped, algorithms, algorithmTemplates, options) => {
+    const removed = _removeUnscheduled(created, algorithms);
+    _addUnscheduled(skipped, algorithms);
+
+    const added = [];
+    Object.entries(algorithms).forEach(([k, v]) => {
+        if (!algorithmTemplates[k]) {
+            delete algorithms[k];
+        }
+        else if (!v.isNotified && Date.now() - v.timestamp > options.algorithmSchedulingWarningTimeoutMs) {
+            v.isNotified = true;
+            added.push({ algorithmName: k, type: 'warning', ...v.warning });
+        }
+    });
+    await Promise.all(added.map(d => etcd.addEvent(d)));
+    await Promise.all(removed.map(d => etcd.addEvent(d)));
+};
+
+
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
     const normWorkers = normalizeWorkers(workers);
@@ -402,6 +442,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
+    await _checkUnscheduled(created, skipped, unscheduledAlgorithms, algorithmTemplates, options);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];

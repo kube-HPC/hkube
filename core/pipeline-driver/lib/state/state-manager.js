@@ -33,6 +33,10 @@ class StateManager extends EventEmitter {
         this._etcd.drivers.on('change', (data) => {
             this.emit(data.status.command, data);
         });
+        this._etcd.events.watch();
+        this._etcd.events.on('change', (data) => {
+            this.emit('events', data);
+        });
     }
 
     _defaultDiscovery(discovery) {
@@ -109,7 +113,7 @@ class StateManager extends EventEmitter {
     }
 
     _removeUndefined(data) {
-        data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));  // eslint-disable-line
+        data.forEach(d => Object.keys(d).forEach(k => d[k] === undefined && delete d[k]));
     }
 
     async setJobResults(options) {

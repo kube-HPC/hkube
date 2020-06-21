@@ -6,8 +6,8 @@ const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_
 
 
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
-    let freeCpu; 
-    let freeGpu; 
+    let freeCpu;
+    let freeGpu;
     let freeMemory;
     if (useResourcePressure) {
         freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESSURE));
@@ -19,7 +19,16 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
         freeGpu = node.free.gpu;
         freeMemory = node.free.memory;
     }
-    return requestedCpu < freeCpu && requestedMemory < freeMemory && lessWithTolerance(requestedGpu, freeGpu);
+
+    const cpu = requestedCpu < freeCpu;
+    const mem = requestedMemory < freeMemory;
+    const gpu = lessWithTolerance(requestedGpu, freeGpu);
+
+    return {
+        node,
+        available: cpu && mem && gpu,
+        details: { cpu, mem, gpu }
+    };
 };
 
 const nodeSelectorFilter = (labels, nodeSelector) => {
@@ -38,6 +47,29 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
     return matched;
 };
 
+const _createWarning = (unMatchedNodesBySelector, nodeSelector, nodesForSchedule) => {
+    const messages = [];
+    const reason = 'FailedScheduling';
+    if (unMatchedNodesBySelector > 0) {
+        const ns = Object.entries(nodeSelector).map(([k, v]) => `${k}=${v}`);
+        messages.push(`insufficient node selector (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
+    }
+    const resourcesMap = Object.create(null);
+    nodesForSchedule.forEach(n => {
+        Object.entries(n.details).filter(([, v]) => v === false).forEach(([k]) => {
+            if (!resourcesMap[k]) {
+                resourcesMap[k] = 0;
+            }
+            resourcesMap[k] += 1;
+        });
+    });
+    if (Object.keys(resourcesMap).length > 0) {
+        const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
+        messages.push(`insufficient ${resources.join(', ')}`);
+    }
+    return { reason, message: messages.join(', ') };
+};
+
 const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
@@ -45,13 +77,17 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     const requestedCpu = parse.getCpuInCore('' + jobDetails.resourceRequests.requests.cpu);
     const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
     const requestedMemory = parse.getMemoryInMi(jobDetails.resourceRequests.requests.memory);
-    const nodeList = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
-    const nodeForSchedule = nodeList.find(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
+    const nodesBySelector = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
+    const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
-    if (!nodeForSchedule) {
-        return { shouldAdd: false, newResources: { ...availableResources } };
+    const availableNode = nodesForSchedule.find(n => n.available);
+    if (!availableNode) {
+        const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
+        const warning = _createWarning(unMatchedNodesBySelector, jobDetails.nodeSelector, nodesForSchedule);
+        return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 
+    const nodeForSchedule = availableNode.node;
     nodeForSchedule.free.cpu -= requestedCpu;
     nodeForSchedule.free.gpu -= requestedGpu;
     nodeForSchedule.free.memory -= requestedMemory;
@@ -70,7 +106,7 @@ const _sortWorkers = (a, b) => {
 };
 
 function _scheduleAlgorithmToNode(nodeList, { requestedCpu, requestedGpu, memoryRequests }) {
-    const nodeForSchedule = nodeList.find(n => findNodeForSchedule(n, requestedCpu, requestedGpu, memoryRequests, false));
+    const nodeForSchedule = nodeList.find(n => findNodeForSchedule(n, requestedCpu, requestedGpu, memoryRequests, false).available);
     return nodeForSchedule;
 }
 
@@ -201,14 +237,14 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
     // loop over all the job types one by one and assign until it can't fit in any node
     const cb = (j) => {
         if (j.numberOfNewJobs > 0) {
-            const { shouldAdd, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
+            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
                 created.push(toCreate);
                 scheduledRequests.push({ algorithmName: toCreate.algorithmName });
             }
             else {
-                skipped.push(j.jobDetails);
+                skipped.push({ ...j.jobDetails, warning, timestamp: Date.now() });
             }
             j.numberOfNewJobs -= 1;
             addedThisTime += 1;
