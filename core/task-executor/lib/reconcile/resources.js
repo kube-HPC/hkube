@@ -80,13 +80,14 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     const nodesBySelector = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
     const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
-    if (nodesForSchedule.every(n => !n.available)) {
+    const availableNode = nodesForSchedule.find(n => n.available);
+    if (!availableNode) {
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
         const warning = _createWarning(unMatchedNodesBySelector, jobDetails.nodeSelector, nodesForSchedule);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 
-    const nodeForSchedule = nodesForSchedule.find(n => n.available).node;
+    const nodeForSchedule = availableNode.node;
     nodeForSchedule.free.cpu -= requestedCpu;
     nodeForSchedule.free.gpu -= requestedGpu;
     nodeForSchedule.free.memory -= requestedMemory;
