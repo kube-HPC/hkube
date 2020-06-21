@@ -463,7 +463,7 @@ describe('Store/Algorithms', () => {
                 ...body
             });
         });
-        it.only('should succeed to store algorithm with devMode', async () => {
+        it('should succeed to store algorithm with devMode', async () => {
             const body = {
                 name: uuid(),
                 algorithmImage: "image",
