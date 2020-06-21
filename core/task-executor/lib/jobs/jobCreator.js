@@ -129,6 +129,31 @@ const applyOpengl = (inputSpec, options, algorithmOptions = {}) => {
     return spec;
 };
 
+const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, clusterOptions = {} }) => {
+    let spec = clonedeep(inputSpec);
+    const { devMode } = algorithmOptions;
+    if (!devMode) {
+        return spec;
+    }
+    if (!clusterOptions.devModeEnabled) {
+        return spec;
+    }
+    objectPath.set(spec, 'spec.template.spec.restartPolicy', 'OnFailure');
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { DEV_MODE: 'true' });
+    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { DEV_MODE: 'true' });
+    spec = applyVolumeMounts(spec, CONTAINERS.ALGORITHM, {
+        name: 'hkube-dev-sources',
+        mountPath: '/hkube/algorithm-runner/algorithm_unique_folder',
+        subPath: `algorithms/${algorithmName}`
+    });
+    spec = applyVolumes(spec, {
+        name: 'hkube-dev-sources',
+        persistentVolumeClaim: {
+            claimName: 'hkube-dev-sources-pvc'
+        }
+    });
+    return spec;
+};
 const applyLogging = (inputSpec, options) => {
     let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
@@ -196,6 +221,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM, 'task-executor-configmap');
     spec = applyLogging(spec, options);
     spec = applyOpengl(spec, options, algorithmOptions);
+    spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
     spec = applyMounts(spec, mounts);
 
     return spec;
