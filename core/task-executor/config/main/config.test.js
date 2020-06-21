@@ -4,6 +4,7 @@ config.driversSetting = {
     scalePercent: 0.2
 };
 config.intervalMs = process.env.INTERVAL_MS || 15000;
+config.algorithmSchedulingWarningTimeoutMs = -1;
 
 const kubeconfig = {
     apiVersion: 'v1',

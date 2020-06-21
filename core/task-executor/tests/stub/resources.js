@@ -236,12 +236,35 @@ const nodes = {
                         pods: '110'
                     }
                 }
-            }
+            },
         ]
     }
 };
 
+const nodeWithLabels = {
+    metadata: {
+        name: 'node4',
+        labels: {
+            type: 'gpu-extreme',
+            max: 'bound'
+        }
+    },
+    status: {
+        capacity: {
+            cpu: '8',
+            memory: '32Gi',
+            pods: '110'
+        },
+        allocatable: {
+            cpu: '7800m',
+            memory: '32Gi',
+            pods: '110'
+        }
+    }
+}
+
 module.exports = {
     pods,
-    nodes
+    nodes,
+    nodeWithLabels
 };

@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const nock = require('nock');
 const HttpStatus = require('http-status-codes');
+const merge = require('lodash.merge');
 const { randomString: uuid } = require('../lib/utils');
 const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
@@ -461,6 +462,26 @@ describe('Store/Algorithms', () => {
                 ...defaultProps,
                 ...body
             });
+        });
+        it('should succeed to store algorithm with devMode', async () => {
+            const body = {
+                name: uuid(),
+                algorithmImage: "image",
+                mem: "50Mi",
+                cpu: 1,
+                type: "Image",
+                options: {
+                    devMode: true
+                }
+
+            }
+            const options = {
+                uri: restPath,
+                body
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
+            expect(response.body).to.deep.equal(merge({},defaultProps, body));
         });
     });
     describe('/store/algorithms/apply POST', () => {

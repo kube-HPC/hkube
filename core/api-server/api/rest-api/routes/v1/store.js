@@ -39,8 +39,8 @@ const routes = (option) => {
     });
     router.delete('/pipelines/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        await pipelineStore.deletePipeline({ name });
-        res.json({ message: 'OK' });
+        const message = await pipelineStore.deletePipeline({ name });
+        res.json({ message });
         next();
     });
     // pipelines
