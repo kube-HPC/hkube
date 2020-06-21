@@ -289,14 +289,20 @@ class TaskRunner extends EventEmitter {
             const tasks = await this._stateManager.tasksList({ jobId: this._jobId });
             if (tasks.size > 0) {
                 const tasksGraph = this._nodes._getNodesAsFlat();
-                tasksGraph.forEach((g) => {
-                    const task = tasks.get(g.taskId);
-                    if (task && task.status !== g.status) {
-                        const t = {
-                            ...g,
-                            ...task
+                tasksGraph.forEach((gTask) => {
+                    const sTask = tasks.get(gTask.taskId);
+                    if (sTask && sTask.status !== gTask.status) {
+                        const task = {
+                            ...gTask,
+                            ...sTask
                         };
-                        this._handleTaskEvent(t);
+                        if (task.status === taskStatuses.SUCCEED && gTask.status !== taskStatuses.STORING) {
+                            this._setTaskState(task);
+                            this._onStoring(task);
+                        }
+                        else {
+                            this._handleTaskEvent(task);
+                        }
                     }
                 });
             }
