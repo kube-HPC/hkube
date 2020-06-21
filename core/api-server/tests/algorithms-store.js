@@ -481,7 +481,7 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
-            expect(response.body).to.deep.equal(merge(defaultProps, body));
+            expect(response.body).to.deep.equal(merge({},defaultProps, body));
         });
     });
     describe('/store/algorithms/apply POST', () => {
