@@ -7,7 +7,7 @@ const Zip = require('adm-zip');
 const targz = require('targz');
 const _clone = require('git-clone');
 const { spawn } = require('child_process');
-const { buildTypes } = require('@hkube/consts');
+const { buildTypes, buildStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const log = require('@hkube/logger').GetLogFromContainer();
 const jsyaml = require('js-yaml');
@@ -16,6 +16,7 @@ const component = require('../consts/components').DOCKER_BUILDER;
 const { KANIKO, OPENSHIFT } = require('../consts/buildModes');
 const stateManger = require('../state/state-manager');
 const kubernetes = require('../helpers/kubernetes');
+let isStopped = false;
 
 const wrapperVersions = {
     nodejs: {
@@ -44,9 +45,9 @@ const wrapperVersions = {
         },
         override: async (file, version) => {
             try {
-                const content = await fse.readFile(file,'utf8');
+                const content = await fse.readFile(file, 'utf8');
                 const regex = /(hkube-python-wrapper[=>]=)(.*)/
-                const replaced=content.replace(regex, `$1${version}`)
+                const replaced = content.replace(regex, `$1${version}`)
                 await fse.writeFile(file, replaced);
             } catch (error) {
                 log.error(`unable to override version. Error: ${error.message}`, { component })
@@ -123,6 +124,9 @@ const runBash = ({ command, envs, resultUpdater = () => { } }) => {
         let error = '';
 
         build.stdout.on('data', async (d) => {
+            if (isStopped) {
+                return reject(new Error('build has stopped during build process'));
+            }
             data += d.toString();
             await resultUpdater({ data });
         });
@@ -142,15 +146,19 @@ const runBash = ({ command, envs, resultUpdater = () => { } }) => {
 };
 
 const _setBuildStatus = async (options) => {
+    if (isStopped) {
+        return;
+    }
     const { buildId, status, error, progress } = options;
     const prog = progress(status);
     log.info(`update build status to: ${status}, progress: ${prog}  -> ${buildId}. ${error || ''}`, { component });
     await stateManger.updateBuild({ ...options, timestamp: Date.now(), progress: prog });
 };
 
-const _getBuild = async ({ buildId }) => {
-    log.info(`getBuild -> ${buildId}`, { component });
-    const build = await stateManger.getBuild({ buildId });
+const _watchBuild = async ({ buildId }) => {
+    log.info(`watch build -> ${buildId}`, { component });
+    stateManger.on(`build-${buildStatuses.STOPPED}`, () => { isStopped = true; });
+    const build = await stateManger.watchBuild({ buildId });
     if (!build) {
         throw new Error(`unable to find build -> ${buildId}`);
     }
@@ -386,11 +394,11 @@ const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, vers
     let updating = false
     const resultUpdater = async (result) => {
         if (updating) {
-            return
+            return;
         }
-        updating = true
+        updating = true;
         await stateManger.updateBuild({ buildId, result, timestamp: Date.now() });
-        updating = false
+        updating = false;
     }
     const output = await runBash({ command: `${process.cwd()}/lib/builds/build-algorithm-image-${buildMode}.sh`, envs, resultUpdater });
     return { output, algorithmImage };
@@ -446,7 +454,10 @@ const runBuild = async (options) => {
             throw new Error('build id is required');
         }
         log.info(`build started -> ${buildId}`, { component });
-        build = await _getBuild({ buildId });
+        build = await _watchBuild({ buildId });
+        if (build.status === buildStatuses.STOPPED) {
+            throw new Error('build has stopped before build process');
+        }
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
 
         const overwrite = true;
