@@ -53,7 +53,7 @@ describe('Test', function () {
             config.buildId = buildId;
 
             await dockerBuilder.runBuild(config);
-            const build = await stateManger.getBuild({ buildId });
+            const build = await stateManger.watchBuild({ buildId });
             expect(build.algorithmImage).to.contain(mockBuild.algorithmName);
             expect(build.algorithmImage).to.contain(mockBuild.version);
         });
