@@ -84,8 +84,7 @@ class PipelineStore {
         }
         graph.nodes().forEach(n => graph.setNode(n, { name: n, children: [] }));
         graph.sources().forEach(n => this._traverse(graph, n));
-        const nodes = graph.sources();
-        return nodes.map(n => graph.node(n));
+        return graph.sources().map(n => graph.node(n));
     }
 
     _traverse(graph, nodeName) {
