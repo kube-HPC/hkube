@@ -71,12 +71,11 @@ class PipelineStore {
         const graph = new graphlib.Graph();
         const pipelines = await stateManager.pipelines.list({ name }, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
         if (pipelines.length === 0) {
-            throw new ResourceNotFoundError('triggers tree', name)
+            throw new ResourceNotFoundError('triggers tree', name);
         }
-        pipelines.forEach(pl => {
-            const parents = pl.triggers.pipelines.map(t => t);
-            parents.forEach(pr => {
-                graph.setEdge(pr, pl.name);
+        pipelines.forEach(p => {
+            p.triggers.pipelines.forEach(pr => {
+                graph.setEdge(pr, p.name);
             });
         });
         if (!graphlib.alg.isAcyclic(graph)) {
@@ -89,12 +88,13 @@ class PipelineStore {
 
     _traverse(graph, nodeName) {
         const successors = graph.successors(nodeName);
-        const parents = graph.edges().filter(l => l.w === nodeName).map(l => graph.node(l.v));
+        const predecessors = graph.predecessors(nodeName);
         const node = graph.node(nodeName);
 
-        parents.forEach((p) => {
-            const hasChild = p.children.find(n => n.name === node.name);
-            !hasChild && p.children.push(node);
+        predecessors.forEach((p) => {
+            const parent = graph.node(p);
+            const hasChild = parent.children.find(n => n.name === node.name);
+            !hasChild && parent.children.push(node);
         });
         successors.forEach((s) => {
             this._traverse(graph, s);
