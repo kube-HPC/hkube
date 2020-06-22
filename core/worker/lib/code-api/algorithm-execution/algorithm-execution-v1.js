@@ -1,22 +1,8 @@
-const EventEmitter = require('events');
 const uuidv4 = require('uuid/v4');
 const { consts } = require('@hkube/parsers');
 const storageManager = require('@hkube/storage-manager');
-const stateAdapter = require('../../states/stateAdapter');
-const { taskEvents } = require('../../consts');
 
-class AlgorithmExecution extends EventEmitter {
-    constructor() {
-        super();
-        this._registerToEtcdEvents();
-    }
-
-    _registerToEtcdEvents() {
-        stateAdapter.on(taskEvents.SUCCEED, (task) => {
-            this.emit('data-ready', task);
-        });
-    }
-
+class AlgorithmExecution {
     async setInputToStorage(options) {
         const { input, storage, jobId } = options;
         const storageInput = await Promise.all(input.map(i => this._mapInputToStorage(i, storage, jobId)));
