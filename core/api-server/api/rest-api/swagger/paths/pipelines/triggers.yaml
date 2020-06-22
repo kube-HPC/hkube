@@ -17,7 +17,7 @@ get:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/pipelineResult"
+              $ref: "#/components/schemas/pipelineTriggersResult"
     "400":
       description: bad request
       content:

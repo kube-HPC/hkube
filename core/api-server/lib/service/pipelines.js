@@ -70,6 +70,9 @@ class PipelineStore {
         const { name } = options;
         const graph = new graphlib.Graph();
         const pipelines = await stateManager.pipelines.list({ name }, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
+        if (pipelines.length === 0) {
+            throw new ResourceNotFoundError('triggers tree', name)
+        }
         pipelines.forEach(pl => {
             const parents = pl.triggers.pipelines.map(t => t);
             parents.forEach(pr => {

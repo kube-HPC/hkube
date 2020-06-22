@@ -1,0 +1,8 @@
+type: object
+properties:
+  name:
+    type: string
+    description: Pipeline name
+  children:
+    type: array
+    items: {}
