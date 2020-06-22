@@ -1,8 +1,9 @@
+const graphlib = require('graphlib');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const executionService = require('./execution');
-const { ResourceNotFoundError, ResourceExistsError, } = require('../errors');
+const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
 
 class PipelineStore {
     async updatePipeline(options) {
@@ -63,6 +64,39 @@ class PipelineStore {
 
     async getPipelines() {
         return stateManager.pipelines.list();
+    }
+
+    async getPipelinesTriggersTree(options) {
+        const { name } = options;
+        const graph = new graphlib.Graph();
+        const pipelines = await stateManager.pipelines.list({ name }, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
+        pipelines.forEach(pl => {
+            const parents = pl.triggers.pipelines.map(t => t);
+            parents.forEach(pr => {
+                graph.setEdge(pr, pl.name);
+            });
+        });
+        if (!graphlib.alg.isAcyclic(graph)) {
+            throw new InvalidDataError('the pipelines triggers is cyclic');
+        }
+        graph.nodes().forEach(n => graph.setNode(n, { name: n, children: [] }));
+        graph.sources().forEach(n => this._traverse(graph, n));
+        const nodes = graph.sources();
+        return nodes.map(n => graph.node(n));
+    }
+
+    _traverse(graph, nodeName) {
+        const successors = graph.successors(nodeName);
+        const parents = graph.edges().filter(l => l.w === nodeName).map(l => graph.node(l.v));
+        const node = graph.node(nodeName);
+
+        parents.forEach((p) => {
+            const hasChild = p.children.find(n => n.name === node.name);
+            !hasChild && p.children.push(node);
+        });
+        successors.forEach((s) => {
+            this._traverse(graph, s);
+        });
     }
 
     async insertPipeline(options) {

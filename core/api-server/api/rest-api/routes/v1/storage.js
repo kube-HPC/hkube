@@ -1,4 +1,3 @@
-
 const express = require('express');
 const logger = require('../../middlewares/logger');
 const storage = require('../../../../lib/service/storage');

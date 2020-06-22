@@ -108,7 +108,6 @@ const routes = (option) => {
     });
     // algorithms
 
-
     return router;
 };
 

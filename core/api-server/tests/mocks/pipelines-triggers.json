@@ -1,0 +1,21 @@
+[
+  {
+    "name": "trigger-tree-1",
+    "children": [
+      {
+        "name": "trigger-tree-2",
+        "children": [
+          {
+            "name": "trigger-tree-3",
+            "children": [
+              {
+                "name": "trigger-tree-4",
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

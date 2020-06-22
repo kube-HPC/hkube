@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const querystring = require('querystring');
 const HttpStatus = require('http-status-codes');
 const { workerStub } = require('./mocks');
+const pipelinesTriggers = require('./mocks/pipelines-triggers.json')
 const { request } = require('./utils');
 let restUrl;
 
@@ -169,5 +170,19 @@ describe('Pipelines', () => {
             expect(response.body[0]).to.have.property('status');
             expect(response.body[0]).to.have.property('timestamp');
         })
+    });
+    describe('/pipelines/triggers/tree', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/pipelines/triggers/tree`;
+        });
+        it('should succeed to get pipelines triggers tree', async () => {
+            const options = {
+                uri: `${restPath}?name=trigger-tree`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.deep.equal(pipelinesTriggers);
+        });
     });
 });
