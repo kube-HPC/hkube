@@ -15,10 +15,10 @@
   "license": "ISC",
   "dependencies": {
     "@hkube/config": "^2.0.7",
-    "@hkube/consts": "^1.0.14",
-    "@hkube/etcd": "^5.0.18",
+    "@hkube/consts": "^1.0.21",
+    "@hkube/etcd": "^5.0.27",
     "@hkube/healthchecks": "^1.0.0",
-    "@hkube/kubernetes-client": "^1.0.28",
+    "@hkube/kubernetes-client": "^1.0.31",
     "@hkube/logger": "^1.0.25",
     "decamelize": "^3.2.0",
     "lodash.clonedeep": "^4.5.0",
