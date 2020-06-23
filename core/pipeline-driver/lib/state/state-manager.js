@@ -22,7 +22,7 @@ class StateManager extends EventEmitter {
         this._watchDrivers();
     }
 
-    async _subscribe() {
+    _subscribe() {
         this._etcd.jobs.tasks.on('change', (data) => {
             this.emit(`task-${data.status}`, data);
             this.emit('task-*', data);
