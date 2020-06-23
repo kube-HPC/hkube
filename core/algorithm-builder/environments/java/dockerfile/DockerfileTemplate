@@ -1,4 +1,4 @@
-FROM maven 
+FROM maven
 LABEL maintainer="hkube.dev@gmail.com"
 ENV PACKAGES_REGISTRY_USER ${PACKAGES_REGISTRY_USER}
 ENV PACKAGES_TOKEN ${PACKAGES_TOKEN}
@@ -8,7 +8,7 @@ COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./runJava.sh /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
 RUN mvn package -DremoteRepositories=${packagesRegistry}
-FROM ${baseImage} 
+FROM ${baseImage}
 RUN mkdir -p /hkube/algorithm-runner
 COPY --from=0 /hkube/algorithm-runner/ /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
