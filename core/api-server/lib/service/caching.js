@@ -1,4 +1,3 @@
-
 const request = require('request-promise');
 const querystring = require('querystring');
 

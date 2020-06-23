@@ -29,6 +29,8 @@
   $ref: ./pipelines/results.yaml
 /pipelines/status:
   $ref: ./pipelines/status.yaml
+/pipelines/triggers/tree:
+  $ref: ./pipelines/triggers.yaml
 
 # cron
 /cron/results:
@@ -67,7 +69,6 @@
   $ref: ./webhooks/list.yaml
 
 # boards
-
 /boards/tensors:
   $ref: ./boards/tensorboard_create.yaml
 /boards/tensors/{id}:
@@ -108,6 +109,7 @@
   $ref: ./experiment/experiment.yaml
 /experiment/list/all:
   $ref: ./experiment/experiment_list.yaml
+
 # graph
 /graph/raw/{jobId}:
   $ref: ./graph/raw.yaml
