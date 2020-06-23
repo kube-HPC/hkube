@@ -451,9 +451,10 @@ describe('Test', function () {
             await taskRunner.start(job);
             await delay(500);
             const event = { algorithmName, type: 'warning', reason: 'FailedScheduling', message: 'msg' };
-            await stateManager._etcd.events.set(event);
-            await delay(500);
+            await stateManager._etcd.events.algorithms.set(event);
+            await delay(5000);
             const node = taskRunner._nodes.getNode('green');
+            expect(node.status).to.equal(event.reason);
             expect(node.batch[0].status).to.equal(event.reason);
             expect(node.warnings[0]).to.equal(event.message);
         });

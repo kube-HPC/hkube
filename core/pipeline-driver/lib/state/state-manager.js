@@ -4,8 +4,8 @@ const Etcd = require('@hkube/etcd');
 const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
-
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
+const EVENTS_INTERVAL = 5000;
 
 class StateManager extends EventEmitter {
     constructor(option) {
@@ -22,7 +22,7 @@ class StateManager extends EventEmitter {
         this._watchDrivers();
     }
 
-    _subscribe() {
+    async _subscribe() {
         this._etcd.jobs.tasks.on('change', (data) => {
             this.emit(`task-${data.status}`, data);
             this.emit('task-*', data);
@@ -33,10 +33,28 @@ class StateManager extends EventEmitter {
         this._etcd.drivers.on('change', (data) => {
             this.emit(data.status.command, data);
         });
-        this._etcd.events.watch();
-        this._etcd.events.on('change', (data) => {
-            this.emit(`events-${data.type}`, data);
-        });
+    }
+
+    subscribeToEvents() {
+        if (this._interval) {
+            return;
+        }
+        this._interval = setInterval(async () => {
+            if (this._working) {
+                return;
+            }
+            this._working = true;
+            const events = await this._etcd.events.algorithms.list();
+            events.forEach((e) => {
+                this.emit(`events-${e.type}`, e);
+            });
+            this._working = false;
+        }, EVENTS_INTERVAL);
+    }
+
+    unsubscribeToEvents() {
+        clearInterval(this._interval);
+        this._interval = null;
     }
 
     _defaultDiscovery(discovery) {

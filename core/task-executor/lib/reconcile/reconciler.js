@@ -340,29 +340,23 @@ const calcRatio = (totalRequests, capacity) => {
     return requestTypes;
 };
 
-const _removeUnscheduled = (created, algorithms) => {
-    created.forEach((c) => {
-        if (algorithms[c.algorithmName]) {
-            delete algorithms[c.algorithmName];
-        }
-    });
-};
-
-const _addUnscheduled = (skipped, algorithms) => {
+const _checkUnscheduled = async (created, skipped, requests, algorithms, algorithmTemplates, options) => {
     skipped.forEach((s) => {
         if (!algorithms[s.algorithmName]) {
             algorithms[s.algorithmName] = { warning: s.warning, timestamp: s.timestamp };
         }
     });
-};
-
-const _checkUnscheduled = async (created, skipped, algorithms, algorithmTemplates, options) => {
-    _removeUnscheduled(created, algorithms);
-    _addUnscheduled(skipped, algorithms);
 
     const added = [];
+    const removed = [];
+
     Object.entries(algorithms).forEach(([k, v]) => {
-        if (!algorithmTemplates[k]) {
+        const create = created.find(c => c.algorithmName === k);
+        const request = requests.find(r => r.algorithmName === k);
+        if (create || !request || !algorithmTemplates[k]) {
+            if (algorithms[k].eventId) {
+                removed.push({ algorithmName: k, eventId: algorithms[k].eventId });
+            }
             delete algorithms[k];
         }
         else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.warning.maxCapacity)) {
@@ -370,7 +364,14 @@ const _checkUnscheduled = async (created, skipped, algorithms, algorithmTemplate
             added.push({ algorithmName: k, type: 'warning', ...v.warning });
         }
     });
-    await Promise.all(added.map(d => etcd.addEvent(d)));
+    await Promise.all(removed.map(d => etcd.removeEvent(d)));
+    const eventIDs = await Promise.all(added.map(d => etcd.addEvent(d)));
+    added.forEach((a, i) => {
+        const eventId = eventIDs[i];
+        if (algorithms[a.name]) {
+            algorithms[a.name].eventId = eventId;
+        }
+    });
 };
 
 
@@ -438,7 +439,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
-    await _checkUnscheduled(created, skipped, unscheduledAlgorithms, algorithmTemplates, options);
+    await _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates, options);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];

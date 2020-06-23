@@ -111,16 +111,16 @@ class TaskRunner extends EventEmitter {
                 return;
             }
             nodes.forEach(n => {
-                if (n.batch.length > 0) {
+                if (n.status !== event.reason) {
+                    n.status = event.reason;
+                    n.warnings = n.warnings || [];
+                    n.warnings.push(event.message);
                     n.batch.forEach(b => {
-                        b.status = event.reason;
+                        if (b.status !== event.reason) {
+                            b.status = event.reason;
+                        }
                     });
                 }
-                else {
-                    n.status = event.reason;
-                }
-                n.warnings = n.warnings || [];
-                n.warnings.push(event.message);
             });
             this._progressStatus({ status: DriverStates.ACTIVE });
         }
@@ -221,6 +221,7 @@ class TaskRunner extends EventEmitter {
             this._runEntryNodes();
         }
         await graphStore.start(job.data.jobId, this._nodes);
+        this._stateManager.subscribeToEvents();
         return this.pipeline;
     }
 
@@ -401,6 +402,7 @@ class TaskRunner extends EventEmitter {
 
     async _cleanJob(error) {
         await graphStore.stop();
+        this._stateManager.unsubscribeToEvents();
         this._nodes = null;
         this._job && this._job.done(error);
         this._job = null;
