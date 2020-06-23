@@ -53,7 +53,7 @@ config.packagesRepo = {
         registry: process.env.MAVEN_REGISTRY || 'https://oss.sonatype.org/content/repositories/snapshots',
         token: process.env.MAVEN_TOKEN || '_',
         user: process.env.MAVEN_USER || '_',
-        defaultBaseImage: process.env.JAVA_DEFAULT_BASE_IMAGE || 'maven'
+        defaultBaseImage: process.env.JAVA_DEFAULT_BASE_IMAGE || 'adoptopenjdk/openjdk11'
     }
 
 };

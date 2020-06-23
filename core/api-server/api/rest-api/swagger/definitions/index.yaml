@@ -94,3 +94,7 @@ algorithmBuildGit:
   $ref: ./algorithmBuildGit.yaml
 execAlgorithmRequest:
   $ref: ./execAlgorithmRequest.yaml
+pipelineTriggersNode:
+  $ref: ./pipelineTriggersNode.yaml
+pipelineTriggersResult:
+  $ref: ./pipelineTriggersResult.yaml

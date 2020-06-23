@@ -1,4 +1,3 @@
-
 const BUILD_TRIGGERS = ['checksum', 'env'];
 
 const BUILD_GUIDE = 'use the Hkube dashboard or the Hkube API api/v1/builds/status/<buildId> to follow the build progress';
