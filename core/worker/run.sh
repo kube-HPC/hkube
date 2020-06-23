@@ -27,7 +27,8 @@ if [[ -f "$ENV_FILE" ]]; then
     echo "using env file ${ENV_FILE}"
     export $(cat ~/dev/env/.env); 
 fi
-
+source /home/golanha/dev/hkube/python-wrapper.hkube/venv/bin/activate
+export $(cat ~/dev/env/.env); 
 
 
 export WORKER_SOCKET_PORT=$(EPHYMERAL_PORT)
