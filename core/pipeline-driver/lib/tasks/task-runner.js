@@ -48,7 +48,7 @@ class TaskRunner extends EventEmitter {
         this._stateManager.on(`job-${pipelineStatuses.STOPPED}`, (d) => this._onStop(d));
         this._stateManager.on(`job-${pipelineStatuses.PAUSED}`, (d) => this._onPause(d));
         this._stateManager.on('task-*', (task) => this._handleTaskEvent(task));
-        this._stateManager.on('events', (event) => this._handleEvents(event));
+        this._stateManager.on('events-warning', (event) => this._handleEvents(event));
     }
 
     _onStop(data) {

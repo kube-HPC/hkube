@@ -55,15 +55,6 @@ describe('Kubernetes API', () => {
         const res = await instance.createJob({ spec: { metadata: { name: 'mySpec' } } });
         expect(res).to.be.null;
     });
-    it('should delete job', async () => {
-        const res = await instance.deleteJob('myJobName');
-        expect(res.statusCode).to.eql(200);
-    });
-    it('should return null if delete job fails', async () => {
-        await instance.init(optionsDummy);
-        const res = await instance.deleteJob('myJobName');
-        expect(res).to.be.null;
-    });
     it('should get worker jobs', async () => {
         const res = await instance.getWorkerJobs();
         expect(res.statusCode).to.eql(200);

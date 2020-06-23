@@ -18,10 +18,7 @@ module.exports = {
                 getPipelineDriversJobs: async () => { },
                 getWorkerJobs: async () => { },
                 getVersionsConfigMap: async () => { return {} },
-                getResourcesPerNode: async () => { return {} },
-                deleteJob: async (...theArgs) => {
-                    registerCount('deleteJob', theArgs);
-                }
+                getResourcesPerNode: async () => { return {} }
             },
             callCount: (name) => { return callCount[name]; },
             clearCount: () => {

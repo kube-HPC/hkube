@@ -341,14 +341,11 @@ const calcRatio = (totalRequests, capacity) => {
 };
 
 const _removeUnscheduled = (created, algorithms) => {
-    const removed = [];
     created.forEach((c) => {
         if (algorithms[c.algorithmName]) {
-            removed.push({ algorithmName: c.algorithmName, reason: 'Scheduled', message: 'Successfully assigned to node' });
             delete algorithms[c.algorithmName];
         }
     });
-    return removed;
 };
 
 const _addUnscheduled = (skipped, algorithms) => {
@@ -360,7 +357,7 @@ const _addUnscheduled = (skipped, algorithms) => {
 };
 
 const _checkUnscheduled = async (created, skipped, algorithms, algorithmTemplates, options) => {
-    const removed = _removeUnscheduled(created, algorithms);
+    _removeUnscheduled(created, algorithms);
     _addUnscheduled(skipped, algorithms);
 
     const added = [];
@@ -368,13 +365,12 @@ const _checkUnscheduled = async (created, skipped, algorithms, algorithmTemplate
         if (!algorithmTemplates[k]) {
             delete algorithms[k];
         }
-        else if (!v.isNotified && Date.now() - v.timestamp > options.algorithmSchedulingWarningTimeoutMs) {
+        else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.warning.maxCapacity)) {
             v.isNotified = true;
             added.push({ algorithmName: k, type: 'warning', ...v.warning });
         }
     });
     await Promise.all(added.map(d => etcd.addEvent(d)));
-    await Promise.all(removed.map(d => etcd.addEvent(d)));
 };
 
 

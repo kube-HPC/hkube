@@ -24,23 +24,42 @@ module.exports = [
         mem: '128Mi'
     },
     {
-        name: 'big-cpu',
+        name: 'max-cpu',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 25,
+        mem: '128Mi'
+    },
+    {
+        name: 'max-mem',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 1,
+        mem: '50Gi'
+    },
+    {
+        name: 'max-gpu',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 1,
+        mem: '128Mi',
+        gpu: 10
+    },
+    {
+        name: 'big-cpu',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 8,
         mem: '128Mi'
     },
     {
         name: 'big-mem',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 1,
-        mem: '50Gi'
+        mem: '37Gi'
     },
     {
         name: 'big-gpu',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 1,
         mem: '128Mi',
-        gpu: 10
+        gpu: 6
     },
     {
         name: 'node-selector',

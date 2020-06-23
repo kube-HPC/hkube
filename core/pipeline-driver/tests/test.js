@@ -450,7 +450,7 @@ describe('Test', function () {
             await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
             await taskRunner.start(job);
             await delay(500);
-            const event = { algorithmName, reason: 'FailedScheduling', message: 'msg' };
+            const event = { algorithmName, type: 'warning', reason: 'FailedScheduling', message: 'msg' };
             await stateManager._etcd.events.set(event);
             await delay(500);
             const node = taskRunner._nodes.getNode('green');

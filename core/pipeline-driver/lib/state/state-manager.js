@@ -35,7 +35,7 @@ class StateManager extends EventEmitter {
         });
         this._etcd.events.watch();
         this._etcd.events.on('change', (data) => {
-            this.emit('events', data);
+            this.emit(`events-${data.type}`, data);
         });
     }
 
