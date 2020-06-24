@@ -54,6 +54,15 @@ const wrapperVersions = {
             }
         }
 
+    },
+    java: {
+        file: 'version.txt',
+        parse: (file) => {
+            return file;
+        },
+        override: async (file, version) => {
+            await fse.writeFile(file, version);
+        }
     }
 }
 

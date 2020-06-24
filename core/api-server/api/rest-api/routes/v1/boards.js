@@ -2,7 +2,6 @@ const express = require('express');
 const boards = require('../../../../lib/service/boards');
 const logger = require('../../middlewares/logger');
 
-
 const routes = (options) => {
     const router = express.Router();
     router.get('/', (req, res, next) => {

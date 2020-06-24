@@ -1,4 +1,3 @@
-
 const InvalidDataError = require('./InvalidDataError');
 const ResourceNotFoundError = require('./ResourceNotFoundError');
 const ResourceExistsError = require('./ResourceExistsError');

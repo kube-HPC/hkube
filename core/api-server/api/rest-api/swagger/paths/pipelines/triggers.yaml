@@ -1,0 +1,38 @@
+get:
+  tags:
+    - Pipelines
+  summary: Get pipelines triggers
+  description: Get tree of pipelines triggers by given name or for all pipelines
+  parameters:
+    - name: name
+      in: query
+      description: pipeline name
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/pipelineTriggersResult"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: pipelines Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
