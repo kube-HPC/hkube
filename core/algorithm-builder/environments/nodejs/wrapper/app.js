@@ -3,9 +3,7 @@ const NodejsWrapper = require('@hkube/nodejs-wrapper');
 const init = async () => {
     try {
         _handleErrors();
-        const config=NodejsWrapper.config;
-        const algorithm=NodejsWrapper.requireAlgorithm(config.algorithm);
-        NodejsWrapper.run(algorithm);
+        NodejsWrapper.run();
     }
     catch (error) {
         _onInitFailed(error);
