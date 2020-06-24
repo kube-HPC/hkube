@@ -117,7 +117,7 @@ describe('Executions', () => {
             const options = {
                 uri: restPath,
                 body: {
-                    name: 'flow1'
+                    name: 'types-check'
                 }
             };
             const res1 = await request(options);
@@ -126,7 +126,7 @@ describe('Executions', () => {
                 method: 'GET'
             };
             const res2 = await request(optionsGET);
-            expect(res2.body.types).to.eql([pipelineTypes.STORED]);
+            expect(res2.body.types).to.eql([pipelineTypes.STORED, pipelineTypes.DEBUG, pipelineTypes.DEV_MODE]);
         });
         it('should succeed to execute and override flowInput', async () => {
             const options = {
