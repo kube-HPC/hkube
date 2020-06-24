@@ -349,17 +349,19 @@ const _checkUnscheduled = async (created, skipped, requests, algorithms, algorit
 
     const added = [];
     const removed = [];
+    const createdSet = new Set(created.map(x => x.algorithmName));
+    const requestSet = new Set(requests.map(x => x.algorithmName));
 
     Object.entries(algorithms).forEach(([k, v]) => {
-        const create = created.find(c => c.algorithmName === k);
-        const request = requests.find(r => r.algorithmName === k);
+        const create = createdSet.has(k);
+        const request = requestSet.has(k);
         if (create || !request || !algorithmTemplates[k]) {
             if (algorithms[k].eventId) {
                 removed.push({ algorithmName: k, eventId: algorithms[k].eventId });
             }
             delete algorithms[k];
         }
-        else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.warning.maxCapacity)) {
+        else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.warning.hasMaxCapacity)) {
             v.isNotified = true;
             added.push({ algorithmName: k, type: 'warning', ...v.warning });
         }
