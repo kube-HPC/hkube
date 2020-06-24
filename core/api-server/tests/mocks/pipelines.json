@@ -662,5 +662,15 @@
             "batchTolerance": 100,
             "progressVerbosityLevel": "debug"
         }
+    },
+    {
+        "name": "types-check",
+        "nodes": [
+            {
+                "nodeName": "types-check",
+                "algorithmName": "types-check",
+                "input": []
+            }
+        ]
     }
 ]
