@@ -1,8 +1,9 @@
+const graphlib = require('graphlib');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const stateManager = require('../state/state-manager');
 const executionService = require('./execution');
-const { ResourceNotFoundError, ResourceExistsError, } = require('../errors');
+const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require('../errors');
 
 class PipelineStore {
     async updatePipeline(options) {
@@ -63,6 +64,41 @@ class PipelineStore {
 
     async getPipelines() {
         return stateManager.pipelines.list();
+    }
+
+    async getPipelinesTriggersTree(options) {
+        const { name } = options;
+        const graph = new graphlib.Graph();
+        const pipelines = await stateManager.pipelines.list({ name }, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
+        if (pipelines.length === 0) {
+            throw new ResourceNotFoundError('triggers tree', name);
+        }
+        pipelines.forEach(p => {
+            p.triggers.pipelines.forEach(pr => {
+                graph.setEdge(pr, p.name);
+            });
+        });
+        if (!graphlib.alg.isAcyclic(graph)) {
+            throw new InvalidDataError('the pipelines triggers is cyclic');
+        }
+        graph.nodes().forEach(n => graph.setNode(n, { name: n, children: [] }));
+        graph.sources().forEach(n => this._traverse(graph, n));
+        return graph.sources().map(n => graph.node(n));
+    }
+
+    _traverse(graph, nodeName) {
+        const successors = graph.successors(nodeName);
+        const predecessors = graph.predecessors(nodeName);
+        const node = graph.node(nodeName);
+
+        predecessors.forEach((p) => {
+            const parent = graph.node(p);
+            const hasChild = parent.children.find(n => n.name === node.name);
+            !hasChild && parent.children.push(node);
+        });
+        successors.forEach((s) => {
+            this._traverse(graph, s);
+        });
     }
 
     async insertPipeline(options) {

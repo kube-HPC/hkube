@@ -1,4 +1,3 @@
-
 const merge = require('lodash.merge');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
