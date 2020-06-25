@@ -13,8 +13,8 @@ const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
-
 const { Node, Batch } = NodeTypes;
+const validTaskStatuses = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
 let log;
 
 class TaskRunner extends EventEmitter {
@@ -423,7 +423,7 @@ class TaskRunner extends EventEmitter {
         try {
             const node = this._nodes.getNode(nodeName);
             // TODO: resolve this issue in a better way
-            if (node.status !== taskStatuses.CREATING && node.status !== taskStatuses.PRESCHEDULE) {
+            if (!validTaskStatuses.includes(node.status)) {
                 return;
             }
             if (!index && this._nodeRuns.has(nodeName)) {
