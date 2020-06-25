@@ -1,4 +1,3 @@
-/* eslint-disable */
 const express = require('express');
 const runner = require('../runner');
 
@@ -13,7 +12,7 @@ const routes = (options) => {
             const { jobId, nodeName } = req.query;
             const response = await runner.parse(jobId, nodeName);
             res.json(response);
-            next();
+            return next();
         }
         catch (error) {
             return next(error);
