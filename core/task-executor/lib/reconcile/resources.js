@@ -59,14 +59,12 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
     return matched;
 };
 
-const _createWarning = (unMatchedNodesBySelector, nodeSelector, nodesForSchedule) => {
+const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule) => {
     const messages = [];
-    const reason = 'FailedScheduling';
     if (unMatchedNodesBySelector > 0) {
-        const ns = Object.entries(nodeSelector).map(([k, v]) => `${k}=${v}`);
+        const ns = Object.entries(jobDetails.nodeSelector).map(([k, v]) => `${k}=${v}`);
         messages.push(`insufficient node selector (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
     }
-
     let hasMaxCapacity = true;
     const resourcesMap = Object.create(null);
     const maxCapacityMap = Object.create(null);
@@ -97,7 +95,15 @@ const _createWarning = (unMatchedNodesBySelector, nodeSelector, nodesForSchedule
         const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
         messages.push(`insufficient ${resources.join(', ')}`);
     }
-    return { reason, hasMaxCapacity, message: messages.join(', ') };
+    const warning = {
+        algorithmName: jobDetails.algorithmName,
+        type: 'warning',
+        reason: 'FailedScheduling',
+        hasMaxCapacity,
+        message: messages.join(', '),
+        timestamp: Date.now()
+    };
+    return warning;
 };
 
 const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
@@ -113,7 +119,7 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     const availableNode = nodesForSchedule.find(n => n.available);
     if (!availableNode) {
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
-        const warning = _createWarning(unMatchedNodesBySelector, jobDetails.nodeSelector, nodesForSchedule);
+        const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 
@@ -274,7 +280,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
                 scheduledRequests.push({ algorithmName: toCreate.algorithmName });
             }
             else {
-                skipped.push({ ...j.jobDetails, warning, timestamp: Date.now() });
+                skipped.push({ ...j.jobDetails, warning });
             }
             j.numberOfNewJobs -= 1;
             addedThisTime += 1;

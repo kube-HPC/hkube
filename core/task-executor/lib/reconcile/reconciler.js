@@ -340,10 +340,21 @@ const calcRatio = (totalRequests, capacity) => {
     return requestTypes;
 };
 
+/**
+ * This method check for algorithms that cannot be scheduled.
+ * We are using an algorithms map of alg-name --> warning.
+ * The logic is as follows:
+ * 1) iterate over the skipped algorithms and update the map.
+ * 2) iterate over the algorithms map and check if we have a
+ *    created, requested or deletion of an algorithm.
+ * 3) if we found such an algorithm, we delete it from map and from events.
+ * 4) if the algorithm should be notified (timestamp, hasMaxCapacity)
+ *    we add it to the events.
+ */
 const _checkUnscheduled = async (created, skipped, requests, algorithms, algorithmTemplates, options) => {
     skipped.forEach((s) => {
         if (!algorithms[s.algorithmName]) {
-            algorithms[s.algorithmName] = { warning: s.warning, timestamp: s.timestamp };
+            algorithms[s.algorithmName] = s.warning;
         }
     });
 
@@ -361,19 +372,18 @@ const _checkUnscheduled = async (created, skipped, requests, algorithms, algorit
             }
             delete algorithms[k];
         }
-        else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.warning.hasMaxCapacity)) {
+        else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.hasMaxCapacity)) {
             v.isNotified = true;
-            added.push({ algorithmName: k, type: 'warning', ...v.warning });
+            added.push(v);
         }
     });
     await Promise.all(removed.map(d => etcd.removeEvent(d)));
     const eventIDs = await Promise.all(added.map(d => etcd.addEvent(d)));
     added.forEach((a, i) => {
         const eventId = eventIDs[i];
-        if (algorithms[a.name]) {
-            algorithms[a.name].eventId = eventId;
-        }
+        algorithms[a.algorithmName].eventId = eventId;
     });
+    return { added, removed, algorithms };
 };
 
 
@@ -441,7 +451,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
-    await _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates, options);
+    const unScheduledResult = await _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates, options);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -507,7 +517,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             gpu: consts.GPU_RATIO_PRESSURE,
             mem: consts.MEMORY_RATIO_PRESSURE
         },
-        nodes: _getNodeStats(normResources)
+        nodes: _getNodeStats(normResources),
+        unScheduledResult
     });
     workerStats.stats.forEach((ws) => {
         const { algorithmName } = ws;
