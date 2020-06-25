@@ -176,12 +176,18 @@ class Worker {
         });
 
         stateManager.on('disconnect', async (reason) => {
+            this._isConnected = false;
+            this._isBootstrapped = false;
             await this._algorithmDisconnect(reason);
         });
     }
 
     async _algorithmDisconnect(reason) {
-        if (this._debugMode || this._devMode) {
+        if (this._debugMode) {
+            stateManager.done({ error: { message: `algorithm has disconnected ${reason}` } });
+            return;
+        }
+        if (this._devMode) {
             return;
         }
         const type = jobConsumer.getAlgorithmType();
@@ -343,33 +349,34 @@ class Worker {
     }
 
     async handleExit(code, jobId) {
-        if (!this._inTerminationMode) {
-            this._inTerminationMode = true;
-            try {
-                log.info(`starting termination mode. Exiting with code ${code}`, { component });
-                await this._tryDeleteWorkerState();
-                await this._stopAllPipelinesAndExecutions({ jobId, reason: 'parent pipeline exit' });
+        if (this._debugMode || this._inTerminationMode) {
+            return;
+        }
+        this._inTerminationMode = true;
+        try {
+            log.info(`starting termination mode. Exiting with code ${code}`, { component });
+            await this._tryDeleteWorkerState();
+            await this._stopAllPipelinesAndExecutions({ jobId, reason: 'parent pipeline exit' });
 
-                this._tryToSendCommand({ command: messages.outgoing.exit });
-                const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
-                if (terminated) {
-                    log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
+            this._tryToSendCommand({ command: messages.outgoing.exit });
+            const terminated = await kubernetes.waitForTerminatedState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
+            if (terminated) {
+                log.info(`algorithm container terminated. Exiting with code ${code}`, { component });
+            }
+            else { // if not terminated, kill job
+                const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
+                if (jobName) {
+                    await kubernetes.deleteJob(jobName);
+                    log.info(`deleted job ${jobName}`, { component });
                 }
-                else { // if not terminated, kill job
-                    const jobName = await kubernetes.getJobForPod(this._options.kubernetes.pod_name);
-                    if (jobName) {
-                        await kubernetes.deleteJob(jobName);
-                        log.info(`deleted job ${jobName}`, { component });
-                    }
-                }
             }
-            catch (error) {
-                log.warning(`failed to handle exit: ${error}`, { component });
-            }
-            finally {
-                this._inTerminationMode = false;
-                process.exit(code);
-            }
+        }
+        catch (error) {
+            log.warning(`failed to handle exit: ${error}`, { component });
+        }
+        finally {
+            this._inTerminationMode = false;
+            process.exit(code);
         }
     }
 
@@ -412,6 +419,9 @@ class Worker {
     }
 
     _handleTimeout(state) {
+        if (this._debugMode) {
+            return;
+        }
         if (state === workerStates.ready) {
             this._clearInactiveTimeout();
             if (!jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
