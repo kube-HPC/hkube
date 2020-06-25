@@ -251,13 +251,15 @@ const nodeWithLabels = {
     },
     status: {
         capacity: {
-            cpu: '8',
-            memory: '32Gi',
+            cpu: '10',
+            memory: '48Gi',
+            [gpuVendors.NVIDIA]: '8',
             pods: '110'
         },
         allocatable: {
-            cpu: '7800m',
-            memory: '32Gi',
+            cpu: '9800m',
+            memory: '48Gi',
+            [gpuVendors.NVIDIA]: '8',
             pods: '110'
         }
     }

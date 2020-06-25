@@ -9,7 +9,14 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
     let freeCpu;
     let freeGpu;
     let freeMemory;
+    let totalCpu;
+    let totalGpu;
+    let totalMemory;
+
     if (useResourcePressure) {
+        totalCpu = node.total.cpu * CPU_RATIO_PRESSURE;
+        totalGpu = node.total.gpu * GPU_RATIO_PRESSURE;
+        totalMemory = node.total.memory * MEMORY_RATIO_PRESSURE;
         freeCpu = node.free.cpu - (node.total.cpu * (1 - CPU_RATIO_PRESSURE));
         freeGpu = node.free.gpu - (node.total.gpu * (1 - GPU_RATIO_PRESSURE));
         freeMemory = node.free.memory - (node.total.memory * (1 - MEMORY_RATIO_PRESSURE));
@@ -24,9 +31,14 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
     const mem = requestedMemory < freeMemory;
     const gpu = lessWithTolerance(requestedGpu, freeGpu);
 
+    const cpuMaxCapacity = requestedCpu > totalCpu;
+    const memMaxCapacity = requestedMemory > totalMemory;
+    const gpuMaxCapacity = requestedGpu > 0 && lessWithTolerance(totalGpu, requestedGpu);
+
     return {
         node,
         available: cpu && mem && gpu,
+        maxCapacity: { cpu: cpuMaxCapacity, mem: memMaxCapacity, gpu: gpuMaxCapacity },
         details: { cpu, mem, gpu }
     };
 };
@@ -54,8 +66,22 @@ const _createWarning = (unMatchedNodesBySelector, nodeSelector, nodesForSchedule
         const ns = Object.entries(nodeSelector).map(([k, v]) => `${k}=${v}`);
         messages.push(`insufficient node selector (${unMatchedNodesBySelector}) '${ns.join(',')}'`);
     }
+
+    let hasMaxCapacity = true;
     const resourcesMap = Object.create(null);
+    const maxCapacityMap = Object.create(null);
+
     nodesForSchedule.forEach(n => {
+        const maxCapacity = Object.entries(n.maxCapacity).filter(([, v]) => v === true);
+        if (maxCapacity.length === 0) {
+            hasMaxCapacity = false;
+        }
+        maxCapacity.forEach(([k]) => {
+            if (!maxCapacityMap[k]) {
+                maxCapacityMap[k] = 0;
+            }
+            maxCapacityMap[k] += 1;
+        });
         Object.entries(n.details).filter(([, v]) => v === false).forEach(([k]) => {
             if (!resourcesMap[k]) {
                 resourcesMap[k] = 0;
@@ -63,11 +89,15 @@ const _createWarning = (unMatchedNodesBySelector, nodeSelector, nodesForSchedule
             resourcesMap[k] += 1;
         });
     });
-    if (Object.keys(resourcesMap).length > 0) {
+    if (hasMaxCapacity && Object.keys(maxCapacityMap).length > 0) {
+        const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v})`);
+        messages.push(`maximum capacity ${maxCapacity.join(', ')}`);
+    }
+    else if (Object.keys(resourcesMap).length > 0) {
         const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);
         messages.push(`insufficient ${resources.join(', ')}`);
     }
-    return { reason, message: messages.join(', ') };
+    return { reason, hasMaxCapacity, message: messages.join(', ') };
 };
 
 const shouldAddJob = (jobDetails, availableResources, totalAdded) => {

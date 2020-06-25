@@ -10,8 +10,8 @@
   "dependencies": {
     "@hkube/config": "^2.0.7",
     "@hkube/consts": "^1.0.21",
+    "@hkube/etcd": "^5.0.29",
     "@hkube/dag": "^2.0.7",
-    "@hkube/etcd": "^5.0.26",
     "@hkube/logger": "^1.0.26",
     "@hkube/metrics": "^1.0.39",
     "@hkube/parsers": "^2.0.7",

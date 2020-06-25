@@ -1,16 +1,20 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const Etcd = require('@hkube/etcd');
+const logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
 const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
-
+const component = require('../consts/componentNames').STATE_MANAGER;
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
+const EVENTS_INTERVAL = 5000;
+let log;
 
 class StateManager extends EventEmitter {
     constructor(option) {
         super();
         const options = option || {};
+        log = logger.GetLogFromContainer();
         this.setJobStatus = this.setJobStatus.bind(this);
         this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
         this._podName = options.kubernetes.podName;
@@ -33,10 +37,35 @@ class StateManager extends EventEmitter {
         this._etcd.drivers.on('change', (data) => {
             this.emit(data.status.command, data);
         });
-        this._etcd.events.watch();
-        this._etcd.events.on('change', (data) => {
-            this.emit('events', data);
-        });
+    }
+
+    subscribeToEvents() {
+        if (this._interval) {
+            return;
+        }
+        this._interval = setInterval(async () => {
+            if (this._working) {
+                return;
+            }
+            try {
+                this._working = true;
+                const events = await this._etcd.events.algorithms.list();
+                events.forEach((e) => {
+                    this.emit(`events-${e.type}`, e);
+                });
+            }
+            catch (e) {
+                log.throttle.error(e.message, { component });
+            }
+            finally {
+                this._working = false;
+            }
+        }, EVENTS_INTERVAL);
+    }
+
+    unsubscribeToEvents() {
+        clearInterval(this._interval);
+        this._interval = null;
     }
 
     _defaultDiscovery(discovery) {

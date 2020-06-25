@@ -100,7 +100,11 @@ class Etcd {
     }
 
     async addEvent(options) {
-        return this._etcd.events.set({ ...options, source: this._serviceName });
+        return this._etcd.events.algorithms.set({ ...options, source: this._serviceName });
+    }
+
+    async removeEvent(options) {
+        return this._etcd.events.algorithms.delete(options);
     }
 
     async getDriversTemplate() {

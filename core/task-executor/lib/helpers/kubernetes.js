@@ -45,18 +45,6 @@ class KubernetesApi {
         return null;
     }
 
-    async deleteJob(jobName) {
-        log.info(`Deleting job ${jobName}`, { component });
-        try {
-            const res = await this._client.jobs.delete({ jobName });
-            return res;
-        }
-        catch (error) {
-            log.error(`unable to delete job ${jobName}. error: ${error.message}`, { component }, error);
-        }
-        return null;
-    }
-
     async getWorkerJobs() {
         const jobsRaw = await this._client.jobs.get({ labelSelector: `type=${CONTAINERS.WORKER},group=hkube` });
         return jobsRaw;
@@ -135,7 +123,7 @@ class KubernetesApi {
         if (nodesConfigMap && nodesConfigMap.body.data['nodes.json']) {
             nodes = JSON.parse(nodesConfigMap.body.data['nodes.json']);
         }
-        return { pods, nodes: {body: nodes} };
+        return { pods, nodes: { body: nodes } };
     }
 
     async getResourcesPerNode() {
