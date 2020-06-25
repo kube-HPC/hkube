@@ -8,28 +8,26 @@
   "license": "MIT",
   "dependencies": {
     "@hkube/config": "^2.0.7",
-    "@hkube/dag": "^2.0.0",
-    "@hkube/etcd": "^5.0.21",
-    "@hkube/logger": "^1.0.25",
-    "@hkube/parsers": "^2.0.0",
+    "@hkube/dag": "^2.0.8",
+    "@hkube/etcd": "^5.0.29",
+    "@hkube/logger": "^1.0.26",
+    "@hkube/parsers": "^2.0.7",
     "@hkube/rest-server": "^1.0.12",
     "express": "^4.17.1",
-    "graphlib": "^2.1.8",
-    "lodash.clonedeep": "^4.5.0",
-    "lodash.clonedeepwith": "^4.5.0"
+    "lodash.clonedeep": "^4.5.0"
   },
   "devDependencies": {
     "body-parser": "^1.19.0",
     "chai": "^4.2.0",
     "clone": "^2.1.2",
-    "coveralls": "^3.0.11",
+    "coveralls": "^3.1.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-chai-friendly": "^0.5.0",
     "eslint-plugin-import": "^2.20.2",
-    "mocha": "^7.1.1",
-    "nyc": "^15.0.1",
-    "sinon": "^9.0.1"
+    "mocha": "^8.0.1",
+    "nyc": "^15.1.0",
+    "sinon": "^9.0.2"
   },
   "scripts": {
     "lint": "./node_modules/eslint/bin/eslint.js .",

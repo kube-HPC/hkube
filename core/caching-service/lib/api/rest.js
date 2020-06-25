@@ -32,5 +32,4 @@ class Rest {
     }
 }
 
-
 module.exports = new Rest();

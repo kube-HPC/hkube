@@ -1,4 +1,3 @@
-
 const cloneDeep = require('lodash.clonedeep');
 const { Persistency } = require('@hkube/dag');
 const log = require('@hkube/logger').GetLogFromContainer();
