@@ -68,5 +68,17 @@
             "debug": false,
             "pending": false
         }
+    },
+    {
+        "name": "types-check",
+        "algorithmImage": "hkube/algorithm-example",
+        "cpu": 7.1,
+        "mem": "1.2Gi",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": true,
+            "pending": false,
+            "devMode": true
+        }
     }
 ]

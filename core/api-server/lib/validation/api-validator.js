@@ -170,13 +170,17 @@ class ApiValidator {
     }
 
     async validateAlgorithmExists(pipeline) {
-        const result = await stateManager.algorithms.store.list({ limit: 1000 });
-        const algorithms = new Set(result.map(x => x.name));
+        const algorithms = new Map();
+        const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
+        const algorithmsMap = new Map(algorithmList.map((a) => [a.name, a]));
         pipeline.nodes.forEach((node) => {
-            if (!algorithms.has(node.algorithmName)) {
+            const algorithm = algorithmsMap.get(node.algorithmName);
+            if (!algorithm) {
                 throw new ResourceNotFoundError('algorithm', node.algorithmName);
             }
+            algorithms.set(node.algorithmName, algorithm);
         });
+        return algorithms;
     }
 
     async validateExperimentExists(pipeline) {

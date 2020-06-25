@@ -34,7 +34,7 @@ class ExecutionService {
             throw new InvalidDataError(error.message);
         }
         const { jobId, flowInputMetadata, startTime, lastRunResult, types, ...restPipeline } = pipeline;
-        const newTypes = [...new Set([...types || [], pipelineTypes.NODE])];
+        const newTypes = this._mergeTypes(types, [pipelineTypes.NODE]);
         return this._run({ pipeline: restPipeline, options: { alreadyExecuted: true, validateNodes: false }, types: newTypes });
     }
 
@@ -63,8 +63,8 @@ class ExecutionService {
     }
 
     async _run(payload) {
-        let { jobId, pipeline } = payload;
-        const { types, rootJobId } = payload;
+        let { jobId, pipeline, types } = payload;
+        const { rootJobId } = payload;
         const { alreadyExecuted, validateNodes, parentSpan } = payload.options || {};
 
         validator.addPipelineDefaults(pipeline);
@@ -77,9 +77,11 @@ class ExecutionService {
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
             pipeline = await this._buildPipelineOfPipelines(pipeline);
-            await validator.validateAlgorithmExists(pipeline);
             await validator.validateExperimentExists(pipeline);
+            const algorithms = await validator.validateAlgorithmExists(pipeline);
             const maxExceeded = await validator.validateConcurrentPipelines(pipeline, jobId);
+            types = this._addTypesByAlgorithms(algorithms, types);
+
             if (pipeline.flowInput && !alreadyExecuted) {
                 const metadata = parser.replaceFlowInput(pipeline);
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
@@ -100,6 +102,27 @@ class ExecutionService {
             span.finish(error);
             throw error;
         }
+    }
+
+    _addTypesByAlgorithms(algorithms, types) {
+        const newTypes = new Set();
+        algorithms.forEach((v) => {
+            if (v.options.debug) {
+                newTypes.add(pipelineTypes.DEBUG);
+            }
+            if (v.options.devMode) {
+                newTypes.add(pipelineTypes.DEV_MODE);
+            }
+        });
+        return this._mergeTypes(types, [...newTypes]);
+    }
+
+    _mergeTypes(...types) {
+        let newTypes = [];
+        types.forEach(array => {
+            newTypes = [...newTypes, ...array || []];
+        });
+        return [...new Set([...newTypes])];
     }
 
     async _buildPipelineOfPipelines(pipeline) {
