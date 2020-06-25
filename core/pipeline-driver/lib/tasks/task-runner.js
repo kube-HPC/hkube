@@ -549,6 +549,7 @@ class TaskRunner extends EventEmitter {
         else {
             // remove taskId from node so the batch will generate new ids
             const { taskId, ...nodeBatch } = options.node;
+            const batchList = [];
             options.input.forEach((inp, ind) => {
                 const batch = new Batch({
                     ...nodeBatch,
@@ -557,10 +558,11 @@ class TaskRunner extends EventEmitter {
                     input: inp.input,
                     storage: inp.storage
                 });
-                this._nodes.addBatch(batch);
+                batchList.push(batch);
             });
+            this._nodes.addBatchList(nodeBatch.nodeName, batchList);
             this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
-            await this._createJob(options, options.node.batch);
+            await this._createJob(options, batchList);
         }
     }
 
