@@ -50,9 +50,12 @@ class StateAdapter extends EventEmitter {
             this.emit(`task-${data.status}`, data);
         });
         this._etcd.jobs.results.on('change', (result) => {
-            // send job-result-completed, job-result-failed or job-result-stopped accordingly
-            this.emit(`${EventMessages.JOB_RESULT}-${result.status}`, result);
+            this._onJobResult(result);
         });
+    }
+
+    _onJobResult(result) {
+        this.emit(`${EventMessages.JOB_RESULT}-${result.status}`, result);
     }
 
     async stopAlgorithmExecution(options) {
@@ -73,8 +76,18 @@ class StateAdapter extends EventEmitter {
         }
     }
 
-    watchJobResults(options) {
-        return this._etcd.jobs.results.watch(options);
+    /**
+     * This method watch for job result changes.
+     * In case the watch already has job result, we are emit an event
+     * on the next tick in order to simulate the regular watch event.
+     */
+    async watchJobResults(options) {
+        const result = await this._etcd.jobs.results.watch(options);
+        if (result) {
+            setImmediate(() => {
+                this._onJobResult(result);
+            });
+        }
     }
 
     async unWatchJobResults(options) {
