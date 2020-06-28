@@ -14,7 +14,8 @@ const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 const { Node, Batch } = NodeTypes;
-const validTaskStatuses = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
+const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
+const activeTaskStates = [taskStatuses.CREATING, taskStatuses.ACTIVE, taskStatuses.PRESCHEDULE];
 let log;
 
 class TaskRunner extends EventEmitter {
@@ -47,7 +48,7 @@ class TaskRunner extends EventEmitter {
         });
         this._stateManager.on(`job-${pipelineStatuses.STOPPED}`, (d) => this._onStop(d));
         this._stateManager.on(`job-${pipelineStatuses.PAUSED}`, (d) => this._onPause(d));
-        this._stateManager.on('task-*', (task) => this._handleTaskEvent(task));
+        this._stateManager.on('task-changed', (task) => this._handleTaskEvent(task));
         this._stateManager.on('events-warning', (event) => this._handleEvents(event));
     }
 
@@ -105,25 +106,25 @@ class TaskRunner extends EventEmitter {
     }
 
     _handleEvents(event) {
-        if (this._nodes && event.algorithmName) {
-            const nodes = this._nodes.getAllNodes().filter(n => n.algorithmName === event.algorithmName);
-            if (nodes.length === 0) {
-                return;
-            }
-            nodes.forEach(n => {
-                if (n.status !== event.reason) {
-                    n.status = event.reason;
-                    n.warnings = n.warnings || [];
-                    n.warnings.push(event.message);
-                    n.batch.forEach(b => {
-                        if (b.status !== event.reason) {
-                            b.status = event.reason;
-                        }
-                    });
+        if (!this._nodes) {
+            return;
+        }
+        const nodes = this._nodes.getAllNodes().filter(n => n.algorithmName === event.algorithmName && activeTaskStates.includes(n.status));
+        if (nodes.length === 0) {
+            return;
+        }
+        log.warning(`found event ${event.reason} for algorithm ${event.algorithmName}`);
+        nodes.forEach(n => {
+            n.status = event.reason;
+            n.warnings = n.warnings || [];
+            n.warnings.push(event.message);
+            n.batch.forEach(b => {
+                if (b.status !== event.reason) {
+                    b.status = event.reason;
                 }
             });
-            this._progressStatus({ status: DriverStates.ACTIVE });
-        }
+        });
+        this._progressStatus({ status: DriverStates.ACTIVE });
     }
 
     async start(job) {
@@ -231,10 +232,9 @@ class TaskRunner extends EventEmitter {
         let data;
         if (err) {
             error = err.message;
-            const activeStates = [taskStatuses.CREATING, taskStatuses.ACTIVE, taskStatuses.PRESCHEDULE];
             const nodes = this._nodes._getNodesAsFlat();
             nodes.forEach((n) => {
-                if (activeStates.includes(n.status)) {
+                if (activeTaskStates.includes(n.status)) {
                     n.status = pipelineStatuses.STOPPED;
                 }
             });
@@ -423,7 +423,8 @@ class TaskRunner extends EventEmitter {
         try {
             const node = this._nodes.getNode(nodeName);
             // TODO: resolve this issue in a better way
-            if (!validTaskStatuses.includes(node.status)) {
+            if (!shouldRunTaskStates.includes(node.status)) {
+                log.warning(`node ${nodeName} cannot run, status: ${node.status}`, { component });
                 return;
             }
             if (!index && this._nodeRuns.has(nodeName)) {

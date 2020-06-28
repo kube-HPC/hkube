@@ -360,29 +360,33 @@ const _checkUnscheduled = async (created, skipped, requests, algorithms, algorit
 
     const added = [];
     const removed = [];
-    const createdSet = new Set(created.map(x => x.algorithmName));
-    const requestSet = new Set(requests.map(x => x.algorithmName));
+    const algorithmsMap = Object.entries(algorithms);
 
-    Object.entries(algorithms).forEach(([k, v]) => {
-        const create = createdSet.has(k);
-        const request = requestSet.has(k);
-        if (create || !request || !algorithmTemplates[k]) {
-            if (algorithms[k].eventId) {
-                removed.push({ algorithmName: k, eventId: algorithms[k].eventId });
+    if (algorithmsMap.length > 0) {
+        const createdSet = new Set(created.map(x => x.algorithmName));
+        const requestSet = new Set(requests.map(x => x.algorithmName));
+
+        algorithmsMap.forEach(([k, v]) => {
+            const create = createdSet.has(k);
+            const request = requestSet.has(k);
+            if (create || !request || !algorithmTemplates[k]) {
+                if (v.eventId) {
+                    removed.push({ algorithmName: k, eventId: v.eventId });
+                }
+                delete algorithms[k];
             }
-            delete algorithms[k];
-        }
-        else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.hasMaxCapacity)) {
-            v.isNotified = true;
-            added.push(v);
-        }
-    });
-    await Promise.all(removed.map(d => etcd.removeEvent(d)));
-    const eventIDs = await Promise.all(added.map(d => etcd.addEvent(d)));
-    added.forEach((a, i) => {
-        const eventId = eventIDs[i];
-        algorithms[a.algorithmName].eventId = eventId;
-    });
+            else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.hasMaxCapacity)) {
+                v.isNotified = true;
+                added.push(v);
+            }
+        });
+        await Promise.all(removed.map(d => etcd.removeEvent(d)));
+        const eventIDs = await Promise.all(added.map(d => etcd.addEvent(d)));
+        added.forEach((a, i) => {
+            const eventId = eventIDs[i];
+            algorithms[a.algorithmName].eventId = eventId;
+        });
+    }
     return { added, removed, algorithms };
 };
 
