@@ -222,13 +222,8 @@ describe('AlgorithmExecutions', () => {
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
         expect(args).to.have.property('execId');
-        expect(args).to.have.property('jobId');
-        expect(args).to.have.property('status');
-        expect(args).to.have.property('taskId');
+        expect(args).to.have.property('response');
         expect(args.execId).equals(task.execId);
-        expect(args.jobId).equals(task.jobId);
-        expect(args.status).equals(task.status);
-        expect(args.taskId).equals(task.taskId);
     });
     it('should succeed to send failed status to algorithm', async function () {
         const jobData = {
@@ -263,13 +258,8 @@ describe('AlgorithmExecutions', () => {
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
         expect(args).to.have.property('execId');
-        expect(args).to.have.property('jobId');
-        expect(args).to.have.property('status');
-        expect(args).to.have.property('taskId');
+        expect(args).to.have.property('error');
         expect(args.execId).equals(task.execId);
-        expect(args.jobId).equals(task.jobId);
-        expect(args.status).equals(task.status);
-        expect(args.taskId).equals(task.taskId);
     });
     it('should succeed to send stalled status to algorithm', async function () {
         const jobData = {
@@ -304,13 +294,8 @@ describe('AlgorithmExecutions', () => {
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
         expect(args).to.have.property('execId');
-        expect(args).to.have.property('jobId');
-        expect(args).to.have.property('status');
-        expect(args).to.have.property('taskId');
+        expect(args).to.have.property('error');
         expect(args.execId).equals(task.execId);
-        expect(args.jobId).equals(task.jobId);
-        expect(args.status).equals(task.status);
-        expect(args.taskId).equals(task.taskId);
     });
     it('should succeed to send crashed status to algorithm', async function () {
         const jobData = {
@@ -346,13 +331,8 @@ describe('AlgorithmExecutions', () => {
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
         expect(args).to.have.property('execId');
-        expect(args).to.have.property('jobId');
-        expect(args).to.have.property('status');
-        expect(args).to.have.property('taskId');
+        expect(args).to.have.property('error');
         expect(args.execId).equals(task.execId);
-        expect(args.jobId).equals(task.jobId);
-        expect(args.status).equals(task.status);
-        expect(args.taskId).equals(task.taskId);
     });
     it('should handle stop all executions', async function () {
         const size = 5;

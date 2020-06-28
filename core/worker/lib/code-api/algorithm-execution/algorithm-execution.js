@@ -1,8 +1,6 @@
 const uuidv4 = require('uuid/v4');
 const Validator = require('ajv');
-const { consts } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
-const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const { Producer } = require('@hkube/producer-consumer');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
@@ -109,8 +107,9 @@ class AlgorithmExecution {
         if (task.taskId && !execution) {
             return;
         }
-        log.info(`sending error to algorithm, error: ${task.error}`, { component });
-        this._sendCompleteToAlgorithm({ ...task, command: messages.outgoing.execAlgorithmError });
+        const { error, execId } = task;
+        log.info(`sending error to algorithm, error: ${error}`, { component });
+        this._sendCompleteToAlgorithm({ execId, error, command: messages.outgoing.execAlgorithmError });
     }
 
     _sendCompleteToAlgorithm({ command, execId, error, response }) {
