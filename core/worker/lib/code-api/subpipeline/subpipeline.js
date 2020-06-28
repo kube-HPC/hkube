@@ -33,16 +33,16 @@ class SubPipelineHandler {
 
     _registerToEtcdEvents() {
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.COMPLETED}`, (result) => {
-            const subpipeline = this._getAndCleanAlgSubPipelineId(result);
-            this._handleSubPipelineCompleted(result, subpipeline);
+            const subPipeline = this._getAndCleanAlgSubPipelineId(result);
+            subPipeline && this._handleSubPipelineCompleted(result, subPipeline);
         });
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.STOPPED}`, (result) => {
-            const subpipeline = this._getAndCleanAlgSubPipelineId(result);
-            this._handleSubPipelineStopped(result, subpipeline);
+            const subPipeline = this._getAndCleanAlgSubPipelineId(result);
+            subPipeline && this._handleSubPipelineStopped(result, subPipeline);
         });
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.FAILED}`, (result) => {
             const subPipeline = this._getAndCleanAlgSubPipelineId(result);
-            if (!this._validateWorkingState('send subPipelineError')) {
+            if (!this._validateWorkingState('send subPipelineError') || !subPipeline) {
                 return;
             }
             const { subPipelineId } = subPipeline;
@@ -71,10 +71,11 @@ class SubPipelineHandler {
      */
     _getAndCleanAlgSubPipelineId(result) {
         const subPipeline = this._jobId2InternalIdMap.get(result.jobId);
-        log.info(`got subPipeline result, status=${result.status}, jobId: ${result.jobId}, alg subPipelineId: ${subPipeline.subPipelineId}`, { component });
         if (!subPipeline) {
             log.warning(`got result with unknown jobId: ${result.jobId}`, { component });
+            return null;
         }
+        log.info(`got subPipeline result, status=${result.status}, jobId: ${result.jobId}, alg subPipelineId: ${subPipeline.subPipelineId}`, { component });
         this._jobId2InternalIdMap.delete(result.jobId);
         this.unwatchJobResults(result.jobId);
         return subPipeline;
