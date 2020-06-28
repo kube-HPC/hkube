@@ -2,7 +2,8 @@ FROM maven
 LABEL maintainer="hkube.dev@gmail.com"
 ENV PACKAGES_REGISTRY_USER ${PACKAGES_REGISTRY_USER}
 ENV PACKAGES_TOKEN ${PACKAGES_TOKEN}
-COPY ./algorithm_unique_folder/src/main/resources/settings.xml /root/.m2/settings.xml
+COPY  ./dockerfile/cpy-settings ./algorithm_unique_folder/src/main/resources/settings.xml* /root/.m2/
+RUN ls /root/.m2/
 COPY ./jars/* /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./runJava.sh /hkube/algorithm-runner/
