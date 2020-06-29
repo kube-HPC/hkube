@@ -34,11 +34,15 @@ class SubPipelineHandler {
     _registerToEtcdEvents() {
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.COMPLETED}`, (result) => {
             const subPipeline = this._getAndCleanAlgSubPipelineId(result);
-            subPipeline && this._handleSubPipelineCompleted(result, subPipeline);
+            if (subPipeline) {
+                this._handleSubPipelineCompleted(result, subPipeline);
+            }
         });
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.STOPPED}`, (result) => {
             const subPipeline = this._getAndCleanAlgSubPipelineId(result);
-            subPipeline && this._handleSubPipelineStopped(result, subPipeline);
+            if (subPipeline) {
+                this._handleSubPipelineStopped(result, subPipeline);
+            }
         });
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.FAILED}`, (result) => {
             const subPipeline = this._getAndCleanAlgSubPipelineId(result);
