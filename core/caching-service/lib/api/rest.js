@@ -20,7 +20,7 @@ class Rest {
                 name: options.serviceName,
             };
             rest.on('error', (data) => {
-                log.error(`Error response, status=${data.status}`, { component });
+                log.error(`Error response, status=${data.status}, message=${data.error.message}`, { component }, data.error);
             });
             rest.start(this.opt).then((data) => {
                 log.info(data.message, { component });
