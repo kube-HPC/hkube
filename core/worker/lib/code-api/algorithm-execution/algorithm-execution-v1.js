@@ -11,9 +11,9 @@ class AlgorithmExecution {
 
     async getResultFromStorage(options) {
         let { result } = options;
-        const { resultAsRaw } = options;
-        if (resultAsRaw && result && result.storageInfo) {
-            result = await storageManager.get(result.storageInfo);
+        const { includeResult } = options;
+        if (includeResult && result && result.storageInfo) {
+            result = await storageManager.get({ ...result.storageInfo, encodeOptions: { customEncode: true } });
         }
         return result;
     }

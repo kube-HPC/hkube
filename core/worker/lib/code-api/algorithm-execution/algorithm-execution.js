@@ -1,8 +1,6 @@
 const uuidv4 = require('uuid/v4');
 const Validator = require('ajv');
-const { consts } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
-const storageManager = require('@hkube/storage-manager');
 const { tracer } = require('@hkube/metrics');
 const { Producer } = require('@hkube/producer-consumer');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
@@ -98,9 +96,10 @@ class AlgorithmExecution {
         if (!execution) {
             return;
         }
-        const response = await this._getStorage({ resultAsRaw: execution.resultAsRaw, result: execution.result });
+        const { includeResult, result, execId } = execution;
+        const response = await this._getStorage({ includeResult, result });
         log.debug('sending done to algorithm', { component });
-        this._sendCompleteToAlgorithm({ ...task, response, command: messages.outgoing.execAlgorithmDone });
+        this._sendCompleteToAlgorithm({ execId, response, command: messages.outgoing.execAlgorithmDone });
     }
 
     _sendErrorToAlgorithm(task) {
@@ -108,8 +107,9 @@ class AlgorithmExecution {
         if (task.taskId && !execution) {
             return;
         }
-        log.info(`sending error to algorithm, error: ${task.error}`, { component });
-        this._sendCompleteToAlgorithm({ ...task, command: messages.outgoing.execAlgorithmError });
+        const { error, execId } = task;
+        log.info(`sending error to algorithm, error: ${error}`, { component });
+        this._sendCompleteToAlgorithm({ execId, error, command: messages.outgoing.execAlgorithmError });
     }
 
     _sendCompleteToAlgorithm({ command, execId, error, response }) {
@@ -215,13 +215,13 @@ class AlgorithmExecution {
             const storage = {};
             const { jobId, nodeName } = jobData;
             const parentAlgName = jobData.algorithmName;
-            const { algorithmName, input, resultAsRaw } = data;
+            const { algorithmName, input, includeResult } = data;
             const algos = await stateAdapter.getExistingAlgorithms();
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }
             const taskId = this._createTaskID({ nodeName, algorithmName });
-            this._executions.set(taskId, { taskId, execId, resultAsRaw });
+            this._executions.set(taskId, { taskId, execId, includeResult });
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
             const task = { execId, taskId, input: newInput, storage };
             const job = this._createJobData({ nodeName, algorithmName, task, jobData });
@@ -301,16 +301,6 @@ class AlgorithmExecution {
             }
         };
         return jobOptions;
-    }
-
-    async _mapInputToStorage(data, storage, jobId) {
-        if (!this._isPrimitive(data)) {
-            const uuid = uuidv4();
-            const storageInfo = await storageManager.hkube.put({ jobId, taskId: uuid, data });
-            storage[uuid] = { storageInfo }; // eslint-disable-line
-            return `${consts.inputs.STORAGE}${uuid}`;
-        }
-        return data;
     }
 
     _createTaskID({ nodeName, algorithmName }) {

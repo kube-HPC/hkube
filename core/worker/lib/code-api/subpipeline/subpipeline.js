@@ -17,8 +17,7 @@ let log;
 class SubPipelineHandler {
     init() {
         log = Logger.GetLogFromContainer();
-
-        // subpipeline IDs mapping: jobId => internal alg subpipeline Id
+        // sub-pipeline IDs mapping: jobId => internal sub-pipeline
         this._jobId2InternalIdMap = new Map();
         this._stoppingSubpipelines = false;
         this._startSubPipelineSchema = validator.compile(startSubPipeline);
@@ -33,24 +32,24 @@ class SubPipelineHandler {
     }
 
     _registerToEtcdEvents() {
-        // handle subpipeline job completed
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.COMPLETED}`, (result) => {
-            const subpipelineId = this._getAndCleanAlgSubPipelineId(result);
-            this._handleSubPipelineCompleted(result, subpipelineId);
+            const subPipeline = this._getAndCleanAlgSubPipelineId(result);
+            if (subPipeline) {
+                this._handleSubPipelineCompleted(result, subPipeline);
+            }
         });
-
-        // handle subpipeline job stopped
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.STOPPED}`, (result) => {
-            const subpipelineId = this._getAndCleanAlgSubPipelineId(result);
-            this._handleSubPipelineStopped(result, subpipelineId);
+            const subPipeline = this._getAndCleanAlgSubPipelineId(result);
+            if (subPipeline) {
+                this._handleSubPipelineStopped(result, subPipeline);
+            }
         });
-
-        // handle subpipeline job failed
         stateAdapter.on(`${EventMessages.JOB_RESULT}-${pipelineStatuses.FAILED}`, (result) => {
-            const subPipelineId = this._getAndCleanAlgSubPipelineId(result);
-            if (!this._validateWorkingState('send subPipelineError')) {
+            const subPipeline = this._getAndCleanAlgSubPipelineId(result);
+            if (!this._validateWorkingState('send subPipelineError') || !subPipeline) {
                 return;
             }
+            const { subPipelineId } = subPipeline;
             const err = (result.error && result.error.message) || result.error || 'subpipeline job failed';
             this._finishSubPipelineSpan(subPipelineId, pipelineStatuses.FAILED, err);
             this._handleJobError(err, subPipelineId);
@@ -58,17 +57,12 @@ class SubPipelineHandler {
     }
 
     _registerToAlgEvents() {
-        // handle 'startRawSubPipeline' from algorithm
         algoRunnerCommunication.on(messages.incomming.startRawSubPipeline, (message) => {
             this._handleStartSubPipeline(message, ApiServerPostTypes.SubPipeline.RAW);
         });
-
-        // handle 'startStoredSubPipeline' from algorithm
         algoRunnerCommunication.on(messages.incomming.startStoredSubPipeline, (message) => {
             this._handleStartSubPipeline(message, ApiServerPostTypes.SubPipeline.STORED);
         });
-
-        // handle 'stopSubPipeline' from algorithm
         algoRunnerCommunication.on(messages.incomming.stopSubPipeline, (message) => {
             this._handleStopSubPipeline(message);
         });
@@ -80,17 +74,15 @@ class SubPipelineHandler {
      * @returns {string} alg subPipelineId (correlates to result.jobId)
      */
     _getAndCleanAlgSubPipelineId(result) {
-        // clean subPipeline Id mapping
-        const subPipelineId = this._jobId2InternalIdMap.get(result.jobId);
-        log.info(`got subPipeline result, status=${result.status}, jobId: ${result.jobId}, alg subPipelineId: ${subPipelineId}`, { component });
-        if (!subPipelineId) {
+        const subPipeline = this._jobId2InternalIdMap.get(result.jobId);
+        if (!subPipeline) {
             log.warning(`got result with unknown jobId: ${result.jobId}`, { component });
+            return null;
         }
+        log.info(`got subPipeline result, status=${result.status}, jobId: ${result.jobId}, alg subPipelineId: ${subPipeline.subPipelineId}`, { component });
         this._jobId2InternalIdMap.delete(result.jobId);
-        // unwatch subPipeline job results
         this.unwatchJobResults(result.jobId);
-
-        return subPipelineId;
+        return subPipeline;
     }
 
     /**
@@ -125,7 +117,8 @@ class SubPipelineHandler {
      * @param {object} result
      * @param {string} subPipelineId
      */
-    async _handleSubPipelineCompleted(result, subPipelineId) {
+    async _handleSubPipelineCompleted(result, subPipeline) {
+        const { subPipelineId, includeResult } = subPipeline;
         log.info(`SubPipeline job completed, alg subPipelineId: ${subPipelineId}`, { component });
         this._finishSubPipelineSpan(subPipelineId, result.status);
         if (!this._validateWorkingState('send subPipelineDone')) {
@@ -133,11 +126,11 @@ class SubPipelineHandler {
         }
         // get subpipeline results from storage
         try {
-            const res = await this._getStorage(result.data);
+            const response = await this._getStorage({ result: result.data, includeResult });
             algoRunnerCommunication.send({
                 command: messages.outgoing.subPipelineDone,
                 data: {
-                    response: res,
+                    response,
                     subPipelineId
                 }
             });
@@ -152,7 +145,8 @@ class SubPipelineHandler {
      * @param {object} result
      * @param {string} subPipelineId
      */
-    _handleSubPipelineStopped(result, subPipelineId) {
+    _handleSubPipelineStopped(result, subPipeline) {
+        const { subPipelineId } = subPipeline;
         log.warning(`SubPipeline job stopped - send subPipelineStopped to alg, alg subPipelineId: ${subPipelineId} `, { component });
         this._finishSubPipelineSpan(subPipelineId, result.status, result.reason);
         if (!this._validateWorkingState('send subPipelineStopped')) {
@@ -279,19 +273,16 @@ class SubPipelineHandler {
                 throw new Error(validator.errorsText(this._startSubPipelineSchema.errors));
             }
             subPipelineId = data.subPipelineId; // eslint-disable-line
-            const subPipeline = data.subPipeline; // eslint-disable-line
+            const { subPipeline, includeResult } = data;
             log.info(`got startSubPipeline ${subPipeline.name} from algorithm`, { component });
-            // start subPipeline span
             this._startSubPipelineSpan(subPipeline.name, subPipelineId);
 
-            // send subPipelineStarted to alg
             algoRunnerCommunication.send({
                 command: messages.outgoing.subPipelineStarted,
                 data: {
                     subPipelineId
                 }
             });
-
 
             // post subPipeline
             const { jobId, taskId } = jobConsumer;
@@ -300,29 +291,11 @@ class SubPipelineHandler {
             const response = await apiServerClient.postSubPipeline(subPipelineToPost, subPipelineType, subPipelineId);
             if (response) {
                 const subPipelineJobId = response.jobId;
-                // map jobId/subPipelineId
-                this._jobId2InternalIdMap.set(subPipelineJobId, subPipelineId);
+                this._jobId2InternalIdMap.set(subPipelineJobId, { subPipelineId, includeResult });
                 log.info(`SubPipeline posted, alg subPipelineId=${subPipelineId}, jobId=${subPipelineJobId}`, { component });
                 const sbInvokedTrace = tracer.topSpan(subPipelineId);
                 sbInvokedTrace.addTag({ subPipelineJobId });
-
-                // watch results
-                const result = await stateAdapter.watchJobResults({ jobId: subPipelineJobId });
-                if (result) {
-                    log.info(`got immediate results, status=${result.status}, jobId: ${subPipelineJobId}`, { component });
-                    const algSubPipelineId = this._getAndCleanAlgSubPipelineId({ ...result, jobId: subPipelineJobId });
-                    if (result.status === pipelineStatuses.COMPLETED) {
-                        this._handleSubPipelineCompleted(result, algSubPipelineId);
-                    }
-                    else if (result.status === pipelineStatuses.STOPPED) {
-                        this._handleSubPipelineStopped(result, algSubPipelineId);
-                    }
-                    else {
-                        const err = (result.error || 'subpipeline job failed');
-                        this._finishSubPipelineSpan(subPipelineId, pipelineStatuses.FAILED, err);
-                        this._handleJobError(err, algSubPipelineId);
-                    }
-                }
+                await stateAdapter.watchJobResults({ jobId: subPipelineJobId });
             }
             else {
                 throw new Error('post subPipeline got no response');
@@ -364,7 +337,7 @@ class SubPipelineHandler {
         }
         this._stoppingSubpipelines = true;
         try {
-            await Promise.all([...this._jobId2InternalIdMap].map(subPipelineIdEntry => this._closeSubpipeline(subPipelineIdEntry, reason)));
+            await Promise.all([...this._jobId2InternalIdMap].map(s => this._closeSubpipeline(s, reason)));
         }
         catch (error) {
             log.warning(`failed to stop subPipeline: ${error}`, { component });
@@ -376,7 +349,8 @@ class SubPipelineHandler {
     }
 
     async _closeSubpipeline(subPipelineIdEntry, reason) {
-        const [subPipelineJobId, subPipelineId] = subPipelineIdEntry;
+        const [subPipelineJobId, subPipeline] = subPipelineIdEntry;
+        const { subPipelineId } = subPipeline;
         await this._stopSubPipeline(subPipelineJobId, reason);
         this._jobId2InternalIdMap.delete(subPipelineJobId);
         this._finishSubPipelineSpan(subPipelineId, pipelineStatuses.STOPPED, reason);
@@ -387,7 +361,7 @@ class SubPipelineHandler {
      * @param {*} algSubPipelineId
      */
     getSubPipelineJobId(algSubPipelineId) {
-        const jobId = ([...this._jobId2InternalIdMap].find(([, v]) => v === algSubPipelineId) || [])[0];
+        const jobId = ([...this._jobId2InternalIdMap].find(([, v]) => v.subPipelineId === algSubPipelineId) || [])[0];
         return jobId;
     }
 }
