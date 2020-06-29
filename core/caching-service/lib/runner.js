@@ -3,7 +3,7 @@ const { Persistency } = require('@hkube/dag');
 const log = require('@hkube/logger').GetLogFromContainer();
 const Etcd = require('@hkube/etcd');
 const { componentName } = require('./consts/index');
-const { splitInputToNodes } = require('./input-parser');
+const { splitInputToNodes, validateType } = require('./input-parser');
 const NodesMap = require('./create-graph');
 
 class Runner {
@@ -15,30 +15,22 @@ class Runner {
     }
 
     async parse(jobId, nodeName) {
-        try {
-            const pipeline = await this._getStoredExecution(jobId);
-            const { successors, predecessors } = this._createGraphAndFindRelevantSuccessorsAndPredecessors(pipeline, nodeName);
-            const flattenSuccessors = this._flattenSuccessors(successors, nodeName);
-            const flattenPredecessors = this._flattenPredecessors(predecessors, nodeName);
-            const subPipeline = this._createSubPipeline(flattenSuccessors, pipeline);
-            const metadataFromPredecessors = await this._collectMetaDataFromPredecessors(jobId, flattenPredecessors);
-            const mergedPipeline = this._mergeSubPipelineWithMetadata(subPipeline, flattenPredecessors, metadataFromPredecessors);
-            log.debug(`new pipeline sent for running: ${JSON.stringify(mergedPipeline)} `);
-            return mergedPipeline;
-        }
-        catch (error) {
-            log.error(`fail to parse ${jobId} pipeline for caching on nodeName ${nodeName}
-             errorMessage: ${error.message}, stack: ${error.stack}`, { component: componentName.RUNNER });
-            throw new Error(`part of the data is missing or incorrect error:${error.message} `);
-        }
+        const pipeline = await this._getStoredExecution(jobId);
+        validateType(pipeline.nodes);
+        const { successors, predecessors } = this._findRelations(pipeline, nodeName);
+        const subPipeline = this._createSubPipeline(successors, pipeline);
+        const predecessorsResult = await this._getResultFromPredecessors(jobId, predecessors);
+        const mergedPipeline = this._mergeSubPipelineWithMetadata(subPipeline, predecessors, predecessorsResult);
+        log.debug(`new pipeline sent for running: ${JSON.stringify(mergedPipeline)}`);
+        return mergedPipeline;
     }
 
     _mergeSubPipelineWithMetadata(subPipeline, flattenPredecessors, metadataFromSuccessors) {
         subPipeline.nodes.forEach((n) => {
-            const dependentNodes = splitInputToNodes(n.input, flattenPredecessors);
+            const nodes = splitInputToNodes(n.input, flattenPredecessors);
             // finish adding caching
             n.parentOutput = []; //eslint-disable-line
-            dependentNodes.forEach((dn) => {
+            nodes.forEach((dn) => {
                 const metadata = metadataFromSuccessors.find(ms => ms.id === dn.nodeName);
                 if (metadata) {
                     metadata.metadata.type = dn.type;
@@ -56,9 +48,9 @@ class Runner {
     }
 
     _createSubPipeline(flattenSuccessors, pipeline) {
-        const deepPipelineExecution = cloneDeep(pipeline);
-        deepPipelineExecution.nodes = pipeline.nodes.filter(n => flattenSuccessors.includes(n.nodeName));
-        return deepPipelineExecution;
+        const newPipeline = cloneDeep(pipeline);
+        newPipeline.nodes = pipeline.nodes.filter(n => flattenSuccessors.includes(n.nodeName));
+        return newPipeline;
     }
 
     _flattenSuccessors(parentSuccessors, nodeName) {
@@ -89,63 +81,49 @@ class Runner {
     }
 
     async _getStoredExecution(jobId) {
-        try {
-            return this._etcd.executions.stored.get({ jobId });
+        const pipeline = await this._etcd.executions.stored.get({ jobId });
+        if (!pipeline) {
+            throw new Error(`unable to find pipeline ${jobId}`);
         }
-        catch (error) {
-            log.error(`cant find execution for jobId ${jobId}`, { component: componentName.RUNNER });
-            throw new Error(`cant find execution for jobId ${jobId}`);
-        }
+        return pipeline;
     }
 
-    _createGraphAndFindRelevantSuccessorsAndPredecessors(pipeline, nodeName) {
+    _findRelations(pipeline, nodeName) {
         const builtGraph = new NodesMap(pipeline.nodes);
-        return {
-            successors: builtGraph.getAllSuccessors(nodeName),
-            predecessors: builtGraph.getAllPredecessors(nodeName)
-        };
+        const successorsMap = builtGraph.getAllSuccessors(nodeName);
+        const predecessorsMap = builtGraph.getAllPredecessors(nodeName);
+        const successors = this._flattenSuccessors(successorsMap, nodeName);
+        const predecessors = this._flattenPredecessors(predecessorsMap, nodeName);
+        return { successors, predecessors };
     }
 
-    async _collectMetaDataFromPredecessors(jobId, flattenPredecessors) {
-        let metadata = null;
-        try {
-            const jsonGraph = await this._graphPersistency.getGraph({ jobId });
-            const graph = JSON.parse(jsonGraph);
-            metadata = await Promise.all(flattenPredecessors.map(async p => ({
-                id: p,
-                metadata: await this._getMetaDataFromStorageAndCreateDescriptior(graph, p)
-            })));
-        }
-        catch (error) {
-            log.error(`error on getting metadata from custom storage ${error}`);
-        }
+    async _getResultFromPredecessors(jobId, flattenPredecessors) {
+        const jsonGraph = await this._graphPersistency.getGraph({ jobId });
+        const graph = JSON.parse(jsonGraph);
+        const metadata = await Promise.all(flattenPredecessors.map(async p => ({
+            id: p,
+            metadata: await this._getNodeResult(graph, p)
+        })));
         return metadata;
     }
 
-    async _getMetaDataFromStorageAndCreateDescriptior(graph, nodeName) {
-        try {
-            let result;
-            const node = graph.nodes.find(n => n.nodeName === nodeName);
+    async _getNodeResult(graph, nodeName) {
+        let result;
+        const node = graph.nodes.find(n => n.nodeName === nodeName);
 
-            if (node.batch && node.batch.length > 0) {
-                result = {
-                    node: nodeName,
-                    result: node.batch.map(b => b.output)
-                };
-            }
-            else {
-                result = {
-                    node: nodeName,
-                    result: node.output
-                };
-            }
-            return result;
+        if (node.batch && node.batch.length > 0) {
+            result = {
+                node: nodeName,
+                result: node.batch.map(b => b.output)
+            };
         }
-        catch (error) {
-            log.error(`fail to get metadata from custom resource ${error}`, { component: componentName.RUNNER });
-            // eslint-disable-next-line consistent-return
-            return null;
+        else {
+            result = {
+                node: nodeName,
+                result: node.output
+            };
         }
+        return result;
     }
 }
 
