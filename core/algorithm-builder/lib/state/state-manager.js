@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const component = require('../consts/components').ETCD;
+const { redactLines } = require('../utils/text');
 
 let log;
 
@@ -29,15 +30,20 @@ class StateManger extends EventEmitter {
     }
 
     async updateBuild(options) {
-        const { buildId } = options;
+        const results = options;
+        const { buildId } = results;
         if (!buildId) {
             return;
         }
         let ok = false;
         let count = 10;
+        if (results.result) {
+            results.result.data = redactLines(results.result.data);
+        }
+
         while (!ok && count > 0) {
             try {
-                await this._etcd.algorithms.builds.update(options); // eslint-disable-line
+                await this._etcd.algorithms.builds.update(results); // eslint-disable-line
                 ok = true;
             }
             catch (error) {
