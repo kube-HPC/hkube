@@ -170,11 +170,11 @@ class ApiValidator {
     }
 
     async validateAlgorithmResources(algorithm) {
-        const resources = await stateManager.discovery.get({ serviceName: 'task-executor' });
-        if (resources && resources.nodes) {
+        const resources = await stateManager.discovery.list({ serviceName: 'task-executor' });
+        if (resources && resources[0] && resources[0].nodes) {
             const { cpu, gpu } = algorithm;
             const mem = converter.getMemoryInMi(algorithm.mem);
-            const nodes = resources.nodes.map(n => this._findNodeForSchedule(n, { cpu, mem, gpu }));
+            const nodes = resources[0].nodes.map(n => this._findNodeForSchedule(n, { cpu, mem, gpu }));
             const node = nodes.find(n => n.available);
             if (!node) {
                 const error = this._createAlgorithmResourcesError(nodes);
