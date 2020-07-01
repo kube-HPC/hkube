@@ -188,6 +188,7 @@ class AlgorithmStore {
 
             newAlgorithm = { ...oldAlgorithm, ...payload };
             validator.addAlgorithmDefaults(newAlgorithm);
+            await validator.validateAlgorithmResources(newAlgorithm);
 
             if (payload.type === buildTypes.CODE && file.path) {
                 if (payload.algorithmImage) {

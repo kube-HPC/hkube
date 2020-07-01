@@ -169,6 +169,51 @@ class ApiValidator {
         this._validate(this._definitions.jobIdObject, pipeline, false);
     }
 
+    async validateAlgorithmResources(algorithm) {
+        const resources = await stateManager.discovery.get({ serviceName: 'task-executor' });
+        if (resources && resources.nodes) {
+            const { cpu, gpu } = algorithm;
+            const mem = converter.getMemoryInMi(algorithm.mem);
+            const nodes = resources.nodes.map(n => this._findNodeForSchedule(n, { cpu, mem, gpu }));
+            const node = nodes.find(n => n.available);
+            if (!node) {
+                const error = this._createAlgorithmResourcesError(nodes);
+                throw new InvalidDataError(error);
+            }
+        }
+    }
+
+    _createAlgorithmResourcesError(nodes) {
+        const maxCapacityMap = Object.create(null);
+
+        nodes.forEach(n => {
+            Object.entries(n.details)
+                .filter(([, v]) => v === false)
+                .forEach(([k]) => {
+                    if (!maxCapacityMap[k]) {
+                        maxCapacityMap[k] = 0;
+                    }
+                    maxCapacityMap[k] += 1;
+                });
+        });
+
+        const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v} nodes)`);
+        const error = `maximum capacity exceeded ${maxCapacity.join(', ')}`;
+        return error;
+    }
+
+    _findNodeForSchedule(node, { cpu, mem, gpu = 0 }) {
+        const cpuAvailable = cpu < node.total.cpu;
+        const memAvailable = mem < node.total.mem;
+        const gpuAvailable = gpu > 0 ? gpu < node.total.gpu : true;
+
+        return {
+            node,
+            available: cpuAvailable && memAvailable && gpuAvailable,
+            details: { cpu: cpuAvailable, mem: memAvailable, gpu: gpuAvailable }
+        };
+    }
+
     async validateAlgorithmExists(pipeline) {
         const algorithms = new Map();
         const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
