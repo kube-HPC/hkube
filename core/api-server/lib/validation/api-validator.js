@@ -203,9 +203,9 @@ class ApiValidator {
     }
 
     _findNodeForSchedule(node, { cpu, mem, gpu = 0 }) {
-        const cpuAvailable = cpu < node.total.cpu;
-        const memAvailable = mem < node.total.mem;
-        const gpuAvailable = gpu > 0 ? gpu < node.total.gpu : true;
+        const cpuAvailable = cpu <= node.total.cpu;
+        const memAvailable = mem <= node.total.mem;
+        const gpuAvailable = gpu <= node.total.gpu;
 
         return {
             node,
