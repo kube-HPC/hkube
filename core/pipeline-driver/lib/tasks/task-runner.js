@@ -109,20 +109,20 @@ class TaskRunner extends EventEmitter {
         if (!this._nodes) {
             return;
         }
-        const nodes = this._nodes.getAllNodes().filter(n => n.algorithmName === event.algorithmName && activeTaskStates.includes(n.status));
+        const nodes = this._nodes.getAllNodes().filter(n => n.algorithmName === event.algorithmName && n.status === taskStatuses.CREATING);
         if (nodes.length === 0) {
             return;
         }
+
         log.warning(`found event ${event.reason} for algorithm ${event.algorithmName}`);
         nodes.forEach(n => {
+            const batch = n.batch.filter(b => b.status === taskStatuses.CREATING);
+            batch.forEach(b => {
+                b.status = event.reason;
+            });
             n.status = event.reason;
             n.warnings = n.warnings || [];
             n.warnings.push(event.message);
-            n.batch.forEach(b => {
-                if (b.status !== event.reason) {
-                    b.status = event.reason;
-                }
-            });
         });
         this._progressStatus({ status: DriverStates.ACTIVE });
     }
