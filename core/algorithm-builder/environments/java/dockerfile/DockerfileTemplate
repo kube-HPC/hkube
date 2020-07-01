@@ -7,7 +7,7 @@ COPY ./jars/* /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./runJava.sh /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
-RUN mvn package -DremoteRepositories=${packagesRegistry}
+RUN mvn -B package -DremoteRepositories=${packagesRegistry}
 FROM ${baseImage}
 RUN mkdir -p /hkube/algorithm-runner
 COPY --from=0 /hkube/algorithm-runner/ /hkube/algorithm-runner
