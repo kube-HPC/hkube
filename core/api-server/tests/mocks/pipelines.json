@@ -517,31 +517,8 @@
                 "input": [
                     "@flowInput"
                 ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
             }
-        ],
-        "flowInput": {
-            "files": {
-                "link": "links-1"
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
+        ]
     },
     {
         "name": "trigger-tree-2",
@@ -552,35 +529,12 @@
                 "input": [
                     "@flowInput"
                 ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
             }
         ],
-        "flowInput": {
-            "files": {
-                "link": "links-1"
-            }
-        },
         "triggers": {
             "pipelines": [
                 "trigger-tree-1"
             ]
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
         }
     },
     {
@@ -592,35 +546,12 @@
                 "input": [
                     "@flowInput"
                 ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
             }
         ],
-        "flowInput": {
-            "files": {
-                "link": "links-1"
-            }
-        },
         "triggers": {
             "pipelines": [
                 "trigger-tree-2"
             ]
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
         }
     },
     {
@@ -632,35 +563,12 @@
                 "input": [
                     "@flowInput"
                 ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
             }
         ],
-        "flowInput": {
-            "files": {
-                "link": "links-1"
-            }
-        },
         "triggers": {
             "pipelines": [
                 "trigger-tree-3"
             ]
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
         }
     },
     {
