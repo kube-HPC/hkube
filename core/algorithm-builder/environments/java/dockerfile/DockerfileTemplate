@@ -6,6 +6,9 @@ COPY  ./dockerfile/cpy-settings ./algorithm_unique_folder/src/main/resources/set
 COPY ./jars/* /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./runJava.sh /hkube/algorithm-runner/
+WORKDIR /hkube/algorithm-runner
+RUN mvn org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  -Dfile=./interfaces.jar -DgroupId=io.hkube -DartifactId=interfaces -Dversion=${javaWrapperVersion} -Dpackaging=jar
+RUN mvn -o org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  -Dfile=./java-algo-parent.xml -DgroupId=io.hkube -DartifactId=java-algo-parent -Dversion=${javaWrapperVersion} -Dpackaging=pom
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
 RUN mvn -B package -DremoteRepositories=${packagesRegistry}
 FROM ${baseImage}
