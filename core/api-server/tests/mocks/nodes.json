@@ -1,0 +1,36 @@
+{
+    "nodes": [
+        {
+            "name": "node1",
+            "total": {
+                "cpu": 15,
+                "gpu": 0,
+                "mem": 40805
+            }
+        },
+        {
+            "name": "node2",
+            "total": {
+                "cpu": 16,
+                "gpu": 1,
+                "mem": 50805
+            }
+        },
+        {
+            "name": "node3",
+            "total": {
+                "cpu": 17,
+                "gpu": 2,
+                "mem": 60805
+            }
+        },
+        {
+            "name": "node4",
+            "total": {
+                "cpu": 18,
+                "gpu": 3,
+                "mem": 70805
+            }
+        }
+    ]
+}

@@ -8,6 +8,7 @@ const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { MESSAGES } = require('../lib/consts/builds');
 const { algorithms } = require('./mocks');
+const nodes = require('./mocks/nodes.json');
 const { request, delay, defaultProps } = require('./utils');
 const commit = require('./mocks/github-commit.json');
 let restUrl, restPath, applyPath;
@@ -481,11 +482,15 @@ describe('Store/Algorithms', () => {
             };
             const response = await request(options);
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
-            expect(response.body).to.deep.equal(merge({},defaultProps, body));
+            expect(response.body).to.deep.equal(merge({}, defaultProps, body));
         });
     });
     describe('/store/algorithms/apply POST', () => {
         describe('Validation', () => {
+            before(async () => {
+                stateManager.discovery._client.leaser._lease = null;
+                await stateManager.discovery.register({ serviceName: 'task-executor', data: nodes });
+            });
             it('should throw validation error of required property name', async () => {
                 const options = {
                     uri: applyPath,
@@ -670,6 +675,51 @@ describe('Store/Algorithms', () => {
                 expect(res2.body).to.have.property('error');
                 expect(res2.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res2.body.error.message).to.contain(`algorithm type cannot be changed from "${body1.type}" to "${body2.type}"`);
+            });
+            it('should throw validation error of maximum cpu capacity exceeded', async () => {
+                const body = {
+                    name: uuid(),
+                    cpu: 20,
+                    mem: "2Gi",
+                    gpu: 0
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const res = await request(options);
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes)`);
+            });
+            it('should throw validation error of maximum mem capacity exceeded', async () => {
+                const body = {
+                    name: uuid(),
+                    cpu: 1,
+                    mem: "80Gi",
+                    gpu: 0
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const res = await request(options);
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded mem (4 nodes)`);
+            });
+            it('should throw validation error of maximum capacity exceeded all', async () => {
+                const body = {
+                    name: uuid(),
+                    cpu: 50,
+                    mem: "80Gi",
+                    gpu: 15
+                }
+                const options = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body) }
+                };
+                const res = await request(options);
+                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
             });
         });
         describe('Github', () => {
