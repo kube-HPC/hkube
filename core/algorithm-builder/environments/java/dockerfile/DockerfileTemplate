@@ -12,7 +12,7 @@ RUN mvn -o org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
 RUN mvn -B package -DremoteRepositories=${packagesRegistry}
 FROM ${baseImage}
-RUN mkdir -p /hkube/algorithm-runner
+RUN mkdir -p  /hkube/algorithm-runner
 COPY --from=0 /hkube/algorithm-runner/ /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 RUN mkdir -p /hkube-logs
