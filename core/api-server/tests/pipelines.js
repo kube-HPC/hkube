@@ -176,13 +176,30 @@ describe('Pipelines', () => {
         before(() => {
             restPath = `${restUrl}/pipelines/triggers/tree`;
         });
-        it('should succeed to get pipelines triggers tree', async () => {
+        it('should throw triggers tree trigger-tree Not Found', async () => {
             const options = {
                 uri: `${restPath}?name=trigger-tree`,
                 method: 'GET'
             };
             const response = await request(options);
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.message).to.equal('triggers tree trigger-tree Not Found');
+        });
+        it('should succeed to get pipelines triggers tree by name', async () => {
+            const options = {
+                uri: `${restPath}?name=trigger-tree-1`,
+                method: 'GET'
+            };
+            const response = await request(options);
             expect(response.body).to.deep.equal(pipelinesTriggers);
+        });
+        it('should succeed to get partial pipelines triggers tree', async () => {
+            const options = {
+                uri: `${restPath}?name=trigger-tree-2`,
+                method: 'GET'
+            };
+            const response = await request(options);
+            expect(response.body).to.deep.equal(pipelinesTriggers[0].children);
         });
     });
 });

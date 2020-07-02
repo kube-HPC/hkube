@@ -69,9 +69,9 @@ class PipelineStore {
     async getPipelinesTriggersTree(options) {
         const { name } = options;
         const graph = new graphlib.Graph();
-        const pipelines = await stateManager.pipelines.list({ name }, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
+        const pipelines = await stateManager.pipelines.list(null, (p) => p.triggers && p.triggers.pipelines && p.triggers.pipelines.length);
         if (pipelines.length === 0) {
-            throw new ResourceNotFoundError('triggers tree', name);
+            throw new InvalidDataError('unable to find any pipeline with triggers');
         }
         pipelines.forEach(p => {
             p.triggers.pipelines.forEach(pr => {
@@ -83,6 +83,14 @@ class PipelineStore {
         }
         graph.nodes().forEach(n => graph.setNode(n, { name: n, children: [] }));
         graph.sources().forEach(n => this._traverse(graph, n));
+
+        if (name) {
+            const node = graph.nodes().find(n => n === name);
+            if (!node) {
+                throw new ResourceNotFoundError('triggers tree', name);
+            }
+            return [graph.node(node)];
+        }
         return graph.sources().map(n => graph.node(n));
     }
 
