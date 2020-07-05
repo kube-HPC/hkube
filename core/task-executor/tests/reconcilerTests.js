@@ -741,9 +741,10 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const events = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
-            expect(events[0].reason).to.eql('FailedScheduling');
-            expect(events[0].message).to.eql('insufficient cpu (4)');
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('insufficient cpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to memory', async () => {
@@ -765,9 +766,10 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const events = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
-            expect(events[0].reason).to.eql('FailedScheduling');
-            expect(events[0].message).to.eql('insufficient mem (4)');
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('insufficient mem (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to gpu', async () => {
@@ -789,9 +791,10 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const events = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
-            expect(events[0].reason).to.eql('FailedScheduling');
-            expect(events[0].message).to.eql('insufficient gpu (4)');
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('insufficient gpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length - 1, paused: 0, created: 0, skipped: data.length - 1, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to max limit cpu', async () => {
@@ -807,9 +810,10 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const events = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
-            expect(events[0].reason).to.eql('FailedScheduling');
-            expect(events[0].message).to.eql('maximum capacity cpu (4)');
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('maximum capacity cpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to max limit memory', async () => {
@@ -825,9 +829,10 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const events = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
-            expect(events[0].reason).to.eql('FailedScheduling');
-            expect(events[0].message).to.eql('maximum capacity mem (4)');
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('maximum capacity mem (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to max limit gpu', async () => {
@@ -843,9 +848,10 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const events = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
-            expect(events[0].reason).to.eql('FailedScheduling');
-            expect(events[0].message).to.eql('maximum capacity gpu (4)');
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('maximum capacity gpu (4)');
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to node selector', async () => {
@@ -861,9 +867,10 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const events = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
-            expect(events[0].reason).to.eql('FailedScheduling');
-            expect(events[0].message).to.eql(`insufficient node selector (4) 'type=cpu-extreme'`);
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql(`insufficient node selector (4) 'type=cpu-extreme'`);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm that cannot be schedule due to all params', async () => {
@@ -879,9 +886,10 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: algorithm },
                 algorithmRequests: [{ data }]
             });
-            const events = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
-            expect(events[0].reason).to.eql('FailedScheduling');
-            expect(events[0].message).to.eql(`insufficient node selector (3) 'type=gpu-extreme,max=bound', maximum capacity cpu (1), mem (1), gpu (1)`);
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql(`insufficient node selector (3) 'type=gpu-extreme,max=bound', maximum capacity cpu (1), mem (1), gpu (1)`);
             expect(res).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
         });
         it('should update algorithm unschedule and then succeed to schedule', async () => {
@@ -902,10 +910,11 @@ describe('reconciler', () => {
                 algorithmTemplates: { [algorithm.name]: { ...algorithm, cpu: 1 } }
             };
             const res1 = await reconciler.reconcile(reconcile1);
-            const events1 = await etcd._etcd.events.algorithms.list({ algorithmName: algorithm.name });
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
             const res2 = await reconciler.reconcile(reconcile2);
-            expect(events1[0].reason).to.eql('FailedScheduling');
-            expect(events1[0].message).to.eql('maximum capacity cpu (4)');
+            expect(algorithms[algorithm.name].reason).to.eql('FailedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql('maximum capacity cpu (4)');
             expect(res1).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: 0, skipped: data.length, resumed: 0 } });
             expect(res2).to.eql({ [algorithm.name]: { idle: 0, required: data.length, paused: 0, created: data.length, skipped: 0, resumed: 0 } });
         });

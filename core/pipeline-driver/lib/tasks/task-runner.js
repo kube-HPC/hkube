@@ -32,6 +32,7 @@ class TaskRunner extends EventEmitter {
         this._error = null;
         this.pipeline = null;
         this._paused = false;
+        this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
         this._init(options);
     }
 
@@ -109,14 +110,14 @@ class TaskRunner extends EventEmitter {
         if (!this._nodes) {
             return;
         }
-        const nodes = this._nodes.getAllNodes().filter(n => n.algorithmName === event.algorithmName && n.status === taskStatuses.CREATING);
+        const nodes = this._nodes.getAllNodes().filter(n => this._filterTasksByEvent(n, event));
         if (nodes.length === 0) {
             return;
         }
 
         log.warning(`found event ${event.reason} for algorithm ${event.algorithmName}`);
         nodes.forEach(n => {
-            const batch = n.batch.filter(b => b.status === taskStatuses.CREATING);
+            const batch = n.batch.filter(b => this._filterTasksByEvent(b, event));
             batch.forEach(b => {
                 b.status = event.reason;
             });
@@ -125,6 +126,12 @@ class TaskRunner extends EventEmitter {
             n.warnings.push(event.message);
         });
         this._progressStatus({ status: DriverStates.ACTIVE });
+    }
+
+    _filterTasksByEvent(task, event) {
+        return task.algorithmName === event.algorithmName
+            && task.status === taskStatuses.CREATING
+            && (Date.now() - event.timestamp > this._schedulingWarningTimeoutMs || event.hasMaxCapacity);
     }
 
     async start(job) {
@@ -222,7 +229,7 @@ class TaskRunner extends EventEmitter {
             this._runEntryNodes();
         }
         await graphStore.start(job.data.jobId, this._nodes);
-        this._stateManager.subscribeToEvents();
+        this._stateManager.checkUnScheduledAlgorithms();
         return this.pipeline;
     }
 
@@ -402,7 +409,7 @@ class TaskRunner extends EventEmitter {
 
     async _cleanJob(error) {
         await graphStore.stop();
-        this._stateManager.unsubscribeToEvents();
+        this._stateManager.unCheckUnScheduledAlgorithms();
         this._nodes = null;
         this._job && this._job.done(error);
         this._job = null;

@@ -7,7 +7,6 @@ const storageManager = require('@hkube/storage-manager');
 const DriverStates = require('./DriverStates');
 const component = require('../consts/componentNames').STATE_MANAGER;
 const CompletedState = [DriverStates.COMPLETED, DriverStates.FAILED, DriverStates.STOPPED, DriverStates.PAUSED];
-const EVENTS_INTERVAL = 5000;
 let log;
 
 class StateManager extends EventEmitter {
@@ -22,6 +21,7 @@ class StateManager extends EventEmitter {
         this._driverId = this._etcd.discovery._instanceId;
         this._etcd.discovery.register({ data: this._defaultDiscovery() });
         this._discoveryMethod = options.discoveryMethod || function noop() { };
+        this._unScheduledAlgorithmsInterval = options.unScheduledAlgorithms.interval;
         this._subscribe();
         this._watchDrivers();
     }
@@ -39,7 +39,7 @@ class StateManager extends EventEmitter {
         });
     }
 
-    subscribeToEvents() {
+    checkUnScheduledAlgorithms() {
         if (this._interval) {
             return;
         }
@@ -49,10 +49,13 @@ class StateManager extends EventEmitter {
             }
             try {
                 this._working = true;
-                const events = await this._etcd.events.algorithms.list();
-                events.forEach((e) => {
-                    this.emit(`events-${e.type}`, e);
-                });
+                const resources = await this._etcd.discovery.list({ serviceName: 'task-executor' });
+                if (resources && resources[0] && resources[0].unScheduledAlgorithms) {
+                    const algorithms = resources[0].unScheduledAlgorithms;
+                    Object.values(algorithms).forEach((e) => {
+                        this.emit(`events-${e.type}`, e);
+                    });
+                }
             }
             catch (e) {
                 log.throttle.error(e.message, { component });
@@ -60,10 +63,10 @@ class StateManager extends EventEmitter {
             finally {
                 this._working = false;
             }
-        }, EVENTS_INTERVAL);
+        }, this._unScheduledAlgorithmsInterval);
     }
 
-    unsubscribeToEvents() {
+    unCheckUnScheduledAlgorithms() {
         clearInterval(this._interval);
         this._interval = null;
     }
