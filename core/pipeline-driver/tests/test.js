@@ -438,25 +438,73 @@ describe('Test', function () {
             expect(graph.nodes[2].status).to.equal('stopped');
             expect(graph.nodes[3].status).to.equal('stopped');
         });
-        it('should start pipeline and handle events', async function () {
+        it('should start pipeline and handle insufficient mem warning', async function () {
             const jobId = `jobid-${uuidv4()}`;
             const job = {
                 data: { jobId },
                 done: () => { }
             }
             const pipeline = pipelines[1];
-            const algorithmName = pipeline.nodes[0].algorithmName;
+
             await stateManager.setExecution({ jobId, ...pipeline });
             await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
             await taskRunner.start(job);
             await delay(500);
-            const event = { algorithmName, type: 'warning', reason: 'FailedScheduling', message: 'msg' };
-            await stateManager._etcd.events.algorithms.set(event);
-            await delay(5000);
             const node = taskRunner._nodes.getNode('green');
-            expect(node.status).to.equal(event.reason);
-            expect(node.batch[0].status).to.equal(event.reason);
-            expect(node.warnings[0]).to.equal(event.message);
+            const algorithmName = node.algorithmName;
+            const discovery = {
+                unScheduledAlgorithms: {
+                    [algorithmName]: {
+                        "algorithmName": algorithmName,
+                        "type": "warning",
+                        "reason": "FailedScheduling",
+                        "hasMaxCapacity": false,
+                        "message": "insufficient mem (4)",
+                        "timestamp": 1593926212391
+                    }
+                }
+            }
+            stateManager._etcd.discovery._client.leaser._lease = null;
+            await stateManager._etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
+            await delay(5000);
+            const algorithm = discovery.unScheduledAlgorithms[algorithmName];
+            expect(node.status).to.equal(algorithm.reason);
+            expect(node.batch[0].status).to.equal(algorithm.reason);
+            expect(node.warnings[0]).to.equal(algorithm.message);
+        });
+        it('should start pipeline and handle maximum capacity exceeded warning', async function () {
+            const jobId = `jobid-${uuidv4()}`;
+            const job = {
+                data: { jobId },
+                done: () => { }
+            }
+            const pipeline = pipelines[1];
+
+            await stateManager.setExecution({ jobId, ...pipeline });
+            await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
+            await taskRunner.start(job);
+            await delay(500);
+            const node = taskRunner._nodes.getNode('green');
+            const algorithmName = node.algorithmName;
+            const discovery = {
+                unScheduledAlgorithms: {
+                    [algorithmName]: {
+                        "algorithmName": algorithmName,
+                        "type": "warning",
+                        "reason": "FailedScheduling",
+                        "hasMaxCapacity": true,
+                        "message": "maximum capacity exceeded (4)",
+                        "timestamp": Date.now()
+                    }
+                }
+            }
+            stateManager._etcd.discovery._client.leaser._lease = null;
+            await stateManager._etcd.discovery.register({ serviceName: 'task-executor', data: discovery });
+            await delay(5000);
+            const algorithm = discovery.unScheduledAlgorithms[algorithmName];
+            expect(node.status).to.equal(algorithm.reason);
+            expect(node.batch[0].status).to.equal(algorithm.reason);
+            expect(node.warnings[0]).to.equal(algorithm.message);
         });
     });
     describe('Progress', function () {

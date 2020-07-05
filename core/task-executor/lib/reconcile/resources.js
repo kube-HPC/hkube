@@ -89,7 +89,7 @@ const _createWarning = (unMatchedNodesBySelector, jobDetails, nodesForSchedule) 
     });
     if (hasMaxCapacity && Object.keys(maxCapacityMap).length > 0) {
         const maxCapacity = Object.entries(maxCapacityMap).map(([k, v]) => `${k} (${v})`);
-        messages.push(`maximum capacity ${maxCapacity.join(', ')}`);
+        messages.push(`maximum capacity exceeded ${maxCapacity.join(', ')}`);
     }
     else if (Object.keys(resourcesMap).length > 0) {
         const resources = Object.entries(resourcesMap).map(([k, v]) => `${k} (${v})`);

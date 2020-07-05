@@ -8,6 +8,11 @@ config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
 config.clusterName = process.env.CLUSTER_NAME || 'local';
 config.storageResultsThreshold = process.env.STORAGE_RESULTS_THRESHOLD || '100Ki';
 
+config.unScheduledAlgorithms = {
+    warningTimeoutMs: process.env.SCHEDULING_WARNING_TIMEOUT || 1 * 60 * 1000,
+    interval: process.env.SCHEDULING_WARNING_INTERVAL || 5000,
+};
+
 config.jobs = {
     consumer: {
         maxStalledCount: 3,

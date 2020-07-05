@@ -342,54 +342,37 @@ const calcRatio = (totalRequests, capacity) => {
 
 /**
  * This method check for algorithms that cannot be scheduled.
- * We are using an algorithms map of alg-name --> warning.
+ * We are using an algorithms map of <algorithm-name> --> <warning>.
  * The logic is as follows:
  * 1) iterate over the skipped algorithms and update the map.
  * 2) iterate over the algorithms map and check if we have a
  *    created, requested or deletion of an algorithm.
- * 3) if we found such an algorithm, we delete it from map and from events.
- * 4) if the algorithm should be notified (timestamp, hasMaxCapacity)
- *    we add it to the events.
+ * 3) if we found such an algorithm, we delete it from map.
+ * 4) each iteration we update the discovery with the current map.
  */
-const _checkUnscheduled = async (created, skipped, requests, algorithms, algorithmTemplates, options) => {
+const _checkUnscheduled = async (created, skipped, requests, algorithms, algorithmTemplates) => {
     skipped.forEach((s) => {
         if (!algorithms[s.algorithmName]) {
             algorithms[s.algorithmName] = s.warning;
         }
     });
 
-    const added = [];
-    const removed = [];
-    const algorithmsMap = Object.entries(algorithms);
+    const algorithmsMap = Object.keys(algorithms);
 
     if (algorithmsMap.length > 0) {
         const createdSet = new Set(created.map(x => x.algorithmName));
         const requestSet = new Set(requests.map(x => x.algorithmName));
 
-        algorithmsMap.forEach(([k, v]) => {
+        algorithmsMap.forEach((k) => {
             const create = createdSet.has(k);
             const request = requestSet.has(k);
             if (create || !request || !algorithmTemplates[k]) {
-                if (v.eventId) {
-                    removed.push({ algorithmName: k, eventId: v.eventId });
-                }
                 delete algorithms[k];
             }
-            else if (!v.isNotified && (Date.now() - v.timestamp > options.schedulingWarningTimeoutMs || v.hasMaxCapacity)) {
-                v.isNotified = true;
-                added.push(v);
-            }
-        });
-        await Promise.all(removed.map(d => etcd.removeEvent(d)));
-        const eventIDs = await Promise.all(added.map(d => etcd.addEvent(d)));
-        added.forEach((a, i) => {
-            const eventId = eventIDs[i];
-            algorithms[a.algorithmName].eventId = eventId;
         });
     }
-    return { added, removed, algorithms };
+    return algorithms;
 };
-
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
     _clearCreatedJobsList(null, options);
@@ -455,7 +438,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
-    const unScheduledResult = await _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates, options);
+    const unScheduledAlgorithms = await _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
@@ -515,14 +498,14 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     });
     await etcd.updateDiscovery({
         reconcileResult,
+        unScheduledAlgorithms,
         actual: workerStats,
         resourcePressure: {
             cpu: consts.CPU_RATIO_PRESSURE,
             gpu: consts.GPU_RATIO_PRESSURE,
             mem: consts.MEMORY_RATIO_PRESSURE
         },
-        nodes: _getNodeStats(normResources),
-        unScheduledResult
+        nodes: _getNodeStats(normResources)
     });
     workerStats.stats.forEach((ws) => {
         const { algorithmName } = ws;
