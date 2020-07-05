@@ -215,8 +215,8 @@ class Worker {
         algoRunnerCommunication.on(messages.incomming.initialized, () => {
             stateManager.start();
         });
-        algoRunnerCommunication.on(messages.incomming.storing, async (message) => {
-            await jobConsumer.setStoringStatus(message.data);
+        algoRunnerCommunication.on(messages.incomming.storing, (message) => {
+            jobConsumer.setStoringStatus(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
