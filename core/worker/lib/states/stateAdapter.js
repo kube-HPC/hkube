@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const asyncQueue = require('async.queue');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const { cacheResults } = require('../utils');
@@ -30,6 +31,9 @@ class StateAdapter extends EventEmitter {
             workerImage: options.workerImage,
             algorithmImage: options.algorithmImage
         };
+        this._tasksQueue = asyncQueue((task, callback) => {
+            this._etcd.jobs.tasks.set(task).then(r => callback(null, r)).catch(e => callback(e));
+        }, 1);
         await this._etcd.discovery.register({ data: this._discoveryInfo });
         log.info(`registering worker discovery for id ${this._workerId}`, { component });
 
@@ -99,8 +103,15 @@ class StateAdapter extends EventEmitter {
         await this._etcd.discovery.updateRegisteredData({ ...options, ...this._discoveryInfo });
     }
 
-    async update(options) {
-        await this._etcd.jobs.tasks.set(options);
+    updateTask(options) {
+        return new Promise((resolve, reject) => {
+            this._tasksQueue.push(options, (err, res) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(res);
+            });
+        });
     }
 
     async watchTasks(options) {
