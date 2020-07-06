@@ -232,8 +232,8 @@ class JobConsumer extends EventEmitter {
         await this.updateStatus(data);
     }
 
-    async updateStatus(data = {}) {
-        await stateAdapter.update({ ...this._getState(), ...data });
+    updateStatus(data = {}) {
+        return stateAdapter.updateTask({ ...this._getState(), ...data });
     }
 
     _getState() {

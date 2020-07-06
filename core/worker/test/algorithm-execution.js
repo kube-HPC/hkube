@@ -217,7 +217,7 @@ describe('AlgorithmExecutions', () => {
             status: 'succeed',
             execId: data.execId
         }
-        await stateAdapter.update(task);
+        await stateAdapter.updateTask(task);
         await delay(500);
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
@@ -253,7 +253,7 @@ describe('AlgorithmExecutions', () => {
             status: 'failed',
             execId: data.execId
         }
-        await stateAdapter.update(task);
+        await stateAdapter.updateTask(task);
         await delay(500);
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
@@ -289,7 +289,7 @@ describe('AlgorithmExecutions', () => {
             status: 'stalled',
             execId: data.execId
         }
-        await stateAdapter.update(task);
+        await stateAdapter.updateTask(task);
         await delay(500);
         const args = spy.getCalls()[0].args[0];
         expect(args).to.have.property('command');
@@ -325,7 +325,7 @@ describe('AlgorithmExecutions', () => {
             status: 'crashed',
             execId: data.execId
         }
-        await stateAdapter.update(task);
+        await stateAdapter.updateTask(task);
         await delay(500);
         await delay(500);
         const args = spy.getCalls()[0].args[0];
