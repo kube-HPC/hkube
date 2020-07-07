@@ -1,4 +1,3 @@
-
 const STATES = {
     ACTIVE: 'active',
     FAILED: 'failed',

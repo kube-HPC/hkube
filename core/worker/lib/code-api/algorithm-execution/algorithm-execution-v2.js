@@ -1,4 +1,3 @@
-
 class AlgorithmExecution {
     async setInputToStorage(options) {
         const { storageInput, input } = options;

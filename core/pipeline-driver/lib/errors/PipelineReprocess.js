@@ -1,4 +1,3 @@
-
 class PipelineReprocess extends Error {
     constructor(status) {
         super(`pipeline already in ${status} status`);

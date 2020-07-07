@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const sinon = require('sinon');
 const delay = require('await-delay');
 const { generateArr, stubTemplate } = require('./stub/stub');
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const { Producer } = require('@hkube/producer-consumer');
 let consumer;
 const queueEvents = require('../lib/consts/queue-events');

@@ -1,4 +1,3 @@
-
 const log = require('@hkube/logger').GetLogFromContainer();
 const Metric = require('../Metric');
 const queueUtils = require('../../utils/queue');

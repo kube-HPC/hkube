@@ -1,4 +1,3 @@
-
 const Components = {
     MAIN: 'Main',
     JOBS_CONSUMER: 'Job-Consumer',

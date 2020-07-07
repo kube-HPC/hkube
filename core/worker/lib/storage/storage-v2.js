@@ -1,4 +1,3 @@
-
 class Storage {
     async getResultFromStorage(data) {
         return { data };

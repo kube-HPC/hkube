@@ -1,4 +1,4 @@
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const request = require('request-promise');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
@@ -83,6 +83,5 @@ class ApiServerClient {
         topWorkerSpan.finish();
     }
 }
-
 
 module.exports = new ApiServerClient();
