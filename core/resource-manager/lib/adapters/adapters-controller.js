@@ -1,4 +1,3 @@
-
 const log = require('@hkube/logger').GetLogFromContainer();
 const adapterTypes = require('./index');
 const utils = require('../utils/utils');

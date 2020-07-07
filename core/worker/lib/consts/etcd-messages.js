@@ -1,4 +1,3 @@
-
 const EventMessages = {
     JOB_RESULT: 'job-result'
 };

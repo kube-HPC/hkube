@@ -1,4 +1,3 @@
-
 const Components = {
     MAIN: 'Main',
     DOCKER_BUILDER: 'Docker-Builder',

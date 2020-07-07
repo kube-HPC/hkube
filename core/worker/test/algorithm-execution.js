@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const delay = require('delay');
-const uuid = require('uuid/v4');
+const { v4: uuid } = require('uuid');
 const execAlgorithm = require('../lib/code-api/algorithm-execution/algorithm-execution');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 const stateAdapter = require('../lib/states/stateAdapter');

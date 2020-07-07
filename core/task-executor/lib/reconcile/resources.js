@@ -4,7 +4,6 @@ const { consts, gpuVendors } = require('../consts');
 const { lessWithTolerance } = require('../helpers/compare');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 
-
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
     let freeCpu;
     let freeGpu;
@@ -129,16 +128,6 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded) => {
     nodeForSchedule.free.memory -= requestedMemory;
 
     return { shouldAdd: true, node: nodeForSchedule.name, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes } } };
-};
-
-const _sortWorkers = (a, b) => {
-    if (b.workerPaused > a.workerPaused) {
-        return 1;
-    }
-    if (b.workerStatus === 'ready') {
-        return 1;
-    }
-    return -1;
 };
 
 function _scheduleAlgorithmToNode(nodeList, { requestedCpu, requestedGpu, memoryRequests }) {
@@ -301,7 +290,6 @@ module.exports = {
     matchJobsToResources,
     shouldAddJob,
     pauseAccordingToResources,
-    _sortWorkers,
     matchWorkersToNodes,
     parseResources
 };

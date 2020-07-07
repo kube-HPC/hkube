@@ -1,4 +1,3 @@
-
 const clone = require('clone');
 const isEqual = require('lodash.isequal');
 const objectPath = require('object-path');

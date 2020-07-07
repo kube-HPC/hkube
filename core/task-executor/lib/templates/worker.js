@@ -299,7 +299,6 @@ const algoMetricVolume = {
     emptyDir: {}
 };
 
-
 const sharedVolumeMounts = [
     {
         name: 'algometrics',

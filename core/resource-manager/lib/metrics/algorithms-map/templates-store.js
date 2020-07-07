@@ -1,4 +1,3 @@
-
 const Metric = require('../Metric');
 const { orderBy } = require('../../utils/utils');
 const queueUtils = require('../../utils/queue');

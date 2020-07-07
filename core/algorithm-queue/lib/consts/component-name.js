@@ -1,4 +1,3 @@
-
 module.exports = {
     QUERIER: 'QUERIER',
     QUEUE: 'QUEUE',

@@ -1,4 +1,3 @@
-
 const Adapter = require('../Adapter');
 const stateManager = require('../../store/store-manager');
 

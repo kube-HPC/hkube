@@ -41,5 +41,4 @@ class Persistence {
     }
 }
 
-
 module.exports = new Persistence();

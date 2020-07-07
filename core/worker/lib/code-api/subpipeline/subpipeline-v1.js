@@ -1,4 +1,3 @@
-
 const storageManager = require('@hkube/storage-manager');
 
 class SubPipelineHandler {

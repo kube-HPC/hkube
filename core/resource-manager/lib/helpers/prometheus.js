@@ -1,4 +1,3 @@
-
 const log = require('@hkube/logger').GetLogFromContainer();
 const client = require('@hkube/prometheus-client');
 const component = require('../consts/components').PROMETHEUS_ADAPTER;

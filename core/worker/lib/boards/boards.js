@@ -1,4 +1,3 @@
-
 const pathLib = require('path');
 const fse = require('fs-extra');
 const recursive = require('recursive-readdir');

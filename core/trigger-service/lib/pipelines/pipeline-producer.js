@@ -31,5 +31,4 @@ class PipelineProducer {
     }
 }
 
-
 module.exports = new PipelineProducer();
