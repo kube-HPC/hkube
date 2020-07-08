@@ -1,4 +1,3 @@
-
 const log = require('@hkube/logger').GetLogFromContainer();
 const AdapterController = require('../adapters/adapters-controller');
 const MetricsController = require('../metrics/metrics-controller');

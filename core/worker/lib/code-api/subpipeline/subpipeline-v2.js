@@ -1,4 +1,3 @@
-
 class SubPipelineHandler {
     async getResultFromStorage(options) {
         return options;

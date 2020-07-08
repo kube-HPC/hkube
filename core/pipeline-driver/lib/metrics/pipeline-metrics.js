@@ -1,4 +1,3 @@
-
 const { tracer, metrics, utils } = require('@hkube/metrics');
 const { metricsNames } = require('../consts/metricsNames');
 

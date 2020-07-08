@@ -1,4 +1,3 @@
-
 class Metric {
     constructor(options) {
         this.name = options.name;

@@ -1,4 +1,3 @@
-
 const arrayToMap = (array) => {
     const init = Object.create(null);
     return array.reduce((map, obj) => {

@@ -1,4 +1,3 @@
-
 const components = require('./components');
 const consts = require('./consts');
 const containers = require('./containers');

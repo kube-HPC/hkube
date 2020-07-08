@@ -5,7 +5,7 @@ const HeuristicRunner = require('./heuristic-runner');
 const EnrichmentRunner = require('./enrichment-runner');
 const enrichments = require('./enrichments/index');
 const heuristic = require('./heuristic/index');
-const Persistence = require('../lib/persistency/persistence');
+const Persistence = require('./persistency/persistence');
 const aggregationMetricFactory = require('./metrics/aggregation-metrics-factory');
 
 class QueueRunner {
@@ -58,6 +58,5 @@ class QueueRunner {
         aggregationMetricFactory.getMetric(metricsName.QUEUE_COUNTER)(task, metricsTypes.COUNTER_OPERATION.increase);
     }
 }
-
 
 module.exports = new QueueRunner();

@@ -1,4 +1,3 @@
-
 const utils = require('../utils/utils');
 
 class MetricsReducer {

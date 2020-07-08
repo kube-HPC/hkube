@@ -1,4 +1,3 @@
-
 const MIN_CACHE = 1;
 
 class Adapter {

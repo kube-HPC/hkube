@@ -1,4 +1,3 @@
-
 class MetricsReducer {
     /**
      * Take each metric and reduce pods calculation
