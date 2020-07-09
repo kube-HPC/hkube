@@ -1,0 +1,20 @@
+"HKube: Algorithm-Operator":
+  - any: ['core/algorithm-operator/**/*']
+"HKube: Algorithm Builder":
+  - any: ['core/algorithm-builder/**/*']
+"HKube: Algorithm Queue":
+  - any: ['core/algorithm-queue/**/*']
+"HKube: API-Server":
+  - any: ['core/api-server/**/*']
+"HKube: Caching Service":
+  - any: ['core/caching-service/**/*']
+"HKube: Pipeline Driver Queue":
+  - any: ['core/pipeline-driver-queue/**/*']
+"HKube: Pipeline Driver":
+  - any: ['core/pipeline-driver/**/*']
+"HKube: Task Executor":
+  - any: ['core/task-executor/**/*']
+"HKube: Trigger Service":
+  - any: ['core/trigger-service/**/*']
+"HKube: Worker":
+  - any: ['core/worker/**/*']
