@@ -18,7 +18,7 @@ class RedisAdapter {
             log.info('redis initiated', { component: components.REDIS_PERSISTENT });
         }
         this.queueName = queueName;
-        this.path = pathLib.join('/', 'algorithemQueue', this.queueName);
+        this.path = pathLib.join('/', 'algorithmQueue', this.queueName);
     }
 
     async put(options) {

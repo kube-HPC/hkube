@@ -6,27 +6,32 @@ const producerSingleton = require('../jobs/producer-singleton');
 
 class Persistence {
     constructor() {
-        this.queue = null;
-        this.queueName = null;
-        this.etcdConfig = null;
+        this._queueName = null;
+        this._prevDataLength = null;
+        this._prevPendingAmount = null;
     }
 
     async init({ options }) {
         const { etcd, algorithmType, serviceName } = options;
-        this.options = options;
-        this.queueName = algorithmType;
-        await redisStorage.init(options.redis, this.queueName);
-        this.etcd = new Etcd({ ...etcd, serviceName });
+        this._queueName = algorithmType;
+        await redisStorage.init(options.redis, this._queueName);
+        this._etcd = new Etcd({ ...etcd, serviceName });
         return this;
     }
 
     async store(data) {
         log.debug('storing data to etcd storage', { component: components.ETCD_PERSISTENT });
-        const bullQueue = producerSingleton.get.getQueueByJobType(this.options.algorithmType);
-        const pendingAmount = await bullQueue.getWaitingCount();
+
+        const pendingAmount = await producerSingleton.queue.getWaitingCount();
+
+        if (this._prevDataLength === 0 && data.length === 0 && this._prevPendingAmount === pendingAmount) {
+            return;
+        }
+        this._prevDataLength = data.length;
+        this._prevPendingAmount = pendingAmount;
         await redisStorage.put(data);
         const scoreArray = data.map(d => d.calculated.score);
-        const status = await this.etcd.algorithms.queue.set({ name: this.queueName, data: scoreArray, pendingAmount, timestamp: Date.now() });
+        const status = await this._etcd.algorithms.queue.set({ name: this._queueName, data: scoreArray, pendingAmount, timestamp: Date.now() });
         if (status) {
             log.debug('queue stored successfully', { component: components.ETCD_PERSISTENT });
         }
