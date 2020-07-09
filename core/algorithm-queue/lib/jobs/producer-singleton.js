@@ -15,6 +15,7 @@ class ProducerSingleton {
                 ...options.producer
             }
         });
+        this.queue = this.producer._createQueue(options.algorithmType);
     }
 
     get get() {

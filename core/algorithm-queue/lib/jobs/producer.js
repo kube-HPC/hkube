@@ -15,7 +15,6 @@ class JobProducer {
         this._producerUpdateInterval = producerUpdateInterval;
         this.etcd = new Etcd({ ...etcd, serviceName });
         this._producer = producerSingleton.get;
-        this.bullQueue = this._producer._createQueue(options.algorithmType);
         this._producerEventRegistry();
         this._checkWorkingStatusInterval();
     }
@@ -24,16 +23,12 @@ class JobProducer {
     _checkWorkingStatusInterval() {
         setInterval(async () => {
             if (queueRunner.queue.get.length > 0) {
-                const waitingCount = await this.bullQueue.getWaitingCount();
+                const waitingCount = await producerSingleton.queue.getWaitingCount();
                 if (waitingCount === 0) {
                     await this.createJob();
                 }
             }
         }, this._producerUpdateInterval);
-    }
-
-    getPendingAmount() {
-        return this.bullQueue.getWaitingCount();
     }
 
     _producerEventRegistry() {
