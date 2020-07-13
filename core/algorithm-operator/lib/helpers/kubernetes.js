@@ -6,6 +6,7 @@ const { logWrappers } = require('./tracing');
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
+        this._namespace = options.kubernetes.namespace;
         this._client = new KubernetesClient(options.kubernetes);
         if (options.healthchecks.logExternalRequests) {
             logWrappers([
@@ -15,7 +16,14 @@ class KubernetesApi extends EventEmitter {
                 'getAlgorithmForDebug'
             ], this, log);
         }
-        log.info(`Initialized kubernetes client with options ${JSON.stringify({ ...options.kubernetes, url: this._client._config.url })}`, { component });
+        log.info(`Initialized kubernetes client with options ${JSON.stringify({
+            ...options.kubernetes,
+            url: this._client._config.url
+        })}`, { component });
+    }
+
+    get namespace() {
+        return this._namespace;
     }
 
     async createDeployment({ spec }) {
