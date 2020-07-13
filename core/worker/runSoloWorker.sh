@@ -6,7 +6,7 @@ echo "using port $port"
 echo "METRICS_PORT $METRICS_PORT"
 
 export alg=$1
- 
+
 
 echo "worker for algorithm ${alg}"
 
