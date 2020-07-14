@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { randomString: uuid } = require('../lib/utils');
+const { randomString: uuid } = require('@hkube/uid');
 const HttpStatus = require('http-status-codes');
 const { request, defaultProps } = require('./utils');
 let restUrl, restPath;

@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { uuid: uuidv4 } = require('@hkube/uid');
 const { consts } = require('@hkube/parsers');
 const storageManager = require('@hkube/storage-manager');
 

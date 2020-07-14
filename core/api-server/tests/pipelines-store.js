@@ -3,7 +3,7 @@ const HttpStatus = require('http-status-codes');
 const clone = require('clone');
 const { pipelineStatuses } = require('@hkube/consts');
 const stateManager = require('../lib/state/state-manager');
-const { uuid } = require('../lib/utils');
+const { uuid } = require('@hkube/uid');
 const { pipelines } = require('./mocks');
 const { request } = require('./utils');
 let restUrl, restPath;

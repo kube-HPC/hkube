@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const delay = require('delay');
-const { v4: uuid } = require('uuid');
+const { uuid } = require('@hkube/uid');
 const execAlgorithm = require('../lib/code-api/algorithm-execution/algorithm-execution');
 const jobConsumer = require('../lib/consumer/JobConsumer');
 const stateAdapter = require('../lib/states/stateAdapter');

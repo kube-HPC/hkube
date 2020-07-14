@@ -1,6 +1,6 @@
-const { v4: uuidv4 } = require('uuid');
+const { uid: uuidv4 } = require('@hkube/uid');
 const stubTemplate = ({
-    uuid = uuidv4(), 
+    uuid = uuidv4(),
     pipelineUuid = `pipeline-${uuidv4()}`,
     algorithmName = 'alg name',
     batchIndex = Math.floor((Math.random() * 1000)),
@@ -14,7 +14,7 @@ const stubTemplate = ({
             pipelineName: `${pipelineUuid}`,
             input: 'data',
             nodeName: `nodeName-${uuidv4()}`,
-            entranceTime, 
+            entranceTime,
             attempts: 1,
             priority: `${priority}`,
             algorithmName: `${algorithmName}`,
