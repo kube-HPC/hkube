@@ -33,7 +33,7 @@ const updateTensorboards = async () => {
     const boards = await etcd.getTensorboards();
     const creating = boards.filter(b => b.status === boardStatuses.CREATING);
     await Promise.all(creating.map(async (board) => {
-        const url = `http://board-service-${board.boardReference}.default.svc`;
+        const url = `http://board-service-${board.boardReference}.${kubernetes.namespace}.svc`;
         try {
             const result = await rp({ uri: url, resolveWithFullResponse: true });
             await etcd.updateTensorboard({ ...board, status: boardStatuses.RUNNING, timestamp: Date.now() });
