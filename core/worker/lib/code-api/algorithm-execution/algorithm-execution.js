@@ -304,7 +304,7 @@ class AlgorithmExecution {
     }
 
     _createTaskID() {
-        return uid();
+        return uid({ length: 8 });
     }
 
     _isPrimitive(val) {
