@@ -1,7 +1,7 @@
 const mergeWith = require('lodash.mergewith');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
-const { uuid } = require('@hkube/uid');
+const { uid } = require('@hkube/uid');
 const { NodesMap } = require('@hkube/dag');
 const { pipelineTypes, pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
@@ -351,7 +351,7 @@ class ExecutionService {
     }
 
     _createJobID(options) {
-        return [options.experimentName, options.name, uuid()].join(':');
+        return [options.experimentName, options.name, uid({ length: 8 })].join(':');
     }
 
     async _getLastPipeline(jobId) {
