@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
-const uuid = require('uuid');
+const { uuid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const stateManger = require('../lib/state/state-manager');
 const mockBuildNodejs = require('./mocks/nodejs/build.json');

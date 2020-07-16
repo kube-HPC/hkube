@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { uid } = require('@hkube/uid');
 const Validator = require('ajv');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
@@ -220,7 +220,7 @@ class AlgorithmExecution {
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }
-            const taskId = this._createTaskID({ nodeName, algorithmName });
+            const taskId = this._createTaskID();
             this._executions.set(taskId, { taskId, execId, includeResult });
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
             const task = { execId, taskId, input: newInput, storage };
@@ -303,8 +303,8 @@ class AlgorithmExecution {
         return jobOptions;
     }
 
-    _createTaskID({ nodeName, algorithmName }) {
-        return [nodeName, algorithmName, uuidv4()].join(':');
+    _createTaskID() {
+        return uid({ length: 8 });
     }
 
     _isPrimitive(val) {

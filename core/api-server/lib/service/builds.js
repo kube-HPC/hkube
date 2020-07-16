@@ -7,13 +7,13 @@ const fse = require('fs-extra');
 const { diff } = require('deep-diff');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
+const { uid } = require('@hkube/uid');
 const { buildStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
-const { randomString } = require('../utils');
 const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatuses.ACTIVE];
 const minimumBytes = 4100;
 
@@ -186,7 +186,7 @@ class Builds {
     }
 
     _createBuildID(algorithmName) {
-        return [algorithmName, randomString({ length: 6 })].join('-');
+        return [algorithmName, uid({ length: 6 })].join('-');
     }
 
     _incVersion(oldAlgorithm, newAlgorithm) {

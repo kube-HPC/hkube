@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { uuid } = require('@hkube/uid');
 const vm = require('vm');
 const { pipelineStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
@@ -24,7 +24,7 @@ class ApiServerClientMock extends EventEmitter {
             };
         }
         // generate jobId
-        const jobId = uuidv4();
+        const jobId = uuid();
 
         setTimeout(async () => {
             const firstNode = subPipeline && subPipeline.nodes && subPipeline.nodes[0];

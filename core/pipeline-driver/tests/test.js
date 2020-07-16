@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { uid: uuidv4 } = require('@hkube/uid');
 const configIt = require('@hkube/config');
 const Logger = require('@hkube/logger');
 const chai = require('chai');

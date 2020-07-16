@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { uid: uuidv4 } = require('@hkube/uid');
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();

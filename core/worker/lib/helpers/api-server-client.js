@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { uuid: uuidv4 } = require('@hkube/uid');
 const request = require('request-promise');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');

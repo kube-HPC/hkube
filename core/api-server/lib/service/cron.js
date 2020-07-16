@@ -1,11 +1,11 @@
 const objectPath = require('object-path');
+const { uid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const { pipelineTypes } = require('@hkube/consts');
 const execution = require('./execution');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
-const { uuid } = require('../utils');
 
 class ExecutionService {
     async getCronResult(options) {
@@ -37,7 +37,7 @@ class ExecutionService {
     async runStoredCron(options) {
         validator.validateStoredInternal(options);
         const pipeline = await this._createPipeline(options);
-        const jobId = this._createCronJobID(pipeline, uuid());
+        const jobId = this._createCronJobID(pipeline, uid({ length: 8 }));
         return execution._runStored({ pipeline, jobId, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON] });
     }
 
@@ -81,8 +81,8 @@ class ExecutionService {
         return experiment.name;
     }
 
-    _createCronJobID(options, uid) {
-        return [options.experimentName, pipelineTypes.CRON, options.name, uid].join(':');
+    _createCronJobID(options, id) {
+        return [options.experimentName, pipelineTypes.CRON, options.name, id].join(':');
     }
 }
 

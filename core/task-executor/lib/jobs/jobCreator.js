@@ -1,5 +1,5 @@
-const cryptoRandomString = require('crypto-random-string');
 const clonedeep = require('lodash.clonedeep');
+const { randomString } = require('@hkube/uid');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
 const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage,
@@ -9,10 +9,6 @@ const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
-
-const randomString = () => {
-    return cryptoRandomString({ length: 30 });
-};
 
 const applyAlgorithmResourceRequests = (inputSpec, resourceRequests, node) => {
     if (!resourceRequests) {
@@ -57,7 +53,7 @@ const applyAlgorithmName = (inputSpec, algorithmName) => {
 
 const applyName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
-    const name = `${algorithmName}-${randomString()}`;
+    const name = `${algorithmName}-${randomString({ length: 30 })}`;
     spec.metadata.name = name;
     return spec;
 };
