@@ -1,5 +1,5 @@
 const storageManager = require('@hkube/storage-manager');
-const { randomString } = require('@hkube/uid');
+const { uid } = require('@hkube/uid');
 const { boardStatuses } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
@@ -48,7 +48,7 @@ class Boards {
         const id = this.generateId(boardInfo, type);
         const existingBoard = await stateManager.tensorboard.get({ id });
         const logDir = await storageManager.hkubeAlgoMetrics.getMetricsPath(boardInfo);
-        const boardReference = randomString();
+        const boardReference = uid();
         const boardLink = `hkube/board/${boardReference}/`;
         const board = {
             id,

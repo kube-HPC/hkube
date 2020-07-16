@@ -7,7 +7,7 @@ const fse = require('fs-extra');
 const { diff } = require('deep-diff');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
-const { randomString } = require('@hkube/uid');
+const { uid } = require('@hkube/uid');
 const { buildStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
@@ -186,7 +186,7 @@ class Builds {
     }
 
     _createBuildID(algorithmName) {
-        return [algorithmName, randomString({ length: 6 })].join('-');
+        return [algorithmName, uid({ length: 6 })].join('-');
     }
 
     _incVersion(oldAlgorithm, newAlgorithm) {

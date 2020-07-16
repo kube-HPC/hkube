@@ -4,7 +4,7 @@ const storageManager = require('@hkube/storage-manager');
 const HttpStatus = require('http-status-codes');
 const { Encoding } = require('@hkube/encoding');
 const { request } = require('./utils');
-const { randomString: uuid } = require('@hkube/uid');
+const { uid: uuid } = require('@hkube/uid');
 let restUrl;
 let maxStorageFetchKeys;
 let encoding;
