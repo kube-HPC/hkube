@@ -1,7 +1,7 @@
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { applyEnvToContainer, applyStorage } = require('@hkube/kubernetes-client').utils;
-const { applyImage } = require('../helpers/kubernetes-utils');
+const { applyImage, applyJaeger } = require('../helpers/kubernetes-utils');
 const component = require('../consts/componentNames').K8S;
 const { deploymentDebugTemplate, workerIngress, workerService } = require('../templates/worker-debug');
 const CONTAINERS = require('../consts/containers');
@@ -20,26 +20,6 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
-const applyJaeger = (inputSpec, options) => {
-    let spec = clonedeep(inputSpec);
-    const { isPrivileged } = options.kubernetes;
-    if (isPrivileged) {
-        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM_DEBUG, {
-            JAEGER_AGENT_SERVICE_HOST: {
-                fieldRef: {
-                    fieldPath: 'status.hostIP'
-                }
-            }
-        });
-    }
-    else if (options?.jaeger?.host) {
-        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM_DEBUG, {
-            JAEGER_AGENT_SERVICE_HOST: options.jaeger.host
-        });
-    }
-    return spec;
-};
-
 const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, workerEnv, options }) => {
     if (!algorithmName) {
         const msg = 'Unable to create deployment spec. algorithmName is required';
@@ -54,7 +34,7 @@ const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, wo
     deploymentSpec = applyImage(deploymentSpec, CONTAINERS.ALGORITHM_DEBUG, versions, registry);
     deploymentSpec = applyAlgorithmName(deploymentSpec, algorithmName, CONTAINERS.ALGORITHM_DEBUG);
     deploymentSpec = applyStorage(deploymentSpec, options.defaultStorage, CONTAINERS.ALGORITHM_DEBUG, 'algorithm-operator-configmap');
-    deploymentSpec = applyJaeger(deploymentSpec, options);
+    deploymentSpec = applyJaeger(deploymentSpec, CONTAINERS.ALGORITHM_DEBUG, options);
     const ingressSpec = workerIngress(algorithmName, clusterOptions);
     const serviceSpec = workerService(algorithmName);
 
