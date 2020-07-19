@@ -41,5 +41,10 @@ properties:
     enum:
       - indexed
       - cartesian
+  stateType:
+    type: string
+    enum:
+      - stateless
+      - stateful
 required:
   - nodeName

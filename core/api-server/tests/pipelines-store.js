@@ -415,6 +415,7 @@ describe('Store/Pipelines', () => {
         it('should succeed to store pipeline', async () => {
             const pipeline = clone(pipelines[2]);
             pipeline.name = uuid();
+            pipeline.kind = 'stream';
             pipeline.description = 'my description';
             pipeline.tags = ['bla', 'hot'];
             const options = {
@@ -430,6 +431,7 @@ describe('Store/Pipelines', () => {
         it('should succeed to update pipeline', async () => {
             const pipeline = clone(pipelines[2]);
             pipeline.description = 'my description';
+            pipeline.kind = 'stream';
             const options = {
                 uri: restPath,
                 method: 'PUT',
