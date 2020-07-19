@@ -121,7 +121,7 @@ class Operator {
         });
     }
 
-    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms) {
+    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms, options) {
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({
             deployments,
@@ -129,7 +129,8 @@ class Operator {
             versions,
             registry,
             clusterOptions,
-            resources
+            resources,
+            options
         });
     }
 }

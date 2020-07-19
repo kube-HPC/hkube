@@ -21,7 +21,7 @@ const _updateDeployment = async (deployment, options) => {
     return deploymentCreateResult;
 };
 
-const reconcile = async ({ deployments, algorithms, versions, registry, clusterOptions, resources } = {}) => {
+const reconcile = async ({ deployments, algorithms, versions, registry, clusterOptions, resources, options } = {}) => {
     const version = findVersion({ versions, repositoryName: CONTAINERS.ALGORITHM_QUEUE });
     const normDeployments = normalizeDeployments(deployments);
     const normAlgorithms = normalizeAlgorithms(algorithms);
@@ -33,13 +33,13 @@ const reconcile = async ({ deployments, algorithms, versions, registry, clusterO
     const reconcileResult = {};
 
     for (let algorithm of added) { // eslint-disable-line
-        createPromises.push(_createDeployment(algorithm.name, { versions, registry, clusterOptions, resources }));
+        createPromises.push(_createDeployment(algorithm.name, { versions, registry, clusterOptions, resources, options }));
     }
     for (let algorithm of removed) { // eslint-disable-line
         createPromises.push(kubernetes.deleteDeployment(algorithm.name));
     }
     for (let deployment of updated) { // eslint-disable-line
-        createPromises.push(_updateDeployment(deployment, { versions, registry, clusterOptions, resources }));
+        createPromises.push(_updateDeployment(deployment, { versions, registry, clusterOptions, resources, options }));
     }
 
     await Promise.all(createPromises);
