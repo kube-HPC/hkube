@@ -19,7 +19,7 @@ const applyJaeger = (inputSpec, container, options) => {
             }
         });
     }
-    else if (options?.jaeger?.host) {
+    else if (options.jaeger?.host) {
         spec = applyEnvToContainer(spec, container, {
             JAEGER_AGENT_SERVICE_HOST: options.jaeger.host
         });
