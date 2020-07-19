@@ -186,5 +186,29 @@ describe('PipelineDriverJobCreator', () => {
                 }
             });
         });
+        it('should apply jaeger with privileged mode', () => {
+            const res = createDriverJobSpec({
+                ...{ options: { ...options, kubernetes: { isPrivileged: true } } },
+                image: 'myImage1',
+                resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } }
+            });
+            expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
+        });
+        it('should apply jaeger without privileged mode', () => {
+            const res = createDriverJobSpec({
+                ...{ options: { ...options, kubernetes: { isPrivileged: false } } },
+                image: 'myImage1',
+                resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } }
+            });
+            expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.be.undefined;
+        });
+        it('should apply jaeger without privileged mode with external host', () => {
+            const res = createDriverJobSpec({
+                ...{ options: { ...options, kubernetes: { isPrivileged: false }, jaeger: { host: 'foo.bar' } } },
+                image: 'myImage1',
+                resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } }
+            });
+            expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql('foo.bar');
+        });
     });
 });

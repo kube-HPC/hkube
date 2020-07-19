@@ -6,7 +6,6 @@ const component = require('../consts/componentNames').K8S;
 const { deploymentBoardTemplate, boardIngress, boardService } = require('../templates/tensorboard');
 const CONTAINERS = require('../consts/containers');
 
-
 const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     const spec = clonedeep(inputSpec);
     if (!clusterOptions.useNodeSelector) {

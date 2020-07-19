@@ -55,14 +55,6 @@ const algorithmQueueTemplate = {
                                 value: '3000'
                             },
                             {
-                                name: 'JAEGER_AGENT_SERVICE_HOST',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'status.hostIP'
-                                    }
-                                }
-                            },
-                            {
                                 name: 'INTERVAL',
                                 valueFrom: {
                                     configMapKeyRef: {

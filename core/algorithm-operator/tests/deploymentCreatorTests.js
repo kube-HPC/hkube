@@ -42,14 +42,25 @@ describe('deploymentCreator', () => {
         expect(() => createDeploymentSpec({ algorithmImage: 'myImage1' })).to.throw('Unable to create deployment spec. algorithmName is required');
     });
     it('should apply all required properties', () => {
-        const res = createDeploymentSpec({ algorithmName: 'myalgo1' });
+        const res = createDeploymentSpec({ algorithmName: 'myalgo1', options: { kubernetes: {} } });
         expect(res).to.nested.include({ 'metadata.name': 'algorithm-queue-myalgo1' });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/algorithm-queue' });
         expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
     });
-
+    it('should apply jaeger privileged', () => {
+        const res = createDeploymentSpec({ algorithmName: 'myalgo1', options: { kubernetes: { isPrivileged: true } } });
+        expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
+    });
+    it('should apply jaeger not privileged', () => {
+        const res = createDeploymentSpec({ algorithmName: 'myalgo1', options: { kubernetes: { isPrivileged: false } } });
+        expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.be.undefined;
+    });
+    it('should apply jaeger not privileged with external host', () => {
+        const res = createDeploymentSpec({ algorithmName: 'myalgo1', options: { kubernetes: { isPrivileged: false } ,jaeger: { host: 'foo.bar' }} });
+        expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql('foo.bar');
+    });
     it('should apply all required properties - camel case', () => {
-        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam' });
+        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam', options: { kubernetes: {} } });
         expect(res).to.nested.include({ 'metadata.name': 'algorithm-queue-my-algo-stam' });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'hkube/algorithm-queue' });
         expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myAlgoStam' });
@@ -61,7 +72,7 @@ describe('deploymentCreator', () => {
             memory: 256,
             cpu: 0.2
         }
-        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam', resources });
+        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam', resources, options: { kubernetes: {} } });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.limits.memory': '512Mi' });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.limits.cpu': 0.4 });
         expect(res).to.nested.include({ 'spec.template.spec.containers[0].resources.requests.memory': '256Mi' });
@@ -73,7 +84,7 @@ describe('deploymentCreator', () => {
             memory: 256,
             cpu: 0.2
         }
-        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam', resources });
+        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam', resources, options: { kubernetes: {} } });
         expect(res.spec.template.spec.containers[0].resources).to.not.exist;
     });
 });

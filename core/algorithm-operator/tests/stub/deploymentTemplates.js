@@ -49,14 +49,6 @@ const algorithmQueueTemplate = {
                             {
                                 name: 'METRICS_PORT',
                                 value: '3000'
-                            },
-                            {
-                                name: 'JAEGER_AGENT_SERVICE_HOST',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'status.hostIP'
-                                    }
-                                }
                             }
                         ]
                     }

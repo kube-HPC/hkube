@@ -13,6 +13,7 @@ config.buildMode = process.env.BUILD_MODE || 'kaniko'
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
+    isPrivileged: formatter.parseBool(process.env.IS_PRIVILEGED, true),
     version: '1.9'
 };
 
@@ -22,7 +23,9 @@ config.etcd = {
     port: process.env.ETCD_CLIENT_SERVICE_PORT || 4001,
     serviceName: config.serviceName
 };
-
+config.jaeger = {
+    host: process.env.JAEGER_AGENT_SERVICE_HOST,
+}
 config.resources = {
     algorithmQueue: {
         memory: parseFloat(process.env.ALGORITHM_QUEUE_MEMORY) || 256,
