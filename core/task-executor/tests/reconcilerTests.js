@@ -450,7 +450,7 @@ describe('reconciler', () => {
                 }
             };
 
-            const testOptions = { ...options, defaultStorage: 'fs' };
+            const testOptions = { ...options, defaultStorage: 'fs', jaeger: { host: 'foo.bar' } };
             const res = await reconciler.reconcile({
                 options: testOptions,
                 normResources,
@@ -477,6 +477,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[0]);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[1]);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
         })
         it('should not add Privileged flag if configured', async () => {
             const algorithm = 'green-alg';
@@ -518,6 +519,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.not.include(logVolumes[1]);
 
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext).to.not.exist;
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.be.undefined
 
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include({
                 name: 'logs',
@@ -533,6 +535,43 @@ describe('reconciler', () => {
             });
 
 
+        })
+        it('should add jaeger host when not Privileged if configured', async () => {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerEnv: {
+                    myEnv: 'myValue'
+                },
+                algorithmEnv: {
+                    myAlgoEnv: 'myAlgoValue'
+                }
+            };
+
+            const testOptions = { ...options, defaultStorage: 'fs', jaeger: { host: 'foo.bar' }, kubernetes: { ...options.kubernetes, isPrivileged: false } };
+            const res = await reconciler.reconcile({
+                options: testOptions,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env
+                .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql(testOptions.jaeger.host);
         })
         it('should add env param, volume, volumeMount if fs is defaultStorage', async () => {
             const algorithm = 'green-alg';

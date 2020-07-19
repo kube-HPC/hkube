@@ -27,6 +27,10 @@ config.etcd = {
     serviceName: config.serviceName
 };
 
+config.jaeger = {
+    host: process.env.JAEGER_AGENT_SERVICE_HOST,
+}
+
 config.driversSetting = {
     name: 'pipeline-driver',
     minAmount: parseInt(process.env.PIPELINE_DRIVERS_AMOUNT || 30, 10),

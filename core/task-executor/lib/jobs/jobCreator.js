@@ -102,6 +102,26 @@ const applyMounts = (inputSpec, mounts = []) => {
     return spec;
 };
 
+const applyJaeger = (inputSpec, options) => {
+    let spec = clonedeep(inputSpec);
+    const { isPrivileged } = options.kubernetes;
+    if (isPrivileged) {
+        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, {
+            JAEGER_AGENT_SERVICE_HOST: {
+                fieldRef: {
+                    fieldPath: 'status.hostIP'
+                }
+            }
+        });
+    }
+    else if (options?.jaeger?.host) {
+        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, {
+            JAEGER_AGENT_SERVICE_HOST: options.jaeger.host
+        });
+    }
+    return spec;
+};
+
 const applyOpengl = (inputSpec, options, algorithmOptions = {}) => {
     let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
@@ -217,6 +237,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM, 'task-executor-configmap');
     spec = applyLogging(spec, options);
     spec = applyOpengl(spec, options, algorithmOptions);
+    spec = applyJaeger(spec, options);
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
     spec = applyMounts(spec, mounts);
 
