@@ -121,14 +121,6 @@ const deploymentDebugTemplate = (algorithmName = '') => ({
                                 }
                             },
                             {
-                                name: 'JAEGER_AGENT_SERVICE_HOST',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'status.hostIP'
-                                    }
-                                }
-                            },
-                            {
                                 name: 'DEBUG_MODE',
                                 value: 'true'
                             },

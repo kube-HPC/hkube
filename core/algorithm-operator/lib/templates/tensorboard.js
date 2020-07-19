@@ -119,7 +119,6 @@ const boardIngress = (boardReference = '', { ingressHost, ingressPrefix = '', in
     }
 });
 
-
 module.exports = {
     deploymentBoardTemplate,
     boardService,

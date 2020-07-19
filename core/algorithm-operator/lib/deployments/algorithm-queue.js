@@ -24,7 +24,6 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     return spec;
 };
 
-
 const applyName = (inputSpec, algorithmName, containerName) => {
     const spec = clonedeep(inputSpec);
     const validName = decamelize(algorithmName, '-');

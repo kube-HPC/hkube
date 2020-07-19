@@ -1,4 +1,4 @@
-const { ALGORITHM_BUILDS, KANIKO, OC_BUILDER } = require('../../lib/consts/containers');
+const { ALGORITHM_BUILDS, KANIKO, OC_BUILDER } = require('../consts/containers');
 
 const jobTemplate = {
     apiVersion: 'batch/v1',

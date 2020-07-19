@@ -1,4 +1,3 @@
-
 const Components = {
     MAIN: 'Main',
     ETCD: 'Etcd',

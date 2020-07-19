@@ -1,5 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../lib/consts/componentNames').OPERATOR;
+const component = require('./consts/componentNames').OPERATOR;
 const etcd = require('./helpers/etcd');
 const { logWrappers } = require('./helpers/tracing');
 const kubernetes = require('./helpers/kubernetes');
@@ -8,7 +8,6 @@ const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const CONTAINERS = require('./consts/containers');
-
 
 class Operator {
     async init(options = {}) {
