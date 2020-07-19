@@ -102,11 +102,11 @@ const applyMounts = (inputSpec, mounts = []) => {
     return spec;
 };
 
-const applyJaeger = (inputSpec, options) => {
+const applyJaeger = (inputSpec, container, options) => {
     let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
     if (isPrivileged) {
-        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, {
+        spec = applyEnvToContainer(spec, container, {
             JAEGER_AGENT_SERVICE_HOST: {
                 fieldRef: {
                     fieldPath: 'status.hostIP'
@@ -115,7 +115,7 @@ const applyJaeger = (inputSpec, options) => {
         });
     }
     else if (options?.jaeger?.host) {
-        spec = applyEnvToContainer(spec, CONTAINERS.WORKER, {
+        spec = applyEnvToContainer(spec, container, {
             JAEGER_AGENT_SERVICE_HOST: options.jaeger.host
         });
     }
@@ -237,7 +237,8 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM, 'task-executor-configmap');
     spec = applyLogging(spec, options);
     spec = applyOpengl(spec, options, algorithmOptions);
-    spec = applyJaeger(spec, options);
+    spec = applyJaeger(spec, CONTAINERS.WORKER, options);
+    spec = applyJaeger(spec, CONTAINERS.ALGORITHM, options);
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
     spec = applyMounts(spec, mounts);
 
@@ -256,6 +257,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
     spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
     spec = applyNodeSelector(spec, null, clusterOptions);
+    spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
 
     return spec;

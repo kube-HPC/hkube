@@ -477,7 +477,8 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[0]);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[1]);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env
+            .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
         })
         it('should not add Privileged flag if configured', async () => {
             const algorithm = 'green-alg';
