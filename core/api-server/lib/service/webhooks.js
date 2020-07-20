@@ -5,7 +5,7 @@ const { Types } = require('../webhook/States');
 
 class WebhooksService {
     async getWebhooksResults(options) {
-        validator.validateJobID(options);
+        validator.jobs.validateJobID(options);
         const status = await stateManager.webhooks.get({ jobId: options.jobId, type: Types.RESULT });
         if (!status) {
             throw new ResourceNotFoundError('webhook', options.jobId);
@@ -14,7 +14,7 @@ class WebhooksService {
     }
 
     async getWebhooksStatus(options) {
-        validator.validateJobID(options);
+        validator.jobs.validateJobID(options);
         const status = await stateManager.webhooks.get({ jobId: options.jobId, type: Types.PROGRESS });
         if (!status) {
             throw new ResourceNotFoundError('webhook', options.jobId);
@@ -23,7 +23,7 @@ class WebhooksService {
     }
 
     async getWebhooks(options) {
-        validator.validateJobID(options);
+        validator.jobs.validateJobID(options);
         const webhooks = await stateManager.webhooks.list({ jobId: options.jobId });
         if (webhooks.length === 0) {
             throw new ResourceNotFoundError('webhook', options.jobId);

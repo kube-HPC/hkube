@@ -41,7 +41,7 @@ class Boards {
     }
 
     async startTensorboard(options) {
-        validator.validateCreateBoardReq(options);
+        validator.boards.validateCreateBoardReq(options);
         const { jobId, taskId } = options;
         const type = (taskId && 'task') || (jobId && 'batch') || 'node';
         const boardInfo = ((type === 'node') && options) || { ...options, ...(await this.getBoardInfo(options, type)) };

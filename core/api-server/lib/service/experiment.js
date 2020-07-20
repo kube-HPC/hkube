@@ -18,7 +18,7 @@ class Experiment {
     }
 
     async insertExperiment(options) {
-        validator.validateExperimentName(options);
+        validator.experiments.validateExperimentName(options);
         await stateManager.experiments.set(options);
         await storageManager.hkubeStore.put({ type: 'experiment', name: options.name, data: options });
     }
@@ -32,7 +32,7 @@ class Experiment {
         if (defaultExperiment.DEFAULT_EXPERIMENT_NAME === experimentName) {
             throw new ActionNotAllowed(defaultExperiment.DEFAULT_EXPERIMENT_ERROR, experimentName);
         }
-        await validator.validateExperimentExists({ experimentName });
+        await validator.experiments.validateExperimentExists({ experimentName });
         await this._stopAllCrons(experimentName);
         await this._cleanAll(experimentName);
         return this._deleteExperiment(options);

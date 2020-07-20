@@ -6,7 +6,7 @@ const { ResourceNotFoundError } = require('../errors');
 class Readme {
     async getPipeline(options) {
         const { name } = options;
-        validator.validatePipelineName(options.name);
+        validator.pipelines.validatePipelineName(options.name);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -35,7 +35,7 @@ class Readme {
 
     async _updatePipelineReadme(options) {
         const { name, data } = options;
-        validator.validatePipelineName(options.name);
+        validator.pipelines.validatePipelineName(options.name);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -46,7 +46,7 @@ class Readme {
 
     async deletePipeline(options) {
         const { name } = options;
-        validator.validatePipelineName(name);
+        validator.pipelines.validatePipelineName(name);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -57,7 +57,7 @@ class Readme {
 
     async getAlgorithm(options) {
         const { name } = options;
-        validator.validateName(options);
+        validator.jobs.validateName(options);
         const algorithm = await stateManager.algorithms.store.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
@@ -86,7 +86,7 @@ class Readme {
 
     async _updateAlgorithmReadme(options) {
         const { name, data } = options;
-        validator.validateUpdateAlgorithm(options);
+        validator.algorithms.validateUpdateAlgorithm(options);
         const algorithm = await stateManager.algorithms.store.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
@@ -97,7 +97,7 @@ class Readme {
 
     async deleteAlgorithm(options) {
         const { name } = options;
-        validator.validateName(options);
+        validator.jobs.validateName(options);
         const algorithm = await stateManager.algorithms.store.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
