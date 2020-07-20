@@ -104,222 +104,6 @@
         }
     },
     {
-        "name": "flow3",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            }
-        ],
-        "flowInputMetadata": {
-            "metadata": {
-                "flowInput": {
-                    "type": "object"
-                },
-                "flowInput.files": {
-                    "type": "object"
-                },
-                "flowInput.files.links": {
-                    "type": "array",
-                    "size": 5
-                }
-            },
-            "storageInfo": {
-                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
-                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
-            }
-        },
-        "options": {
-            "batchTolerance": 30,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "rawBatch",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#[1,2,3,4,5]"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "@green"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@yellow"
-                ]
-            }
-        ],
-        "flowInputMetadata": {}
-    },
-    {
-        "name": "resultBatch",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    false,
-                    "OK",
-                    256
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    true,
-                    "#@green"
-                ]
-            },
-            {
-                "nodeName": "red",
-                "algorithmName": "red-alg",
-                "input": [
-                    "@yellow",
-                    512
-                ]
-            }
-        ],
-        "flowInputMetadata": {}
-    },
-    {
-        "name": "simple-wait-batch",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    {
-                        "a": "*@green"
-                    },
-                    {
-                        "b": "*@yellow"
-                    },
-                    {
-                        "c": "@green"
-                    },
-                    {
-                        "d": "@yellow"
-                    }
-                ]
-            }
-        ],
-        "flowInputMetadata": {
-            "metadata": {
-                "flowInput": {
-                    "type": "object"
-                },
-                "flowInput.files": {
-                    "type": "object"
-                },
-                "flowInput.files.links": {
-                    "type": "array",
-                    "size": 5
-                }
-            },
-            "storageInfo": {
-                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
-                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "complex-wait-any",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "*@green",
-                    "*@yellow",
-                    "@green",
-                    "@yellow"
-                ]
-            }
-        ],
-        "flowInputMetadata": {
-            "metadata": {
-                "flowInput": {
-                    "type": "object"
-                },
-                "flowInput.files": {
-                    "type": "object"
-                },
-                "flowInput.files.links": {
-                    "type": "array",
-                    "size": 5
-                }
-            },
-            "storageInfo": {
-                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
-                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
         "name": "simple-wait-any",
         "nodes": [
             {
@@ -356,108 +140,6 @@
                 "flowInput.files.links": {
                     "type": "array",
                     "size": 2
-                }
-            },
-            "storageInfo": {
-                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
-                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "double-wait-any",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "*@green",
-                    "*@yellow"
-                ]
-            }
-        ],
-        "flowInputMetadata": {
-            "metadata": {
-                "flowInput": {
-                    "type": "object"
-                },
-                "flowInput.files": {
-                    "type": "object"
-                },
-                "flowInput.files.links": {
-                    "type": "array",
-                    "size": 5
-                }
-            },
-            "storageInfo": {
-                "Key": "green:green-alg:bde23282-4a20-4a13-9d5c-a1e9cd4a696a",
-                "Bucket": "batch-5b0b25a1-5364-4bd6-b9b0-126de5ed2227"
-            }
-        },
-        "options": {
-            "batchTolerance": 100,
-            "progressVerbosityLevel": "debug"
-        }
-    },
-    {
-        "name": "multi-input",
-        "nodes": [
-            {
-                "nodeName": "green",
-                "algorithmName": "green-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "yellow",
-                "algorithmName": "yellow-alg",
-                "input": [
-                    "#@flowInput.files.links"
-                ]
-            },
-            {
-                "nodeName": "black",
-                "algorithmName": "black-alg",
-                "input": [
-                    "@green",
-                    "@yellow",
-                    "#@green",
-                    "#@yellow",
-                    "*@green",
-                    "*@yellow"
-                ]
-            }
-        ],
-        "flowInputMetadata": {
-            "metadata": {
-                "flowInput": {
-                    "type": "object"
-                },
-                "flowInput.files": {
-                    "type": "object"
-                },
-                "flowInput.files.links": {
-                    "type": "array",
-                    "size": 5
                 }
             },
             "storageInfo": {
@@ -686,6 +368,43 @@
                     "@batch1",
                     "@add3"
                 ]
+            }
+        ]
+    },
+    {
+        "name": "stateful-pipeline",
+        "nodes": [
+            {
+                "nodeName": "green",
+                "algorithmName": "green-alg",
+                "input": [
+                    "@flowInput.files.link"
+                ],
+                "stateType": "stateful"
+            },
+            {
+                "nodeName": "yellow",
+                "algorithmName": "yellow-alg",
+                "input": [
+                    "@green"
+                ],
+                "stateType": "stateful"
+            },
+            {
+                "nodeName": "black",
+                "algorithmName": "black-alg",
+                "input": [
+                    "@yellow"
+                ],
+                "stateType": "stateful"
+            },
+            {
+                "nodeName": "white",
+                "algorithmName": "black-alg",
+                "input": [
+                    "test"
+                ],
+                "stateType": "stateful"
             }
         ]
     }

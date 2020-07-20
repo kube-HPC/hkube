@@ -318,11 +318,17 @@ class TaskRunner extends EventEmitter {
     }
 
     _runEntryNodes() {
-        const entryNodes = this._nodes.findEntryNodes();
+        const entryNodes = this._findEntryNodes();
         if (entryNodes.length === 0) {
             throw new Error('unable to find entry nodes');
         }
         entryNodes.forEach(n => this._runNode(n));
+    }
+
+    _findEntryNodes() {
+        const sourceNodes = this._nodes.getSources();
+        const allNodes = this._nodes.getAllNodes().filter(n => n.stateType === 'stateful').map(n => n.nodeName);
+        return [...new Set([...sourceNodes, ...allNodes])];
     }
 
     get _currentProgress() {
