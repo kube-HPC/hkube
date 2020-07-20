@@ -9,7 +9,7 @@ const { ResourceNotFoundError } = require('../errors');
 
 class ExecutionService {
     async getCronResult(options) {
-        validator.validateResultList(options);
+        validator.lists.validateResultList(options);
         const jobId = this._createCronJobID(options);
         const response = await stateManager.getJobResults({ ...options, jobId });
         if (response.length === 0) {
@@ -19,7 +19,7 @@ class ExecutionService {
     }
 
     async getCronStatus(options) {
-        validator.validateResultList(options);
+        validator.lists.validateResultList(options);
         const jobId = this._createCronJobID(options);
         const response = await stateManager.jobs.status.list({ ...options, jobId });
         if (response.length === 0) {
@@ -35,7 +35,7 @@ class ExecutionService {
     }
 
     async runStoredCron(options) {
-        validator.validateStoredInternal(options);
+        validator.internal.validateStoredInternal(options);
         const pipeline = await this._createPipeline(options);
         const jobId = this._createCronJobID(pipeline, uid({ length: 8 }));
         return execution._runStored({ pipeline, jobId, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON] });
@@ -50,7 +50,7 @@ class ExecutionService {
     }
 
     async _toggleCronJob(options, enabled) {
-        validator.validateCronRequest(options);
+        validator.cron.validateCronRequest(options);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -77,7 +77,7 @@ class ExecutionService {
         const { name } = options;
         const pipeline = await stateManager.pipelines.get({ name });
         const experiment = { name: (pipeline && pipeline.experimentName) || undefined };
-        validator.validateExperimentName(experiment);
+        validator.experiments.validateExperimentName(experiment);
         return experiment.name;
     }
 

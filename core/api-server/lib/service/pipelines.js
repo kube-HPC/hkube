@@ -7,19 +7,19 @@ const { ResourceNotFoundError, ResourceExistsError, InvalidDataError } = require
 
 class PipelineStore {
     async updatePipeline(options) {
-        validator.validateUpdatePipeline(options);
+        validator.pipelines.validateUpdatePipeline(options);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
         }
-        await validator.validateAlgorithmExists(options);
+        await validator.algorithms.validateAlgorithmExists(options);
         await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: options });
         await stateManager.pipelines.set(options);
         return options;
     }
 
     async deletePipeline(options) {
-        validator.validatePipelineName(options.name);
+        validator.pipelines.validatePipelineName(options.name);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -54,7 +54,7 @@ class PipelineStore {
     }
 
     async getPipeline(options) {
-        validator.validatePipelineName(options.name);
+        validator.pipelines.validatePipelineName(options.name);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -110,8 +110,8 @@ class PipelineStore {
     }
 
     async insertPipeline(options) {
-        validator.validateUpdatePipeline(options);
-        await validator.validateAlgorithmExists(options);
+        validator.pipelines.validateUpdatePipeline(options);
+        await validator.algorithms.validateAlgorithmExists(options);
         await storageManager.hkubeStore.put({ type: 'pipeline', name: options.name, data: options });
 
         const pipe = await stateManager.pipelines.get(options);
