@@ -1,5 +1,4 @@
 const converter = require('@hkube/units-converter');
-const regex = require('../consts/regex');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 
@@ -91,18 +90,6 @@ class ApiValidator {
             algorithms.set(node.algorithmName, algorithm);
         });
         return algorithms;
-    }
-
-    _validateAlgorithmName(name) {
-        return regex.ALGORITHM_NAME_REGEX.test(name);
-    }
-
-    _validateAlgorithmImage(image) {
-        return regex.ALGORITHM_IMAGE_REGEX.test(image);
-    }
-
-    _validateAlgorithmMountPvc(name) {
-        return name && regex.PVC_NAME_REGEX.test(name) && name.length < 64;
     }
 
     _validateAlgorithmEnvVar(algorithm) {

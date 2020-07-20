@@ -9,7 +9,7 @@ const formatMessages = new Map();
 class ApiValidator {
     init(definitions, ...validators) {
         validators.forEach(v => this._init(v, definitions));
-        this.addFormatMessages();
+        this._addFormatMessages();
     }
 
     _init(validatorInstance, definitions) {
@@ -29,7 +29,7 @@ class ApiValidator {
         });
     }
 
-    addFormatMessages() {
+    _addFormatMessages() {
         formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
         formatMessages.set('algorithm-name', validationMessages.ALGORITHM_NAME_FORMAT);
         formatMessages.set('algorithm-image', validationMessages.ALGORITHM_IMAGE_FORMAT);

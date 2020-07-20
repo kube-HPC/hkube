@@ -2,7 +2,7 @@ const Validator = require('ajv');
 const { Graph, alg } = require('graphlib');
 const { parser } = require('@hkube/parsers');
 const { InvalidDataError } = require('../errors');
-const formats = require('./formats');
+const customFormats = require('./custom-formats');
 const validator = new Validator({ useDefaults: false, coerceTypes: true, nullable: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true, nullable: true });
 
@@ -10,7 +10,7 @@ class ApiValidator {
     init(schemas, schemasInternal) {
         this.definitions = schemas;
         this.definitionsInternal = schemasInternal;
-        formats.init(schemas, validator, defaulter);
+        customFormats.init(schemas, validator, defaulter);
     }
 
     addDefaults(schema, object) {
