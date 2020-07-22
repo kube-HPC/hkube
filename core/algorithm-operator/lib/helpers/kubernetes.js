@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const log = require('@hkube/logger').GetLogFromContainer();
 const KubernetesClient = require('@hkube/kubernetes-client').Client;
-const component = require('../../lib/consts/componentNames').K8S;
+const component = require('../consts/componentNames').K8S;
 const { logWrappers } = require('./tracing');
 
 class KubernetesApi extends EventEmitter {
@@ -100,7 +100,6 @@ class KubernetesApi extends EventEmitter {
         }
         return null;
     }
-
 
     async getVersionsConfigMap() {
         try {

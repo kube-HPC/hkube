@@ -1,9 +1,8 @@
 const EventEmitter = require('events');
 const EtcdClient = require('@hkube/etcd');
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../../lib/consts/componentNames').ETCD;
+const component = require('../consts/componentNames').ETCD;
 const { logWrappers } = require('./tracing');
-
 
 class Etcd extends EventEmitter {
     constructor() {

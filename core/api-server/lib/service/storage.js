@@ -17,7 +17,7 @@ class StorageService {
     }
 
     async getPrefixesByPath({ path, ...options }) {
-        validator.validateListRange(options);
+        validator.lists.validateListRange(options);
         return this._getPrefixesByPath({ path, ...options });
     }
 
@@ -28,12 +28,12 @@ class StorageService {
     }
 
     async getAllPrefixes(options) {
-        validator.validateListRange(options);
+        validator.lists.validateListRange(options);
         return Promise.all(this.prefixesTypes.map(path => this._getPrefixesByPath({ path, ...options })));
     }
 
     async getKeysByPath({ path, ...options }) {
-        validator.validateListRange(options);
+        validator.lists.validateListRange(options);
         return this._getKeysByPath({ path, ...options });
     }
 
@@ -43,7 +43,7 @@ class StorageService {
     }
 
     async getAllKeys(options) {
-        validator.validateListRange(options);
+        validator.lists.validateListRange(options);
         return Promise.all(this.prefixesTypes.map(path => this._getKeysByPath({ path, ...options })));
     }
 

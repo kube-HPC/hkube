@@ -1,7 +1,7 @@
 const { expect } = require('chai');
 const fse = require('fs-extra');
 const nock = require('nock');
-const { randomString: uuid } = require('../lib/utils');
+const { uid: uuid } = require('@hkube/uid');
 const HttpStatus = require('http-status-codes');
 const querystring = require('querystring');
 const builds = require('../lib/service/builds');

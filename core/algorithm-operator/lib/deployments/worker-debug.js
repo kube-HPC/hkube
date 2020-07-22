@@ -1,7 +1,7 @@
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { applyEnvToContainer, applyStorage } = require('@hkube/kubernetes-client').utils;
-const { applyImage } = require('../helpers/kubernetes-utils');
+const { applyImage, applyJaeger } = require('../helpers/kubernetes-utils');
 const component = require('../consts/componentNames').K8S;
 const { deploymentDebugTemplate, workerIngress, workerService } = require('../templates/worker-debug');
 const CONTAINERS = require('../consts/containers');
@@ -34,6 +34,7 @@ const createKindsSpec = ({ algorithmName, versions, registry, clusterOptions, wo
     deploymentSpec = applyImage(deploymentSpec, CONTAINERS.ALGORITHM_DEBUG, versions, registry);
     deploymentSpec = applyAlgorithmName(deploymentSpec, algorithmName, CONTAINERS.ALGORITHM_DEBUG);
     deploymentSpec = applyStorage(deploymentSpec, options.defaultStorage, CONTAINERS.ALGORITHM_DEBUG, 'algorithm-operator-configmap');
+    deploymentSpec = applyJaeger(deploymentSpec, CONTAINERS.ALGORITHM_DEBUG, options);
     const ingressSpec = workerIngress(algorithmName, clusterOptions);
     const serviceSpec = workerService(algorithmName);
 

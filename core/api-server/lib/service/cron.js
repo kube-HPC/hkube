@@ -1,15 +1,15 @@
 const objectPath = require('object-path');
+const { uid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const { pipelineTypes } = require('@hkube/consts');
 const execution = require('./execution');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError } = require('../errors');
-const { uuid } = require('../utils');
 
 class ExecutionService {
     async getCronResult(options) {
-        validator.validateResultList(options);
+        validator.lists.validateResultList(options);
         const jobId = this._createCronJobID(options);
         const response = await stateManager.getJobResults({ ...options, jobId });
         if (response.length === 0) {
@@ -19,7 +19,7 @@ class ExecutionService {
     }
 
     async getCronStatus(options) {
-        validator.validateResultList(options);
+        validator.lists.validateResultList(options);
         const jobId = this._createCronJobID(options);
         const response = await stateManager.jobs.status.list({ ...options, jobId });
         if (response.length === 0) {
@@ -35,9 +35,9 @@ class ExecutionService {
     }
 
     async runStoredCron(options) {
-        validator.validateStoredInternal(options);
+        validator.internal.validateStoredInternal(options);
         const pipeline = await this._createPipeline(options);
-        const jobId = this._createCronJobID(pipeline, uuid());
+        const jobId = this._createCronJobID(pipeline, uid({ length: 8 }));
         return execution._runStored({ pipeline, jobId, types: [pipelineTypes.STORED, pipelineTypes.INTERNAL, pipelineTypes.CRON] });
     }
 
@@ -50,7 +50,7 @@ class ExecutionService {
     }
 
     async _toggleCronJob(options, enabled) {
-        validator.validateCronRequest(options);
+        validator.cron.validateCronRequest(options);
         const pipeline = await stateManager.pipelines.get(options);
         if (!pipeline) {
             throw new ResourceNotFoundError('pipeline', options.name);
@@ -77,12 +77,12 @@ class ExecutionService {
         const { name } = options;
         const pipeline = await stateManager.pipelines.get({ name });
         const experiment = { name: (pipeline && pipeline.experimentName) || undefined };
-        validator.validateExperimentName(experiment);
+        validator.experiments.validateExperimentName(experiment);
         return experiment.name;
     }
 
-    _createCronJobID(options, uid) {
-        return [options.experimentName, pipelineTypes.CRON, options.name, uid].join(':');
+    _createCronJobID(options, id) {
+        return [options.experimentName, pipelineTypes.CRON, options.name, id].join(':');
     }
 }
 

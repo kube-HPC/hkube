@@ -1,5 +1,5 @@
 
-const { v4: uuid } = require('uuid');
+const { uuid } = require('@hkube/uid');
 const { expect } = require('chai');
 const storageManager = require('@hkube/storage-manager');
 const storageHelper = require('../lib/storage/storage');

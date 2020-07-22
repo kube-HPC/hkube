@@ -1,5 +1,5 @@
 const log = require('@hkube/logger').GetLogFromContainer();
-const component = require('../lib/consts/componentNames').OPERATOR;
+const component = require('./consts/componentNames').OPERATOR;
 const etcd = require('./helpers/etcd');
 const { logWrappers } = require('./helpers/tracing');
 const kubernetes = require('./helpers/kubernetes');
@@ -8,7 +8,6 @@ const tensorboardReconciler = require('./reconcile/tensorboard');
 const workerDebugReconciler = require('./reconcile/algorithm-debug');
 const algorithmQueueReconciler = require('./reconcile/algorithm-queue');
 const CONTAINERS = require('./consts/containers');
-
 
 class Operator {
     async init(options = {}) {
@@ -122,7 +121,7 @@ class Operator {
         });
     }
 
-    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms) {
+    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms, options) {
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({
             deployments,
@@ -130,7 +129,8 @@ class Operator {
             versions,
             registry,
             clusterOptions,
-            resources
+            resources,
+            options
         });
     }
 }

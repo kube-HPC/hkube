@@ -154,14 +154,6 @@ const workerTemplate = {
                                 }
                             },
                             {
-                                name: 'JAEGER_AGENT_SERVICE_HOST',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'status.hostIP'
-                                    }
-                                }
-                            },
-                            {
                                 name: 'WORKER_SOCKET_MAX_PAYLOAD_BYTES',
                                 valueFrom: {
                                     configMapKeyRef: {
@@ -258,14 +250,6 @@ const workerTemplate = {
                                     configMapKeyRef: {
                                         name: 'task-executor-configmap',
                                         key: 'CLUSTER_NAME'
-                                    }
-                                }
-                            },
-                            {
-                                name: 'JAEGER_AGENT_SERVICE_HOST',
-                                valueFrom: {
-                                    fieldRef: {
-                                        fieldPath: 'status.hostIP'
                                     }
                                 }
                             },

@@ -8,7 +8,6 @@ const component = require('../consts/componentNames').ALGORITHM_DEBUG_RECONCILER
 const deploymentType = require('../consts/DeploymentTypes').WORKER;
 const { normalizeDeployments } = require('./normalize');
 
-
 const _createKinds = async (jobDetails) => {
     const { deploymentSpec, ingressSpec, serviceSpec } = createKindsSpec(jobDetails);
     const deploymentCreateResult = await kubernetes.deployExposedPod({ deploymentSpec, ingressSpec, serviceSpec, name: jobDetails.algorithmName }, deploymentType);

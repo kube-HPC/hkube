@@ -13,7 +13,7 @@ class GraphService {
     }
 
     async getGraphRaw(options) {
-        validator.validateJobID(options);
+        validator.jobs.validateJobID(options);
         const { jobId } = options;
         const graph = await this._persistency.getGraph({ jobId });
         if (!graph) {
@@ -23,7 +23,7 @@ class GraphService {
     }
 
     async getGraphParsed(options) {
-        validator.validateGraphQuery(options);
+        validator.graphs.validateGraphQuery(options);
         const { jobId, node, sort, order, from, to } = options;
         const json = await this._persistency.getGraph({ jobId });
         const graph = JSON.parse(json);

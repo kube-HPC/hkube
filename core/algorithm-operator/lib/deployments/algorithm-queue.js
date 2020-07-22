@@ -2,7 +2,7 @@ const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const decamelize = require('decamelize');
 const { applyEnvToContainer, applyResourceRequests } = require('@hkube/kubernetes-client').utils;
-const { applyImage } = require('../helpers/kubernetes-utils');
+const { applyImage, applyJaeger } = require('../helpers/kubernetes-utils');
 const component = require('../consts/componentNames').K8S;
 const { algorithmQueueTemplate } = require('../templates/algorithm-queue');
 const { isValidDeploymentName } = require('../helpers/images');
@@ -23,7 +23,6 @@ const applyNodeSelector = (inputSpec, clusterOptions = {}) => {
     }
     return spec;
 };
-
 
 const applyName = (inputSpec, algorithmName, containerName) => {
     const spec = clonedeep(inputSpec);
@@ -46,7 +45,7 @@ const applyResources = (inputSpec, resources) => {
     return spec;
 };
 
-const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOptions, resources }) => {
+const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOptions, resources, options }) => {
     if (!algorithmName) {
         const msg = 'Unable to create deployment spec. algorithmName is required';
         log.error(msg, { component });
@@ -56,6 +55,7 @@ const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOption
     spec = applyName(spec, algorithmName, CONTAINERS.ALGORITHM_QUEUE);
     spec = applyAlgorithmName(spec, algorithmName, CONTAINERS.ALGORITHM_QUEUE);
     spec = applyImage(spec, CONTAINERS.ALGORITHM_QUEUE, versions, registry);
+    spec = applyJaeger(spec, CONTAINERS.ALGORITHM_QUEUE, options);
     spec = applyNodeSelector(spec, clusterOptions);
     if (settings.applyResourceLimits) {
         spec = applyResources(spec, resources);

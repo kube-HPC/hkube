@@ -43,7 +43,7 @@ class AlgorithmStore {
     }
 
     async updateAlgorithm(options) {
-        validator.validateAlgorithmName(options);
+        validator.algorithms.validateAlgorithmName(options);
         const alg = await stateManager.algorithms.store.get(options);
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', options.name);
@@ -53,7 +53,7 @@ class AlgorithmStore {
     }
 
     async deleteAlgorithm(options) {
-        validator.validateAlgorithmDelete(options);
+        validator.algorithms.validateAlgorithmDelete(options);
         const { name, force } = options;
         const algorithm = await stateManager.algorithms.store.get({ name });
         if (!algorithm) {
@@ -137,7 +137,7 @@ class AlgorithmStore {
     }
 
     async getAlgorithm(options) {
-        validator.validateName(options);
+        validator.jobs.validateName(options);
         const algorithm = await stateManager.algorithms.store.get(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
@@ -156,7 +156,7 @@ class AlgorithmStore {
     }
 
     async insertAlgorithm(options) {
-        validator.validateAlgorithmName(options);
+        validator.algorithms.validateAlgorithmName(options);
         const alg = await stateManager.algorithms.store.get(options);
         if (alg) {
             throw new ResourceExistsError('algorithm', options.name);
@@ -179,7 +179,7 @@ class AlgorithmStore {
 
         try {
             const { overrideImage } = options || {};
-            validator.validateApplyAlgorithm(payload);
+            validator.algorithms.validateApplyAlgorithm(payload);
 
             const oldAlgorithm = await stateManager.algorithms.store.get(payload);
             if (oldAlgorithm && oldAlgorithm.type !== payload.type) {
@@ -187,8 +187,8 @@ class AlgorithmStore {
             }
 
             newAlgorithm = { ...oldAlgorithm, ...payload };
-            validator.addAlgorithmDefaults(newAlgorithm);
-            await validator.validateAlgorithmResources(newAlgorithm);
+            validator.algorithms.addAlgorithmDefaults(newAlgorithm);
+            await validator.algorithms.validateAlgorithmResources(newAlgorithm);
 
             if (payload.type === buildTypes.CODE && file.path) {
                 if (payload.algorithmImage) {

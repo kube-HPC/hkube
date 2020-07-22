@@ -7,19 +7,19 @@ const fse = require('fs-extra');
 const { diff } = require('deep-diff');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
+const { uid } = require('@hkube/uid');
 const { buildStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
-const { randomString } = require('../utils');
 const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatuses.ACTIVE];
 const minimumBytes = 4100;
 
 class Builds {
     async getBuild(options) {
-        validator.validateBuildId(options);
+        validator.builds.validateBuildId(options);
         const response = await stateManager.algorithms.builds.get(options);
         if (!response) {
             throw new ResourceNotFoundError('build', options.buildId);
@@ -28,7 +28,7 @@ class Builds {
     }
 
     async getBuilds(options) {
-        validator.validateResultList(options);
+        validator.lists.validateResultList(options);
         const response = await stateManager.algorithms.builds.list(options);
         return response;
     }
@@ -48,7 +48,7 @@ class Builds {
     }
 
     async stopBuild(options) {
-        validator.validateBuildId(options);
+        validator.builds.validateBuildId(options);
         const { buildId } = options;
         const build = await this.getBuild({ buildId });
         if (!this.isActiveState(build.status)) {
@@ -63,7 +63,7 @@ class Builds {
     }
 
     async rerunBuild(options) {
-        validator.validateBuildId(options);
+        validator.builds.validateBuildId(options);
         const { buildId } = options;
         const build = await this.getBuild({ buildId });
         if (this.isActiveState(build.status)) {
@@ -104,7 +104,7 @@ class Builds {
             const version = newAlgorithm.gitRepository.commit.id;
             buildId = this._createBuildID(newAlgorithm.name);
             const { env, name, gitRepository, type, baseImage } = newAlgorithm;
-            validator.validateAlgorithmBuildFromGit({ env });
+            validator.builds.validateAlgorithmBuildFromGit({ env });
             await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, type, baseImage });
         }
         return { buildId, messages };
@@ -113,7 +113,7 @@ class Builds {
     async _newAlgorithm(file, oldAlgorithm, newAlgorithm) {
         const fileInfo = await this._fileInfo(file);
         const env = this._resolveEnv(oldAlgorithm, newAlgorithm);
-        validator.validateAlgorithmBuild({ fileExt: fileInfo.fileExt, env });
+        validator.builds.validateAlgorithmBuild({ fileExt: fileInfo.fileExt, env });
         return { ...newAlgorithm, fileInfo, env };
     }
 
@@ -186,7 +186,7 @@ class Builds {
     }
 
     _createBuildID(algorithmName) {
-        return [algorithmName, randomString({ length: 6 })].join('-');
+        return [algorithmName, uid({ length: 6 })].join('-');
     }
 
     _incVersion(oldAlgorithm, newAlgorithm) {

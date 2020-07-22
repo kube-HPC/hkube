@@ -1,4 +1,3 @@
-
 const isValidDeploymentName = (deploymentName) => {
     if (typeof deploymentName !== 'string') return false;
 

@@ -28,11 +28,23 @@ describe('jobCreator', () => {
             expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': '/hkube/debug/myalgo1' });
         });
         it('create job with volume', () => {
-            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs' } }).deploymentSpec;
+            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs', kubernetes: {} } }).deploymentSpec;
             expect(res.spec.template.spec).to.have.property('volumes');
             expect(res.spec.template.spec.containers[0]).to.have.property('volumeMounts');
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
             expect(res.metadata.name).to.include('myalgo1');
+        });
+        it('should apply jaeger privileged', () => {
+            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs', kubernetes: {isPrivileged: true} } }).deploymentSpec;
+            expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
+        });
+        it('should apply jaeger not privileged', () => {
+            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs', kubernetes: {isPrivileged: false} } }).deploymentSpec;
+            expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.be.undefined;
+        });
+        it('should apply jaeger not privileged with external agent', () => {
+            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs',jaeger: { host: 'foo.bar' } , kubernetes: {isPrivileged: false} } }).deploymentSpec;
+            expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql('foo.bar');
         });
         it('should use ingress host name', () => {
             const versions = {

@@ -1,6 +1,6 @@
 {
   "name": "pipeline-driver-queue",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "",
   "main": "app.js",
   "directories": {
@@ -30,6 +30,7 @@
     "lodash.remove": "^4.7.0"
   },
   "devDependencies": {
+    "@hkube/uid": "^1.0.4",
     "await-delay": "^1.0.0",
     "await-done": "^1.0.10",
     "chai": "^4.2.0",
@@ -41,7 +42,6 @@
     "istanbul": "^1.1.0-alpha.1",
     "mocha": "^6.1.4",
     "mockery": "^2.1.0",
-    "sinon": "^7.3.2",
-    "uuid": "^3.3.2"
+    "sinon": "^7.3.2"
   }
 }

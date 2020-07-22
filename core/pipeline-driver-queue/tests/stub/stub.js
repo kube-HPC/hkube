@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { uid: uuidv4 } = require('@hkube/uid');
 const stubTemplate = ({
     uuid = uuidv4(),
     pipelineUuid = `pipeline-${uuidv4()}`,

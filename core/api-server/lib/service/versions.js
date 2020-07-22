@@ -5,14 +5,14 @@ const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 
 class AlgorithmVersions {
     async getVersions(options) {
-        validator.validateAlgorithmName(options);
+        validator.algorithms.validateAlgorithmName(options);
         const algorithmVersion = await stateManager.algorithms.versions.list(options);
         return algorithmVersion;
     }
 
     async applyVersion(options) {
         const { name, image, force } = options;
-        validator.validateAlgorithmVersion({ name, image });
+        validator.algorithms.validateAlgorithmVersion({ name, image });
         const algorithm = await stateManager.algorithms.store.get({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
@@ -34,7 +34,7 @@ class AlgorithmVersions {
 
     async deleteVersion(options) {
         const { name, image } = options;
-        validator.validateAlgorithmVersion({ name, image });
+        validator.algorithms.validateAlgorithmVersion({ name, image });
         const algorithm = await stateManager.algorithms.store.get({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);

@@ -1,5 +1,5 @@
-const cryptoRandomString = require('crypto-random-string');
 const clonedeep = require('lodash.clonedeep');
+const { randomString } = require('@hkube/uid');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
 const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage,
@@ -9,10 +9,6 @@ const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
 const CONTAINERS = containers;
-
-const randomString = () => {
-    return cryptoRandomString({ length: 30 });
-};
 
 const applyAlgorithmResourceRequests = (inputSpec, resourceRequests, node) => {
     if (!resourceRequests) {
@@ -57,7 +53,7 @@ const applyAlgorithmName = (inputSpec, algorithmName) => {
 
 const applyName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
-    const name = `${algorithmName}-${randomString()}`;
+    const name = `${algorithmName}-${randomString({ length: 30 })}`;
     spec.metadata.name = name;
     return spec;
 };
@@ -103,6 +99,26 @@ const applyMounts = (inputSpec, mounts = []) => {
             }
         });
     });
+    return spec;
+};
+
+const applyJaeger = (inputSpec, container, options) => {
+    let spec = clonedeep(inputSpec);
+    const { isPrivileged } = options.kubernetes;
+    if (isPrivileged) {
+        spec = applyEnvToContainer(spec, container, {
+            JAEGER_AGENT_SERVICE_HOST: {
+                fieldRef: {
+                    fieldPath: 'status.hostIP'
+                }
+            }
+        });
+    }
+    else if (options.jaeger?.host) {
+        spec = applyEnvToContainer(spec, container, {
+            JAEGER_AGENT_SERVICE_HOST: options.jaeger.host
+        });
+    }
     return spec;
 };
 
@@ -221,6 +237,8 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM, 'task-executor-configmap');
     spec = applyLogging(spec, options);
     spec = applyOpengl(spec, options, algorithmOptions);
+    spec = applyJaeger(spec, CONTAINERS.WORKER, options);
+    spec = applyJaeger(spec, CONTAINERS.ALGORITHM, options);
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
     spec = applyMounts(spec, mounts);
 
@@ -239,6 +257,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
     spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
     spec = applyNodeSelector(spec, null, clusterOptions);
+    spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
 
     return spec;
