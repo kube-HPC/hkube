@@ -92,7 +92,7 @@ describe('Producer', function () {
             await taskRunner.start(job)
             await delay(500);
             const node = taskRunner._nodes.getNode('green');
-            await workerStub.done({ jobId, taskId: jobId, taskId: node.taskId, status, error });
+            await workerStub.done({ jobId, taskId: node.taskId, status, error });
             await delay(500);
             expect(node.status).to.eql(status);
             expect(node.error).to.eql(error);
@@ -116,7 +116,7 @@ describe('Producer', function () {
             await taskRunner.start(job)
             await delay(500);
             const node = taskRunner._nodes.getNode('green');
-            await workerStub.done({ jobId, taskId: jobId, taskId: node.taskId, status, error });
+            await workerStub.done({ jobId, taskId: node.taskId, status, error });
             await delay(500);
             expect(node.status).to.eql(status);
             expect(node.warnings).to.include(error);
@@ -141,7 +141,7 @@ describe('Producer', function () {
             await taskRunner.start(job)
             await delay(500);
             const node = taskRunner._nodes.getNode('green');
-            await workerStub.done({ jobId, taskId: jobId, taskId: node.taskId, status, error });
+            await workerStub.done({ jobId, taskId: node.taskId, status, error });
             await delay(500);
             expect(node.status).to.eql(failed);
             expect(node.error).to.eql(error);
