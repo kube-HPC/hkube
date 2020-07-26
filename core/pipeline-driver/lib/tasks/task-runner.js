@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
-const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, stateType } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
@@ -327,7 +327,7 @@ class TaskRunner extends EventEmitter {
 
     _findEntryNodes() {
         const sourceNodes = this._nodes.getSources();
-        const allNodes = this._nodes.getAllNodes().filter(n => n.stateType === 'stateful').map(n => n.nodeName);
+        const allNodes = this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName);
         return [...new Set([...sourceNodes, ...allNodes])];
     }
 
@@ -627,13 +627,20 @@ class TaskRunner extends EventEmitter {
         this._nodes.updateCompletedTask(task);
     }
 
-    _onTaskComplete() {
+    _onTaskComplete(task) {
         if (!this._active) {
             return;
         }
-        if (this._nodes.isAllNodesCompleted()) {
+        if (this._isStreamingDone(task)) {
             this.stop();
         }
+        else if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
+        }
+    }
+
+    _isStreamingDone(task) {
+        return task.isStateful;
     }
 
     _checkTaskErrors(task) {
@@ -702,6 +709,7 @@ class TaskRunner extends EventEmitter {
                 ttl: options.node.ttl,
                 retry: options.node.retry,
                 pipelineName: this.pipeline.name,
+                stateType: options.node.stateType,
                 priority: this.pipeline.priority,
                 algorithmName: options.node.algorithmName,
                 info: {

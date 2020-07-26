@@ -9,6 +9,7 @@ const stateAdapter = require('./states/stateAdapter');
 const { stateEvents, workerStates, workerCommands, Components } = require('./consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
+const backPressure = require('./streaming/back-pressure');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
 const { logMessages } = require('./consts');
@@ -217,6 +218,9 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.storing, (message) => {
             jobConsumer.setStoringStatus(message.data);
+        });
+        algoRunnerCommunication.on(messages.incomming.workloadPressure, (message) => {
+            backPressure.report(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);

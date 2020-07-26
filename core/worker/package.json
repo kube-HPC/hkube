@@ -19,7 +19,7 @@
     "license": "MIT",
     "dependencies": {
         "@hkube/config": "^2.0.7",
-        "@hkube/consts": "^1.0.21",
+        "@hkube/consts": "^1.0.25",
         "@hkube/encoding": "^1.0.16",
         "@hkube/etcd": "^5.0.21",
         "@hkube/kubernetes-client": "^1.0.30",

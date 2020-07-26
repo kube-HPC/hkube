@@ -1,10 +1,11 @@
 const EventEmitter = require('events');
 const { Consumer } = require('@hkube/producer-consumer');
 const { tracer } = require('@hkube/metrics');
-const { pipelineStatuses, taskStatuses, retryPolicy } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, retryPolicy, stateType } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
 const storage = require('../storage/storage');
 const stateManager = require('../states/stateManager');
+const backPressure = require('../streaming/back-pressure');
 const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
 const stateAdapter = require('../states/stateAdapter');
@@ -69,6 +70,7 @@ class JobConsumer extends EventEmitter {
             }
 
             metricsHelper.initMetrics(job);
+            backPressure.init();
             this._setJob(job);
 
             if (this._execId) {
@@ -126,6 +128,7 @@ class JobConsumer extends EventEmitter {
         this._jobId = job.data.jobId;
         this._taskId = job.data.taskId;
         this._execId = job.data.execId;
+        this._isStateful = job.data.stateType === stateType.Stateful;
         this._batchIndex = job.data.batchIndex;
         this._pipelineName = job.data.pipelineName;
         this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
@@ -253,10 +256,8 @@ class JobConsumer extends EventEmitter {
         if (!this._job) {
             return;
         }
-        await stateAdapter.unwatch({ jobId: this._jobId });
-        if (this._execId) {
-            await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
-        }
+        await this._unwatchJob();
+
         const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
         if (shouldCompleteJob) {
@@ -264,10 +265,7 @@ class JobConsumer extends EventEmitter {
             let metricsPath;
             if (!error && status === jobStatus.SUCCEED) {
                 storageResult = await storage.setStorage({ data: resultData, jobData: this._job.data });
-                if (!(this.jobData.metrics && this.jobData.metrics.tensorboard === false)) {
-                    const tensorboard = await boards.putAlgoMetrics(this.jobData, this.jobCurrentTime);
-                    (tensorboard.path || tensorboard.error) && (metricsPath = { tensorboard });
-                }
+                metricsPath = await boards.putAlgoMetrics(this.jobData, this.jobCurrentTime);
             }
             const resData = {
                 status,
@@ -275,6 +273,7 @@ class JobConsumer extends EventEmitter {
                 reason,
                 endTime: Date.now(),
                 metricsPath,
+                isStateful: this._isStateful,
                 ...storageResult
             };
 
@@ -282,8 +281,16 @@ class JobConsumer extends EventEmitter {
             await this.updateStatus(resData);
             log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
+        backPressure.finish();
         metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
+    }
+
+    async _unwatchJob() {
+        await stateAdapter.unwatch({ jobId: this._jobId });
+        if (this._execId) {
+            await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
+        }
     }
 
     setStoringStatus(result) {

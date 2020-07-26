@@ -308,7 +308,7 @@ describe('TaskRunner', function () {
         expect(node.batch[0].status).to.equal(algorithm.reason);
         expect(node.warnings[0]).to.equal(algorithm.message);
     });
-    it('should run stateful nodes at start', async function () {
+    it.only('should run stateful nodes at start', async function () {
         const jobId = `jobid-${uuidv4()}`;
         const job = {
             data: { jobId },
@@ -318,6 +318,7 @@ describe('TaskRunner', function () {
         await stateManager.setExecution({ jobId, ...pipeline });
         await stateManager._etcd.jobs.status.set({ jobId, status: 'pending' });
         await taskRunner.start(job);
+        await delay(2000);
         const allNodes = pipeline.nodes.map(n => n.nodeName);
         const entryNodes = taskRunner._findEntryNodes();
         expect(entryNodes.sort()).to.eql(allNodes.sort());

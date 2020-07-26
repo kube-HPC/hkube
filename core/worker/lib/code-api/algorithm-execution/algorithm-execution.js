@@ -255,7 +255,6 @@ class AlgorithmExecution {
                 name,
                 id: taskId,
                 tags: {
-
                     jobId,
                     taskId
                 }

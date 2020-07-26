@@ -12,6 +12,7 @@ module.exports = {
         finishSpan: 'finishSpan',
         startAlgorithmExecution: 'startAlgorithmExecution',
         stopAlgorithmExecution: 'stopAlgorithmExecution',
+        workloadPressure: 'workloadPressure',
         storing: 'storing',
         done: 'done'
     },
