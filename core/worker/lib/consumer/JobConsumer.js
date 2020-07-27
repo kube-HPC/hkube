@@ -5,7 +5,7 @@ const { pipelineStatuses, taskStatuses, retryPolicy, stateType } = require('@hku
 const Logger = require('@hkube/logger');
 const storage = require('../storage/storage');
 const stateManager = require('../states/stateManager');
-const backPressure = require('../streaming/back-pressure');
+const autoScaler = require('../auto-scale/auto-scaler');
 const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
 const stateAdapter = require('../states/stateAdapter');
@@ -70,7 +70,7 @@ class JobConsumer extends EventEmitter {
             }
 
             metricsHelper.initMetrics(job);
-            backPressure.init();
+            await autoScaler.init(job.data);
             this._setJob(job);
 
             if (this._execId) {
@@ -281,7 +281,7 @@ class JobConsumer extends EventEmitter {
             await this.updateStatus(resData);
             log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
-        backPressure.finish();
+        autoScaler.finish();
         metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
     }

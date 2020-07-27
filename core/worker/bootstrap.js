@@ -16,6 +16,7 @@ const modules = [
     require('./lib/states/stateAdapter.js'),
     require('./lib/algorithm-communication/workerCommunication.js'),
     require('./lib/consumer/JobConsumer.js'),
+    require('./lib/producer/producer.js'),
     require('./lib/helpers/kubernetes.js'),
     require('./lib/algorithm-logging/logging-proxy.js'),
     require('./lib/helpers/api-server-client.js'),

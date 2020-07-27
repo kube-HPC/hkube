@@ -1,12 +1,3 @@
-const producerSchema = {
-    type: 'object',
-    properties: {
-        prefix: {
-            type: 'string',
-            default: 'algorithm-queue'
-        }
-    }
-};
 
 const startAlgorithmSchema = {
     type: 'object',
@@ -46,7 +37,6 @@ const stopAlgorithmSchema = {
 };
 
 module.exports = {
-    producerSchema,
     startAlgorithmSchema,
     stopAlgorithmSchema,
 };

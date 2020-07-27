@@ -458,11 +458,13 @@ class TaskRunner extends EventEmitter {
             };
             const result = parser.parse(parse);
             const paths = this._nodes.extractPaths(nodeName);
+            const parents = this._nodes._parents(nodeName);
 
             const options = {
                 node,
                 index,
                 paths,
+                parents,
                 input: result.input,
                 storage: result.storage
             };
@@ -711,8 +713,10 @@ class TaskRunner extends EventEmitter {
                 pipelineName: this.pipeline.name,
                 stateType: options.node.stateType,
                 priority: this.pipeline.priority,
+                kind: this.pipeline.kind,
                 algorithmName: options.node.algorithmName,
                 info: {
+                    parents: options.parents,
                     extraData: options.node.extraData,
                     savePaths: options.paths,
                     lastRunResult: this.pipeline.lastRunResult,

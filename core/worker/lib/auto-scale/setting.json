@@ -1,0 +1,19 @@
+{
+    "spec": {
+        "min": 1,
+        "max": 300
+    },
+    "metrics": [
+        {
+            "type": "time",
+            "percent": 0.5,
+            "defaultValue": 1000,
+            "min": 100
+        },
+        {
+            "type": "queue",
+            "percent": 0.5,
+            "defaultValue": 1
+        }
+    ]
+}

@@ -56,10 +56,21 @@ class StateAdapter extends EventEmitter {
         this._etcd.jobs.results.on('change', (result) => {
             this._onJobResult(result);
         });
+        await this._etcd.discovery.watch();
+        this._etcd.discovery.on('change', (data) => {
+            this.emit('discovery-change', data);
+        });
+        this._etcd.discovery.on('delete', (data) => {
+            this.emit('discovery-delete', data);
+        });
     }
 
     _onJobResult(result) {
         this.emit(`${EventMessages.JOB_RESULT}-${result.status}`, result);
+    }
+
+    getExecution(options) {
+        return this._etcd.executions.running.get(options);
     }
 
     async stopAlgorithmExecution(options) {
@@ -155,6 +166,10 @@ class StateAdapter extends EventEmitter {
         catch (error) {
             log.warning(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
         }
+    }
+
+    async getDiscovery(filter) {
+        return this._etcd.discovery.list(null, filter);
     }
 }
 
