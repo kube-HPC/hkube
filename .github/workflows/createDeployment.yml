@@ -1,0 +1,49 @@
+name: CreateDeployment
+on:
+  issue_comment:
+    type: [created]
+
+jobs:
+  deploy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - id: check
+        name: check for deployment command
+        uses: khan/pull-request-comment-trigger@master
+        with:
+          trigger: '/deploy'
+          reaction: rocket
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    outputs:
+      triggered: ${{ steps.check.outputs.triggered }}
+  deployment:
+    runs-on: ubuntu-latest
+    needs: deploy-check
+    if: needs.deploy-check.outputs.triggered == 'true'
+    steps:
+    - name: get pull request ref
+      id: get_pull_request_ref
+      uses: octokit/request-action@v2.x
+      with:
+        route: GET /repos/:repository/pulls/:issue_id
+        repository: ${{ github.repository }}
+        issue_id: ${{ github.event.issue.number }}
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    - name: create deployment
+      id: create_deployment
+      uses: octokit/request-action@v2.x
+      with:
+        route: POST /repos/:repository/deployments
+        repository: ${{ github.repository }}
+        ref: ${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}
+        environment: dev
+        auto_merge: false
+        payload: |
+          prNumber: ${{ github.event.issue.number }}
+      env:
+        GITHUB_TOKEN: "${{ secrets.GH_TOKEN }}"
+    
+  
+
