@@ -40,8 +40,7 @@ jobs:
         ref: ${{ fromJson(steps.get_pull_request_ref.outputs.data).head.ref }}
         environment: dev
         auto_merge: false
-        required_contexts: 
-          - 'continuous-integration/travis-ci/pr'
+        required_contexts: '["continuous-integration/travis-ci/pr"]'
         payload: |
           prNumber: ${{ github.event.issue.number }}
       env:
