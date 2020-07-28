@@ -2,7 +2,7 @@ const delay = require('delay');
 const { expect } = require('chai');
 const sinon = require('sinon');
 const stateAdapter = require('../lib/states/stateAdapter');
-const autoScaler = require('../lib/auto-scale/auto-scaler.js');
+const autoScaler = require('../lib/streaming/auto-scaler.js');
 
 const pipeline = {
     "jobId": 'k123h1jk2h',
@@ -45,9 +45,18 @@ const pipeline = {
 describe.only('auto-scaler', () => {
     it('should set inititial state to bootstrap', async () => {
         const data = [
-            { nodeName: 'two', duration: 150, currentSize: 0, queueSize: 1 },
-            // { nodeName: 'three', duration: 3000, currentSize: 0, queueSize: 250 }
-        ];
+            {
+                nodeName: 'one',
+                durations: [2000, 3500, 1212, 4354],
+                sent: 100,
+                queueSize: 5
+            },
+            {
+                nodeName: 'two',
+                durations: [1000, 3300, 2313, 4354],
+                sent: 200,
+                queueSize: 17
+            }];
         await stateAdapter._etcd.executions.running.set(pipeline);
         await autoScaler.init(pipeline);
         autoScaler.report(data);

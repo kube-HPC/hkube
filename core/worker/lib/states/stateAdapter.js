@@ -56,7 +56,7 @@ class StateAdapter extends EventEmitter {
         this._etcd.jobs.results.on('change', (result) => {
             this._onJobResult(result);
         });
-        await this._etcd.discovery.watch();
+        await this._etcd.discovery.watch({ serviceName: 'worker' });
         this._etcd.discovery.on('change', (data) => {
             this.emit('discovery-change', data);
         });
@@ -169,7 +169,7 @@ class StateAdapter extends EventEmitter {
     }
 
     async getDiscovery(filter) {
-        return this._etcd.discovery.list(null, filter);
+        return this._etcd.discovery.list({ serviceName: 'worker' }, filter);
     }
 }
 

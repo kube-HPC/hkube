@@ -2,13 +2,14 @@ const producer = require('../producer/producer');
 const setting = require('./setting.json');
 const stateAdapter = require('../states/stateAdapter');
 const metrics = require('./metrics');
+const discovery = require('./discovery');
 const INTERVAL = 2000;
 
 class AutoScaler {
     async init(jobData) {
         this._jobData = jobData;
         this._workload = Object.create(null);
-        this._instances = Object.create(null);
+        await discovery.init({ jobId: jobData.jobId, taskId: jobData.taskId });
         if (jobData.kind === 'stream') {
             this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
             this._checkBackPressureInterval();
@@ -16,6 +17,7 @@ class AutoScaler {
     }
 
     finish() {
+        discovery.finish();
         clearInterval(this._interval);
         this._interval = null;
     }
@@ -25,10 +27,18 @@ class AutoScaler {
             return;
         }
         data.forEach((d) => {
-            const { nodeName, currentSize, queueSize, duration } = d;
-            const node = this._pipeline.nodes.find(n => n.nodeName === nodeName && n.stateType === 'stateless');
+            const { nodeName, queueSize, durations, sent } = d;
+            const node = this._pipeline.nodes.find(n => n.nodeName === nodeName); // && n.stateType === 'stateless');
             if (node) {
-                this._workload[nodeName] = { algorithmName: node.algorithmName, nodeName, currentSize, queueSize, duration };
+                const workload = this._workload[nodeName] || { algorithmName: node.algorithmName, nodeName, sentList: [] };
+                workload.sentList.push({ time: Date.now(), sent });
+                const currentSize = discovery.count(nodeName);
+                this._workload[nodeName] = {
+                    ...workload,
+                    currentSize,
+                    queueSize,
+                    durations
+                };
             }
         });
     }
@@ -44,6 +54,22 @@ class AutoScaler {
             try {
                 this._active = true;
                 this._checkBackPressure(this._jobData);
+
+                const data = [
+                    {
+                        nodeName: 'one',
+                        durations: [2000, 3500, 1212, 4354],
+                        sent: 100,
+                        queueSize: 5
+                    },
+                    {
+                        nodeName: 'two',
+                        durations: [1000, 3300, 2313, 4354],
+                        sent: 200,
+                        queueSize: 17
+                    }];
+                this.report(data);
+
             }
             catch (error) {
             }
