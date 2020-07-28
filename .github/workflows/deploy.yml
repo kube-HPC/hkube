@@ -34,7 +34,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git clone "https://${{ secrets.GH_TOKEN }}@github.com/hkube/helm.git" "$HOME/helm"
+        git clone "https://${{ secrets.GH_TOKEN }}@github.com/kube-HPC/helm.git" "$HOME/helm"
         cd $HOME/helm
         git checkout -B ${{ github.event.deployment.ref }}
         git status
@@ -81,6 +81,21 @@ jobs:
       with:
         name: chart.tgz
         path: /tmp/chart.tgz
+    - name: set deployment status to failure
+      id: failed_deployment
+      uses: octokit/request-action@v2.x
+      if: failure()
+      with:
+        route: POST /repos/:repository/deployments/:deployment/statuses
+        repository: ${{ github.repository }}
+        deployment: ${{ github.event.deployment.id }}
+        environment: dev
+        environment_url: https://${{ secrets.DEV1_URL }}/hkube/dashboard/
+        log_url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        mediaType: '{"previews": ["ant-man"]}'
+        state: failure
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     outputs:
       chart: chart.tgz
   deploy:
