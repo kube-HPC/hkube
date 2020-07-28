@@ -717,9 +717,9 @@ class TaskRunner extends EventEmitter {
                 priority: this.pipeline.priority,
                 kind: this.pipeline.kind,
                 algorithmName: options.node.algorithmName,
+                parents: options.parents,
+                childs: options.childs,
                 info: {
-                    parents: options.parents,
-                    childs: options.childs,
                     extraData: options.node.extraData,
                     savePaths: options.paths,
                     lastRunResult: this.pipeline.lastRunResult,

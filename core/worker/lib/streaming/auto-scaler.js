@@ -3,17 +3,15 @@ const setting = require('./setting.json');
 const stateAdapter = require('../states/stateAdapter');
 const metrics = require('./metrics');
 const discovery = require('./discovery');
-const INTERVAL = 2000;
+const INTERVAL = 20000;
 
 class AutoScaler {
     async init(jobData) {
         this._jobData = jobData;
         this._workload = Object.create(null);
         await discovery.init({ jobId: jobData.jobId, taskId: jobData.taskId });
-        if (jobData.kind === 'stream') {
-            this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
-            this._checkBackPressureInterval();
-        }
+        this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
+        this._checkBackPressureInterval();
     }
 
     finish() {
@@ -31,7 +29,7 @@ class AutoScaler {
             const node = this._pipeline.nodes.find(n => n.nodeName === nodeName); // && n.stateType === 'stateless');
             if (node) {
                 const workload = this._workload[nodeName] || { algorithmName: node.algorithmName, nodeName, sentList: [] };
-                workload.sentList.push({ time: Date.now(), sent });
+                workload.sentList.push({ time: Date.now(), count: sent });
                 const currentSize = discovery.count(nodeName);
                 this._workload[nodeName] = {
                     ...workload,
@@ -54,22 +52,6 @@ class AutoScaler {
             try {
                 this._active = true;
                 this._checkBackPressure(this._jobData);
-
-                const data = [
-                    {
-                        nodeName: 'one',
-                        durations: [2000, 3500, 1212, 4354],
-                        sent: 100,
-                        queueSize: 5
-                    },
-                    {
-                        nodeName: 'two',
-                        durations: [1000, 3300, 2313, 4354],
-                        sent: 200,
-                        queueSize: 17
-                    }];
-                this.report(data);
-
             }
             catch (error) {
             }
@@ -80,7 +62,6 @@ class AutoScaler {
     }
 
     _checkBackPressure(jobData) {
-
         Object.entries(this._workload).forEach(([, v]) => {
             const { nodeName, algorithmName, currentSize, queueSize } = v;
             if (queueSize === 0) {
@@ -91,7 +72,7 @@ class AutoScaler {
                 const metric = metrics[m.type];
                 const ratio = metric(v, m);
                 if (ratio >= m.percent) {
-                    replicas += Math.ceil(queueSize * ratio);
+                    replicas += Math.ceil(setting.spec.min * ratio);
                 }
             });
 

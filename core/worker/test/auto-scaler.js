@@ -44,7 +44,11 @@ const pipeline = {
 
 describe.only('auto-scaler', () => {
     it('should set inititial state to bootstrap', async () => {
-        const data = [
+        const scale = (data) => {
+            data[0].sent += 100;
+            data[1].sent += 100;
+        }
+        const list = [
             {
                 nodeName: 'one',
                 durations: [2000, 3500, 1212, 4354],
@@ -59,7 +63,13 @@ describe.only('auto-scaler', () => {
             }];
         await stateAdapter._etcd.executions.running.set(pipeline);
         await autoScaler.init(pipeline);
-        autoScaler.report(data);
+        autoScaler.report(list);
+        scale(list);
+        await delay(1000);
+        autoScaler.report(list);
+        scale(list);
+        await delay(1000);
+        autoScaler.report(list);
         autoScaler._checkBackPressure();
     });
 });

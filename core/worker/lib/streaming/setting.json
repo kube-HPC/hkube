@@ -8,12 +8,18 @@
             "type": "time",
             "percent": 0.5,
             "defaultValue": 1000,
-            "min": 100
+            "desired": 100
         },
         {
             "type": "queue",
             "percent": 0.5,
             "defaultValue": 1
+        },
+        {
+            "type": "sentRate",
+            "percent": 0.5,
+            "defaultValue": 1,
+            "desired": 100
         }
     ]
 }

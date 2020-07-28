@@ -5,7 +5,7 @@ const { pipelineStatuses, taskStatuses, retryPolicy, stateType } = require('@hku
 const Logger = require('@hkube/logger');
 const storage = require('../storage/storage');
 const stateManager = require('../states/stateManager');
-const autoScaler = require('../streaming/auto-scaler');
+const pipelineKinds = require('../pipeline-kind/kinds');
 const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
 const stateAdapter = require('../states/stateAdapter');
@@ -70,7 +70,11 @@ class JobConsumer extends EventEmitter {
             }
 
             metricsHelper.initMetrics(job);
-            await autoScaler.init(job.data);
+            const { error } = await pipelineKinds.init(job.data);
+            if (error) {
+                stateManager.done({ error });
+                return;
+            }
             this._setJob(job);
 
             if (this._execId) {
@@ -125,6 +129,7 @@ class JobConsumer extends EventEmitter {
 
     _setJob(job) {
         this._job = job;
+        this._kind = job.data.kind;
         this._jobId = job.data.jobId;
         this._taskId = job.data.taskId;
         this._execId = job.data.execId;
@@ -184,6 +189,7 @@ class JobConsumer extends EventEmitter {
         const discoveryInfo = {
             jobId: this._jobId,
             taskId: this._taskId,
+            address: this._address,
             pipelineName: this._pipelineName,
             jobData: this._jobData,
             workerStatus,
@@ -281,7 +287,7 @@ class JobConsumer extends EventEmitter {
             await this.updateStatus(resData);
             log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
-        autoScaler.finish();
+        pipelineKinds.finish(this._kind);
         metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
     }
@@ -325,6 +331,10 @@ class JobConsumer extends EventEmitter {
 
     get jobRetry() {
         return this._retry || DEFAULT_RETRY;
+    }
+
+    set address(address) {
+        this._address = address;
     }
 
     getAlgorithmType() {
