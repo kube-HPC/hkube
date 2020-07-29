@@ -18,7 +18,7 @@ const time = (data, metric) => {
     return ratio;
 };
 
-const queue = (data, metric) => {
+const queue = (data) => {
     const current = data.currentSize;
     const ratio = _percentDiff(current, data.queueSize);
     return ratio;

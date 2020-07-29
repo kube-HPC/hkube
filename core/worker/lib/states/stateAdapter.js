@@ -29,7 +29,8 @@ class StateAdapter extends EventEmitter {
             algorithmName: options.jobConsumer.job.type,
             podName: options.kubernetes.pod_name,
             workerImage: options.workerImage,
-            algorithmImage: options.algorithmImage
+            algorithmImage: options.algorithmImage,
+            streamingDiscovery: options.streamingDiscovery
         };
         this._tasksQueue = asyncQueue((task, callback) => {
             this._etcd.jobs.tasks.set(task).then(r => callback(null, r)).catch(e => callback(e));

@@ -58,7 +58,7 @@ class Worker {
         let message = 'algorithm protocols: none';
 
         if (algorithmStorage && algorithmEncoding) {
-            message = `algorithm protocols: ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding, kind })}`;
+            message = `algorithm protocols: ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
         }
         log.info(`${message}. chosen protocols: ${this._formatProtocol({ storage, encoding })}`, { component });
     }

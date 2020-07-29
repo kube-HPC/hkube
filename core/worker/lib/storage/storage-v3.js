@@ -4,17 +4,10 @@ const discovery = require('../streaming/discovery');
 
 class Storage {
     async start(options) {
-        let error;
         const { kind } = options;
-        try {
-            if (kind === pipelineKind.Stream) {
-                await autoScaler.start(options);
-            }
+        if (kind === pipelineKind.Stream) {
+            await autoScaler.start(options);
         }
-        catch (e) {
-            error = e.message;
-        }
-        return { error };
     }
 
     async finish(options) {

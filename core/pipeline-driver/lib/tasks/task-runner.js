@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
-const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, stateType } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
@@ -204,7 +204,6 @@ class TaskRunner extends EventEmitter {
         await this._progressStatus({ status: DriverStates.ACTIVE });
 
         this.pipeline = pipeline;
-        this._isStreaming = pipeline.kind === pipelineKind.Stream;
         this._nodes = new NodesMap(this.pipeline);
         this._nodes.on('node-ready', (node) => {
             this._runNode(node.nodeName, node.parentOutput, node.index);
@@ -328,7 +327,7 @@ class TaskRunner extends EventEmitter {
 
     _findEntryNodes() {
         const sourceNodes = this._nodes.getSources();
-        const statefulNodes = this._isStreaming ? this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName) : [];
+        const statefulNodes = this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName);
         return [...new Set([...sourceNodes, ...statefulNodes])];
     }
 

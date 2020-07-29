@@ -308,7 +308,7 @@ describe('TaskRunner', function () {
         expect(node.batch[0].status).to.equal(algorithm.reason);
         expect(node.warnings[0]).to.equal(algorithm.message);
     });
-    it.only('should run stateful nodes at start', async function () {
+    it('should run stateful nodes at start', async function () {
         const jobId = `jobid-${uuidv4()}`;
         const job = {
             data: { jobId },

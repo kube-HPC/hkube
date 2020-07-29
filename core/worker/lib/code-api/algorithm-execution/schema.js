@@ -1,4 +1,3 @@
-
 const startAlgorithmSchema = {
     type: 'object',
     properties: {

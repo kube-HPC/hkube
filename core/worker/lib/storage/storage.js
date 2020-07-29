@@ -17,7 +17,14 @@ class Storage {
     }
 
     async start(options) {
-        return this._start(options);
+        let error;
+        try {
+            await this._start(options);
+        }
+        catch (e) {
+            error = e;
+        }
+        return { error };
     }
 
     async finish(options) {

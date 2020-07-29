@@ -24,6 +24,7 @@ class JobConsumer extends EventEmitter {
         this._job = null;
         this._jobId = undefined;
         this._taskId = undefined;
+        this._nodeName = undefined;
         this._batchIndex = undefined;
         this._pipelineName = undefined;
         this._consumerPaused = false;
@@ -121,6 +122,7 @@ class JobConsumer extends EventEmitter {
         this._job = null;
         this._jobId = undefined;
         this._taskId = undefined;
+        this._nodeName = undefined;
         this._pipelineName = undefined;
         this._jobData = undefined;
         this._retry = undefined;
@@ -132,6 +134,7 @@ class JobConsumer extends EventEmitter {
         this._jobId = job.data.jobId;
         this._taskId = job.data.taskId;
         this._execId = job.data.execId;
+        this._nodeName = job.data.this._nodeName;
         this._isStateful = job.data.stateType === stateType.Stateful;
         this._batchIndex = job.data.batchIndex;
         this._pipelineName = job.data.pipelineName;
@@ -188,9 +191,9 @@ class JobConsumer extends EventEmitter {
         const discoveryInfo = {
             jobId: this._jobId,
             taskId: this._taskId,
-            streamingDiscovery: this._options.streamingDiscovery,
             pipelineName: this._pipelineName,
             jobData: this._jobData,
+            nodeName: this._nodeName,
             workerStatus,
             workerStartingTime: this.workerStartingTime,
             jobCurrentTime: this.jobCurrentTime,
@@ -249,7 +252,7 @@ class JobConsumer extends EventEmitter {
             jobId: this._jobId,
             taskId: this._taskId,
             execId: this._job.data.execId,
-            nodeName: this._job.data.nodeName,
+            nodeName: this._nodeName,
             parentNodeName: this._job.data.parentNodeName,
             algorithmName: this._job.data.algorithmName,
             podName: this._options.kubernetes.pod_name,

@@ -2,12 +2,10 @@ const { pipelineKind } = require('@hkube/consts');
 
 class Storage {
     async start(options) {
-        let error;
         const { kind } = options;
         if (kind === pipelineKind.Stream) {
-            error = `${kind} is not supported in this algorithm`;
+            throw new Error(`${kind} is not supported in this algorithm`);
         }
-        return { error };
     }
 
     async finish() {

@@ -1,4 +1,3 @@
-const { uid } = require('@hkube/uid');
 const Validator = require('ajv');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');

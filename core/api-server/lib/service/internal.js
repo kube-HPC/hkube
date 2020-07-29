@@ -5,7 +5,7 @@ const execution = require('./execution');
 
 class InternalService {
     async runStoredTriggerPipeline(options) {
-        validator.validateStoredInternal(options);
+        validator.internal.validateStoredInternal(options);
         const { name, parentJobId } = options;
         const execPipeline = await stateManager.executions.stored.get({ jobId: parentJobId });
         const experimentName = await this._getExperiment(execPipeline);
@@ -23,13 +23,13 @@ class InternalService {
     }
 
     async runStoredSubPipeline(options) {
-        validator.validateStoredSubPipeline(options);
+        validator.internal.validateStoredSubPipeline(options);
         const { pipeline, rootJobId, parentSpan } = await this._createPipeline(options);
         return execution._runStored({ pipeline, rootJobId, mergeFlowInput: true, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.STORED, pipelineTypes.SUB_PIPELINE] });
     }
 
     async runRawSubPipeline(options) {
-        validator.validateRawSubPipeline(options);
+        validator.internal.validateRawSubPipeline(options);
         const { pipeline, rootJobId, parentSpan } = await this._createPipeline(options);
         return execution._run({ pipeline, rootJobId, options: { parentSpan }, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
     }
@@ -49,7 +49,7 @@ class InternalService {
 
     _getExperiment(pipeline) {
         const experiment = { name: (pipeline && pipeline.experimentName) || undefined };
-        validator.validateExperimentName(experiment);
+        validator.experiments.validateExperimentName(experiment);
         return experiment.name;
     }
 }

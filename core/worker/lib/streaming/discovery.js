@@ -2,7 +2,7 @@ const stateAdapter = require('../states/stateAdapter');
 const INTERVAL = 5000;
 
 class Discovery {
-    async init({ jobId, taskId }) {
+    async start({ jobId, taskId }) {
         this._instances = Object.create(null);
         await this._updateDiscovery({ jobId, taskId });
         this._discoveryInterval({ jobId, taskId });
@@ -25,7 +25,7 @@ class Discovery {
                 this._active = true;
                 await this._updateDiscovery({ jobId, taskId });
             }
-            catch (error) {
+            catch (error) { // eslint-disable-line
             }
             finally {
                 this._active = false;
@@ -40,25 +40,25 @@ class Discovery {
     async _updateDiscovery({ jobId, taskId }) {
         const list = await stateAdapter.getDiscovery(d => this._isJobDiscovery(d, jobId, taskId));
         const result = list.reduce((acc, cur) => {
-            const nodeName = cur.jobData?.nodeName;
+            const { nodeName } = cur;
             if (!acc[nodeName]) {
                 acc[nodeName] = { list: [] };
             }
-            acc[nodeName].list.push(cur.taskId);
+            acc[nodeName].list.push({ taskId: cur.taskId, address: cur.streamingDiscovery });
             return acc;
         }, {});
-
-        // if () {
-
-        // }
 
         this._instances = result;
     }
 
     getAddresses(nodes) {
-        return nodes
-            .filter(n => this._instances[n])
-            .map(n => this._instances[n].address);
+        const addresses = [];
+        const nodesF = nodes.filter(n => this._instances[n]);
+        nodesF.forEach((n) => {
+            const list = this._instances[n].list.map(a => a.address);
+            addresses.push(...list);
+        });
+        return addresses;
     }
 
     countInstances(nodeName) {

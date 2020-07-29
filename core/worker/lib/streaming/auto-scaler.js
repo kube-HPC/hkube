@@ -9,7 +9,7 @@ class AutoScaler {
     async start(jobData) {
         this._jobData = jobData;
         this._workload = Object.create(null);
-        await discovery.init({ jobId: jobData.jobId, taskId: jobData.taskId });
+        await discovery.start({ jobId: jobData.jobId, taskId: jobData.taskId });
         this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
         this._checkBackPressureInterval();
     }
@@ -53,7 +53,7 @@ class AutoScaler {
                 this._active = true;
                 this._checkBackPressure(this._jobData);
             }
-            catch (error) {
+            catch { // eslint-disable-line
             }
             finally {
                 this._active = false;
@@ -78,7 +78,7 @@ class AutoScaler {
 
             replicas = Math.min(replicas, setting.spec.max);
 
-            const discovery = {};
+            // const discovery = {};
             const input = [];
             const tasks = [];
 

@@ -180,14 +180,11 @@ describe('AlgorithmExecutions', () => {
         await execAlgorithm._startAlgorithmExecution({ data });
 
         const args = spy.getCalls()[0].args[0];
-        expect(args).to.have.property('data');
-        expect(args).to.have.property('type');
-        expect(args.type).equals(data.algorithmName);
-        expect(args.data.tasks[0]).to.have.property('execId');
-        expect(args.data.tasks[0]).to.have.property('input');
-        expect(args.data.tasks[0]).to.have.property('storage');
-        expect(args.data.tasks[0]).to.have.property('taskId');
-        expect(args.data.tasks[0].execId).equals(data.execId);
+        expect(args.tasks[0]).to.have.property('execId');
+        expect(args.tasks[0]).to.have.property('input');
+        expect(args.tasks[0]).to.have.property('storage');
+        expect(args.tasks[0]).to.have.property('taskId');
+        expect(args.tasks[0].execId).equals(data.execId);
     });
     it('should succeed to send succeed status to algorithm', async function () {
         const jobData = {
