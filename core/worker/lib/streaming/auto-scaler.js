@@ -6,7 +6,7 @@ const discovery = require('./discovery');
 const INTERVAL = 20000;
 
 class AutoScaler {
-    async init(jobData) {
+    async start(jobData) {
         this._jobData = jobData;
         this._workload = Object.create(null);
         await discovery.init({ jobId: jobData.jobId, taskId: jobData.taskId });
@@ -30,7 +30,7 @@ class AutoScaler {
             if (node) {
                 const workload = this._workload[nodeName] || { algorithmName: node.algorithmName, nodeName, sentList: [] };
                 workload.sentList.push({ time: Date.now(), count: sent });
-                const currentSize = discovery.count(nodeName);
+                const currentSize = discovery.countInstances(nodeName);
                 this._workload[nodeName] = {
                     ...workload,
                     currentSize,
@@ -63,7 +63,7 @@ class AutoScaler {
 
     _checkBackPressure(jobData) {
         Object.entries(this._workload).forEach(([, v]) => {
-            const { nodeName, algorithmName, currentSize, queueSize } = v;
+            const { nodeName, algorithmName, queueSize } = v;
             if (queueSize === 0) {
                 return;
             }

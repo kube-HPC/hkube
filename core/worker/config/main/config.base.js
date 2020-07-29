@@ -42,7 +42,6 @@ config.apiServer = {
 
 config.defaultStorageProtocol = process.env.DEFAULT_STORAGE_PROTOCOL || 'v1';
 config.defaultWorkerAlgorithmEncoding = process.env.DEFAULT_WORKER_ALGORITHM_ENCODING || 'json';
-config.defaultPipelineKind = process.env.DEFAULT_PIPELINE_KIND || 'batch';
 
 config.workerCommunication = {
     adapterName: process.env.WORKER_ALGORITHM_PROTOCOL || 'ws',
@@ -61,6 +60,11 @@ config.jobConsumer = {
             stalledCheck: false
         }
     }
+};
+
+config.streamingDiscovery = {
+    host: process.env.POD_IP || '127.0.0.1',
+    port: process.env.STREAMING_DISCOVERY_PORT || 9021
 };
 
 config.discovery = {

@@ -16,8 +16,18 @@ class Storage {
         await dataAdapter.init(options);
     }
 
+    async start(options) {
+        return this._start(options);
+    }
+
+    async finish(options) {
+        return this._finish(options);
+    }
+
     setStorageType(type) {
         const storage = require(`./storage-${type}`); // eslint-disable-line
+        this._start = (...args) => storage.start(...args);
+        this._finish = (...args) => storage.finish(...args);
         this._getStorage = (...args) => storage.getResultFromStorage(...args);
         this._setStorage = (...args) => storage.setResultToStorage(...args);
     }

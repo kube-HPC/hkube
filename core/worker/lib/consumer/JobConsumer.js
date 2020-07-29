@@ -5,7 +5,6 @@ const { pipelineStatuses, taskStatuses, retryPolicy, stateType } = require('@hku
 const Logger = require('@hkube/logger');
 const storage = require('../storage/storage');
 const stateManager = require('../states/stateManager');
-const pipelineKinds = require('../pipeline-kind/kinds');
 const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
 const stateAdapter = require('../states/stateAdapter');
@@ -70,7 +69,7 @@ class JobConsumer extends EventEmitter {
             }
 
             metricsHelper.initMetrics(job);
-            const { error } = await pipelineKinds.init(job.data);
+            const { error } = await storage.start(job.data);
             if (error) {
                 stateManager.done({ error });
                 return;
@@ -189,7 +188,7 @@ class JobConsumer extends EventEmitter {
         const discoveryInfo = {
             jobId: this._jobId,
             taskId: this._taskId,
-            address: this._address,
+            streamingDiscovery: this._options.streamingDiscovery,
             pipelineName: this._pipelineName,
             jobData: this._jobData,
             workerStatus,
@@ -287,7 +286,7 @@ class JobConsumer extends EventEmitter {
             await this.updateStatus(resData);
             log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
-        pipelineKinds.finish(this._kind);
+        storage.finish(this._kind);
         metricsHelper.summarizeMetrics({ status, jobId: this._jobId, taskId: this._taskId });
         log.info(`finishJob - status: ${status}, error: ${error}`, { component });
     }
@@ -331,10 +330,6 @@ class JobConsumer extends EventEmitter {
 
     get jobRetry() {
         return this._retry || DEFAULT_RETRY;
-    }
-
-    set address(address) {
-        this._address = address;
     }
 
     getAlgorithmType() {

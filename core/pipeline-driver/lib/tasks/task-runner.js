@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
-const { pipelineStatuses, taskStatuses, stateType } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
@@ -204,6 +204,7 @@ class TaskRunner extends EventEmitter {
         await this._progressStatus({ status: DriverStates.ACTIVE });
 
         this.pipeline = pipeline;
+        this._isStreaming = pipeline.kind === pipelineKind.Stream;
         this._nodes = new NodesMap(this.pipeline);
         this._nodes.on('node-ready', (node) => {
             this._runNode(node.nodeName, node.parentOutput, node.index);
@@ -327,8 +328,8 @@ class TaskRunner extends EventEmitter {
 
     _findEntryNodes() {
         const sourceNodes = this._nodes.getSources();
-        const allNodes = this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName);
-        return [...new Set([...sourceNodes, ...allNodes])];
+        const statefulNodes = this._isStreaming ? this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName) : [];
+        return [...new Set([...sourceNodes, ...statefulNodes])];
     }
 
     get _currentProgress() {
@@ -430,6 +431,7 @@ class TaskRunner extends EventEmitter {
         this._driverStatus = null;
         this._jobStatus = null;
         this._nodeRuns = new Set();
+        this._preScheduledNodes = new Set();
     }
 
     async _runNode(nodeName, parentOutput, index) {
@@ -447,7 +449,7 @@ class TaskRunner extends EventEmitter {
             this._nodeRuns.add(nodeName);
 
             log.info(`node ${nodeName} is ready to run`, { component });
-            this._checkPreschedule(nodeName);
+            this._checkPreSchedule(nodeName);
 
             const parse = {
                 flowInputMetadata: this.pipeline.flowInputMetadata,
@@ -513,12 +515,16 @@ class TaskRunner extends EventEmitter {
         });
     }
 
-    async _checkPreschedule(nodeName) {
+    async _checkPreSchedule(nodeName) {
         const childs = this._nodes._childs(nodeName);
-        await Promise.all(childs.map(c => this._sendPreschedule(c)));
+        await Promise.all(childs.map(c => this._sendPreSchedule(c)));
     }
 
-    async _sendPreschedule(nodeName) {
+    async _sendPreSchedule(nodeName) {
+        if (this._preScheduledNodes.has(nodeName)) {
+            return;
+        }
+        this._preScheduledNodes.add(nodeName);
         const graphNode = this._nodes.getNode(nodeName);
         const node = new Node({ ...graphNode, status: taskStatuses.PRESCHEDULE });
         const options = { node };

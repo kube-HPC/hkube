@@ -1,5 +1,5 @@
 const stateAdapter = require('../states/stateAdapter');
-const INTERVAL = 2000;
+const INTERVAL = 5000;
 
 class Discovery {
     async init({ jobId, taskId }) {
@@ -61,7 +61,7 @@ class Discovery {
             .map(n => this._instances[n].address);
     }
 
-    count(nodeName) {
+    countInstances(nodeName) {
         const node = this._instances[nodeName];
         return (node && node.list.length) || 0;
     }

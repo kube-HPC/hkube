@@ -11,7 +11,6 @@ const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const autoScaler = require('./streaming/auto-scaler');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
-const pipelineKinds = require('./pipeline-kind/kinds');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
 const { logMessages } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
@@ -48,26 +47,20 @@ class Worker {
     }
 
     _initAlgorithmSettings() {
-        const { storage: algorithmStorage, encoding: algorithmEncoding, kind, host, port } = this._algorithmSettings;
+        const { storage: algorithmStorage, encoding: algorithmEncoding } = this._algorithmSettings;
         const storage = (!this._debugMode && algorithmStorage) || this._options.defaultStorageProtocol;
-        const pipelineKind = (!this._debugMode && kind) || this._options.defaultPipelineKind;
         const encoding = algorithmEncoding || this._options.defaultWorkerAlgorithmEncoding;
         storageHelper.setStorageType(storage);
         execAlgorithms.setStorageType(storage);
         subPipeline.setStorageType(storage);
         algoRunnerCommunication.setEncodingType(encoding);
-        pipelineKinds.setKind(pipelineKind);
-
-        if (host && port) {
-            jobConsumer.address = { host, port };
-        }
 
         let message = 'algorithm protocols: none';
 
         if (algorithmStorage && algorithmEncoding) {
             message = `algorithm protocols: ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding, kind })}`;
         }
-        log.info(`${message}. chosen protocols: ${this._formatProtocol({ storage, encoding, kind: pipelineKind })}`, { component });
+        log.info(`${message}. chosen protocols: ${this._formatProtocol({ storage, encoding })}`, { component });
     }
 
     _formatProtocol(protocols) {
@@ -485,9 +478,8 @@ class Worker {
                 case workerStates.ready:
                     break;
                 case workerStates.init: {
-                    let { error, data } = await storageHelper.extractData(job.data); // eslint-disable-line
+                    const { error, data } = await storageHelper.extractData(job.data);
                     if (!error) {
-                        data = pipelineKinds.enrich(data, job.data);
                         const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
                         algoRunnerCommunication.send({
                             command: messages.outgoing.initialize,
