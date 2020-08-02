@@ -1,9 +1,5 @@
-const _percentDiff = (first, second) => {
-    return Math.abs(first - second) / ((first + second) / 2);
-};
-
 const _median = (array) => {
-    if (array.length === 0) {
+    if (!array || array.length === 0) {
         return 0;
     }
     array.sort();
@@ -12,33 +8,38 @@ const _median = (array) => {
     return median;
 };
 
-const time = (data, metric) => {
+const _calcRate = (list) => {
+    let first = list[0];
+    if (list.length === 1) {
+        first = { time: first.time - 2000, count: 0 };
+    }
+    const last = list[list.length - 1];
+    const timeDiff = (last.time - first.time) / 1000;
+    const countDiff = last.count - first.count;
+    const rate = countDiff / timeDiff;
+    return rate;
+};
+
+const durations = (data, metric) => {
     const current = _median(data.durations);
-    const ratio = _percentDiff(current, metric.desired);
+    const ratio = (current / metric.desired);
     return ratio;
 };
 
-const queue = (data) => {
-    const current = data.currentSize;
-    const ratio = _percentDiff(current, data.queueSize);
+const queueSize = (data, metric) => {
+    const rate = _calcRate(data.queueSize);
+    const ratio = (rate / metric.desired);
     return ratio;
 };
 
 const sentRate = (data, metric) => {
-    if (data.sentList.length < 2) {
-        return 0;
-    }
-    const first = data.sentList[0];
-    const last = data.sentList[data.sentList.length - 1];
-    const timeDiff = (last.time - first.time) / 1000;
-    const countDiff = last.count - first.count;
-    const rate = countDiff / timeDiff;
-    const ratio = _percentDiff(rate, metric.desired);
+    const rate = _calcRate(data.sent);
+    const ratio = (rate / metric.desired);
     return ratio;
 };
 
 module.exports = {
-    time,
-    queue,
+    durations,
+    queueSize,
     sentRate
 };

@@ -5,21 +5,22 @@
     },
     "metrics": [
         {
-            "type": "time",
-            "percent": 0.5,
-            "defaultValue": 1000,
-            "desired": 100
+            "type": "durations",
+            "minRatio": 1.5,
+            "desired": 2000,
+            "maxReplicas": 10
         },
         {
-            "type": "queue",
-            "percent": 0.5,
-            "defaultValue": 1
+            "type": "queueSize",
+            "minRatio": 1,
+            "desired": 1,
+            "maxReplicas": 10
         },
         {
             "type": "sentRate",
-            "percent": 0.5,
-            "defaultValue": 1,
-            "desired": 100
+            "minRatio": 2,
+            "desired": 30,
+            "maxReplicas": 10
         }
     ]
 }
