@@ -32,7 +32,10 @@ function EPHYMERAL_PORT(){
 }
 
 export port=$(EPHYMERAL_PORT)
+export DISCOVERY_PORT=$(EPHYMERAL_PORT)
+
 echo using port $port
+echo using discovery $DISCOVERY_PORT
 #export METRICS_PORT=$(EPHYMERAL_PORT)
 echo METRICS_PORT $METRICS_PORT
 
