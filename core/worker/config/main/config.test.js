@@ -5,6 +5,11 @@ config.workerCommunication = {
     adapterName: 'loopback'
 };
 
+config.autoScaler = {
+    interval: process.env.AUTO_SCALER_INTERVAL || 20000
+};
+
+
 config.jobConsumer = {
     job: {
         type: 'test-type'

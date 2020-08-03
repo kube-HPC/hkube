@@ -8,7 +8,7 @@ const _median = (array) => {
     return median;
 };
 
-const _calcRatePerSecond = (list) => {
+const _calcRate = (list) => {
     let first = list[0];
     if (list.length === 1) {
         first = { time: first.time - 2000, count: 0 };
@@ -27,19 +27,20 @@ const durations = (data, metric) => {
 };
 
 const queueSize = (data, metric) => {
-    const rate = _calcRatePerSecond(data.queueSize);
+    const rate = _calcRate(data.queueSize);
     const ratio = (rate / metric.desired);
     return ratio;
 };
 
-const sentRate = (data, metric) => {
-    const rate = _calcRatePerSecond(data.sent);
-    const ratio = (rate / metric.desired);
+const reqResRatio = (data) => {
+    const reqRate = _calcRate(data.requests);
+    const resRate = _calcRate(data.responses);
+    const ratio = reqRate / (resRate || reqRate);
     return ratio;
 };
 
 module.exports = {
     durations,
     queueSize,
-    sentRate
+    reqResRatio
 };

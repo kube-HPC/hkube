@@ -3,7 +3,7 @@
         "min": 1,
         "max": 300
     },
-    "metrics": [
+    "bla": [
         {
             "type": "durations",
             "minRatio": 1.5,
@@ -15,12 +15,13 @@
             "minRatio": 1,
             "desired": 1,
             "maxReplicas": 10
-        },
+        }
+    ],
+    "metrics": [
         {
-            "type": "sentRate",
-            "minRatio": 2,
-            "desired": 30,
-            "maxReplicas": 10
+            "type": "reqResRatio",
+            "minRatio": 1,
+            "maxReplicas": 100
         }
     ]
 }

@@ -20,6 +20,10 @@ config.algorithmImage = process.env.ALGORITHM_IMAGE;
 
 config.pollingInterval = process.env.POLLING_INTERVAL || 100;
 
+config.autoScaler = {
+    interval: process.env.AUTO_SCALER_INTERVAL || 2000
+};
+
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,
@@ -62,17 +66,16 @@ config.jobConsumer = {
     }
 };
 
-config.streamingDiscovery = {
-    host: process.env.POD_IP || '127.0.0.1',
-    port: process.env.STREAMING_DISCOVERY_PORT || 9021
-};
-
 config.discovery = {
     host: process.env.POD_IP || '127.0.0.1',
     port: process.env.DISCOVERY_PORT || 9020,
     encoding: process.env.DISCOVERY_ENCODING || 'bson',
     timeout: process.env.DISCOVERY_TIMEOUT || 60000,
-    maxCacheSize: process.env.DISCOVERY_MAX_CACHE_SIZE || 500
+    maxCacheSize: process.env.DISCOVERY_MAX_CACHE_SIZE || 500,
+    streaming: {
+        host: process.env.POD_IP || '127.0.0.1',
+        port: process.env.STREAMING_DISCOVERY_PORT || 9021
+    }
 };
 
 config.timeouts = {

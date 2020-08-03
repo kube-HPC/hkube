@@ -30,7 +30,7 @@ class StateAdapter extends EventEmitter {
             podName: options.kubernetes.pod_name,
             workerImage: options.workerImage,
             algorithmImage: options.algorithmImage,
-            streamingDiscovery: options.streamingDiscovery
+            streamingDiscovery: options.discovery.streaming
         };
         this._tasksQueue = asyncQueue((task, callback) => {
             this._etcd.jobs.tasks.set(task).then(r => callback(null, r)).catch(e => callback(e));
@@ -43,7 +43,7 @@ class StateAdapter extends EventEmitter {
             log.info(`got worker state change ${JSON.stringify(res)}`, { component });
             this.emit(res.status.command, res);
         });
-        this.watch({ jobId: 'hookWatch' });
+        this.watch({ jobId: 'hookWatch' }); // should we really need it (we do watchWorkerStates)
 
         this._etcd.jobs.status.on('change', (res) => {
             this.emit(res.status, res);

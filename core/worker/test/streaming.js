@@ -90,7 +90,7 @@ const addDiscovery = async (nodeName) => {
     await stateAdapter._etcd.discovery.register({ data: { jobId, taskId: uuid(), nodeName, streamingDiscovery }, instanceId: uuid() });
 }
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     describe('auto-scaler', () => {
         it('should not scale when no relevant data', async () => {
             const scale = async (data) => {
@@ -115,14 +115,15 @@ describe.only('Streaming', () => {
             }
             const list = [{
                 nodeName: 'D',
-                queueSize: 5
+                queueSize: 5,
+                sent: 0
             }];
             await stateAdapter._etcd.executions.running.set(pipeline2);
             await autoScaler.start({ jobId, taskId: uuid() });
             await scale(list);
             const jobs = autoScaler.autoScale();
             expect(jobs).to.have.lengthOf(1);
-            expect(jobs[0].replicas).to.eql(3);
+            expect(jobs[0].replicas).to.eql(1);
         });
         it('should scale max size based on queueSize only', async () => {
             const scale = async (data) => {
@@ -132,7 +133,8 @@ describe.only('Streaming', () => {
             }
             const list = [{
                 nodeName: 'D',
-                queueSize: 5
+                queueSize: 5,
+                sent: 0
             }];
             await stateAdapter._etcd.executions.running.set(pipeline2);
             await autoScaler.start({ jobId, taskId: uuid() });
@@ -141,23 +143,68 @@ describe.only('Streaming', () => {
             await scale(list);
             const jobs = autoScaler.autoScale();
             expect(jobs).to.have.lengthOf(1);
-            expect(jobs[0].replicas).to.eql(10);
+            expect(jobs[0].replicas).to.eql(1);
         });
-        it.only('should scale based on sent only', async () => {
+        it('should scale based on request rate', async () => {
             const scale = async (data) => {
-                data[0].sent += 100;
+                data[0].sent += 10;
                 autoScaler.report(data);
                 await delay(300);
             }
             const list = [{
                 nodeName: 'D',
-                sent: 20
+                sent: 10,
+                queueSize: 0
             }];
             await stateAdapter._etcd.executions.running.set(pipeline2);
             await autoScaler.start({ jobId, taskId: uuid() });
             await scale(list);
             await scale(list);
             const jobs = autoScaler.autoScale();
+            expect(jobs).to.have.lengthOf(1);
+            expect(jobs[0].replicas).to.eql(1);
+        });
+        it('should scale based on req/res rate', async () => {
+            const scale = async (data) => {
+                data[0].sent += 10;
+                data[0].responses += 3;
+                autoScaler.report(data);
+                await delay(300);
+            }
+            const increaseSize = (data) => {
+                data[0].responses += 1;
+                data[0].currentSize += 2;
+                autoScaler.report(data);
+            }
+            const list = [{
+                nodeName: 'D',
+                sent: 10,
+                queueSize: 0,
+                currentSize: 0,
+                responses: 3
+            }];
+            await stateAdapter._etcd.executions.running.set(pipeline2);
+            await autoScaler.start({ jobId, taskId: uuid() });
+            await scale(list);
+            await scale(list);
+            const jobs1 = autoScaler.autoScale();
+            increaseSize(list);
+            const jobs2 = autoScaler.autoScale();
+            increaseSize(list);
+            const jobs3 = autoScaler.autoScale();
+            await scale(list);
+            await scale(list);
+            const jobs4 = autoScaler.autoScale();
+            const jobs5 = autoScaler.autoScale();
+            const jobs6 = autoScaler.autoScale();
+            expect(jobs1).to.have.lengthOf(1);
+            expect(jobs2).to.have.lengthOf(0);
+            expect(jobs3).to.have.lengthOf(0);
+            expect(jobs4).to.have.lengthOf(1);
+            expect(jobs5).to.have.lengthOf(0);
+            expect(jobs6).to.have.lengthOf(0);
+            expect(jobs1[0].replicas).to.eql(4);
+            expect(jobs4[0].replicas).to.eql(11);
         });
         it('should check backPressure', async () => {
             const scale = async (data) => {

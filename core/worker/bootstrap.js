@@ -22,7 +22,8 @@ const modules = [
     require('./lib/helpers/api-server-client.js'),
     require('./lib/code-api/subpipeline/subpipeline.js'),
     require('./lib/code-api/algorithm-execution/algorithm-execution.js'),
-    require('./lib/storage/storage.js')
+    require('./lib/storage/storage.js'),
+    require('./lib/streaming/auto-scaler.js')
 ];
 
 class Bootstrap {

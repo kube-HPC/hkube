@@ -1,19 +1,35 @@
 const { stateType } = require('@hkube/consts');
+const Logger = require('@hkube/logger');
 const producer = require('../producer/producer');
 const setting = require('./setting.json');
 const stateAdapter = require('../states/stateAdapter');
 const metrics = require('./metrics');
 const discovery = require('./discovery');
-const INTERVAL = 2000;
+const { Components } = require('../consts');
+const component = Components.WORKER;
+let log;
+
+/**
+ * TODO:
+ * Add window of size 10
+ * Handle Scale down
+ * Add progress
+ */
 
 class AutoScaler {
+    init(options) {
+        this._options = options;
+        log = Logger.GetLogFromContainer();
+    }
+
     async start(jobData) {
         this._jobData = jobData;
         this._workload = Object.create(null);
+        this._sentJobs = Object.create(null);
         await discovery.start({ jobId: jobData.jobId, taskId: jobData.taskId });
         this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
         this._active = true;
-        // this._autoScaleInterval();
+        this._autoScaleInterval();
     }
 
     finish() {
@@ -28,17 +44,18 @@ class AutoScaler {
             return;
         }
         data.forEach((d) => {
-            const { nodeName, queueSize, durations, sent, requests } = d;
+            const { nodeName, currentSize, queueSize, durations, sent, responses } = d;
+            const requests = queueSize + sent;
             const node = this._pipeline.nodes.find(n => n.nodeName === nodeName && n.stateType === stateType.Stateless);
             if (node) {
                 const workload = this._workload[nodeName] || this._createStatData(node);
-                workload.sent.push(this._createItem(sent));
                 workload.requests.push(this._createItem(requests));
+                workload.responses.push(this._createItem(responses));
                 workload.queueSize.push(this._createItem(queueSize));
-                const currentSize = discovery.countInstances(nodeName);
+                const size = currentSize || discovery.countInstances(nodeName);
                 this._workload[nodeName] = {
                     ...workload,
-                    currentSize,
+                    currentSize: size,
                     durations
                 };
             }
@@ -53,8 +70,8 @@ class AutoScaler {
         return {
             nodeName: node.nodeName,
             algorithmName: node.algorithmName,
-            sent: [],
             requests: [],
+            responses: [],
             queueSize: []
         };
     }
@@ -76,35 +93,51 @@ class AutoScaler {
             finally {
                 this._activeInterval = false;
             }
-        }, INTERVAL);
+        }, this._options.autoScaler.interval);
     }
 
     autoScale() {
+        const jobs = this._createScale(this._workload);
+        this._createJobs(jobs);
+        return jobs;
+    }
+
+    _createScale(workload) {
         const jobs = [];
-        Object.values(this._workload).forEach((v) => {
+        Object.values(workload).forEach((v) => {
             const { nodeName, algorithmName } = v;
             let replicas = 0;
             const currentSize = v.currentSize || 1;
+            const response = [];
 
             setting.metrics.forEach((m) => {
                 const metric = metrics[m.type];
                 const ratio = metric(v, m);
                 if (ratio >= m.minRatio) {
-                    const scale = Math.ceil(currentSize * ratio);
-                    replicas += Math.min(scale, m.maxReplicas);
+                    const sentJob = this._sentJobs[nodeName];
+                    if (!sentJob || sentJob.replicas < currentSize) {
+                        const scaleSize = Math.ceil(currentSize * ratio);
+                        response.push({ metric: m.type, scaleSize });
+                        replicas += Math.min(scaleSize, m.maxReplicas);
+                    }
+                    else if (sentJob && sentJob.replicas <= currentSize) {
+                        delete this._sentJobs[nodeName];
+                    }
                 }
             });
 
             replicas = Math.min(replicas, setting.spec.max);
             if (replicas > 0) {
+                const scaleLog = response.map(m => `${m.metric}:${m.scaleSize}`).join(',');
+                log.info(`scaling for node ${nodeName} with metrics ${scaleLog}`, { component });
                 jobs.push({ nodeName, algorithmName, replicas });
+                this._sentJobs[nodeName] = { replicas };
             }
         });
         return jobs;
     }
 
-    createJobs(jobList) {
-        const jobs = [];
+    _createJobs(jobList) {
         jobList.forEach((j) => {
             const { nodeName, algorithmName, replicas } = j;
             const input = [];
@@ -121,9 +154,7 @@ class AutoScaler {
                 tasks
             };
             producer.createJob({ jobData: job });
-            jobs.push(job);
         });
-        return jobs;
     }
 }
 
