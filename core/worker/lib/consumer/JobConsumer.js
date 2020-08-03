@@ -134,7 +134,7 @@ class JobConsumer extends EventEmitter {
         this._jobId = job.data.jobId;
         this._taskId = job.data.taskId;
         this._execId = job.data.execId;
-        this._nodeName = job.data.this._nodeName;
+        this._nodeName = job.data.nodeName;
         this._isStateful = job.data.stateType === stateType.Stateful;
         this._batchIndex = job.data.batchIndex;
         this._pipelineName = job.data.pipelineName;

@@ -17,7 +17,7 @@ class Storage {
     async getResultFromStorage(jobData) {
         const { parents } = jobData;
         const addresses = discovery.getAddresses(parents);
-        const data = { ...jobData, addresses };
+        const data = { ...jobData, parents: addresses };
         return { data };
     }
 

@@ -143,7 +143,7 @@ describe.only('Streaming', () => {
             expect(jobs).to.have.lengthOf(1);
             expect(jobs[0].replicas).to.eql(10);
         });
-        it('should check backPressure', async () => {
+        it.only('should scale based on sent only', async () => {
             const scale = async (data) => {
                 data[0].sent += 100;
                 autoScaler.report(data);
@@ -151,10 +151,7 @@ describe.only('Streaming', () => {
             }
             const list = [{
                 nodeName: 'D',
-                durations: [],
-                sent: 20,
-                queueSize: 0,
-                requests: 20
+                sent: 20
             }];
             await stateAdapter._etcd.executions.running.set(pipeline2);
             await autoScaler.start({ jobId, taskId: uuid() });
