@@ -40,6 +40,7 @@ class Worker {
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
+        this._registerToDiscoveryChangesEvents();
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
         this._setInactiveTimeout();
         this._isInit = true;
@@ -127,6 +128,16 @@ class Worker {
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
             }
+        });
+    }
+
+    _registerToDiscoveryChangesEvents() {
+        autoScaler.on('discovery-changed', (changes) => {
+            log.info(`discovery detected ${changes.length} changes`, { component });
+            algoRunnerCommunication.send({
+                command: messages.outgoing.serviceDiscoveryUpdate,
+                data: changes
+            });
         });
     }
 

@@ -5,7 +5,7 @@ const { Producer } = require('@hkube/producer-consumer');
 const { schema } = require('./schema');
 const validator = new Validator({ useDefaults: true, coerceTypes: false });
 
-class AutoScaler {
+class Producers {
     init(options) {
         this._schema = validator.compile(schema);
         const setting = {
@@ -40,7 +40,9 @@ class AutoScaler {
                 retry: options.retry,
                 stateType: options.stateType,
                 kind: options.kind,
-                info: options.info
+                parents: options.parents,
+                childs: options.childs,
+                info: options.info,
             }
         };
         return jobOptions;
@@ -51,4 +53,4 @@ class AutoScaler {
     }
 }
 
-module.exports = new AutoScaler();
+module.exports = new Producers();

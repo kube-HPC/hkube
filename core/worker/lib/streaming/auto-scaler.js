@@ -1,4 +1,7 @@
+const EventEmitter = require('events');
+const { NodesMap } = require('@hkube/dag');
 const { stateType } = require('@hkube/consts');
+const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const producer = require('../producer/producer');
 const setting = require('./setting.json');
@@ -14,12 +17,18 @@ let log;
  * Add window of size 10
  * Handle Scale down
  * Add progress
+ * Create jobs
+ * discovery by node connected to node a --> b (unique)
  */
 
-class AutoScaler {
+class AutoScaler extends EventEmitter {
     init(options) {
         this._options = options;
         log = Logger.GetLogFromContainer();
+
+        discovery.on('discovery-changed', (changes) => {
+            this.emit('discovery-changed', changes);
+        });
     }
 
     async start(jobData) {
@@ -28,6 +37,7 @@ class AutoScaler {
         this._sentJobs = Object.create(null);
         await discovery.start({ jobId: jobData.jobId, taskId: jobData.taskId });
         this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
+        this._dag = new NodesMap(this._pipeline);
         this._active = true;
         this._autoScaleInterval();
     }
@@ -139,19 +149,27 @@ class AutoScaler {
 
     _createJobs(jobList) {
         jobList.forEach((j) => {
-            const { nodeName, algorithmName, replicas } = j;
-            const input = [];
+            const { nodeName, replicas } = j;
             const tasks = [];
+            const node = this._pipeline.nodes.find(n => n.nodeName === nodeName);
+            const parse = {
+                flowInputMetadata: this._pipeline.flowInputMetadata,
+                nodeInput: node.input,
+            };
+            const result = parser.parse(parse);
             for (let i = 0; i < replicas; i += 1) {
                 const taskId = producer.createTaskID();
-                const task = { taskId, input, storage: {}, batchIndex: i + 1 };
+                const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
                 tasks.push(task);
             }
+            const parents = this._dag._parents(nodeName);
+            const childs = this._dag._childs(nodeName);
             const job = {
                 ...this._jobData,
-                nodeName,
-                algorithmName,
-                tasks
+                ...node,
+                tasks,
+                parents,
+                childs
             };
             producer.createJob({ jobData: job });
         });

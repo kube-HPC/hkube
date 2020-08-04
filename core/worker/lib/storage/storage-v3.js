@@ -1,6 +1,5 @@
 const { pipelineKind } = require('@hkube/consts');
 const autoScaler = require('../streaming/auto-scaler');
-const discovery = require('../streaming/discovery');
 
 class Storage {
     async start(options) {
@@ -14,10 +13,7 @@ class Storage {
         await autoScaler.finish(options);
     }
 
-    async getResultFromStorage(jobData) {
-        const { parents } = jobData;
-        const addresses = discovery.getAddresses(parents);
-        const data = { ...jobData, parents: addresses };
+    async getResultFromStorage(data) {
         return { data };
     }
 

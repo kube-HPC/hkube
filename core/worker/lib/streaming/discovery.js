@@ -1,10 +1,10 @@
+const EventEmitter = require('events');
 const stateAdapter = require('../states/stateAdapter');
-const INTERVAL = 5000;
+const INTERVAL = 4000;
 
-class Discovery {
+class Discovery extends EventEmitter {
     async start({ jobId, taskId }) {
-        this._instances = Object.create(null);
-        await this._updateDiscovery({ jobId, taskId });
+        this._discoveryMap = Object.create(null);
         this._discoveryInterval({ jobId, taskId });
     }
 
@@ -23,7 +23,10 @@ class Discovery {
             }
             try {
                 this._active = true;
-                await this._updateDiscovery({ jobId, taskId });
+                const changes = await this._checkDiscovery({ jobId, taskId });
+                if (changes.length > 0) {
+                    this.emit('discovery-changed', changes);
+                }
             }
             catch (error) { // eslint-disable-line
             }
@@ -33,36 +36,38 @@ class Discovery {
         }, INTERVAL);
     }
 
-    _checkDiscoveryChanges() {
-
-    }
-
-    async _updateDiscovery({ jobId, taskId }) {
+    async _checkDiscovery({ jobId, taskId }) {
+        const changeList = [];
         const list = await stateAdapter.getDiscovery(d => this._isJobDiscovery(d, jobId, taskId));
-        const result = list.reduce((acc, cur) => {
-            const { nodeName } = cur;
-            if (!acc[nodeName]) {
-                acc[nodeName] = { list: [] };
+        list.forEach((d) => {
+            const { nodeName, streamingDiscovery: address } = d;
+            if (!this._discoveryMap[nodeName]) {
+                this._discoveryMap[nodeName] = { list: [] };
             }
-            acc[nodeName].list.push({ taskId: cur.taskId, address: cur.streamingDiscovery });
-            return acc;
-        }, {});
-
-        this._instances = result;
-    }
-
-    getAddresses(nodes) {
-        const addresses = [];
-        const nodesF = nodes.filter(n => this._instances[n]);
-        nodesF.forEach((n) => {
-            const list = this._instances[n].list.map(a => a.address);
-            addresses.push(...list);
+            const map = this._discoveryMap[nodeName];
+            const item = map.list.find(l => l.address.host === address.host && l.address.port === address.port);
+            if (!item) {
+                changeList.push({ nodeName, address, type: 'Add' });
+                map.list.push({ nodeName, address });
+            }
         });
-        return addresses;
+        Object.values(this._discoveryMap).forEach((v) => {
+            for (let i = v.list.length - 1; i >= 0; i -= 1) {
+                const { nodeName, address } = v.list[i];
+                const found = list.find(f => f.nodeName === nodeName
+                    && f.streamingDiscovery.host === address.host
+                    && f.streamingDiscovery.port === address.port);
+                if (!found) {
+                    changeList.push({ nodeName, address, type: 'Del' });
+                    v.list.splice(i, 1);
+                }
+            }
+        });
+        return changeList;
     }
 
     countInstances(nodeName) {
-        const node = this._instances[nodeName];
+        const node = this._discoveryMap[nodeName];
         return (node && node.list.length) || 0;
     }
 
