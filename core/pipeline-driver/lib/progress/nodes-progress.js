@@ -12,8 +12,8 @@ class ProgressManager {
             batch: (...args) => this.calcProgressBatch(...args)
             // prepare for stream
         };
-        this._getGraphStats = options.getGraphStats;
         this._calcProgress = this._progressTypes[type];
+        this._getGraphStats = options.getGraphStats || this._defaultGetGraphStats;
         this._sendProgress = options.sendProgress || this._defaultSendProgress;
         this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
 
@@ -26,11 +26,8 @@ class ProgressManager {
         return this._currentProgress;
     }
 
-    _defaultCalcProgress() {
-        return {
-            progress: 0,
-            details: ''
-        };
+    _defaultGetGraphStats() {
+        return [];
     }
 
     async _defaultSendProgress() {
