@@ -101,7 +101,7 @@ class TaskRunner extends EventEmitter {
                 this._onTaskComplete(task);
                 break;
             case taskStatuses.PROGRESS:
-                this._setTaskState(task);
+                this._onProgress(task);
                 break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -270,10 +270,6 @@ class TaskRunner extends EventEmitter {
 
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
-    }
-
-    _streamingProgress() {
-
     }
 
     _recoverGraph(graph) {
@@ -635,6 +631,13 @@ class TaskRunner extends EventEmitter {
         if (this._nodes.isAllNodesCompleted()) {
             this.stop();
         }
+    }
+
+    _onProgress(progres) {
+        if (!this._active) {
+            return;
+        }
+        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
 
     _onStoring(task) {
