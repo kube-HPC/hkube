@@ -212,7 +212,7 @@ class TaskRunner extends EventEmitter {
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
         this._progress = new Progress({
-            getNodes: (...args) => this._nodes._getNodesAsFlat(...args),
+            getGraphStats: (...args) => this._nodes._getNodesAsFlat(...args),
             sendProgress: (...args) => this._stateManager.setJobStatus(...args)
         });
 
@@ -633,10 +633,16 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _onProgress(progres) {
-        if (!this._active) {
+    _onProgress(progress) {
+        if (!this._active || !progress) {
             return;
         }
+        Object.entries(progress).forEach(([k, v]) => {
+            const node = this._nodes.getNode(k);
+            if (node) {
+                node.throughput = v;
+            }
+        });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
 

@@ -20,8 +20,9 @@ let log;
  * ✔️ - Add progress
  * ✔️ - Create jobs
  * ✔️ - Add fixed size window
- * discovery by node connected to node a --> b (unique)
- * handle range minRatioToScaleUp: 1.2 minRatioToScaleDown: 0.8
+ * - Add/Remove stateless on graph
+ * - discovery by node connected to node a --> b (unique)
+ * - handle range minRatioToScaleUp: 1.2 minRatioToScaleDown: 0.8
  */
 
 class AutoScaler extends EventEmitter {
