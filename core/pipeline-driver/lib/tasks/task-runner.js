@@ -100,6 +100,9 @@ class TaskRunner extends EventEmitter {
                 this._setTaskState(task);
                 this._onTaskComplete(task);
                 break;
+            case taskStatuses.PROGRESS:
+                this._setTaskState(task);
+                break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
                 break;
@@ -209,8 +212,8 @@ class TaskRunner extends EventEmitter {
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
         this._progress = new Progress({
-            calcProgress: this._nodes.calcProgress,
-            sendProgress: this._stateManager.setJobStatus
+            getNodes: (...args) => this._nodes._getNodesAsFlat(...args),
+            sendProgress: (...args) => this._stateManager.setJobStatus(...args)
         });
 
         this._boards = new Boards({ updateBoard: (task, cb) => this._stateManager.updateExecution(task, cb) });
@@ -267,6 +270,10 @@ class TaskRunner extends EventEmitter {
 
         pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
+    }
+
+    _streamingProgress() {
+
     }
 
     _recoverGraph(graph) {
@@ -455,6 +462,7 @@ class TaskRunner extends EventEmitter {
                 nodeInput: node.input,
                 parentOutput: node.parentOutput || parentOutput,
                 batchOperation: node.batchOperation,
+                ignoreParentResult: node.stateType === stateType.Stateful,
                 index
             };
             const result = parser.parse(parse);

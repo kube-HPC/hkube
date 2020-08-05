@@ -87,7 +87,7 @@ class JobConsumer extends EventEmitter {
             }
 
             await this.updateStatus({
-                status: jobStatus.ACTIVE,
+                status: taskStatuses.ACTIVE,
                 startTime: Date.now()
             });
 
@@ -207,7 +207,7 @@ class JobConsumer extends EventEmitter {
     _getStatus(data) {
         const { state, results, isTtlExpired } = data;
         const workerStatus = state;
-        let status = state === jobStatus.WORKING ? jobStatus.ACTIVE : state;
+        let status = state === jobStatus.WORKING ? taskStatuses.ACTIVE : state;
         let error = null;
         let reason = null;
         const shouldCompleteJob = this._shouldNormalExit(results);
@@ -215,11 +215,11 @@ class JobConsumer extends EventEmitter {
         if (results != null) {
             error = results.error && results.error.message;
             reason = results.error && results.error.reason;
-            status = error ? jobStatus.FAILED : jobStatus.SUCCEED;
+            status = error ? taskStatuses.FAILED : taskStatuses.SUCCEED;
         }
         if (isTtlExpired) {
             error = logMessages.algorithmTtlExpired;
-            status = jobStatus.FAILED;
+            status = taskStatuses.FAILED;
         }
         const resultData = results && results.data;
         return {
@@ -238,7 +238,7 @@ class JobConsumer extends EventEmitter {
         }
         const data = {
             warning,
-            status: jobStatus.WARNING
+            status: taskStatuses.WARNING
         };
         await this.updateStatus(data);
     }
@@ -271,7 +271,7 @@ class JobConsumer extends EventEmitter {
         if (shouldCompleteJob) {
             let storageResult;
             let metricsPath;
-            if (!error && status === jobStatus.SUCCEED) {
+            if (!error && status === taskStatuses.SUCCEED) {
                 storageResult = await storage.setStorage({ data: resultData, jobData: this._job.data });
                 metricsPath = await boards.putAlgoMetrics(this.jobData, this.jobCurrentTime);
             }
@@ -302,7 +302,11 @@ class JobConsumer extends EventEmitter {
     }
 
     setStoringStatus(result) {
-        return this.updateStatus({ status: jobStatus.STORING, result });
+        return this.updateStatus({ status: taskStatuses.STORING, result });
+    }
+
+    updateProgress(result) {
+        return this.updateStatus({ status: taskStatuses.PROGRESS, result });
     }
 
     currentTaskInfo() {

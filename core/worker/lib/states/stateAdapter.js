@@ -3,7 +3,7 @@ const asyncQueue = require('async.queue');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const { cacheResults } = require('../utils');
-const { EventMessages, Components, jobStatus } = require('../consts');
+const { EventMessages, Components, jobStatus, workerCommands } = require('../consts');
 const component = Components.ETCD;
 let log;
 
@@ -65,6 +65,10 @@ class StateAdapter extends EventEmitter {
 
     getExecution(options) {
         return this._etcd.executions.running.get(options);
+    }
+
+    stopWorker(workerId) {
+        return this._etcd.workers.set({ workerId, status: { command: workerCommands.stopProcessing }, timestamp: Date.now() });
     }
 
     async stopAlgorithmExecution(options) {

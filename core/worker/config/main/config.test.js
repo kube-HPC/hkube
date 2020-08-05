@@ -5,10 +5,15 @@ config.workerCommunication = {
     adapterName: 'loopback'
 };
 
-config.autoScaler = {
-    interval: process.env.AUTO_SCALER_INTERVAL || 20000
+config.streaming = {
+    autoScaler: {
+        interval: process.env.AUTO_SCALER_INTERVAL || 20000,
+        maxSizeWindow: 4
+    },
+    serviceDiscovery: {
+        interval: process.env.SERVICE_DISCOVERY_INTERVAL || 20000
+    }
 };
-
 
 config.jobConsumer = {
     job: {

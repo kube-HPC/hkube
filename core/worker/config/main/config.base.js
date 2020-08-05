@@ -20,8 +20,14 @@ config.algorithmImage = process.env.ALGORITHM_IMAGE;
 
 config.pollingInterval = process.env.POLLING_INTERVAL || 100;
 
-config.autoScaler = {
-    interval: process.env.AUTO_SCALER_INTERVAL || 2000
+config.streaming = {
+    autoScaler: {
+        interval: process.env.AUTO_SCALER_INTERVAL || 2000,
+        maxSizeWindow: 10
+    },
+    serviceDiscovery: {
+        interval: process.env.SERVICE_DISCOVERY_INTERVAL || 4000
+    }
 };
 
 config.redis = {

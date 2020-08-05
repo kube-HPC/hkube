@@ -23,7 +23,8 @@ const modules = [
     require('./lib/code-api/subpipeline/subpipeline.js'),
     require('./lib/code-api/algorithm-execution/algorithm-execution.js'),
     require('./lib/storage/storage.js'),
-    require('./lib/streaming/auto-scaler.js')
+    require('./lib/streaming/auto-scaler.js'),
+    require('./lib/streaming/service-discovery.js')
 ];
 
 class Bootstrap {

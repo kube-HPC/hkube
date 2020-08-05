@@ -1,8 +1,16 @@
 const EventEmitter = require('events');
+const Logger = require('@hkube/logger');
 const stateAdapter = require('../states/stateAdapter');
-const INTERVAL = 4000;
+const { Components } = require('../consts');
+const component = Components.SERVICE_DISCOVERY;
+let log;
 
-class Discovery extends EventEmitter {
+class ServiceDiscovery extends EventEmitter {
+    init(options) {
+        this._options = options;
+        log = Logger.GetLogFromContainer();
+    }
+
     async start({ jobId, taskId }) {
         this._discoveryMap = Object.create(null);
         this._discoveryInterval({ jobId, taskId });
@@ -25,22 +33,23 @@ class Discovery extends EventEmitter {
                 this._active = true;
                 const changes = await this._checkDiscovery({ jobId, taskId });
                 if (changes.length > 0) {
-                    this.emit('discovery-changed', changes);
+                    this.emit('changed', changes);
                 }
             }
-            catch (error) { // eslint-disable-line
+            catch (e) {
+                log.throttle.error(e.message, { component });
             }
             finally {
                 this._active = false;
             }
-        }, INTERVAL);
+        }, this._options.streaming.serviceDiscovery.interval);
     }
 
     async _checkDiscovery({ jobId, taskId }) {
         const changeList = [];
         const list = await stateAdapter.getDiscovery(d => this._isJobDiscovery(d, jobId, taskId));
         list.forEach((d) => {
-            const { nodeName, streamingDiscovery: address } = d;
+            const { nodeName, streamingDiscovery: address, workerId } = d;
             if (!this._discoveryMap[nodeName]) {
                 this._discoveryMap[nodeName] = { list: [] };
             }
@@ -48,7 +57,7 @@ class Discovery extends EventEmitter {
             const item = map.list.find(l => l.address.host === address.host && l.address.port === address.port);
             if (!item) {
                 changeList.push({ nodeName, address, type: 'Add' });
-                map.list.push({ nodeName, address });
+                map.list.push({ nodeName, address, workerId });
             }
         });
         Object.values(this._discoveryMap).forEach((v) => {
@@ -67,8 +76,12 @@ class Discovery extends EventEmitter {
     }
 
     countInstances(nodeName) {
+        return this.getInstances(nodeName).length;
+    }
+
+    getInstances(nodeName) {
         const node = this._discoveryMap[nodeName];
-        return (node && node.list.length) || 0;
+        return (node && node.list) || [];
     }
 
     _isJobDiscovery(data, jobId, taskId) {
@@ -76,4 +89,4 @@ class Discovery extends EventEmitter {
     }
 }
 
-module.exports = new Discovery();
+module.exports = new ServiceDiscovery();
