@@ -13,8 +13,8 @@ class ProgressManager {
             stream: (...args) => this.calcProgressStream(...args)
         };
         this._calcProgress = this._progressTypes[type];
-        this._getGraphStats = options.getGraphStats || this._defaultGetGraphStats;
-        this._sendProgress = options.sendProgress || this._defaultSendProgress;
+        this._getGraphStats = options.getGraphStats;
+        this._sendProgress = options.sendProgress;
         this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
 
         this._queue = async.queue((task, callback) => {
@@ -24,14 +24,6 @@ class ProgressManager {
 
     get currentProgress() {
         return this._currentProgress;
-    }
-
-    _defaultGetGraphStats() {
-        return [];
-    }
-
-    async _defaultSendProgress() {
-        return null;
     }
 
     trace(data) {
@@ -119,7 +111,8 @@ class ProgressManager {
         const reduceStates = groupBy.reduce(groupedStates);
 
         const throughput = nodes.map(n => n.throughput);
-        calc.progress = this._median(throughput);
+        const median = this._median(throughput);
+        calc.progress = parseFloat((median * 100).toFixed(2));
         calc.states = reduceStates;
 
         return calc;

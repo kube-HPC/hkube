@@ -14,10 +14,10 @@ const _calcRate = (list) => {
  * Ratio example:
  * (req msgPer sec / res msgPer sec) = ratio
  * (300 / 120) = 2.5
- * The response is 2.5 times slower than request
+ * If the response is 2.5 times slower than request
  * So we need to scale up current replicas * 2.5
  * If the ratio is 0.5 we need to scale down.
- * The desired ratio is approximately 1
+ * The desired ratio is approximately 1 (0.8 <= desired <= 1.2)
  */
 const reqResRatio = (data) => {
     const reqRate = _calcRate(data.requests);
@@ -25,7 +25,8 @@ const reqResRatio = (data) => {
     if (!resRate) {
         resRate = reqRate / 2;
     }
-    return { reqRate, resRate };
+    const ratio = reqRate / resRate;
+    return { ratio, reqRate, resRate };
 };
 
 module.exports = {

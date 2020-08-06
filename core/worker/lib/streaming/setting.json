@@ -8,8 +8,7 @@
             "type": "reqResRatio",
             "minRatioToScaleUp": 1.2,
             "minRatioToScaleDown": 0.8,
-            "maxReplicas": 100,
-            "minSizeForScaleDown": 3
+            "maxReplicas": 100
         }
     ]
 }

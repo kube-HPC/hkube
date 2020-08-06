@@ -9,7 +9,10 @@ let progress;
 
 describe('Progress', function () {
     beforeEach(() => {
-        progress = new Progress();
+        progress = new Progress({
+            getGraphStats: () => [],
+            sendProgress: async () => null
+        });
     })
     it('should call progress with level silly', function () {
         const jobId = `jobid-${uuidv4()}`;
