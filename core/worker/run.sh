@@ -30,7 +30,6 @@ fi
 
 export $(cat ~/dev/env/.env); 
 
-
 export WORKER_SOCKET_PORT=$(EPHYMERAL_PORT)
 export DISCOVERY_PORT=$(EPHYMERAL_PORT)
 export STREAMING_DISCOVERY_PORT=$(EPHYMERAL_PORT)
