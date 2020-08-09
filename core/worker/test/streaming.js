@@ -78,338 +78,408 @@ const deleteDiscovery = async ({ instanceId }) => {
 
 describe.only('Streaming', () => {
     describe('auto-scaler', () => {
-        it('should not scale when no relevant data', async () => {
-            const jobId = uid();
-            const scale = async (data) => {
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName: 'D'
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            await scale(list);
-            await scale(list);
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            expect(scaleUp).to.have.lengthOf(0);
-            expect(scaleDown).to.have.lengthOf(0);
-        });
-        it('should not over the maxSizeWindow', async () => {
-            const jobId = uid();
-            const nodeName = 'D';
-            const data = [{
-                nodeName,
-                queueSize: 10
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            autoScaler.report(data);
-            autoScaler.report(data);
-            autoScaler.report(data);
-            autoScaler.report(data);
-            autoScaler.report(data);
-            autoScaler.report(data);
-            const { requests, responses } = autoScaler._statistics.data[nodeName];
-            expect(requests).to.have.lengthOf(4);
-            expect(responses).to.have.lengthOf(4);
-        });
-        it('should scale based on queueSize equals 1', async () => {
-            const jobId = uid();
-            const scale = async (data) => {
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName: 'D',
-                queueSize: 1
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            expect(scaleUp).to.have.lengthOf(1);
-            expect(scaleDown).to.have.lengthOf(0);
-            expect(scaleUp[0].replicas).to.eql(2);
-        });
-        it('should scale and update progress', async () => {
-            const jobId = uid();
-            const nodeName = 'D';
-            const scale = async (data) => {
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName,
-                queueSize: 1
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            const progressMap = autoScaler.checkProgress();
-            expect(progressMap[nodeName]).to.eql(0.5);
-            expect(scaleUp).to.have.lengthOf(1);
-            expect(scaleDown).to.have.lengthOf(0);
-            expect(scaleUp[0].replicas).to.eql(2);
-        });
-        it('should scale based on queueSize only', async () => {
-            const jobId = uid();
-            const scale = async (data) => {
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName: 'D',
-                queueSize: 500,
-                responses: 0
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            expect(scaleUp).to.have.lengthOf(1);
-            expect(scaleDown).to.have.lengthOf(0);
-            expect(scaleUp[0].replicas).to.eql(2);
-        });
-        it('should scale based on queueSize and responses only', async () => {
-            const jobId = uid();
-            const scale = async (data) => {
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName: 'D',
-                queueSize: 500,
-                responses: 100
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            expect(scaleUp).to.have.lengthOf(1);
-            expect(scaleDown).to.have.lengthOf(0);
-            expect(scaleUp[0].replicas).to.eql(5);
-        });
-        it('should scale max size based on queueSize only', async () => {
-            const jobId = uid();
-            const scale = async (data) => {
-                data[0].queueSize += 10;
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName: 'D',
-                queueSize: 5,
-                sent: 0
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            await scale(list);
-            await scale(list);
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            expect(scaleUp).to.have.lengthOf(1);
-            expect(scaleDown).to.have.lengthOf(0);
-            expect(scaleUp[0].replicas).to.eql(2);
-        });
-        it('should scale up and down based on req/res rate', async () => {
-            const jobId = uid();
-            const nodeName = 'D';
-            const requestsUp = async (data) => {
-                data[0].currentSize = 5;
-                data[0].queueSize += 100;
-                data[0].responses = 0;
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const responsesUp = async (data) => {
-                data[0].currentSize = 5;
-                data[0].responses += 100;
-                data[0].sent = 200;
-                data[0].queueSize = 0;
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName,
-                sent: 0,
-                queueSize: 0,
-                responses: 0
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
+        describe('scale-up', () => {
+            it('should scale based on queueSize equals 1', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName: 'D',
+                    queueSize: 1
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(1);
+                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp[0].replicas).to.eql(2);
+            });
+            it('should not scale if currentSize is fixed', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const currentSize = async (data) => {
+                    data[0].currentSize = 10;
+                    data[0].queueSize += 500
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName: 'D',
+                    queueSize: 500
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                const jobs1 = autoScaler.autoScale();
+                const jobs2 = autoScaler.autoScale();
+                const jobs3 = autoScaler.autoScale();
+                await currentSize(list);
+                const jobs4 = autoScaler.autoScale();
+                expect(jobs1.scaleUp).to.have.lengthOf(1);
+                expect(jobs1.scaleUp[0].replicas).to.eql(2);
+                expect(jobs1.scaleDown).to.have.lengthOf(0);
+                expect(jobs2.scaleUp).to.have.lengthOf(0);
+                expect(jobs2.scaleDown).to.have.lengthOf(0);
+                expect(jobs3.scaleUp).to.have.lengthOf(0);
+                expect(jobs3.scaleDown).to.have.lengthOf(0);
+                expect(jobs4.scaleUp).to.have.lengthOf(1);
+                expect(jobs4.scaleDown).to.have.lengthOf(0);
+            });
+            it('should scale based on queueSize only', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName: 'D',
+                    queueSize: 500,
+                    responses: 0
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(1);
+                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp[0].replicas).to.eql(2);
+            });
+            it('should scale based on queueSize and responses only', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName: 'D',
+                    queueSize: 500,
+                    responses: 100
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(1);
+                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp[0].replicas).to.eql(5);
+            });
+            it('should scale up based on high req/res rate', async () => {
+                const jobId = uid();
+                const nodeName = 'D';
+                const requests = async (data) => {
+                    data[0].currentSize = 5;
+                    data[0].queueSize += 100;
+                    data[0].responses = 100;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName,
+                    sent: 0,
+                    queueSize: 0,
+                    responses: 0
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
 
-            await requestsUp(list);
-            await requestsUp(list);
-            const jobs1 = autoScaler.autoScale();
-            const jobs2 = autoScaler.autoScale();
+                await requests(list);
+                await requests(list);
+                await requests(list);
+                const jobs = autoScaler.autoScale();
+                expect(jobs.scaleUp).to.have.lengthOf(1);
+                expect(jobs.scaleUp[0].replicas).to.eql(10);
+                expect(jobs.scaleDown).to.have.lengthOf(0);
+            });
+            it('should scale based on request rate', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    data[0].sent += 10;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName: 'D',
+                    sent: 10,
+                    queueSize: 0
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                await scale(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(1);
+                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp[0].replicas).to.eql(2);
+            });
+            it('should scale only up based on req/res rate', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    data[0].sent += 10;
+                    data[0].responses += 3;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const increaseSize = (data) => {
+                    data[0].responses += 1;
+                    data[0].currentSize += 2;
+                    autoScaler.report(data);
+                }
+                const list = [{
+                    nodeName: 'D',
+                    sent: 10,
+                    queueSize: 0,
+                    currentSize: 0,
+                    responses: 3
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                await scale(list);
+                const jobs1 = autoScaler.autoScale();
+                increaseSize(list);
+                const jobs2 = autoScaler.autoScale();
+                increaseSize(list);
+                const jobs3 = autoScaler.autoScale();
+                await scale(list);
+                await scale(list);
+                const jobs4 = autoScaler.autoScale();
+                const jobs5 = autoScaler.autoScale();
+                const jobs6 = autoScaler.autoScale();
+                expect(jobs1.scaleUp).to.have.lengthOf(1);
+                expect(jobs1.scaleUp[0].replicas).to.eql(4);
+                expect(jobs2.scaleUp).to.have.lengthOf(0);
+                expect(jobs3.scaleUp).to.have.lengthOf(1);
+                expect(jobs4.scaleUp).to.have.lengthOf(0);
+                expect(jobs5.scaleUp).to.have.lengthOf(0);
+                expect(jobs6.scaleUp).to.have.lengthOf(0);
+                expect(jobs1.scaleDown).to.have.lengthOf(0);
+                expect(jobs2.scaleDown).to.have.lengthOf(0);
+                expect(jobs3.scaleDown).to.have.lengthOf(0);
+                expect(jobs4.scaleDown).to.have.lengthOf(0);
+                expect(jobs5.scaleDown).to.have.lengthOf(0);
+                expect(jobs6.scaleDown).to.have.lengthOf(0);
+            });
+        });
+        describe('scale-down', () => {
+            it('should scale up and down based on req/res rate', async () => {
+                const jobId = uid();
+                const nodeName = 'D';
+                const requestsUp = async (data) => {
+                    data[0].currentSize = 5;
+                    data[0].queueSize += 100;
+                    data[0].responses = 0;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const responsesUp = async (data) => {
+                    data[0].currentSize = 5;
+                    data[0].responses += 100;
+                    data[0].sent = 200;
+                    data[0].queueSize = 0;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName,
+                    sent: 0,
+                    queueSize: 0,
+                    responses: 0
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
 
-            await responsesUp(list);
-            await responsesUp(list);
-            const jobs3 = autoScaler.autoScale();
-            const jobs4 = autoScaler.autoScale();
+                await requestsUp(list);
+                await requestsUp(list);
+                const jobs1 = autoScaler.autoScale();
+                const jobs2 = autoScaler.autoScale();
 
-            expect(jobs1.scaleUp).to.have.lengthOf(1);
-            expect(jobs1.scaleUp[0].replicas).to.eql(10);
-            expect(jobs2.scaleUp).to.have.lengthOf(0);
-            expect(jobs2.scaleUp).to.have.lengthOf(0);
-            expect(jobs3.scaleUp).to.have.lengthOf(0);
-            expect(jobs3.scaleDown).to.have.lengthOf(1);
-            expect(jobs3.scaleDown[0].replicas).to.eql(3);
-            expect(jobs4.scaleUp).to.have.lengthOf(0);
-            expect(jobs4.scaleDown).to.have.lengthOf(0);
-        });
-        it('should scale up based on high req/res rate', async () => {
-            const jobId = uid();
-            const nodeName = 'D';
-            const requests = async (data) => {
-                data[0].currentSize = 5;
-                data[0].queueSize += 100;
-                data[0].responses = 100;
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName,
-                sent: 0,
-                queueSize: 0,
-                responses: 0
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
+                await responsesUp(list);
+                await responsesUp(list);
+                const jobs3 = autoScaler.autoScale();
+                const jobs4 = autoScaler.autoScale();
 
-            await requests(list);
-            await requests(list);
-            await requests(list);
-            const jobs = autoScaler.autoScale();
-            expect(jobs.scaleUp).to.have.lengthOf(1);
-            expect(jobs.scaleUp[0].replicas).to.eql(10);
-            expect(jobs.scaleDown).to.have.lengthOf(0);
-        });
-        it('should scale down based on responses', async () => {
-            const jobId = uid();
-            const nodeName = 'D';
-            const requests = async (data) => {
-                data[0].currentSize = 5;
-                data[0].queueSize += 10;
-                data[0].responses += 100;
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName,
-                sent: 0,
-                queueSize: 0,
-                responses: 0
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
+                expect(jobs1.scaleUp).to.have.lengthOf(1);
+                expect(jobs1.scaleUp[0].replicas).to.eql(10);
+                expect(jobs2.scaleUp).to.have.lengthOf(0);
+                expect(jobs2.scaleUp).to.have.lengthOf(0);
+                expect(jobs3.scaleUp).to.have.lengthOf(0);
+                expect(jobs3.scaleDown).to.have.lengthOf(1);
+                expect(jobs3.scaleDown[0].replicas).to.eql(3);
+                expect(jobs4.scaleUp).to.have.lengthOf(0);
+                expect(jobs4.scaleDown).to.have.lengthOf(0);
+            });
+            it('should scale down based on responses', async () => {
+                const jobId = uid();
+                const nodeName = 'D';
+                const requests = async (data) => {
+                    data[0].currentSize = 5;
+                    data[0].queueSize += 10;
+                    data[0].responses += 100;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName,
+                    sent: 0,
+                    queueSize: 0,
+                    responses: 0
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
 
-            await requests(list);
-            await requests(list);
-            await requests(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            expect(scaleUp).to.have.lengthOf(0);
-            expect(scaleDown).to.have.lengthOf(1);
-            expect(scaleDown[0].replicas).to.eql(1);
-        });
-        it('should not scale up and down based on zero ratio', async () => {
-            const jobId = uid();
-            const nodeName = 'D';
-            const requests = async (data) => {
-                data[0].currentSize = 5;
-                data[0].queueSize = 100;
-                data[0].responses = 100;
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName,
-                sent: 0,
-                queueSize: 0,
-                responses: 0
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
+                await requests(list);
+                await requests(list);
+                await requests(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(0);
+                expect(scaleDown).to.have.lengthOf(1);
+                expect(scaleDown[0].replicas).to.eql(1);
+            });
+            it('should not scale down based on responses', async () => {
+                const jobId = uid();
+                const nodeName = 'D';
+                const requests = async (data) => {
+                    data[0].currentSize = 5;
+                    data[0].responses += 100;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName,
+                    responses: 0
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
 
-            await requests(list);
-            await requests(list);
-            await requests(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            expect(scaleUp).to.have.lengthOf(0);
-            expect(scaleDown).to.have.lengthOf(0);
+                await requests(list);
+                await requests(list);
+                await requests(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(0);
+                expect(scaleDown).to.have.lengthOf(0);
+            });
+            it('should not scale down based on currentSize', async () => {
+                const jobId = uid();
+                const nodeName = 'D';
+                const requests = async (data) => {
+                    data[0].currentSize = 1;
+                    data[0].queueSize = 0;
+                    data[0].responses += 100;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName,
+                    sent: 0,
+                    queueSize: 0,
+                    responses: 0
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+
+                await requests(list);
+                await requests(list);
+                await requests(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(0);
+                expect(scaleDown).to.have.lengthOf(0);
+            });
+            it('should not scale up and down based on zero ratio', async () => {
+                const jobId = uid();
+                const nodeName = 'D';
+                const requests = async (data) => {
+                    data[0].currentSize = 5;
+                    data[0].queueSize = 100;
+                    data[0].responses = 100;
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName,
+                    sent: 0,
+                    queueSize: 0,
+                    responses: 0
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+
+                await requests(list);
+                await requests(list);
+                await requests(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(0);
+                expect(scaleDown).to.have.lengthOf(0);
+            });
         });
-        it('should scale based on request rate', async () => {
-            const jobId = uid();
-            const scale = async (data) => {
-                data[0].sent += 10;
+        describe('no-scale', () => {
+            it('should not scale when no relevant data', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName: 'D'
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                await scale(list);
+                await scale(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(0);
+                expect(scaleDown).to.have.lengthOf(0);
+            });
+            it('should not over the maxSizeWindow', async () => {
+                const jobId = uid();
+                const nodeName = 'D';
+                const data = [{
+                    nodeName,
+                    queueSize: 10
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
                 autoScaler.report(data);
-                await delay(100);
-            }
-            const list = [{
-                nodeName: 'D',
-                sent: 10,
-                queueSize: 0
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            await scale(list);
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScaler.autoScale();
-            expect(scaleUp).to.have.lengthOf(1);
-            expect(scaleDown).to.have.lengthOf(0);
-            expect(scaleUp[0].replicas).to.eql(2);
+                autoScaler.report(data);
+                autoScaler.report(data);
+                autoScaler.report(data);
+                autoScaler.report(data);
+                autoScaler.report(data);
+                const { requests, responses } = autoScaler._statistics.data[nodeName];
+                expect(requests).to.have.lengthOf(4);
+                expect(responses).to.have.lengthOf(4);
+            });
         });
-        it('should scale only up based on req/res rate', async () => {
-            const jobId = uid();
-            const scale = async (data) => {
-                data[0].sent += 10;
-                data[0].responses += 3;
-                autoScaler.report(data);
-                await delay(100);
-            }
-            const increaseSize = (data) => {
-                data[0].responses += 1;
-                data[0].currentSize += 2;
-                autoScaler.report(data);
-            }
-            const list = [{
-                nodeName: 'D',
-                sent: 10,
-                queueSize: 0,
-                currentSize: 0,
-                responses: 3
-            }];
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await autoScaler.start({ jobId, taskId: uid() });
-            await scale(list);
-            await scale(list);
-            const jobs1 = autoScaler.autoScale();
-            increaseSize(list);
-            const jobs2 = autoScaler.autoScale();
-            increaseSize(list);
-            const jobs3 = autoScaler.autoScale();
-            await scale(list);
-            await scale(list);
-            const jobs4 = autoScaler.autoScale();
-            const jobs5 = autoScaler.autoScale();
-            const jobs6 = autoScaler.autoScale();
-            expect(jobs1.scaleUp).to.have.lengthOf(1);
-            expect(jobs1.scaleUp[0].replicas).to.eql(4);
-            expect(jobs2.scaleUp).to.have.lengthOf(0);
-            expect(jobs3.scaleUp).to.have.lengthOf(1);
-            expect(jobs4.scaleUp).to.have.lengthOf(0);
-            expect(jobs5.scaleUp).to.have.lengthOf(0);
-            expect(jobs6.scaleUp).to.have.lengthOf(0);
-            expect(jobs1.scaleDown).to.have.lengthOf(0);
-            expect(jobs2.scaleDown).to.have.lengthOf(0);
-            expect(jobs3.scaleDown).to.have.lengthOf(0);
-            expect(jobs4.scaleDown).to.have.lengthOf(0);
-            expect(jobs5.scaleDown).to.have.lengthOf(0);
-            expect(jobs6.scaleDown).to.have.lengthOf(0);
+        describe('progress', () => {
+            it('should scale and update progress', async () => {
+                const jobId = uid();
+                const nodeName = 'D';
+                const scale = async (data) => {
+                    autoScaler.report(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName,
+                    queueSize: 1
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                const progressMap = autoScaler.checkProgress();
+                expect(progressMap[nodeName]).to.eql(0.5);
+                expect(scaleUp).to.have.lengthOf(1);
+                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp[0].replicas).to.eql(2);
+            });
         });
+
     });
     describe('discovery', () => {
         beforeEach(() => {

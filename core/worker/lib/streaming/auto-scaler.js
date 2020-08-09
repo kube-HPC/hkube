@@ -30,8 +30,12 @@ class AutoScaler extends EventEmitter {
         this._options = options;
         log = Logger.GetLogFromContainer();
 
-        discovery.on('changed', (changes) => {
-            this.emit('discovery-changed', changes);
+        discovery.on('changed', (changed) => {
+            const nodes = this._jobData.parents;
+            const changes = changed.filter(c => nodes.indexOf(c.nodeName) !== -1);
+            if (changes.length > 0) {
+                this.emit('discovery-changed', changes);
+            }
         });
     }
 
@@ -128,20 +132,20 @@ class AutoScaler extends EventEmitter {
                     const scaleSize = Math.ceil(currentSize * ratio);
                     replicasUp += Math.min(scaleSize, m.maxReplicas);
                 }
-                else if (this._shouldScaleDown(ratio, m, pendingScaling)) {
+                else if (this._shouldScaleDown(ratio, m, currentSize, pendingScaling)) {
                     const scaleSize = Math.ceil(currentSize * ratio);
                     replicasDown += scaleSize;
                 }
             });
 
-            replicasUp = Math.min(replicasUp, setting.spec.max);
             if (replicasUp > 0) {
+                replicasUp = Math.min(replicasUp, setting.spec.max);
                 log.info(`scaling up ${replicasUp} replicas for node ${nodeName}`, { component });
                 scaleUp.push({ nodeName, replicas: replicasUp });
                 pendingScaling.up = replicasUp;
             }
-            replicasDown = Math.min(replicasDown, currentSize);
             if (replicasDown > 0) {
+                replicasDown = Math.min(replicasDown, currentSize);
                 log.info(`scaling down ${replicasDown} replicas for node ${nodeName}`, { component });
                 scaleDown.push({ nodeName, replicas: replicasDown });
                 pendingScaling.down = Math.max(0, currentSize - replicasDown);
@@ -157,8 +161,8 @@ class AutoScaler extends EventEmitter {
         return false;
     }
 
-    _shouldScaleDown(ratio, metric, pendingScaling) {
-        if (ratio <= metric.minRatioToScaleDown && pendingScaling.down === 0) {
+    _shouldScaleDown(ratio, metric, currentSize, pendingScaling) {
+        if (ratio <= metric.minRatioToScaleDown && currentSize >= metric.minReplicasToScaleDown && pendingScaling.down === 0) {
             return true;
         }
         return false;

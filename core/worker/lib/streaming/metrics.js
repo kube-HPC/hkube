@@ -22,6 +22,9 @@ const _calcRate = (list) => {
 const reqResRatio = (data) => {
     const reqRate = _calcRate(data.requests);
     let resRate = _calcRate(data.responses);
+    if (!reqRate && !resRate) {
+        return { ratio: 0, reqRate, resRate };
+    }
     if (!resRate) {
         resRate = reqRate / 2;
     }

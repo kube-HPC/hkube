@@ -26,7 +26,11 @@ config.streaming = {
         maxSizeWindow: 10
     },
     serviceDiscovery: {
-        interval: process.env.SERVICE_DISCOVERY_INTERVAL || 4000
+        interval: process.env.SERVICE_DISCOVERY_INTERVAL || 4000,
+        address: {
+            host: process.env.POD_IP || '127.0.0.1',
+            port: process.env.STREAMING_DISCOVERY_PORT || 9021
+        }
     }
 };
 
@@ -77,11 +81,7 @@ config.discovery = {
     port: process.env.DISCOVERY_PORT || 9020,
     encoding: process.env.DISCOVERY_ENCODING || 'bson',
     timeout: process.env.DISCOVERY_TIMEOUT || 60000,
-    maxCacheSize: process.env.DISCOVERY_MAX_CACHE_SIZE || 500,
-    streaming: {
-        host: process.env.POD_IP || '127.0.0.1',
-        port: process.env.STREAMING_DISCOVERY_PORT || 9021
-    }
+    maxCacheSize: process.env.DISCOVERY_MAX_CACHE_SIZE || 500
 };
 
 config.timeouts = {
