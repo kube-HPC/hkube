@@ -110,7 +110,7 @@ class ProgressManager {
         const groupedStates = groupBy.groupBy(nodes, 'status');
         const reduceStates = groupBy.reduce(groupedStates);
 
-        const throughput = nodes.map(n => n.throughput);
+        const throughput = nodes.filter(n => n.throughput).map(n => n.throughput);
         const median = this._median(throughput);
         calc.progress = parseFloat((median * 100).toFixed(2));
         calc.states = reduceStates;

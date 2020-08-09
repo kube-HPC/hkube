@@ -212,6 +212,7 @@ class TaskRunner extends EventEmitter {
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
         this._progress = new Progress({
+            type: this.pipeline.kind,
             getGraphStats: (...args) => this._nodes._getNodesAsFlat(...args),
             sendProgress: (...args) => this._stateManager.setJobStatus(...args)
         });
@@ -633,11 +634,11 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _onProgress(progress) {
-        if (!this._active || !progress) {
+    _onProgress(task) {
+        if (!this._active) {
             return;
         }
-        Object.entries(progress).forEach(([k, v]) => {
+        Object.entries(task.progress).forEach(([k, v]) => {
             const node = this._nodes.getNode(k);
             if (node) {
                 node.throughput = v;
@@ -698,9 +699,12 @@ class TaskRunner extends EventEmitter {
         if (!this._active) {
             return;
         }
-        const { taskId, execId, status, error } = task;
+        const { taskId, execId, isScaled, status, error } = task;
         if (execId) {
             this._nodes.updateAlgorithmExecution(task);
+        }
+        else if (isScaled) {
+            this._nodes.addTaskToBatch(task);
         }
 
         this._updateTaskState(taskId, task);

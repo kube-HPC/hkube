@@ -43,6 +43,7 @@ class Producers {
                 parents: options.parents,
                 childs: options.childs,
                 info: options.info,
+                isScaled: options.isScaled
             }
         };
         return jobOptions;

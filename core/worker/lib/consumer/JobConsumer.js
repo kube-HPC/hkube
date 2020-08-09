@@ -136,6 +136,7 @@ class JobConsumer extends EventEmitter {
         this._execId = job.data.execId;
         this._nodeName = job.data.nodeName;
         this._isStateful = job.data.stateType === stateType.Stateful;
+        this._isScaled = job.data.isScaled;
         this._batchIndex = job.data.batchIndex;
         this._pipelineName = job.data.pipelineName;
         this._jobData = { nodeName: job.data.nodeName, batchIndex: job.data.batchIndex };
@@ -256,7 +257,9 @@ class JobConsumer extends EventEmitter {
             parentNodeName: this._job.data.parentNodeName,
             algorithmName: this._job.data.algorithmName,
             podName: this._options.kubernetes.pod_name,
-            batchIndex: this._batchIndex
+            batchIndex: this._batchIndex,
+            isStateful: this._isStateful,
+            isScaled: this._isScaled
         };
     }
 
@@ -281,7 +284,6 @@ class JobConsumer extends EventEmitter {
                 reason,
                 endTime: Date.now(),
                 metricsPath,
-                isStateful: this._isStateful,
                 ...storageResult
             };
 

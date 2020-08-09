@@ -17,7 +17,7 @@ let log;
 /**
  * TODO:
  * ✔️ - Handle Scale down
- * ✔️ - Add progress
+ * - Add progress
  * ✔️ - Create jobs
  * ✔️ - Add fixed size window
  * - Add/Remove stateless on graph
@@ -191,7 +191,8 @@ class AutoScaler extends EventEmitter {
                 ...node,
                 tasks,
                 parents,
-                childs
+                childs,
+                isScaled: true
             };
             producer.createJob({ jobData: job });
         });

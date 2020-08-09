@@ -14,7 +14,7 @@ class Progress extends EventEmitter {
 
     check() {
         if (!isEqual(this._currentProgress, this._lastProgress)) {
-            this.emit('progress', this._currentProgress);
+            this.emit('changed', this._currentProgress);
             this._lastProgress = this._currentProgress;
             return this._currentProgress;
         }
