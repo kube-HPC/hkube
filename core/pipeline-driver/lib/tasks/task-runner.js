@@ -209,8 +209,8 @@ class TaskRunner extends EventEmitter {
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
         this._progress = new Progress({
-            calcProgress: this._nodes.calcProgress,
-            sendProgress: this._stateManager.setJobStatus
+            getGraphStats: (...args) => this._nodes._getNodesAsFlat(...args),
+            sendProgress: (...args) => this._stateManager.setJobStatus(...args)
         });
 
         this._boards = new Boards({ updateBoard: (task, cb) => this._stateManager.updateExecution(task, cb) });

@@ -1,12 +1,19 @@
 const async = require('async');
 const throttle = require('lodash.throttle');
 const levels = require('@hkube/logger').Levels;
+const groupBy = require('../helpers/group-by');
 
 class ProgressManager {
     constructor(option) {
         const options = option || {};
+        const type = options.type || 'batch';
         this._currentProgress = 0;
-        this._calcProgress = options.calcProgress || this._defaultCalcProgress;
+        this._progressTypes = {
+            batch: (...args) => this.calcProgressBatch(...args)
+            // prepare for stream
+        };
+        this._calcProgress = this._progressTypes[type];
+        this._getGraphStats = options.getGraphStats || this._defaultGetGraphStats;
         this._sendProgress = options.sendProgress || this._defaultSendProgress;
         this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
 
@@ -19,11 +26,8 @@ class ProgressManager {
         return this._currentProgress;
     }
 
-    _defaultCalcProgress() {
-        return {
-            progress: 0,
-            details: ''
-        };
+    _defaultGetGraphStats() {
+        return [];
     }
 
     async _defaultSendProgress() {
@@ -73,6 +77,32 @@ class ProgressManager {
                 return resolve(res);
             });
         });
+    }
+
+    calcProgressBatch() {
+        const calc = {
+            progress: 0,
+            details: '',
+            states: {}
+        };
+        const nodes = this._getGraphStats();
+        if (nodes.length === 0) {
+            return calc;
+        }
+        const groupedStates = groupBy.groupBy(nodes, 'status');
+        const reduceStates = groupBy.reduce(groupedStates);
+        const textStates = groupBy.text(reduceStates);
+
+        const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
+        const failed = groupedStates.failed ? groupedStates.failed.length : 0;
+        const skipped = groupedStates.skipped ? groupedStates.skipped.length : 0;
+        const completed = succeed + failed + skipped;
+
+        calc.progress = parseFloat(((completed / nodes.length) * 100).toFixed(2));
+        calc.states = reduceStates;
+        calc.details = `${calc.progress}% completed, ${textStates}`;
+
+        return calc;
     }
 }
 

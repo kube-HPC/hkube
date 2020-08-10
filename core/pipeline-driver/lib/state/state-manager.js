@@ -14,7 +14,6 @@ class StateManager extends EventEmitter {
         super();
         const options = option || {};
         log = logger.GetLogFromContainer();
-        this.setJobStatus = this.setJobStatus.bind(this);
         this._etcd = new Etcd({ ...options.etcd, serviceName: options.serviceName });
         this._podName = options.kubernetes.podName;
         this._lastDiscovery = null;
