@@ -30,6 +30,7 @@ class JobConsumer extends EventEmitter {
         this.workerStartingTime = new Date();
         this.jobCurrentTime = null;
         this._hotWorker = false;
+        this._result = undefined;
     }
 
     async init(options) {
@@ -119,6 +120,7 @@ class JobConsumer extends EventEmitter {
         this._pipelineName = undefined;
         this._jobData = undefined;
         this._retry = undefined;
+        this._result = undefined;
     }
 
     _setJob(job) {
@@ -275,10 +277,12 @@ class JobConsumer extends EventEmitter {
                 reason,
                 endTime: Date.now(),
                 metricsPath,
-                ...storageResult
+                ...storageResult,
+                result: this._result
             };
 
             this._job.error = error;
+
             await this.updateStatus(resData);
             log.debug(`result: ${JSON.stringify(resData.result)}`, { component });
         }
@@ -287,6 +291,7 @@ class JobConsumer extends EventEmitter {
     }
 
     setStoringStatus(result) {
+        this._result = result;
         return this.updateStatus({ status: jobStatus.STORING, result });
     }
 
