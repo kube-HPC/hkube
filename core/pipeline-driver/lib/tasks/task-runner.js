@@ -12,6 +12,7 @@ const commands = require('../consts/commands');
 const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
+const { median } = require('../helpers/median');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 const { Node, Batch } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
@@ -213,7 +214,8 @@ class TaskRunner extends EventEmitter {
         });
         this._progress = new Progress({
             type: this.pipeline.kind,
-            getGraphStats: (...args) => this._nodes._getNodesAsFlat(...args),
+            getGraphNodes: (...args) => this._nodes.getAllNodes(...args),
+            getGraphAllNodes: (...args) => this._nodes._getNodesAsFlat(...args),
             sendProgress: (...args) => this._stateManager.setJobStatus(...args)
         });
 
@@ -638,12 +640,17 @@ class TaskRunner extends EventEmitter {
         if (!this._active) {
             return;
         }
-        Object.entries(task.progress).forEach(([k, v]) => {
+        const throughput = [];
+        const { nodeName, progress } = task;
+        Object.entries(progress).forEach(([k, v]) => {
             const node = this._nodes.getNode(k);
             if (node) {
                 node.throughput = v;
+                throughput.push(v);
             }
         });
+        const node = this._nodes.getNode(nodeName);
+        node.throughput = median(throughput);
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
 

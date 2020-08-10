@@ -17,10 +17,10 @@ let log;
 /**
  * TODO:
  * ✔️ - Handle Scale down
- * - Add progress
+ * ✔️ - Add progress
  * ✔️ - Create jobs
  * ✔️ - Add fixed size window
- * - Add/Remove stateless on graph
+ * ✔️ - Add/Remove stateless on graph
  * - discovery by node connected to node a --> b (unique)
  * - handle range minRatioToScaleUp: 1.2 minRatioToScaleDown: 0.8
  */
@@ -50,6 +50,10 @@ class AutoScaler extends EventEmitter {
         this._pendingScaling = Object.create(null);
         await discovery.start({ jobId: jobData.jobId, taskId: jobData.taskId });
         this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
+        this._nodes = this._pipeline.nodes.reduce((acc, cur) => {
+            acc[cur.nodeName] = { isStateful: cur.stateType === stateType.Stateful, ...cur };
+            return acc;
+        }, {});
         this._dag = new NodesMap(this._pipeline);
         this._autoScaleInterval();
     }
@@ -66,10 +70,7 @@ class AutoScaler extends EventEmitter {
             return;
         }
         data.forEach((d) => {
-            const node = this._pipeline.nodes.find(n => n.nodeName === d.nodeName && n.stateType === stateType.Stateless);
-            if (node) {
-                this._statistics.report(d);
-            }
+            this._statistics.report(d);
         });
     }
 
@@ -128,6 +129,9 @@ class AutoScaler extends EventEmitter {
                     const progress = resRate / reqRate;
                     this._progress.update(nodeName, progress);
                 }
+                if (this._nodes[nodeName].isStateful) {
+                    return;
+                }
                 if (this._shouldScaleUp(ratio, m, currentSize, pendingScaling)) {
                     const scaleSize = Math.ceil(currentSize * ratio);
                     replicasUp += Math.min(scaleSize, m.maxReplicas);
@@ -172,7 +176,7 @@ class AutoScaler extends EventEmitter {
         jobList.forEach((j) => {
             const { nodeName, replicas } = j;
             const tasks = [];
-            const node = this._pipeline.nodes.find(n => n.nodeName === nodeName);
+            const node = this._nodes[nodeName];
             const parse = {
                 flowInputMetadata: this._pipeline.flowInputMetadata,
                 nodeInput: node.input,

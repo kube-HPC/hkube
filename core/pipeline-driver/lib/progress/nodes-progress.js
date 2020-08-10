@@ -2,6 +2,7 @@ const async = require('async');
 const throttle = require('lodash.throttle');
 const levels = require('@hkube/logger').Levels;
 const groupBy = require('../helpers/group-by');
+const { median } = require('../helpers/median');
 
 class ProgressManager {
     constructor(option) {
@@ -13,7 +14,8 @@ class ProgressManager {
             stream: (...args) => this.calcProgressStream(...args)
         };
         this._calcProgress = this._progressTypes[type];
-        this._getGraphStats = options.getGraphStats;
+        this._getGraphNodes = options.getGraphNodes;
+        this._getGraphAllNodes = options.getGraphAllNodes;
         this._sendProgress = options.sendProgress;
         this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
 
@@ -72,60 +74,50 @@ class ProgressManager {
     }
 
     calcProgressBatch() {
+        return this._calcProgressInner((d) => this._calcProgressBatch(d));
+    }
+
+    calcProgressStream() {
+        return this._calcProgressInner((d) => this._calcProgressStream(d));
+    }
+
+    _calcProgressBatch(options) {
+        const { nodes, groupedStates, reduceStates, textStates } = options;
+        const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
+        const failed = groupedStates.failed ? groupedStates.failed.length : 0;
+        const skipped = groupedStates.skipped ? groupedStates.skipped.length : 0;
+        const completed = succeed + failed + skipped;
+        const progress = parseFloat(((completed / nodes.length) * 100).toFixed(2));
+        const states = reduceStates;
+        const details = `${progress}% completed, ${textStates}`;
+        return { progress, states, details };
+    }
+
+    _calcProgressStream(options) {
+        const nodes = this._getGraphNodes();
+        const { reduceStates, textStates } = options;
+        const throughput = nodes.filter(n => n.throughput).map(n => n.throughput);
+        const val = median(throughput);
+        const progress = parseFloat((val * 100).toFixed(2));
+        const states = reduceStates;
+        const details = textStates;
+        return { progress, states, details };
+    }
+
+    _calcProgressInner(funcCalc) {
         const calc = {
             progress: 0,
-            details: '',
-            states: {}
+            states: {},
+            details: ''
         };
-        const nodes = this._getGraphStats();
+        const nodes = this._getGraphAllNodes();
         if (nodes.length === 0) {
             return calc;
         }
         const groupedStates = groupBy.groupBy(nodes, 'status');
         const reduceStates = groupBy.reduce(groupedStates);
         const textStates = groupBy.text(reduceStates);
-
-        const succeed = groupedStates.succeed ? groupedStates.succeed.length : 0;
-        const failed = groupedStates.failed ? groupedStates.failed.length : 0;
-        const skipped = groupedStates.skipped ? groupedStates.skipped.length : 0;
-        const completed = succeed + failed + skipped;
-
-        calc.progress = parseFloat(((completed / nodes.length) * 100).toFixed(2));
-        calc.states = reduceStates;
-        calc.details = `${calc.progress}% completed, ${textStates}`;
-
-        return calc;
-    }
-
-    calcProgressStream() {
-        const calc = {
-            progress: 0,
-            details: '',
-            states: {}
-        };
-        const nodes = this._getGraphStats();
-        if (nodes.length === 0) {
-            return calc;
-        }
-        const groupedStates = groupBy.groupBy(nodes, 'status');
-        const reduceStates = groupBy.reduce(groupedStates);
-
-        const throughput = nodes.filter(n => n.throughput).map(n => n.throughput);
-        const median = this._median(throughput);
-        calc.progress = parseFloat((median * 100).toFixed(2));
-        calc.states = reduceStates;
-
-        return calc;
-    }
-
-    _median(array) {
-        if (!array || array.length === 0) {
-            return 0;
-        }
-        array.sort();
-        const half = Math.floor(array.length / 2);
-        const median = array.length % 2 ? array[half] : (array[half - 1] + array[half]) / 2.0;
-        return median;
+        return funcCalc({ nodes, groupedStates, reduceStates, textStates });
     }
 }
 

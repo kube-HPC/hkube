@@ -76,7 +76,7 @@ const deleteDiscovery = async ({ instanceId }) => {
     await stateAdapter._etcd.discovery.delete({ instanceId });
 }
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     describe('auto-scaler', () => {
         describe('scale-up', () => {
             it('should scale based on queueSize equals 1', async () => {
@@ -456,7 +456,7 @@ describe.only('Streaming', () => {
                 expect(responses).to.have.lengthOf(4);
             });
         });
-        describe('progress', () => {
+        describe.only('progress', () => {
             it('should scale and update progress', async () => {
                 const jobId = uid();
                 const nodeName = 'D';
