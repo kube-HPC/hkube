@@ -12,7 +12,7 @@ const messages = require('./algorithm-communication/messages');
 const autoScaler = require('./streaming/auto-scaler');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
-const { logMessages } = require('./consts');
+const { logMessages, streamingEvents } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -132,14 +132,14 @@ class Worker {
     }
 
     _registerToAutoScalerChangesEvents() {
-        autoScaler.on('discovery-changed', (changes) => {
+        autoScaler.on(streamingEvents.DISCOVERY_CHANGED, (changes) => {
             log.info(`discovery detected ${changes.length} changes`, { component });
             algoRunnerCommunication.send({
                 command: messages.outgoing.serviceDiscoveryUpdate,
                 data: changes
             });
         });
-        autoScaler.on('progress-changed', (progress) => {
+        autoScaler.on(streamingEvents.PROGRESS_CHANGED, (progress) => {
             jobConsumer.updateProgress(progress);
         });
     }
@@ -234,7 +234,7 @@ class Worker {
             jobConsumer.setStoringStatus(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.streamingStatistics, (message) => {
-            autoScaler.report(message.data);
+            autoScaler.reportStats(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);

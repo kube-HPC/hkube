@@ -82,7 +82,7 @@ describe('Streaming', () => {
             it('should scale based on queueSize equals 1', async () => {
                 const jobId = uid();
                 const scale = async (data) => {
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -100,13 +100,13 @@ describe('Streaming', () => {
             it('should not scale if currentSize is fixed', async () => {
                 const jobId = uid();
                 const scale = async (data) => {
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const currentSize = async (data) => {
                     data[0].currentSize = 10;
                     data[0].queueSize += 500
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -134,7 +134,7 @@ describe('Streaming', () => {
             it('should scale based on queueSize only', async () => {
                 const jobId = uid();
                 const scale = async (data) => {
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -153,7 +153,7 @@ describe('Streaming', () => {
             it('should scale based on queueSize and responses only', async () => {
                 const jobId = uid();
                 const scale = async (data) => {
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -176,7 +176,7 @@ describe('Streaming', () => {
                     data[0].currentSize = 5;
                     data[0].queueSize += 100;
                     data[0].responses = 100;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -200,7 +200,7 @@ describe('Streaming', () => {
                 const jobId = uid();
                 const scale = async (data) => {
                     data[0].sent += 10;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -217,18 +217,66 @@ describe('Streaming', () => {
                 expect(scaleDown).to.have.lengthOf(0);
                 expect(scaleUp[0].replicas).to.eql(2);
             });
+            it('should scale based on durations', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    data[0].sent += 100;
+                    data[0].responses += 30;
+                    autoScaler.reportStats(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName: 'D',
+                    sent: 0,
+                    responses: 0,
+                    durations: [2.34, 3.56, 4.88, 5.12, 2.56, 3.57, 4.59, 1.57, 2.81, 4.23]
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                await scale(list);
+                await scale(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(1);
+                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp[0].replicas).to.eql(2);
+            });
+            it.only('should scale based on durations', async () => {
+                const jobId = uid();
+                const scale = async (data) => {
+                    data[0].sent += 100;
+                    data[0].responses += 0;
+                    autoScaler.reportStats(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName: 'D',
+                    sent: 0,
+                    responses: 0,
+                    durations: []
+                }];
+                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+                await autoScaler.start({ jobId, taskId: uid() });
+                await scale(list);
+                await scale(list);
+                await scale(list);
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(1);
+                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp[0].replicas).to.eql(2);
+            });
             it('should scale only up based on req/res rate', async () => {
                 const jobId = uid();
                 const scale = async (data) => {
                     data[0].sent += 10;
                     data[0].responses += 3;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const increaseSize = (data) => {
                     data[0].responses += 1;
                     data[0].currentSize += 2;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                 }
                 const list = [{
                     nodeName: 'D',
@@ -265,6 +313,7 @@ describe('Streaming', () => {
                 expect(jobs5.scaleDown).to.have.lengthOf(0);
                 expect(jobs6.scaleDown).to.have.lengthOf(0);
             });
+
         });
         describe('scale-down', () => {
             it('should scale up and down based on req/res rate', async () => {
@@ -274,7 +323,7 @@ describe('Streaming', () => {
                     data[0].currentSize = 5;
                     data[0].queueSize += 100;
                     data[0].responses = 0;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const responsesUp = async (data) => {
@@ -282,7 +331,7 @@ describe('Streaming', () => {
                     data[0].responses += 100;
                     data[0].sent = 200;
                     data[0].queueSize = 0;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -321,7 +370,7 @@ describe('Streaming', () => {
                     data[0].currentSize = 5;
                     data[0].queueSize += 10;
                     data[0].responses += 100;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -347,7 +396,7 @@ describe('Streaming', () => {
                 const requests = async (data) => {
                     data[0].currentSize = 5;
                     data[0].responses += 100;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -371,7 +420,7 @@ describe('Streaming', () => {
                     data[0].currentSize = 1;
                     data[0].queueSize = 0;
                     data[0].responses += 100;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -397,7 +446,7 @@ describe('Streaming', () => {
                     data[0].currentSize = 5;
                     data[0].queueSize = 100;
                     data[0].responses = 100;
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -421,7 +470,7 @@ describe('Streaming', () => {
             it('should not scale when no relevant data', async () => {
                 const jobId = uid();
                 const scale = async (data) => {
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -445,23 +494,23 @@ describe('Streaming', () => {
                 }];
                 await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
                 await autoScaler.start({ jobId, taskId: uid() });
-                autoScaler.report(data);
-                autoScaler.report(data);
-                autoScaler.report(data);
-                autoScaler.report(data);
-                autoScaler.report(data);
-                autoScaler.report(data);
+                autoScaler.reportStats(data);
+                autoScaler.reportStats(data);
+                autoScaler.reportStats(data);
+                autoScaler.reportStats(data);
+                autoScaler.reportStats(data);
+                autoScaler.reportStats(data);
                 const { requests, responses } = autoScaler._statistics.data[nodeName];
                 expect(requests).to.have.lengthOf(4);
                 expect(responses).to.have.lengthOf(4);
             });
         });
-        describe.only('progress', () => {
+        describe('progress', () => {
             it('should scale and update progress', async () => {
                 const jobId = uid();
                 const nodeName = 'D';
                 const scale = async (data) => {
-                    autoScaler.report(data);
+                    autoScaler.reportStats(data);
                     await delay(100);
                 }
                 const list = [{

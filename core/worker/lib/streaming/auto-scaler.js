@@ -6,11 +6,11 @@ const Logger = require('@hkube/logger');
 const producer = require('../producer/producer');
 const setting = require('./setting.json');
 const stateAdapter = require('../states/stateAdapter');
-const metrics = require('./metrics');
+const { reqResRatioMetric } = require('./metrics');
 const discovery = require('./service-discovery');
 const Statistics = require('./statistics');
 const Progress = require('./progress');
-const { Components } = require('../consts');
+const { Components, streamingEvents } = require('../consts');
 const component = Components.AUTO_SCALER;
 let log;
 
@@ -34,7 +34,7 @@ class AutoScaler extends EventEmitter {
             const nodes = this._jobData.parents;
             const changes = changed.filter(c => nodes.indexOf(c.nodeName) !== -1);
             if (changes.length > 0) {
-                this.emit('discovery-changed', changes);
+                this.emit(streamingEvents.DISCOVERY_CHANGED, changes);
             }
         });
     }
@@ -45,9 +45,9 @@ class AutoScaler extends EventEmitter {
         this._statistics = new Statistics(this._options.streaming.autoScaler.maxSizeWindow);
         this._progress = new Progress();
         this._progress.on('changed', (changes) => {
-            this.emit('progress-changed', changes);
+            this.emit(streamingEvents.PROGRESS_CHANGED, changes);
         });
-        this._pendingScaling = Object.create(null);
+        this._pendingScale = Object.create(null);
         await discovery.start({ jobId: jobData.jobId, taskId: jobData.taskId });
         this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
         this._nodes = this._pipeline.nodes.reduce((acc, cur) => {
@@ -65,7 +65,7 @@ class AutoScaler extends EventEmitter {
         this._interval = null;
     }
 
-    report(data) {
+    reportStats(data) {
         if (!this._active) {
             return;
         }
@@ -102,7 +102,7 @@ class AutoScaler extends EventEmitter {
 
     autoScale() {
         const { scaleUp, scaleDown } = this._createScale(this._statistics.data);
-        this._createJobs(scaleUp);
+        this._scaleUp(scaleUp);
         this._scaleDown(scaleDown);
         return { scaleUp, scaleDown };
     }
@@ -113,66 +113,85 @@ class AutoScaler extends EventEmitter {
 
         Object.values(statistics).forEach((v) => {
             const { nodeName } = v;
-            let replicasUp = 0;
-            let replicasDown = 0;
             const currentSize = v.currentSize || 1;
-            this._pendingScaling[nodeName] = this._pendingScaling[nodeName] || { up: 0, down: 0 };
-            const pendingScaling = this._pendingScaling[nodeName];
-            pendingScaling.up = pendingScaling.up <= currentSize ? 0 : pendingScaling.up;
-            pendingScaling.down = pendingScaling.down >= currentSize ? 0 : pendingScaling.down;
+            const pendingScale = this._getPendingScale(nodeName, currentSize);
+            const { reqResRatio, durationsRatio, reqRate, resRate } = reqResRatioMetric(v, setting);
 
-            setting.metrics.forEach((m) => {
-                const metric = metrics[m.type];
-                const { ratio, reqRate, resRate } = metric(v, m);
+            this._updateProgress(resRate, reqRate, nodeName);
 
-                if (resRate && reqRate) {
-                    const progress = resRate / reqRate;
-                    this._progress.update(nodeName, progress);
-                }
-                if (this._nodes[nodeName].isStateful) {
-                    return;
-                }
-                if (this._shouldScaleUp(ratio, m, currentSize, pendingScaling)) {
-                    const scaleSize = Math.ceil(currentSize * ratio);
-                    replicasUp += Math.min(scaleSize, m.maxReplicas);
-                }
-                else if (this._shouldScaleDown(ratio, m, currentSize, pendingScaling)) {
-                    const scaleSize = Math.ceil(currentSize * ratio);
-                    replicasDown += scaleSize;
-                }
-            });
-
-            if (replicasUp > 0) {
-                replicasUp = Math.min(replicasUp, setting.spec.max);
-                log.info(`scaling up ${replicasUp} replicas for node ${nodeName}`, { component });
-                scaleUp.push({ nodeName, replicas: replicasUp });
-                pendingScaling.up = replicasUp;
+            if (this._nodes[nodeName].isStateful) {
+                return;
             }
-            if (replicasDown > 0) {
-                replicasDown = Math.min(replicasDown, currentSize);
-                log.info(`scaling down ${replicasDown} replicas for node ${nodeName}`, { component });
-                scaleDown.push({ nodeName, replicas: replicasDown });
-                pendingScaling.down = Math.max(0, currentSize - replicasDown);
-            }
+            const { replicasUp, replicasDown } = this._getScaleAmount(reqResRatio, currentSize, pendingScale);
+            this._updateScale(nodeName, currentSize, reqResRatio, replicasUp, replicasDown, scaleUp, scaleDown, pendingScale);
         });
         return { scaleUp, scaleDown };
     }
 
-    _shouldScaleUp(ratio, metric, currentSize, pendingScaling) {
-        if (ratio >= metric.minRatioToScaleUp && pendingScaling.up < currentSize) {
-            return true;
+    _updateProgress(resRate, reqRate, nodeName) {
+        if (resRate && reqRate) {
+            const progress = parseFloat((resRate / reqRate).toFixed(2));
+            this._progress.update(nodeName, progress);
+            // log.info(`progress: ${progress}`, { component });
         }
-        return false;
     }
 
-    _shouldScaleDown(ratio, metric, currentSize, pendingScaling) {
-        if (ratio <= metric.minRatioToScaleDown && currentSize >= metric.minReplicasToScaleDown && pendingScaling.down === 0) {
-            return true;
+    _getPendingScale(nodeName, currentSize) {
+        this._pendingScale[nodeName] = this._pendingScale[nodeName] || { up: 0, down: 0 };
+        const pendingScale = this._pendingScale[nodeName];
+        if (pendingScale.up <= currentSize) {
+            if (!pendingScale.upTime) {
+                pendingScale.upTime = Date.now();
+            }
+            if (Date.now() - pendingScale.upTime >= 10000) {
+                pendingScale.up = 0;
+            }
         }
-        return false;
+
+        pendingScale.down = pendingScale.down >= currentSize ? 0 : pendingScale.down;
+        return pendingScale;
     }
 
-    _createJobs(jobList) {
+    _getScaleAmount(ratio, currentSize, pendingScale) {
+        let replicasUp = 0;
+        let replicasDown = 0;
+        if (this._shouldScaleUp(ratio, setting, currentSize, pendingScale)) {
+            const scaleSize = Math.ceil(currentSize * ratio);
+            replicasUp = Math.min(scaleSize, setting.maxReplicas);
+        }
+        else if (this._shouldScaleDown(ratio, setting, currentSize, pendingScale)) {
+            const scaleSize = Math.ceil(currentSize * ratio);
+            replicasDown = scaleSize;
+        }
+        return { replicasUp, replicasDown };
+    }
+
+    _updateScale(nodeName, currentSize, ratio, replicasUp, replicasDown, scaleUp, scaleDown, pendingScale) {
+        if (replicasUp > 0) {
+            const replicas = Math.min(replicasUp, setting.max);
+            log.info(`scaling up ${replicasUp} replicas for node ${nodeName} based on ${ratio} ratio`, { component });
+            scaleUp.push({ nodeName, replicas });
+            pendingScale.up = replicasUp; // eslint-disable-line
+        }
+        if (replicasDown > 0) {
+            const replicas = Math.min(replicasDown, currentSize);
+            log.info(`scaling down ${replicasDown} replicas for node ${nodeName} based on ${ratio} ratio`, { component });
+            scaleDown.push({ nodeName, replicas });
+            pendingScale.down = Math.max(0, currentSize - replicas); // eslint-disable-line
+        }
+    }
+
+    _shouldScaleUp(ratio, metric, currentSize, pendingScale) {
+        return ratio >= metric.minRatioToScaleUp && pendingScale.up < currentSize;
+    }
+
+    _shouldScaleDown(ratio, metric, currentSize, pendingScale) {
+        return ratio <= metric.minRatioToScaleDown
+            && currentSize >= metric.minReplicasToScaleDown
+            && pendingScale.down === 0;
+    }
+
+    _scaleUp(jobList) {
         jobList.forEach((j) => {
             const { nodeName, replicas } = j;
             const tasks = [];
@@ -206,13 +225,8 @@ class AutoScaler extends EventEmitter {
         scaleDown.forEach(async (j) => {
             const { nodeName, replicas } = j;
             const instances = discovery.getInstances(nodeName);
-            if (instances.length < replicas) {
-                log.throttle.error(`cannot scale down ${replicas} replicas out of ${instances.length}`, { component });
-            }
-            else {
-                const workers = instances.slice(0, replicas);
-                await Promise.all(workers.map(w => stateAdapter.stopWorker(w.workerId)));
-            }
+            const workers = instances.slice(0, replicas);
+            await Promise.all(workers.map(w => stateAdapter.stopWorker(w.workerId)));
         });
     }
 }

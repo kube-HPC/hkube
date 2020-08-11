@@ -42,7 +42,7 @@ class WorkerCommunication extends EventEmitter {
         Object.entries({ ...messages.incomming, connection: 'connection', disconnect: 'disconnect' }).forEach(([, topic]) => {
             log.debug(`registering for topic ${topic}`, { component });
             this.adapter.on(topic, (message) => {
-                log.info(`got message on topic ${topic}, command: ${message && message.command}`, { component });
+                // log.info(`got message on topic ${topic}, command: ${message && message.command}`, { component });
                 this.emit(topic, message);
             });
         });

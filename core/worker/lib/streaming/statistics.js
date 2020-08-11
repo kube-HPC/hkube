@@ -8,7 +8,7 @@ class Statistics {
     }
 
     report(data) {
-        const { nodeName, currentSize } = data;
+        const { nodeName, currentSize: size, durations } = data;
         let { queueSize, sent, responses } = data;
         queueSize = queueSize || 0;
         sent = sent || 0;
@@ -17,10 +17,12 @@ class Statistics {
         const workload = this._workload[nodeName] || this._createStatData({ nodeName, maxSize: this._maxSize });
         workload.requests.add(this._createItem(requests));
         workload.responses.add(this._createItem(responses));
-        const size = currentSize || discovery.countInstances(nodeName);
+        const currentSize = size || discovery.countInstances(nodeName);
+
         this._workload[nodeName] = {
             ...workload,
-            currentSize: size
+            currentSize,
+            durations
         };
     }
 
@@ -29,7 +31,7 @@ class Statistics {
     }
 
     _createItem(count) {
-        return { time: Date.now(), count: count || 0 };
+        return { time: Date.now(), count };
     }
 
     _createStatData({ nodeName, maxSize }) {
