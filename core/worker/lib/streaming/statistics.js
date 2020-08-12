@@ -4,41 +4,43 @@ const FixedWindow = require('./fixed-window');
 class Statistics {
     constructor(maxSize) {
         this._maxSize = maxSize;
-        this._workload = Object.create(null);
+        this._data = Object.create(null);
     }
 
     report(data) {
-        const { nodeName, currentSize: size, durations } = data;
-        let { queueSize, sent, responses } = data;
+        const { nodeName, currentSize: size } = data;
+        let { queueSize, sent, responses, durations } = data;
         queueSize = queueSize || 0;
         sent = sent || 0;
         responses = responses || 0;
+        durations = durations || [];
         const requests = queueSize + sent;
-        const workload = this._workload[nodeName] || this._createStatData({ nodeName, maxSize: this._maxSize });
-        workload.requests.add(this._createItem(requests));
-        workload.responses.add(this._createItem(responses));
+        const stats = this._data[nodeName] || this._createStatData({ maxSize: this._maxSize });
+        stats.requests.add(this._createItem(requests));
+        stats.responses.add(this._createItem(responses));
+        stats.durations.addRange(durations);
         const currentSize = size || discovery.countInstances(nodeName);
 
-        this._workload[nodeName] = {
-            ...workload,
-            currentSize,
-            durations
+        this._data[nodeName] = {
+            ...stats,
+            nodeName,
+            currentSize
         };
     }
 
     get data() {
-        return this._workload;
+        return this._data;
     }
 
     _createItem(count) {
         return { time: Date.now(), count };
     }
 
-    _createStatData({ nodeName, maxSize }) {
+    _createStatData({ maxSize }) {
         return {
-            nodeName,
             requests: new FixedWindow(maxSize),
-            responses: new FixedWindow(maxSize)
+            responses: new FixedWindow(maxSize),
+            durations: new FixedWindow(maxSize)
         };
     }
 }

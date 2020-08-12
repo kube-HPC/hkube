@@ -13,7 +13,7 @@ module.exports = {
         "ecmaVersion": 2020
     },
     "rules": {
-        "no-param-reassign": "error",
+        "no-param-reassign": ["error", { "props": false }],
         "prefer-template": "error",
         "no-trailing-spaces": "error",
         "no-console": "error",

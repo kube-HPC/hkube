@@ -233,21 +233,6 @@ class JobConsumer extends EventEmitter {
         };
     }
 
-    async sendWarning(warning) {
-        if (!this._jobId) {
-            return;
-        }
-        const data = {
-            warning,
-            status: taskStatuses.WARNING
-        };
-        await this.updateStatus(data);
-    }
-
-    updateStatus(data = {}) {
-        return stateAdapter.updateTask({ ...this._getState(), ...data });
-    }
-
     _getState() {
         return {
             jobId: this._jobId,
@@ -301,6 +286,21 @@ class JobConsumer extends EventEmitter {
         if (this._execId) {
             await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
         }
+    }
+
+    sendWarning(warning) {
+        const data = {
+            warning,
+            status: taskStatuses.WARNING
+        };
+        return this.updateStatus(data);
+    }
+
+    updateStatus(data = {}) {
+        if (!this._jobId) {
+            return null;
+        }
+        return stateAdapter.updateTask({ ...this._getState(), ...data });
     }
 
     setStoringStatus(result) {

@@ -17,7 +17,9 @@ class Progress extends EventEmitter {
         if (!isEqual(this._currentProgress, this._lastProgress)) {
             this.emit('changed', this._currentProgress);
             this._lastProgress = cloneDeep(this._currentProgress);
+            return this._currentProgress;
         }
+        return null;
     }
 }
 

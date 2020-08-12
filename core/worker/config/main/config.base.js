@@ -22,8 +22,13 @@ config.pollingInterval = process.env.POLLING_INTERVAL || 100;
 
 config.streaming = {
     autoScaler: {
-        interval: process.env.AUTO_SCALER_INTERVAL || 2000,
-        maxSizeWindow: 10
+        interval: formatters.parseInt(process.env.AUTO_SCALER_INTERVAL, 2000),
+        maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
+        minRatioToScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_UP, 1.2),
+        minRatioToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_DOWN, 0.8),
+        maxReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 10),
+        minReplicasToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_REPLICAS_TO_SCALE_DOWN, 1),
+        minTimeWaitForReplicaUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 10000)
     },
     serviceDiscovery: {
         interval: process.env.SERVICE_DISCOVERY_INTERVAL || 4000,

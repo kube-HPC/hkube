@@ -10,6 +10,10 @@ class FixedWindow extends Array {
         }
         this.push(data);
     }
+
+    addRange(array) {
+        array.forEach(a => this.add(a));
+    }
 }
 
 module.exports = FixedWindow;
