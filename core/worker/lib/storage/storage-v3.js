@@ -1,16 +1,16 @@
 const { pipelineKind } = require('@hkube/consts');
-const autoScaler = require('../streaming/auto-scaler');
+const streamHandler = require('../streaming/stream-handler');
 
 class Storage {
     async start(options) {
         const { kind } = options;
         if (kind === pipelineKind.Stream) {
-            await autoScaler.start(options);
+            await streamHandler.start(options);
         }
     }
 
     async finish(options) {
-        await autoScaler.finish(options);
+        await streamHandler.finish(options);
     }
 
     async getResultFromStorage(data) {

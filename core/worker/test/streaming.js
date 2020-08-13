@@ -2,8 +2,9 @@ const delay = require('delay');
 const { expect } = require('chai');
 const { uid } = require('@hkube/uid');
 const stateAdapter = require('../lib/states/stateAdapter');
-const autoScaler = require('../lib/streaming/auto-scaler.js');
-const discovery = require('../lib/streaming/service-discovery.js');
+const streamHandler = require('../lib/streaming/stream-handler');
+const autoScaler = require('../lib/streaming/auto-scaler');
+const discovery = require('../lib/streaming/service-discovery');
 
 const pipeline = {
     name: "stream",
@@ -76,11 +77,35 @@ const deleteDiscovery = async ({ instanceId }) => {
     await stateAdapter._etcd.discovery.delete({ instanceId });
 }
 
+const jobId = uid();
+
+const createJob = (jobId) => {
+    const job = {
+        jobId,
+        kind: 'stream',
+        taskId: uid(),
+        nodeName: 'nodeName',
+        algorithmName: 'my-alg',
+        pipelineName: 'my-pipe',
+        parents: [],
+        childs: [],
+    };
+    return job;
+}
+
+const job = createJob(jobId);
+
 describe.only('Streaming', () => {
     describe('auto-scaler', () => {
+        before(async () => {
+            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+            await streamHandler.start(job);
+        });
+        beforeEach(async () => {
+            await autoScaler.start(job);
+        })
         describe('scale-up', () => {
             it('should not scale based on no data', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     autoScaler.reportStats(data);
                     await delay(100);
@@ -88,15 +113,12 @@ describe.only('Streaming', () => {
                 const list = [{
                     nodeName: 'D',
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScaler.autoScale();
                 expect(scaleUp).to.have.lengthOf(0);
                 expect(scaleDown).to.have.lengthOf(0);
             });
             it('should scale based on queueSize equals 1', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     autoScaler.reportStats(data);
                     await delay(100);
@@ -105,8 +127,6 @@ describe.only('Streaming', () => {
                     nodeName: 'D',
                     queueSize: 1
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScaler.autoScale();
                 expect(scaleUp).to.have.lengthOf(1);
@@ -114,7 +134,6 @@ describe.only('Streaming', () => {
                 expect(scaleUp[0].replicas).to.eql(1);
             });
             it('should not scale if currentSize is fixed', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     autoScaler.reportStats(data);
                     await delay(100);
@@ -129,15 +148,13 @@ describe.only('Streaming', () => {
                     nodeName: 'D',
                     queueSize: 500
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
+
                 await scale(list);
                 const jobs1 = autoScaler.autoScale();
                 const jobs2 = autoScaler.autoScale();
                 const jobs3 = autoScaler.autoScale();
                 await currentSize(list);
                 const jobs4 = autoScaler.autoScale();
-                await delay(150);
                 const jobs5 = autoScaler.autoScale();
                 expect(jobs1.scaleUp).to.have.lengthOf(1);
                 expect(jobs1.scaleUp[0].replicas).to.eql(1);
@@ -146,13 +163,12 @@ describe.only('Streaming', () => {
                 expect(jobs2.scaleDown).to.have.lengthOf(0);
                 expect(jobs3.scaleUp).to.have.lengthOf(0);
                 expect(jobs3.scaleDown).to.have.lengthOf(0);
-                expect(jobs4.scaleUp).to.have.lengthOf(0);
+                expect(jobs4.scaleUp).to.have.lengthOf(1);
                 expect(jobs4.scaleDown).to.have.lengthOf(0);
-                expect(jobs5.scaleUp).to.have.lengthOf(1);
+                expect(jobs5.scaleUp).to.have.lengthOf(0);
                 expect(jobs5.scaleDown).to.have.lengthOf(0);
             });
             it('should scale based on queueSize only', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     autoScaler.reportStats(data);
                     await delay(100);
@@ -162,8 +178,6 @@ describe.only('Streaming', () => {
                     queueSize: 500,
                     responses: 0
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScaler.autoScale();
                 expect(scaleUp).to.have.lengthOf(1);
@@ -171,7 +185,6 @@ describe.only('Streaming', () => {
                 expect(scaleUp[0].replicas).to.eql(1);
             });
             it('should scale based on queueSize and responses only', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     autoScaler.reportStats(data);
                     await delay(100);
@@ -181,8 +194,6 @@ describe.only('Streaming', () => {
                     queueSize: 500,
                     responses: 100
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScaler.autoScale();
                 expect(scaleUp).to.have.lengthOf(1);
@@ -190,7 +201,6 @@ describe.only('Streaming', () => {
                 expect(scaleUp[0].replicas).to.eql(5);
             });
             it('should scale up based on high req/res rate', async () => {
-                const jobId = uid();
                 const nodeName = 'D';
                 const requests = async (data) => {
                     data[0].currentSize = 5;
@@ -205,9 +215,6 @@ describe.only('Streaming', () => {
                     queueSize: 0,
                     responses: 0
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
-
                 await requests(list);
                 await requests(list);
                 await requests(list);
@@ -217,7 +224,6 @@ describe.only('Streaming', () => {
                 expect(jobs.scaleDown).to.have.lengthOf(0);
             });
             it('should scale based on request rate', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     data[0].sent += 10;
                     autoScaler.reportStats(data);
@@ -228,8 +234,6 @@ describe.only('Streaming', () => {
                     sent: 10,
                     queueSize: 0
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScaler.autoScale();
@@ -238,7 +242,6 @@ describe.only('Streaming', () => {
                 expect(scaleUp[0].replicas).to.eql(1);
             });
             it('should scale based on durations', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     data[0].sent += 100;
                     data[0].responses += 30;
@@ -251,8 +254,6 @@ describe.only('Streaming', () => {
                     responses: 0,
                     durations: [2.34, 3.56, 4.88, 5.12, 2.56, 3.57, 4.59, 1.57, 2.81, 4.23]
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 await scale(list);
                 await scale(list);
@@ -262,7 +263,6 @@ describe.only('Streaming', () => {
                 expect(scaleDown).to.have.lengthOf(0);
             });
             it('should scale based on durations', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     data[0].sent += 100;
                     data[0].responses += 0;
@@ -275,8 +275,6 @@ describe.only('Streaming', () => {
                     responses: 0,
                     durations: [0.3, 0.2, 0.8, 0.7, 0.01, 0.1, 0.6, 0.2, 0.1]
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 await scale(list);
                 await scale(list);
@@ -286,7 +284,6 @@ describe.only('Streaming', () => {
                 expect(scaleUp[0].replicas).to.eql(1);
             });
             it('should scale only up based on req/res rate', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     data[0].sent += 10;
                     data[0].responses += 3;
@@ -305,8 +302,6 @@ describe.only('Streaming', () => {
                     currentSize: 0,
                     responses: 3
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 await scale(list);
                 const jobs1 = autoScaler.autoScale();
@@ -337,8 +332,7 @@ describe.only('Streaming', () => {
             });
         });
         describe('scale-down', () => {
-            it('should scale up and down based durations', async () => {
-                const jobId = uid();
+            it.only('should scale up and down based durations', async () => {
                 const nodeName = 'D';
                 const requestsUp = async (data) => {
                     data[0].queueSize += 100;
@@ -360,19 +354,14 @@ describe.only('Streaming', () => {
                     responses: 0,
                     durations: [0.3, 0.2, 0.8, 0.7, 0.01, 0.1, 0.6, 0.2, 0.1]
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
-
                 await requestsUp(list);
                 await requestsUp(list);
                 const jobs1 = autoScaler.autoScale();
                 const jobs2 = autoScaler.autoScale();
-
                 await responsesUp(list);
                 await responsesUp(list);
                 const jobs3 = autoScaler.autoScale();
                 const jobs4 = autoScaler.autoScale();
-
                 expect(jobs1.scaleUp).to.have.lengthOf(1);
                 expect(jobs1.scaleUp[0].replicas).to.eql(1);
                 expect(jobs2.scaleUp).to.have.lengthOf(0);
@@ -384,7 +373,6 @@ describe.only('Streaming', () => {
                 expect(jobs4.scaleDown).to.have.lengthOf(0);
             });
             it('should not scale down based on responses', async () => {
-                const jobId = uid();
                 const nodeName = 'D';
                 const requests = async (data) => {
                     data[0].currentSize = 5;
@@ -396,9 +384,6 @@ describe.only('Streaming', () => {
                     nodeName,
                     responses: 0
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
-
                 await requests(list);
                 await requests(list);
                 await requests(list);
@@ -407,7 +392,6 @@ describe.only('Streaming', () => {
                 expect(scaleDown).to.have.lengthOf(0);
             });
             it('should not scale down based on currentSize', async () => {
-                const jobId = uid();
                 const nodeName = 'D';
                 const requests = async (data) => {
                     data[0].currentSize = 1;
@@ -422,9 +406,6 @@ describe.only('Streaming', () => {
                     queueSize: 0,
                     responses: 0
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
-
                 await requests(list);
                 await requests(list);
                 await requests(list);
@@ -448,9 +429,6 @@ describe.only('Streaming', () => {
                     queueSize: 0,
                     responses: 0
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
-
                 await requests(list);
                 await requests(list);
                 await requests(list);
@@ -461,7 +439,6 @@ describe.only('Streaming', () => {
         });
         describe('no-scale', () => {
             it('should not scale when no relevant data', async () => {
-                const jobId = uid();
                 const scale = async (data) => {
                     autoScaler.reportStats(data);
                     await delay(100);
@@ -469,8 +446,6 @@ describe.only('Streaming', () => {
                 const list = [{
                     nodeName: 'D'
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 await scale(list);
                 await scale(list);
@@ -479,14 +454,11 @@ describe.only('Streaming', () => {
                 expect(scaleDown).to.have.lengthOf(0);
             });
             it('should not over the maxSizeWindow', async () => {
-                const jobId = uid();
                 const nodeName = 'D';
                 const data = [{
                     nodeName,
                     queueSize: 10
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 autoScaler.reportStats(data);
                 autoScaler.reportStats(data);
                 autoScaler.reportStats(data);
@@ -500,7 +472,6 @@ describe.only('Streaming', () => {
         });
         describe('progress', () => {
             it('should scale and update progress', async () => {
-                const jobId = uid();
                 const nodeName = 'D';
                 const scale = async (data) => {
                     autoScaler.reportStats(data);
@@ -511,8 +482,6 @@ describe.only('Streaming', () => {
                     queueSize: 5,
                     responses: 4
                 }];
-                await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-                await autoScaler.start({ jobId, taskId: uid() });
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScaler.autoScale();
                 const progressMap = autoScaler.checkProgress();

@@ -9,7 +9,7 @@ const stateAdapter = require('./states/stateAdapter');
 const { stateEvents, workerStates, workerCommands, Components } = require('./consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
-const autoScaler = require('./streaming/auto-scaler');
+const streamHandler = require('./streaming/stream-handler');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
 const { logMessages, streamingEvents } = require('./consts');
@@ -132,14 +132,14 @@ class Worker {
     }
 
     _registerToAutoScalerChangesEvents() {
-        autoScaler.on(streamingEvents.DISCOVERY_CHANGED, (changes) => {
+        streamHandler.on(streamingEvents.DISCOVERY_CHANGED, (changes) => {
             log.info(`discovery detected ${changes.length} changes`, { component });
             algoRunnerCommunication.send({
                 command: messages.outgoing.serviceDiscoveryUpdate,
                 data: changes
             });
         });
-        autoScaler.on(streamingEvents.PROGRESS_CHANGED, (progress) => {
+        streamHandler.on(streamingEvents.PROGRESS_CHANGED, (progress) => {
             jobConsumer.updateProgress(progress);
         });
     }
@@ -234,7 +234,7 @@ class Worker {
             jobConsumer.setStoringStatus(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.streamingStatistics, (message) => {
-            autoScaler.reportStats(message.data);
+            streamHandler.reportStats(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);

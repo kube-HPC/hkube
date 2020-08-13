@@ -2,8 +2,8 @@ const discovery = require('./service-discovery');
 const FixedWindow = require('./fixed-window');
 
 class Statistics {
-    constructor(maxSize) {
-        this._maxSize = maxSize;
+    constructor(options) {
+        this._maxSize = options.maxSizeWindow;
         this._data = Object.create(null);
     }
 

@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const stateAdapter = require('../states/stateAdapter');
-const { Components } = require('../consts');
+const { Components, streamingEvents } = require('../consts');
 const component = Components.SERVICE_DISCOVERY;
 let log;
 
@@ -11,9 +11,9 @@ class ServiceDiscovery extends EventEmitter {
         log = Logger.GetLogFromContainer();
     }
 
-    async start({ jobId, taskId }) {
+    async start({ jobId, taskId, parents }) {
         this._discoveryMap = Object.create(null);
-        this._discoveryInterval({ jobId, taskId });
+        this._discoveryInterval({ jobId, taskId, parents });
     }
 
     finish() {
@@ -21,7 +21,7 @@ class ServiceDiscovery extends EventEmitter {
         this._interval = null;
     }
 
-    _discoveryInterval({ jobId, taskId }) {
+    _discoveryInterval({ jobId, taskId, parents }) {
         if (this._interval) {
             return;
         }
@@ -31,9 +31,10 @@ class ServiceDiscovery extends EventEmitter {
             }
             try {
                 this._active = true;
-                const changes = await this._checkDiscovery({ jobId, taskId });
+                const changed = await this._checkDiscovery({ jobId, taskId });
+                const changes = changed.filter(c => parents.indexOf(c.nodeName) !== -1);
                 if (changes.length > 0) {
-                    this.emit('changed', changes);
+                    this.emit(streamingEvents.DISCOVERY_CHANGED, changes);
                 }
             }
             catch (e) {

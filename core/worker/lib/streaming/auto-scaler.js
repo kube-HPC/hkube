@@ -9,6 +9,7 @@ const { calcRates } = require('./metrics');
 const discovery = require('./service-discovery');
 const Statistics = require('./statistics');
 const Progress = require('./progress');
+const PendingScale = require('./pending-scale');
 const { Components, streamingEvents } = require('../consts');
 const component = Components.AUTO_SCALER;
 let log;
@@ -37,26 +38,17 @@ class AutoScaler extends EventEmitter {
     init(options) {
         this._options = options.streaming.autoScaler;
         log = Logger.GetLogFromContainer();
-
-        discovery.on('changed', (changed) => {
-            const nodes = this._jobData.parents;
-            const changes = changed.filter(c => nodes.indexOf(c.nodeName) !== -1);
-            if (changes.length > 0) {
-                this.emit(streamingEvents.DISCOVERY_CHANGED, changes);
-            }
-        });
     }
 
     async start(jobData) {
         this._active = true;
         this._jobData = jobData;
-        this._statistics = new Statistics(this._options.maxSizeWindow);
+        this._statistics = new Statistics(this._options);
         this._progress = new Progress();
-        this._progress.on('changed', (changes) => {
+        this._progress.on(streamingEvents.PROGRESS_CHANGED, (changes) => {
             this.emit(streamingEvents.PROGRESS_CHANGED, changes);
         });
-        this._pendingScale = Object.create(null);
-        await discovery.start({ jobId: jobData.jobId, taskId: jobData.taskId });
+        this._pendingScale = new PendingScale(this._options);
         this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
         this._nodes = this._pipeline.nodes.reduce((acc, cur) => {
             acc[cur.nodeName] = { isStateful: cur.stateType === stateType.Stateful, ...cur };
@@ -68,7 +60,6 @@ class AutoScaler extends EventEmitter {
 
     finish() {
         this._active = false;
-        discovery.finish();
         clearInterval(this._interval);
         this._interval = null;
     }
@@ -121,7 +112,7 @@ class AutoScaler extends EventEmitter {
 
         Object.values(this._statistics.data).forEach((v) => {
             const { nodeName, currentSize } = v;
-            const pendingScale = this._getPendingScale(nodeName, currentSize);
+            const pendingScale = this._pendingScale.get(nodeName, currentSize);
             const { reqRate, resRate, durationsRate } = calcRates(v, this._options);
 
             this._updateProgress(nodeName, reqRate, resRate);
@@ -139,22 +130,6 @@ class AutoScaler extends EventEmitter {
             const progress = parseFloat((resRate / reqRate).toFixed(2));
             this._progress.update(nodeName, progress);
         }
-    }
-
-    _getPendingScale(nodeName, currentSize) {
-        this._pendingScale[nodeName] = this._pendingScale[nodeName] || { upCount: null, downTo: null };
-        const pendingScale = this._pendingScale[nodeName];
-
-        if (pendingScale.upCount && pendingScale.upCount <= currentSize) {
-            if (Date.now() - pendingScale.upTime >= this._options.minTimeWaitForReplicaUp) {
-                pendingScale.upCount = null;
-                pendingScale.upTime = null;
-            }
-        }
-        if (pendingScale.downTo && pendingScale.downTo >= currentSize) {
-            pendingScale.downTo = null;
-        }
-        return pendingScale;
     }
 
     _updateScale(nodeName, reqRate, resRates, durationsRates, currentSize, pendingScale, scaleUp, scaleDown) {
