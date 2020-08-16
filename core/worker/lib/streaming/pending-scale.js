@@ -4,9 +4,13 @@ class PendingScale {
         this._pendingScale = Object.create(null);
     }
 
-    get(nodeName, currentSize) {
+    get(nodeName) {
         this._pendingScale[nodeName] = this._pendingScale[nodeName] || { upCount: null, downTo: null };
-        const pendingScale = this._pendingScale[nodeName];
+        return this._pendingScale[nodeName];
+    }
+
+    check(nodeName, currentSize) {
+        const pendingScale = this.get(nodeName);
 
         if (pendingScale.upCount && pendingScale.upCount <= currentSize) {
             if (Date.now() - pendingScale.upTime >= this._minTimeWaitForReplicaUp) {
@@ -18,6 +22,17 @@ class PendingScale {
             pendingScale.downTo = null;
         }
         return pendingScale;
+    }
+
+    updateUp(nodeName, replicas) {
+        const pendingScale = this._pendingScale[nodeName];
+        pendingScale.upCount = replicas;
+        pendingScale.upTime = Date.now();
+    }
+
+    updateDown(nodeName, replicas) {
+        const pendingScale = this._pendingScale[nodeName];
+        pendingScale.downTo = Math.max(0, replicas);
     }
 }
 

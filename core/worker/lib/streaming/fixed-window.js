@@ -1,18 +1,23 @@
-class FixedWindow extends Array {
+class FixedWindow {
     constructor(maxSize) {
-        super();
+        this._array = [];
         this._maxSize = maxSize;
     }
 
     add(data) {
-        if (this.length === this._maxSize) {
-            this.shift();
+        if (this._array.length === this._maxSize) {
+            this._array.shift();
         }
-        this.push(data);
+        this._array.push(data);
     }
 
     addRange(array) {
-        array.forEach(a => this.add(a));
+        this._array.push(...array);
+        this._array = this._array.slice(-this._maxSize);
+    }
+
+    get items() {
+        return this._array;
     }
 }
 

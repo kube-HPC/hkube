@@ -20,12 +20,30 @@ const pipeline = {
             stateType: "stateful"
         },
         {
+            nodeName: "B",
+            algorithmName: "eval-alg",
+            input: [
+                "@flowInput.arraySize",
+                "@flowInput.bufferSize"
+            ],
+            stateType: "stateless"
+        },
+        {
+            nodeName: "C",
+            algorithmName: "eval-alg",
+            input: [
+                "@flowInput.arraySize",
+                "@flowInput.bufferSize"
+            ],
+            stateType: "stateless"
+        },
+        {
             nodeName: "D",
             algorithmName: "eval-alg",
             input: [
                 "@A",
-                "@flowInput.arraySize",
-                "@flowInput.bufferSize"
+                "@B",
+                "@C"
             ],
             stateType: "stateless"
         },
@@ -33,7 +51,8 @@ const pipeline = {
             nodeName: "E",
             algorithmName: "eval-alg",
             input: [
-                "@A"
+                "@A",
+                "@B",
             ],
             stateType: "stateless"
         }
@@ -101,8 +120,8 @@ describe.only('Streaming', () => {
             await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
             await streamHandler.start(job);
         });
-        beforeEach(async () => {
-            await autoScaler.start(job);
+        beforeEach(() => {
+            autoScaler.run();
         })
         describe('scale-up', () => {
             it('should not scale based on no data', async () => {
@@ -330,9 +349,16 @@ describe.only('Streaming', () => {
                 expect(jobs5.scaleDown).to.have.lengthOf(0);
                 expect(jobs6.scaleDown).to.have.lengthOf(0);
             });
+            it.only('should scale based on queueSize equals 1', async () => {
+                autoScaler.election('B');
+                const { scaleUp, scaleDown } = autoScaler.autoScale();
+                expect(scaleUp).to.have.lengthOf(1);
+                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp[0].replicas).to.eql(1);
+            });
         });
         describe('scale-down', () => {
-            it.only('should scale up and down based durations', async () => {
+            it('should scale up and down based durations', async () => {
                 const nodeName = 'D';
                 const requestsUp = async (data) => {
                     data[0].queueSize += 100;

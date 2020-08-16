@@ -41,21 +41,35 @@ class AutoScaler extends EventEmitter {
     }
 
     async start(jobData) {
-        this._active = true;
         this._jobData = jobData;
+        this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
+        this.run();
+        this._autoScaleInterval();
+    }
+
+    run() {
         this._statistics = new Statistics(this._options);
         this._progress = new Progress();
         this._progress.on(streamingEvents.PROGRESS_CHANGED, (changes) => {
             this.emit(streamingEvents.PROGRESS_CHANGED, changes);
         });
         this._pendingScale = new PendingScale(this._options);
-        this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
         this._nodes = this._pipeline.nodes.reduce((acc, cur) => {
             acc[cur.nodeName] = { isStateful: cur.stateType === stateType.Stateful, ...cur };
             return acc;
         }, {});
         this._dag = new NodesMap(this._pipeline);
-        this._autoScaleInterval();
+        this._active = true;
+    }
+
+    election() {
+        const { jobId, nodeName } = this._jobData;
+        const childs = this._dag._childs(nodeName);
+        childs.forEach(c => {
+            const key = `${jobId}/${c}`;
+
+
+        });
     }
 
     finish() {
@@ -110,17 +124,19 @@ class AutoScaler extends EventEmitter {
         const scaleUp = [];
         const scaleDown = [];
 
-        Object.values(this._statistics.data).forEach((v) => {
-            const { nodeName, currentSize } = v;
-            const pendingScale = this._pendingScale.get(nodeName, currentSize);
-            const { reqRate, resRate, durationsRate } = calcRates(v, this._options);
+        Object.values(this._statistics.data).forEach((stats) => {
+            const { nodeName, currentSize } = stats;
+            const { reqRate, resRate, durationsRate } = calcRates(stats, this._options);
 
             this._updateProgress(nodeName, reqRate, resRate);
 
             if (this._nodes[nodeName].isStateful) {
                 return;
             }
-            this._updateScale(nodeName, reqRate, resRate, durationsRate, currentSize, pendingScale, scaleUp, scaleDown);
+            if (!reqRate && !resRate && !durationsRate) {
+                return;
+            }
+            this._updateScale(nodeName, reqRate, resRate, durationsRate, currentSize, scaleUp, scaleDown);
         });
         return { scaleUp, scaleDown };
     }
@@ -132,16 +148,10 @@ class AutoScaler extends EventEmitter {
         }
     }
 
-    _updateScale(nodeName, reqRate, resRates, durationsRates, currentSize, pendingScale, scaleUp, scaleDown) {
-        let replicasUp = 0;
-        let replicasDown = 0;
+    _updateScale(nodeName, reqRate, resRates, durationsRates, currentSize, scaleUp, scaleDown) {
         let resRate = resRates;
         let durationsRate = durationsRates;
         let hasResRate = true;
-
-        if (!reqRate && !resRates && !durationsRates) {
-            return;
-        }
 
         this._printRatesStats(reqRate, resRate, durationsRates);
 
@@ -155,27 +165,23 @@ class AutoScaler extends EventEmitter {
         const reqResRatio = reqRate / resRate;
         const durationsRatio = reqRate / durationsRate;
 
+        const pendingScale = this._pendingScale.check(nodeName, currentSize);
+
         if (this._shouldScaleUp(reqResRatio, this._options, pendingScale, hasResRate)) {
             const scaleSize = this._calcSize(currentSize, reqResRatio);
-            replicasUp = Math.min(scaleSize, this._options.maxReplicas);
-        }
-        else if (this._shouldScaleDown(durationsRatio, this._options, currentSize, pendingScale)) {
-            const scaleSize = this._calcSize(currentSize, durationsRatio);
-            replicasDown = Math.min(scaleSize, currentSize);
-        }
-
-        if (replicasUp > 0) {
+            const replicasUp = Math.min(scaleSize, this._options.maxReplicas);
             const scaleTo = currentSize + replicasUp;
             this._logScaling('up', nodeName, currentSize, scaleTo, reqResRatio);
             scaleUp.push({ nodeName, replicas: replicasUp });
-            pendingScale.upCount = replicasUp;
-            pendingScale.upTime = Date.now();
+            this._pendingScale.updateUp(nodeName, replicasUp);
         }
-        if (replicasDown > 0) {
+        else if (this._shouldScaleDown(durationsRatio, this._options, currentSize, pendingScale)) {
+            const scaleSize = this._calcSize(currentSize, durationsRatio);
+            const replicasDown = Math.min(scaleSize, currentSize);
             const scaleTo = currentSize - replicasDown;
             this._logScaling('down', nodeName, currentSize, scaleTo, durationsRatio);
             scaleDown.push({ nodeName, replicas: replicasDown });
-            pendingScale.downTo = Math.max(0, scaleTo);
+            this._pendingScale.updateDown(nodeName, scaleTo);
         }
     }
 
