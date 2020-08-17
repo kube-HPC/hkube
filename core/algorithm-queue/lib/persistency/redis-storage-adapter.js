@@ -27,7 +27,7 @@ class RedisAdapter {
 
     _set(data) {
         return new Promise((resolve, reject) => {
-            client.set(this.path, JSON.stringify(data), (err) => {
+            client.set(this.path, data, (err) => {
                 if (err) {
                     return reject(err);
                 }
@@ -46,20 +46,9 @@ class RedisAdapter {
                 if (err) {
                     return reject(err);
                 }
-                return resolve(this._tryParseJSON(res));
+                return resolve(res);
             });
         });
-    }
-
-    _tryParseJSON(json) {
-        let parsed = json;
-        try {
-            parsed = JSON.parse(json);
-        }
-        catch (e) {
-            log.warn(`fail to parse json ${json} `, { component: components.REDIS_PERSISTENT });
-        }
-        return parsed;
     }
 
     _delete() {
