@@ -19,8 +19,9 @@ class Queue extends events {
         this.tempRemoveJobIDsQueue = [];
         this.isIntervalRunning = true;
         this.persistence = persistence;
-        this.persistencyLoad();
-        this._queueInterval();
+        this.persistencyLoad().then(() => {
+            this._queueInterval();
+        });
     }
 
     flush() {

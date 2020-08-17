@@ -90,3 +90,4 @@ typings/
 .DS_Store
 **/.clinic
 deployment
+**/.devcontainer

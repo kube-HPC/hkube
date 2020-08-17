@@ -33,7 +33,8 @@ config.consumer = {
 };
 
 config.queue = {
-    updateInterval: process.env.INTERVAL || 1000
+    updateInterval: process.env.INTERVAL || 1000,
+    maxPersistencySize: process.env.MAX_PERSISTENCY_SIZE || '1e6'
 };
 
 config.heuristicsWeights = {
