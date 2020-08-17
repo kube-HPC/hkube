@@ -20,6 +20,15 @@ const _calcRate = (list) => {
     return rate;
 };
 
+/**
+* Ratio example:
+* ratio = (req msgPer sec / res msgPer sec)
+* (300 / 120) = 2.5
+* If the response is 2.5 times slower than request
+* So we need to scale up current replicas * 2.5
+* If the ratio is 0.5 we need to scale down.
+* The desired ratio is approximately 1 (0.8 <= desired <= 1.2)
+*/
 const calcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
     const resRate = _calcRate(data.responses.items);

@@ -8,24 +8,37 @@ const producer = require('../../producer/producer');
 const discovery = require('../services/service-discovery');
 const PendingScale = require('../core/pending-scale');
 const { calcRates } = require('../core/metrics');
+const { Components } = require('../../consts');
+const component = Components.MASTER_SCALER;
 let log;
 
 class MasterAdapter {
     constructor(options) {
         log = Logger.GetLogFromContainer();
+        this.isMaster = true;
+        this._options = options;
         const { jobId, nodeName } = options;
         stateAdapter.watchStreamingStats({ jobId, nodeName });
         stateAdapter.on(`streaming-statistics-${options.nodeName}`, (data) => {
             this.report(data);
         });
-        this._statistics = new Statistics({ options });
-        this._progress = Object.create(null);
-        this._pendingScale = new PendingScale(this._options);
-        this._nodes = this._pipeline.nodes.reduce((acc, cur) => {
+        this._nodes = this._options.pipeline.nodes.reduce((acc, cur) => {
             acc[cur.nodeName] = { isStateful: cur.stateType === stateType.Stateful, ...cur };
             return acc;
         }, {});
-        this._dag = new NodesMap(this._pipeline);
+        this._dag = new NodesMap(this._options.pipeline);
+        this.clean();
+    }
+
+    clean() {
+        this._progress = Object.create(null);
+        this._statistics = new Statistics(this._options.config);
+        this._pendingScale = new PendingScale(this._options.config);
+    }
+
+    finish() {
+        const { jobId, nodeName } = this._options;
+        stateAdapter.unWatchStreamingStats({ jobId, nodeName });
     }
 
     report(data) {
@@ -36,11 +49,7 @@ class MasterAdapter {
         return this._progress;
     }
 
-    work() {
-        this.autoScale();
-    }
-
-    autoScale() {
+    scale() {
         const { scaleUp, scaleDown } = this._createScale();
         this._scaleUp(scaleUp);
         this._scaleDown(scaleDown);
@@ -53,7 +62,7 @@ class MasterAdapter {
 
         Object.values(this._statistics.data).forEach((stats) => {
             const { nodeName, currentSize } = stats;
-            const { reqRate, resRate, durationsRate } = calcRates(stats, this._options);
+            const { reqRate, resRate, durationsRate } = calcRates(stats, this._options.config);
 
             this._updateProgress(nodeName, reqRate, resRate);
 
@@ -94,15 +103,15 @@ class MasterAdapter {
 
         const pendingScale = this._pendingScale.check(nodeName, currentSize);
 
-        if (this._shouldScaleUp(reqResRatio, this._options, pendingScale, hasResRate)) {
+        if (this._shouldScaleUp(reqResRatio, this._options.config, pendingScale, hasResRate)) {
             const scaleSize = this._calcSize(currentSize, reqResRatio);
-            const replicasUp = Math.min(scaleSize, this._options.maxReplicas);
+            const replicasUp = Math.min(scaleSize, this._options.config.maxReplicas);
             const scaleTo = currentSize + replicasUp;
             this._logScaling('up', nodeName, currentSize, scaleTo, reqResRatio);
             scaleUp.push({ nodeName, replicas: replicasUp });
             this._pendingScale.updateUp(nodeName, replicasUp);
         }
-        else if (this._shouldScaleDown(durationsRatio, this._options, currentSize, pendingScale)) {
+        else if (this._shouldScaleDown(durationsRatio, this._options.config, currentSize, pendingScale)) {
             const scaleSize = this._calcSize(currentSize, durationsRatio);
             const replicasDown = Math.min(scaleSize, currentSize);
             const scaleTo = currentSize - replicasDown;
@@ -147,7 +156,7 @@ class MasterAdapter {
             const tasks = [];
             const node = this._nodes[nodeName];
             const parse = {
-                flowInputMetadata: this._pipeline.flowInputMetadata,
+                flowInputMetadata: this._options.pipeline.flowInputMetadata,
                 nodeInput: node.input,
                 ignoreParentResult: true
             };

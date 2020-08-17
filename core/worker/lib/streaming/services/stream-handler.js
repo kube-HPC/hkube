@@ -17,13 +17,13 @@ class StreamHandler extends EventEmitter {
     }
 
     async start(options) {
-        // await autoScaler.start(options);
-        // await discovery.start(options);
+        await autoScaler.start(options);
+        await discovery.start(options);
     }
 
     async finish(options) {
-        // await autoScaler.finish(options);
-        // await discovery.finish(options);
+        await autoScaler.finish(options);
+        await discovery.finish(options);
     }
 
     reportStats(data) {

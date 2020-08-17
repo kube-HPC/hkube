@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
+const Interval = require('../core/interval');
 const stateAdapter = require('../../states/stateAdapter');
 const { Components, streamingEvents } = require('../../consts');
 const component = Components.SERVICE_DISCOVERY;
@@ -7,43 +8,29 @@ let log;
 
 class ServiceDiscovery extends EventEmitter {
     init(options) {
-        this._options = options;
+        this._options = options.streaming.serviceDiscovery;
         log = Logger.GetLogFromContainer();
     }
 
     async start({ jobId, taskId, parents }) {
         this._discoveryMap = Object.create(null);
-        this._discoveryInterval({ jobId, taskId, parents });
+
+        this._interval = new Interval({ delay: this._options.interval })
+            .onFunc(() => this._discoveryInterval({ jobId, taskId, parents }))
+            .onError((e) => log.throttle.error(e.message, { component }))
+            .start();
     }
 
     finish() {
-        clearInterval(this._interval);
-        this._interval = null;
+        this._interval.stop();
     }
 
-    _discoveryInterval({ jobId, taskId, parents }) {
-        if (this._interval) {
-            return;
+    async _discoveryInterval({ jobId, taskId, parents }) {
+        const changed = await this._checkDiscovery({ jobId, taskId });
+        const changes = changed.filter(c => parents.indexOf(c.nodeName) !== -1);
+        if (changes.length > 0) {
+            this.emit(streamingEvents.DISCOVERY_CHANGED, changes);
         }
-        this._interval = setInterval(async () => {
-            if (this._active) {
-                return;
-            }
-            try {
-                this._active = true;
-                const changed = await this._checkDiscovery({ jobId, taskId });
-                const changes = changed.filter(c => parents.indexOf(c.nodeName) !== -1);
-                if (changes.length > 0) {
-                    this.emit(streamingEvents.DISCOVERY_CHANGED, changes);
-                }
-            }
-            catch (e) {
-                log.throttle.error(e.message, { component });
-            }
-            finally {
-                this._active = false;
-            }
-        }, this._options.streaming.serviceDiscovery.interval);
     }
 
     async _checkDiscovery({ jobId, taskId }) {

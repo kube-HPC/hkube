@@ -66,8 +66,16 @@ class StateAdapter extends EventEmitter {
         return this._etcd._client.locker.acquire(key);
     }
 
+    reportStreamingStats(options) {
+        return this._etcd.streaming.statistics.set(options);
+    }
+
     watchStreamingStats(options) {
         return this._etcd.streaming.statistics.watch(options);
+    }
+
+    unWatchStreamingStats(options) {
+        return this._etcd.streaming.statistics.unwatch(options);
     }
 
     _onJobResult(result) {
