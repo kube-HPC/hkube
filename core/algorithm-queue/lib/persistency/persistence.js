@@ -9,14 +9,12 @@ class Persistence {
         this._queueName = null;
         this._prevDataLength = null;
         this._prevPendingAmount = null;
-        this._maxPersistencySize = 1e6;
     }
 
     async init({ options }) {
         const { etcd, algorithmType, serviceName } = options;
         this._queueName = algorithmType;
-        await redisStorage.init(options.redis, this._queueName);
-        this._maxPersistencySize = options.queue.maxPersistencySize;
+        await redisStorage.init(options.redis, this._queueName, options.queue.maxPersistencySize);
         this._etcd = new Etcd({ ...etcd, serviceName });
         return this;
     }
@@ -31,14 +29,7 @@ class Persistence {
         this._prevDataLength = data.length;
         this._prevPendingAmount = pendingAmount;
         try {
-            const jsonData = data.map(d => JSON.stringify(d)).join('\n');
-            if (this._maxPersistencySize && jsonData.length > this._maxPersistencySize) {
-                log.warning(`persistency length is ${jsonData.length} which is larger than ${this._maxPersistencySize}`, { component: components.ETCD_PERSISTENT });
-                return;
-            }
-            log.info(`writing ${jsonData.length} bytes to persistency`, { component: components.ETCD_PERSISTENT });
-
-            await redisStorage.put(jsonData);
+            await redisStorage.put(data);
         }
         catch (error) {
             log.error(`failed to store persistency ${error.message}`, { component: components.ETCD_PERSISTENT }, error);
@@ -55,8 +46,7 @@ class Persistence {
     async get() {
         try {
             const ret = await redisStorage.get();
-            const data = ret.split('\n').map(d => JSON.parse(d));
-            return data;
+            return ret;
         }
         catch (error) {
             log.warning('failed to get queue persistency', { component: components.ETCD_PERSISTENT }, error);

@@ -1,20 +1,31 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 const { Factory } = require('@hkube/redis-utils');
+const { promisify } = require('util');
 const pathLib = require('path');
 const log = require('@hkube/logger').GetLogFromContainer();
 const components = require('../consts/component-name');
-
-let client;
 
 class RedisAdapter {
     constructor() {
         this._isInit = false;
         this.queueName = '';
+        this._maxPersistencySize = 1e6;
     }
 
-    async init(options, queueName) {
+    async init(options, queueName, maxPersistencySize = 1e7) {
         if (!this._isInit) {
-            client = Factory.getClient(options);
+            const client = Factory.getClient(options);
+            this._clientAsync = {
+                get: promisify(client.get).bind(client),
+                set: promisify(client.set).bind(client),
+                del: promisify(client.del).bind(client),
+                rpush: promisify(client.rpush).bind(client),
+                lrange: promisify(client.lrange).bind(client),
+
+            };
             this._isInit = true;
+            this._maxPersistencySize = maxPersistencySize;
             log.info('redis initiated', { component: components.REDIS_PERSISTENT });
         }
         this.queueName = queueName;
@@ -25,41 +36,33 @@ class RedisAdapter {
         return this._set(options);
     }
 
-    _set(data) {
-        return new Promise((resolve, reject) => {
-            client.set(this.path, data, (err) => {
-                if (err) {
-                    return reject(err);
-                }
-                return resolve(true);
-            });
-        });
+    async _set(data) {
+        await this._delete();
+        let size = 0;
+        for (const d of data) {
+            const json = JSON.stringify(d);
+            size += json.length;
+            if (this._maxPersistencySize && size > this._maxPersistencySize) {
+                log.warning(`persistency length is ${size} which is larger than ${this._maxPersistencySize}`, { component: components.ETCD_PERSISTENT });
+                return;
+            }
+            await this._clientAsync.rpush(this.path, json);
+        }
+        log.info(`wrote ${size} bytes to persistency`, { component: components.ETCD_PERSISTENT });
     }
 
     async get() {
         return this._get();
     }
 
-    _get() {
-        return new Promise((resolve, reject) => {
-            client.get(this.path, (err, res) => {
-                if (err) {
-                    return reject(err);
-                }
-                return resolve(res);
-            });
-        });
+    async _get() {
+        const dataJson = await this._clientAsync.lrange(this.path, 0, -1);
+        const data = dataJson.map(d => JSON.parse(d));
+        return data;
     }
 
     _delete() {
-        return new Promise((resolve, reject) => {
-            client.del(this.path, (err) => {
-                if (err) {
-                    return reject(err);
-                }
-                return resolve();
-            });
-        });
+        return this._clientAsync.del(this.path);
     }
 }
 
