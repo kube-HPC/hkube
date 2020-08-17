@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const autoScaler = require('./auto-scaler');
 const discovery = require('./service-discovery');
-const { streamingEvents } = require('../consts');
+const { streamingEvents } = require('../../consts');
 
 class StreamHandler extends EventEmitter {
     async init(options) {
@@ -17,13 +17,13 @@ class StreamHandler extends EventEmitter {
     }
 
     async start(options) {
-        await autoScaler.start(options);
-        await discovery.start(options);
+        // await autoScaler.start(options);
+        // await discovery.start(options);
     }
 
     async finish(options) {
-        await autoScaler.finish(options);
-        await discovery.finish(options);
+        // await autoScaler.finish(options);
+        // await discovery.finish(options);
     }
 
     reportStats(data) {

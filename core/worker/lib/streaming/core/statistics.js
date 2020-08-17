@@ -1,4 +1,4 @@
-const discovery = require('./service-discovery');
+const discovery = require('../services/service-discovery');
 const FixedWindow = require('./fixed-window');
 
 class Statistics {

@@ -57,6 +57,17 @@ class StateAdapter extends EventEmitter {
         this._etcd.jobs.results.on('change', (result) => {
             this._onJobResult(result);
         });
+        this._etcd.streaming.statistics.on('change', (data) => {
+            this.emit(`streaming-statistics-${data.nodeName}`, data);
+        });
+    }
+
+    acquireLock(key) {
+        return this._etcd._client.locker.acquire(key);
+    }
+
+    watchStreamingStats(options) {
+        return this._etcd.streaming.statistics.watch(options);
     }
 
     _onJobResult(result) {

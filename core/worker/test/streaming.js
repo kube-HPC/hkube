@@ -2,9 +2,9 @@ const delay = require('delay');
 const { expect } = require('chai');
 const { uid } = require('@hkube/uid');
 const stateAdapter = require('../lib/states/stateAdapter');
-const streamHandler = require('../lib/streaming/stream-handler');
-const autoScaler = require('../lib/streaming/auto-scaler');
-const discovery = require('../lib/streaming/service-discovery');
+const streamHandler = require('../lib/streaming/services/stream-handler');
+const autoScaler = require('../lib/streaming/services/auto-scaler');
+const discovery = require('../lib/streaming/services/service-discovery');
 
 const pipeline = {
     name: "stream",
@@ -51,8 +51,7 @@ const pipeline = {
             nodeName: "E",
             algorithmName: "eval-alg",
             input: [
-                "@A",
-                "@B",
+                "@C"
             ],
             stateType: "stateless"
         }
@@ -90,11 +89,11 @@ const addDiscovery = async ({ jobId, nodeName, port }) => {
         instanceId
     });
     return instanceId;
-}
+};
 
 const deleteDiscovery = async ({ instanceId }) => {
     await stateAdapter._etcd.discovery.delete({ instanceId });
-}
+};
 
 const jobId = uid();
 
@@ -103,25 +102,24 @@ const createJob = (jobId) => {
         jobId,
         kind: 'stream',
         taskId: uid(),
-        nodeName: 'nodeName',
+        nodeName: 'C',
         algorithmName: 'my-alg',
         pipelineName: 'my-pipe',
         parents: [],
-        childs: [],
+        childs: ['D', 'E'],
     };
     return job;
-}
+};
 
 const job = createJob(jobId);
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     describe('auto-scaler', () => {
         before(async () => {
             await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
             await streamHandler.start(job);
         });
         beforeEach(() => {
-            autoScaler.run();
         })
         describe('scale-up', () => {
             it('should not scale based on no data', async () => {
@@ -349,13 +347,6 @@ describe.only('Streaming', () => {
                 expect(jobs5.scaleDown).to.have.lengthOf(0);
                 expect(jobs6.scaleDown).to.have.lengthOf(0);
             });
-            it.only('should scale based on queueSize equals 1', async () => {
-                autoScaler.election('B');
-                const { scaleUp, scaleDown } = autoScaler.autoScale();
-                expect(scaleUp).to.have.lengthOf(1);
-                expect(scaleDown).to.have.lengthOf(0);
-                expect(scaleUp[0].replicas).to.eql(1);
-            });
         });
         describe('scale-down', () => {
             it('should scale up and down based durations', async () => {
@@ -516,6 +507,18 @@ describe.only('Streaming', () => {
                 expect(scaleDown).to.have.lengthOf(0);
                 expect(scaleUp[0].replicas).to.eql(2);
             });
+        });
+    });
+    describe('auto-scaler', () => {
+        before(async () => {
+            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+        });
+        it.only('should scale based on queueSize equals 1', async () => {
+            await streamHandler.start(job);
+            const { scaleUp, scaleDown } = autoScaler.autoScale();
+            expect(scaleUp).to.have.lengthOf(1);
+            expect(scaleDown).to.have.lengthOf(0);
+            expect(scaleUp[0].replicas).to.eql(1);
         });
     });
     describe('discovery', () => {

@@ -1,116 +1,43 @@
-const EventEmitter = require('events');
+const { parser } = require('@hkube/parsers');
 const { NodesMap } = require('@hkube/dag');
 const { stateType } = require('@hkube/consts');
-const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
-const producer = require('../producer/producer');
-const stateAdapter = require('../states/stateAdapter');
-const { calcRates } = require('./metrics');
-const discovery = require('./service-discovery');
-const Statistics = require('./statistics');
-const Progress = require('./progress');
-const PendingScale = require('./pending-scale');
-const { Components, streamingEvents } = require('../consts');
-const component = Components.AUTO_SCALER;
+const stateAdapter = require('../../states/stateAdapter');
+const Statistics = require('../core/statistics');
+const producer = require('../../producer/producer');
+const discovery = require('../services/service-discovery');
+const PendingScale = require('../core/pending-scale');
+const { calcRates } = require('../core/metrics');
 let log;
 
-/**
- * TODO:
- * ✔️ - Handle Scale down
- * ✔️ - Add progress
- * ✔️ - Create jobs
- * ✔️ - Add fixed size window
- * ✔️ - Add/Remove stateless on graph
- * - handle sync between parents
- */
-
-/**
-* Ratio example:
-* ratio = (req msgPer sec / res msgPer sec)
-* (300 / 120) = 2.5
-* If the response is 2.5 times slower than request
-* So we need to scale up current replicas * 2.5
-* If the ratio is 0.5 we need to scale down.
-* The desired ratio is approximately 1 (0.8 <= desired <= 1.2)
-*/
-
-class AutoScaler extends EventEmitter {
-    init(options) {
-        this._options = options.streaming.autoScaler;
+class MasterAdapter {
+    constructor(options) {
         log = Logger.GetLogFromContainer();
-    }
-
-    async start(jobData) {
-        this._jobData = jobData;
-        this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
-        this.run();
-        this._autoScaleInterval();
-    }
-
-    run() {
-        this._statistics = new Statistics(this._options);
-        this._progress = new Progress();
-        this._progress.on(streamingEvents.PROGRESS_CHANGED, (changes) => {
-            this.emit(streamingEvents.PROGRESS_CHANGED, changes);
+        const { jobId, nodeName } = options;
+        stateAdapter.watchStreamingStats({ jobId, nodeName });
+        stateAdapter.on(`streaming-statistics-${options.nodeName}`, (data) => {
+            this.report(data);
         });
+        this._statistics = new Statistics({ options });
+        this._progress = Object.create(null);
         this._pendingScale = new PendingScale(this._options);
         this._nodes = this._pipeline.nodes.reduce((acc, cur) => {
             acc[cur.nodeName] = { isStateful: cur.stateType === stateType.Stateful, ...cur };
             return acc;
         }, {});
         this._dag = new NodesMap(this._pipeline);
-        this._active = true;
     }
 
-    election() {
-        const { jobId, nodeName } = this._jobData;
-        const childs = this._dag._childs(nodeName);
-        childs.forEach(c => {
-            const key = `${jobId}/${c}`;
-
-
-        });
+    report(data) {
+        this._statistics.report(data);
     }
 
-    finish() {
-        this._active = false;
-        clearInterval(this._interval);
-        this._interval = null;
+    get progress() {
+        return this._progress;
     }
 
-    reportStats(data) {
-        if (!this._active) {
-            return;
-        }
-        data.forEach((d) => {
-            this._statistics.report(d);
-        });
-    }
-
-    _autoScaleInterval() {
-        if (this._interval) {
-            return;
-        }
-        this._interval = setInterval(() => {
-            if (this._activeInterval) {
-                return;
-            }
-            try {
-                this._activeInterval = true;
-                this.autoScale();
-                this.checkProgress();
-            }
-            catch (e) {
-                log.throttle.error(e.message, { component });
-            }
-            finally {
-                this._activeInterval = false;
-            }
-        }, this._options.interval);
-    }
-
-    checkProgress() {
-        return this._progress.check();
+    work() {
+        this.autoScale();
     }
 
     autoScale() {
@@ -144,7 +71,7 @@ class AutoScaler extends EventEmitter {
     _updateProgress(nodeName, reqRate, resRate) {
         if (reqRate && resRate) {
             const progress = parseFloat((resRate / reqRate).toFixed(2));
-            this._progress.update(nodeName, progress);
+            this._progress[nodeName] = progress;
         }
     }
 
@@ -254,4 +181,4 @@ class AutoScaler extends EventEmitter {
     }
 }
 
-module.exports = new AutoScaler();
+module.exports = MasterAdapter;

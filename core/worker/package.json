@@ -22,7 +22,7 @@
         "@hkube/consts": "^1.0.28",
         "@hkube/dag": "^2.0.11",
         "@hkube/encoding": "^1.0.16",
-        "@hkube/etcd": "^5.0.33",
+        "@hkube/etcd": "^5.0.34",
         "@hkube/kubernetes-client": "^1.0.30",
         "@hkube/logger": "^1.0.25",
         "@hkube/metrics": "^1.0.39",

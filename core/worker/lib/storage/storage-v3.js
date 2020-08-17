@@ -1,5 +1,5 @@
 const { pipelineKind } = require('@hkube/consts');
-const streamHandler = require('../streaming/stream-handler');
+const streamHandler = require('../streaming/services/stream-handler');
 
 class Storage {
     async start(options) {

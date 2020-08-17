@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const cloneDeep = require('lodash.clonedeep');
-const { streamingEvents } = require('../consts');
+const { streamingEvents } = require('../../consts');
 
 class Progress extends EventEmitter {
     constructor() {

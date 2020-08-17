@@ -1,7 +1,7 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
-const stateAdapter = require('../states/stateAdapter');
-const { Components, streamingEvents } = require('../consts');
+const stateAdapter = require('../../states/stateAdapter');
+const { Components, streamingEvents } = require('../../consts');
 const component = Components.SERVICE_DISCOVERY;
 let log;
 
