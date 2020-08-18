@@ -38,14 +38,13 @@ class RedisAdapter {
 
     async _set(data) {
         await this._delete();
-        let size = 0;
-        for (const d of data) {
-            const json = JSON.stringify(d);
-            size += json.length;
-            if (this._maxPersistencySize && size > this._maxPersistencySize) {
-                log.warning(`persistency length is ${size} which is larger than ${this._maxPersistencySize}`, { component: components.ETCD_PERSISTENT });
-                return;
-            }
+        const jsonArray = data.map(JSON.stringify);
+        const size = jsonArray.reduce((prev, cur) => prev + cur.length, 0);
+        if (this._maxPersistencySize && size > this._maxPersistencySize) {
+            log.warning(`persistency length is ${size} which is larger than ${this._maxPersistencySize}`, { component: components.ETCD_PERSISTENT });
+            return;
+        }
+        for (const json of jsonArray) {
             await this._clientAsync.rpush(this.path, json);
         }
         log.info(`wrote ${size} bytes to persistency`, { component: components.ETCD_PERSISTENT });
