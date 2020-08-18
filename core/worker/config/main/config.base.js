@@ -30,6 +30,9 @@ config.streaming = {
         minReplicasToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_REPLICAS_TO_SCALE_DOWN, 1),
         minTimeWaitForReplicaUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 10000)
     },
+    election: {
+        interval: formatters.parseInt(process.env.ELECTION_INTERVAL, 10000),
+    },
     serviceDiscovery: {
         interval: process.env.SERVICE_DISCOVERY_INTERVAL || 4000,
         address: {

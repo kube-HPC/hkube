@@ -36,7 +36,9 @@ const calcRates = (data) => {
 
     if (data.durations.items.length > 0) {
         const median = _median(data.durations.items) / 1000;
-        durationsRate = 1 / median; // (msg per ~sec)
+        if (median) {
+            durationsRate = 1 / median; // (msg per ~sec)
+        }
     }
     return { reqRate, resRate, durationsRate };
 };

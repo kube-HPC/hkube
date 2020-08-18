@@ -1,38 +1,32 @@
 class PendingScale {
     constructor(options) {
         this._minTimeWaitForReplicaUp = options.minTimeWaitForReplicaUp;
-        this._pendingScale = Object.create(null);
+        this.upCount = null;
+        this.downCount = null;
+        this.upTime = null;
     }
 
-    get(nodeName) {
-        this._pendingScale[nodeName] = this._pendingScale[nodeName] || { upCount: null, downTo: null };
-        return this._pendingScale[nodeName];
-    }
-
-    check(nodeName, currentSize) {
-        const pendingScale = this.get(nodeName);
-
-        if (pendingScale.upCount && pendingScale.upCount <= currentSize) {
-            if (Date.now() - pendingScale.upTime >= this._minTimeWaitForReplicaUp) {
-                pendingScale.upCount = null;
-                pendingScale.upTime = null;
+    check(currentSize) {
+        if (this.upCount && this.upCount <= currentSize) {
+            if (!this.upTime) {
+                this.upTime = Date.now();
+            }
+            if (Date.now() - this.upTime >= this._minTimeWaitForReplicaUp) {
+                this.upCount = null;
+                this.upTime = null;
             }
         }
-        if (pendingScale.downTo && pendingScale.downTo >= currentSize) {
-            pendingScale.downTo = null;
+        if (this.downCount && this.downCount >= currentSize) {
+            this.downCount = null;
         }
-        return pendingScale;
     }
 
-    updateUp(nodeName, replicas) {
-        const pendingScale = this._pendingScale[nodeName];
-        pendingScale.upCount = replicas;
-        pendingScale.upTime = Date.now();
+    updateUp(replicas) {
+        this.upCount = replicas;
     }
 
-    updateDown(nodeName, replicas) {
-        const pendingScale = this._pendingScale[nodeName];
-        pendingScale.downTo = Math.max(0, replicas);
+    updateDown(replicas) {
+        this.downCount = Math.max(0, replicas);
     }
 }
 

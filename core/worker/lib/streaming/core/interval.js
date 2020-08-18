@@ -7,7 +7,7 @@ class Interval {
 
     start() {
         if (this._interval) {
-            return;
+            return this;
         }
         this._interval = setInterval(async () => {
             if (this._active) {
@@ -26,12 +26,15 @@ class Interval {
                 this._active = false;
             }
         }, this._delay);
+
+        return this;
     }
 
     stop() {
         this._active = false;
         clearInterval(this._interval);
         this._interval = null;
+        return this;
     }
 
     onFunc(func) {

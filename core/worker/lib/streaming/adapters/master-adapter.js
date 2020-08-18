@@ -1,7 +1,6 @@
 const { parser } = require('@hkube/parsers');
-const { NodesMap } = require('@hkube/dag');
-const { stateType } = require('@hkube/consts');
 const Logger = require('@hkube/logger');
+const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const Statistics = require('../core/statistics');
 const producer = require('../../producer/producer');
@@ -16,28 +15,27 @@ class MasterAdapter {
     constructor(options) {
         log = Logger.GetLogFromContainer();
         this.isMaster = true;
+        this.nodeName = options.nodeName;
         this._options = options;
+        this._isStateful = options.node.stateType === stateType.Stateful;
         const { jobId, nodeName } = options;
         stateAdapter.watchStreamingStats({ jobId, nodeName });
         stateAdapter.on(`streaming-statistics-${options.nodeName}`, (data) => {
             this.report(data);
         });
-        this._nodes = this._options.pipeline.nodes.reduce((acc, cur) => {
-            acc[cur.nodeName] = { isStateful: cur.stateType === stateType.Stateful, ...cur };
-            return acc;
-        }, {});
-        this._dag = new NodesMap(this._options.pipeline);
         this.clean();
     }
 
     clean() {
-        this._progress = Object.create(null);
+        this._progress = 0;
         this._statistics = new Statistics(this._options.config);
         this._pendingScale = new PendingScale(this._options.config);
     }
 
     finish() {
         const { jobId, nodeName } = this._options;
+        const key = `${jobId}/${nodeName}`;
+        stateAdapter.releaseLock(key);
         stateAdapter.unWatchStreamingStats({ jobId, nodeName });
     }
 
@@ -45,7 +43,7 @@ class MasterAdapter {
         this._statistics.report(data);
     }
 
-    get progress() {
+    getProgress() {
         return this._progress;
     }
 
@@ -64,9 +62,9 @@ class MasterAdapter {
             const { nodeName, currentSize } = stats;
             const { reqRate, resRate, durationsRate } = calcRates(stats, this._options.config);
 
-            this._updateProgress(nodeName, reqRate, resRate);
+            this._updateProgress(reqRate, resRate);
 
-            if (this._nodes[nodeName].isStateful) {
+            if (this._isStateful) {
                 return;
             }
             if (!reqRate && !resRate && !durationsRate) {
@@ -77,10 +75,10 @@ class MasterAdapter {
         return { scaleUp, scaleDown };
     }
 
-    _updateProgress(nodeName, reqRate, resRate) {
+    _updateProgress(reqRate, resRate) {
         if (reqRate && resRate) {
             const progress = parseFloat((resRate / reqRate).toFixed(2));
-            this._progress[nodeName] = progress;
+            this._progress = progress;
         }
     }
 
@@ -89,7 +87,7 @@ class MasterAdapter {
         let durationsRate = durationsRates;
         let hasResRate = true;
 
-        this._printRatesStats(reqRate, resRate, durationsRates);
+        this._printRatesStats(nodeName, reqRate, resRate, durationsRates);
 
         if (!resRate) {
             resRate = reqRate;
@@ -101,29 +99,29 @@ class MasterAdapter {
         const reqResRatio = reqRate / resRate;
         const durationsRatio = reqRate / durationsRate;
 
-        const pendingScale = this._pendingScale.check(nodeName, currentSize);
+        this._pendingScale.check(currentSize);
 
-        if (this._shouldScaleUp(reqResRatio, this._options.config, pendingScale, hasResRate)) {
+        if (this._shouldScaleUp(reqResRatio, this._options.config, this._pendingScale, hasResRate)) {
             const scaleSize = this._calcSize(currentSize, reqResRatio);
-            const replicasUp = Math.min(scaleSize, this._options.config.maxReplicas);
-            const scaleTo = currentSize + replicasUp;
+            const replicas = Math.min(scaleSize, this._options.config.maxReplicas);
+            const scaleTo = currentSize + replicas;
             this._logScaling('up', nodeName, currentSize, scaleTo, reqResRatio);
-            scaleUp.push({ nodeName, replicas: replicasUp });
-            this._pendingScale.updateUp(nodeName, replicasUp);
+            scaleUp.push({ nodeName, replicas });
+            this._pendingScale.updateUp(scaleTo);
         }
-        else if (this._shouldScaleDown(durationsRatio, this._options.config, currentSize, pendingScale)) {
+        else if (this._shouldScaleDown(durationsRatio, this._options.config, currentSize, this._pendingScale)) {
             const scaleSize = this._calcSize(currentSize, durationsRatio);
-            const replicasDown = Math.min(scaleSize, currentSize);
-            const scaleTo = currentSize - replicasDown;
+            const replicas = Math.min(scaleSize, currentSize);
+            const scaleTo = currentSize - replicas;
             this._logScaling('down', nodeName, currentSize, scaleTo, durationsRatio);
-            scaleDown.push({ nodeName, replicas: replicasDown });
-            this._pendingScale.updateDown(nodeName, scaleTo);
+            scaleDown.push({ nodeName, replicas });
+            this._pendingScale.updateDown(scaleTo);
         }
     }
 
-    _printRatesStats(req, res, durations) {
+    _printRatesStats(nodeName, req, res, durations) {
         if (!this._lastPrint || Date.now() - this._lastPrint >= 30000) {
-            log.info(`rates stats: req=${req.toFixed(2)}, res=${res.toFixed(2)}, durations=${durations.toFixed(2)}`, { component });
+            log.info(`rates stats: nodeName=${nodeName}, req=${req.toFixed(2)}, res=${res.toFixed(2)}, durations=${durations.toFixed(2)}`, { component });
             this._lastPrint = Date.now();
         }
     }
@@ -152,12 +150,11 @@ class MasterAdapter {
 
     _scaleUp(jobList) {
         jobList.forEach((j) => {
-            const { nodeName, replicas } = j;
+            const { replicas } = j;
             const tasks = [];
-            const node = this._nodes[nodeName];
             const parse = {
                 flowInputMetadata: this._options.pipeline.flowInputMetadata,
-                nodeInput: node.input,
+                nodeInput: this._options.node.input,
                 ignoreParentResult: true
             };
             const result = parser.parse(parse);
@@ -166,14 +163,10 @@ class MasterAdapter {
                 const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
                 tasks.push(task);
             }
-            const parents = this._dag._parents(nodeName);
-            const childs = this._dag._childs(nodeName);
             const job = {
-                ...this._jobData,
-                ...node,
+                ...this._options.jobData,
+                ...this._options.node,
                 tasks,
-                parents,
-                childs,
                 isScaled: true
             };
             producer.createJob({ jobData: job });

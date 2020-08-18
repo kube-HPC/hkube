@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
+const { NodesMap } = require('@hkube/dag');
 const stateAdapter = require('../../states/stateAdapter');
 const Progress = require('../core/progress');
 const Interval = require('../core/interval');
@@ -10,13 +11,18 @@ let log;
 
 class AutoScaler extends EventEmitter {
     init(options) {
-        this._options = options.streaming.autoScaler;
+        this._options = options.streaming;
         log = Logger.GetLogFromContainer();
     }
 
     async start(jobData) {
         this._jobData = jobData;
         this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
+        this._dag = new NodesMap(this._pipeline);
+        this._nodes = this._pipeline.nodes.reduce((acc, cur) => {
+            acc[cur.nodeName] = cur;
+            return acc;
+        }, {});
         this._adapters = new Adapters();
         this._progress = new Progress();
         this._progress.on(streamingEvents.PROGRESS_CHANGED, (changes) => {
@@ -25,12 +31,12 @@ class AutoScaler extends EventEmitter {
 
         await this._election();
 
-        this._statsInterval = new Interval({ delay: this._options.interval })
+        this._statsInterval = new Interval({ delay: this._options.autoScaler.interval })
             .onFunc(() => this._doWork())
             .onError((e) => log.throttle.error(e.message, { component }))
             .start();
 
-        this._electInterval = new Interval({ delay: this._options.interval })
+        this._electInterval = new Interval({ delay: this._options.election.interval })
             .onFunc(() => this._election())
             .onError((e) => log.throttle.error(e.message, { component }))
             .start();
@@ -40,20 +46,22 @@ class AutoScaler extends EventEmitter {
 
     async _election() {
         const { childs, jobId } = this._jobData;
-        const data = { config: this._options, pipeline: this._pipeline, jobData: this._jobData, jobId };
-        await Promise.all(childs.map(c => this._elect({ ...data, nodeName: c })));
+        const data = { config: this._options.autoScaler, pipeline: this._pipeline, jobData: this._jobData, jobId };
+        await Promise.all(childs.map(c => this._elect({ ...data, nodeName: c, node: this._getNode(c) })));
     }
 
     async _elect(options) {
         const { jobId, nodeName } = options;
         const key = `${jobId}/${nodeName}`;
         const lock = await stateAdapter.acquireLock(key);
-        if (lock.success) {
-            this._adapters.addMaster(options);
-        }
-        else {
-            this._adapters.addSlave(options);
-        }
+        this._adapters.addAdapter({ isMaster: lock.success, options });
+    }
+
+    _getNode(nodeName) {
+        const node = this._nodes[nodeName];
+        const parents = this._dag._parents(nodeName);
+        const childs = this._dag._childs(nodeName);
+        return { ...node, parents, childs };
     }
 
     finish() {
@@ -84,8 +92,7 @@ class AutoScaler extends EventEmitter {
     checkProgress() {
         const progress = this._adapters.progress();
         progress.forEach(p => {
-            const [nodeName, data] = Object.entries(p)[0];
-            this._progress.update(nodeName, data);
+            this._progress.update(p.nodeName, p.progress);
         });
         return this._progress.check();
     }

@@ -531,6 +531,14 @@ describe.only('Streaming', () => {
             expect(scaleDown).to.have.lengthOf(0);
             expect(scaleUp[0].replicas).to.eql(1);
         });
+        it('should start and finish correctly', async () => {
+            await streamHandler.start(job);
+            await streamHandler.finish(job);
+            const { scaleUp, scaleDown } = autoScale();
+            expect(scaleUp).to.have.lengthOf(1);
+            expect(scaleDown).to.have.lengthOf(0);
+            expect(scaleUp[0].replicas).to.eql(1);
+        });
     });
     describe('discovery', () => {
         beforeEach(() => {
