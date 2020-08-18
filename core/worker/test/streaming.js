@@ -120,17 +120,14 @@ const autoScale = () => {
 }
 
 describe.only('Streaming', () => {
+    before(async () => {
+        await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
+        await streamHandler.start(job);
+    });
     describe('auto-scaler', () => {
-        before(async () => {
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-            await streamHandler.start(job);
-        });
         beforeEach(async () => {
             const masters = autoScaler._adapters._getMasters();
             masters.map(m => m.clean());
-
-            // return Object.values(this._adapters).filter(a => a.isMaster)[0].scale();
-
         })
         describe('scale-up', () => {
             it('should not scale based on no data', async () => {
@@ -521,9 +518,6 @@ describe.only('Streaming', () => {
         });
     });
     describe('auto-scaler', () => {
-        before(async () => {
-            await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
-        });
         it('should scale based on queueSize equals 1', async () => {
             await streamHandler.start(job);
             const { scaleUp, scaleDown } = autoScale();

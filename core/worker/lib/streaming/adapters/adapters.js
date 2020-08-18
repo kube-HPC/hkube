@@ -54,7 +54,7 @@ class Adapters {
 
     progress() {
         const masters = this._getMasters();
-        return masters.map(m => ({ node: m.nodeName, progress: m.getProgress() }));
+        return masters.map(m => ({ nodeName: m.nodeName, progress: m.getProgress() }));
     }
 
     _getMasters() {
