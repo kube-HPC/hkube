@@ -70,7 +70,7 @@ class ProgressManager {
     _progress(level, options) {
         const data = this._calcProgress();
         this._currentProgress = data.progress;
-        return this._throttleProgress({ ...options, data, level }).catch(e => log.error(`failed to write progress ${e.message}`));
+        return this._throttleProgress({ ...options, data, level }).catch(e => log.warning(`failed to write progress ${e.message}`));
     }
 
     _queueProgress(options) {

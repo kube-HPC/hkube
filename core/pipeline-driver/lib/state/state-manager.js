@@ -170,7 +170,7 @@ class StateManager extends EventEmitter {
             }
             return null;
         }).catch(e => {
-            log.throttle.error(e.message, { component });
+            log.throttle.warning(`setJobStatus failed with error: ${e.message}`, { component });
         });
     }
 
