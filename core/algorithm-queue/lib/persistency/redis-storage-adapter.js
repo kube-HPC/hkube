@@ -47,7 +47,7 @@ class RedisAdapter {
         for (const json of jsonArray) {
             await this._clientAsync.rpush(this.path, json);
         }
-        log.info(`wrote ${size} bytes to persistency`, { component: components.ETCD_PERSISTENT });
+        log.debug(`wrote ${size} bytes to persistency`, { component: components.ETCD_PERSISTENT });
     }
 
     async get() {

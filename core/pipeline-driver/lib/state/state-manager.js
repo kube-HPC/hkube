@@ -169,6 +169,8 @@ class StateManager extends EventEmitter {
                 return { ...oldItem, ...options };
             }
             return null;
+        }).catch(e => {
+            log.throttle.error(e.message, { component });
         });
     }
 

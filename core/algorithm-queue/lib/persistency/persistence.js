@@ -25,7 +25,7 @@ class Persistence {
         if (this._prevDataLength === 0 && data.length === 0 && this._prevPendingAmount === pendingAmount) {
             return;
         }
-        log.info(`writing ${data.length} items to persistency`, { component: components.ETCD_PERSISTENT });
+        log.debug(`writing ${data.length} items to persistency`, { component: components.ETCD_PERSISTENT });
         this._prevDataLength = data.length;
         this._prevPendingAmount = pendingAmount;
         try {
@@ -35,7 +35,7 @@ class Persistence {
             log.error(`failed to store persistency ${error.message}`, { component: components.ETCD_PERSISTENT }, error);
         }
 
-        log.info(`finished writing ${data.length} items to persistency`, { component: components.ETCD_PERSISTENT });
+        log.debug(`finished writing ${data.length} items to persistency`, { component: components.ETCD_PERSISTENT });
         const scoreArray = data.map(d => d.calculated.score);
         const status = await this._etcd.algorithms.queue.set({ name: this._queueName, data: scoreArray, pendingAmount, timestamp: Date.now() });
         if (status) {
