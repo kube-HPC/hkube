@@ -3,7 +3,7 @@ const { expect } = require('chai');
 const { uid } = require('@hkube/uid');
 const stateAdapter = require('../lib/states/stateAdapter');
 const streamHandler = require('../lib/streaming/services/stream-handler');
-const autoScaler = require('../lib/streaming/services/auto-scaler');
+const streamService = require('../lib/streaming/services/stream-service');
 const discovery = require('../lib/streaming/services/service-discovery');
 
 const pipeline = {
@@ -115,7 +115,7 @@ const createJob = (jobId) => {
 const job = createJob(jobId);
 
 const autoScale = () => {
-    const masters = autoScaler._adapters._getMasters();
+    const masters = streamService._adapters._getMasters();
     return masters[0].scale();
 }
 
@@ -126,13 +126,13 @@ describe.only('Streaming', () => {
     });
     describe('auto-scaler', () => {
         beforeEach(async () => {
-            const masters = autoScaler._adapters._getMasters();
+            const masters = streamService._adapters._getMasters();
             masters.map(m => m.clean());
         })
         describe('scale-up', () => {
             it('should not scale based on no data', async () => {
                 const scale = async (data) => {
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -145,7 +145,7 @@ describe.only('Streaming', () => {
             });
             it('should scale based on queueSize equals 1', async () => {
                 const scale = async (data) => {
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -160,13 +160,13 @@ describe.only('Streaming', () => {
             });
             it('should not scale if currentSize is fixed', async () => {
                 const scale = async (data) => {
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const currentSize = async (data) => {
                     data[0].currentSize = 10;
                     data[0].queueSize += 500
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -195,7 +195,7 @@ describe.only('Streaming', () => {
             });
             it('should scale based on queueSize only', async () => {
                 const scale = async (data) => {
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -211,7 +211,7 @@ describe.only('Streaming', () => {
             });
             it('should scale based on queueSize and responses only', async () => {
                 const scale = async (data) => {
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -231,7 +231,7 @@ describe.only('Streaming', () => {
                     data[0].currentSize = 5;
                     data[0].queueSize += 100;
                     data[0].responses = 100;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -251,7 +251,7 @@ describe.only('Streaming', () => {
             it('should scale based on request rate', async () => {
                 const scale = async (data) => {
                     data[0].sent += 10;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -270,7 +270,7 @@ describe.only('Streaming', () => {
                 const scale = async (data) => {
                     data[0].sent += 100;
                     data[0].responses += 30;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -291,7 +291,7 @@ describe.only('Streaming', () => {
                 const scale = async (data) => {
                     data[0].sent += 100;
                     data[0].responses += 0;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -312,13 +312,13 @@ describe.only('Streaming', () => {
                 const scale = async (data) => {
                     data[0].sent += 10;
                     data[0].responses += 3;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const increaseSize = (data) => {
                     data[0].responses += 1;
                     data[0].currentSize += 2;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                 }
                 const list = [{
                     nodeName: 'D',
@@ -361,14 +361,14 @@ describe.only('Streaming', () => {
                 const nodeName = 'D';
                 const requestsUp = async (data) => {
                     data[0].queueSize += 100;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const responsesUp = async (data) => {
                     data[0].responses += 100;
                     data[0].sent = 200;
                     data[0].queueSize = 0;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -402,7 +402,7 @@ describe.only('Streaming', () => {
                 const requests = async (data) => {
                     data[0].currentSize = 5;
                     data[0].responses += 100;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -422,7 +422,7 @@ describe.only('Streaming', () => {
                     data[0].currentSize = 1;
                     data[0].queueSize = 0;
                     data[0].responses += 100;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -445,7 +445,7 @@ describe.only('Streaming', () => {
                     data[0].currentSize = 5;
                     data[0].queueSize = 100;
                     data[0].responses = 100;
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -465,7 +465,7 @@ describe.only('Streaming', () => {
         describe('no-scale', () => {
             it('should not scale when no relevant data', async () => {
                 const scale = async (data) => {
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -484,13 +484,13 @@ describe.only('Streaming', () => {
                     nodeName,
                     queueSize: 10
                 }];
-                autoScaler.reportStats(data);
-                autoScaler.reportStats(data);
-                autoScaler.reportStats(data);
-                autoScaler.reportStats(data);
-                autoScaler.reportStats(data);
-                autoScaler.reportStats(data);
-                const { requests, responses } = autoScaler._statistics.data[nodeName];
+                streamService.reportStats(data);
+                streamService.reportStats(data);
+                streamService.reportStats(data);
+                streamService.reportStats(data);
+                streamService.reportStats(data);
+                streamService.reportStats(data);
+                const { requests, responses } = streamService._statistics.data[nodeName];
                 expect(requests).to.have.lengthOf(4);
                 expect(responses).to.have.lengthOf(4);
             });
@@ -499,7 +499,7 @@ describe.only('Streaming', () => {
             it('should scale and update progress', async () => {
                 const nodeName = 'D';
                 const scale = async (data) => {
-                    autoScaler.reportStats(data);
+                    streamService.reportStats(data);
                     await delay(100);
                 }
                 const list = [{
@@ -509,7 +509,7 @@ describe.only('Streaming', () => {
                 }];
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                const progressMap = autoScaler.checkProgress();
+                const progressMap = streamService.checkProgress();
                 expect(progressMap[nodeName]).to.eql(0.8);
                 expect(scaleUp).to.have.lengthOf(1);
                 expect(scaleDown).to.have.lengthOf(0);

@@ -33,6 +33,9 @@ config.streaming = {
     election: {
         interval: formatters.parseInt(process.env.ELECTION_INTERVAL, 10000),
     },
+    progress: {
+        interval: formatters.parseInt(process.env.STREAMING_PROGRESS_INTERVAL, 10000),
+    },
     serviceDiscovery: {
         interval: process.env.SERVICE_DISCOVERY_INTERVAL || 4000,
         address: {

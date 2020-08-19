@@ -8,22 +8,23 @@ class Statistics {
     }
 
     report(data) {
-        const { nodeName, currentSize: size } = data;
+        const { source, target, currentSize: size } = data;
         let { queueSize, sent, responses, durations } = data;
         queueSize = queueSize || 0;
         sent = sent || 0;
         responses = responses || 0;
         durations = durations || [];
         const requests = queueSize + sent;
-        const stats = this._data[nodeName] || this._createStatData({ maxSize: this._maxSize });
+        this._data[target] = this._data[target] || {};
+        const stats = this._data[target][source] || this._createStatData({ maxSize: this._maxSize });
         stats.requests.add(this._createItem(requests));
         stats.responses.add(this._createItem(responses));
         stats.durations.addRange(durations);
-        const currentSize = size || discovery.countInstances(nodeName);
+        const currentSize = size || discovery.countInstances(target);
 
-        this._data[nodeName] = {
+        this._data[target][source] = {
             ...stats,
-            nodeName,
+            nodeName: target,
             currentSize
         };
     }

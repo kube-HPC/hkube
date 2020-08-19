@@ -2,7 +2,7 @@ const _median = (array) => {
     if (!array || array.length === 0) {
         return 0;
     }
-    array.sort();
+    array.sort((a, b) => a - b);
     const half = Math.floor(array.length / 2);
     const median = array.length % 2 ? array[half] : (array[half - 1] + array[half]) / 2.0;
     return median;
@@ -32,13 +32,12 @@ const _calcRate = (list) => {
 const calcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
     const resRate = _calcRate(data.responses.items);
+    const durRate = _median(data.durations.items);
     let durationsRate = 0;
 
-    if (data.durations.items.length > 0) {
-        const median = _median(data.durations.items) / 1000;
-        if (median) {
-            durationsRate = 1 / median; // (msg per ~sec)
-        }
+    if (durRate) {
+        const median = 1 / (durRate / 1000);
+        durationsRate = median; // (msg per ~sec)
     }
     return { reqRate, resRate, durationsRate };
 };

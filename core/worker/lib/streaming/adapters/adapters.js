@@ -10,32 +10,32 @@ class Adapters {
     }
 
     addAdapter({ isMaster, options }) {
-        const { nodeName } = options;
-        const adapter = this._adapters[nodeName];
+        const { target } = options;
+        const adapter = this._adapters[target];
         if (!adapter) {
             if (isMaster) {
                 this._addMaster(options);
-                log.info(`master is added for node ${nodeName}`, { component: Components.MASTER_SCALER });
+                log.info(`master is added for node ${target}`, { component: Components.MASTER_SCALER });
             }
             else {
                 this._addSlave(options);
-                log.info(`slave is added for node ${nodeName}`, { component: Components.SLAVE_SCALER });
+                log.info(`slave is added for node ${target}`, { component: Components.SLAVE_SCALER });
             }
         }
         else if (!adapter.isMaster && isMaster) {
             this._addMaster(options);
-            log.info(`switching from slave to master for node ${nodeName}`, { component: Components.MASTER_SCALER });
+            log.info(`switching from slave to master for node ${target}`, { component: Components.MASTER_SCALER });
         }
     }
 
     _addMaster(options) {
-        const { nodeName } = options;
-        this._adapters[nodeName] = new MasterAdapter(options);
+        const { target } = options;
+        this._adapters[target] = new MasterAdapter(options);
     }
 
     _addSlave(options) {
-        const { nodeName } = options;
-        this._adapters[nodeName] = new SlaveAdapter(options);
+        const { target } = options;
+        this._adapters[target] = new SlaveAdapter(options);
     }
 
     finish() {
@@ -54,7 +54,7 @@ class Adapters {
 
     progress() {
         const masters = this._getMasters();
-        return masters.map(m => ({ nodeName: m.nodeName, progress: m.getProgress() }));
+        return masters.map(m => ({ nodeName: m.target, progress: m.getProgress() }));
     }
 
     _getMasters() {
