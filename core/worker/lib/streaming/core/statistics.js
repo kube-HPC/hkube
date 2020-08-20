@@ -1,4 +1,3 @@
-const discovery = require('../services/service-discovery');
 const FixedWindow = require('./fixed-window');
 
 class Statistics {
@@ -7,30 +6,45 @@ class Statistics {
         this._data = Object.create(null);
     }
 
+    /**
+     * The stats is a <Target, <Source, Stats>>
+     * This class expose generator that implements custom iterator,
+     * so it will be easy to iterate over this structure.
+     * Example:
+     * "D": {"A": Stats}
+     *      {"B": Stats}
+     *      {"C": Stats}}
+     */
     report(data) {
-        const { source, target, currentSize: size } = data;
+        const { nodeName, source, currentSize } = data;
         let { queueSize, sent, responses, durations } = data;
         queueSize = queueSize || 0;
         sent = sent || 0;
         responses = responses || 0;
         durations = durations || [];
         const requests = queueSize + sent;
-        this._data[target] = this._data[target] || {};
-        const stats = this._data[target][source] || this._createStatData({ maxSize: this._maxSize });
+        this._data[nodeName] = this._data[nodeName] || {};
+        const stats = this._data[nodeName][source] || this._createStatData({ maxSize: this._maxSize });
         stats.requests.add(this._createItem(requests));
         stats.responses.add(this._createItem(responses));
         stats.durations.addRange(durations);
-        const currentSize = size || discovery.countInstances(target);
 
-        this._data[target][source] = {
+        this._data[nodeName][source] = {
             ...stats,
-            nodeName: target,
+            nodeName,
             currentSize
         };
     }
 
-    get data() {
-        return this._data;
+    *[Symbol.iterator]() {
+        const values = Object.values(this._data);
+        for (let i = 0; i < values.length; i += 1) {
+            const entries = Object.entries(values[i]);
+            for (let j = 0; j < entries.length; j += 1) {
+                const [source, data] = entries[j];
+                yield { source, data };
+            }
+        }
     }
 
     _createItem(count) {

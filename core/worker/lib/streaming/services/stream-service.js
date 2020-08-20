@@ -1,11 +1,8 @@
 const EventEmitter = require('events');
-const Logger = require('@hkube/logger');
-const Progress = require('../core/progress');
-const Interval = require('../core/interval');
 const Election = require('./election');
-const { Components, streamingEvents } = require('../../consts');
-const component = Components.AUTO_SCALER;
-let log;
+const ProgressCollector = require('./progress-collector');
+const ScalerService = require('./scaler-service');
+const { streamingEvents } = require('../../consts');
 
 /**
  * This class is responsible for periodically checks
@@ -16,36 +13,26 @@ let log;
 class StreamService extends EventEmitter {
     init(options) {
         this._options = options.streaming;
-        log = Logger.GetLogFromContainer();
     }
 
     async start(jobData) {
         this._jobData = jobData;
-        this._progress = new Progress();
+        this._election = new Election(this._options);
+        this._adapters = await this._election.start(jobData);
+        this._progress = new ProgressCollector(this._options, () => this._adapters.progress());
         this._progress.on(streamingEvents.PROGRESS_CHANGED, (changes) => {
             this.emit(streamingEvents.PROGRESS_CHANGED, changes);
         });
-        this._election = new Election(this._options);
-        this._adapters = await this._election.start(jobData);
-
-        this._autoScaleInterval = new Interval({ delay: this._options.autoScaler.interval })
-            .onFunc(() => this.autoScale())
-            .onError((e) => log.throttle.error(e.message, { component }))
-            .start();
-
-        this._progressInterval = new Interval({ delay: this._options.progress.interval })
-            .onFunc(() => this.checkProgress())
-            .onError((e) => log.throttle.error(e.message, { component }))
-            .start();
+        this._scalerService = new ScalerService(this._options, () => this._adapters.scale());
         this._active = true;
     }
 
     finish() {
         this._active = false;
-        this._autoScaleInterval.stop();
-        this._progressInterval.stop();
-        this._election.finish();
-        this._adapters.finish();
+        this._scalerService.stop();
+        this._progress.stop();
+        this._election.stop();
+        this._adapters.stop();
     }
 
     reportStats(data) {
@@ -53,20 +40,8 @@ class StreamService extends EventEmitter {
             return;
         }
         data.forEach((d) => {
-            this._adapters.report({ ...d, jobId: this._jobData.jobId });
+            this._adapters.report(d);
         });
-    }
-
-    autoScale() {
-        this._adapters.scale();
-    }
-
-    checkProgress() {
-        const progress = this._adapters.progress();
-        progress.forEach(p => {
-            this._progress.update(p.nodeName, p.progress);
-        });
-        return this._progress.check();
     }
 }
 

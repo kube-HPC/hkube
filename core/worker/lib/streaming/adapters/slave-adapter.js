@@ -3,7 +3,7 @@ const stateAdapter = require('../../states/stateAdapter');
 
 class SlaveAdapter extends Adapter {
     report(data) {
-        stateAdapter.reportStreamingStats({ ...data, source: this.source, target: this.target });
+        stateAdapter.reportStreamingStats({ ...data, jobId: this.jobId, source: this.source });
     }
 
     finish() {

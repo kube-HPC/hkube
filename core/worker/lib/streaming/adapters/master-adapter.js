@@ -5,11 +5,10 @@ const AutoScaler = require('../services/auto-scaler');
 class MasterAdapter extends Adapter {
     constructor(options) {
         super(options);
-        this.isMaster = true;
         this._options = options;
         const { jobId, nodeName } = options;
         stateAdapter.watchStreamingStats({ jobId, nodeName });
-        stateAdapter.on(`streaming-statistics-${options.nodeName}`, (data) => {
+        stateAdapter.on(`streaming-statistics-${nodeName}`, (data) => {
             this._report(data);
         });
         this._autoScaler = new AutoScaler(options);
@@ -20,7 +19,7 @@ class MasterAdapter extends Adapter {
     }
 
     report(data) {
-        return this._report({ ...data, source: this.source, target: this.target });
+        return this._report({ ...data, source: this.source });
     }
 
     _report(data) {

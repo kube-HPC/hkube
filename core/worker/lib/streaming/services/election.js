@@ -1,10 +1,10 @@
 const Logger = require('@hkube/logger');
 const { NodesMap } = require('@hkube/dag');
 const stateAdapter = require('../../states/stateAdapter');
-const Interval = require('../core/interval');
+const { Interval } = require('../core');
 const Adapters = require('../adapters/adapters');
 const { Components } = require('../../consts');
-const component = Components.AUTO_SCALER;
+const component = Components.ELECTION;
 let log;
 
 /**
@@ -45,21 +45,21 @@ class Election {
         return this._adapters;
     }
 
-    finish() {
+    stop() {
         this._electInterval.stop();
     }
 
     async _election() {
         const { childs, jobId, nodeName } = this._jobData;
         const data = { config: this._options.autoScaler, pipeline: this._pipeline, jobData: this._jobData, jobId };
-        await Promise.all(childs.map(c => this._elect({ ...data, source: nodeName, target: c, node: this._createNode(c) })));
+        await Promise.all(childs.map(c => this._elect({ ...data, nodeName: c, source: nodeName, node: this._createNode(c) })));
     }
 
     async _elect(options) {
-        const { jobId, target } = options;
-        const key = `${jobId}/${target}`;
+        const { jobId, nodeName } = options;
+        const key = `${jobId}/${nodeName}`;
         const lock = await stateAdapter.acquireLock(key);
-        this._adapters.addAdapter({ isMaster: lock.success, options });
+        this._adapters.addAdapter({ isMaster: lock.success, ...options });
     }
 
     _createNode(nodeName) {

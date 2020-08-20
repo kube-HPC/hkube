@@ -5,6 +5,7 @@ const stateAdapter = require('../lib/states/stateAdapter');
 const streamHandler = require('../lib/streaming/services/stream-handler');
 const streamService = require('../lib/streaming/services/stream-service');
 const discovery = require('../lib/streaming/services/service-discovery');
+const SlaveAdapter = require('../lib/streaming/adapters/slave-adapter');
 
 const pipeline = {
     name: "stream",
@@ -117,6 +118,10 @@ const job = createJob(jobId);
 const autoScale = () => {
     const masters = streamService._adapters._getMasters();
     return masters[0].scale();
+}
+
+const checkProgress = () => {
+    return streamService._progress._checkProgress();
 }
 
 describe.only('Streaming', () => {
@@ -509,7 +514,7 @@ describe.only('Streaming', () => {
                 }];
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                const progressMap = streamService.checkProgress();
+                const progressMap = checkProgress();
                 expect(progressMap[nodeName]).to.eql(0.8);
                 expect(scaleUp).to.have.lengthOf(1);
                 expect(scaleDown).to.have.lengthOf(0);
@@ -518,12 +523,27 @@ describe.only('Streaming', () => {
         });
     });
     describe('auto-scaler', () => {
-        it('should scale based on queueSize equals 1', async () => {
-            await streamHandler.start(job);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp).to.have.lengthOf(1);
-            expect(scaleDown).to.have.lengthOf(0);
-            expect(scaleUp[0].replicas).to.eql(1);
+        it('should scale up based on high req/res rate', async () => {
+            const nodeName = 'D';
+            const requests = async (data) => {
+                streamService.reportStats(data);
+            }
+            const list = [{ nodeName, queueSize: 150, responses: 30, currentSize: 2 }];
+            const list1 = { nodeName, queueSize: 300, responses: 80 };
+            const list2 = { nodeName, queueSize: 450, responses: 140 };
+            const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
+            const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
+            await requests(list);
+            await slave1.report(list1);
+            await slave2.report(list2);
+            await delay(500);
+
+            const jobs = autoScale();
+            const progress = checkProgress();
+            expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C', 'D'])
+            expect(jobs.scaleUp).to.have.lengthOf(1);
+            expect(jobs.scaleUp[0].replicas).to.eql(10);
+            expect(jobs.scaleDown).to.have.lengthOf(0);
         });
         it('should start and finish correctly', async () => {
             await streamHandler.start(job);

@@ -2,27 +2,24 @@ const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
-const Statistics = require('../core/statistics');
+const { Statistics, Progress, PendingScale, Metrics } = require('../core');
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
-const PendingScale = require('../core/pending-scale');
-const { calcRates } = require('../core/metrics');
 const { Components } = require('../../consts');
-const component = Components.MASTER_SCALER;
+const component = Components.AUTO_SCALER;
 let log;
 
 class AutoScaler {
     constructor(options) {
         log = Logger.GetLogFromContainer();
-        this.isMaster = true;
-        this.nodeName = options.target;
+        this._nodeName = options.nodeName;
         this._options = options;
         this._isStateful = options.node.stateType === stateType.Stateful;
         this.clean();
     }
 
     clean() {
-        this._progress = 0;
+        this._progress = new Progress();
         this._statistics = new Statistics(this._options.config);
         this._pendingScale = new PendingScale(this._options.config);
     }
@@ -32,7 +29,7 @@ class AutoScaler {
     }
 
     getProgress() {
-        return this._progress;
+        return this._progress.data;
     }
 
     scale() {
@@ -42,49 +39,50 @@ class AutoScaler {
         return { scaleUp, scaleDown };
     }
 
-    /**
-     * The stats is a <Target, <Source, Stats>>
-     * "D": {"A": Stats}
-     *      {"B": Stats}
-     *      {"C": Stats}
-     */
     _createScale() {
         const scaleUp = [];
         const scaleDown = [];
+        const stats = [];
 
-        Object.values(this._statistics.data).forEach((node) => {
-            Object.entries(node).forEach(([k, v]) => {
-                const { nodeName, currentSize } = v;
-                const { reqRate, resRate, durationsRate } = calcRates(v, this._options.config);
+        for (const stat of this._statistics) {
+            const { source, data } = stat;
+            const { nodeName } = data;
+            const currentSize = data.currentSize || discovery.countInstances(nodeName);
+            const { reqRate, resRate, durationsRate } = Metrics.CalcRates(stat.data, this._options.config);
 
-                this._updateProgress(reqRate, resRate);
+            stats.push({ source, target: nodeName, reqRate, resRate, durationsRate });
 
-                if (this._isStateful) {
-                    return;
+            const noRates = !reqRate && !resRate && !durationsRate;
+
+            if (!this._isStateful && !noRates) {
+                const result = this._updateScale(nodeName, reqRate, resRate, durationsRate, currentSize);
+                if (result.up) {
+                    scaleUp.push({ source, replicas: result.up });
                 }
-                if (!reqRate && !resRate && !durationsRate) {
-                    return;
+                else if (result.down) {
+                    scaleDown.push({ source, replicas: result.down });
                 }
-                this._updateScale(nodeName, reqRate, resRate, durationsRate, currentSize, scaleUp, scaleDown);
-            });
-        });
+            }
+        }
+        this._printRatesStats(stats);
+        this._updateProgress(stats);
 
         return { scaleUp, scaleDown };
     }
 
-    _updateProgress(reqRate, resRate) {
-        if (reqRate && resRate) {
-            const progress = parseFloat((resRate / reqRate).toFixed(2));
-            this._progress = progress;
-        }
+    _updateProgress(stats) {
+        stats.forEach(s => {
+            if (s.reqRate && s.resRate) {
+                const progress = parseFloat((s.resRate / s.reqRate).toFixed(2));
+                this._progress.update(s.source, progress);
+            }
+        });
     }
 
-    _updateScale(nodeName, reqRate, resRates, durationsRates, currentSize, scaleUp, scaleDown) {
+    _updateScale(nodeName, reqRate, resRates, durationsRates, currentSize) {
         let resRate = resRates;
         let durationsRate = durationsRates;
         let hasResRate = true;
-
-        this._printRatesStats(nodeName, reqRate, resRate, durationsRates);
 
         if (!resRate) {
             resRate = reqRate;
@@ -97,13 +95,14 @@ class AutoScaler {
         const durationsRatio = reqRate / durationsRate;
 
         this._pendingScale.check(currentSize);
+        const result = { up: 0, down: 0 };
 
         if (this._shouldScaleUp(reqResRatio, this._options.config, this._pendingScale, hasResRate)) {
             const scaleSize = this._calcSize(currentSize, reqResRatio);
             const replicas = Math.min(scaleSize, this._options.config.maxReplicas);
             const scaleTo = currentSize + replicas;
             this._logScaling('up', nodeName, currentSize, scaleTo, reqResRatio);
-            scaleUp.push({ nodeName, replicas });
+            result.up = replicas;
             this._pendingScale.updateUp(scaleTo);
         }
         else if (this._shouldScaleDown(durationsRatio, this._options.config, currentSize, this._pendingScale)) {
@@ -111,14 +110,17 @@ class AutoScaler {
             const replicas = Math.min(scaleSize, currentSize);
             const scaleTo = currentSize - replicas;
             this._logScaling('down', nodeName, currentSize, scaleTo, durationsRatio);
-            scaleDown.push({ nodeName, replicas });
+            result.down = replicas;
             this._pendingScale.updateDown(scaleTo);
         }
+        return result;
     }
 
-    _printRatesStats(nodeName, req, res, durations) {
+    _printRatesStats(stats) {
         if (!this._lastPrint || Date.now() - this._lastPrint >= 30000) {
-            log.info(`rates stats: nodeName=${nodeName}, req=${req.toFixed(2)}, res=${res.toFixed(2)}, durations=${durations.toFixed(2)}`, { component });
+            stats.forEach(s => {
+                log.info(`stats for ${s.source}=>${s.target}: req=${s.reqRate.toFixed(2)}, res=${s.resRate.toFixed(2)}, durations=${s.durationsRate.toFixed(2)}`, { component });
+            });
             this._lastPrint = Date.now();
         }
     }

@@ -16,8 +16,10 @@ const Components = {
     K8S: 'k8s',
     STORAGE: 'Storage',
     AUTO_SCALER: 'Auto-Scaler',
-    MASTER_SCALER: 'Master-Scaler',
-    SLAVE_SCALER: 'Slave-Scaler',
+    ELECTION: 'Election',
+    MASTER_ADAPTER: 'Master-Adapter',
+    SLAVE_ADAPTER: 'Slave-Adapter',
+    STREAM_SERVICE: 'Stream-Service',
     SERVICE_DISCOVERY: 'Service-Discovery'
 };
 

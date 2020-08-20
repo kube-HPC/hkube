@@ -1,4 +1,4 @@
-const _median = (array) => {
+const Median = (array) => {
     if (!array || array.length === 0) {
         return 0;
     }
@@ -29,10 +29,10 @@ const _calcRate = (list) => {
 * If the ratio is 0.5 we need to scale down.
 * The desired ratio is approximately 1 (0.8 <= desired <= 1.2)
 */
-const calcRates = (data) => {
+const CalcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
     const resRate = _calcRate(data.responses.items);
-    const durRate = _median(data.durations.items);
+    const durRate = Median(data.durations.items);
     let durationsRate = 0;
 
     if (durRate) {
@@ -43,5 +43,6 @@ const calcRates = (data) => {
 };
 
 module.exports = {
-    calcRates
+    CalcRates,
+    Median
 };

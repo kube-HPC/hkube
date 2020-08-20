@@ -1,7 +1,9 @@
 class Adapter {
     constructor(options) {
+        this.isMaster = options.isMaster;
+        this.jobId = options.jobId;
         this.source = options.source;
-        this.target = options.target;
+        this.nodeName = options.nodeName;
     }
 }
 

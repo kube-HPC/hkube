@@ -32,6 +32,8 @@ module.exports = {
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "indent": ["warn", 4, { "SwitchCase": 1 }],
-        "arrow-parens": "off"
+        "arrow-parens": "off",
+        "generator-star-spacing": "off",
+        "no-restricted-syntax": ["error", "WithStatement", "BinaryExpression[operator='in']"]
     }
 };
