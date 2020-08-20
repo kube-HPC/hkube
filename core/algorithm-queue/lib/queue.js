@@ -180,14 +180,7 @@ class Queue extends events {
     _queueInterval() {
         setTimeout(async () => {
             try {
-                this.isScoreDuringUpdate = true;
-                await this.enrichmentRunner(this.queue);
-                await this.updateScore();
-                log.debug('queue update score cycle starts', { component: components.QUEUE });
-                this._mergeTemp();
-                this._orderQueue();
-                await this.persistenceStore();
-                this.isScoreDuringUpdate = false;
+                await this._intervalUpdateCallback();
             }
             catch (error) {
                 log.throttle.error(`fail on queue interval ${error}`, { component: components.QUEUE }, error);
@@ -198,6 +191,17 @@ class Queue extends events {
                 }
             }
         }, this.updateInterval);
+    }
+
+    async _intervalUpdateCallback() {
+        this.isScoreDuringUpdate = true;
+        await this.enrichmentRunner(this.queue);
+        await this.updateScore();
+        log.debug('queue update score cycle starts', { component: components.QUEUE });
+        this._mergeTemp();
+        this._orderQueue();
+        await this.persistenceStore();
+        this.isScoreDuringUpdate = false;
     }
 }
 
