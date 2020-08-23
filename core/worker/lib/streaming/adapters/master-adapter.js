@@ -28,8 +28,7 @@ class MasterAdapter extends Adapter {
 
     finish() {
         const { jobId, nodeName } = this._options;
-        const key = `${jobId}/${nodeName}`;
-        stateAdapter.releaseLock(key);
+        stateAdapter.releaseStreamingLock({ jobId, nodeName });
         stateAdapter.unWatchStreamingStats({ jobId, nodeName });
     }
 

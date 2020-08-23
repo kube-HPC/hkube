@@ -10,21 +10,21 @@ class Adapters {
     }
 
     addAdapter(options) {
-        const { nodeName, isMaster } = options;
+        const { source, nodeName, isMaster } = options;
         const adapter = this._adapters[nodeName];
         if (!adapter) {
             if (isMaster) {
                 this._addMaster(options);
-                log.info(`master is added for node ${nodeName}`, { component: Components.MASTER_ADAPTER });
+                log.info(`node ${source} become master for node ${nodeName}`, { component: Components.MASTER_ADAPTER });
             }
             else {
                 this._addSlave(options);
-                log.info(`slave is added for node ${nodeName}`, { component: Components.SLAVE_ADAPTER });
+                log.info(`node ${source} become slave for node ${nodeName}`, { component: Components.SLAVE_ADAPTER });
             }
         }
         else if (!adapter.isMaster && isMaster) {
             this._addMaster(options);
-            log.info(`switching from slave to master for node ${nodeName}`, { component: Components.MASTER_ADAPTER });
+            log.info(`node ${source} switching from slave to master for node ${nodeName}`, { component: Components.MASTER_ADAPTER });
         }
     }
 

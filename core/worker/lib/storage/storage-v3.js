@@ -10,7 +10,10 @@ class Storage {
     }
 
     async finish(options) {
-        await streamHandler.finish(options);
+        const { kind } = options;
+        if (kind === pipelineKind.Stream) {
+            await streamHandler.finish(options);
+        }
     }
 
     async getResultFromStorage(data) {

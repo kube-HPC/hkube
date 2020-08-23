@@ -62,12 +62,12 @@ class StateAdapter extends EventEmitter {
         });
     }
 
-    acquireLock(key) {
-        return this._etcd._client.locker.acquire(key);
+    acquireStreamingLock(key) {
+        return this._etcd.streaming.statistics.acquireLock(key);
     }
 
-    releaseLock(key) {
-        return this._etcd._client.locker.release(key);
+    releaseStreamingLock(key) {
+        return this._etcd.streaming.statistics.releaseLock(key);
     }
 
     reportStreamingStats(options) {

@@ -56,9 +56,7 @@ class Election {
     }
 
     async _elect(options) {
-        const { jobId, nodeName } = options;
-        const key = `${jobId}/${nodeName}`;
-        const lock = await stateAdapter.acquireLock(key);
+        const lock = await stateAdapter.acquireStreamingLock(options);
         this._adapters.addAdapter({ isMaster: lock.success, ...options });
     }
 
