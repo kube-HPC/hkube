@@ -182,6 +182,7 @@ describe('Test', () => {
             const q = queue.get;
             expect(q.length).to.be.eql(100);
             expect(q.map(i=>i.jobId)).to.be.eql(arr.map(i=>i.jobId));
+            await queue.persistenceStore();
             queue.flush();
             await queue.persistenceStore();
         });

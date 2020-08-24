@@ -38,6 +38,9 @@ class RedisAdapter {
 
     async _set(data) {
         await this._delete();
+        if (!data || data.length === 0) {
+            return;
+        }
         const jsonArray = data.map(JSON.stringify);
         const size = jsonArray.reduce((prev, cur) => prev + cur.length, 0);
         if (this._maxPersistencySize && size > this._maxPersistencySize) {
