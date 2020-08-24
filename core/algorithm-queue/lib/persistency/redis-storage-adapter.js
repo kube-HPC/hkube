@@ -41,7 +41,7 @@ class RedisAdapter {
         const jsonArray = data.map(JSON.stringify);
         const size = jsonArray.reduce((prev, cur) => prev + cur.length, 0);
         if (this._maxPersistencySize && size > this._maxPersistencySize) {
-            log.warning(`persistency length is ${size} which is larger than ${this._maxPersistencySize}`, { component: components.ETCD_PERSISTENT });
+            log.throttle.warning(`persistency length is ${size} which is larger than ${this._maxPersistencySize}`, { component: components.ETCD_PERSISTENT });
             return;
         }
         await this._clientAsync.rpush(this.path, jsonArray);

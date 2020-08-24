@@ -32,7 +32,7 @@ class Persistence {
             await redisStorage.put(data);
         }
         catch (error) {
-            log.error(`failed to store persistency ${error.message}`, { component: components.ETCD_PERSISTENT }, error);
+            log.throttle.error(`failed to store persistency ${error.message}`, { component: components.ETCD_PERSISTENT }, error);
         }
 
         log.debug(`finished writing ${data.length} items to persistency`, { component: components.ETCD_PERSISTENT });

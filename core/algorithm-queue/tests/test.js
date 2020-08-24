@@ -166,7 +166,7 @@ describe('Test', () => {
             });
         });
     });
-    describe.only('persistency tests', () => {
+    describe('persistency tests', () => {
         beforeEach(() => {
             Queue = require('../lib/queue');
             queue = new Queue({ persistence, updateInterval: 99999, enrichmentRunner: new EnrichmentRunner(), scoreHeuristic: new HeuristicRunner() });
