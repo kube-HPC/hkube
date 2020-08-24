@@ -61,7 +61,6 @@ class ApiValidator {
             if (node.nodeName === 'flowInput') {
                 throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name flowInput`);
             }
-
             if (node.input) {
                 node.input.forEach((inp) => {
                     if (options.checkFlowInput) {
@@ -87,7 +86,9 @@ class ApiValidator {
             }
             graph.setNode(node.nodeName, node);
         });
-
+        if (pipeline.kind === pipelineKind.Stream && graph.sources().some(s => s.stateType === stateType.Stateless)) {
+            throw new InvalidDataError(`${stateType.Stateless} source nodes are not allowed on ${pipeline.kind} pipeline`);
+        }
         links.forEach((link) => {
             graph.setEdge(link.source, link.target);
         });

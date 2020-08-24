@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const isEqual = require('lodash.isequal');
 const cloneDeep = require('lodash.clonedeep');
 const Logger = require('@hkube/logger');
-const { Interval, Metrics } = require('../core/index');
+const { Interval } = require('../core/index');
 const { Components, streamingEvents } = require('../../consts');
 const component = Components.STREAM_SERVICE;
 let log;
@@ -32,19 +32,15 @@ class ProgressCollector extends EventEmitter {
     _checkProgress() {
         const progress = this._getProgress();
         progress.forEach(p => {
-            this._update(p.nodeName, p.progress);
+            this._update(p.progress);
         });
         return this._check();
     }
 
-    _update(nodeName, data) {
-        const throughput = [];
+    _update(data) {
         Object.entries(data).forEach(([k, v]) => {
             this._currentProgress[k] = v;
-            throughput.push(v);
         });
-        const progress = Metrics.Median(throughput);
-        this._currentProgress[nodeName] = progress;
     }
 
     _check() {

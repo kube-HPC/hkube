@@ -19,6 +19,7 @@ class AutoScaler {
     }
 
     clean() {
+        this._metrics = [];
         this._progress = new Progress();
         this._statistics = new Statistics(this._options.config);
         this._pendingScale = new PendingScale(this._options.config);
@@ -32,6 +33,10 @@ class AutoScaler {
         return this._progress.data;
     }
 
+    getMetrics() {
+        return this._metrics;
+    }
+
     scale() {
         const { scaleUp, scaleDown } = this._createScale();
         this._scaleUp(scaleUp);
@@ -42,15 +47,15 @@ class AutoScaler {
     _createScale() {
         const scaleUp = [];
         const scaleDown = [];
-        const stats = [];
+        this._metrics = [];
 
         for (const stat of this._statistics) {
             const { source, data } = stat;
             const { nodeName } = data;
             const currentSize = data.currentSize || discovery.countInstances(nodeName);
-            const { reqRate, resRate, durationsRate } = Metrics.CalcRates(stat.data, this._options.config);
+            const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.CalcRates(stat.data, this._options.config);
 
-            stats.push({ source, target: nodeName, reqRate, resRate, durationsRate });
+            this._metrics.push({ source, target: nodeName, reqRate, resRate, durationsRate, totalRequests, totalResponses });
 
             const noRates = !reqRate && !resRate && !durationsRate;
 
@@ -64,14 +69,23 @@ class AutoScaler {
                 }
             }
         }
-        this._printRatesStats(stats);
-        this._updateProgress(stats);
+        this._printRatesStats(this._metrics);
+        this._updateProgress(this._metrics);
 
         return { scaleUp, scaleDown };
     }
 
-    _updateProgress(stats) {
-        stats.forEach(s => {
+    _printRatesStats(metrics) {
+        if (!this._lastPrint || Date.now() - this._lastPrint >= 30000) {
+            metrics.forEach(s => {
+                log.info(`stats for ${s.source}=>${s.target}: req rate=${s.reqRate.toFixed(2)}, res rate=${s.resRate.toFixed(2)}, durations rate=${s.durationsRate.toFixed(2)}, total requests=${s.totalRequests}, total responses=${s.totalResponses}`, { component });
+            });
+            this._lastPrint = Date.now();
+        }
+    }
+
+    _updateProgress(metrics) {
+        metrics.forEach(s => {
             if (s.reqRate && s.resRate) {
                 const progress = parseFloat((s.resRate / s.reqRate).toFixed(2));
                 this._progress.update(s.source, progress);
@@ -116,15 +130,6 @@ class AutoScaler {
         return result;
     }
 
-    _printRatesStats(stats) {
-        if (!this._lastPrint || Date.now() - this._lastPrint >= 30000) {
-            stats.forEach(s => {
-                log.info(`stats for ${s.source}=>${s.target}: req=${s.reqRate.toFixed(2)}, res=${s.resRate.toFixed(2)}, durations=${s.durationsRate.toFixed(2)}`, { component });
-            });
-            this._lastPrint = Date.now();
-        }
-    }
-
     _calcSize(currentSize, ratio) {
         const size = currentSize || 1;
         return Math.ceil(size * ratio);
@@ -142,9 +147,7 @@ class AutoScaler {
     _shouldScaleDown(durationsRatio, metric, currentSize, pendingScale) {
         return pendingScale.downTo === null
             && currentSize > metric.minReplicasToScaleDown
-            // && reqResRatio >= metric.minRatioToScaleDown
-            // && reqResRatio <= metric.minRatioToScaleUp
-            && durationsRatio <= metric.minRatioToScaleDown; // todo: scale from 1 to 0
+            && durationsRatio <= metric.minRatioToScaleDown;
     }
 
     _scaleUp(jobList) {

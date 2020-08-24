@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
-const { pipelineStatuses, taskStatuses, stateType } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
@@ -32,6 +32,7 @@ class TaskRunner extends EventEmitter {
         this._error = null;
         this.pipeline = null;
         this._paused = false;
+        this._isStreaming = false;
         this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
         this._init(options);
     }
@@ -207,6 +208,7 @@ class TaskRunner extends EventEmitter {
         await this._progressStatus({ status: DriverStates.ACTIVE });
 
         this.pipeline = pipeline;
+        this._isStreaming = pipeline.kind === pipelineKind.Stream;
         this._nodes = new NodesMap(this.pipeline);
         this._nodes.on('node-ready', (node) => {
             this._runNode(node.nodeName, node.parentOutput, node.index);
@@ -653,7 +655,9 @@ class TaskRunner extends EventEmitter {
         if (!this._active) {
             return;
         }
-        this._nodes.updateCompletedTask(task);
+        if (!this._isStreaming) {
+            this._nodes.updateCompletedTask(task);
+        }
     }
 
     _onTaskComplete(task) {
@@ -669,7 +673,7 @@ class TaskRunner extends EventEmitter {
     }
 
     _isStreamingDone(task) {
-        return task.isStateful;
+        return this._isStreaming && task.isStateful;
     }
 
     _checkTaskErrors(task) {
