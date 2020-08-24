@@ -67,6 +67,10 @@ class Bootstrap {
             process.exit(0);
         });
         process.on('unhandledRejection', (error) => {
+            if (error.isBrokenCircuitError){
+                log.warning(`ignored unhandledRejection: ${error.message}`, { component }, error);
+                return;
+            }
             log.error(`unhandledRejection: ${error.message}`, { component }, error);
             process.exit(1);
         });

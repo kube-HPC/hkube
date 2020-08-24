@@ -13,6 +13,8 @@ const { settings } = require('../helpers/settings');
 const applyAlgorithmName = (inputSpec, algorithmName, containerName) => {
     const spec = clonedeep(inputSpec);
     spec.metadata.labels['algorithm-name'] = algorithmName;
+    spec.spec.template.metadata.labels['algorithm-name'] = algorithmName;
+    spec.spec.selector.matchLabels['algorithm-name'] = algorithmName;
     return applyEnvToContainer(spec, containerName, { ALGORITHM_TYPE: algorithmName });
 };
 

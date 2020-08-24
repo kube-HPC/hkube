@@ -1,10 +1,15 @@
 const async = require('async');
+const logger = require('@hkube/logger');
 const throttle = require('lodash.throttle');
 const levels = require('@hkube/logger').Levels;
 const groupBy = require('../helpers/group-by');
+let log;
 
 class ProgressManager {
     constructor(option) {
+        if (!log) {
+            log = logger.GetLogFromContainer();
+        }
         const options = option || {};
         const type = options.type || 'batch';
         this._currentProgress = 0;
@@ -65,7 +70,7 @@ class ProgressManager {
     _progress(level, options) {
         const data = this._calcProgress();
         this._currentProgress = data.progress;
-        return this._throttleProgress({ ...options, data, level });
+        return this._throttleProgress({ ...options, data, level }).catch(e => log.warning(`failed to write progress ${e.message}`));
     }
 
     _queueProgress(options) {

@@ -6,8 +6,11 @@ const queueEvents = require('../lib/consts/queue-events');
 const { semaphore } = require('await-done');
 const bootstrap = require('../bootstrap');
 const queueRunner = require('../lib/queue-runner');
-const EnrichmentRunner = require('../lib/enrichment-runner');
+const persistence = require('../lib/persistency/persistence');
+const heuristicList = require('../lib/heuristic/index');
 
+const EnrichmentRunner = require('../lib/enrichment-runner');
+const HeuristicRunner = require('../lib/heuristic-runner')
 let Queue = null;
 
 const heuristic = score => job => (Promise.resolve({ ...job, ...{ calculated: { score, entranceTime: Date.now(), latestScore: {} } } }));
@@ -105,11 +108,26 @@ describe('Test', () => {
                 });
             });
             describe('queue-runner', () => {
+                beforeEach(() => {
+                    Queue = require('../lib/queue');
+                    const scoreHeuristic = new HeuristicRunner()
+                    const heuristicsWeights = {
+                        ['ATTEMPTS']: 0.2,
+                        ['PRIORITY']: 0.4,
+                        ['ENTRANCE_TIME']: 0.2,
+                        ['BATCH']: 0.1,
+                        ['CURRENT_BATCH_PLACE']: 0.1
+                    };
+                    scoreHeuristic.init(heuristicsWeights);
+                    Object.values(heuristicList).map(v => scoreHeuristic.addHeuristicToQueue(v));
+                    queue = new Queue({ persistence, updateInterval: 99999, enrichmentRunner: new EnrichmentRunner(), scoreHeuristic });
+                });
                 it('check-that-heuristics-sets-to-latestScore', async () => {
                     const stubJob = stubTemplate();
-                    await queueRunner.queue.add([stubJob]);
-                    await delay(500);
-                    const q = queueRunner.queue.get;
+                    await queue.add([stubJob]);
+                    await queue._intervalUpdateCallback();
+                    await queue._intervalUpdateCallback();
+                    const q = queue.get;
                     expect(q[0].calculated.latestScores).to.have.property('BATCH');
                     expect(q[0].calculated.latestScores).to.have.property('PRIORITY');
                     expect(q[0].calculated.latestScores).to.have.property('ENTRANCE_TIME');
@@ -149,32 +167,35 @@ describe('Test', () => {
         });
     });
     describe('persistency tests', () => {
+        beforeEach(() => {
+            Queue = require('../lib/queue');
+            queue = new Queue({ persistence, updateInterval: 99999, enrichmentRunner: new EnrichmentRunner(), scoreHeuristic: new HeuristicRunner() });
+
+        });
         it('persistent load', async () => {
-            queueRunner.queue.flush()
-            await queueRunner.queue.add(generateArr(100));
-            await queueRunner.queue.persistenceStore();
-            queueRunner.queue.flush();
-            await queueRunner.queue.persistencyLoad();
-            await delay(500);
-            const q = queueRunner.queue.get;
-            expect(q.length).to.be.greaterThan(98);
-            queueRunner.queue.flush();
-            await queueRunner.queue.persistenceStore();
-            await delay(500);
+            queue.flush()
+            const arr = generateArr(100);
+            await queue.add(arr);
+            await queue.persistenceStore();
+            queue.flush();
+            await queue.persistencyLoad();
+            const q = queue.get;
+            expect(q.length).to.be.eql(100);
+            expect(q.map(i=>i.jobId)).to.be.eql(arr.map(i=>i.jobId));
+            queue.flush();
+            await queue.persistenceStore();
         });
     });
     describe('test jobs order', () => {
         it('order 100', async () => {
-            queueRunner.queue.flush()
-            await queueRunner.queue.add(generateArr(100));
-            await delay(500);
-            const q = queueRunner.queue.get;
-            expect(q.length).to.be.greaterThan(98);
-            await delay(500);
+            queue.flush()
+            await queue.add(generateArr(100));
+            const q = queue.get;
+            expect(q.length).to.be.eql(100);
         });
     });
     afterEach(() => {
-        queueRunner.queue.flush();
+        queue.flush();
     });
 });
 
