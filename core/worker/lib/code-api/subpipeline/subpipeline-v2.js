@@ -1,6 +1,7 @@
 class SubPipelineHandler {
     async getResultFromStorage(options) {
-        return options;
+        const { result } = options;
+        return result;
     }
 }
 
