@@ -166,7 +166,7 @@ describe('Test', () => {
             });
         });
     });
-    describe('persistency tests', () => {
+    describe.only('persistency tests', () => {
         beforeEach(() => {
             Queue = require('../lib/queue');
             queue = new Queue({ persistence, updateInterval: 99999, enrichmentRunner: new EnrichmentRunner(), scoreHeuristic: new HeuristicRunner() });
@@ -174,29 +174,28 @@ describe('Test', () => {
         });
         it('persistent load', async () => {
             queue.flush()
-            await queue.add(generateArr(100));
+            const arr = generateArr(100);
+            await queue.add(arr);
             await queue.persistenceStore();
             queue.flush();
             await queue.persistencyLoad();
             const q = queue.get;
-            expect(q.length).to.be.greaterThan(98);
+            expect(q.length).to.be.eql(100);
+            expect(q.map(i=>i.jobId)).to.be.eql(arr.map(i=>i.jobId));
             queue.flush();
             await queue.persistenceStore();
-            await delay(500);
         });
     });
     describe('test jobs order', () => {
         it('order 100', async () => {
-            queueRunner.queue.flush()
-            await queueRunner.queue.add(generateArr(100));
-            await delay(500);
-            const q = queueRunner.queue.get;
-            expect(q.length).to.be.greaterThan(98);
-            await delay(500);
+            queue.flush()
+            await queue.add(generateArr(100));
+            const q = queue.get;
+            expect(q.length).to.be.eql(100);
         });
     });
     afterEach(() => {
-        queueRunner.queue.flush();
+        queue.flush();
     });
 });
 
