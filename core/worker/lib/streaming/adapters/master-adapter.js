@@ -1,17 +1,26 @@
+const Logger = require('@hkube/logger');
 const Adapter = require('./adapter');
 const stateAdapter = require('../../states/stateAdapter');
 const AutoScaler = require('../services/auto-scaler');
+const { Components } = require('../../consts');
+const component = Components.MASTER_ADAPTER;
+let log;
 
 class MasterAdapter extends Adapter {
     constructor(options) {
         super(options);
+        log = Logger.GetLogFromContainer();
         this._options = options;
-        const { jobId, nodeName } = options;
-        stateAdapter.watchStreamingStats({ jobId, nodeName });
-        stateAdapter.on(`streaming-statistics-${nodeName}`, (data) => {
+        this._slaves = Object.create(null);
+        this._autoScaler = new AutoScaler(options);
+        stateAdapter.watchStreamingStats({ jobId: this.jobId, nodeName: this.nodeName });
+        stateAdapter.on(`streaming-statistics-${this.nodeName}`, (data) => {
+            if (!this._slaves[data.source]) {
+                this._slaves[data.source] = data.nodeName;
+                log.info(`new slave (${data.source}) is now connected for node ${data.nodeName}`, { component });
+            }
             this._report(data);
         });
-        this._autoScaler = new AutoScaler(options);
     }
 
     clean() {

@@ -138,20 +138,18 @@ describe.only('Streaming', () => {
             it('should not scale based on no data', async () => {
                 const scale = async (data) => {
                     streamService.reportStats(data);
-                    await delay(100);
                 }
                 const list = [{
                     nodeName: 'D',
                 }];
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(0);
-                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp).to.be.null;
+                expect(scaleDown).to.be.null;
             });
             it('should scale based on queueSize equals 1', async () => {
                 const scale = async (data) => {
                     streamService.reportStats(data);
-                    await delay(100);
                 }
                 const list = [{
                     nodeName: 'D',
@@ -159,9 +157,8 @@ describe.only('Streaming', () => {
                 }];
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(1);
-                expect(scaleDown).to.have.lengthOf(0);
-                expect(scaleUp[0].replicas).to.eql(1);
+                expect(scaleDown).to.be.null;
+                expect(scaleUp.replicas).to.eql(1);
             });
             it('should not scale if currentSize is fixed', async () => {
                 const scale = async (data) => {
@@ -186,22 +183,20 @@ describe.only('Streaming', () => {
                 await currentSize(list);
                 const jobs4 = autoScale();
                 const jobs5 = autoScale();
-                expect(jobs1.scaleUp).to.have.lengthOf(1);
-                expect(jobs1.scaleUp[0].replicas).to.eql(1);
-                expect(jobs1.scaleDown).to.have.lengthOf(0);
-                expect(jobs2.scaleUp).to.have.lengthOf(0);
-                expect(jobs2.scaleDown).to.have.lengthOf(0);
-                expect(jobs3.scaleUp).to.have.lengthOf(0);
-                expect(jobs3.scaleDown).to.have.lengthOf(0);
-                expect(jobs4.scaleUp).to.have.lengthOf(1);
-                expect(jobs4.scaleDown).to.have.lengthOf(0);
-                expect(jobs5.scaleUp).to.have.lengthOf(0);
-                expect(jobs5.scaleDown).to.have.lengthOf(0);
+                expect(jobs1.scaleUp.replicas).to.eql(1);
+                expect(jobs1.scaleDown).to.be.null;
+                expect(jobs2.scaleUp).to.be.null;
+                expect(jobs2.scaleDown).to.be.null;
+                expect(jobs3.scaleUp).to.be.null;
+                expect(jobs3.scaleDown).to.be.null;
+                expect(jobs4.scaleUp.replicas).to.eql(10);
+                expect(jobs4.scaleDown).to.be.null;
+                expect(jobs5.scaleUp).to.be.null;
+                expect(jobs5.scaleDown).to.be.null;
             });
             it('should scale based on queueSize only', async () => {
                 const scale = async (data) => {
                     streamService.reportStats(data);
-                    await delay(100);
                 }
                 const list = [{
                     nodeName: 'D',
@@ -210,14 +205,12 @@ describe.only('Streaming', () => {
                 }];
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(1);
-                expect(scaleDown).to.have.lengthOf(0);
-                expect(scaleUp[0].replicas).to.eql(1);
+                expect(scaleDown).to.be.null;
+                expect(scaleUp.replicas).to.eql(1);
             });
             it('should scale based on queueSize and responses only', async () => {
                 const scale = async (data) => {
                     streamService.reportStats(data);
-                    await delay(100);
                 }
                 const list = [{
                     nodeName: 'D',
@@ -226,9 +219,8 @@ describe.only('Streaming', () => {
                 }];
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(1);
-                expect(scaleDown).to.have.lengthOf(0);
-                expect(scaleUp[0].replicas).to.eql(5);
+                expect(scaleDown).to.be.null;
+                expect(scaleUp.replicas).to.eql(5);
             });
             it('should scale up based on high req/res rate', async () => {
                 const nodeName = 'D';
@@ -249,9 +241,8 @@ describe.only('Streaming', () => {
                 await requests(list);
                 await requests(list);
                 const jobs = autoScale();
-                expect(jobs.scaleUp).to.have.lengthOf(1);
-                expect(jobs.scaleUp[0].replicas).to.eql(5);
-                expect(jobs.scaleDown).to.have.lengthOf(0);
+                expect(jobs.scaleUp.replicas).to.eql(5);
+                expect(jobs.scaleDown).to.be.null;
             });
             it('should scale based on request rate', async () => {
                 const scale = async (data) => {
@@ -267,9 +258,8 @@ describe.only('Streaming', () => {
                 await scale(list);
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(1);
-                expect(scaleDown).to.have.lengthOf(0);
-                expect(scaleUp[0].replicas).to.eql(1);
+                expect(scaleDown).to.be.null;
+                expect(scaleUp.replicas).to.eql(1);
             });
             it('should scale based on durations', async () => {
                 const scale = async (data) => {
@@ -288,9 +278,8 @@ describe.only('Streaming', () => {
                 await scale(list);
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(1);
-                expect(scaleUp[0].replicas).to.eql(4);
-                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp.replicas).to.eql(4);
+                expect(scaleDown).to.be.null;
             });
             it('should scale based on durations', async () => {
                 const scale = async (data) => {
@@ -309,9 +298,8 @@ describe.only('Streaming', () => {
                 await scale(list);
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(1);
-                expect(scaleDown).to.have.lengthOf(0);
-                expect(scaleUp[0].replicas).to.eql(1);
+                expect(scaleDown).to.be.null;
+                expect(scaleUp.replicas).to.eql(1);
             });
             it('should scale only up based on req/res rate', async () => {
                 const scale = async (data) => {
@@ -339,26 +327,24 @@ describe.only('Streaming', () => {
                 const jobs2 = autoScale();
                 increaseSize(list);
                 autoScale();
-                await delay(150);
                 const jobs3 = autoScale();
                 await scale(list);
                 await scale(list);
                 const jobs4 = autoScale();
                 const jobs5 = autoScale();
                 const jobs6 = autoScale();
-                expect(jobs1.scaleUp).to.have.lengthOf(1);
-                expect(jobs1.scaleUp[0].replicas).to.eql(4);
-                expect(jobs2.scaleUp).to.have.lengthOf(0);
-                expect(jobs3.scaleUp).to.have.lengthOf(1);
-                expect(jobs4.scaleUp).to.have.lengthOf(0);
-                expect(jobs5.scaleUp).to.have.lengthOf(0);
-                expect(jobs6.scaleUp).to.have.lengthOf(0);
-                expect(jobs1.scaleDown).to.have.lengthOf(0);
-                expect(jobs2.scaleDown).to.have.lengthOf(0);
-                expect(jobs3.scaleDown).to.have.lengthOf(0);
-                expect(jobs4.scaleDown).to.have.lengthOf(0);
-                expect(jobs5.scaleDown).to.have.lengthOf(0);
-                expect(jobs6.scaleDown).to.have.lengthOf(0);
+                expect(jobs1.scaleUp.replicas).to.eql(4);
+                expect(jobs2.scaleUp).to.be.null;
+                expect(jobs3.scaleUp).to.be.null;
+                expect(jobs4.scaleUp).to.be.null;
+                expect(jobs5.scaleUp).to.be.null;
+                expect(jobs6.scaleUp).to.be.null;
+                expect(jobs1.scaleDown).to.be.null;
+                expect(jobs2.scaleDown).to.be.null;
+                expect(jobs3.scaleDown).to.be.null;
+                expect(jobs4.scaleDown).to.be.null;
+                expect(jobs5.scaleDown).to.be.null;
+                expect(jobs6.scaleDown).to.be.null;
             });
         });
         describe('scale-down', () => {
@@ -373,6 +359,7 @@ describe.only('Streaming', () => {
                     data[0].responses += 100;
                     data[0].sent = 200;
                     data[0].queueSize = 0;
+                    data[0].currentSize += 1;
                     streamService.reportStats(data);
                     await delay(100);
                 }
@@ -392,15 +379,13 @@ describe.only('Streaming', () => {
                 await responsesUp(list);
                 const jobs3 = autoScale();
                 const jobs4 = autoScale();
-                expect(jobs1.scaleUp).to.have.lengthOf(1);
-                expect(jobs1.scaleUp[0].replicas).to.eql(1);
-                expect(jobs2.scaleUp).to.have.lengthOf(0);
-                expect(jobs2.scaleUp).to.have.lengthOf(0);
-                expect(jobs3.scaleUp).to.have.lengthOf(0);
-                expect(jobs3.scaleDown).to.have.lengthOf(1);
-                expect(jobs3.scaleDown[0].replicas).to.eql(1);
-                expect(jobs4.scaleUp).to.have.lengthOf(0);
-                expect(jobs4.scaleDown).to.have.lengthOf(0);
+                expect(jobs1.scaleUp.replicas).to.eql(1);
+                expect(jobs2.scaleUp).to.be.null;
+                expect(jobs2.scaleUp).to.be.null;
+                expect(jobs3.scaleUp).to.be.null;
+                expect(jobs3.scaleDown.replicas).to.eql(1);
+                expect(jobs4.scaleUp).to.be.null;
+                expect(jobs4.scaleDown).to.be.null;
             });
             it('should not scale down based on responses', async () => {
                 const nodeName = 'D';
@@ -418,8 +403,8 @@ describe.only('Streaming', () => {
                 await requests(list);
                 await requests(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(0);
-                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp).to.be.null;
+                expect(scaleDown).to.be.null;
             });
             it('should not scale down based on currentSize', async () => {
                 const nodeName = 'D';
@@ -440,8 +425,8 @@ describe.only('Streaming', () => {
                 await requests(list);
                 await requests(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(0);
-                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp).to.be.null;
+                expect(scaleDown).to.be.null;
             });
             it('should not scale up and down based on zero ratio', async () => {
                 const jobId = uid();
@@ -463,8 +448,8 @@ describe.only('Streaming', () => {
                 await requests(list);
                 await requests(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(0);
-                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp).to.be.null;
+                expect(scaleDown).to.be.null;
             });
         });
         describe('no-scale', () => {
@@ -480,14 +465,15 @@ describe.only('Streaming', () => {
                 await scale(list);
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
-                expect(scaleUp).to.have.lengthOf(0);
-                expect(scaleDown).to.have.lengthOf(0);
+                expect(scaleUp).to.be.null;
+                expect(scaleDown).to.be.null;
             });
             it('should not over the maxSizeWindow', async () => {
                 const nodeName = 'D';
                 const data = [{
                     nodeName,
-                    queueSize: 10
+                    queueSize: 10,
+                    durations: [2.34, 3.56, 4.88, 5.12, 2.56, 3.57, 4.59, 1.57, 2.81, 4.23]
                 }];
                 streamService.reportStats(data);
                 streamService.reportStats(data);
@@ -495,9 +481,13 @@ describe.only('Streaming', () => {
                 streamService.reportStats(data);
                 streamService.reportStats(data);
                 streamService.reportStats(data);
-                const { requests, responses } = streamService._statistics.data[nodeName];
-                expect(requests).to.have.lengthOf(4);
-                expect(responses).to.have.lengthOf(4);
+                const masters = streamService._adapters._getMasters();
+                const stats = masters[0]._autoScaler._statistics._data[nodeName]['C'];
+                const { requests, responses, durations } = stats;
+                const maxSizeWindow = testParams.config.streaming.autoScaler.maxSizeWindow;
+                expect(requests.items).to.have.lengthOf(maxSizeWindow);
+                expect(responses.items).to.have.lengthOf(maxSizeWindow);
+                expect(durations.items).to.have.lengthOf(maxSizeWindow);
             });
         });
         describe('progress', () => {
@@ -515,22 +505,22 @@ describe.only('Streaming', () => {
                 await scale(list);
                 const { scaleUp, scaleDown } = autoScale();
                 const progressMap = checkProgress();
-                expect(progressMap[nodeName]).to.eql(0.8);
-                expect(scaleUp).to.have.lengthOf(1);
-                expect(scaleDown).to.have.lengthOf(0);
-                expect(scaleUp[0].replicas).to.eql(2);
+                expect(progressMap['C']).to.eql(0.8);
+                expect(scaleDown).to.be.null;
+                expect(scaleUp.replicas).to.eql(2);
             });
         });
     });
-    describe('auto-scaler', () => {
-        it('should scale up based on high req/res rate', async () => {
+    describe('master-slaves', () => {
+        it('should scale up based on avg master and slaves', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
                 streamService.reportStats(data);
             }
-            const list = [{ nodeName, queueSize: 150, responses: 30, currentSize: 2 }];
-            const list1 = { nodeName, queueSize: 300, responses: 80 };
-            const list2 = { nodeName, queueSize: 450, responses: 140 };
+            const currentSize = 2;
+            const list = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
+            const list1 = { nodeName, queueSize: 300, responses: 80, currentSize };
+            const list2 = { nodeName, queueSize: 450, responses: 140, currentSize };
             const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
             const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
             await requests(list);
@@ -538,20 +528,34 @@ describe.only('Streaming', () => {
             await slave2.report(list2);
             await delay(500);
 
-            const jobs = autoScale();
+            const { scaleUp, scaleDown } = autoScale();
             const progress = checkProgress();
-            expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C', 'D'])
-            expect(jobs.scaleUp).to.have.lengthOf(1);
-            expect(jobs.scaleUp[0].replicas).to.eql(10);
-            expect(jobs.scaleDown).to.have.lengthOf(0);
+            const total = scaleUp.nodes.reduce((acc, c) => acc + c, 0);
+            const avg = total / scaleUp.nodes.length;
+            expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C'])
+            expect(Object.values(progress).sort()).to.deep.equal([0.2, 0.27, 0.31])
+            expect(scaleUp.currentSize).to.eql(currentSize);
+            expect(scaleUp.nodes).to.have.lengthOf(3);
+            expect(scaleUp.replicas).to.eql(avg);
+            expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
+            expect(scaleDown).to.be.null;
         });
         it('should start and finish correctly', async () => {
-            await streamHandler.start(job);
-            await streamHandler.finish(job);
-            const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp).to.have.lengthOf(1);
-            expect(scaleDown).to.have.lengthOf(0);
-            expect(scaleUp[0].replicas).to.eql(1);
+            await streamService.start(job);
+            expect(streamService._options).to.be.not.null;
+            expect(streamService._jobData).to.be.not.null;
+            expect(streamService._election).to.be.not.null;
+            expect(streamService._adapters).to.be.not.null;
+            expect(streamService._progress).to.be.not.null;
+            expect(streamService._scalerService).to.be.not.null;
+            expect(streamService._active).to.eql(true);
+            await streamService.finish(job);
+            expect(streamService._options).to.be.null;
+            expect(streamService._jobData).to.be.null;
+            expect(streamService._election).to.be.null;
+            expect(streamService._adapters).to.be.null;
+            expect(streamService._progress).to.be.null;
+            expect(streamService._scalerService).to.be.null;
         });
     });
     describe('discovery', () => {
@@ -564,7 +568,7 @@ describe.only('Streaming', () => {
             const changes1 = await discovery._checkDiscovery({ jobId, taskId: uid() });
             await addDiscovery({ jobId, nodeName, port: 5001 });
             const changes2 = await discovery._checkDiscovery({ jobId, taskId: uid() });
-            expect(changes1).to.have.lengthOf(0);
+            expect(changes1).to.be.null;
             expect(changes2).to.have.lengthOf(1);
             expect(changes2[0].type).to.eql('Add');
             expect(changes2[0].nodeName).to.eql(nodeName);

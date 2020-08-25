@@ -20,6 +20,7 @@ class AutoScaler {
 
     clean() {
         this._metrics = [];
+        this._statsPrint = Object.create(null);
         this._progress = new Progress();
         this._statistics = new Statistics(this._options.config);
         this._pendingScale = new PendingScale(this._options.config);
@@ -45,87 +46,95 @@ class AutoScaler {
     }
 
     _createScale() {
-        const scaleUp = [];
-        const scaleDown = [];
+        let scaleUp = null;
+        let scaleDown = null;
+        const upList = [];
+        const downList = [];
         this._metrics = [];
+        let currentSize = 0;
 
         for (const stat of this._statistics) {
             const { source, data } = stat;
             const { nodeName } = data;
-            const currentSize = data.currentSize || discovery.countInstances(nodeName);
+            currentSize = data.currentSize || discovery.countInstances(nodeName);
             const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.CalcRates(stat.data, this._options.config);
+            const metric = { source, target: nodeName, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
+            this._metrics.push(metric);
 
-            this._metrics.push({ source, target: nodeName, reqRate, resRate, durationsRate, totalRequests, totalResponses });
+            const hasRates = reqRate || resRate || durationsRate;
+            this._updateProgress(metric);
+            this._printRatesStats(metric);
 
-            const noRates = !reqRate && !resRate && !durationsRate;
-
-            if (!this._isStateful && !noRates) {
-                const result = this._updateScale(nodeName, reqRate, resRate, durationsRate, currentSize);
+            if (!this._isStateful && hasRates) {
+                const result = this._getScaleDetails({ reqRate, resRate, durationsRate, currentSize });
                 if (result.up) {
-                    scaleUp.push({ source, replicas: result.up });
+                    upList.push(result.up);
                 }
                 else if (result.down) {
-                    scaleDown.push({ source, replicas: result.down });
+                    downList.push(result.down);
                 }
             }
         }
-        this._printRatesStats(this._metrics);
-        this._updateProgress(this._metrics);
 
+        const up = Math.ceil(Metrics.Avg(upList));
+        const down = Math.ceil(Metrics.Avg(downList));
+        this._pendingScale.check(currentSize);
+
+        if (this._canScaleUp(up)) {
+            const scaleTo = currentSize + up;
+            scaleUp = { replicas: up, currentSize, scaleTo, nodes: upList };
+            this._pendingScale.updateUp(scaleTo);
+        }
+        else if (this._canScaleDown(down)) {
+            const scaleTo = currentSize - down;
+            this._pendingScale.updateDown(scaleTo);
+            scaleDown = { replicas: down, currentSize, scaleTo, nodes: downList };
+        }
         return { scaleUp, scaleDown };
     }
 
-    _printRatesStats(metrics) {
-        if (!this._lastPrint || Date.now() - this._lastPrint >= 30000) {
-            metrics.forEach(s => {
-                log.info(`stats for ${s.source}=>${s.target}: req rate=${s.reqRate.toFixed(2)}, res rate=${s.resRate.toFixed(2)}, durations rate=${s.durationsRate.toFixed(2)}, total requests=${s.totalRequests}, total responses=${s.totalResponses}`, { component });
-            });
-            this._lastPrint = Date.now();
+    _printRatesStats(metric) {
+        if (!this._statsPrint[metric.source] || Date.now() - this._statsPrint[metric.source] >= 30000) {
+            const { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses } = metric;
+            log.info(`stats for ${source}=>${target}: size: ${currentSize}, req rate=${reqRate.toFixed(2)}, res rate=${resRate.toFixed(2)}, durations rate=${durationsRate.toFixed(2)}, total requests=${totalRequests}, total responses=${totalResponses}`, { component });
+            this._statsPrint[metric.source] = Date.now();
         }
     }
 
-    _updateProgress(metrics) {
-        metrics.forEach(s => {
-            if (s.reqRate && s.resRate) {
-                const progress = parseFloat((s.resRate / s.reqRate).toFixed(2));
-                this._progress.update(s.source, progress);
-            }
-        });
+    _updateProgress(metric) {
+        const { source, reqRate, resRate } = metric;
+        if (reqRate && resRate) {
+            const progress = parseFloat((resRate / reqRate).toFixed(2));
+            this._progress.update(source, progress);
+        }
     }
 
-    _updateScale(nodeName, reqRate, resRates, durationsRates, currentSize) {
-        let resRate = resRates;
-        let durationsRate = durationsRates;
+    _getScaleDetails({ reqRate, resRate, durationsRate, currentSize }) {
+        let resRates = resRate;
+        let durationsRates = durationsRate;
         let hasResRate = true;
 
-        if (!resRate) {
-            resRate = reqRate;
+        if (!resRates) {
+            resRates = reqRate;
             hasResRate = false;
         }
-        if (!durationsRate) {
-            durationsRate = reqRate;
+        if (!durationsRates) {
+            durationsRates = reqRate;
         }
-        const reqResRatio = reqRate / resRate;
+        const reqResRatio = reqRate / resRates;
         const durationsRatio = reqRate / durationsRate;
 
-        this._pendingScale.check(currentSize);
         const result = { up: 0, down: 0 };
 
-        if (this._shouldScaleUp(reqResRatio, this._options.config, this._pendingScale, hasResRate)) {
+        if (this._shouldScaleUp({ reqResRatio, hasResRate })) {
             const scaleSize = this._calcSize(currentSize, reqResRatio);
             const replicas = Math.min(scaleSize, this._options.config.maxReplicas);
-            const scaleTo = currentSize + replicas;
-            this._logScaling('up', nodeName, currentSize, scaleTo, reqResRatio);
             result.up = replicas;
-            this._pendingScale.updateUp(scaleTo);
         }
-        else if (this._shouldScaleDown(durationsRatio, this._options.config, currentSize, this._pendingScale)) {
+        else if (this._shouldScaleDown({ durationsRatio, currentSize })) {
             const scaleSize = this._calcSize(currentSize, durationsRatio);
             const replicas = Math.min(scaleSize, currentSize);
-            const scaleTo = currentSize - replicas;
-            this._logScaling('down', nodeName, currentSize, scaleTo, durationsRatio);
             result.down = replicas;
-            this._pendingScale.updateDown(scaleTo);
         }
         return result;
     }
@@ -135,53 +144,63 @@ class AutoScaler {
         return Math.ceil(size * ratio);
     }
 
-    _logScaling(action, nodeName, currentSize, replicas, ratio) {
-        log.info(`scaling ${action} from ${currentSize} to ${replicas} replicas for node ${nodeName} based on ${ratio.toFixed(3)} ratio`, { component });
+    _logScaling({ action, currentSize, scaleTo, nodes }) {
+        log.info(`scaling ${action} from ${currentSize} to ${scaleTo} replicas for node ${this._nodeName} based on avg of ${nodes.length} nodes [${nodes}]`, { component });
     }
 
-    _shouldScaleUp(reqResRatio, metric, pendingScale, hasResRate) {
-        return pendingScale.upCount === null
-            && ((reqResRatio >= metric.minRatioToScaleUp) || (!hasResRate && reqResRatio > 0));
+    _shouldScaleUp({ reqResRatio, hasResRate }) {
+        return ((reqResRatio >= this._options.config.minRatioToScaleUp) || (!hasResRate && reqResRatio > 0));
     }
 
-    _shouldScaleDown(durationsRatio, metric, currentSize, pendingScale) {
-        return pendingScale.downTo === null
-            && currentSize > metric.minReplicasToScaleDown
-            && durationsRatio <= metric.minRatioToScaleDown;
+    _shouldScaleDown({ durationsRatio, currentSize }) {
+        return currentSize > this._options.config.minReplicasToScaleDown
+            && durationsRatio <= this._options.config.minRatioToScaleDown;
     }
 
-    _scaleUp(jobList) {
-        jobList.forEach((j) => {
-            const { replicas } = j;
-            const tasks = [];
-            const parse = {
-                flowInputMetadata: this._options.pipeline.flowInputMetadata,
-                nodeInput: this._options.node.input,
-                ignoreParentResult: true
-            };
-            const result = parser.parse(parse);
-            for (let i = 0; i < replicas; i += 1) {
-                const taskId = producer.createTaskID();
-                const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
-                tasks.push(task);
-            }
-            const job = {
-                ...this._options.jobData,
-                ...this._options.node,
-                tasks,
-                isScaled: true
-            };
-            producer.createJob({ jobData: job });
-        });
+    _canScaleUp(count) {
+        return count > 0 && !this._pendingScale.hasDesiredUp();
+    }
+
+    _canScaleDown(count) {
+        return count > 0 && !this._pendingScale.hasDesiredDown();
+    }
+
+    _scaleUp(scaleUp) {
+        if (!scaleUp) {
+            return null;
+        }
+        this._logScaling({ action: 'up', ...scaleUp });
+        const { replicas } = scaleUp;
+        const tasks = [];
+        const parse = {
+            flowInputMetadata: this._options.pipeline.flowInputMetadata,
+            nodeInput: this._options.node.input,
+            ignoreParentResult: true
+        };
+        const result = parser.parse(parse);
+        for (let i = 0; i < replicas; i += 1) {
+            const taskId = producer.createTaskID();
+            const task = { taskId, input: result.input, storage: result.storage, batchIndex: i + 1 };
+            tasks.push(task);
+        }
+        const job = {
+            ...this._options.jobData,
+            ...this._options.node,
+            tasks,
+            isScaled: true
+        };
+        return producer.createJob({ jobData: job });
     }
 
     _scaleDown(scaleDown) {
-        scaleDown.forEach(async (j) => {
-            const { nodeName, replicas } = j;
-            const instances = discovery.getInstances(nodeName);
-            const workers = instances.slice(0, replicas);
-            await Promise.all(workers.map(w => stateAdapter.stopWorker(w.workerId)));
-        });
+        if (!scaleDown) {
+            return null;
+        }
+        this._logScaling({ action: 'down', ...scaleDown });
+        const { nodeName, replicas } = scaleDown;
+        const instances = discovery.getInstances(nodeName);
+        const workers = instances.slice(0, replicas);
+        return Promise.all(workers.map(w => stateAdapter.stopWorker(w.workerId)));
     }
 }
 

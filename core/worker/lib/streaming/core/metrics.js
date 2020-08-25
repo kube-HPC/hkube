@@ -8,6 +8,14 @@ const Median = (array) => {
     return median;
 };
 
+function Avg(array) {
+    if (!array || array.length === 0) {
+        return 0;
+    }
+    const total = array.reduce((acc, c) => acc + c, 0);
+    return total / array.length;
+}
+
 const _calcRate = (list) => {
     let first = list[0];
     if (list.length === 1) {
@@ -51,5 +59,6 @@ const CalcRates = (data) => {
 
 module.exports = {
     CalcRates,
-    Median
+    Median,
+    Avg
 };

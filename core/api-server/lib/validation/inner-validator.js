@@ -71,7 +71,6 @@ class ApiValidator {
                             throw new InvalidDataError(e.message);
                         }
                     }
-
                     const nodesNames = parser.extractNodesFromInput(inp);
                     nodesNames.forEach((n) => {
                         const nd = pipeline.nodes.find(f => f.nodeName === n.nodeName);
@@ -86,8 +85,9 @@ class ApiValidator {
             }
             graph.setNode(node.nodeName, node);
         });
-        if (pipeline.kind === pipelineKind.Stream && graph.sources().some(s => s.stateType === stateType.Stateless)) {
-            throw new InvalidDataError(`${stateType.Stateless} source nodes are not allowed on ${pipeline.kind} pipeline`);
+        const statelessNodes = graph.sources().filter(s => s.stateType === stateType.Stateless);
+        if (pipeline.kind === pipelineKind.Stream && statelessNodes.length > 0) {
+            throw new InvalidDataError(`the entry node "${statelessNodes[0]}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
         }
         links.forEach((link) => {
             graph.setEdge(link.source, link.target);

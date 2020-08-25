@@ -1,32 +1,40 @@
 class PendingScale {
     constructor(options) {
         this._minTimeWaitForReplicaUp = options.minTimeWaitForReplicaUp;
-        this.upCount = null;
-        this.downCount = null;
-        this.upTime = null;
+        this._requiredUp = null;
+        this._requiredDown = null;
+        this._upTime = null;
     }
 
     check(currentSize) {
-        if (this.upCount && this.upCount <= currentSize) {
-            if (!this.upTime) {
-                this.upTime = Date.now();
+        if (this._requiredUp && this._requiredUp <= currentSize) {
+            if (!this._upTime) {
+                this._upTime = Date.now();
             }
-            if (Date.now() - this.upTime >= this._minTimeWaitForReplicaUp) {
-                this.upCount = null;
-                this.upTime = null;
+            if (Date.now() - this._upTime >= this._minTimeWaitForReplicaUp) {
+                this._requiredUp = null;
+                this._upTime = null;
             }
         }
-        if (this.downCount && this.downCount >= currentSize) {
-            this.downCount = null;
+        if (this._requiredDown && this._requiredDown >= currentSize) {
+            this._requiredDown = null;
         }
     }
 
     updateUp(replicas) {
-        this.upCount = replicas;
+        this._requiredUp = replicas;
+    }
+
+    hasDesiredUp() {
+        return this._requiredUp !== null;
+    }
+
+    hasDesiredDown() {
+        return this._requiredDown !== null;
     }
 
     updateDown(replicas) {
-        this.downCount = Math.max(0, replicas);
+        this._requiredDown = Math.max(0, replicas);
     }
 }
 
