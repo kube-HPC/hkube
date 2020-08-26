@@ -28,6 +28,9 @@ class StreamService extends EventEmitter {
     }
 
     finish() {
+        if (!this._active) {
+            return;
+        }
         this._active = false;
         this._jobData = null;
         this._scalerService.stop();
@@ -38,7 +41,6 @@ class StreamService extends EventEmitter {
         this._progress = null;
         this._election = null;
         this._adapters = null;
-        this._options = null;
     }
 
     reportStats(data) {

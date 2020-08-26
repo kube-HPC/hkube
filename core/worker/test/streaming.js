@@ -531,9 +531,9 @@ describe.only('Streaming', () => {
             const { scaleUp, scaleDown } = autoScale();
             const progress = checkProgress();
             const total = scaleUp.nodes.reduce((acc, c) => acc + c, 0);
-            const avg = total / scaleUp.nodes.length;
+            const avg = Math.ceil(total / scaleUp.nodes.length);
             expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C'])
-            expect(Object.values(progress).sort()).to.deep.equal([0.2, 0.27, 0.31])
+            expect(Object.values(progress).sort()).to.deep.equal([0.18, 0.27, 0.31])
             expect(scaleUp.currentSize).to.eql(currentSize);
             expect(scaleUp.nodes).to.have.lengthOf(3);
             expect(scaleUp.replicas).to.eql(avg);
@@ -542,7 +542,6 @@ describe.only('Streaming', () => {
         });
         it('should start and finish correctly', async () => {
             await streamService.start(job);
-            expect(streamService._options).to.be.not.null;
             expect(streamService._jobData).to.be.not.null;
             expect(streamService._election).to.be.not.null;
             expect(streamService._adapters).to.be.not.null;
@@ -550,7 +549,6 @@ describe.only('Streaming', () => {
             expect(streamService._scalerService).to.be.not.null;
             expect(streamService._active).to.eql(true);
             await streamService.finish(job);
-            expect(streamService._options).to.be.null;
             expect(streamService._jobData).to.be.null;
             expect(streamService._election).to.be.null;
             expect(streamService._adapters).to.be.null;
@@ -568,7 +566,7 @@ describe.only('Streaming', () => {
             const changes1 = await discovery._checkDiscovery({ jobId, taskId: uid() });
             await addDiscovery({ jobId, nodeName, port: 5001 });
             const changes2 = await discovery._checkDiscovery({ jobId, taskId: uid() });
-            expect(changes1).to.be.null;
+            expect(changes1).to.have.lengthOf(0);
             expect(changes2).to.have.lengthOf(1);
             expect(changes2[0].type).to.eql('Add');
             expect(changes2[0].nodeName).to.eql(nodeName);

@@ -53,7 +53,7 @@ class ApiValidator {
 
         pipeline.nodes.forEach((node) => {
             if (node.stateType === stateType.Stateful && pipeline.kind === pipelineKind.Batch) {
-                throw new InvalidDataError(`${stateType.Stateful} nodes (${node.nodeName}) are not allowed on ${pipeline.kind} pipeline`);
+                throw new InvalidDataError(`${stateType.Stateful} node "${node.nodeName}" is not allowed on ${pipeline.kind} pipeline`);
             }
             if (graph.node(node.nodeName)) {
                 throw new InvalidDataError(`found duplicate node ${node.nodeName}`);
@@ -85,14 +85,14 @@ class ApiValidator {
             }
             graph.setNode(node.nodeName, node);
         });
-        const statelessNodes = graph.sources().filter(s => s.stateType === stateType.Stateless);
-        if (pipeline.kind === pipelineKind.Stream && statelessNodes.length > 0) {
-            throw new InvalidDataError(`the entry node "${statelessNodes[0]}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
-        }
         links.forEach((link) => {
             graph.setEdge(link.source, link.target);
         });
 
+        const statelessNodes = graph.sources().map(s => graph.node(s)).filter(s => s.stateType === stateType.Stateless);
+        if (pipeline.kind === pipelineKind.Stream && statelessNodes.length > 0) {
+            throw new InvalidDataError(`entry node "${statelessNodes[0].nodeName}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
+        }
         if (!alg.isAcyclic(graph)) {
             throw new InvalidDataError(`pipeline ${pipeline.name} has cyclic nodes`);
         }

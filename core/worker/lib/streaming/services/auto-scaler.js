@@ -52,10 +52,10 @@ class AutoScaler {
         const downList = [];
         this._metrics = [];
         let currentSize = 0;
+        const nodeName = this._nodeName;
 
         for (const stat of this._statistics) {
             const { source, data } = stat;
-            const { nodeName } = data;
             currentSize = data.currentSize || discovery.countInstances(nodeName);
             const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.CalcRates(stat.data, this._options.config);
             const metric = { source, target: nodeName, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
@@ -165,12 +165,12 @@ class AutoScaler {
         return count > 0 && !this._pendingScale.hasDesiredDown();
     }
 
-    _scaleUp(scaleUp) {
-        if (!scaleUp) {
+    _scaleUp(scale) {
+        if (!scale) {
             return null;
         }
-        this._logScaling({ action: 'up', ...scaleUp });
-        const { replicas } = scaleUp;
+        this._logScaling({ action: 'up', ...scale });
+        const { replicas } = scale;
         const tasks = [];
         const parse = {
             flowInputMetadata: this._options.pipeline.flowInputMetadata,
@@ -192,13 +192,13 @@ class AutoScaler {
         return producer.createJob({ jobData: job });
     }
 
-    _scaleDown(scaleDown) {
-        if (!scaleDown) {
+    _scaleDown(scale) {
+        if (!scale) {
             return null;
         }
-        this._logScaling({ action: 'down', ...scaleDown });
-        const { nodeName, replicas } = scaleDown;
-        const instances = discovery.getInstances(nodeName);
+        this._logScaling({ action: 'down', ...scale });
+        const { replicas } = scale;
+        const instances = discovery.getInstances(this._nodeName);
         const workers = instances.slice(0, replicas);
         return Promise.all(workers.map(w => stateAdapter.stopWorker(w.workerId)));
     }
