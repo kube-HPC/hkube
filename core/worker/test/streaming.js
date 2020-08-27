@@ -348,7 +348,7 @@ describe.only('Streaming', () => {
             });
         });
         describe('scale-down', () => {
-            it('should scale up and down based durations', async () => {
+            it('should scale up and down based on durations', async () => {
                 const nodeName = 'D';
                 const requestsUp = async (data) => {
                     data[0].queueSize += 100;
@@ -369,7 +369,7 @@ describe.only('Streaming', () => {
                     sent: 0,
                     queueSize: 0,
                     responses: 0,
-                    durations: [0.3, 0.2, 0.8, 0.7, 0.01, 0.1, 0.6, 0.2, 0.1]
+                    durations: [0.8, 0.9, 0.8, 0.2, 0.01, 0.8, 0.69, 0.5, 0.05]
                 }];
                 await requestsUp(list);
                 await requestsUp(list);
@@ -384,8 +384,35 @@ describe.only('Streaming', () => {
                 expect(jobs2.scaleUp).to.be.null;
                 expect(jobs3.scaleUp).to.be.null;
                 expect(jobs3.scaleDown.replicas).to.eql(1);
+                expect(jobs3.scaleDown.reason.code).to.eql('DUR_RATIO');
+                expect(jobs3.scaleDown.reason.message).to.eql('based on durations ratio of 0.20 (min is 0.8)');
                 expect(jobs4.scaleUp).to.be.null;
                 expect(jobs4.scaleDown).to.be.null;
+            });
+            it('should scale up and down based on no requests and no responses', async () => {
+                const nodeName = 'D';
+                const requestsUp = async (data) => {
+                    data[0].queueSize = 100;
+                    data[0].responses = 100;
+                    streamService.reportStats(data);
+                    await delay(100);
+                }
+                const list = [{
+                    nodeName,
+                    currentSize: 1,
+                    sent: 0,
+                    queueSize: 0,
+                    responses: 0,
+                    durations: [0.3, 0.2, 0.8, 0.7, 0.01, 0.1, 0.6, 0.2, 0.1]
+                }];
+                await requestsUp(list);
+                await requestsUp(list);
+                const { scaleUp, scaleDown } = autoScale();
+                expect(scaleDown.replicas).to.eql(1);
+                expect(scaleDown.reason.code).to.eql('IDLE_TIME');
+                expect(scaleDown.reason.message).to.eql('based on no requests and no responses for 0 sec');
+                expect(scaleUp).to.be.null;
+
             });
             it('should not scale down based on responses', async () => {
                 const nodeName = 'D';
@@ -512,7 +539,7 @@ describe.only('Streaming', () => {
         });
     });
     describe('master-slaves', () => {
-        it('should scale up based on avg master and slaves', async () => {
+        it.only('should scale up based on avg master and slaves', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
                 streamService.reportStats(data);
@@ -533,7 +560,7 @@ describe.only('Streaming', () => {
             const total = scaleUp.nodes.reduce((acc, c) => acc + c, 0);
             const avg = Math.ceil(total / scaleUp.nodes.length);
             expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C'])
-            expect(Object.values(progress).sort()).to.deep.equal([0.18, 0.27, 0.31])
+            expect(Object.values(progress).sort()).to.deep.equal([0.2, 0.27, 0.31])
             expect(scaleUp.currentSize).to.eql(currentSize);
             expect(scaleUp.nodes).to.have.lengthOf(3);
             expect(scaleUp.replicas).to.eql(avg);

@@ -1,6 +1,7 @@
 class PendingScale {
     constructor(options) {
         this._minTimeWaitForReplicaUp = options.minTimeWaitForReplicaUp;
+        this._minTimeIdleBeforeReplicaDown = options.minTimeIdleBeforeReplicaDown;
         this._requiredUp = null;
         this._requiredDown = null;
         this._upTime = null;
