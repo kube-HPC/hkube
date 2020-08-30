@@ -385,7 +385,7 @@ describe.only('Streaming', () => {
                 expect(jobs3.scaleUp).to.be.null;
                 expect(jobs3.scaleDown.replicas).to.eql(1);
                 expect(jobs3.scaleDown.reason.code).to.eql('DUR_RATIO');
-                expect(jobs3.scaleDown.reason.message).to.eql('based on durations ratio of 0.20 (min is 0.8)');
+                expect(jobs3.scaleDown.reason.message).to.contain('based on durations ratio of');
                 expect(jobs4.scaleUp).to.be.null;
                 expect(jobs4.scaleDown).to.be.null;
             });
@@ -539,7 +539,7 @@ describe.only('Streaming', () => {
         });
     });
     describe('master-slaves', () => {
-        it.only('should scale up based on avg master and slaves', async () => {
+        it('should scale up based on avg master and slaves', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
                 streamService.reportStats(data);
@@ -557,13 +557,12 @@ describe.only('Streaming', () => {
 
             const { scaleUp, scaleDown } = autoScale();
             const progress = checkProgress();
-            const total = scaleUp.nodes.reduce((acc, c) => acc + c, 0);
-            const avg = Math.ceil(total / scaleUp.nodes.length);
+
             expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C'])
             expect(Object.values(progress).sort()).to.deep.equal([0.2, 0.27, 0.31])
             expect(scaleUp.currentSize).to.eql(currentSize);
             expect(scaleUp.nodes).to.have.lengthOf(3);
-            expect(scaleUp.replicas).to.eql(avg);
+            expect(scaleUp.replicas).to.eql(10);
             expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
             expect(scaleDown).to.be.null;
         });

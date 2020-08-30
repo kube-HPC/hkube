@@ -22,6 +22,14 @@ class PendingScale {
         }
     }
 
+    get requiredUp() {
+        return this._requiredUp;
+    }
+
+    get requiredDown() {
+        return this._requiredDown;
+    }
+
     updateUp(replicas) {
         this._requiredUp = replicas;
     }

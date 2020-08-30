@@ -45,13 +45,13 @@ const _totalCount = (list) => {
 const CalcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
     const resRate = _calcRate(data.responses.items);
-    const durRate = Median(data.durations.items);
+    const durMedian = Median(data.durations.items);
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
     let durationsRate = 0;
 
-    if (durRate) {
-        const median = 1 / (durRate / 1000);
+    if (durMedian) {
+        const median = 1 / (durMedian / 1000);
         durationsRate = median; // (msg per ~sec)
     }
     return { reqRate, resRate, durationsRate, totalRequests, totalResponses };
