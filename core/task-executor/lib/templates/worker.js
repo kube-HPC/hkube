@@ -145,6 +145,15 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'DISCOVERY_SERVING_REPORT_INTERVAL',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_SERVING_REPORT_INTERVAL'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'CLUSTER_NAME',
                                 valueFrom: {
                                     configMapKeyRef: {
@@ -241,6 +250,15 @@ const workerTemplate = {
                                     configMapKeyRef: {
                                         name: 'task-executor-configmap',
                                         key: 'WORKER_ALGORITHM_ENCODING'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'DISCOVERY_SERVING_REPORT_INTERVAL',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'DISCOVERY_SERVING_REPORT_INTERVAL'
                                     }
                                 }
                             },
