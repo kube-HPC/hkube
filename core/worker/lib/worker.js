@@ -140,7 +140,7 @@ class Worker {
 
     _isAlgorithmServing() {
         const last = this._algorithmServingLastUpdate;
-        return last && Date.now() - last < this._servingReportInterval * 2;
+        return last && (Date.now() - last) < (this._servingReportInterval * 2);
     }
 
     async _stopPipeline({ status, reason, isTtlExpired }) {
