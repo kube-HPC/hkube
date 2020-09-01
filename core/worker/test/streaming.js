@@ -495,6 +495,63 @@ describe.only('Streaming', () => {
                 expect(scaleDown).to.be.null;
             });
         });
+        describe('scale-conflicts', () => {
+            it('should scale up based on avg master and slaves', async () => {
+                const nodeName = 'D';
+                const requests = async (data) => {
+                    streamService.reportStats(data);
+                }
+                const currentSize = 2;
+                const list = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
+                const list1 = { nodeName, queueSize: 300, responses: 80, currentSize };
+                const list2 = { nodeName, queueSize: 450, responses: 150, currentSize };
+                const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
+                const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
+                await requests(list);
+                await slave1.report(list1);
+                await slave2.report(list2);
+                await slave2.report(list2);
+                await delay(500);
+
+                const { scaleUp, scaleDown } = autoScale();
+                const progress = checkProgress();
+
+                expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C'])
+                expect(scaleUp.currentSize).to.eql(currentSize);
+                expect(scaleUp.nodes).to.have.lengthOf(3);
+                expect(scaleUp.replicas).to.eql(10);
+                expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
+                expect(scaleDown).to.be.null;
+            });
+            it.only('should scale up based on avg master and slaves', async () => {
+                const nodeName = 'D';
+                const requests = async (data) => {
+                    streamService.reportStats(data);
+                }
+                const currentSize = 2;
+                const list = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
+                const list1 = { nodeName, queueSize: 300, responses: 80, currentSize };
+                const list2 = { nodeName, queueSize: 150, responses: 150, currentSize };
+                const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
+                const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
+                await requests(list);
+                await slave1.report(list1);
+                await delay(500);
+                autoScale();
+                await slave2.report(list2);
+                await slave2.report(list2);
+                await delay(500);
+                const { scaleUp, scaleDown } = autoScale();
+                const progress = checkProgress();
+
+                expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C'])
+                expect(scaleUp.currentSize).to.eql(currentSize);
+                expect(scaleUp.nodes).to.have.lengthOf(3);
+                expect(scaleUp.replicas).to.eql(10);
+                expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
+                expect(scaleDown).to.be.null;
+            });
+        });
         describe('no-scale', () => {
             it('should not scale when no relevant data', async () => {
                 const scale = async (data) => {

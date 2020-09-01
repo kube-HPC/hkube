@@ -53,20 +53,18 @@ class AutoScaler {
     }
 
     _createScale() {
-        let scaleUp = null;
-        let scaleDown = null;
         const upList = [];
         const downList = [];
         this._metrics = [];
         let currentSize = 0;
-        const nodeName = this._nodeName;
+        const target = this._nodeName;
 
         for (const stat of this._statistics) {
             const { source, data } = stat;
-            currentSize = data.currentSize || discovery.countInstances(nodeName);
-            const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.CalcRates(stat.data, this._config);;
+            currentSize = data.currentSize || discovery.countInstances(target);
+            const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.CalcRates(stat.data, this._config);
 
-            const metric = { source, target: nodeName, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
+            const metric = { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
             this._metrics.push(metric);
 
             this._updateProgress(metric);
@@ -82,28 +80,33 @@ class AutoScaler {
                 }
             }
         }
+        const { scaleUp, scaleDown } = this._resolveConflicts(upList, downList, currentSize);
+        return { scaleUp, scaleDown };
+    }
+
+    _resolveConflicts(upList, downList, currentSize) {
+        let scaleUp = null;
+        let scaleDown = null;
         this._pendingScale.check(currentSize);
 
-        if (upList.length > 0 || downList.length > 0) {
-            if (upList.length > 0 && downList.length > 0) {
-                log.warning(`scaling collision detected, node ${upList[0].source} scale up ${upList[0].count}, and node ${downList[0].source} scale down ${downList[0].count}`, { component });
+        if (upList.length > 0 && downList.length > 0) {
+            log.warning(`scaling collision detected, node ${upList[0].source} scale up ${upList[0].count}, and node ${downList[0].source} scale down ${downList[0].count}`, { component });
+        }
+        if (upList.length > 0) {
+            const up = this._findMaxIndex(upList);
+            if (this._canScaleUp(up.count)) {
+                const scaleTo = currentSize + up.count;
+                scaleUp = { source: up.source, replicas: up.count, currentSize, scaleTo, reason: up.reason, nodes: upList.map(l => l.count) };
+                this._pendingScale.updateUp(scaleTo);
             }
-            else if (upList.length > 0) {
-                const up = this._findMaxIndex(upList);
-                if (this._canScaleUp(up.count)) {
-                    const scaleTo = currentSize + up.count;
-                    scaleUp = { source: up.source, replicas: up.count, currentSize, scaleTo, reason: up.reason, nodes: upList.map(l => l.count) };
-                    this._pendingScale.updateUp(scaleTo);
-                }
-            }
-            else {
-                const everyDown = downList.every(d => d.reason.code === ScaleReasons.IDLE_TIME());
-                const down = (everyDown && downList[0]) || this._findMinIndex(downList);
-                if (this._canScaleDown(down.count)) {
-                    const scaleTo = currentSize - down.count;
-                    scaleDown = { source: down.source, replicas: down.count, currentSize, scaleTo, reason: down.reason, nodes: downList.map(l => l.count) };
-                    this._pendingScale.updateDown(scaleTo);
-                }
+        }
+        else {
+            const everyDown = downList.every(d => d.reason.code === ScaleReasons.IDLE_TIME());
+            const down = (everyDown && downList[0]) || this._findMinIndex(downList);
+            if (this._canScaleDown(down.count)) {
+                const scaleTo = currentSize - down.count;
+                scaleDown = { source: down.source, replicas: down.count, currentSize, scaleTo, reason: down.reason, nodes: downList.map(l => l.count) };
+                this._pendingScale.updateDown(scaleTo);
             }
         }
         return { scaleUp, scaleDown };
