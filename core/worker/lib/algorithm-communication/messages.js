@@ -5,6 +5,7 @@ module.exports = {
         stopped: 'stopped',
         progress: 'progress',
         error: 'errorMessage',
+        servingStatus: 'servingStatus',
         startRawSubPipeline: 'startRawSubPipeline',
         startStoredSubPipeline: 'startStoredSubPipeline',
         stopSubPipeline: 'stopSubPipeline',
