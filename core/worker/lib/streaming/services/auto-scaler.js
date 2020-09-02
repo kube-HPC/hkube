@@ -21,10 +21,10 @@ class AutoScaler {
         this._options = options;
         this._config = options.config;
         this._isStateful = options.node.stateType === stateType.Stateful;
-        this.clean();
+        this.reset();
     }
 
-    clean() {
+    reset() {
         this._metrics = [];
         this._idles = Object.create(null);
         this._statsPrint = Object.create(null);
@@ -58,6 +58,7 @@ class AutoScaler {
         this._metrics = [];
         let currentSize = 0;
         const target = this._nodeName;
+        const sources = [];
 
         for (const stat of this._statistics) {
             const { source, data } = stat;
@@ -66,7 +67,7 @@ class AutoScaler {
 
             const metric = { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
             this._metrics.push(metric);
-
+            sources.push(source);
             this._updateProgress(metric);
             this._printRatesStats(metric);
 
@@ -80,36 +81,49 @@ class AutoScaler {
                 }
             }
         }
-        const { scaleUp, scaleDown } = this._resolveConflicts(upList, downList, currentSize);
+        const { scaleUp, scaleDown } = this._resolveConflicts(upList, downList, sources, currentSize);
         return { scaleUp, scaleDown };
     }
 
-    _resolveConflicts(upList, downList, currentSize) {
+    _resolveConflicts(upList, downList, sources, currentSize) {
         let scaleUp = null;
         let scaleDown = null;
         this._pendingScale.check(currentSize);
 
         if (upList.length > 0 && downList.length > 0) {
             log.warning(`scaling collision detected, node ${upList[0].source} scale up ${upList[0].count}, and node ${downList[0].source} scale down ${downList[0].count}`, { component });
+            scaleUp = this._createScaleUp(upList, currentSize);
+            scaleDown = this._createScaleDown(downList, currentSize);
         }
-        if (upList.length > 0) {
-            const up = this._findMaxIndex(upList);
-            if (this._canScaleUp(up.count)) {
-                const scaleTo = currentSize + up.count;
-                scaleUp = { source: up.source, replicas: up.count, currentSize, scaleTo, reason: up.reason, nodes: upList.map(l => l.count) };
-                this._pendingScale.updateUp(scaleTo);
-            }
+        else if (upList.length > 0) {
+            scaleUp = this._createScaleUp(upList, currentSize, scaleUp);
         }
-        else {
-            const everyDown = downList.every(d => d.reason.code === ScaleReasons.IDLE_TIME());
-            const down = (everyDown && downList[0]) || this._findMinIndex(downList);
-            if (this._canScaleDown(down.count)) {
-                const scaleTo = currentSize - down.count;
-                scaleDown = { source: down.source, replicas: down.count, currentSize, scaleTo, reason: down.reason, nodes: downList.map(l => l.count) };
-                this._pendingScale.updateDown(scaleTo);
-            }
+        else if (downList.length === sources.length) {
+            scaleDown = this._createScaleDown(downList, currentSize, scaleDown);
         }
         return { scaleUp, scaleDown };
+    }
+
+    _createScaleUp(upList, currentSize) {
+        let scaleUp = null;
+        const up = this._findMaxIndex(upList);
+        if (this._pendingScale.canScaleUp(up.count)) {
+            const scaleTo = currentSize + up.count;
+            scaleUp = { source: up.source, replicas: up.count, currentSize, scaleTo, reason: up.reason, nodes: upList.map(l => l.count) };
+            this._pendingScale.updateRequiredUp(up.count);
+        }
+        return scaleUp;
+    }
+
+    _createScaleDown(downList, currentSize) {
+        let scaleDown = null;
+        const down = this._findMinIndex(downList);
+        if (this._pendingScale.canScaleDown(down.count)) {
+            const scaleTo = currentSize - down.count;
+            scaleDown = { source: down.source, replicas: down.count, currentSize, scaleTo, reason: down.reason, nodes: downList.map(l => l.count) };
+            this._pendingScale.updateRequiredDown(down.count);
+        }
+        return scaleDown;
     }
 
     _findMaxIndex(list) {
@@ -137,18 +151,17 @@ class AutoScaler {
     }
 
     _printRatesStats(metric) {
-        if (!this._statsPrint[metric.source] || Date.now() - this._statsPrint[metric.source] >= 30000) {
-            const count = [];
-            if (this._pendingScale.requiredUp) {
-                count.push(`required up ${this._pendingScale.requiredUp},`);
-            }
-            if (this._pendingScale.requiredDown) {
-                count.push(`required down ${this._pendingScale.requiredDown},`);
-            }
+        if (!this._statsPrint[metric.source] || Date.now() - this._statsPrint[metric.source] >= 10000) {
             const { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses } = metric;
-            log.info(`stats for ${source}=>${target}: size: ${currentSize}, ${count.join('')} req rate=${reqRate.toFixed(2)}, res rate=${resRate.toFixed(2)}, durations rate=${durationsRate.toFixed(2)}, total requests=${totalRequests}, total responses=${totalResponses}`, { component });
+            const rates = `req=${reqRate.toFixed(2)}, res=${resRate.toFixed(2)}, dur=${durationsRate.toFixed(2)}`;
+            log.info(`stats for ${source}=>${target}: size=${currentSize}/${this._pendingScale.required}, ${rates}, total req=${totalRequests}, total res=${totalResponses}`, { component });
             this._statsPrint[metric.source] = Date.now();
         }
+    }
+
+    _logScaling({ action, source, currentSize, scaleTo, reason, nodes }) {
+        const nodesScale = nodes.length > 0 ? `, nodes: [${nodes}]` : '';
+        log.info(`scaling ${action} from ${currentSize} to ${scaleTo} replicas for ${source}=>${this._nodeName} ${reason.message} ${nodesScale}`, { component });
     }
 
     _updateProgress(metric) {
@@ -156,6 +169,9 @@ class AutoScaler {
         if (reqRate && resRate) {
             const progress = parseFloat((resRate / reqRate).toFixed(2));
             this._progress.update(source, progress);
+        }
+        else {
+            this._progress.update(source, 0);
         }
     }
 
@@ -198,11 +214,6 @@ class AutoScaler {
         return Math.ceil(size * ratio);
     }
 
-    _logScaling({ action, source, currentSize, scaleTo, reason, nodes }) {
-        const nodesScale = nodes.length > 0 ? `, nodes: [${nodes}]` : '';
-        log.info(`scaling ${action} from ${currentSize} to ${scaleTo} replicas for ${source}=>${this._nodeName} ${reason.message} ${nodesScale}`, { component });
-    }
-
     _shouldScaleUp({ reqResRatio, reqRate, resRate }) {
         let reason;
         let scale = false;
@@ -228,16 +239,16 @@ class AutoScaler {
     _getDurationsReason(durationsRatio, source) {
         let reason;
         let scale = false;
-        const durCode = ScaleReasons.DUR_RATIO();
+        const code = ScaleReasons.DUR_RATIO();
         if (durationsRatio <= this._config.minRatioToScaleDown) {
-            const hasMinTime = this._markIdleTime({ source, code: durCode });
-            if (hasMinTime) {
+            const { result, time } = this._markIdleTime({ source, code });
+            if (result) {
                 scale = true;
-                reason = ScaleReasons.DUR_RATIO({ durationsRatio: durationsRatio.toFixed(2), minRatioToScaleDown: this._config.minRatioToScaleDown });
+                reason = ScaleReasons.DUR_RATIO({ time, durationsRatio: durationsRatio.toFixed(2) });
             }
         }
         else {
-            this._unMarkIdleTime({ source, code: durCode });
+            this._unMarkIdleTime({ source, code });
         }
         return { scale, reason };
     }
@@ -245,16 +256,16 @@ class AutoScaler {
     _getIdleReason(reqRate, resRate, source) {
         let reason;
         let scale = false;
-        const idleCode = ScaleReasons.IDLE_TIME();
+        const code = ScaleReasons.IDLE_TIME();
         if (!reqRate && !resRate) {
-            const hasMinTime = this._markIdleTime({ source, code: idleCode });
-            if (hasMinTime) {
+            const { result, time } = this._markIdleTime({ source, code });
+            if (result) {
                 scale = true;
-                reason = ScaleReasons.IDLE_TIME({ minTimeIdleBeforeReplicaDown: this._config.minTimeIdleBeforeReplicaDown / 1000 });
+                reason = ScaleReasons.IDLE_TIME({ time });
             }
         }
         else {
-            this._unMarkIdleTime({ source, code: idleCode });
+            this._unMarkIdleTime({ source, code });
         }
         return { scale, reason };
     }
@@ -267,10 +278,11 @@ class AutoScaler {
         if (!this._idles[source][code]) {
             this._idles[source][code] = { time: Date.now() };
         }
-        if (Date.now() - this._idles[source][code].time >= this._config.minTimeIdleBeforeReplicaDown) {
+        const diff = Date.now() - this._idles[source][code].time;
+        if (diff >= this._config.minTimeIdleBeforeReplicaDown) {
             result = true;
         }
-        return result;
+        return { result, time: diff / 1000 };
     }
 
     _unMarkIdleTime({ source, code }) {
@@ -279,12 +291,8 @@ class AutoScaler {
         }
     }
 
-    _canScaleUp(count) {
-        return count > 0 && !this._pendingScale.hasDesiredUp();
-    }
-
-    _canScaleDown(count) {
-        return count > 0 && !this._pendingScale.hasDesiredDown();
+    _canScale(count) {
+        return this._pendingScale.canScale(count);
     }
 
     _scaleUp(scale) {

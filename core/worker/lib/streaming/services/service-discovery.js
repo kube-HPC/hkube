@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const { Interval } = require('../core');
 const stateAdapter = require('../../states/stateAdapter');
-const { Components, streamingEvents } = require('../../consts');
+const { Components, streamingEvents, workerStates } = require('../../consts');
 const component = Components.SERVICE_DISCOVERY;
 let log;
 
@@ -73,7 +73,7 @@ class ServiceDiscovery extends EventEmitter {
     }
 
     _isJobDiscovery(data, jobId, taskId) {
-        return data.jobId === jobId && data.taskId !== taskId;
+        return data.jobId === jobId && data.taskId !== taskId && data.workerStatus === workerStates.working;
     }
 }
 

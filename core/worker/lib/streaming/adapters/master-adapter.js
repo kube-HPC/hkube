@@ -23,8 +23,12 @@ class MasterAdapter extends Adapter {
         });
     }
 
-    clean() {
-        this._autoScaler.clean();
+    slaves() {
+        return Object.keys(this._slaves);
+    }
+
+    reset() {
+        this._autoScaler.reset();
     }
 
     report(data) {

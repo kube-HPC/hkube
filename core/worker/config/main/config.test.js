@@ -8,7 +8,7 @@ config.workerCommunication = {
 config.streaming = {
     autoScaler: {
         interval: process.env.AUTO_SCALER_INTERVAL || 60000,
-        minTimeWaitForReplicaUp: 0,
+        minTimeWaitForReplicaUp: 10000,
         maxSizeWindow: 4,
         minTimeIdleBeforeReplicaDown: 0
     },

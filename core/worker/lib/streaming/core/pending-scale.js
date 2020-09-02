@@ -1,49 +1,70 @@
 class PendingScale {
     constructor(options) {
         this._minTimeWaitForReplicaUp = options.minTimeWaitForReplicaUp;
-        this._minTimeIdleBeforeReplicaDown = options.minTimeIdleBeforeReplicaDown;
-        this._requiredUp = null;
+        this._timeWait = null;
+        this._required = 0;
+        this._currentSize = 0;
         this._requiredDown = null;
-        this._upTime = null;
+        this._canScaleUp = true;
+        this._canScaleDown = true;
     }
 
     check(currentSize) {
-        if (this._requiredUp && this._requiredUp <= currentSize) {
-            if (!this._upTime) {
-                this._upTime = Date.now();
+        this._currentSize = currentSize;
+        this._checkRequiredUp(currentSize);
+        this._checkRequiredDown(currentSize);
+    }
+
+    _checkRequiredUp(currentSize) {
+        if (!this._required) {
+            this._canScaleUp = true;
+        }
+        else if (this._required <= currentSize) {
+            if (!this._timeWait) {
+                this._timeWait = Date.now();
             }
-            if (Date.now() - this._upTime >= this._minTimeWaitForReplicaUp) {
-                this._requiredUp = null;
-                this._upTime = null;
+            if (Date.now() - this._timeWait >= this._minTimeWaitForReplicaUp) {
+                this._canScaleUp = true;
+                this._timeWait = null;
+            }
+            else {
+                this._canScaleUp = false;
             }
         }
-        if (this._requiredDown && this._requiredDown >= currentSize) {
+        else {
+            this._canScaleUp = false;
+        }
+    }
+
+    _checkRequiredDown(currentSize) {
+        if (this._requiredDown === null || this._requiredDown >= currentSize) {
+            this._canScaleDown = true;
             this._requiredDown = null;
         }
+        else {
+            this._canScaleDown = false;
+        }
     }
 
-    get requiredUp() {
-        return this._requiredUp;
+    get required() {
+        return this._required;
     }
 
-    get requiredDown() {
-        return this._requiredDown;
+    updateRequiredUp(replicas) {
+        this._required += replicas;
     }
 
-    updateUp(replicas) {
-        this._requiredUp = replicas;
+    updateRequiredDown(replicas) {
+        this._required -= Math.min(replicas, this._required);
+        this._requiredDown = this._currentSize - replicas;
     }
 
-    hasDesiredUp() {
-        return this._requiredUp !== null;
+    canScaleUp(count) {
+        return count > 0 && this._canScaleUp;
     }
 
-    hasDesiredDown() {
-        return this._requiredDown !== null;
-    }
-
-    updateDown(replicas) {
-        this._requiredDown = Math.max(0, replicas);
+    canScaleDown(count) {
+        return count > 0 && this._canScaleDown;
     }
 }
 

@@ -94,6 +94,7 @@ const addDiscovery = async ({ jobId, nodeName, port }) => {
             jobId,
             taskId: uid(),
             nodeName,
+            workerStatus: 'working',
             streamingDiscovery: { ...streamingDiscovery, port }
         },
         instanceId
@@ -140,7 +141,7 @@ describe.only('Streaming', () => {
     describe('auto-scaler', () => {
         beforeEach(async () => {
             const masters = streamService._adapters._getMasters();
-            masters.map(m => m.clean());
+            masters.map(m => m.reset());
         })
         describe('scale-up', () => {
             it('should not scale based on no data', async () => {
@@ -502,28 +503,31 @@ describe.only('Streaming', () => {
                     streamService.reportStats(data);
                 }
                 const currentSize = 2;
-                const list = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
-                const list1 = { nodeName, queueSize: 300, responses: 80, currentSize };
+                const list1 = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
                 const list2 = { nodeName, queueSize: 450, responses: 150, currentSize };
-                const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
-                const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
-                await requests(list);
-                await slave1.report(list1);
-                await slave2.report(list2);
-                await slave2.report(list2);
+                const slave = new SlaveAdapter({ jobId, nodeName, source: 'B' });
+                await requests(list1);
+                await slave.report(list2);
+                await slave.report(list2);
                 await delay(500);
 
                 const { scaleUp, scaleDown } = autoScale();
                 const progress = checkProgress();
 
-                expect(Object.keys(progress).sort()).to.deep.equal(['A', 'B', 'C'])
+                expect(Object.keys(progress).sort()).to.deep.equal(['B', 'C'])
                 expect(scaleUp.currentSize).to.eql(currentSize);
-                expect(scaleUp.nodes).to.have.lengthOf(3);
                 expect(scaleUp.replicas).to.eql(10);
                 expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
-                expect(scaleDown).to.be.null;
+                expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_RES);
+                expect(scaleUp.reason.message).to.eql('based on req/res ratio of 5.00 (min is 1.2)');
+
+                expect(scaleDown.currentSize).to.eql(currentSize);
+                expect(scaleDown.replicas).to.eql(currentSize);
+                expect(scaleDown.scaleTo).to.eql(currentSize - scaleDown.replicas);
+                expect(scaleDown.reason.code).to.eql(ScaleReasons.IDLE_TIME);
+                expect(scaleDown.reason.message).to.eql('based on no requests and no responses for 0 sec');
             });
-            it.only('should scale up based on avg master and slaves', async () => {
+            it.skip('should scale up based on avg master and slaves', async () => {
                 const nodeName = 'D';
                 const requests = async (data) => {
                     streamService.reportStats(data);
@@ -612,6 +616,25 @@ describe.only('Streaming', () => {
         });
     });
     describe('master-slaves', () => {
+        it('should get slaves', async () => {
+            const nodeName = 'D';
+            const requests = async (data) => {
+                streamService.reportStats(data);
+            }
+            const currentSize = 2;
+            const list = [{ nodeName, queueSize: 150, responses: 30, currentSize }];
+            const list1 = { nodeName, queueSize: 300, responses: 80, currentSize };
+            const list2 = { nodeName, queueSize: 150, responses: 150, currentSize };
+            const slave1 = new SlaveAdapter({ jobId, nodeName, source: 'A' });
+            const slave2 = new SlaveAdapter({ jobId, nodeName, source: 'B' });
+            await requests(list);
+            await slave1.report(list1);
+            await slave2.report(list2);
+            await delay(500);
+            const masters = streamService._adapters._getMasters();
+            const slaves = masters[0].slaves();
+            expect(slaves.sort()).to.deep.equal(['A', 'B'])
+        });
         it('should scale up based on avg master and slaves', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
