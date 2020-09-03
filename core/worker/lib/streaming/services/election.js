@@ -1,5 +1,4 @@
 const Logger = require('@hkube/logger');
-const { NodesMap } = require('@hkube/dag');
 const stateAdapter = require('../../states/stateAdapter');
 const { Interval } = require('../core');
 const { Components } = require('../../consts');
@@ -25,19 +24,11 @@ class Election {
         log = Logger.GetLogFromContainer();
     }
 
-    async start(jobData) {
-        this._jobData = jobData;
-        this._pipeline = await stateAdapter.getExecution({ jobId: jobData.jobId });
-        this._dag = new NodesMap(this._pipeline);
-        this._nodes = this._pipeline.nodes.reduce((acc, cur) => {
-            acc[cur.nodeName] = cur;
-            return acc;
-        }, {});
-
-        await this._election();
+    async start(nodes) {
+        await this._election(nodes);
 
         this._electInterval = new Interval({ delay: this._options.election.interval })
-            .onFunc(() => this._election())
+            .onFunc(() => this._election(nodes))
             .onError((e) => log.throttle.error(e.message, { component }))
             .start();
     }
@@ -46,22 +37,13 @@ class Election {
         this._electInterval.stop();
     }
 
-    async _election() {
-        const { childs, jobId, nodeName } = this._jobData;
-        const data = { config: this._options.autoScaler, pipeline: this._pipeline, jobData: this._jobData, jobId };
-        await Promise.all(childs.map(c => this._elect({ ...data, nodeName: c, source: nodeName, node: this._createNode(c) })));
+    async _election(nodes) {
+        await Promise.all(nodes.map(n => this._electNode(n)));
     }
 
-    async _elect(options) {
+    async _electNode(options) {
         const lock = await stateAdapter.acquireStreamingLock(options);
         this._addAdapter({ isMaster: lock.success, ...options });
-    }
-
-    _createNode(nodeName) {
-        const node = this._nodes[nodeName];
-        const parents = this._dag._parents(nodeName);
-        const childs = this._dag._childs(nodeName);
-        return { ...node, parents, childs };
     }
 }
 
