@@ -133,7 +133,7 @@ const checkThroughput = () => {
     return streamService._throughput._checkThroughput();
 }
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     before(async () => {
         await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
         await streamHandler.start(job);

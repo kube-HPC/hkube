@@ -91,7 +91,7 @@ class AutoScaler {
         this._pendingScale.check(currentSize);
 
         if (upList.length > 0 && downList.length > 0) {
-            log.warning(`scaling collision detected, node ${upList[0].source} scale up ${upList[0].count}, and node ${downList[0].source} scale down ${downList[0].count}`, { component });
+            log.warning(`scaling collision detected, node ${upList[0].source} scale up ${upList[0].count}, and node ${downList[0].source} scale down ${downList[0].count}, scaling up...`, { component });
             scaleUp = this._createScaleUp(upList, currentSize);
         }
         else if (upList.length > 0) {
