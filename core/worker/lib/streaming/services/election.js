@@ -2,7 +2,6 @@ const Logger = require('@hkube/logger');
 const { NodesMap } = require('@hkube/dag');
 const stateAdapter = require('../../states/stateAdapter');
 const { Interval } = require('../core');
-const Adapters = require('../adapters/adapters');
 const { Components } = require('../../consts');
 const component = Components.ELECTION;
 let log;
@@ -20,8 +19,9 @@ let log;
  */
 
 class Election {
-    constructor(options) {
+    constructor(options, addAdapter) {
         this._options = options;
+        this._addAdapter = addAdapter;
         log = Logger.GetLogFromContainer();
     }
 
@@ -33,7 +33,6 @@ class Election {
             acc[cur.nodeName] = cur;
             return acc;
         }, {});
-        this._adapters = new Adapters();
 
         await this._election();
 
@@ -41,8 +40,6 @@ class Election {
             .onFunc(() => this._election())
             .onError((e) => log.throttle.error(e.message, { component }))
             .start();
-
-        return this._adapters;
     }
 
     stop() {
@@ -57,7 +54,7 @@ class Election {
 
     async _elect(options) {
         const lock = await stateAdapter.acquireStreamingLock(options);
-        this._adapters.addAdapter({ isMaster: lock.success, ...options });
+        this._addAdapter({ isMaster: lock.success, ...options });
     }
 
     _createNode(nodeName) {

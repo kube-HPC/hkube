@@ -139,8 +139,8 @@ class Worker {
                 data: changes
             });
         });
-        streamHandler.on(streamingEvents.PROGRESS_CHANGED, (progress) => {
-            jobConsumer.updateProgress(progress);
+        streamHandler.on(streamingEvents.THROUGHPUT_CHANGED, (throughput) => {
+            jobConsumer.updateThroughput(throughput);
         });
     }
 

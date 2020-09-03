@@ -7,19 +7,19 @@ config.workerCommunication = {
 
 config.streaming = {
     autoScaler: {
-        interval: process.env.AUTO_SCALER_INTERVAL || 60000,
-        minTimeWaitForReplicaUp: 10000,
+        interval: 60000,
+        minTimeWaitForReplicaUp: 0,
         maxSizeWindow: 4,
-        minTimeIdleBeforeReplicaDown: 0
+        maxTimeIdleBeforeReplicaDown: 0
     },
     serviceDiscovery: {
-        interval: process.env.SERVICE_DISCOVERY_INTERVAL || 60000
+        interval: 60000
     },
     election: {
-        interval: process.env.ELECTION_INTERVAL || 60000
+        interval: 60000
     },
-    progress: {
-        interval: process.env.STREAMING_PROGRESS_INTERVAL || 60000
+    throughput: {
+        interval: 60000
     }
 };
 

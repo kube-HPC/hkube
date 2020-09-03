@@ -3,6 +3,10 @@ const streamService = require('./stream-service');
 const discovery = require('./service-discovery');
 const { streamingEvents } = require('../../consts');
 
+/**
+ * This class is the main and only point for
+ * communicate with the streaming module.
+ */
 class StreamHandler extends EventEmitter {
     async init(options) {
         await streamService.init(options);
@@ -11,8 +15,8 @@ class StreamHandler extends EventEmitter {
         discovery.on(streamingEvents.DISCOVERY_CHANGED, (changed) => {
             this.emit(streamingEvents.DISCOVERY_CHANGED, changed);
         });
-        streamService.on(streamingEvents.PROGRESS_CHANGED, (changed) => {
-            this.emit(streamingEvents.PROGRESS_CHANGED, changed);
+        streamService.on(streamingEvents.THROUGHPUT_CHANGED, (changed) => {
+            this.emit(streamingEvents.THROUGHPUT_CHANGED, changed);
         });
     }
 

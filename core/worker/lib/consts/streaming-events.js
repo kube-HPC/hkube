@@ -1,6 +1,6 @@
 const events = {
     DISCOVERY_CHANGED: 'discovery-changed',
-    PROGRESS_CHANGED: 'progress-changed'
+    THROUGHPUT_CHANGED: 'throughput-changed'
 };
 
 module.exports = events;

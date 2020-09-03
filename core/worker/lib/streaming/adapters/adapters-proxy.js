@@ -3,7 +3,11 @@ const { MasterAdapter, SlaveAdapter } = require('./index');
 const { Components } = require('../../consts');
 let log;
 
-class Adapters {
+/**
+ * The adapters proxy is responsible to communicate
+ * with the adapters (master/slave)
+ */
+class AdaptersManager {
     constructor() {
         log = Logger.GetLogFromContainer();
         this._adapters = Object.create(null);
@@ -52,9 +56,9 @@ class Adapters {
         return masters.map(m => m.scale());
     }
 
-    progress() {
+    throughput() {
         const masters = this._getMasters();
-        return masters.map(m => ({ nodeName: m.nodeName, progress: m.getProgress() }));
+        return masters.map(m => ({ nodeName: m.nodeName, throughput: m.getThroughput() }));
     }
 
     _getMasters() {
@@ -62,4 +66,4 @@ class Adapters {
     }
 }
 
-module.exports = Adapters;
+module.exports = AdaptersManager;

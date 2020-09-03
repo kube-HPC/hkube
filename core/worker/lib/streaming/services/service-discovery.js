@@ -6,6 +6,15 @@ const { Components, streamingEvents, workerStates } = require('../../consts');
 const component = Components.SERVICE_DISCOVERY;
 let log;
 
+/**
+ * This class is responsible for periodically check for
+ * changes (add, del) of nodes that belongs the current running pipeline.
+ * it holds a map of <nodeName, [addresses]>
+ * There are two main things it perform:
+ * 1. notify the algorithm that it need to connect/disconnet
+ * 2. count size of each node, so the auto-scaler can do the scale.
+ */
+
 class ServiceDiscovery extends EventEmitter {
     init(options) {
         this._options = options.streaming.serviceDiscovery;

@@ -307,8 +307,8 @@ class JobConsumer extends EventEmitter {
         return this.updateStatus({ status: taskStatuses.STORING, result });
     }
 
-    updateProgress(progress) {
-        return this.updateStatus({ status: taskStatuses.PROGRESS, progress });
+    updateThroughput(throughput) {
+        return this.updateStatus({ status: taskStatuses.THROUGHPUT, throughput });
     }
 
     currentTaskInfo() {

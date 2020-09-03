@@ -7,7 +7,7 @@ let log;
 /**
  * This class is responsible for periodically checks
  * if auto-scale should be made and
- * if progress need to be reported.
+ * if throughput need to be reported.
  */
 
 class ScalerService {

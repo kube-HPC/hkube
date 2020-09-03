@@ -1,12 +1,16 @@
+/**
+ * This class is responsible for holding the data
+ * of required replicas at any moment, and also
+ * the logic of scale up/down feasibility
+ */
 class PendingScale {
     constructor(options) {
         this._minTimeWaitForReplicaUp = options.minTimeWaitForReplicaUp;
         this._timeWait = null;
-        this._required = 0;
-        this._currentSize = 0;
+        this._requiredUp = null;
         this._requiredDown = null;
-        this._canScaleUp = true;
-        this._canScaleDown = true;
+        this._currentSize = 0;
+        this._required = 0;
     }
 
     check(currentSize) {
@@ -16,33 +20,20 @@ class PendingScale {
     }
 
     _checkRequiredUp(currentSize) {
-        if (!this._required) {
-            this._canScaleUp = true;
-        }
-        else if (this._required <= currentSize) {
+        if (this._requiredUp && this._requiredUp <= currentSize) {
             if (!this._timeWait) {
                 this._timeWait = Date.now();
             }
             if (Date.now() - this._timeWait >= this._minTimeWaitForReplicaUp) {
-                this._canScaleUp = true;
+                this._requiredUp = null;
                 this._timeWait = null;
             }
-            else {
-                this._canScaleUp = false;
-            }
-        }
-        else {
-            this._canScaleUp = false;
         }
     }
 
     _checkRequiredDown(currentSize) {
         if (this._requiredDown === null || this._requiredDown >= currentSize) {
-            this._canScaleDown = true;
             this._requiredDown = null;
-        }
-        else {
-            this._canScaleDown = false;
         }
     }
 
@@ -51,20 +42,21 @@ class PendingScale {
     }
 
     updateRequiredUp(replicas) {
-        this._required += replicas;
+        this._requiredUp = this._currentSize + replicas;
+        this._required = this._requiredUp;
     }
 
     updateRequiredDown(replicas) {
-        this._required -= Math.min(replicas, this._required);
         this._requiredDown = this._currentSize - replicas;
+        this._required = this._requiredDown;
     }
 
     canScaleUp(count) {
-        return count > 0 && this._canScaleUp;
+        return count > 0 && this._requiredUp === null;
     }
 
     canScaleDown(count) {
-        return count > 0 && this._canScaleDown;
+        return count > 0 && this._requiredDown === null;
     }
 }
 

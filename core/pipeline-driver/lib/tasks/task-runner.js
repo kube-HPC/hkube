@@ -101,7 +101,7 @@ class TaskRunner extends EventEmitter {
                 this._setTaskState(task);
                 this._onTaskComplete(task);
                 break;
-            case taskStatuses.PROGRESS:
+            case taskStatuses.THROUGHPUT:
                 this._onProgress(task);
                 break;
             default:
@@ -641,8 +641,8 @@ class TaskRunner extends EventEmitter {
         if (!this._active) {
             return;
         }
-        const { progress } = task;
-        Object.entries(progress).forEach(([k, v]) => {
+        const { throughput } = task;
+        Object.entries(throughput).forEach(([k, v]) => {
             const node = this._nodes.getNode(k);
             if (node) {
                 node.throughput = v;

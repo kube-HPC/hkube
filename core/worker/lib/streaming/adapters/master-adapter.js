@@ -6,6 +6,11 @@ const { Components } = require('../../consts');
 const component = Components.MASTER_ADAPTER;
 let log;
 
+/**
+ * The master is responsible to do the auto-scale,
+ * It also watch slaves and handle their scaling.
+ */
+
 class MasterAdapter extends Adapter {
     constructor(options) {
         super(options);
@@ -29,6 +34,7 @@ class MasterAdapter extends Adapter {
 
     reset() {
         this._autoScaler.reset();
+        this._slaves = Object.create(null);
     }
 
     report(data) {
@@ -45,8 +51,8 @@ class MasterAdapter extends Adapter {
         stateAdapter.unWatchStreamingStats({ jobId, nodeName });
     }
 
-    getProgress() {
-        return this._autoScaler.getProgress();
+    getThroughput() {
+        return this._autoScaler.getThroughput();
     }
 
     scale() {

@@ -1,3 +1,6 @@
+/**
+ * Just a generic wrapper for the standard interval
+ */
 class Interval {
     constructor(options) {
         this._active = false;

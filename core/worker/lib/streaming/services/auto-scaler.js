@@ -2,7 +2,7 @@ const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
-const { Statistics, Progress, PendingScale, Metrics } = require('../core');
+const { Statistics, Throughput, PendingScale, Metrics } = require('../core');
 const ScaleReasons = require('../core/scale-reasons');
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
@@ -28,7 +28,7 @@ class AutoScaler {
         this._metrics = [];
         this._idles = Object.create(null);
         this._statsPrint = Object.create(null);
-        this._progress = new Progress();
+        this._throughput = new Throughput();
         this._statistics = new Statistics(this._config);
         this._pendingScale = new PendingScale(this._config);
     }
@@ -37,8 +37,8 @@ class AutoScaler {
         this._statistics.report(data);
     }
 
-    getProgress() {
-        return this._progress.data;
+    getThroughput() {
+        return this._throughput.data;
     }
 
     getMetrics() {
@@ -68,7 +68,7 @@ class AutoScaler {
             const metric = { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
             this._metrics.push(metric);
             sources.push(source);
-            this._updateProgress(metric);
+            this._updateThroughput(metric);
             this._printRatesStats(metric);
 
             if (!this._isStateful) {
@@ -93,7 +93,6 @@ class AutoScaler {
         if (upList.length > 0 && downList.length > 0) {
             log.warning(`scaling collision detected, node ${upList[0].source} scale up ${upList[0].count}, and node ${downList[0].source} scale down ${downList[0].count}`, { component });
             scaleUp = this._createScaleUp(upList, currentSize);
-            scaleDown = this._createScaleDown(downList, currentSize);
         }
         else if (upList.length > 0) {
             scaleUp = this._createScaleUp(upList, currentSize, scaleUp);
@@ -151,27 +150,31 @@ class AutoScaler {
     }
 
     _printRatesStats(metric) {
-        if (!this._statsPrint[metric.source] || Date.now() - this._statsPrint[metric.source] >= 10000) {
+        if (!this._statsPrint[metric.source] || Date.now() - this._statsPrint[metric.source] >= this._config.logStatsInterval) {
             const { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses } = metric;
-            const rates = `req=${reqRate.toFixed(2)}, res=${resRate.toFixed(2)}, dur=${durationsRate.toFixed(2)}`;
-            log.info(`stats for ${source}=>${target}: size=${currentSize}/${this._pendingScale.required}, ${rates}, total req=${totalRequests}, total res=${totalResponses}`, { component });
+            const req = this._pendingScale.required;
+            const per = currentSize && req ? (currentSize / req) * 100 : 0;
+            const scale = `scale=${per.toFixed(0)}% (${currentSize}/${req})`;
+            const rates = `req=${reqRate.toFixed(0)}, res=${resRate.toFixed(0)}, dur=${durationsRate.toFixed(0)}`;
+            const total = `total req=${totalRequests}, total res=${totalResponses}`;
+            log.info(`stats for ${source}=>${target}: ${scale}, ${rates}, ${total}`, { component });
             this._statsPrint[metric.source] = Date.now();
         }
     }
 
     _logScaling({ action, source, currentSize, scaleTo, reason, nodes }) {
-        const nodesScale = nodes.length > 0 ? `, nodes: [${nodes}]` : '';
+        const nodesScale = nodes.length > 1 ? `, nodes: [${nodes}]` : '';
         log.info(`scaling ${action} from ${currentSize} to ${scaleTo} replicas for ${source}=>${this._nodeName} ${reason.message} ${nodesScale}`, { component });
     }
 
-    _updateProgress(metric) {
+    _updateThroughput(metric) {
         const { source, reqRate, resRate } = metric;
         if (reqRate && resRate) {
-            const progress = parseFloat((resRate / reqRate).toFixed(2));
-            this._progress.update(source, progress);
+            const throughput = parseFloat((resRate / reqRate).toFixed(2));
+            this._throughput.update(source, throughput);
         }
         else {
-            this._progress.update(source, 0);
+            this._throughput.update(source, 0);
         }
     }
 
@@ -279,7 +282,7 @@ class AutoScaler {
             this._idles[source][code] = { time: Date.now() };
         }
         const diff = Date.now() - this._idles[source][code].time;
-        if (diff >= this._config.minTimeIdleBeforeReplicaDown) {
+        if (diff >= this._config.maxTimeIdleBeforeReplicaDown) {
             result = true;
         }
         return { result, time: diff / 1000 };
@@ -289,10 +292,6 @@ class AutoScaler {
         if (this._idles[source] && this._idles[source][code]) {
             delete this._idles[source][code];
         }
-    }
-
-    _canScale(count) {
-        return this._pendingScale.canScale(count);
     }
 
     _scaleUp(scale) {

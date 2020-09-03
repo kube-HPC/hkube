@@ -2,7 +2,7 @@ const FixedWindow = require('./fixed-window');
 const Interval = require('./interval');
 const Metrics = require('./metrics');
 const PendingScale = require('./pending-scale');
-const Progress = require('./progress');
+const Throughput = require('./throughput');
 const Statistics = require('./statistics');
 
 module.exports = {
@@ -10,6 +10,6 @@ module.exports = {
     Interval,
     Metrics,
     PendingScale,
-    Progress,
+    Throughput,
     Statistics
 };
