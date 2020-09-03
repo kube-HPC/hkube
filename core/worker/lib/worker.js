@@ -37,6 +37,7 @@ class Worker {
         this._options = options;
         this._debugMode = options.debugMode;
         this._devMode = options.devMode;
+        this._servingReportInterval = options.servingReportInterval;
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
@@ -101,7 +102,15 @@ class Worker {
             this._setInactiveTimeout();
         });
         stateAdapter.on(workerCommands.stopProcessing, async () => {
-            if (!jobConsumer.isConsumerPaused) {
+            const isPaused = jobConsumer.isConsumerPaused;
+            const isServing = this._isAlgorithmServing();
+            const shouldStop = !isPaused && !isServing;
+            const paused = isPaused ? 'paused' : 'not paused';
+            const serving = isServing ? 'serving' : 'not serving';
+            const stop = shouldStop ? 'stop' : 'not stop';
+            log.info(`got stop processing, worker is ${paused} and ${serving} and therefore will ${stop}`, { component });
+
+            if (shouldStop) {
                 await jobConsumer.pause();
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
@@ -142,6 +151,11 @@ class Worker {
         streamHandler.on(streamingEvents.THROUGHPUT_CHANGED, (throughput) => {
             jobConsumer.updateThroughput(throughput);
         });
+    }
+
+    _isAlgorithmServing() {
+        const last = this._algorithmServingLastUpdate;
+        return last && (Date.now() - last) < (this._servingReportInterval * 2);
     }
 
     async _stopPipeline({ status, reason, isTtlExpired }) {
@@ -260,6 +274,9 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.finishSpan, (message) => {
             this._finishAlgorithmSpan(message);
+        });
+        algoRunnerCommunication.on(messages.incomming.servingStatus, () => {
+            this._algorithmServingLastUpdate = Date.now();
         });
     }
 

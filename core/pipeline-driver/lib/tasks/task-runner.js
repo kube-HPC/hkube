@@ -314,6 +314,7 @@ class TaskRunner extends EventEmitter {
                         if (task.status === taskStatuses.SUCCEED && gTask.status !== taskStatuses.STORING) {
                             this._setTaskState(task);
                             this._onStoring(task);
+                            this._onTaskComplete(task);
                         }
                         else {
                             this._handleTaskEvent(task);

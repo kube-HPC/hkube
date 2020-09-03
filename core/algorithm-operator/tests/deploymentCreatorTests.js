@@ -17,6 +17,8 @@ describe('deploymentCreator', () => {
         it('should replace image name in spec', () => {
             const res = applyAlgorithmName(algorithmQueueTemplate, 'myAlgo1', 'algorithm-queue');
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myAlgo1' });
+            expect(res).to.nested.include({ 'spec.template.metadata.labels.algorithm-name': 'myAlgo1' });
+            expect(res).to.nested.include({ 'spec.selector.matchLabels.algorithm-name': 'myAlgo1' });
         });
         it('should throw if no worker container', () => {
             const missingWorkerSpec = clonedeep(algorithmQueueTemplate);

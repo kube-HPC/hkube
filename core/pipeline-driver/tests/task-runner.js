@@ -113,7 +113,7 @@ describe('TaskRunner', function () {
 
         expect(spy.calledOnce).to.equal(true);
     });
-    it.skip('should recover big pipeline', async function () {
+    it('should recover succeed tasks', async function () {
         const jobId = `jobid-recovery-${uuidv4()}`;
         const job = {
             data: { jobId },
@@ -123,19 +123,22 @@ describe('TaskRunner', function () {
             type: 'eval-alg'
         }
         const workerStub = new WorkerStub(options, true);
-        const pipeline = pipelines.find(p => p.name === 'randomPipeStored');
-        const taskRunner = new TaskRunner(config);
+        const pipeline = pipelines.find(p => p.name === 'simple-flow');
+        let taskRunner = new TaskRunner(config);
         const nodesMap = new NodesMap(pipeline);
         const node1 = new Node(pipeline.nodes[0]);
         const node2 = new Node(pipeline.nodes[1]);
         const node3 = new Node(pipeline.nodes[2]);
+        const node4 = new Node(pipeline.nodes[3]);
         nodesMap.setNode(node1);
         nodesMap.setNode(node2);
         nodesMap.setNode(node3);
+        nodesMap.setNode(node4);
 
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'storing' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'storing' });
-        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'storing' });
+        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'active' });
+        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'active' });
+        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'active' });
+        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node4.taskId, status: 'active' });
 
         await stateManager._etcd.jobs.status.set({ jobId, status: 'active' });
         await stateManager.setExecution({ jobId, ...pipeline });
@@ -147,10 +150,15 @@ describe('TaskRunner', function () {
         expect(taskRunner._driverStatus).to.equal('active');
         expect(taskRunner._jobStatus).to.equal('active');
 
+        // simulate restart
+        await taskRunner._onStop({})
+        expect(taskRunner._active).to.equal(false,'_onStop failed');
+        taskRunner=new TaskRunner(config)
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node3.taskId, status: 'succeed' });
-
+        await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node4.taskId, status: 'succeed' });
+        await taskRunner.start(job);
         await delay(5000);
         expect(taskRunner._active).to.equal(false);
         expect(taskRunner._driverStatus).to.equal('ready');

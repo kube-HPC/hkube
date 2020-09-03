@@ -19,6 +19,7 @@ config.workerImage = process.env.WORKER_IMAGE;
 config.algorithmImage = process.env.ALGORITHM_IMAGE;
 
 config.pollingInterval = process.env.POLLING_INTERVAL || 100;
+config.servingReportInterval = formatters.parseInt(process.env.DISCOVERY_SERVING_REPORT_INTERVAL, 5000);
 
 config.streaming = {
     autoScaler: {
