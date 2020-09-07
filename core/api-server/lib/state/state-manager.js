@@ -16,11 +16,6 @@ class StateManager {
         await this.jobs.status.singleWatch();
     }
 
-    async getCleanJobResult(options) {
-        const result = await this.jobs.results.get(options);
-        return result;
-    }
-
     async getJobResult(options) {
         const result = await this.jobs.results.get(options);
         return this.getResultFromStorage(result);
