@@ -7,7 +7,7 @@ const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const executions = require('./execution');
 const stateManager = require('../state/state-manager');
-const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
+const { ResourceNotFoundError } = require('../errors');
 
 class StorageService {
     init(config) {
