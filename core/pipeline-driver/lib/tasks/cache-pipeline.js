@@ -6,7 +6,9 @@ class Cache {
         const node = nodes.find(n => n.cacheJobId);
         if (node) {
             await this._getResultFromPredecessors(node);
+            return true;
         }
+        return false;
     }
 
     async _getResultFromPredecessors(node) {

@@ -203,7 +203,7 @@ class TaskRunner extends EventEmitter {
         }
 
         await this._progressStatus({ status: DriverStates.ACTIVE });
-        await cachePipeline._checkCachePipeline(pipeline.nodes);
+        this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
         this.pipeline = pipeline;
         this._nodes = new NodesMap(this.pipeline);
@@ -464,7 +464,9 @@ class TaskRunner extends EventEmitter {
                 storage: result.storage
             };
 
-            this._uniqueDiscovery(result.storage);
+            if (!this._isCachedPipeline) {
+                this._uniqueDiscovery(result.storage);
+            }
 
             if (result.batch) {
                 await this._runNodeBatch(options);
