@@ -1,8 +1,7 @@
 const { Readable } = require('stream');
-const fs = require('fs-extra');
 const archiver = require('archiver');
 const orderBy = require('lodash.orderby');
-const { uuid, uid } = require('@hkube/uid');
+const { uid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
 const executions = require('./execution');
@@ -81,32 +80,24 @@ class StorageService {
             const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
             algorithmsMap = new Map(algorithmList.map((a) => [a.name, a]));
         }
-
-        const source = `uploads/tmp/${uuid()}`;
-        const zipName = `${source}/result.zip`;
-        await fs.ensureDir(source);
         const archive = archiver('zip', { zlib: { level: 9 } });
-
-        result.data = await Promise.all(result.data.map(async d => {
-            let info;
-            if (d.info) {
-                const algorithms = algorithmsMap.get(d.algorithmName);
-                const ext = algorithms.downloadFileExt || 'hkube';
-                const fileName = `${uid()}.${ext}`;
-                const stream = await storageManager.getCustomStream({ path: d.info.path });
-                archive.append(stream, { name: fileName });
-                info = { size: d.info.size, fileName };
-            }
-            return { ...d, info };
-        }));
-        this._archiveMetadata(archive, result.data);
-        const path = await this._createZip(archive, zipName);
-        const stream = fs.createReadStream(path);
-        return { stream, path: source };
+        const archiveData = await Promise.all(result.data.map(d => this._createArchive(d, algorithmsMap, archive)));
+        this._archiveMetadata(archive, archiveData);
+        archive.finalize();
+        return archive;
     }
 
-    cleanPipelineResult(path) {
-        fs.remove(path);
+    async _createArchive(data, algorithmsMap, archive) {
+        let info;
+        if (data.info) {
+            const algorithms = algorithmsMap.get(data.algorithmName);
+            const ext = algorithms.downloadFileExt || 'hkube';
+            const fileName = `${uid()}.${ext}`;
+            const stream = await storageManager.getCustomStream({ path: data.info.path });
+            archive.append(stream, { name: fileName });
+            info = { size: data.info.size, fileName };
+        }
+        return { ...data, info };
     }
 
     _archiveMetadata(archive, data) {
@@ -114,18 +105,6 @@ class StorageService {
         stream.push(JSON.stringify(data));
         stream.push(null);
         archive.append(stream, { name: 'metadata.json' });
-    }
-
-    _createZip(archive, zipName) {
-        const stream = fs.createWriteStream(zipName);
-
-        return new Promise((resolve, reject) => {
-            archive.on('error', err => reject(err))
-                .pipe(stream);
-
-            stream.on('close', () => resolve(zipName));
-            archive.finalize();
-        });
     }
 
     _formatResponse({ path, keys, sort, order, from, to }) {

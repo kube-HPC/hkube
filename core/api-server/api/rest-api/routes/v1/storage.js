@@ -143,9 +143,8 @@ const routes = (options) => {
     router.get('/download/pipeline/result/*', logger(), async (req, res, next) => {
         const jobId = req.params[0];
         try {
-            const { path, stream } = await storage.getPipelineResult({ jobId });
+            const stream = await storage.getPipelineResult({ jobId });
             await downloadApi(res, stream, 'zip');
-            await storage.cleanPipelineResult(path);
         }
         catch (e) {
             handleStreamError(e, 'path', res, next);
