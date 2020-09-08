@@ -975,10 +975,6 @@ describe('Store/Algorithms', () => {
                     env: 'nodejs',
                     cpu: 2
                 }
-                const options = {
-                    uri: restPath,
-                    body: body1
-                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -996,8 +992,6 @@ describe('Store/Algorithms', () => {
                     uri,
                     formData: formData2
                 };
-                // insert algorithm
-                await request(options);
 
                 // apply algorithm
                 await request(options1)
@@ -1007,6 +1001,60 @@ describe('Store/Algorithms', () => {
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
                 expect(response.body.messages[0]).to.equal(MESSAGES.NO_TRIGGER_FOR_BUILD);
+            });
+            it('should succeed to apply algorithm without changing old data', async () => {
+                const body = {
+                    name: `my-alg-${uuid()}`,
+                    mem: "50Mi",
+                    cpu: 1
+                }
+                const body1 = {
+                    ...body,
+                    type: 'Code',
+                    env: 'nodejs',
+                    entryPoint: 'main.py',
+                    cpu: 1
+                }
+                const body2 = {
+                    ...body,
+                    env: 'python',
+                    entryPoint: 'app.py',
+                    cpu: 2
+                }
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const options1 = {
+                    uri: applyPath,
+                    formData: formData1
+                };
+                const options2 = {
+                    uri: applyPath,
+                    formData: formData2
+                };
+
+                // apply algorithm
+                const res1 = await request(options1)
+
+                // apply algorithm again
+                const res2 = await request(options2);
+                const optionsGet = {
+                    uri: `${restPath}/${body.name}`,
+                    method: 'GET'
+                };
+                const alg = await request(optionsGet);
+                expect(alg.body.cpu).to.eql(body1.cpu);
+                expect(alg.body.entryPoint).to.eql(body1.entryPoint);
+                expect(res1.body).to.have.property('buildId');
+                expect(res2.body).to.have.property('buildId');
+
+                expect(res1.body.messages).to.have.lengthOf(2);
+                expect(res2.body.messages).to.have.lengthOf(1);
             });
             it('should succeed to apply algorithm with buildId due to change in env', async () => {
                 const body = {
@@ -1118,15 +1166,12 @@ describe('Store/Algorithms', () => {
                 };
                 const uri = restPath + '/apply';
                 const options1 = { uri, formData: formData1 };
-                const options2 = { uri, formData: formData2 };
                 const getRequest = { uri: restPath + '/' + body.name, method: 'GET' };
 
                 await request(options1)
                 const res1 = await request(getRequest);
-                await request(options2);
-                const res2 = await request(getRequest);
+                await request(getRequest);
                 expect(res1.body.version).to.equal('1.0.0');
-                expect(res2.body.version).to.equal('1.0.1');
             });
             it('should succeed to watch completed build', async function () {
                 const algorithmName = `my-alg-${uuid()}`;

@@ -221,7 +221,6 @@ class AlgorithmStore {
                 newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
             }
 
-            messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             const version = await this._versioning(overrideImage, oldAlgorithm, newAlgorithm, payload);
             if (version) {
                 messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
@@ -231,7 +230,11 @@ class AlgorithmStore {
                 algorithmImage = oldAlgorithm.algorithmImage;
             }
             newAlgorithm = merge({}, newAlgorithm, { algorithmImage });
-            await this.storeAlgorithm(newAlgorithm);
+
+            if (!buildId || !oldAlgorithm) {
+                messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
+                await this.storeAlgorithm(newAlgorithm);
+            }
         }
         finally {
             buildsService.removeFile(data.file);
