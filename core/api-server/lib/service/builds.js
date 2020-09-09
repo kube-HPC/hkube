@@ -72,22 +72,24 @@ class Builds {
         await this.startBuild(build);
     }
 
-    async createBuild(file, oldAlgorithm, newAlgorithm) {
+    async createBuild(file, oldAlgorithm, newAlgorithm, payload) {
         const messages = [];
         let buildId;
-        const algorithm = await this._newAlgorithm(file, oldAlgorithm, newAlgorithm);
+        const algorithm = await this._newAlgorithm(file, oldAlgorithm, payload);
         const result = this._shouldBuild(oldAlgorithm, algorithm);
         messages.push(...result.messages);
+        merge(newAlgorithm, algorithm);
 
         if (result.shouldBuild) {
-            const version = this._incVersion(oldAlgorithm, newAlgorithm);
+            const version = this._incVersion(oldAlgorithm, payload);
             buildId = this._createBuildID(algorithm.name);
             const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
-            merge(algorithm, { version, fileInfo: { path: putStream.path } });
-            const { env, name, fileInfo, type, baseImage } = algorithm;
-            await this.startBuild({ buildId, algorithmName: name, env, version, fileExt: fileInfo.fileExt, type, baseImage });
+            merge(newAlgorithm, { version, fileInfo: { path: putStream.path } });
+            const { env, name, fileInfo, type, baseImage } = newAlgorithm;
+            await this._removeFile(file.path);
+            await this.startBuild({ buildId, algorithm: newAlgorithm, algorithmName: name, env, version, fileExt: fileInfo.fileExt, type, baseImage });
         }
-        return { algorithm, buildId, messages };
+        return { buildId, messages };
     }
 
     isActiveState(state) {
@@ -104,8 +106,9 @@ class Builds {
             const version = newAlgorithm.gitRepository.commit.id;
             buildId = this._createBuildID(newAlgorithm.name);
             const { env, name, gitRepository, type, baseImage } = newAlgorithm;
+            merge(newAlgorithm, { version });
             validator.builds.validateAlgorithmBuildFromGit({ env });
-            await this.startBuild({ buildId, version, env, algorithmName: name, gitRepository, type, baseImage });
+            await this.startBuild({ buildId, algorithm: newAlgorithm, version, env, algorithmName: name, gitRepository, type, baseImage });
         }
         return { buildId, messages };
     }
@@ -117,9 +120,9 @@ class Builds {
         return { ...newAlgorithm, fileInfo, env };
     }
 
-    async removeFile(file) {
-        if (file && file.path) {
-            await fse.remove(file.path);
+    async _removeFile(file) {
+        if (file) {
+            await fse.remove(file);
         }
     }
 

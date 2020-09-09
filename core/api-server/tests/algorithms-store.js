@@ -1181,7 +1181,7 @@ describe('Store/Algorithms', () => {
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
                 const res1 = await request({ uri: `${restPath}/apply`, formData });
-                await stateManager.algorithms.builds.set({ buildId: res1.body.buildId, algorithmName, algorithmImage, status: 'completed' });
+                await stateManager.algorithms.builds.set({ buildId: res1.body.buildId, algorithm: res1.body.algorithm, algorithmName, algorithmImage, status: 'completed' });
                 await delay(2000);
 
                 const { options, ...restProps } = res1.body.algorithm;
@@ -1192,6 +1192,48 @@ describe('Store/Algorithms', () => {
                     ...restProps,
                     algorithmImage
                 });
+            });
+            it.only('should succeed to update algorithm only after completed build', async function () {
+                const algorithmName = `my-alg-${uuid()}`;
+                const algorithmImage1 = `${algorithmName}-image1`;
+                const algorithmImage2 = `${algorithmName}-image2`;
+                const formData1 = {
+                    payload: JSON.stringify({ name: algorithmName, cpu: 1, env: 'nodejs' }),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify({ name: algorithmName, cpu: 2, env: 'python' }),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const app1 = await request({ uri: `${restPath}/apply`, formData: formData1 });
+                const get1 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
+                const app2 = await request({ uri: `${restPath}/apply`, formData: formData2 });
+                const get2 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
+                await stateManager.algorithms.builds.set({ buildId: app1.body.buildId, algorithm: app1.body.algorithm, algorithmName, algorithmImage: algorithmImage1, status: 'completed' });
+                await delay(1000);
+                const get3 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
+                await stateManager.algorithms.builds.set({ buildId: app2.body.buildId, algorithm: app2.body.algorithm, algorithmName, algorithmImage: algorithmImage2, status: 'completed' });
+                await delay(1000);
+                const get4 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
+                const versions = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
+
+                expect(versions.body).to.have.lengthOf(2);
+                expect(versions.body[0].cpu).to.eql(2);
+                expect(versions.body[0].version).to.eql('1.0.1');
+                expect(versions.body[1].cpu).to.eql(1);
+                expect(versions.body[1].version).to.eql('1.0.0');
+
+                expect(app1.body.messages).to.have.lengthOf(2);
+                expect(app2.body.messages).to.have.lengthOf(1);
+                expect(get1.body.cpu).to.eql(1);
+                expect(get1.body.options.pending).to.eql(true);
+                expect(get2.body.cpu).to.eql(1);
+                expect(get2.body.options.pending).to.eql(true);
+                expect(get3.body.cpu).to.eql(1);
+                expect(get3.body.options.pending).to.eql(false);
+                expect(get4.body.cpu).to.eql(1);
+                expect(get4.body.options.pending).to.eql(false);
+
             });
         })
         describe('Gitlab', () => {
