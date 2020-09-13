@@ -12,6 +12,7 @@ const commands = require('../consts/commands');
 const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
+const cachePipeline = require('./cache-pipeline');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 const { Node, Batch } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
@@ -202,6 +203,7 @@ class TaskRunner extends EventEmitter {
         }
 
         await this._progressStatus({ status: DriverStates.ACTIVE });
+        this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
         this.pipeline = pipeline;
         this._nodes = new NodesMap(this.pipeline);
@@ -462,7 +464,9 @@ class TaskRunner extends EventEmitter {
                 storage: result.storage
             };
 
-            this._uniqueDiscovery(result.storage);
+            if (!this._isCachedPipeline) {
+                this._uniqueDiscovery(result.storage);
+            }
 
             if (result.batch) {
                 await this._runNodeBatch(options);
