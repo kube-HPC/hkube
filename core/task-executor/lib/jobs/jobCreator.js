@@ -53,7 +53,7 @@ const applyAlgorithmName = (inputSpec, algorithmName) => {
 
 const applyName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
-    const name = `${algorithmName}-${randomString({ length: 30 })}`;
+    const name = `${algorithmName}-${randomString({ length: 5 })}`;
     spec.metadata.name = name;
     return spec;
 };
