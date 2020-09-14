@@ -117,5 +117,8 @@ properties:
       - Code
       - Image
     default: Image
+  downloadFileExt:
+    type: string
+    description: the extension name that will be attached to a file when downloading algorithm result
 required:
   - name
