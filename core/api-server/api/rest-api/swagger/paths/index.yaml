@@ -135,3 +135,5 @@
   $ref: ./storage/download.yaml
 /storage/download/custom/{path}:
   $ref: ./storage/download.yaml
+/storage/download/pipeline/result/{jobId}:
+  $ref: ./storage/download_pipeline.yaml

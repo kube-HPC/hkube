@@ -352,7 +352,25 @@ describe('Storage', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal(`value ${value} Not Found`);
+            expect(response.body.error.message).to.equal(`stream ${value} Not Found`);
+        });
+        it('should download with file extension', async () => {
+            const jobId = `jobId-${uuid()}`;
+            const taskId = `taskId-${uuid()}`;
+            const data = null;
+            const encoded = encoding.encode(data).toString();
+            const path = storageManager.hkube.createPath({ jobId, taskId });
+            const result = await storageManager.storage.put({ path, data, encodeOptions: { customEncode: false } });
+            const options = {
+                uri: `${restPath}/${result.path}?ext=jpg`,
+                method: 'GET'
+            };
+            const res = await request(options);
+            const content = res.response.headers['content-disposition'];
+            const [, file] = content.split(';');
+            const [, fileName] = file.split('=');
+            expect(fileName).to.equal('hkube-result.jpg');
+            expect(res.body).to.equal(encoded);
         });
         it('should download with custom encode: true and value: null', async () => {
             const jobId = `jobId-${uuid()}`;
@@ -394,7 +412,7 @@ describe('Storage', () => {
             const response = await request(options);
             expect(response.body).to.equal(data.toString('utf-8'));
         });
-        it('should download with custom encode: flase and value: buffer', async () => {
+        it('should download with custom encode: false and value: buffer', async () => {
             const jobId = `jobId-${uuid()}`;
             const taskId = `taskId-${uuid()}`;
             const data = Buffer.alloc(10, '0xdd')

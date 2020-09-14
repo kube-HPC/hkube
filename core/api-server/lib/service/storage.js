@@ -1,6 +1,12 @@
+const { Readable } = require('stream');
+const archiver = require('archiver');
 const orderBy = require('lodash.orderby');
+const { uid } = require('@hkube/uid');
 const storageManager = require('@hkube/storage-manager');
 const validator = require('../validation/api-validator');
+const executions = require('./execution');
+const stateManager = require('../state/state-manager');
+const { ResourceNotFoundError } = require('../errors');
 
 class StorageService {
     init(config) {
@@ -61,6 +67,44 @@ class StorageService {
 
     async getCustomStream(options) {
         return storageManager.getCustomStream(options);
+    }
+
+    async getPipelineResult(options) {
+        const result = await executions.getJobResult(options);
+        if (!result.data) {
+            throw new ResourceNotFoundError('results', options.jobId);
+        }
+        const hasLargeResults = result.data.some(d => d.info);
+        let algorithmsMap;
+        if (hasLargeResults) {
+            const algorithmList = await stateManager.algorithms.store.list({ limit: 1000 });
+            algorithmsMap = new Map(algorithmList.map((a) => [a.name, a]));
+        }
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        const archiveData = await Promise.all(result.data.map(d => this._createArchive(d, algorithmsMap, archive)));
+        this._archiveMetadata(archive, archiveData);
+        archive.finalize();
+        return archive;
+    }
+
+    async _createArchive(data, algorithmsMap, archive) {
+        let info;
+        if (data.info) {
+            const algorithms = algorithmsMap.get(data.algorithmName);
+            const ext = algorithms.downloadFileExt || 'hkube';
+            const fileName = `${uid()}.${ext}`;
+            const stream = await storageManager.getCustomStream({ path: data.info.path });
+            archive.append(stream, { name: fileName });
+            info = { size: data.info.size, fileName };
+        }
+        return { ...data, info };
+    }
+
+    _archiveMetadata(archive, data) {
+        const stream = new Readable();
+        stream.push(JSON.stringify(data));
+        stream.push(null);
+        archive.append(stream, { name: 'metadata.json' });
     }
 
     _formatResponse({ path, keys, sort, order, from, to }) {

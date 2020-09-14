@@ -147,7 +147,7 @@ class TaskRunner extends EventEmitter {
         }
         catch (e) {
             log.error(e.message, { component, jobId: this._jobId }, e);
-            const shouldStop = e.status === null;
+            const shouldStop = e.status === undefined;
             await this.stop({ error: e, shouldStop });
         }
         return result;
