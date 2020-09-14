@@ -975,10 +975,6 @@ describe('Store/Algorithms', () => {
                     env: 'nodejs',
                     cpu: 2
                 }
-                const options = {
-                    uri: restPath,
-                    body: body1
-                };
                 const formData1 = {
                     payload: JSON.stringify(body1),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
@@ -996,8 +992,6 @@ describe('Store/Algorithms', () => {
                     uri,
                     formData: formData2
                 };
-                // insert algorithm
-                await request(options);
 
                 // apply algorithm
                 await request(options1)
@@ -1007,6 +1001,60 @@ describe('Store/Algorithms', () => {
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
                 expect(response.body.messages[0]).to.equal(MESSAGES.NO_TRIGGER_FOR_BUILD);
+            });
+            it('should succeed to apply algorithm without changing old data', async () => {
+                const body = {
+                    name: `my-alg-${uuid()}`,
+                    mem: "50Mi",
+                    cpu: 1
+                }
+                const body1 = {
+                    ...body,
+                    type: 'Code',
+                    env: 'nodejs',
+                    entryPoint: 'main.py',
+                    cpu: 1
+                }
+                const body2 = {
+                    ...body,
+                    env: 'python',
+                    entryPoint: 'app.py',
+                    cpu: 2
+                }
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const options1 = {
+                    uri: applyPath,
+                    formData: formData1
+                };
+                const options2 = {
+                    uri: applyPath,
+                    formData: formData2
+                };
+
+                // apply algorithm
+                const res1 = await request(options1)
+
+                // apply algorithm again
+                const res2 = await request(options2);
+                const optionsGet = {
+                    uri: `${restPath}/${body.name}`,
+                    method: 'GET'
+                };
+                const alg = await request(optionsGet);
+                expect(alg.body.cpu).to.eql(body1.cpu);
+                expect(alg.body.entryPoint).to.eql(body1.entryPoint);
+                expect(res1.body).to.have.property('buildId');
+                expect(res2.body).to.have.property('buildId');
+
+                expect(res1.body.messages).to.have.lengthOf(2);
+                expect(res2.body.messages).to.have.lengthOf(1);
             });
             it('should succeed to apply algorithm with buildId due to change in env', async () => {
                 const body = {
@@ -1118,15 +1166,12 @@ describe('Store/Algorithms', () => {
                 };
                 const uri = restPath + '/apply';
                 const options1 = { uri, formData: formData1 };
-                const options2 = { uri, formData: formData2 };
                 const getRequest = { uri: restPath + '/' + body.name, method: 'GET' };
 
                 await request(options1)
                 const res1 = await request(getRequest);
-                await request(options2);
-                const res2 = await request(getRequest);
+                await request(getRequest);
                 expect(res1.body.version).to.equal('1.0.0');
-                expect(res2.body.version).to.equal('1.0.1');
             });
             it('should succeed to watch completed build', async function () {
                 const algorithmName = `my-alg-${uuid()}`;
@@ -1136,7 +1181,7 @@ describe('Store/Algorithms', () => {
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
                 const res1 = await request({ uri: `${restPath}/apply`, formData });
-                await stateManager.algorithms.builds.set({ buildId: res1.body.buildId, algorithmName, algorithmImage, status: 'completed' });
+                await stateManager.algorithms.builds.set({ buildId: res1.body.buildId, algorithm: res1.body.algorithm, algorithmName, algorithmImage, status: 'completed' });
                 await delay(2000);
 
                 const { options, ...restProps } = res1.body.algorithm;
@@ -1147,6 +1192,48 @@ describe('Store/Algorithms', () => {
                     ...restProps,
                     algorithmImage
                 });
+            });
+            it.only('should succeed to update algorithm only after completed build', async function () {
+                const algorithmName = `my-alg-${uuid()}`;
+                const algorithmImage1 = `${algorithmName}-image1`;
+                const algorithmImage2 = `${algorithmName}-image2`;
+                const formData1 = {
+                    payload: JSON.stringify({ name: algorithmName, cpu: 1, env: 'nodejs' }),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify({ name: algorithmName, cpu: 2, env: 'python' }),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const app1 = await request({ uri: `${restPath}/apply`, formData: formData1 });
+                const get1 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
+                const app2 = await request({ uri: `${restPath}/apply`, formData: formData2 });
+                const get2 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
+                await stateManager.algorithms.builds.set({ buildId: app1.body.buildId, algorithm: app1.body.algorithm, algorithmName, algorithmImage: algorithmImage1, status: 'completed' });
+                await delay(1000);
+                const get3 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
+                await stateManager.algorithms.builds.set({ buildId: app2.body.buildId, algorithm: app2.body.algorithm, algorithmName, algorithmImage: algorithmImage2, status: 'completed' });
+                await delay(1000);
+                const get4 = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
+                const versions = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
+
+                expect(versions.body).to.have.lengthOf(2);
+                expect(versions.body[0].cpu).to.eql(2);
+                expect(versions.body[0].version).to.eql('1.0.1');
+                expect(versions.body[1].cpu).to.eql(1);
+                expect(versions.body[1].version).to.eql('1.0.0');
+
+                expect(app1.body.messages).to.have.lengthOf(2);
+                expect(app2.body.messages).to.have.lengthOf(1);
+                expect(get1.body.cpu).to.eql(1);
+                expect(get1.body.options.pending).to.eql(true);
+                expect(get2.body.cpu).to.eql(1);
+                expect(get2.body.options.pending).to.eql(true);
+                expect(get3.body.cpu).to.eql(1);
+                expect(get3.body.options.pending).to.eql(false);
+                expect(get4.body.cpu).to.eql(1);
+                expect(get4.body.options.pending).to.eql(false);
+
             });
         })
         describe('Gitlab', () => {
