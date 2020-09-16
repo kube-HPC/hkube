@@ -162,6 +162,14 @@ class AlgorithmStore {
         return stateManager.algorithms.queue.list();
     }
 
+    /**
+     * This method is responsible for create builds, versions, debug data and update algorithm.
+     * This method update algorithm if one of the following conditions is valid:
+     * 1. The update include new algorithm which is not exists in store.
+     * 2. The update didn't trigger any new build.
+     * 3. The update explicitly include to override current image.
+     *
+     */
     async applyAlgorithm(data) {
         const { payload, options } = data;
         const file = data.file || {};
@@ -198,7 +206,7 @@ class AlgorithmStore {
         }
         newAlgorithm = merge({}, newAlgorithm, { algorithmImage });
 
-        if (!buildId || !oldAlgorithm) {
+        if ((!buildId || !oldAlgorithm) || (overrideImage && version)) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await this.storeAlgorithm(newAlgorithm);
         }
