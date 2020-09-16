@@ -1329,6 +1329,78 @@ describe('Store/Algorithms', () => {
                 const response3 = await request(request3);
                 expect(response3.body).to.eql({ ...apply1, ...apply2 });
             });
+            it('should not apply changes to current when algorithmImage changes', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmImage: 'new-test-algorithmImage',
+                    cpu: 2,
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: false }), payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1 });
+            });
+
+            it('should apply changes to current when algorithmImage changes with overrideImage', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmImage: 'new-test-algorithmImage',
+                    cpu: 2,
+                }
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
+
             it('should succeed to apply algorithm with just cpu change', async () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
