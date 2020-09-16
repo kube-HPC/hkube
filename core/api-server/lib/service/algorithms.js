@@ -208,12 +208,12 @@ class AlgorithmStore {
 
         const hasVersion = version || buildId;
         // has version, but explicitly requested to override
-        const store1 = (overrideImage && hasVersion);
+        const shouldStoreOverride = (overrideImage && hasVersion);
         // no build and no version
-        const store2 = !hasVersion;
+        const shouldStoreNoVersionBuild = !hasVersion;
         // new algorithm that is not in the store
-        const store3 = !oldAlgorithm;
-        if (store1 || store2 || store3) {
+        const shouldStoreFirstApply = !oldAlgorithm;
+        if (shouldStoreOverride || shouldStoreNoVersionBuild || shouldStoreFirstApply) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await this.storeAlgorithm(newAlgorithm);
         }
