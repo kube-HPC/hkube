@@ -210,5 +210,10 @@ describe('PipelineDriverJobCreator', () => {
             });
             expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql('foo.bar');
         });
+        it('should apply imagePullSecrets', () => {
+            const res = createDriverJobSpec({ ...{ options }, image: 'myImage1', clusterOptions: { imagePullSecretName: 'my-secret' } });
+            expect(res.spec.template.spec.imagePullSecrets).to.exist;
+            expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
+        });
     });
 });
