@@ -1193,7 +1193,7 @@ describe('Store/Algorithms', () => {
                     algorithmImage
                 });
             });
-            it.only('should succeed to update algorithm only after completed build', async function () {
+            it('should succeed to update algorithm only after completed build', async function () {
                 const algorithmName = `my-alg-${uuid()}`;
                 const algorithmImage1 = `${algorithmName}-image1`;
                 const algorithmImage2 = `${algorithmName}-image2`;

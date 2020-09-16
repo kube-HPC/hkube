@@ -206,7 +206,14 @@ class AlgorithmStore {
         }
         newAlgorithm = merge({}, newAlgorithm, { algorithmImage });
 
-        if ((!buildId || !oldAlgorithm) || (overrideImage && version)) {
+        const hasVersion = version || buildId;
+        // has version, but explicitly requested to override
+        const store1 = (overrideImage && hasVersion);
+        // no build and no version
+        const store2 = !hasVersion;
+        // new algorithm that is not in the store
+        const store3 = !oldAlgorithm;
+        if (store1 || store2 || store3) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await this.storeAlgorithm(newAlgorithm);
         }
