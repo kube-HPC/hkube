@@ -35,15 +35,15 @@ describe('jobCreator', () => {
             expect(res.metadata.name).to.include('myalgo1');
         });
         it('should apply jaeger privileged', () => {
-            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs', kubernetes: {isPrivileged: true} } }).deploymentSpec;
+            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs', kubernetes: { isPrivileged: true } } }).deploymentSpec;
             expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
         });
         it('should apply jaeger not privileged', () => {
-            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs', kubernetes: {isPrivileged: false} } }).deploymentSpec;
+            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs', kubernetes: { isPrivileged: false } } }).deploymentSpec;
             expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.be.undefined;
         });
         it('should apply jaeger not privileged with external agent', () => {
-            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs',jaeger: { host: 'foo.bar' } , kubernetes: {isPrivileged: false} } }).deploymentSpec;
+            const res = createKindsSpec({ algorithmName: 'myalgo1', options: { defaultStorage: 'fs', jaeger: { host: 'foo.bar' }, kubernetes: { isPrivileged: false } } }).deploymentSpec;
             expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql('foo.bar');
         });
         it('should use ingress host name', () => {
@@ -87,5 +87,26 @@ describe('jobCreator', () => {
             expect(ingressSpec).to.nested.include({ 'spec.rules[0].http.paths[0].path': `${clusterOptions.ingressPrefix}/hkube/debug/myalgo1(/|$)(.*)` });
             expect(ingressSpec.metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]).to.eql('/$2');
         });
+
+        it('should add imagePullSecret', () => {
+            const versions = {
+                "versions": [
+                    {
+                        "project": "worker",
+                        "tag": "v1.2.3"
+                    }
+                ]
+            };
+            const clusterOptions = {
+                ingressHost: 'foo.bar.com',
+                ingressPrefix: '/myprefix',
+                ingressUseRegex: 'true',
+                imagePullSecretName: 'my-secret'
+            }
+            const { deploymentSpec, ingressSpec } = createKindsSpec({ algorithmName: 'myalgo1', options, versions, clusterOptions });
+            expect(deploymentSpec.spec.template.spec.imagePullSecrets).to.exist;
+            expect(deploymentSpec.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
+        });
+
     });
 });

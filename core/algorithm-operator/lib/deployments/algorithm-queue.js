@@ -1,7 +1,7 @@
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const decamelize = require('decamelize');
-const { applyEnvToContainer, applyResourceRequests } = require('@hkube/kubernetes-client').utils;
+const { applyEnvToContainer, applyResourceRequests, applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const { applyImage, applyJaeger } = require('../helpers/kubernetes-utils');
 const component = require('../consts/componentNames').K8S;
 const { algorithmQueueTemplate } = require('../templates/algorithm-queue');
@@ -62,6 +62,7 @@ const createDeploymentSpec = ({ algorithmName, versions, registry, clusterOption
     if (settings.applyResourceLimits) {
         spec = applyResources(spec, resources);
     }
+    spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
     return spec;
 };

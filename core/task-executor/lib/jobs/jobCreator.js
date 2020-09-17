@@ -3,7 +3,8 @@ const { randomString } = require('@hkube/uid');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
 const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage,
-    applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation } = require('@hkube/kubernetes-client').utils;
+    applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
+    applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const { components, containers, gpuVendors } = require('../consts');
 const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
@@ -241,6 +242,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyJaeger(spec, CONTAINERS.ALGORITHM, options);
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
     spec = applyMounts(spec, mounts);
+    spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
     return spec;
 };
@@ -259,6 +261,7 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyNodeSelector(spec, null, clusterOptions);
     spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
+    spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
     return spec;
 };

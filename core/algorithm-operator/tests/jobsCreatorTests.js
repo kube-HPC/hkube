@@ -221,4 +221,25 @@ describe('jobCreator', () => {
         expect(res.spec.template.spec.containers).to.be.of.length(1);
         expect(res.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
     });
+    it('should add imagePullSecret', () => {
+        const buildId = 'my-alg-12345'
+        const options = {
+            ...main,
+            buildMode: 'docker'
+        }
+        const res = createBuildJobSpec({
+            buildId, versions: { versions: [{ project: 'algorithm-builder', tag: 'v1.2' }] }, secret: {
+                metadata: {
+                    name: 'test'
+                },
+                data: {
+
+                }
+            },
+            options,
+            clusterOptions: {imagePullSecretName: 'my-secret'}
+        });
+        expect(res.spec.template.spec.imagePullSecrets).to.exist;
+        expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({name: 'my-secret'});
+    });
 });
