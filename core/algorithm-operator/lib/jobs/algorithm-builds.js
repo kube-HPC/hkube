@@ -2,7 +2,7 @@ const objectPath = require('object-path');
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
 const { applyEnvToContainer, applyStorage, applyVolumeMounts: applyVolumeMount, applyVolumes: applyVolume,
-    applyPrivileged, applySecret, applyResourceRequests } = require('@hkube/kubernetes-client').utils;
+    applyPrivileged, applySecret, applyResourceRequests, applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const { applyImage, createContainerResourceByFactor } = require('../helpers/kubernetes-utils');
 const components = require('../consts/componentNames');
 const { ALGORITHM_BUILDS, KANIKO, OC_BUILDER } = require('../consts/containers');
@@ -63,7 +63,7 @@ const applyResources = (inputSpec, resources, container) => {
     return spec;
 };
 
-const createBuildJobSpec = ({ buildId, versions, secret, registry, options }) => {
+const createBuildJobSpec = ({ buildId, versions, secret, registry, options, clusterOptions }) => {
     if (!buildId) {
         const msg = 'Unable to create job spec. buildId is required';
         log.error(msg, { component });
@@ -101,6 +101,7 @@ const createBuildJobSpec = ({ buildId, versions, secret, registry, options }) =>
             spec = applyResources(spec, settings.resourcesBuilder, CONTAINERS.OC_BUILDER);
         }
     }
+    spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
     return spec;
 };

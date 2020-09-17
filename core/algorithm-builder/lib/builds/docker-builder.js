@@ -254,7 +254,7 @@ const _createDockerCredentials = (pullRegistry, pushRegistry) => {
     if (pullRegistry) {
         const auth = _dockerCredentialsHelper(pullRegistry.registry, pullRegistry.user, pullRegistry.pass);
         if (auth) {
-            creds.auths[auth.registry] = auth.auth;
+            creds.auths[auth.registry] = { auth: auth.auth };
         }
     }
     if (pushRegistry) {

@@ -157,6 +157,11 @@ describe('jobCreator', () => {
             expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myalgo1' });
             expect(res.metadata.name).to.include('myalgo1-');
         });
+        it('should apply imagePullSecrets', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', workerImage: 'workerImage2', options, clusterOptions: { imagePullSecretName: 'my-secret' } });
+            expect(res.spec.template.spec.imagePullSecrets).to.exist;
+            expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
+        });
         it('should apply mounts', () => {
             const mounts = [
                 {
