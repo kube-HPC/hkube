@@ -2,14 +2,17 @@
 
 FROM ${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"
-RUN mkdir -p /hkube-logs
 COPY ./algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./dockerfile /hkube/algorithm-runner/dockerfile
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
-RUN ../dockerfile/requirements.sh ${packagesRegistry} ${packagesToken}
+ENV packagesRegistry=${packagesRegistry}
+ENV packagesToken=${packagesToken}
+ENV packagesAuth=${packagesAuth}
+RUN ../dockerfile/requirements.sh
 
 # Second build
 FROM ${baseImage}
+RUN mkdir -p /hkube-logs
 COPY ./wrapper /hkube/algorithm-runner
 COPY ./packages/ /hkube/algorithm-runner/
 COPY ./nodemon ./docker-entrypoint.sh /hkube/
