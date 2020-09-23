@@ -21,7 +21,7 @@
   "dependencies": {
     "@hkube/config": "^2.0.7",
     "@hkube/consts": "^1.0.21",
-    "@hkube/etcd": "^5.0.35",
+    "@hkube/etcd": "^5.0.37",
     "@hkube/kubernetes-client": "^1.0.30",
     "@hkube/logger": "^1.0.25",
     "@hkube/storage-manager": "^2.0.19",
