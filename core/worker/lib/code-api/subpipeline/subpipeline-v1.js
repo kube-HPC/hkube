@@ -5,7 +5,8 @@ class SubPipelineHandler {
         let { result } = options;
         const { includeResult } = options;
         if (includeResult && result && result.storageInfo) {
-            result = await storageManager.get(result.storageInfo);
+            const { payload } = await storageManager.getCustomData(result.storageInfo);
+            result = payload;
         }
         return result;
     }

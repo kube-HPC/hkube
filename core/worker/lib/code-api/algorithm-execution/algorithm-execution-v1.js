@@ -13,7 +13,7 @@ class AlgorithmExecution {
         let { result } = options;
         const { includeResult } = options;
         if (includeResult && result && result.storageInfo) {
-            const { payload } = await storageManager.getCustomData({ ...result.storageInfo });
+            const { payload } = await storageManager.getCustomData(result.storageInfo);
             result = payload;
         }
         return result;

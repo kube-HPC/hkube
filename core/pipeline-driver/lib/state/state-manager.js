@@ -120,7 +120,7 @@ class StateManager extends EventEmitter {
                         }
                         const resSize = storageManager.checkDataSize(objSize);
                         if (!resSize.error) {
-                            const { payload } = await storageManager.getCustomData({ ...a.result.storageInfo }, startSpan);
+                            const { payload } = await storageManager.getCustomData(a.result.storageInfo, startSpan);
                             result = payload;
                         }
                         else {
