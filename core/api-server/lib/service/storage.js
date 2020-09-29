@@ -113,8 +113,9 @@ class StorageService {
         return { path, total: keys.length, keys: sliceKeys };
     }
 
-    getByPath({ path }) {
-        return storageManager.storage.get({ path, encodeOptions: { customEncode: true } });
+    async getByPath({ path }) {
+        const { payload } = await storageManager.getCustomData({ path });
+        return payload;
     }
 }
 
