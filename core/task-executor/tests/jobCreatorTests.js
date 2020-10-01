@@ -162,6 +162,21 @@ describe('jobCreator', () => {
             expect(res.spec.template.spec.imagePullSecrets).to.exist;
             expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
         });
+        it('should apply cache params to env', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', memoryCache: {storage: '128Mi', peers: '256Mi'}, options });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' })
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'STORAGE_MAX_CACHE_SIZE', value: '128' })
+        });
+        it('should not apply cache params to env if empty', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', memoryCache: {peers: '256Mi'}, options });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' })
+            expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'STORAGE_MAX_CACHE_SIZE', value: '128' })
+        });
+        it('should not apply cache params to env if no cache', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', options });
+            expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' })
+            expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'STORAGE_MAX_CACHE_SIZE', value: '128' })
+        });
         it('should apply mounts', () => {
             const mounts = [
                 {
