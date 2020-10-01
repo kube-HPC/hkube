@@ -144,8 +144,8 @@ class KubernetesApi extends EventEmitter {
     }
 
     formatContainerMessage(reason) {
-        const item = Object.values(CONTAINER_MESSAGE_FORMATS).find(c => c.reasons.includes(reason)) || {};
-        return item.message || reason;
+        const item = Object.values(CONTAINER_MESSAGE_FORMATS).find(c => c.reasons.includes(reason));
+        return item?.message || reason;
     }
 }
 
