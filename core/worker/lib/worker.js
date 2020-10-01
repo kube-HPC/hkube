@@ -207,13 +207,12 @@ class Worker {
         const type = jobConsumer.getAlgorithmType();
         const containerStatus = await kubernetes.waitForExitState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
         const container = containerStatus || {};
-        const containerReason = container.reason || '';
+        const containerReason = container.reason || 'Unknown';
         const workerState = stateManager.state;
         const containerMessage = Object.entries(container).map(([k, v]) => `${k}: ${v}`);
         const defaultMessage = `algorithm ${type} has disconnected while in ${workerState} state, reason: ${reason}.`;
         const errMessage = `${defaultMessage} ${containerMessage}`;
-        const formatMessage = kubernetes.formatContainerMessage(containerReason);
-        const message = formatMessage || errMessage;
+        const message = kubernetes.formatContainerMessage(containerReason);
         const options = {
             error: {
                 reason: containerReason,

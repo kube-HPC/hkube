@@ -15,6 +15,10 @@ const CONTAINER_MESSAGE_FORMATS = {
     MEMORY: {
         message: 'the algorithm killed due to out of memory, please specify an higher memory value',
         reasons: ['OOMKilled']
+    },
+    UNKNOWN: {
+        message: 'the algorithm killed due to an unknown reason, please check logs for more details',
+        reasons: ['Unknown']
     }
 };
 
@@ -145,7 +149,7 @@ class KubernetesApi extends EventEmitter {
 
     formatContainerMessage(reason) {
         const item = Object.values(CONTAINER_MESSAGE_FORMATS).find(c => c.reasons.includes(reason));
-        return item?.message || reason;
+        return item?.message || CONTAINER_MESSAGE_FORMATS.UNKNOWN.message;
     }
 }
 
