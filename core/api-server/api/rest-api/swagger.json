@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.3.20",
+    "version": "1.3.35",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -3169,6 +3169,24 @@
                       "default": "256Mi",
                       "example": "512Mi"
                     },
+                    "memoryCache": {
+                      "type": "object",
+                      "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+                      "properties": {
+                        "storage": {
+                          "type": "string",
+                          "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                          "format": "memory",
+                          "example": "512Mi"
+                        },
+                        "peers": {
+                          "type": "string",
+                          "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                          "format": "memory",
+                          "example": "512Mi"
+                        }
+                      }
+                    },
                     "options": {
                       "type": "object",
                       "properties": {
@@ -3315,6 +3333,10 @@
                         "Image"
                       ],
                       "default": "Image"
+                    },
+                    "downloadFileExt": {
+                      "type": "string",
+                      "description": "the extension name that will be attached to a file when downloading algorithm result"
                     }
                   },
                   "required": [
@@ -3749,6 +3771,24 @@
                         "default": "256Mi",
                         "example": "512Mi"
                       },
+                      "memoryCache": {
+                        "type": "object",
+                        "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+                        "properties": {
+                          "storage": {
+                            "type": "string",
+                            "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                            "format": "memory",
+                            "example": "512Mi"
+                          },
+                          "peers": {
+                            "type": "string",
+                            "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                            "format": "memory",
+                            "example": "512Mi"
+                          }
+                        }
+                      },
                       "options": {
                         "type": "object",
                         "properties": {
@@ -3895,6 +3935,10 @@
                           "Image"
                         ],
                         "default": "Image"
+                      },
+                      "downloadFileExt": {
+                        "type": "string",
+                        "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
                     "required": [
@@ -3975,6 +4019,24 @@
                     "format": "algorithm-memory",
                     "default": "256Mi",
                     "example": "512Mi"
+                  },
+                  "memoryCache": {
+                    "type": "object",
+                    "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+                    "properties": {
+                      "storage": {
+                        "type": "string",
+                        "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                        "format": "memory",
+                        "example": "512Mi"
+                      },
+                      "peers": {
+                        "type": "string",
+                        "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                        "format": "memory",
+                        "example": "512Mi"
+                      }
+                    }
                   },
                   "options": {
                     "type": "object",
@@ -4122,6 +4184,10 @@
                       "Image"
                     ],
                     "default": "Image"
+                  },
+                  "downloadFileExt": {
+                    "type": "string",
+                    "description": "the extension name that will be attached to a file when downloading algorithm result"
                   }
                 },
                 "required": [
@@ -4258,6 +4324,24 @@
                     "default": "256Mi",
                     "example": "512Mi"
                   },
+                  "memoryCache": {
+                    "type": "object",
+                    "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+                    "properties": {
+                      "storage": {
+                        "type": "string",
+                        "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                        "format": "memory",
+                        "example": "512Mi"
+                      },
+                      "peers": {
+                        "type": "string",
+                        "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                        "format": "memory",
+                        "example": "512Mi"
+                      }
+                    }
+                  },
                   "options": {
                     "type": "object",
                     "properties": {
@@ -4404,6 +4488,10 @@
                       "Image"
                     ],
                     "default": "Image"
+                  },
+                  "downloadFileExt": {
+                    "type": "string",
+                    "description": "the extension name that will be attached to a file when downloading algorithm result"
                   }
                 },
                 "required": [
@@ -4525,6 +4613,24 @@
                         "format": "algorithm-memory",
                         "default": "256Mi",
                         "example": "512Mi"
+                      },
+                      "memoryCache": {
+                        "type": "object",
+                        "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+                        "properties": {
+                          "storage": {
+                            "type": "string",
+                            "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                            "format": "memory",
+                            "example": "512Mi"
+                          },
+                          "peers": {
+                            "type": "string",
+                            "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                            "format": "memory",
+                            "example": "512Mi"
+                          }
+                        }
                       },
                       "options": {
                         "type": "object",
@@ -4672,6 +4778,10 @@
                           "Image"
                         ],
                         "default": "Image"
+                      },
+                      "downloadFileExt": {
+                        "type": "string",
+                        "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
                     "required": [
@@ -4752,6 +4862,24 @@
                           "format": "algorithm-memory",
                           "default": "256Mi",
                           "example": "512Mi"
+                        },
+                        "memoryCache": {
+                          "type": "object",
+                          "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+                          "properties": {
+                            "storage": {
+                              "type": "string",
+                              "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                              "format": "memory",
+                              "example": "512Mi"
+                            },
+                            "peers": {
+                              "type": "string",
+                              "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                              "format": "memory",
+                              "example": "512Mi"
+                            }
+                          }
                         },
                         "options": {
                           "type": "object",
@@ -4899,6 +5027,10 @@
                             "Image"
                           ],
                           "default": "Image"
+                        },
+                        "downloadFileExt": {
+                          "type": "string",
+                          "description": "the extension name that will be attached to a file when downloading algorithm result"
                         }
                       },
                       "required": [
@@ -8807,6 +8939,24 @@
                         "default": "256Mi",
                         "example": "512Mi"
                       },
+                      "memoryCache": {
+                        "type": "object",
+                        "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+                        "properties": {
+                          "storage": {
+                            "type": "string",
+                            "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                            "format": "memory",
+                            "example": "512Mi"
+                          },
+                          "peers": {
+                            "type": "string",
+                            "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                            "format": "memory",
+                            "example": "512Mi"
+                          }
+                        }
+                      },
                       "options": {
                         "type": "object",
                         "properties": {
@@ -8953,6 +9103,10 @@
                           "Image"
                         ],
                         "default": "Image"
+                      },
+                      "downloadFileExt": {
+                        "type": "string",
+                        "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
                     "required": [
@@ -10721,6 +10875,100 @@
           }
         }
       }
+    },
+    "/storage/download/pipeline/result/{jobId}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "stream data to file",
+        "description": "download data as file according to path",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "the pipeline jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10765,6 +11013,24 @@
             "format": "algorithm-memory",
             "default": "256Mi",
             "example": "512Mi"
+          },
+          "memoryCache": {
+            "type": "object",
+            "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+            "properties": {
+              "storage": {
+                "type": "string",
+                "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                "format": "memory",
+                "example": "512Mi"
+              },
+              "peers": {
+                "type": "string",
+                "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                "format": "memory",
+                "example": "512Mi"
+              }
+            }
           },
           "options": {
             "type": "object",
@@ -10912,6 +11178,10 @@
               "Image"
             ],
             "default": "Image"
+          },
+          "downloadFileExt": {
+            "type": "string",
+            "description": "the extension name that will be attached to a file when downloading algorithm result"
           }
         },
         "required": [
@@ -11065,6 +11335,24 @@
                 "default": "256Mi",
                 "example": "512Mi"
               },
+              "memoryCache": {
+                "type": "object",
+                "description": "cache data in-memory between algorithms requests, use this option if you want to increase performance",
+                "properties": {
+                  "storage": {
+                    "type": "string",
+                    "description": "use this option if you want to reduce storage calls and make the algorithm start faster",
+                    "format": "memory",
+                    "example": "512Mi"
+                  },
+                  "peers": {
+                    "type": "string",
+                    "description": "use this option if you want algorithms requests from another algorithms will be served faster",
+                    "format": "memory",
+                    "example": "512Mi"
+                  }
+                }
+              },
               "options": {
                 "type": "object",
                 "properties": {
@@ -11211,6 +11499,10 @@
                   "Image"
                 ],
                 "default": "Image"
+              },
+              "downloadFileExt": {
+                "type": "string",
+                "description": "the extension name that will be attached to a file when downloading algorithm result"
               }
             },
             "required": [

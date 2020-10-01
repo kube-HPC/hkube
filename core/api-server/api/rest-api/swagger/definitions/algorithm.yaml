@@ -21,6 +21,20 @@ properties:
     format: algorithm-memory
     default: 256Mi
     example: 512Mi
+  memoryCache:
+    type: object
+    description: cache data in-memory between algorithms requests, use this option if you want to increase performance
+    properties:
+      storage:
+        type: string
+        description: use this option if you want to reduce storage calls and make the algorithm start faster
+        format: memory
+        example: 512Mi
+      peers:
+        type: string
+        description: use this option if you want algorithms requests from another algorithms will be served faster
+        format: memory
+        example: 512Mi
   options:
     type: object
     properties:
