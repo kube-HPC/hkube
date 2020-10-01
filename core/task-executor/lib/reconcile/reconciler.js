@@ -148,7 +148,7 @@ const _processAllRequests = (
         const resourceRequests = createContainerResource(algorithmTemplate);
         const workerResourceRequests = createContainerResource(workerResources);
 
-        const { workerEnv, algorithmEnv, nodeSelector, entryPoint, options: algorithmOptions, mounts } = algorithmTemplate;
+        const { workerEnv, algorithmEnv, nodeSelector, entryPoint, options: algorithmOptions, memoryCache, mounts } = algorithmTemplate;
 
         createDetails.push({
             numberOfNewJobs: 1,
@@ -165,7 +165,8 @@ const _processAllRequests = (
                 workerResourceRequests,
                 clusterOptions,
                 algorithmOptions,
-                mounts
+                mounts,
+                memoryCache
             }
         });
         if (!reconcileResult[algorithmName]) {
