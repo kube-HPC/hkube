@@ -5,8 +5,18 @@ const objectPath = require('object-path');
 const delay = require('delay');
 const component = require('../consts').Components.K8S;
 const formatters = require('./formatters');
-
 let log;
+
+const CONTAINER_MESSAGE_FORMATS = {
+    IMAGE: {
+        message: 'please check that your image is exists and valid',
+        reasons: ['ImagePullBackOff', 'ErrImagePull', 'ImageInspectError', 'ErrImageNeverPull', 'RegistryUnavailable', 'InvalidImageName']
+    },
+    MEMORY: {
+        message: 'the algorithm killed due to out of memory, please specify an higher memory value',
+        reasons: ['OOMKilled']
+    }
+};
 
 class KubernetesApi extends EventEmitter {
     async init(options = {}) {
@@ -132,6 +142,12 @@ class KubernetesApi extends EventEmitter {
         }
         return null;
     }
+
+    formatContainerMessage(reason) {
+        const item = Object.values(CONTAINER_MESSAGE_FORMATS).find(c => c.reasons.includes(reason)) || {};
+        return item.message || reason;
+    }
 }
 
 module.exports = new KubernetesApi();
+module.exports.CONTAINER_MESSAGE_FORMATS = CONTAINER_MESSAGE_FORMATS;

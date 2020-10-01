@@ -211,14 +211,16 @@ class Worker {
         const workerState = stateManager.state;
         const containerMessage = Object.entries(container).map(([k, v]) => `${k}: ${v}`);
         const defaultMessage = `algorithm ${type} has disconnected while in ${workerState} state, reason: ${reason}.`;
+        const errMessage = `${defaultMessage} ${containerMessage}`;
+        const formatMessage = kubernetes.formatContainerMessage(containerReason);
+        const message = formatMessage || errMessage;
         const options = {
             error: {
                 reason: containerReason,
-                message: `${defaultMessage} ${containerMessage}`,
+                message
             }
         };
-        const error = options.error.message;
-        log.error(error, { component });
+        log.error(errMessage, { component });
         await this._handleRetry({ ...options, isCrashed: true });
     }
 
