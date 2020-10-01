@@ -9,7 +9,7 @@ let log;
 
 const CONTAINER_MESSAGE_FORMATS = {
     IMAGE: {
-        message: 'please check that your image is exists and valid',
+        message: 'please check that your image exists and valid',
         reasons: ['ImagePullBackOff', 'ErrImagePull', 'ImageInspectError', 'ErrImageNeverPull', 'RegistryUnavailable', 'InvalidImageName']
     },
     MEMORY: {
