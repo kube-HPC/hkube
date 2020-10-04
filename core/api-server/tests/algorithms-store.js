@@ -529,6 +529,25 @@ describe('Store/Algorithms', () => {
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
             });
+            it('should throw validation error of invalid memoryCache', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: "image",
+                    memoryCache: {
+                        storage: 400,
+                        peers: 300
+                    }
+                }
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    formData: { payload }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+                expect(response.body.error.message).to.equal('memory unit must be one of Ki,M,Mi,Gi,m,K,G,T,Ti,P,Pi,E,Ei');
+            });
             it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
                 const payload = JSON.stringify({ name: '' });
                 const options = {
@@ -1364,7 +1383,6 @@ describe('Store/Algorithms', () => {
                 const response3 = await request(request3);
                 expect(response3.body).to.eql({ ...apply1 });
             });
-
             it('should apply changes to current when algorithmImage changes with overrideImage', async () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
@@ -1400,7 +1418,6 @@ describe('Store/Algorithms', () => {
                 const response3 = await request(request3);
                 expect(response3.body).to.eql({ ...apply1, ...apply2 });
             });
-
             it('should succeed to apply algorithm with just cpu change', async () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
@@ -1608,6 +1625,21 @@ describe('Store/Algorithms', () => {
                 const response3 = await request(request3);
                 expect(response3.body.algorithmEnv.storage_env).to.eql('s3');
                 expect(response3.body.algorithmEnv.stam_env).to.not.exist;
+            });
+            it('should succeed to add memoryCache', async () => {
+                const memoryCache = {
+                    storage: "512Mi",
+                    peers: "256Mi"
+                }
+                const apply = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    memoryCache
+                }
+                const uri = restPath + '/apply';
+                const req = { uri, formData: { payload: JSON.stringify(apply) } };
+                const res = await request(req);
+                expect(res.body.algorithm.memoryCache).to.eql(memoryCache);
             });
         });
     });

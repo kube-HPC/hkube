@@ -136,6 +136,15 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'STORAGE_MAX_CACHE_SIZE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'STORAGE_MAX_CACHE_SIZE'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'WORKER_ALGORITHM_ENCODING',
                                 valueFrom: {
                                     configMapKeyRef: {
@@ -241,6 +250,15 @@ const workerTemplate = {
                                     configMapKeyRef: {
                                         name: 'task-executor-configmap',
                                         key: 'DISCOVERY_MAX_CACHE_SIZE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'STORAGE_MAX_CACHE_SIZE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'STORAGE_MAX_CACHE_SIZE'
                                     }
                                 }
                             },

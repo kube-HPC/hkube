@@ -5,6 +5,7 @@ const objectPath = require('object-path');
 const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage,
     applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
     applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
+const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors } = require('../consts');
 const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
@@ -171,6 +172,22 @@ const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, cluster
     });
     return spec;
 };
+
+const applyCacheParamsToContainer = (inputSpec, memoryCache) => {
+    let spec = clonedeep(inputSpec);
+    const envOptions = {};
+
+    if (memoryCache?.peers) {
+        envOptions.DISCOVERY_MAX_CACHE_SIZE = parse.getMemoryInMi(memoryCache.peers);
+    }
+    if (memoryCache?.storage) {
+        envOptions.STORAGE_MAX_CACHE_SIZE = parse.getMemoryInMi(memoryCache.storage);
+    }
+
+    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, envOptions);
+    return spec;
+};
+
 const applyLogging = (inputSpec, options) => {
     let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
@@ -207,7 +224,7 @@ const applyLogging = (inputSpec, options) => {
     return spec;
 };
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, memoryCache }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -236,6 +253,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyEntryPoint(spec, entryPoint);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.WORKER, 'task-executor-configmap');
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM, 'task-executor-configmap');
+    spec = applyCacheParamsToContainer(spec, memoryCache);
     spec = applyLogging(spec, options);
     spec = applyOpengl(spec, options, algorithmOptions);
     spec = applyJaeger(spec, CONTAINERS.WORKER, options);
@@ -278,4 +296,5 @@ module.exports = {
     applyWorkerResourceRequests,
     applyHotWorker,
     applyEnvToContainerFromSecretOrConfigMap,
+    applyCacheParamsToContainer
 };

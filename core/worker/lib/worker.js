@@ -207,18 +207,19 @@ class Worker {
         const type = jobConsumer.getAlgorithmType();
         const containerStatus = await kubernetes.waitForExitState(this._options.kubernetes.pod_name, ALGORITHM_CONTAINER);
         const container = containerStatus || {};
-        const containerReason = container.reason || '';
+        const containerReason = container.reason;
         const workerState = stateManager.state;
         const containerMessage = Object.entries(container).map(([k, v]) => `${k}: ${v}`);
         const defaultMessage = `algorithm ${type} has disconnected while in ${workerState} state, reason: ${reason}.`;
+        const errMessage = `${defaultMessage} ${containerMessage}`;
+        const { message, isImagePullErr } = kubernetes.formatContainerMessage(containerReason);
         const options = {
             error: {
-                reason: containerReason,
-                message: `${defaultMessage} ${containerMessage}`,
+                message,
+                isImagePullErr
             }
         };
-        const error = options.error.message;
-        log.error(error, { component });
+        log.error(errMessage, { component });
         await this._handleRetry({ ...options, isCrashed: true });
     }
 
@@ -486,7 +487,7 @@ class Worker {
                     reason = `parent algorithm entered state ${state}`;
                     await this._stopAllPipelinesAndExecutions({ jobId, reason });
                     await jobConsumer.finishJob(result, isTtlExpired);
-                    pendingTransition = stateManager.cleanup.bind(stateManager);
+                    pendingTransition = this._isConnected && stateManager.cleanup.bind(stateManager);
                     break;
                 case workerStates.ready:
                     break;

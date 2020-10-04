@@ -21,7 +21,8 @@ class ApiValidator {
         validatorInstance.addFormat('algorithm-name', this._validateAlgorithmName);
         validatorInstance.addFormat('algorithm-image', this._validateAlgorithmImage);
         validatorInstance.addFormat('algorithm-mount-pvc', this._validateAlgorithmMountPvc);
-        validatorInstance.addFormat('algorithm-memory', this._validateMemory);
+        validatorInstance.addFormat('algorithm-memory', this._validateAlgorithmMemory);
+        validatorInstance.addFormat('memory', this._validateMemory);
         validatorInstance.addFormat('path', this._validatePath);
 
         Object.entries(definitions).forEach(([k, v]) => {
@@ -64,12 +65,22 @@ class ApiValidator {
         return name && regex.PVC_NAME_REGEX.test(name) && name.length < 64;
     }
 
-    _validateMemory(memory) {
+    _validateAlgorithmMemory(memory) {
         try {
             const mem = converter.getMemoryInMi(memory);
             if (mem < MIN_MEMORY) {
                 throw new InvalidDataError(`memory must be at least ${MIN_MEMORY} Mi`);
             }
+        }
+        catch (ex) {
+            throw new InvalidDataError(ex.message);
+        }
+        return true;
+    }
+
+    _validateMemory(memory) {
+        try {
+            converter.getMemoryInMi(memory);
         }
         catch (ex) {
             throw new InvalidDataError(ex.message);
