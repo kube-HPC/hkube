@@ -9,15 +9,16 @@ let log;
 
 const CONTAINER_MESSAGE_FORMATS = {
     IMAGE: {
+        isImagePullErr: true,
         message: 'please check that your image exists and valid',
         reasons: ['ImagePullBackOff', 'ErrImagePull', 'ImageInspectError', 'ErrImageNeverPull', 'RegistryUnavailable', 'InvalidImageName']
     },
     MEMORY: {
-        message: 'the algorithm killed due to out of memory, please specify an higher memory value',
+        message: 'the algorithm killed due to out of memory, please specify higher memory value',
         reasons: ['OOMKilled']
     },
     UNKNOWN: {
-        message: 'the algorithm killed due to an unknown reason, please check logs for more details',
+        message: 'the algorithm killed due to an unknown reason, please check the logs for more details',
         reasons: ['Unknown']
     }
 };
@@ -149,7 +150,7 @@ class KubernetesApi extends EventEmitter {
 
     formatContainerMessage(reason) {
         const item = Object.values(CONTAINER_MESSAGE_FORMATS).find(c => c.reasons.includes(reason));
-        return item?.message || CONTAINER_MESSAGE_FORMATS.UNKNOWN.message;
+        return item || CONTAINER_MESSAGE_FORMATS.UNKNOWN;
     }
 }
 

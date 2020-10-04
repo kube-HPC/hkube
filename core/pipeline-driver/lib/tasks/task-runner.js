@@ -637,11 +637,11 @@ class TaskRunner extends EventEmitter {
 
     _checkTaskErrors(task) {
         let err;
-        const { error, nodeName, reason, batchIndex, execId } = task;
+        const { error, nodeName, isImagePullErr, batchIndex, execId } = task;
         if (error && !execId) {
             // in case off image pull error, we want to fail the pipeline.
-            if (reason === 'ImagePullBackOff' || reason === 'ErrImagePull') {
-                err = new Error(`${reason}. ${error}`);
+            if (isImagePullErr) {
+                err = new Error(error);
             }
             else if (batchIndex) {
                 const { batchTolerance } = this.pipeline.options;

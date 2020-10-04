@@ -43,27 +43,28 @@ describe('worker communication', () => {
 });
 describe('formatContainerMessage', () => {
     it('should pass events', async () => {
-        const reason = kubernetes.formatContainerMessage(null)
-        expect(reason).to.eql(CONTAINER_MESSAGE_FORMATS.UNKNOWN.message);
+        const { message } = kubernetes.formatContainerMessage(null)
+        expect(message).to.eql(CONTAINER_MESSAGE_FORMATS.UNKNOWN.message);
     });
     it('should pass events', async () => {
-        const reason = kubernetes.formatContainerMessage('')
-        expect(reason).to.eql(CONTAINER_MESSAGE_FORMATS.UNKNOWN.message);
+        const { message } = kubernetes.formatContainerMessage('')
+        expect(message).to.eql(CONTAINER_MESSAGE_FORMATS.UNKNOWN.message);
     });
     it('should pass events', async () => {
-        const reason = kubernetes.formatContainerMessage('no_such_reason')
-        expect(reason).to.eql(CONTAINER_MESSAGE_FORMATS.UNKNOWN.message);
+        const { message } = kubernetes.formatContainerMessage('no_such_reason')
+        expect(message).to.eql(CONTAINER_MESSAGE_FORMATS.UNKNOWN.message);
     });
     it('should format error of image', async () => {
-        const reason = kubernetes.formatContainerMessage('ImageInspectError')
-        expect(reason).to.eql(CONTAINER_MESSAGE_FORMATS.IMAGE.message);
+        const { message, isImagePullErr } = kubernetes.formatContainerMessage('ImageInspectError')
+        expect(message).to.eql(CONTAINER_MESSAGE_FORMATS.IMAGE.message);
+        expect(isImagePullErr).to.eql(true);
     });
     it('should format error of memory', async () => {
-        const reason = kubernetes.formatContainerMessage('OOMKilled')
-        expect(reason).to.eql(CONTAINER_MESSAGE_FORMATS.MEMORY.message);
+        const { message } = kubernetes.formatContainerMessage('OOMKilled')
+        expect(message).to.eql(CONTAINER_MESSAGE_FORMATS.MEMORY.message);
     });
     it('should format error of unknown', async () => {
-        const reason = kubernetes.formatContainerMessage('Unknown')
-        expect(reason).to.eql(CONTAINER_MESSAGE_FORMATS.UNKNOWN.message);
+        const { message } = kubernetes.formatContainerMessage('Unknown')
+        expect(message).to.eql(CONTAINER_MESSAGE_FORMATS.UNKNOWN.message);
     });
 });
