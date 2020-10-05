@@ -23,7 +23,7 @@ properties:
     example: 512Mi
   reservedMemory:
     type: string
-    description: reserved memory for HKube operation such as caching, use this option if you want to increase performance
+    description: Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory
     format: memory
     example: 512Mi
   options:
