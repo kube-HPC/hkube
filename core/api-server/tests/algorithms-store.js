@@ -529,14 +529,11 @@ describe('Store/Algorithms', () => {
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
             });
-            it('should throw validation error of invalid memoryCache', async () => {
+            it('should throw validation error of invalid reservedMemory', async () => {
                 const body = {
                     name: uuid(),
                     algorithmImage: "image",
-                    memoryCache: {
-                        storage: 400,
-                        peers: 300
-                    }
+                    reservedMemory: 300
                 }
                 const payload = JSON.stringify(body);
                 const options = {
@@ -1626,20 +1623,17 @@ describe('Store/Algorithms', () => {
                 expect(response3.body.algorithmEnv.storage_env).to.eql('s3');
                 expect(response3.body.algorithmEnv.stam_env).to.not.exist;
             });
-            it('should succeed to add memoryCache', async () => {
-                const memoryCache = {
-                    storage: "512Mi",
-                    peers: "256Mi"
-                }
+            it('should succeed to add reservedMemory', async () => {
+                const reservedMemory = "512Mi";
                 const apply = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
-                    memoryCache
+                    reservedMemory
                 }
                 const uri = restPath + '/apply';
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req);
-                expect(res.body.algorithm.memoryCache).to.eql(memoryCache);
+                expect(res.body.algorithm.reservedMemory).to.eql(reservedMemory);
             });
         });
     });
