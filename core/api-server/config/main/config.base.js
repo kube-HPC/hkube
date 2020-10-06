@@ -1,3 +1,4 @@
+const path = require('path');
 const packageJson = require(process.cwd() + '/package.json');
 const formatter = require(process.cwd() + '/lib/utils/formatters');
 
@@ -33,10 +34,7 @@ config.cachingServer = {
 };
 
 config.debugUrl = {
-    protocol: process.env.DEBUG_PROTOCOL,
-    host: process.env.DEBUG_HOST,
-    port: process.env.DEBUG_PORT,
-    path: 'hkube/debug'
+    path: path.join(process.env.INGRESS_PREFIX || '', 'hkube/debug')
 };
 
 config.addDefaultAlgorithms = process.env.ADD_DEFAULT_ALGORITHMS || true;
