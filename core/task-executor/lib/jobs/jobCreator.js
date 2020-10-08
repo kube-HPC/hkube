@@ -221,7 +221,7 @@ const applyLogging = (inputSpec, options) => {
     return spec;
 };
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory }) => {
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -238,7 +238,9 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyAlgorithmImage(spec, algorithmImage);
     spec = applyWorkerImage(spec, workerImage);
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, algorithmEnv);
-    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { ALGORITHM_MEMORY: resourceRequests.requests.memory })
+    if (env == 'java') {
+        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { JAVA_MAX_MEMORY: getJavaMaxMem(resourceRequests.limits.memory) })
+    }
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_IMAGE: algorithmImage });
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
@@ -281,6 +283,20 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
 
     return spec;
 };
+const getJavaMaxMem = (memory) => {
+    const { val, unit } = parse.parseUnitObj(memory);
+    javaValue = Math.round(val * 0.8)
+    javaMemUnit = unit[0]
+    if (unit in ['P', 'Pi']) {
+        javaValue = javaValue * 1000
+        javaMemUnit = 'T'
+    }
+    if (unit in ['E', 'Ei']) {
+        javaValue = javaValue * 1000 * 1000
+        javaMemUnit = 'T'
+    }
+    return javaValue + javaMemUnit;
+}
 
 module.exports = {
     applyImage,
