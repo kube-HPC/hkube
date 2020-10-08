@@ -10,13 +10,13 @@ ALGORITHM_MEMORY=${ALGORITHM_MEMORY/Ti/T}
 #
 if [ -z "${JAVA_MAX_MEM}" ]; then
   MAX_MEM="${ALGORITHM_MEMORY//[^[:digit:]]/}"
-  MAX_MEM="$(($MAX_MEM* 3 / 2))${ALGORITHM_MEMORY//[^[:alpha:]]/}"
+  MAX_MEM="$(($MAX_MEM* 7 / 4))${ALGORITHM_MEMORY//[^[:alpha:]]/}"
 else
   MAX_MEM="${JAVA_MAX_MEM}"
 fi
 if [ -z "${JAVA_MIN_MEM}" ]; then
   MIN_MEM="${ALGORITHM_MEMORY//[^[:digit:]]/}"
-  MIN_MEM="$(($MIN_MEM* 3 / 2))${ALGORITHM_MEMORY//[^[:alpha:]]/}"
+  MIN_MEM="$(($MIN_MEM / 2))${ALGORITHM_MEMORY//[^[:alpha:]]/}"
 else
   MIN_MEM="${JAVA_MIN_MEM}"
 fi
