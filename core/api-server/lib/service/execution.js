@@ -33,9 +33,9 @@ class ExecutionService {
         if (error) {
             throw new InvalidDataError(error.message);
         }
-        const { jobId, flowInputMetadata, startTime, lastRunResult, types, ...restPipeline } = pipeline;
+        const { jobId, startTime, lastRunResult, types, ...restPipeline } = pipeline;
         const newTypes = this._mergeTypes(types, [pipelineTypes.NODE]);
-        return this._run({ pipeline: restPipeline, options: { alreadyExecuted: true, validateNodes: false }, types: newTypes });
+        return this._run({ pipeline: restPipeline, options: { validateNodes: false }, types: newTypes });
     }
 
     async runAlgorithm(options) {
@@ -65,7 +65,7 @@ class ExecutionService {
     async _run(payload) {
         let { jobId, pipeline, types } = payload;
         const { rootJobId } = payload;
-        const { alreadyExecuted, validateNodes, parentSpan } = payload.options || {};
+        const { validateNodes, parentSpan } = payload.options || {};
 
         validator.executions.addPipelineDefaults(pipeline);
         validator.executions.validatePipeline(pipeline, { validateNodes });
@@ -82,7 +82,7 @@ class ExecutionService {
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline, jobId);
             types = this._addTypesByAlgorithms(algorithms, types);
 
-            if (pipeline.flowInput && !alreadyExecuted) {
+            if (pipeline.flowInput && !pipeline.flowInputMetadata) {
                 const metadata = parser.replaceFlowInput(pipeline);
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 pipeline.flowInputMetadata = { metadata, storageInfo };
