@@ -44,12 +44,12 @@ class Operator {
         try {
             log.debug('Reconcile interval.', { component });
             const configMap = await kubernetes.getVersionsConfigMap();
-            const algorithms = await etcd.getAlgorithmTemplates();
+            const { algorithms, count } = await etcd.getAlgorithmTemplates();
             await Promise.all([
                 this._algorithmBuilds({ ...configMap }, options),
                 this._tenosrboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
                 this._algorithmDebug(configMap, algorithms, options),
-                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options),
+                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
             ]);
         }
         catch (e) {
@@ -121,7 +121,8 @@ class Operator {
         });
     }
 
-    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms, options) {
+    async _algorithmQueue({ versions, registry, clusterOptions, resources }, algorithms, options, count) {
+        this._logAlgorithmCountError(algorithms, count);
         const deployments = await kubernetes.getDeployments({ labelSelector: `type=${CONTAINERS.ALGORITHM_QUEUE}` });
         await algorithmQueueReconciler.reconcile({
             deployments,
@@ -132,6 +133,12 @@ class Operator {
             resources,
             options
         });
+    }
+
+    _logAlgorithmCountError(algorithms, count) {
+        if (algorithms.length < count) {
+            log.throttle.error(`Only ${algorithms.length} algorithm-queue's can be created, but ${count} algorithms are defined. Please delete unused algorithms`, { component });
+        }
     }
 }
 

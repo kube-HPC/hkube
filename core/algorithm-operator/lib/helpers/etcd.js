@@ -29,8 +29,12 @@ class Etcd extends EventEmitter {
         return this._etcd.algorithms.store.get({ name });
     }
 
-    getAlgorithmTemplates() {
-        return this._etcd.algorithms.store.list();
+    async getAlgorithmTemplates() {
+        const [algorithms, count] = await Promise.all([
+            this._etcd.algorithms.store.list(),
+            this._etcd.algorithms.store.count()
+        ]);
+        return { algorithms, count };
     }
 
     removeAlgorithmData(name) {
