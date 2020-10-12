@@ -8,6 +8,18 @@ const pipelines = require('./mocks/pipelines.json');
 const { cachingError } = require('./mocks/http-response.json');
 let restUrl, jobId, config;
 
+const flowInputMetadata = {
+    metadata: {
+        'flowInput.files.link': {
+            "type": "string"
+        },
+        'storageInfo': {
+            "path": "local-hkube/main:3b"
+
+        }
+    }
+}
+
 describe('Executions', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
@@ -28,7 +40,7 @@ describe('Executions', () => {
             const { protocol, host, port, prefix } = config.cachingServer;
             const cachingServiceURI = `${protocol}://${host}:${port}`;
             let pathToJob = `/${prefix}?jobId=${jobId}&nodeName=black-alg`;
-            nock(cachingServiceURI).persist().get(pathToJob).reply(200, pipeline);
+            nock(cachingServiceURI).persist().get(pathToJob).reply(200, { ...pipeline, flowInputMetadata });
             pathToJob = `/${prefix}?jobId=stam-job&nodeName=stam-alg`;
             nock(cachingServiceURI).persist().get(pathToJob).reply(400, cachingError);
 
@@ -99,6 +111,22 @@ describe('Executions', () => {
             };
             const res2 = await request(optionsGET);
             expect(res2.body.types).to.eql([pipelineTypes.NODE]);
+        });
+        it('should succeed to execute with right flowInputMetadata', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId,
+                    nodeName: 'black-alg'
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.flowInputMetadata).to.eql(flowInputMetadata);
         });
     });
     describe('/exec/raw', () => {

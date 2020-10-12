@@ -63,7 +63,8 @@ class ExecutionService {
     }
 
     async _run(payload) {
-        let { jobId, pipeline, types } = payload;
+        let { jobId, types } = payload;
+        let { flowInputMetadata, ...pipeline } = payload.pipeline;
         const { rootJobId } = payload;
         const { validateNodes, parentSpan } = payload.options || {};
 
@@ -82,11 +83,12 @@ class ExecutionService {
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline, jobId);
             types = this._addTypesByAlgorithms(algorithms, types);
 
-            if (pipeline.flowInput && !pipeline.flowInputMetadata) {
+            if (pipeline.flowInput && !flowInputMetadata) {
                 const metadata = parser.replaceFlowInput(pipeline);
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
-                pipeline.flowInputMetadata = { metadata, storageInfo };
+                flowInputMetadata = { metadata, storageInfo };
             }
+            pipeline.flowInputMetadata = flowInputMetadata;
             const lastRunResult = await this._getLastPipeline(jobId);
             const pipelineObject = { ...pipeline, jobId, rootJobId, startTime: Date.now(), lastRunResult, types };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
