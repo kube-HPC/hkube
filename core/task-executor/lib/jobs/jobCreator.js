@@ -2,12 +2,12 @@ const clonedeep = require('lodash.clonedeep');
 const { randomString } = require('@hkube/uid');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
-const { JAVA } = require('../consts/envs')
 const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage,
     applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
     applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors } = require('../consts');
+const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
@@ -221,6 +221,11 @@ const applyLogging = (inputSpec, options) => {
     });
     return spec;
 };
+const getJavaMaxMem = (memory) => {
+    const val = parse.getMemoryInMi(memory);
+    const javaValue = Math.round(val * 0.8);
+    return javaValue;
+};
 const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, algorithmOptions,
     nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
@@ -239,8 +244,8 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyAlgorithmImage(spec, algorithmImage);
     spec = applyWorkerImage(spec, workerImage);
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, algorithmEnv);
-    if (env == JAVA) {
-        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { JAVA_DERIVED_MEMORY: getJavaMaxMem(resourceRequests.limits.memory) })
+    if (env === JAVA) {
+        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { JAVA_DERIVED_MEMORY: getJavaMaxMem(resourceRequests.limits.memory) });
     }
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_IMAGE: algorithmImage });
@@ -284,11 +289,6 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
 
     return spec;
 };
-const getJavaMaxMem = (memory) => {
-    const val = parse.getMemoryInMi(memory);
-    javaValue = Math.round(val * 0.8)
-    return javaValue;
-}
 
 module.exports = {
     applyImage,
