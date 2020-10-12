@@ -1,5 +1,5 @@
 if [ -z "${JAVA_MAX_MEM}" ]; then
-  MAX_MEM="${JAVA_MAX_MEMORY}"
+  MAX_MEM="${JAVA_DERIVED_MEMORY}M"
 else
   MAX_MEM="${JAVA_MAX_MEM}"
 fi
