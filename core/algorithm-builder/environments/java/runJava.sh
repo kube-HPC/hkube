@@ -8,6 +8,6 @@ if [ -z "${JAVA_MIN_MEM}" ]; then
 else
   MIN_MEM="${JAVA_MIN_MEM}"
 fi
-
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib/x86_64-linux-gnu/jni/
 
 java -Xms${MIN_MEM} -Xmx${MAX_MEM} -jar wrapper.jar algorithm_unique_folder/encapsulated-algorithm.jar  2>&1 |tee /hkube-logs/stdout.log

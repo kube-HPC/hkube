@@ -16,4 +16,5 @@ RUN mkdir -p /hkube/algorithm-runner
 COPY --from=0 /hkube/algorithm-runner/ /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 RUN mkdir -p /hkube-logs
+RUN apt -y update && apt -y install libzmq-java
 CMD ["/bin/sh", "-c", "./runJava.sh"]
