@@ -179,6 +179,10 @@ describe('jobCreator', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256Mi', env: 'java', options, resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200Mi' } } });
             expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '160' })
         });
+        it('should apply java memory G', () => {
+            const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256G', env: 'java', options, resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200G' } } });
+            expect(res.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '152588' })
+        });
         it('should not apply java memory for non java env', () => {
             const res = createJobSpec({ algorithmImage: 'myImage1', algorithmName: 'myalgo1', reservedMemory: '256G', env: 'python', options, resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200Gi' } } });
             expect(res.spec.template.spec.containers[1].env).to.not.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '160G' })

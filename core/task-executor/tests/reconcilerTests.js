@@ -389,7 +389,7 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm] = {
                 algorithmImage: 'hkube/algorithm-example',
                 env: "java",
-                mem: "160",
+                mem: "2048",
                 workerEnv: {
                     myEnv: 'myValue'
                 },
@@ -416,7 +416,7 @@ describe('reconciler', () => {
                     }
                 }
             });
-            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '256' });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '3277' });
         });
 
         it('should add mounts', async () => {
