@@ -384,6 +384,41 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'myAlgoEnv', value: 'myAlgoValue' });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+        it('setting java memory barrier as env in spec', async () => {
+            const algorithm = 'black-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                env: "java",
+                mem: "2048",
+                workerEnv: {
+                    myEnv: 'myValue'
+                },
+                algorithmEnv: {
+                    myAlgoEnv: 'myAlgoValue'
+                }
+            };
+            await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '3277' });
+        });
+
         it('should add mounts', async () => {
             const algorithm = 'green-alg';
             const mounts = [
