@@ -4,6 +4,7 @@ ENV PACKAGES_REGISTRY_USER ${PACKAGES_REGISTRY_USER}
 ENV PACKAGES_TOKEN ${PACKAGES_TOKEN}
 COPY  ./dockerfile/cpy-settings ./algorithm_unique_folder/src/main/resources/settings.xml* /root/.m2/
 COPY ./jars/* /hkube/algorithm-runner/
+COPY ./debs /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./runJava.sh /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner
@@ -16,5 +17,5 @@ RUN mkdir -p /hkube/algorithm-runner
 COPY --from=0 /hkube/algorithm-runner/ /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 RUN mkdir -p /hkube-logs
-RUN apt -y update && apt -y install libzmq-java
+RUN  dpkg -i libpgm-5.2-0_5.2.122~dfsg-2_amd64.deb && dpkg -i libnorm1_1.5r6+dfsg1-6_amd64.deb && dpkg -i libsodium23_1.0.16-2_amd64.deb && dpkg -i libzmq5_4.2.5-1ubuntu0.2_amd64.deb && dpkg -i libzmq-jni_3.1.0-10_amd64.deb && dpkg -i libzmq-java_3.1.0-10_amd64.deb
 CMD ["/bin/sh", "-c", "./runJava.sh"]
