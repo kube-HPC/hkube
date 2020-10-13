@@ -33,9 +33,13 @@ class ExecutionService {
         if (error) {
             throw new InvalidDataError(error.message);
         }
+        let { rootJobId } = pipeline;
+        if (!rootJobId) {
+            rootJobId = pipeline.jobId;
+        }
         const { jobId, startTime, lastRunResult, types, ...restPipeline } = pipeline;
         const newTypes = this._mergeTypes(types, [pipelineTypes.NODE]);
-        return this._run({ pipeline: restPipeline, options: { validateNodes: false }, types: newTypes });
+        return this._run({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types: newTypes });
     }
 
     async runAlgorithm(options) {

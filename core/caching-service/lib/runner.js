@@ -29,7 +29,7 @@ class Runner {
         const nodes = [];
         pipeline.nodes.forEach((n) => {
             if (n.nodeName === nodeName) {
-                n.cacheJobId = pipeline.jobId; //eslint-disable-line
+                n.cacheJobId = pipeline.rootJobId || pipeline.jobId; //eslint-disable-line
             }
             if (successors.includes(n.nodeName)) {
                 nodes.push(n);

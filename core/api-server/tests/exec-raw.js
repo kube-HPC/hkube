@@ -40,7 +40,7 @@ describe('Executions', () => {
             const { protocol, host, port, prefix } = config.cachingServer;
             const cachingServiceURI = `${protocol}://${host}:${port}`;
             let pathToJob = `/${prefix}?jobId=${jobId}&nodeName=black-alg`;
-            nock(cachingServiceURI).persist().get(pathToJob).reply(200, { ...pipeline, flowInputMetadata });
+            nock(cachingServiceURI).persist().get(pathToJob).reply(200, { ...pipeline, jobId, rootJobId: jobId, flowInputMetadata });
             pathToJob = `/${prefix}?jobId=stam-job&nodeName=stam-alg`;
             nock(cachingServiceURI).persist().get(pathToJob).reply(400, cachingError);
 
@@ -127,6 +127,24 @@ describe('Executions', () => {
             };
             const res2 = await request(optionsGET);
             expect(res2.body.flowInputMetadata).to.eql(flowInputMetadata);
+        });
+        it('should succeed to save the rootJobId', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId,
+                    nodeName: 'black-alg'
+                }
+            };
+            await request(options);
+            await request(options);
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.rootJobId).to.eql(jobId);
         });
     });
     describe('/exec/raw', () => {
