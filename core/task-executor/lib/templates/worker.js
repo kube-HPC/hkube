@@ -91,6 +91,15 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'ALGORITHM_DISCONNECTED_TIMEOUT_MS',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'ALGORITHM_DISCONNECTED_TIMEOUT_MS'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'STORAGE_ENCODING',
                                 valueFrom: {
                                     configMapKeyRef: {
