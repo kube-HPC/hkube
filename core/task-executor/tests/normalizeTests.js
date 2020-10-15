@@ -1,12 +1,12 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeWorkerImages, normalizeRequests, normalizeJobs, mergeWorkers, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
 const { twoCompleted } = require('./stub/jobsRaw');
 const utils = require('../lib/utils/utils');
 const { workersStub, jobsStub } = require('./stub/normalizedStub');
 const { nodes, pods } = require('./stub/resources');
 let templateStore = require('./stub/templateStore');
 const { settings: globalSettings } = require('../lib/helpers/settings');
-templateStore = templateStore.map(t => ({ ...t, minHotWorkers: 10, options: {pending: false} }));
+templateStore = templateStore.map(t => ({ ...t, minHotWorkers: 10, options: {pending: false, debug: false} }));
 const algorithmTemplates = utils.arrayToMap(templateStore);
 
 describe('normalize', () => {
@@ -330,7 +330,7 @@ describe('normalize', () => {
                     ]
                 }
             ];
-            const res = normalizeRequests(stub, templateStore);
+            const res = normalizeRequests(stub, algorithmTemplates);
             expect(res).to.have.length(4);
             expect(res).to.deep.include({
                 algorithmName: 'black-alg',
@@ -382,6 +382,109 @@ describe('normalize', () => {
             expect(res.nodeList[0].free.cpu).to.eq(7.6);
             expect(res.nodeList[1].free.cpu).to.eq(7.55);
             expect(res.nodeList[2].free.cpu).to.eq(7.8);
+        });
+    });
+    describe('normalize workers', () => {
+        it('should select workers with changed worker images', () => {
+            const normWorkers = [
+                {
+                    algorithmName: 'alg1',
+                    workerImage: 'foo/wkr:v1.2.1',
+                    algorithmImage: 'ai1'
+                },
+                {
+                    algorithmName: 'alg2',
+                    workerImage: 'foo/wkr:v1.2.3',
+                    algorithmImage: 'ai1'
+                }
+            ];
+            const algorithmTemplates={
+                'alg1':{
+                    algorithmImage:'ai1',
+                },
+                'alg2':{
+                    algorithmImage:'ai1',
+                }
+            }
+            const versions = {
+                versions: [
+                    {
+                        project: 'worker',
+                        tag: 'v1.2.3',
+                        image: 'foo/wkr'
+                    }
+                ]
+            }
+            const registry = ''
+            
+            const res = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
+            expect(res).to.exist;
+            expect(res).to.have.lengthOf(1);
+            expect(res[0].message).to.eql('worker image changed')
+        });
+        it('should select workers with changed algorithm images', () => {
+            const normWorkers = [
+                {
+                    algorithmName: 'alg1',
+                    workerImage: 'foo/wkr:v1.2.3',
+                    algorithmImage: 'ai1'
+                }
+            ];
+            const algorithmTemplates={
+                'alg1':{
+                    algorithmImage:'ai2',
+                }
+            }
+            const versions = {
+                versions: [
+                    {
+                        project: 'worker',
+                        tag: 'v1.2.3',
+                        image: 'foo/wkr'
+                    }
+                ]
+            }
+            const registry = ''
+            
+            const res = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
+            expect(res).to.exist;
+            expect(res).to.have.lengthOf(1);
+            expect(res[0].message).to.eql('algorithm image changed')
+        });
+
+        it('should ignore debug workers', () => {
+            const normWorkers = [
+                {
+                    algorithmName: 'alg1',
+                    workerImage: 'foo/wkr:v1.2.3',
+                    algorithmImage: 'ai1'
+                },
+                {
+                    algorithmName: 'alg2',
+                    workerImage: 'foo/wkr:v1.2.3',
+                    algorithmImage: 'ai1'
+                }
+            ];
+            const algorithmTemplates={
+                'alg1':{
+                    algorithmImage:'ai2',
+                }
+            }
+            const versions = {
+                versions: [
+                    {
+                        project: 'worker',
+                        tag: 'v1.2.3',
+                        image: 'foo/wkr'
+                    }
+                ]
+            }
+            const registry = ''
+            
+            const res = normalizeWorkerImages(normWorkers, algorithmTemplates, versions, registry);
+            expect(res).to.exist;
+            expect(res).to.have.lengthOf(1);
+            expect(res[0].message).to.eql('algorithm image changed')
         });
     });
     describe('merge workers', () => {

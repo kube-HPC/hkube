@@ -66,9 +66,9 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
         return workers;
     }
     normWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
-        const algorithm = algorithmTemplates[w.algorithmName] || {};
+        const algorithm = algorithmTemplates[w.algorithmName];
 
-        if (algorithm.options && algorithm.options.debug) {
+        if (!algorithm) {
             return;
         }
 
@@ -328,9 +328,7 @@ const normalizeRequests = (requests, algorithmTemplates) => {
 
     return requests[0]
         .data.map(r => ({ algorithmName: r.name }))
-        .filter(req => {
-            return !algorithmTemplates[req.algorithmName]?.options?.pending;
-        });
+        .filter(req => algorithmTemplates[req.algorithmName]);
 };
 
 const normalizeDriversRequests = (requests) => {

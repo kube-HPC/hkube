@@ -185,7 +185,7 @@ const _processAllRequests = (
 
 const _createStopDetails = ({ worker, algorithmTemplates }) => {
     const algorithmTemplate = algorithmTemplates[worker.algorithmName];
-    if (algorithmTemplate && algorithmTemplate.options && algorithmTemplate.options.debug) {
+    if (!algorithmTemplate) {
         return null;
     }
     const resourceRequests = createContainerResource(algorithmTemplate);

@@ -94,7 +94,7 @@ class Etcd {
                 a.mem = parse.getMemoryInMi(a.mem);
             }
             return a;
-        });
+        }).filter(t => (!t.options) || (!t.options.debug && !t.options.pending));
         return arrayToMap(templates);
     }
 
