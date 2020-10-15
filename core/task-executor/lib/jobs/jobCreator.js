@@ -281,7 +281,9 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyName(spec, CONTAINERS.PIPELINE_DRIVER);
     spec = applyPipelineDriverImage(spec, image);
     spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
-    spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
+    if (settings.applyResources) {
+        spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
+    }
     spec = applyNodeSelector(spec, null, clusterOptions);
     spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
