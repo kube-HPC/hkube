@@ -254,7 +254,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     if (settings.applyResources) {
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     }
-    spec = applyNodeSelector(spec, nodeSelector, clusterOptions);
+    spec = applyNodeSelector(spec, nodeSelector);
     spec = applyHotWorker(spec, hotWorker);
     spec = applyEntryPoint(spec, entryPoint);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.WORKER, 'task-executor-configmap');
@@ -284,7 +284,6 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     if (settings.applyResources) {
         spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
     }
-    spec = applyNodeSelector(spec, null, clusterOptions);
     spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
     spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
