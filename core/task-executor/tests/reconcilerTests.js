@@ -81,6 +81,30 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].image).to.eql('hkube/worker');
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+        it('should skip pending algorithm', async () => {
+            const algorithm = 'pending-alg';
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [
+                    {
+                        data: [{
+                            name: algorithm,
+                        }]
+                    }
+                ],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(callCount('createJob')).to.be.undefined;
+        });
         xit('should keep node selector', async () => {
             const algorithm = 'black-alg';
             const res = await reconciler.reconcile({

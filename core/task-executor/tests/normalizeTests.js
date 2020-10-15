@@ -6,7 +6,7 @@ const { workersStub, jobsStub } = require('./stub/normalizedStub');
 const { nodes, pods } = require('./stub/resources');
 let templateStore = require('./stub/templateStore');
 const { settings: globalSettings } = require('../lib/helpers/settings');
-templateStore = templateStore.map(t => ({ ...t, minHotWorkers: 10 }));
+templateStore = templateStore.map(t => ({ ...t, minHotWorkers: 10, options: {pending: false} }));
 const algorithmTemplates = utils.arrayToMap(templateStore);
 
 describe('normalize', () => {
@@ -330,7 +330,7 @@ describe('normalize', () => {
                     ]
                 }
             ];
-            const res = normalizeRequests(stub);
+            const res = normalizeRequests(stub, templateStore);
             expect(res).to.have.length(4);
             expect(res).to.deep.include({
                 algorithmName: 'black-alg',

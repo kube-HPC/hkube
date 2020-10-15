@@ -92,7 +92,7 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
 const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
     const normRequests = algorithmRequests || [];
     const algorithmTemplates = algorithmTemplateStore || {};
-    const algorithmStore = Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0);
+    const algorithmStore = Object.entries(algorithmTemplates).filter(([, v]) => v.minHotWorkers > 0 && !v.options?.pending);
 
     if (algorithmStore.length === 0) {
         return normRequests;
@@ -321,12 +321,16 @@ const normalizeResources = ({ pods, nodes } = {}) => {
     return { allNodes, nodeList };
 };
 
-const normalizeRequests = (requests) => {
+const normalizeRequests = (requests, algorithmTemplates) => {
     if (requests == null || requests.length === 0 || requests[0].data == null) {
         return [];
     }
 
-    return requests[0].data.map(r => ({ algorithmName: r.name }));
+    return requests[0]
+        .data.map(r => ({ algorithmName: r.name }))
+        .filter(req => {
+            return !algorithmTemplates[req.algorithmName]?.options?.pending;
+        });
 };
 
 const normalizeDriversRequests = (requests) => {

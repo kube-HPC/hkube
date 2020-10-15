@@ -6,6 +6,15 @@ module.exports = [
         mem: '256Mi'
     },
     {
+        name: 'pending-alg',
+        algorithmImage: '',
+        cpu: 0.5,
+        mem: '256Mi',
+        options: {
+            pending: true
+        }
+    },
+    {
         name: 'green-alg',
         algorithmImage: 'hkube/algorithm-example',
         cpu: 7,
