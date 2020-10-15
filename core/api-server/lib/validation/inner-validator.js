@@ -57,6 +57,9 @@ class ApiValidator {
             if (node.nodeName === 'flowInput') {
                 throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name flowInput`);
             }
+            if (node.nodeName === 'dataSource') {
+                throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name dataSource`);
+            }
 
             if (node.input) {
                 node.input.forEach((inp) => {
