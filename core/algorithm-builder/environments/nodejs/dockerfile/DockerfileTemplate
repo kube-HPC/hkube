@@ -3,9 +3,7 @@
 FROM ${baseImage} AS build
 LABEL maintainer="hkube.dev@gmail.com"
 COPY ./algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
-COPY ./dockerfile /hkube/algorithm-runner/dockerfile
-WORKDIR /hkube/algorithm-runner/algorithm_unique_folder
-ENV packagesRegistry=${packagesRegistry}
+COPY ./dockerfile /hkube/algorithm-runner/docbgistry}
 ENV packagesToken=${packagesToken}
 ENV packagesAuth=${packagesAuth}
 RUN ../dockerfile/requirements.sh
