@@ -33,10 +33,7 @@ class Bootstrap {
             });
             await monitor.check(main.redis);
             await metrics.init(main.metrics);
-            const res = await storageManager.init(main, log, true);
-            if (res) {
-                log.info(`${res.messgae}`, { component });
-            }
+            await storageManager.init(main, log, true);
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }

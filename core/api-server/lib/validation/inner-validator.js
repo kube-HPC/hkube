@@ -5,6 +5,7 @@ const { InvalidDataError } = require('../errors');
 const customFormats = require('./custom-formats');
 const validator = new Validator({ useDefaults: false, coerceTypes: true, nullable: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true, nullable: true });
+const RESERVED_NODE_NAMES = ['dataSource', 'flowInput'];
 
 class ApiValidator {
     init(schemas, schemasInternal) {
@@ -54,13 +55,9 @@ class ApiValidator {
             if (graph.node(node.nodeName)) {
                 throw new InvalidDataError(`found duplicate node ${node.nodeName}`);
             }
-            if (node.nodeName === 'flowInput') {
-                throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name flowInput`);
+            if (RESERVED_NODE_NAMES.includes(node.nodeName)) {
+                throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name ${node.nodeName}`);
             }
-            if (node.nodeName === 'dataSource') {
-                throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name dataSource`);
-            }
-
             if (node.input) {
                 node.input.forEach((inp) => {
                     if (options.checkFlowInput) {
