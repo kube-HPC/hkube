@@ -16,6 +16,7 @@ else
   echo "building to test docker"
   echo ${CHANGED}
   for REPO in ${CHANGED}
+  do
     echo ${REPO} changed. Running build
     export PRIVATE_REGISTRY=""
     lerna run --scope $REPO --stream build
