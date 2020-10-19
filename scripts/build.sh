@@ -18,7 +18,7 @@ else
   for REPO in ${CHANGED}
   do
     echo ${REPO} changed. Running build
-    export PRIVATE_REGISTRY=""
+    unset PRIVATE_REGISTRY
     lerna run --scope $REPO --stream build
     echo lerna run --scope $REPO build exited with code $?
     echo "build done for ${REPO}"
