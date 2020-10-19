@@ -352,7 +352,7 @@ const calcRatio = (totalRequests, capacity) => {
  * 3) if we found such an algorithm, we delete it from map.
  * 4) each iteration we update the discovery with the current map.
  */
-const _checkUnscheduled = async (created, skipped, requests, algorithms, algorithmTemplates) => {
+const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmTemplates) => {
     skipped.forEach((s) => {
         if (!algorithms[s.algorithmName]) {
             algorithms[s.algorithmName] = s.warning;
@@ -406,9 +406,13 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _updateCapacity(idleWorkers.length + activeWorkers.length + createdJobsList.length + jobsCreated.length);
 
-    // get stats
+    // filter the algorithms that have `minRequisiteAmount`, so we will not slice
+    const minRequisiteAlgorithms = normRequests.filter(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
+    const factorRequests = normRequests.slice(0, Math.round(totalCapacityNow * 3));
+    const combinedRequests = [...minRequisiteAlgorithms, ...factorRequests];
 
-    const totalRequests = normalizeHotRequests(normRequests.slice(0, Math.round(totalCapacityNow * 3)), algorithmTemplates);
+    const totalRequests = normalizeHotRequests(combinedRequests, algorithmTemplates);
+    // const totalRequests = normalizeRequisiteAmount(totalRequestsWithHot, algorithmTemplates);
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow);
     // const workerTypes = calcRatio(mergedWorkers);
@@ -419,7 +423,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     totalRequests.forEach(r => {
         const ratios = calcRatio(cutRequests, totalCapacityNow);
         const { required } = requestTypes.algorithms[r.algorithmName];
-        if (!ratios.algorithms[r.algorithmName] || ratios.algorithms[r.algorithmName].count < required) {
+        const algorithm = ratios.algorithms[r.algorithmName];
+        if (!algorithm || algorithm.count < required) {
             cutRequests.push(r);
         }
     });
@@ -440,7 +445,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
-    const unScheduledAlgorithms = await _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates);
+    const unScheduledAlgorithms = _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];

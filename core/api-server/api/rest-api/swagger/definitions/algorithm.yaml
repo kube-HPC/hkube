@@ -103,6 +103,10 @@ properties:
     description: how many live algorithm instances will always run
     minimum: 0
     default: 0
+  minRequisiteAmount:
+    type: integer
+    description: The minimum amount of algorithms required in a state of pressure
+    minimum: 0
   algorithmEnv:
     type: object
     description: key value environment variables for algorithm
