@@ -1,0 +1,5 @@
+type: string
+description: Unique identifier representing a specific dataSource
+minLength: 1
+maxLength: 32
+format: dataSource-name

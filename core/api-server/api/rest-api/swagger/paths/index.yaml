@@ -137,3 +137,11 @@
   $ref: ./storage/download.yaml
 /storage/download/pipeline/result/{jobId}:
   $ref: ./storage/download_pipeline.yaml
+
+# dataSource
+/datasource:
+  $ref: ./dataSource/dataSource.yaml
+/datasource/{id}:
+  $ref: ./dataSource/dataSource_id.yaml
+/datasource/{id}/{fileName}:
+  $ref: ./dataSource/dataSource_file.yaml

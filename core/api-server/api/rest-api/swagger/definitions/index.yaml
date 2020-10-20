@@ -34,6 +34,12 @@ cronPattern:
   $ref: ./cronPattern.yaml
 cronRequest:
   $ref: ./cronRequest.yaml
+dataSource:
+  $ref: ./dataSource.yaml
+dataSourceName:
+  $ref: ./dataSourceName.yaml
+dataSourceFileExt:
+  $ref: ./dataSourceFileExt.yaml
 defaultResponse:
   $ref: ./defaultResponse.yaml
 defaultResponseWithName:

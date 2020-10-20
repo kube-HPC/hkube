@@ -1,0 +1,18 @@
+get:
+  tags:
+    - DataSource
+  summary: Fetch a single dataSource by id
+  parameters:
+    - name: id
+      in: path
+      description: A dataSource id
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: A datasource item
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/dataSource"

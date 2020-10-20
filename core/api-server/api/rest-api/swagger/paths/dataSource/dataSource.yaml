@@ -1,0 +1,50 @@
+get:
+  tags:
+    - DataSource
+  summary: Fetch all dataSources
+  responses:
+    "200":
+      description: A collection of dataSources
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/dataSource"
+post:
+  tags:
+    - DataSource
+  summary: Create a new dataSource and upload a file
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            name:
+              $ref: "#/components/schemas/dataSourceName"
+            file:
+              type: string
+              format: binary
+              description: "Data file (file types: csv | txt)"
+    description: DataSource name and file to upload
+    required: true
+  responses:
+    "201":
+      description: created dataSource
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponseWithName"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
