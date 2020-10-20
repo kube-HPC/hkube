@@ -323,7 +323,7 @@ const _getNodeStats = (normResources) => {
 /**
  * 
  */
-const calcRatio = (totalRequests, capacity) => {
+const calcRatio = (totalRequests, capacity, algorithmTemplates) => {
     const requestTypes = totalRequests.reduce((prev, cur) => {
         if (!prev.algorithms[cur.algorithmName]) {
             prev.algorithms[cur.algorithmName] = {
@@ -337,9 +337,12 @@ const calcRatio = (totalRequests, capacity) => {
         return prev;
     }, { total: 0, algorithms: {} });
     Object.keys(requestTypes.algorithms).forEach(k => {
-        requestTypes.algorithms[k].ratio = requestTypes.algorithms[k].count / requestTypes.total;
+        const ratio = requestTypes.algorithms[k].count / requestTypes.total;
+        const required = ratio * capacity;
         if (capacity) {
-            requestTypes.algorithms[k].required = requestTypes.algorithms[k].ratio * capacity;
+            const minRequisiteAmount = (algorithmTemplates && algorithmTemplates[k]?.minRequisiteAmount) || 0;
+            requestTypes.algorithms[k].ratio = ratio;
+            requestTypes.algorithms[k].required = Math.max(required, minRequisiteAmount);
         }
     });
     return requestTypes;
@@ -418,7 +421,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const totalRequests = normalizeHotRequests(combinedRequests, algorithmTemplates);
     // const totalRequests = normalizeRequisiteAmount(totalRequestsWithHot, algorithmTemplates);
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
-    const requestTypes = calcRatio(totalRequests, totalCapacityNow);
+    const requestTypes = calcRatio(totalRequests, totalCapacityNow, algorithmTemplates);
     // const workerTypes = calcRatio(mergedWorkers);
     // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
     // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
@@ -427,9 +430,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     totalRequests.forEach(r => {
         const ratios = calcRatio(cutRequests, totalCapacityNow);
         const { required } = requestTypes.algorithms[r.algorithmName];
-        const minRequisiteAmount = algorithmTemplates[r.algorithmName]?.minRequisiteAmount;
         const algorithm = ratios.algorithms[r.algorithmName];
-        if (!algorithm || algorithm.count < required || minRequisiteAmount) {
+        if (!algorithm || algorithm.count < required) {
             cutRequests.push(r);
         }
     });
