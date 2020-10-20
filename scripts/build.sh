@@ -12,6 +12,16 @@ if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PU
     echo "build done for ${REPO}"
   done
 else
-    echo "version skiped!"
+  echo "version skiped!"
+  echo "building to test docker"
+  echo ${CHANGED}
+  for REPO in ${CHANGED}
+  do
+    echo ${REPO} changed. Running build
+    unset PRIVATE_REGISTRY
+    lerna run --scope $REPO --stream build
+    echo lerna run --scope $REPO build exited with code $?
+    echo "build done for ${REPO}"
+  done
 fi
 echo "all builds done."

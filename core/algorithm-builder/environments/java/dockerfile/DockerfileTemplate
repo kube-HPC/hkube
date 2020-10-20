@@ -1,4 +1,4 @@
-FROM maven
+FROM  ${DOCKER_PULL_REGISTRY_USER}/maven:3.6.3-openjdk-11-slim
 LABEL maintainer="hkube.dev@gmail.com"
 ENV PACKAGES_REGISTRY_USER ${PACKAGES_REGISTRY_USER}
 ENV PACKAGES_TOKEN ${PACKAGES_TOKEN}
@@ -7,14 +7,17 @@ COPY ./jars/* /hkube/algorithm-runner/
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./runJava.sh /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner
-RUN mvn -q dependency:get -Dartifact=io.hkube:wrapper:${javaWrapperVersion}:jar:wide -DremoteRepositories=https://oss.sonatype.org/content/repositories/snapshots -Ddest=./wrapper.jar
-RUN mvn   -q org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  -Dfile=./java-algo-parent.xml -DgroupId=io.hkube -DartifactId=java-algo-parent -Dversion=${javaWrapperVersion} -Dpackaging=pom
+RUN mvn -q org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  -Dfile=./interfaces.jar -DgroupId=io.hkube -DartifactId=interfaces -Dversion=${javaWrapperVersion} -Dpackaging=jar
+RUN mvn  -o -q org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file  -Dfile=./java-algo-parent.xml -DgroupId=io.hkube -DartifactId=java-algo-parent -Dversion=${javaWrapperVersion} -Dpackaging=pomersion} -Dpackaging=pom
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
 RUN mvn -q  package -DremoteRepositories=${packagesRegistry}
 FROM ${baseImage} 
 RUN mkdir -p /hkube/algorithm-runner
+RUN mkdir -p /hkube/debs
+COPY ./debs /hkube/debs/
+WORKDIR /hkube/debs
+RUN  dpkg -i libpgm*.deb && dpkg -i libnorm*.deb && dpkg -i libsodium*.deb && dpkg -i libzmq5*.deb && dpkg -i libzmq-jni_*.deb && dpkg -i libzmq-java_*.deb
 COPY --from=0 /hkube/algorithm-runner/ /hkube/algorithm-runner
 WORKDIR /hkube/algorithm-runner
 RUN mkdir -p /hkube-logs
-RUN apt -y update && apt -y install libzmq-java
 CMD ["/bin/sh", "-c", "./runJava.sh"]

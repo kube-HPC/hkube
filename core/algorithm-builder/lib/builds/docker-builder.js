@@ -301,6 +301,7 @@ const _createURL = (options) => {
 const _createDockerCredsConfig = (envs, docker, packages) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
+    _envsHelper(envs, 'DOCKER_PULL_REGISTRY_USER', docker.pull.registry);
     _envsHelper(envs, 'DOCKER_PULL_REGISTRY', pullRegistry);
     _envsHelper(envs, 'DOCKER_PULL_USER', docker.pull.user);
     _envsHelper(envs, 'DOCKER_PULL_PASS', docker.pull.pass);
