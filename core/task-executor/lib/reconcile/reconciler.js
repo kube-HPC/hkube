@@ -320,6 +320,9 @@ const _getNodeStats = (normResources) => {
     return statsPerNode;
 };
 
+/**
+ * 
+ */
 const calcRatio = (totalRequests, capacity) => {
     const requestTypes = totalRequests.reduce((prev, cur) => {
         if (!prev.algorithms[cur.algorithmName]) {
@@ -407,8 +410,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     _updateCapacity(idleWorkers.length + activeWorkers.length + createdJobsList.length + jobsCreated.length);
 
     // filter the algorithms that have `minRequisiteAmount`, so we will not slice
-    const minRequisiteAlgorithms = normRequests.filter(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
-    const factorRequests = normRequests.slice(0, Math.round(totalCapacityNow * 3));
+    const filterRequisite = (r) => (algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
+    const minRequisiteAlgorithms = normRequests.filter((r) => filterRequisite(r));
+    const factorRequests = normRequests.filter((r) => !filterRequisite(r)).slice(0, Math.round(totalCapacityNow * 3));
     const combinedRequests = [...minRequisiteAlgorithms, ...factorRequests];
 
     const totalRequests = normalizeHotRequests(combinedRequests, algorithmTemplates);
@@ -423,8 +427,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     totalRequests.forEach(r => {
         const ratios = calcRatio(cutRequests, totalCapacityNow);
         const { required } = requestTypes.algorithms[r.algorithmName];
+        const minRequisiteAmount = algorithmTemplates[r.algorithmName]?.minRequisiteAmount;
         const algorithm = ratios.algorithms[r.algorithmName];
-        if (!algorithm || algorithm.count < required) {
+        if (!algorithm || algorithm.count < required || minRequisiteAmount) {
             cutRequests.push(r);
         }
     });

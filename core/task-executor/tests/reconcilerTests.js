@@ -418,7 +418,6 @@ describe('reconciler', () => {
             });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '3277' });
         });
-
         it('should add mounts', async () => {
             const algorithm = 'green-alg';
             const mounts = [
@@ -832,6 +831,63 @@ describe('reconciler', () => {
                 .to.deep.include({ limits: { cpu: 0.5, memory: '512Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
+        });
+        it.skip('should work with algorithm with minRequisiteAmount', async () => {
+            const algorithm1 = 'no-requisite';
+            const algorithm2 = 'min-requisite-1';
+            const algorithm3 = 'min-algorithm-2';
+            const algorithmImage = 'hkube/algorithm-example';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                minRequisiteAmount: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm2] = {
+                name: algorithm2,
+                algorithmImage,
+                minRequisiteAmount: 15,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm3] = {
+                name: algorithm3,
+                algorithmImage,
+                minRequisiteAmount: 15,
+                cpu: 0.1,
+                mem: 100
+            };
+            const amount = 200;
+            const array = [
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm1 })),
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm2 })),
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm3 }))
+            ]
+            const shuffle = (array) => {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+            const data = shuffle(array);
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{ data }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res[algorithm1]).to.eql({ idle: 0, required: 12, paused: 0, created: 0, skipped: 12, resumed: 0 });
+            expect(res[algorithm2]).to.eql({ idle: 0, required: 200, paused: 0, created: 42, skipped: 158, resumed: 0 });
+            expect(res[algorithm3]).to.eql({ idle: 0, required: 200, paused: 0, created: 47, skipped: 153, resumed: 0 });
         });
     });
     describe('reconcile algorithms scheduling tests', () => {
