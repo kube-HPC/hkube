@@ -832,7 +832,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
-        it.skip('should work with algorithm with minRequisiteAmount', async () => {
+        it('should work with algorithm with minRequisiteAmount', async () => {
             const algorithm1 = 'no-requisite';
             const algorithm2 = 'min-requisite-1';
             const algorithm3 = 'min-algorithm-2';
@@ -885,9 +885,9 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res[algorithm1]).to.eql({ idle: 0, required: 12, paused: 0, created: 0, skipped: 12, resumed: 0 });
-            expect(res[algorithm2]).to.eql({ idle: 0, required: 200, paused: 0, created: 42, skipped: 158, resumed: 0 });
-            expect(res[algorithm3]).to.eql({ idle: 0, required: 200, paused: 0, created: 47, skipped: 153, resumed: 0 });
+            expect(res[algorithm1]).to.eql({ idle: 0, required: 12, paused: 0, created: 12, skipped: 0, resumed: 0 });
+            expect(res[algorithm2]).to.eql({ idle: 0, required: 17, paused: 0, created: 17, skipped: 0, resumed: 0 });
+            expect(res[algorithm3]).to.eql({ idle: 0, required: 17, paused: 0, created: 17, skipped: 0, resumed: 0 });
         });
     });
     describe('reconcile algorithms scheduling tests', () => {
