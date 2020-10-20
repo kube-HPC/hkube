@@ -2,10 +2,10 @@
 set -eo pipefail
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 mkdir -p $SCRIPTPATH/../environments/java/jars
+mkdir -p $SCRIPTPATH/../environments/java/m2
 export javaWrapperVersion='1.0-SNAPSHOT'
-docker run --rm  -v $SCRIPTPATH/../environments/java/jars:/jars maven mvn -q dependency:get -Dartifact=io.hkube:wrapper:$javaWrapperVersion:jar:wide -DremoteRepositories=https://oss.sonatype.org/content/repositories/snapshots -Ddest=/jars/wrapper.jar
-docker run --rm  -v $SCRIPTPATH/../environments/java/jars:/jars maven mvn -q dependency:get -Dartifact=io.hkube:interfaces:$javaWrapperVersion:jar -DremoteRepositories=https://oss.sonatype.org/content/repositories/snapshots -Ddest=/jars/interfaces.jar
-docker run --rm  -v $SCRIPTPATH/../environments/java/jars:/jars maven mvn -q dependency:get -Dartifact=io.hkube:java-algo-parent:$javaWrapperVersion:pom -DremoteRepositories=https://oss.sonatype.org/content/repositories/snapshots -Ddest=/jars/java-algo-parent.xml
+docker run --rm -v $SCRIPTPATH/../environments/java/m2:/root/.m2/repository  -v $SCRIPTPATH/../environments/java/jars:/jars maven mvn -q dependency:get -Dartifact=io.hkube:wrapper:$javaWrapperVersion:jar:wide -DremoteRepositories=https://oss.sonatype.org/content/repositories/snapshots -Ddest=/jars/wrapper.jar
+docker run --rm  -v $SCRIPTPATH/../environments/java/m2:/root/.m2/repository -v $SCRIPTPATH/../environments/java/jars:/jars maven mvn -q dependency:get -Dartifact=io.hkube:java-algo-parent:$javaWrapperVersion:pom -DremoteRepositories=https://oss.sonatype.org/content/repositories/snapshots -Ddest=/jars/java-algo-parent.xml
 mkdir -p $SCRIPTPATH/../environments/java/debs
 cd $SCRIPTPATH/../environments/java/debs
 docker run --rm --workdir /tmp/pkg -v $SCRIPTPATH/../environments/java/debs:/tmp/pkg\
