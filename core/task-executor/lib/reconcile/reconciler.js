@@ -334,9 +334,9 @@ const calcRatio = (totalRequests, capacity, algorithmTemplates) => {
         return prev;
     }, { total: 0, algorithms: {} });
     Object.keys(requestTypes.algorithms).forEach(k => {
-        const ratio = requestTypes.algorithms[k].count / requestTypes.total;
-        const required = ratio * capacity;
         if (capacity) {
+            const ratio = requestTypes.algorithms[k].count / requestTypes.total;
+            const required = ratio * capacity;
             const minRequisiteAmount = (algorithmTemplates && algorithmTemplates[k]?.minRequisiteAmount) || 0;
             requestTypes.algorithms[k].ratio = ratio;
             requestTypes.algorithms[k].required = Math.max(required, minRequisiteAmount);
