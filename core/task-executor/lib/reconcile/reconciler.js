@@ -320,12 +320,6 @@ const _getNodeStats = (normResources) => {
     return statsPerNode;
 };
 
-<<<<<<< HEAD
-=======
-/**
- * 
- */
->>>>>>> cfbb04acb9af24fca39c43aaaa505807dfbcf34a
 const calcRatio = (totalRequests, capacity, algorithmTemplates) => {
     const requestTypes = totalRequests.reduce((prev, cur) => {
         if (!prev.algorithms[cur.algorithmName]) {
