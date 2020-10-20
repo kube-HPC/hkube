@@ -886,7 +886,7 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res[algorithm1]).to.eql({ idle: 0, required: 18, paused: 0, created: 18, skipped: 0, resumed: 0 });
+            expect(res[algorithm1]).to.eql({ idle: 0, required: 23, paused: 0, created: 23, skipped: 0, resumed: 0 });
             expect(res[algorithm2]).to.eql({ idle: 0, required: minRequisiteAmount, paused: 0, created: minRequisiteAmount, skipped: 0, resumed: 0 });
             expect(res[algorithm3]).to.eql({ idle: 0, required: minRequisiteAmount, paused: 0, created: minRequisiteAmount, skipped: 0, resumed: 0 });
         });

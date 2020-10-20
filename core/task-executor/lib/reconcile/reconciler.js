@@ -405,10 +405,11 @@ const createWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorke
     if (minRequisiteAlgorithms.length > 0) {
         newRequests = [];
         const visit = {};
+        const indices = [];
         const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
         const runningWorkersMap = _workersToMap(runningWorkersList);
 
-        normRequests.forEach(r => {
+        normRequests.forEach((r, i) => {
             const { algorithmName } = r;
             const minRequisiteAmount = algorithmTemplates[algorithmName]?.minRequisiteAmount;
             if (minRequisiteAmount && !visit[algorithmName]) {
@@ -416,14 +417,18 @@ const createWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorke
                 const running = runningWorkersMap[algorithmName] || 0;
                 const diff = minRequisiteAmount - running;
                 if (diff > 0) {
-                    const algorithms = normRequests.filter(n => n.algorithmName === algorithmName).slice(0, diff);
-                    newRequests.unshift(...algorithms);
+                    const algorithms = normRequests
+                        .map((a, j) => ({ index: j, alg: a }))
+                        .filter(n => n.alg.algorithmName === algorithmName)
+                        .slice(0, diff);
+                    newRequests.unshift(...algorithms.map(a => a.alg));
+                    indices.push(...algorithms.map(a => a.index));
                 }
                 else {
                     newRequests.push(r);
                 }
             }
-            else {
+            else if (!indices.includes(i)) {
                 newRequests.push(r);
             }
         });
