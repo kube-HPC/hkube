@@ -832,7 +832,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
-        it('should work with algorithm with minRequisiteAmount', async () => {
+        it('should work with algorithm with small minRequisiteAmount', async () => {
             const algorithm1 = 'no-requisite-x';
             const algorithm2 = 'no-requisite-y';
             const algorithm3 = 'requisite-1';
@@ -895,10 +895,10 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(res[algorithm1]).to.eql({ idle: 0, required: 23, paused: 0, created: 23, skipped: 0, resumed: 0 });
-            expect(res[algorithm3]).to.eql({ idle: 0, required: 14, paused: 0, created: 14, skipped: 0, resumed: 0 });
-            expect(res[algorithm4]).to.eql({ idle: 0, required: 9, paused: 0, created: 9, skipped: 0, resumed: 0 });
+            expect(res[algorithm3]).to.eql({ idle: 0, required: 15, paused: 0, created: 15, skipped: 0, resumed: 0 });
+            expect(res[algorithm4]).to.eql({ idle: 0, required: 8, paused: 0, created: 8, skipped: 0, resumed: 0 });
         });
-        it.skip('should work with algorithm with minRequisiteAmount', async () => {
+        it.skip('should work with algorithm with large minRequisiteAmount', async () => {
             const algorithm1 = 'no-requisite-x';
             const algorithm2 = 'no-requisite-y';
             const algorithm3 = 'requisite-1';

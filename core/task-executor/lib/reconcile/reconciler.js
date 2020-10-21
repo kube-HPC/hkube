@@ -408,13 +408,10 @@ const _workersToMap = (requests) => {
 };
 
 const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
-    const requisiteAlgorithms = normRequests
-        .filter(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount)
-        .map(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
-
+    const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
     let currentRequests = normRequests;
 
-    if (requisiteAlgorithms.length > 0) {
+    if (hasRequisiteAlgorithms) {
         currentRequests = [];
         const requisites = { algorithms: {}, total: 0 };
         const visited = {}; // map for visited algorithms
@@ -452,14 +449,16 @@ const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeW
             }
         });
 
+        // push missing algorithms to the top of the list in specific order
         const ratioSum = Object.values(requisites.algorithms).reduce((prev, cur) => prev + cur.length, 0);
+
         while (requisites.total > 0) {
             Object.values(requisites.algorithms).forEach((v) => {
                 const ratio = (v.length / ratioSum);
                 const total = Math.round(v.length * ratio) || 1;
                 const arr = v.slice(0, total);
                 requisites.total -= total;
-                currentRequests.unshift(...arr); // push missing algorithms to the top
+                currentRequests.unshift(...arr);
             });
         }
     }
