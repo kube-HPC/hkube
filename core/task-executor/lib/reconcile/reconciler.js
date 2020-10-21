@@ -398,24 +398,24 @@ const _workersToMap = (requests) => {
  *    2. creating a subset (window) from the requests.
  * The algorithm is as follows:
  *    1. If there is any algorithm with `minRequisiteAmount`.
- *      a. We iterate all requests.
- *      b. If we encountered an algorithm with `minRequisiteAmount` that we didn't handle. 
- *         b1. We mark the algorithm as visited.
- *         b2. We calculate the diff of algorithms that need high priority by `minRequisiteAmount - running`.
- *         b3. If there is a diff, we move these algorithms to the top of our window.
- *         b4. We save the indices of these algorithms. 
- *         b5. If there is no diff, we just add it to the window.
- *      c. If we already moved this algorithm to the top, we ignore it.
+ *      a. Iterate all requests.
+ *      b. If encountered an algorithm with `minRequisiteAmount` that didn't handle.
+ *         b1. Mark the algorithm as visited.
+ *         b2. Calculate missing algorithms by `minRequisiteAmount - running`.
+ *         b3. If there are a missing algorithms, move these algorithms to the top of our window.
+ *         b4. Save the indices of these algorithms to ignore them next iteration.
+ *         b5. If there are no missing algorithms, just add it to the window.
+ *      c. If already moved this algorithm to the top, ignore it, else add it to the window.
  *    2. creating new window from the requests
  */
-const createWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
     const hasRequisiteAlgorithms = normRequests.some((r) => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
     let currentRequests = normRequests;
 
     if (hasRequisiteAlgorithms) {
         currentRequests = [];
         const visited = {}; // map for visited algorithms
-        const indices = {}; // map for handled indices 
+        const indices = {}; // map for handled algorithms indices that moved to top
         const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
         const runningWorkersMap = _workersToMap(runningWorkersList);
 
@@ -433,7 +433,7 @@ const createWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorke
                         .slice(0, diff);
 
                     currentRequests.unshift(...algorithms.map(a => a.alg)); // push missing algorithms to the top
-                    algorithms.map(a => a.index).reduce((cur, ind) => { // save the indices so we can ignore them next iteration.
+                    algorithms.map(a => a.index).reduce((cur, ind) => { // save the indices so we will ignore them next iteration.
                         cur[ind] = true;
                         return cur;
                     }, indices);
@@ -482,7 +482,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
 
-    const requestsWindow = createWindow(algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+    const requestsWindow = _createRequestsWindow(algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
     const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
 
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
