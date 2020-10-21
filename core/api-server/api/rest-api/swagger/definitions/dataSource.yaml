@@ -7,20 +7,6 @@ properties:
     $ref: "#/components/schemas/dataSourceName"
   id:
     type: string
-  files:
-    type: array
-    items:
-      type: object
-      properties:
-        href:
-          type: string
-          example: "/datasource/my-datasource/data.csv"
-        name:
-          type: string
-          example: "data.csv"
-        type:
-          type: string
-          example: "csv"
 required:
   - name
   - id

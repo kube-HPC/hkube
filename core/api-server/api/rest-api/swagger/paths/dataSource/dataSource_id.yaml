@@ -15,7 +15,14 @@ get:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/dataSource"
+            allOf:
+              - $ref: "#/components/schemas/dataSource"
+              - type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/dataSourceFileMeta"
 put:
   tags:
     - DataSource

@@ -38,6 +38,8 @@ dataSource:
   $ref: ./dataSource.yaml
 dataSourceName:
   $ref: ./dataSourceName.yaml
+dataSourceFileMeta:
+  $ref: ./dataSourceFileMeta.yaml
 dataSourceFileExt:
   $ref: ./dataSourceFileExt.yaml
 defaultResponse:

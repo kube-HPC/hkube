@@ -1,0 +1,11 @@
+type: object
+properties:
+  href:
+    type: string
+    example: "/datasource/my-datasource/data.csv"
+  name:
+    type: string
+    example: "data.csv"
+  type:
+    type: string
+    example: "csv"
