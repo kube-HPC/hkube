@@ -16,3 +16,33 @@ get:
         application/json:
           schema:
             $ref: "#/components/schemas/dataSource"
+put:
+  tags:
+    - DataSource
+  summary: upload a new file to a given datasource
+  parameters:
+    - name: id
+      in: path
+      description: A dataSource id
+      required: true
+      schema:
+        type: string
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            file:
+              type: string
+              format: binary
+              description: "Data file (file types: csv | txt)"
+    description: DataSource name and file to upload
+    required: true
+  responses:
+    "201":
+      description: created dataSource
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponseWithName"
