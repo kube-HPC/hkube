@@ -393,27 +393,37 @@ const _workersToMap = (requests) => {
 };
 
 /**
- * This method iterates all requests and searches for algorithms with `minRequisiteAmount`.
- * If such an algorithm is found, we calculate the diff (minRequisiteAmount - running) 
- * and push it to the top of our window.
+ * This method does two things: 
+ *    1. prioritizing algorithms that have `minRequisiteAmount`.
+ *    2. creating a subset (window) from the requests.
+ * The algorithm is as follows:
+ *    1. If there is any algorithm with `minRequisiteAmount`.
+ *      a. We iterate all requests.
+ *      b. If we encountered an algorithm with `minRequisiteAmount` that we didn't handle. 
+ *         b1. We mark the algorithm as visited.
+ *         b2. We calculate the diff of algorithms that need high priority by `minRequisiteAmount - running`.
+ *         b3. If there is a diff, we move these algorithms to the top of our window.
+ *         b4. We save the indices of these algorithms. 
+ *         b5. If there is no diff, we just add it to the window.
+ *      c. If we already moved this algorithm to the top, we ignore it.
+ *    2. creating new window from the requests
  */
 const createWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
-    const filterRequisite = (r) => (algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
-    const minRequisiteAlgorithms = normRequests.filter((r) => filterRequisite(r));
-    let newRequests = normRequests;
+    const hasRequisiteAlgorithms = normRequests.some((r) => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
+    let currentRequests = normRequests;
 
-    if (minRequisiteAlgorithms.length > 0) {
-        newRequests = [];
-        const visit = {};
-        const indices = [];
+    if (hasRequisiteAlgorithms) {
+        currentRequests = [];
+        const visited = {}; // map for visited algorithms
+        const indices = {}; // map for handled indices 
         const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
         const runningWorkersMap = _workersToMap(runningWorkersList);
 
         normRequests.forEach((r, i) => {
             const { algorithmName } = r;
             const minRequisiteAmount = algorithmTemplates[algorithmName]?.minRequisiteAmount;
-            if (minRequisiteAmount && !visit[algorithmName]) {
-                visit[algorithmName] = true;
+            if (minRequisiteAmount && !visited[algorithmName]) {
+                visited[algorithmName] = true;
                 const running = runningWorkersMap[algorithmName] || 0;
                 const diff = minRequisiteAmount - running;
                 if (diff > 0) {
@@ -421,20 +431,24 @@ const createWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorke
                         .map((a, j) => ({ index: j, alg: a }))
                         .filter(n => n.alg.algorithmName === algorithmName)
                         .slice(0, diff);
-                    newRequests.unshift(...algorithms.map(a => a.alg));
-                    indices.push(...algorithms.map(a => a.index));
+
+                    currentRequests.unshift(...algorithms.map(a => a.alg)); // push missing algorithms to the top
+                    algorithms.map(a => a.index).reduce((cur, ind) => { // save the indices so we can ignore them next iteration.
+                        cur[ind] = true;
+                        return cur;
+                    }, indices);
                 }
                 else {
-                    newRequests.push(r);
+                    currentRequests.push(r);
                 }
             }
-            else if (!indices.includes(i)) {
-                newRequests.push(r);
+            else if (!indices[i]) {
+                currentRequests.push(r);
             }
         });
     }
     const windowSize = Math.round(totalCapacityNow * 3);
-    const requestsWindow = newRequests.slice(0, windowSize);
+    const requestsWindow = currentRequests.slice(0, windowSize);
     return requestsWindow;
 };
 
@@ -471,7 +485,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const requestsWindow = createWindow(algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
     const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
 
-    // const totalRequests = normalizeRequisiteAmount(totalRequestsWithHot, algorithmTemplates);
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow, algorithmTemplates);
     // const workerTypes = calcRatio(mergedWorkers);
