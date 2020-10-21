@@ -24,6 +24,7 @@ const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 let createdJobsList = [];
 const MIN_AGE_FOR_STOP = 10 * 1000;
 let totalCapacityNow = 10;
+const WINDOW_SIZE_FACTOR = 3;
 const unscheduledAlgorithms = {};
 
 const _updateCapacity = (algorithmCount) => {
@@ -447,7 +448,7 @@ const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, ac
             }
         });
     }
-    const windowSize = Math.round(totalCapacityNow * 3);
+    const windowSize = Math.round(totalCapacityNow * WINDOW_SIZE_FACTOR);
     const requestsWindow = currentRequests.slice(0, windowSize);
     return requestsWindow;
 };
