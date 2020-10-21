@@ -895,8 +895,8 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(res[algorithm1]).to.eql({ idle: 0, required: 23, paused: 0, created: 23, skipped: 0, resumed: 0 });
-            expect(res[algorithm3]).to.eql({ idle: 0, required: 15, paused: 0, created: 15, skipped: 0, resumed: 0 });
-            expect(res[algorithm4]).to.eql({ idle: 0, required: 8, paused: 0, created: 8, skipped: 0, resumed: 0 });
+            expect(res[algorithm3]).to.eql({ idle: 0, required: 14, paused: 0, created: 14, skipped: 0, resumed: 0 });
+            expect(res[algorithm4]).to.eql({ idle: 0, required: 9, paused: 0, created: 9, skipped: 0, resumed: 0 });
         });
         it.skip('should work with algorithm with large minRequisiteAmount', async () => {
             const algorithm1 = 'no-requisite-x';
@@ -921,14 +921,14 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm3] = {
                 name: algorithm3,
                 algorithmImage,
-                minRequisiteAmount: 100,
+                minRequisiteAmount: 20,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm4] = {
                 name: algorithm4,
                 algorithmImage,
-                minRequisiteAmount: 50,
+                minRequisiteAmount: 30,
                 cpu: 0.1,
                 mem: 100
             };

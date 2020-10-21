@@ -19,6 +19,7 @@ const { normalizeWorkers,
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
 const { matchJobsToResources, pauseAccordingToResources, parseResources } = require('./resources');
+const { arrayToMap } = require('../utils/utils');
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
@@ -434,7 +435,9 @@ const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeW
 
                     const list = algorithms.map(a => a.alg);
                     // currentRequests.unshift(...list);
-                    requisites.algorithms[algorithmName] = list;
+                    requisites.algorithms[algorithmName] = requisites.algorithms[algorithmName] || { list: [], count: 0 };
+                    requisites.algorithms[algorithmName].list = list;
+                    requisites.algorithms[algorithmName].count = list.length;
                     requisites.total += list.length;
                     algorithms.forEach((alg) => {
                         indices[alg.index] = true; // save the indices so we will ignore them next iteration.
@@ -450,14 +453,14 @@ const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeW
         });
 
         // push missing algorithms to the top of the list in specific order
-        const ratioSum = Object.values(requisites.algorithms).reduce((prev, cur) => prev + cur.length, 0);
+        const ratioSum = Object.values(requisites.algorithms).reduce((prev, cur) => prev + cur.count, 0);
 
         while (requisites.total > 0) {
             Object.values(requisites.algorithms).forEach((v) => {
-                const ratio = (v.length / ratioSum);
-                const total = Math.round(v.length * ratio) || 1;
-                const arr = v.slice(0, total);
-                requisites.total -= total;
+                const ratio = (v.count / ratioSum);
+                const total = Math.round(v.count * ratio) || 1;
+                const arr = v.list.splice(0, total);
+                requisites.total -= arr.length;
                 currentRequests.unshift(...arr);
             });
         }
