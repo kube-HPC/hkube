@@ -480,7 +480,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const pendingWorkers = clonedeep(merged.extraJobs);
     const jobsCreated = clonedeep(createdJobsList);
 
-    _updateCapacity(idleWorkers.length + activeWorkers.length + createdJobsList.length + jobsCreated.length);
+    _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
 
     const requestsWindow = createWindow(algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
     const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
