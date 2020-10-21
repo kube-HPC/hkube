@@ -452,12 +452,12 @@ const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeW
             }
         });
 
+        const ratioSum = Object.values(requisites.algorithms).reduce((prev, cur) => prev + cur.length, 0);
         while (requisites.total > 0) {
-            const ratioSum = Object.values(requisites.algorithms).reduce((prev, cur) => prev + cur.length, 0);
             Object.values(requisites.algorithms).forEach((v) => {
                 const ratio = (v.length / ratioSum);
                 const total = Math.round(v.length * ratio) || 1;
-                const arr = v.splice(0, total);
+                const arr = v.slice(0, total);
                 requisites.total -= total;
                 currentRequests.unshift(...arr); // push missing algorithms to the top
             });
