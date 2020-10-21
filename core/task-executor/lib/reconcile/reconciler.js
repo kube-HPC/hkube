@@ -23,7 +23,7 @@ const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
 const MIN_AGE_FOR_STOP = 10 * 1000;
-let totalCapacityNow = 10;
+let totalCapacityNow = 10; // how much pods are running now
 const WINDOW_SIZE_FACTOR = 3;
 const unscheduledAlgorithms = {};
 
@@ -335,6 +335,20 @@ const calcRatio = (totalRequests, capacity, algorithmTemplates) => {
         return prev;
     }, { total: 0, algorithms: {} });
     Object.keys(requestTypes.algorithms).forEach(k => {
+        /**
+         * - capacity: 50 running pods
+         * 
+         * - window:
+         *   green:  800  --> req: 40
+         *   yellow: 200  --> req: 10
+         *   black:  100  --> req: 5
+         * 
+         *   ratio: (40 / 40) * 50 = 36
+         *   ratio: (10 / 40) * 50 = 9.1
+         *   ratio: (5 / 40) * 50 = 4.5
+         *   [g,g,g,g,(y),g,g,g,g,(y)]
+         * 
+         */
         if (capacity) {
             const ratio = requestTypes.algorithms[k].count / requestTypes.total;
             const required = ratio * capacity;
@@ -393,28 +407,16 @@ const _workersToMap = (requests) => {
     }, {});
 };
 
-/**
- * This method does two things: 
- *    1. prioritizing algorithms that have `minRequisiteAmount`.
- *    2. creating a subset (window) from the requests.
- * The algorithm is as follows:
- *    1. If there is any algorithm with `minRequisiteAmount`.
- *      a. Iterate all requests.
- *      b. If encountered an algorithm with `minRequisiteAmount` that didn't handle.
- *         b1. Mark the algorithm as visited.
- *         b2. Calculate missing algorithms by `minRequisiteAmount - running`.
- *         b3. If there are a missing algorithms, move these algorithms to the top of our window.
- *         b4. Save the indices of these algorithms to ignore them next iteration.
- *         b5. If there are no missing algorithms, just add it to the window.
- *      c. If already moved this algorithm to the top, ignore it, else add it to the window.
- *    2. creating new window from the requests
- */
-const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
-    const hasRequisiteAlgorithms = normRequests.some((r) => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
+const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+    const requisiteAlgorithms = normRequests
+        .filter(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount)
+        .map(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
+
     let currentRequests = normRequests;
 
-    if (hasRequisiteAlgorithms) {
+    if (requisiteAlgorithms.length > 0) {
         currentRequests = [];
+        const requisites = { algorithms: {}, total: 0 };
         const visited = {}; // map for visited algorithms
         const indices = {}; // map for handled algorithms indices that moved to top
         const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
@@ -433,11 +435,13 @@ const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, ac
                         .filter(n => n.alg.algorithmName === algorithmName)
                         .slice(0, diff);
 
-                    currentRequests.unshift(...algorithms.map(a => a.alg)); // push missing algorithms to the top
-                    algorithms.map(a => a.index).reduce((cur, ind) => { // save the indices so we will ignore them next iteration.
-                        cur[ind] = true;
-                        return cur;
-                    }, indices);
+                    const list = algorithms.map(a => a.alg);
+                    // currentRequests.unshift(...list);
+                    requisites.algorithms[algorithmName] = list;
+                    requisites.total += list.length;
+                    algorithms.forEach((alg) => {
+                        indices[alg.index] = true; // save the indices so we will ignore them next iteration.
+                    });
                 }
                 else {
                     currentRequests.push(r);
@@ -447,9 +451,45 @@ const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, ac
                 currentRequests.push(r);
             }
         });
+
+        while (requisites.total > 0) {
+            const ratioSum = Object.values(requisites.algorithms).reduce((prev, cur) => prev + cur.length, 0);
+            Object.values(requisites.algorithms).forEach((v) => {
+                const ratio = (v.length / ratioSum);
+                const total = Math.round(v.length * ratio) || 1;
+                const arr = v.splice(0, total);
+                requisites.total -= total;
+                currentRequests.unshift(...arr); // push missing algorithms to the top
+            });
+        }
     }
+    return currentRequests;
+};
+
+const _createWindow = (currentRequests) => {
     const windowSize = Math.round(totalCapacityNow * WINDOW_SIZE_FACTOR);
-    const requestsWindow = currentRequests.slice(0, windowSize);
+    return currentRequests.slice(0, windowSize);
+};
+
+/**
+ * This method does two things: 
+ *    1. prioritizing algorithms that have `minRequisiteAmount`.
+ *    2. creating a subset (window) from the requests.
+ * The algorithm is as follows:
+ *    1. If there is any algorithm with `minRequisiteAmount`.
+ *      a. Iterate all requests.
+ *      b. If encountered an algorithm with `minRequisiteAmount` that didn't handle.
+ *         b1. Mark the algorithm as visited.
+ *         b2. Calculate missing algorithms by `minRequisiteAmount - running`.
+ *         b3. If there are a missing algorithms, move these algorithms to the top of our window.
+ *         b4. Save the indices of these algorithms to ignore them next iteration.
+ *         b5. If there are no missing algorithms, just add it to the window.
+ *      c. If already moved this algorithm to the top, ignore it, else add it to the window.
+ *    2. creating new window from the requests
+ */
+const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+    const currentRequests = _createRequisite(normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+    const requestsWindow = _createWindow(currentRequests);
     return requestsWindow;
 };
 

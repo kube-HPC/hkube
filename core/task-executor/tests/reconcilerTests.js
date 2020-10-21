@@ -833,10 +833,10 @@ describe('reconciler', () => {
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
         it('should work with algorithm with minRequisiteAmount', async () => {
-            const algorithm1 = 'no-requisite-1';
-            const algorithm2 = 'no-requisite-2';
-            const algorithm3 = 'min-requisite-1';
-            const algorithm4 = 'min-algorithm-2';
+            const algorithm1 = 'no-requisite-x';
+            const algorithm2 = 'no-requisite-y';
+            const algorithm3 = 'requisite-1';
+            const algorithm4 = 'requisite-2';
             const algorithmImage = 'hkube/algorithm-example';
             algorithmTemplates[algorithm1] = {
                 name: algorithm1,
