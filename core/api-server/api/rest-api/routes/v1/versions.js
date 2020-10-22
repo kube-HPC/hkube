@@ -3,6 +3,7 @@ const HttpStatus = require('http-status-codes');
 const versionsService = require('../../../../lib/service/versions');
 const logger = require('../../middlewares/logger');
 
+// TODO: UPDATE DASHBOARD....
 const routes = (options) => {
     const router = express.Router();
     router.get('/', (req, res, next) => {
@@ -11,8 +12,8 @@ const routes = (options) => {
     });
     router.get('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        const { image, sort, order, limit } = req.query;
-        const response = await versionsService.getVersions({ name, algorithmImage: image, sort, order, limit });
+        const { id, sort, order, limit } = req.query;
+        const response = await versionsService.getVersions({ name, id, sort, order, limit });
         res.json(response);
         next();
     });
@@ -21,10 +22,15 @@ const routes = (options) => {
         res.status(HttpStatus.CREATED).json(response);
         next();
     });
+    router.post('/algorithms/tag', logger(), async (req, res, next) => {
+        const response = await versionsService.tagVersion(req.body);
+        res.status(HttpStatus.CREATED).json(response);
+        next();
+    });
     router.delete('/algorithms/:name', logger(), async (req, res, next) => {
         const { name } = req.params;
-        const { image } = req.query;
-        const response = await versionsService.deleteVersion({ name, image });
+        const { id } = req.query;
+        const response = await versionsService.deleteVersion({ name, id });
         res.json(response);
         next();
     });

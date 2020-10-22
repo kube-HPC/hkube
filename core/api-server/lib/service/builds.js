@@ -2,7 +2,6 @@ const path = require('path');
 const merge = require('lodash.merge');
 const crypto = require('crypto');
 const format = require('string-template');
-const semver = require('semver');
 const fse = require('fs-extra');
 const { diff } = require('deep-diff');
 const readChunk = require('read-chunk');
@@ -81,7 +80,7 @@ class Builds {
         merge(newAlgorithm, algorithm);
 
         if (result.shouldBuild) {
-            const version = this._incVersion(oldAlgorithm, payload);
+            const version = this._generateImageTag();
             buildId = this._createBuildID(algorithm.name);
             const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
             merge(newAlgorithm, { version, fileInfo: { path: putStream.path } });
@@ -103,7 +102,7 @@ class Builds {
         messages.push(...result.messages);
 
         if (result.shouldBuild) {
-            const version = newAlgorithm.gitRepository.commit.id;
+            const version = this._generateImageTag();
             buildId = this._createBuildID(newAlgorithm.name);
             const { env, name, gitRepository, type, baseImage } = newAlgorithm;
             merge(newAlgorithm, { version });
@@ -192,36 +191,8 @@ class Builds {
         return [algorithmName, uid({ length: 6 })].join('-');
     }
 
-    _incVersion(oldAlgorithm, newAlgorithm) {
-        const oldVersion = oldAlgorithm && oldAlgorithm.version;
-        const newVersion = newAlgorithm && newAlgorithm.version;
-
-        let version;
-        if (!oldVersion && !newVersion) {
-            version = '1.0.0';
-        }
-        else if (newVersion) {
-            version = newVersion;
-        }
-        else {
-            const ver = semver.valid(oldVersion);
-            if (!ver) {
-                version = oldVersion;
-            }
-            else {
-                const { patch, minor, major } = semver.parse(oldVersion);
-                if (patch < 500) {
-                    version = semver.inc(oldVersion, 'patch');
-                }
-                else if (minor < 500) {
-                    version = semver.inc(oldVersion, 'minor');
-                }
-                else if (major < 500) {
-                    version = semver.inc(oldVersion, 'major');
-                }
-            }
-        }
-        return version;
+    _generateImageTag() {
+        return uid({ length: 8 });
     }
 
     _resolveEnv(oldAlgorithm, newAlgorithm) {

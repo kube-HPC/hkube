@@ -578,15 +578,14 @@ describe('Store/Algorithms', () => {
                 const payload = {
                     name: `my-alg-${uuid()}`,
                     mem: "50Mi",
-                    cpu: 1,
-                    version: '1.9.0'
+                    cpu: 1
                 }
                 const formData = {
                     payload: JSON.stringify(payload),
                     file: fse.createReadStream('tests/mocks/algorithm.tar')
                 };
                 const options = {
-                    uri: restPath + '/apply',
+                    uri: applyPath,
 
                     formData
                 };
@@ -643,7 +642,7 @@ describe('Store/Algorithms', () => {
                     mem: "50Mi",
                     cpu: 1
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req)
                 expect(res.response.statusCode).to.equal(HttpStatus.OK);
@@ -657,7 +656,7 @@ describe('Store/Algorithms', () => {
                     mem: "50Mi",
                     cpu: 1
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req)
                 expect(res.response.statusCode).to.equal(HttpStatus.OK);
@@ -947,7 +946,6 @@ describe('Store/Algorithms', () => {
                     name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1,
-                    version: '1.9.0',
                     env: 'nodejs'
                 }
                 const formData = {
@@ -955,7 +953,7 @@ describe('Store/Algorithms', () => {
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
                 const options = {
-                    uri: restPath + '/apply',
+                    uri: applyPath,
                     formData
                 };
                 const response = await request(options);
@@ -981,13 +979,11 @@ describe('Store/Algorithms', () => {
                 }
                 const body1 = {
                     ...body,
-                    version: '1.8.0',
                     env: 'nodejs',
                     type: 'Code'
                 }
                 const body2 = {
                     ...body,
-                    version: '1.8.0',
                     env: 'nodejs',
                     cpu: 2
                 }
@@ -999,7 +995,7 @@ describe('Store/Algorithms', () => {
                     payload: JSON.stringify(body2),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const options1 = {
                     uri,
                     formData: formData1
@@ -1080,13 +1076,11 @@ describe('Store/Algorithms', () => {
                 }
                 const body1 = {
                     ...body,
-                    version: '1.8.0',
                     env: 'nodejs',
                     type: 'Code'
                 }
                 const body2 = {
                     ...body,
-                    version: '1.9.0',
                     env: 'python'
                 }
                 const options = {
@@ -1101,7 +1095,7 @@ describe('Store/Algorithms', () => {
                     payload: JSON.stringify(body2),
                     file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
                 };
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const options1 = {
                     uri,
                     formData: formData1
@@ -1127,7 +1121,6 @@ describe('Store/Algorithms', () => {
                     name: `my-alg-${uuid()}`,
                     mem: "50Mi",
                     cpu: 1,
-                    version: '1.8.0',
                     env: 'nodejs',
                     type: 'Code'
                 }
@@ -1146,7 +1139,7 @@ describe('Store/Algorithms', () => {
                 const formData2 = {
                     payload: JSON.stringify(body2)
                 };
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const options1 = {
                     uri,
                     formData: formData1
@@ -1180,7 +1173,7 @@ describe('Store/Algorithms', () => {
                     payload,
                     file: fse.createReadStream('tests/mocks/algorithm.zip')
                 };
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const options1 = { uri, formData: formData1 };
                 const getRequest = { uri: restPath + '/' + body.name, method: 'GET' };
 
@@ -1294,7 +1287,7 @@ describe('Store/Algorithms', () => {
                     name: apply1.name,
                     algorithmImage: 'new-test-algorithmImage'
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
@@ -1328,7 +1321,7 @@ describe('Store/Algorithms', () => {
                     name: apply1.name,
                     algorithmImage: 'new-test-algorithmImage'
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(apply2) } };
 
@@ -1363,7 +1356,7 @@ describe('Store/Algorithms', () => {
                     algorithmImage: 'new-test-algorithmImage',
                     cpu: 2,
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: false }), payload: JSON.stringify(apply2) } };
 
@@ -1398,7 +1391,7 @@ describe('Store/Algorithms', () => {
                     algorithmImage: 'new-test-algorithmImage',
                     cpu: 2,
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(apply2) } };
 
@@ -1432,7 +1425,7 @@ describe('Store/Algorithms', () => {
                     name: apply1.name,
                     cpu: 2
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
@@ -1466,7 +1459,7 @@ describe('Store/Algorithms', () => {
                     name: apply1.name,
                     gpu: 2
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
@@ -1500,7 +1493,7 @@ describe('Store/Algorithms', () => {
                     name: apply1.name,
                     mem: "1.5Gi"
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
@@ -1534,7 +1527,7 @@ describe('Store/Algorithms', () => {
                     name: apply1.name,
                     minHotWorkers: 3
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
@@ -1573,7 +1566,7 @@ describe('Store/Algorithms', () => {
                         storage: 'fs'
                     }
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
@@ -1605,7 +1598,7 @@ describe('Store/Algorithms', () => {
                         storage_env: 's3'
                     }
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
@@ -1630,7 +1623,346 @@ describe('Store/Algorithms', () => {
                     algorithmImage: 'test-algorithmImage',
                     reservedMemory
                 }
-                const uri = restPath + '/apply';
+                const uri = applyPath;
+                const req = { uri, formData: { payload: JSON.stringify(apply) } };
+                const res = await request(req);
+                expect(res.body.algorithm.reservedMemory).to.eql(reservedMemory);
+            });
+        });
+        describe.skip('Versions', () => {
+            it('should not take affect on algorithmImage change', async () => {
+                const apply = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    cpu: 1,
+                    mem: "50Mi"
+                }
+                const req1 = { uri: applyPath, formData: { payload: JSON.stringify(apply) } };
+                await request(req1);
+                const res2 = await request({ uri: `${versionsPath}/${apply.name}`, method: 'GET' });
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1 });
+            });
+            it('should take affect on algorithmImage change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmImage: 'new-test-algorithmImage'
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
+            it('should not apply changes to current when algorithmImage changes', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmImage: 'new-test-algorithmImage',
+                    cpu: 2,
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: false }), payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1 });
+            });
+            it('should apply changes to current when algorithmImage changes with overrideImage', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmImage: 'new-test-algorithmImage',
+                    cpu: 2,
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just cpu change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    cpu: 2
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just gpu change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    gpu: 2
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just mem change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    mem: "1.5Gi"
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just minHotWorkers change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    minHotWorkers: 3
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
+            });
+            it('should succeed to apply algorithm with just algorithmEnv change', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    mem: "50Mi",
+                    type: "Image",
+                    cpu: 1,
+                    minHotWorkers: 5,
+                    options: {
+                        debug: false,
+                        pending: false
+                    },
+                    algorithmEnv: {
+                        storage: 's3'
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmEnv: {
+                        storage: 'fs'
+                    }
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body).to.eql({ ...defaultProps, ...apply1, ...apply2 });
+            });
+            it('should succeed to add and delete algorithmEnv', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    algorithmEnv: {
+                        storage_env: 's3',
+                        stam_env: 'v344'
+                    }
+                }
+                const apply2 = {
+                    name: apply1.name,
+                    algorithmEnv: {
+                        storage_env: 's3'
+                    }
+                }
+                const uri = applyPath;
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
+
+                // apply algorithm
+                await request(request1)
+
+                // apply algorithm again
+                await request(request2);
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body.algorithmEnv.storage_env).to.eql('s3');
+                expect(response3.body.algorithmEnv.stam_env).to.not.exist;
+            });
+            it('should succeed to add reservedMemory', async () => {
+                const reservedMemory = "512Mi";
+                const apply = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    reservedMemory
+                }
+                const uri = applyPath;
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req);
                 expect(res.body.algorithm.reservedMemory).to.eql(reservedMemory);

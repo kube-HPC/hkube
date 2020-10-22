@@ -101,6 +101,8 @@
   $ref: ./versions/version.yaml
 /versions/algorithms/apply:
   $ref: ./versions/apply.yaml
+/versions/algorithms/tag:
+  $ref: ./versions/tag.yaml
 
 # experiment
 /experiment/{name}:

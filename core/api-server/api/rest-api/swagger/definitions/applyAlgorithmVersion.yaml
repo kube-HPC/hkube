@@ -2,12 +2,12 @@ type: object
 properties:
   name:
     $ref: "#/components/schemas/algorithmName"
-  image:
-    $ref: "#/components/schemas/algorithmImage"
+  id:
+    $ref: "#/components/schemas/algorithmVersionId"
   force:
     type: boolean
     description: should replace or not current algorithm version for running algorithm instances
     default: false
 required:
   - name
-  - image
+  - id

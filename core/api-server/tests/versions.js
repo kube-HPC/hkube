@@ -261,6 +261,84 @@ describe('Versions/Algorithms', () => {
             expect(res2.body).to.eql({ ...defaultProps, name, algorithmImage: algorithmImage2 });
             expect(res3.body.error.message).to.eql(`algorithmVersion ${applyPayload3.image} Not Found`);
         });
+    });
+    describe.skip('tag', () => {
+        let uri;
+        before(() => {
+            uri = `${restPath}/tag`
+        })
+        it('should throw validation error of required property name', async () => {
+            const body = {
+            };
+            const req = { uri, body };
+            const res = await request(req);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal("data should have required property 'name'");
+        });
+        it('should throw validation error of required property id', async () => {
+            const body = {
+                name: `my-alg-${uuid()}`
+            };
+            const req = { uri, body };
+            const res = await request(req);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal("data should have required property 'id'");
+        });
+        it('should throw validation error of data.name should be string', async () => {
+            const body = {
+                name: {}
+            };
+            const req = { uri, body };
+            const res = await request(req);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal('data.name should be string');
+        });
+        it('should throw validation error of data.id should be string', async () => {
+            const body = {
+                name: `my-alg-${uuid()}`,
+                id: {}
+            };
+            const req = { uri, body };
+            const res = await request(req)
+            expect(res.body).to.have.property('error');
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal('data.id should be string');
+        });
+        it('should throw validation error of algorithm Not Found', async () => {
+            const body = {
+                name: `my-alg-${uuid()}`,
+                id: 'test-algorithmImage'
+            };
+            const req = { uri, body };
+            const res = await request(req)
+            expect(res.body).to.have.property('error');
+            expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(res.body.error.message).to.equal(`algorithm ${body.name} Not Found`);
+        });
+        it('should succeed to tag version', async () => {
+            const name = `my-alg-${uuid()}`;
+            const algorithmImage = 'test-algorithmImage-1';
+            const applyPayload = {
+                name,
+                algorithmImage,
+            }
 
+            const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload) } };
+            const versionReq = { uri: `${restPath}/${name}`, body: applyPayload, method: 'GET' };
+
+            const res1 = await request(applyReq);
+            const res2 = await request(versionReq);
+            const id = res2.body[0].id;
+            const tagReq = { uri, body: { name, id, pinned: true, tags: ['fast', 'good'] } };
+            const res3 = await request(tagReq);
+            const res4 = await request(versionReq);
+
+            expect(res1.body).to.eql({ ...defaultProps, name, algorithmImage: algorithmImage1 });
+            expect(res2.body).to.eql({ ...defaultProps, name, algorithmImage: algorithmImage2 });
+            expect(res3.body.error.message).to.eql(`algorithmVersion ${applyPayload3.image} Not Found`);
+        });
     });
 });

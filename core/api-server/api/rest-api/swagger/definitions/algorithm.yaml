@@ -96,8 +96,6 @@ properties:
   baseImage:
     type: string
     description: Custom docker image to be used as base to the newly built algorithm image
-  version:
-    type: string
   minHotWorkers:
     type: integer
     description: how many live algorithm instances will always run
