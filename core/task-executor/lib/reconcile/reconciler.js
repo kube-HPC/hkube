@@ -19,7 +19,6 @@ const { normalizeWorkers,
 
 const { setWorkerImage, createContainerResource, setAlgorithmImage } = require('./createOptions');
 const { matchJobsToResources, pauseAccordingToResources, parseResources } = require('./resources');
-const { arrayToMap } = require('../utils/utils');
 const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
@@ -322,7 +321,7 @@ const _getNodeStats = (normResources) => {
     return statsPerNode;
 };
 
-const calcRatio = (totalRequests, capacity, algorithmTemplates) => {
+const calcRatio = (totalRequests, capacity) => {
     const requestTypes = totalRequests.reduce((prev, cur) => {
         if (!prev.algorithms[cur.algorithmName]) {
             prev.algorithms[cur.algorithmName] = {
@@ -336,29 +335,16 @@ const calcRatio = (totalRequests, capacity, algorithmTemplates) => {
         return prev;
     }, { total: 0, algorithms: {} });
     Object.keys(requestTypes.algorithms).forEach(k => {
-        /**
-         * - capacity: 50 running pods
-         * 
-         * - window:
-         *   green:  800  --> req: 40
-         *   yellow: 200  --> req: 10
-         *   black:  100  --> req: 5
-         * 
-         *   ratio: (40 / 40) * 50 = 36
-         *   ratio: (10 / 40) * 50 = 9.1
-         *   ratio: (5 / 40) * 50 = 4.5
-         *   [g,g,g,g,(y),g,g,g,g,(y)]
-         * 
-         */
         if (capacity) {
             const ratio = requestTypes.algorithms[k].count / requestTypes.total;
             const required = ratio * capacity;
-            const minRequisiteAmount = (algorithmTemplates && algorithmTemplates[k]?.minRequisiteAmount) || 0;
+            // const minRequisiteAmount = (algorithmTemplates && algorithmTemplates[k]?.minRequisiteAmount) || 0;
 
             // in case that algorithm has `minRequisiteAmount`,
             // we don't want to take less than `minRequisiteAmount` value.
             requestTypes.algorithms[k].ratio = ratio;
-            requestTypes.algorithms[k].required = Math.max(required, minRequisiteAmount);
+            requestTypes.algorithms[k].required = required;
+            // requestTypes.algorithms[k].required = Math.max(required, minRequisiteAmount);
         }
     });
     return requestTypes;
@@ -408,62 +394,87 @@ const _workersToMap = (requests) => {
     }, {});
 };
 
+const _mergeRequisiteRequests = (requests, requisites) => {
+    const ratioSum = requisites.totalRequired;
+
+    /**
+    *
+    * requisites:
+    *     alg  | count | req  | diff
+    *   green  |  800  |  80  |  10
+    *   yellow |  200  |  20  |  8
+    *   black  |  100  |  10  |  5
+    *   total  |  1100 |  110 |  23
+    * 
+    * ratios:
+    *   green:  (10 / 23) * 10 = ~4
+    *   yellow: (08 / 23) * 8  = ~3
+    *   black:  (05 / 23) * 5  = ~1
+    *   [g,g,g,g,y,y,y,b]
+    *
+    */
+    while (requisites.totalRequired > 0) {
+        Object.values(requisites.algorithms).forEach((v) => {
+            const ratio = (v.required.length / ratioSum);
+            const required = Math.round(v.required.length * ratio) || 1;
+            const diff = requisites.totalRequired - required;
+            const total = diff < 0 ? requisites.totalRequired : required;
+            const arr = v.required.slice(0, total);
+            requisites.totalRequired -= arr.length;
+            requests.unshift(...arr);
+        });
+    }
+    return requests;
+};
+
+const _createRequisitesRequests = (normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+    const requests = [];
+    const visited = {};
+    const indices = {};
+    const requisites = { algorithms: {}, totalRequired: 0 };
+    const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
+    const runningWorkersMap = _workersToMap(runningWorkersList);
+
+    normRequests.forEach((r, i) => {
+        const { algorithmName } = r;
+        const minRequisiteAmount = algorithmTemplates[algorithmName]?.minRequisiteAmount;
+        if (minRequisiteAmount && !visited[algorithmName]) {
+            visited[algorithmName] = true;
+            const running = runningWorkersMap[algorithmName] || 0;
+            const diff = minRequisiteAmount - running;
+            if (diff > 0) {
+                const algorithms = normRequests
+                    .map((a, j) => ({ index: j, alg: a }))
+                    .filter(n => n.alg.algorithmName === algorithmName);
+                const required = algorithms.slice(0, diff);
+                // requests.unshift(...list);
+                requisites.algorithms[algorithmName] = requisites.algorithms[algorithmName] || {};
+                requisites.algorithms[algorithmName].minRequisite = minRequisiteAmount;
+                requisites.algorithms[algorithmName].required = required.map(a => a.alg);
+                requisites.algorithms[algorithmName].count = algorithms.length;
+                requisites.totalRequired += required.length;
+                required.forEach((alg) => {
+                    indices[alg.index] = true; // save the indices so we will ignore them next iteration.
+                });
+            }
+            else {
+                requests.push(r);
+            }
+        }
+        else if (!indices[i]) {
+            requests.push(r);
+        }
+    });
+    return { requests, requisites };
+};
+
 const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
     const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
     let currentRequests = normRequests;
 
     if (hasRequisiteAlgorithms) {
-        currentRequests = [];
-        const requisites = { algorithms: {}, total: 0 };
-        const visited = {}; // map for visited algorithms
-        const indices = {}; // map for handled algorithms indices that moved to top
-        const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
-        const runningWorkersMap = _workersToMap(runningWorkersList);
-
-        normRequests.forEach((r, i) => {
-            const { algorithmName } = r;
-            const minRequisiteAmount = algorithmTemplates[algorithmName]?.minRequisiteAmount;
-            if (minRequisiteAmount && !visited[algorithmName]) {
-                visited[algorithmName] = true;
-                const running = runningWorkersMap[algorithmName] || 0;
-                const diff = minRequisiteAmount - running;
-                if (diff > 0) {
-                    const algorithms = normRequests
-                        .map((a, j) => ({ index: j, alg: a }))
-                        .filter(n => n.alg.algorithmName === algorithmName)
-                        .slice(0, diff);
-
-                    const list = algorithms.map(a => a.alg);
-                    // currentRequests.unshift(...list);
-                    requisites.algorithms[algorithmName] = requisites.algorithms[algorithmName] || { list: [], count: 0 };
-                    requisites.algorithms[algorithmName].list = list;
-                    requisites.algorithms[algorithmName].count = list.length;
-                    requisites.total += list.length;
-                    algorithms.forEach((alg) => {
-                        indices[alg.index] = true; // save the indices so we will ignore them next iteration.
-                    });
-                }
-                else {
-                    currentRequests.push(r);
-                }
-            }
-            else if (!indices[i]) {
-                currentRequests.push(r);
-            }
-        });
-
-        // push missing algorithms to the top of the list in specific order
-        const ratioSum = Object.values(requisites.algorithms).reduce((prev, cur) => prev + cur.count, 0);
-
-        while (requisites.total > 0) {
-            Object.values(requisites.algorithms).forEach((v) => {
-                const ratio = (v.count / ratioSum);
-                const total = Math.round(v.count * ratio) || 1;
-                const arr = v.list.splice(0, total);
-                requisites.total -= arr.length;
-                currentRequests.unshift(...arr);
-            });
-        }
+        const { requests, requisites } = _createRequisitesRequests(normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+        currentRequests = _mergeRequisiteRequests(requests, requisites);
     }
     return currentRequests;
 };

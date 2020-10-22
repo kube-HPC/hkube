@@ -26,6 +26,14 @@ const prepareDriversData = (options) => {
 }
 const settings = prepareDriversData(options);
 
+const shuffle = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(0.5 * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 describe('reconciler', () => {
     before(async () => {
         reconciler = require('../lib/reconcile/reconciler');
@@ -832,7 +840,9 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
-        it('should work with algorithm with small minRequisiteAmount', async () => {
+    });
+    describe.skip('reconcile algorithms minRequisiteAmount', () => {
+        it('should work with algorithm with no minRequisiteAmount', async () => {
             const algorithm1 = 'no-requisite-x';
             const algorithm2 = 'no-requisite-y';
             const algorithm3 = 'requisite-1';
@@ -855,14 +865,14 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm3] = {
                 name: algorithm3,
                 algorithmImage,
-                minRequisiteAmount: 12,
+                minRequisiteAmount: 0,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm4] = {
                 name: algorithm4,
                 algorithmImage,
-                minRequisiteAmount: 8,
+                minRequisiteAmount: 0,
                 cpu: 0.1,
                 mem: 100
             };
@@ -873,14 +883,7 @@ describe('reconciler', () => {
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm3 })),
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm4 }))
             ]
-            const shuffle = (array) => {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(0.5 * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
-            }
-            const data = shuffle(array);
+            const data = array;
             const res = await reconciler.reconcile({
                 options,
                 normResources,
@@ -894,16 +897,74 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res[algorithm1]).to.eql({ idle: 0, required: 23, paused: 0, created: 23, skipped: 0, resumed: 0 });
-            expect(res[algorithm3]).to.eql({ idle: 0, required: 14, paused: 0, created: 14, skipped: 0, resumed: 0 });
-            expect(res[algorithm4]).to.eql({ idle: 0, required: 9, paused: 0, created: 9, skipped: 0, resumed: 0 });
+            expect(res[algorithm1]).to.eql({ idle: 0, required: 34, paused: 0, created: 34, skipped: 0, resumed: 0 });
+            expect(res[algorithm2]).to.eql({ idle: 0, required: 12, paused: 0, created: 12, skipped: 0, resumed: 0 });
         });
-        it.skip('should work with algorithm with large minRequisiteAmount', async () => {
+        it('should create minRequisiteAmount as example doc', async () => {
+            const algorithm1 = 'green';
+            const algorithm2 = 'yellow';
+            const algorithm3 = 'black';
+            const algorithmImage = 'hkube/algorithm-example';
+            const workerImage = 'hkube/worker';
+            const workerStatus = 'ready';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                minRequisiteAmount: 80,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm2] = {
+                name: algorithm2,
+                algorithmImage,
+                minRequisiteAmount: 20,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm3] = {
+                name: algorithm3,
+                algorithmImage,
+                minRequisiteAmount: 10,
+                cpu: 0.1,
+                mem: 100
+            };
+            const requests = [
+                ...Array.from(Array(800).keys()).map(() => ({ name: algorithm1 })),
+                ...Array.from(Array(200).keys()).map(() => ({ name: algorithm2 })),
+                ...Array.from(Array(100).keys()).map(() => ({ name: algorithm3 })),
+            ]
+            const workers = [
+                ...Array.from(Array(70).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus })),
+                ...Array.from(Array(12).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm2, workerStatus })),
+                ...Array.from(Array(5).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus })),
+            ];
+            const data = shuffle(requests);
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{ data }],
+                workers,
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res[algorithm1]).to.eql({ idle: 0, required: 10, paused: 0, created: 10, skipped: 0, resumed: 0 });
+            expect(res[algorithm3]).to.eql({ idle: 0, required: 8, paused: 0, created: 8, skipped: 0, resumed: 0 });
+            expect(res[algorithm4]).to.eql({ idle: 0, required: 5, paused: 0, created: 5, skipped: 0, resumed: 0 });
+        });
+        it('should work with algorithm with small minRequisiteAmount', async () => {
             const algorithm1 = 'no-requisite-x';
             const algorithm2 = 'no-requisite-y';
             const algorithm3 = 'requisite-1';
             const algorithm4 = 'requisite-2';
             const algorithmImage = 'hkube/algorithm-example';
+            const workerImage = 'hkube/worker';
+            const workerStatus = 'ready';
             algorithmTemplates[algorithm1] = {
                 name: algorithm1,
                 algorithmImage,
@@ -928,25 +989,84 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm4] = {
                 name: algorithm4,
                 algorithmImage,
-                minRequisiteAmount: 30,
+                minRequisiteAmount: 10,
+                cpu: 0.1,
+                mem: 100
+            };
+            const requestsAmount = 100;
+            const workersAmount = 5;
+            const requests = [
+                ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm1 })),
+                ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm2 })),
+                ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm3 })),
+                ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm4 }))
+            ]
+            const workers = [
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm2, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm4, workerStatus }))
+            ];
+            const data = shuffle(requests);
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{ data }],
+                workers,
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res[algorithm1]).to.eql({ idle: 0, required: 23, paused: 0, created: 23, skipped: 0, resumed: 0 });
+            expect(res[algorithm3]).to.eql({ idle: 0, required: 14, paused: 0, created: 14, skipped: 0, resumed: 0 });
+            expect(res[algorithm4]).to.eql({ idle: 0, required: 9, paused: 0, created: 9, skipped: 0, resumed: 0 });
+        });
+        it('should prioritizing minRequisiteAmount', async () => {
+            const algorithm1 = 'no-requisite-x';
+            const algorithm2 = 'no-requisite-y';
+            const algorithm3 = 'requisite-1';
+            const algorithm4 = 'requisite-2';
+            const algorithmImage = 'hkube/algorithm-example';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                minRequisiteAmount: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm2] = {
+                name: algorithm2,
+                algorithmImage,
+                minRequisiteAmount: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm3] = {
+                name: algorithm3,
+                algorithmImage,
+                minRequisiteAmount: 90,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm4] = {
+                name: algorithm4,
+                algorithmImage,
+                minRequisiteAmount: 90,
                 cpu: 0.1,
                 mem: 100
             };
             const amount = 100;
-            const array = [
+            const data = [
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm1 })),
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm2 })),
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm3 })),
                 ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm4 }))
             ]
-            const shuffle = (array) => {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(0.5 * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-                return array;
-            }
-            const data = shuffle(array);
             const res = await reconciler.reconcile({
                 options,
                 normResources,
@@ -961,8 +1081,7 @@ describe('reconciler', () => {
             });
             expect(res).to.exist;
             expect(res[algorithm1]).to.eql({ idle: 0, required: 23, paused: 0, created: 23, skipped: 0, resumed: 0 });
-            expect(res[algorithm3]).to.eql({ idle: 0, required: 14, paused: 0, created: 14, skipped: 0, resumed: 0 });
-            expect(res[algorithm4]).to.eql({ idle: 0, required: 9, paused: 0, created: 9, skipped: 0, resumed: 0 });
+            expect(res[algorithm2]).to.eql({ idle: 0, required: 14, paused: 0, created: 14, skipped: 0, resumed: 0 });
         });
     });
     describe('reconcile algorithms scheduling tests', () => {
