@@ -22,7 +22,7 @@ post:
           type: object
           properties:
             name:
-              $ref: "#/components/schemas/dataSourceName"
+              $ref: "#/components/schemas/dataSourceCreate"
             file:
               type: string
               format: binary
@@ -35,7 +35,7 @@ post:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/defaultResponseWithName"
+            $ref: "#/components/schemas/dataSource"
     "400":
       description: bad request
       content:

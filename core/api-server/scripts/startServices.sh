@@ -19,6 +19,11 @@ docker run -d -p 9000:9000 \
     -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" \
     minio/minio server /data
 
+docker run -d -p 27017:27017 \
+    --rm \
+    --name mongodb \
+    mongo:4.4.1-bionic
+
 docker run \
     -d \
     --rm \
