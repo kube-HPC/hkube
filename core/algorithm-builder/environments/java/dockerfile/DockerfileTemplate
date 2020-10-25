@@ -2,6 +2,8 @@ FROM  ${DOCKER_PULL_REGISTRY_USER}/maven:3.6.3-openjdk-11-slim
 LABEL maintainer="hkube.dev@gmail.com"
 ENV PACKAGES_REGISTRY_USER ${PACKAGES_REGISTRY_USER}
 ENV PACKAGES_TOKEN ${PACKAGES_TOKEN}
+ENV PACKAGES_REGISTRY ${PACKAGES_REGISTRY}
+COPY ./dockerfile/settings.xml ./algorithm_unique_folder/src/main/resources/settings.xml* /root/.m2/
 COPY  ./dockerfile/cpy-settings ./algorithm_unique_folder/src/main/resources/settings.xml* /root/.m2/
 COPY ./jars/* /hkube/algorithm-runner/
 COPY ./m2 /root/.m2/repository
