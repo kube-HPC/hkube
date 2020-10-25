@@ -4,7 +4,6 @@ ENV PACKAGES_REGISTRY_USER ${PACKAGES_REGISTRY_USER}
 ENV PACKAGES_TOKEN ${PACKAGES_TOKEN}
 ENV PACKAGES_REGISTRY ${PACKAGES_REGISTRY}
 COPY ./dockerfile/settings.xml ./algorithm_unique_folder/src/main/resources/settings.xml* /root/.m2/
-COPY  ./dockerfile/cpy-settings ./algorithm_unique_folder/src/main/resources/settings.xml* /root/.m2/
 COPY ./jars/* /hkube/algorithm-runner/
 RUN mvn -q install:install-file -Dfile=/hkube/algorithm-runner/interfaces.jar -DartifactId=interfaces -DgroupId=io.hkube -Dversion=${javaWrapperVersion} -Dpackaging=jar
 RUN mvn -q install:install-file -Dfile=/hkube/algorithm-runner/java-algo-parent.xml -DartifactId=java-algo-parent -DgroupId=io.hkube -Dversion=${javaWrapperVersion} -Dpackaging=pom
