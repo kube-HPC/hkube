@@ -15,7 +15,7 @@
     <mirrors></mirrors>
     <profiles>
         <profile>
-            <id>custormer</id>
+            <id>customer</id>
             <repositories>
                 <repository>
                     <id>central</id>
@@ -42,6 +42,6 @@
             </profile>
         </profiles>
         <activeProfiles>
-            <activeProfile>custormer</activeProfile>
+            <activeProfile>customer</activeProfile>
         </activeProfiles>
     </settings>
