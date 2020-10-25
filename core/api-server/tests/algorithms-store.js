@@ -1588,6 +1588,47 @@ describe('Store/Algorithms', () => {
                 expect(algorithm.algorithmEnv.storage_env).to.eql('s3');
                 expect(algorithm.algorithmEnv.stam_env).to.not.exist;
             });
+            it('should succeed to add algorithmEnv from configMap', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    algorithmEnv: {
+                        storage_env: 's3',
+                        cm_env: {configMapKeyRef:{name: 'my-cm', key: 'cm_env'}}
+                    }
+                }
+               
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+
+                // apply algorithm
+                await request(request1)
+
+                const request3 = {
+                    uri: restPath + '/' + apply1.name,
+                    method: 'GET'
+                };
+                const response3 = await request(request3);
+                expect(response3.body.algorithmEnv.storage_env).to.eql('s3');
+                expect(response3.body.algorithmEnv.cm_env).to.eql({configMapKeyRef:{name: 'my-cm', key: 'cm_env'}});
+            });
+            it('should fail to add algorithmEnv not from list', async () => {
+                const apply1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    algorithmEnv: {
+                        storage_env: 's3',
+                        cm_env: {foo:{name: 'my-cm', key: 'cm_env'}}
+                    }
+                }
+               
+                const uri = restPath + '/apply';
+                const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
+
+                // apply algorithm
+                const response1 = await request(request1)
+                expect(response1.body.error.message).to.eql("data should be equal to one of the allowed values (fieldRef,configMapKeyRef,resourceFieldRef,secretKeyRef)");
+            });
             it('should succeed to add reservedMemory', async () => {
                 const reservedMemory = "512Mi";
                 const apply = {
