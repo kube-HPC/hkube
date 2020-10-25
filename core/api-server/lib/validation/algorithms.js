@@ -107,10 +107,7 @@ class ApiValidator {
             }
             else if (this._isObject(v)) {
                 const key = Object.keys(v)[0];
-                const valid = this._validator.validate(this._validator.definitionsInternal.kubernetesValueFrom, key);
-                if (!valid) {
-                    throw new InvalidDataError(`${key} is invalid, only ${this._validator.definitionsInternal.kubernetesValueFrom.enum.join(',')}`);
-                }
+                this._validator.validate(this._validator.definitionsInternal.kubernetesValueFrom, key);
             }
         });
     }
