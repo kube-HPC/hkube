@@ -8,6 +8,10 @@ const { MESSAGES } = require('../lib/consts/builds');
 const { request, delay, defaultProps } = require('./utils');
 let restUrl, restPath;
 
+// a valid mongo ObjectID;
+const nonExistingId = '5f953d50dd38c8291924a0a3';
+const fileName = 'README-1.md';
+
 /** @type {(props?: {
  * body?: {
  *      name?:string
@@ -22,7 +26,7 @@ const createDataSource = ({
 } = {}) => {
     const formData = {
         ...body,
-        file: withFile ? fse.createReadStream('tests/mocks/algorithm.tar') : undefined
+        file: withFile ? fse.createReadStream(`tests/mocks/${fileName}`) : undefined
     };
     const options = {
         uri,
@@ -30,9 +34,6 @@ const createDataSource = ({
     };
     return request(options);
 };
-
-// a valid mongo ObjectID;
-const nonExistingId = '5f953d50dd38c8291924a0a3';
 
 describe.only('Datasource', () => {
     before(() => {
@@ -65,6 +66,47 @@ describe.only('Datasource', () => {
             expect(dataSource.id).to.be.string;
             expect(dataSource).to.have.property('name');
             expect(dataSource.name).to.eq(name);
+            expect(dataSource).to.have.property('files');
+            dataSource.files.forEach(file => {
+                expect(file).to.have.property('href');
+                expect(file).to.have.property('name');
+                expect(file).to.have.property('type');
+            });
+        });
+    });
+    describe('datasource/:id/:fileName GET', () => {
+        it('should fetch a file', async () => {
+            const name = uuid();
+            const { response: createResponse } = await createDataSource({ body: { name } });
+            const options = {
+                uri: `${restPath}/${createResponse.body.id}/${fileName}`,
+                method: 'GET'
+            };
+            const { response: fetchFileResponse } = await request(options);
+            expect(fetchFileResponse.statusCode).to.eq(HttpStatus.OK);
+            expect(fetchFileResponse.body).to.be.string;
+            const fileContent = fse.readFileSync(`tests/mocks/${fileName}`).toString();
+            expect(fileContent).to.eq(fetchFileResponse.body);
+        });
+        it('invalid dataSource id', async () => {
+            const options = {
+                uri: `${restPath}/${nonExistingId}/${fileName}`,
+                method: 'GET'
+            };
+            const { response: fetchFileResponse } = await request(options);
+            expect(fetchFileResponse.body).to.have.property('error');
+            expect(fetchFileResponse.statusCode).to.eq(404);
+        });
+        it('invalid file name', async () => {
+            const name = uuid();
+            const { response: createResponse } = await createDataSource({ body: { name } });
+            const options = {
+                uri: `${restPath}/${createResponse.body.id}/wrong-file-name`,
+                method: 'GET'
+            };
+            const { response: fetchFileResponse } = await request(options);
+            expect(fetchFileResponse.body).to.have.property('error');
+            expect(fetchFileResponse.statusCode).to.eq(404);
         });
     });
     describe('/datasource/:id DELETE', () => {
@@ -206,7 +248,7 @@ describe.only('Datasource', () => {
             expect(response.body.message).to.contain('successfully deleted from store');
         });
     });
-    describe.skip('/datasource GET', () => {
+    describe('/datasource GET', () => {
         it('should success to get list of datasources', async () => {
             const options = {
                 uri: restPath,

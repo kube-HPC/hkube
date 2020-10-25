@@ -1,5 +1,6 @@
 const storage = require('@hkube/storage-manager');
 const { errorTypes } = require('@hkube/db/lib/errors');
+const fse = require('fs-extra');
 const dbConnection = require('../db');
 const validator = require('../validation/api-validator');
 const { InvalidDataError, ResourceExistsError } = require('../errors');
@@ -9,12 +10,12 @@ const { InvalidDataError, ResourceExistsError } = require('../errors');
 class DataSource {
     /** @param {Express.Multer.File} file */
     async uploadFile(dataSourceID, file) {
-        storage.hkubeDataSource.putStream({
+        const createdPath = await storage.hkubeDataSource.putStream({
             dataSource: dataSourceID,
-            data: file.stream,
+            data: fse.createReadStream(file.path),
             fileName: file.originalname
         });
-        return file.originalname;
+        return { createdPath, fileName: file.originalname };
     }
 
     /** @type {(name: string, file: Express.Multer.File) => Promise<DataSourceItem> } */
@@ -34,7 +35,7 @@ class DataSource {
             }
             throw error;
         }
-        // await this.uploadFile(id, file);
+        await this.uploadFile(createdDataSource.id, file);
         return createdDataSource;
     }
 
@@ -42,11 +43,16 @@ class DataSource {
         return [];
     }
 
-    /** @param {string} id */
+    /** @type { (id: string) => Promise<DataSourceItem & {files: string[] }> } */
     async fetchDataSource(id) {
         const db = dbConnection.connection;
-        // TODO: list all the files from the storage
-        return db.dataSources.fetch({ id });
+        const dataSource = await db.dataSources.fetch({ id });
+        /**
+         * @typedef {{path: string}} responseFile
+         * @type {responseFile[]}
+         * */
+        const files = await storage.hkubeDataSource.list({ dataSource: dataSource.id.toString() });
+        return { ...dataSource, files: files.map(file => file.path) };
     }
 
     /**
@@ -54,8 +60,7 @@ class DataSource {
      * @param {string} fileName
      * */
     async fetchFile(dataSourceId, fileName) {
-        console.log({ dataSourceId, fileName });
-        return "";
+        return storage.hkubeDataSource.getStream({ dataSource: dataSourceId, fileName });
     }
 
     async delete(id) {

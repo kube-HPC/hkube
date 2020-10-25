@@ -1,13 +1,13 @@
+const path = require('path');
 const { isDBError, errorTypes } = require('@hkube/db/lib/errors');
 const { Router } = require('express');
-const { lchown } = require('fs-extra');
 const multer = require('multer');
-const { ResourceNotFoundError } = require('../../../../lib/errors');
-const InvalidDataError = require('../../../../lib/errors/InvalidDataError');
-const upload = multer({ dest: 'uploads/datasource/' });
-// consider replacing multer with busboy to handle the stream without saving to disk
+const { ResourceNotFoundError, InvalidDataError } = require('../../../../lib/errors');
 const dataSource = require('../../../../lib/service/dataSource');
-const validation = require('../../../../lib/validation');
+const { promisifyStream } = require('../../../../lib/stream');
+
+// consider replacing multer with busboy to handle the stream without saving to disk
+const upload = multer({ dest: 'uploads/datasource/' });
 
 const errorsMiddleware = (error, req, res, next) => {
     if (isDBError(error)) {
@@ -17,6 +17,16 @@ const errorsMiddleware = (error, req, res, next) => {
         throw new InvalidDataError(error.message);
     }
     return next(error);
+};
+
+/** @type {(dataSourceId: string ) => (filePath: string) => {type: string, name: string, href: string}} */
+const extractFileMeta = (dataSourceId) => (filePath) => {
+    const parsed = path.parse(filePath);
+    return {
+        type: parsed.ext,
+        name: parsed.base,
+        href: `datasource/${dataSourceId}/${parsed.base}`
+    };
 };
 
 const routes = () => {
@@ -40,8 +50,15 @@ const routes = () => {
         .route('/:id')
         .get(async (req, res) => {
             const { id } = req.params;
-            const response = await dataSource.fetchDataSource(id);
-            return res.json({ dataSource: response });
+            const dataSourceEntry = await dataSource.fetchDataSource(id);
+            const { files, ...rest } = dataSourceEntry;
+            return res.json({
+                dataSource: {
+                    ...rest,
+                    href: `datasource/${id}`,
+                    files: files.map(extractFileMeta(id))
+                }
+            });
         })
         .put(upload.single('file'), async (req, res) => {
             const { id } = req.params;
@@ -53,11 +70,19 @@ const routes = () => {
             return res.json({ deleted: deletedId });
         });
 
-    router.get('/:id/:fileName', (req, res) => {
+    router.get('/:id/:fileName', async (req, res) => {
         const { id, fileName } = req.params;
-        const stream = dataSource.fetchFile(id, fileName);
-        // fetch file from the storage
-        return res.sendStatus(501);
+        // const stream = await dataSource.fetchFile(id, fileName);
+        try {
+            const stream = await dataSource.fetchFile(id, fileName);
+            await promisifyStream(res, stream);
+        }
+        catch (error) {
+            if (error.code === 'ENOENT') {
+                throw new ResourceNotFoundError('dataSource/file', `${id}/${fileName}`);
+            }
+            throw new InvalidDataError(error.message);
+        }
     });
     router.use(errorsMiddleware);
     return router;
