@@ -2,7 +2,7 @@ post:
   tags:
     - Versions
   summary: Apply algorithm version
-  description: Apply algorithm version will change the current algorithm image
+  description: Change the current algorithm version
   requestBody:
     content:
       application/json:

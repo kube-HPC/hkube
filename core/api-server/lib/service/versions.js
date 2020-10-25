@@ -10,11 +10,23 @@ class AlgorithmVersions {
         return algorithmVersion;
     }
 
+    async getVersion({ name, id }) {
+        const algorithm = await stateManager.algorithms.store.get({ name });
+        if (!algorithm) {
+            throw new ResourceNotFoundError('algorithm', name);
+        }
+        const version = await stateManager.algorithms.versions.get({ id, name });
+        if (!version) {
+            throw new ResourceNotFoundError('version', id);
+        }
+        return version;
+    }
+
     async tagVersion(options) {
         const { name, id, pinned, tags } = options;
         validator.algorithms.validateAlgorithmTag(options);
         const version = await this.getVersion({ name, id });
-        await stateManager.algorithms.versions.set({ name, id, pinned, tags });
+        await this.updateVersion({ id, name, pinned, tags });
         return version;
     }
 
@@ -28,43 +40,35 @@ class AlgorithmVersions {
                 throw new ActionNotAllowed(`there are ${runningPipelines.length} running pipelines which dependent on "${options.name}" algorithm`, runningPipelines.map(p => p.jobId));
             }
         }
-        await algorithmStore.storeAlgorithm(version);
-        return version;
-    }
-
-    async getVersion({ name, id }) {
-        const algorithm = await stateManager.algorithms.store.get({ name });
-        if (!algorithm) {
-            throw new ResourceNotFoundError('algorithm', name);
-        }
-        const version = await stateManager.algorithms.versions.get({ name, id });
-        if (!version) {
-            throw new ResourceNotFoundError('version', id);
-        }
+        await algorithmStore.storeAlgorithm(version.algorithm);
         return version;
     }
 
     async deleteVersion(options) {
-        const { name, image } = options;
-        validator.algorithms.validateAlgorithmVersion({ name, image });
+        const { id, name } = options;
+        validator.algorithms.validateAlgorithmVersion({ id, name });
         const algorithm = await stateManager.algorithms.store.get({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
-        if (algorithm.algorithmImage === image) {
+        if (algorithm.versionId === id) {
             throw new ActionNotAllowed('unable to remove used version');
         }
-        const algorithmVersion = await stateManager.algorithms.versions.get({ name, algorithmImage: image });
+        const algorithmVersion = await stateManager.algorithms.versions.get({ id, name });
         if (!algorithmVersion) {
-            throw new ResourceNotFoundError('algorithmVersion', image);
+            throw new ResourceNotFoundError('version', id);
         }
-        const res = await stateManager.algorithms.versions.delete({ name, algorithmImage: image });
+        const res = await stateManager.algorithms.versions.delete({ id, name });
         const deleted = parseInt(res.deleted, 10);
         return { deleted };
     }
 
-    async createVersion(algorithm) {
-        await stateManager.algorithms.versions.create(algorithm);
+    async createVersion(options) {
+        return stateManager.algorithms.versions.create(options);
+    }
+
+    async updateVersion(options) {
+        return stateManager.algorithms.versions.update(options);
     }
 }
 

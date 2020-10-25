@@ -80,13 +80,13 @@ class Builds {
         merge(newAlgorithm, algorithm);
 
         if (result.shouldBuild) {
-            const version = this._generateImageTag();
+            const imageTag = this._generateImageTag();
             buildId = this._createBuildID(algorithm.name);
             const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
-            merge(newAlgorithm, { version, fileInfo: { path: putStream.path } });
+            merge(newAlgorithm, { fileInfo: { path: putStream.path } });
             const { env, name, fileInfo, type, baseImage } = newAlgorithm;
             await this._removeFile(file.path);
-            await this.startBuild({ buildId, algorithm: newAlgorithm, algorithmName: name, env, version, fileExt: fileInfo.fileExt, type, baseImage });
+            await this.startBuild({ buildId, algorithm: newAlgorithm, algorithmName: name, env, imageTag, fileExt: fileInfo.fileExt, type, baseImage });
         }
         return { buildId, messages };
     }
@@ -102,12 +102,11 @@ class Builds {
         messages.push(...result.messages);
 
         if (result.shouldBuild) {
-            const version = this._generateImageTag();
+            const imageTag = this._generateImageTag();
             buildId = this._createBuildID(newAlgorithm.name);
             const { env, name, gitRepository, type, baseImage } = newAlgorithm;
-            merge(newAlgorithm, { version });
             validator.builds.validateAlgorithmBuildFromGit({ env });
-            await this.startBuild({ buildId, algorithm: newAlgorithm, version, env, algorithmName: name, gitRepository, type, baseImage });
+            await this.startBuild({ buildId, algorithm: newAlgorithm, imageTag, env, algorithmName: name, gitRepository, type, baseImage });
         }
         return { buildId, messages };
     }

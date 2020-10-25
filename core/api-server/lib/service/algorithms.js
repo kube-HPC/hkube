@@ -27,14 +27,14 @@ class AlgorithmStore {
              * if there are no versions, we update the current algorithm with the new build image.
              * finally we create a new version
              */
-            const { algorithm, algorithmName, algorithmImage } = build;
-            const algorithmVersion = await stateManager.algorithms.versions.list({ name: algorithmName });
+            const { algorithm, algorithmName: name, algorithmImage } = build;
+            const algorithmVersion = await stateManager.algorithms.versions.list({ name });
             const newAlgorithm = merge({}, algorithm, { algorithmImage, options: { pending: false } });
+            const versionId = await versionsService.createVersion(newAlgorithm);
 
             if (algorithmVersion.length === 0) {
-                await algorithmStore.storeAlgorithm(newAlgorithm);
+                await algorithmStore.storeAlgorithm({ ...newAlgorithm, versionId });
             }
-            await versionsService.createVersion(newAlgorithm);
         });
     }
 
@@ -169,16 +169,16 @@ class AlgorithmStore {
      *
      */
     async applyAlgorithm(data) {
-        const { payload, options } = data;
         const file = data.file || {};
         let buildId;
         const messages = [];
-        const { overrideImage } = options || {};
+        const { overrideImage } = data.options || {};
+        const { versionId, ...payload } = data.payload;
         validator.algorithms.validateApplyAlgorithm(payload);
         const oldAlgorithm = await this._getAlgorithm(payload);
-        const hasDiff = this._compareAlgorithms(oldAlgorithm, payload);
         let newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
         await this._validateAlgorithm(newAlgorithm);
+        const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
 
         if (payload.type === buildTypes.CODE && file.path) {
             buildId = await this._createBuildFromCode(payload, file, newAlgorithm, oldAlgorithm, messages);
@@ -195,7 +195,7 @@ class AlgorithmStore {
             newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
         }
 
-        const version = await this._versioning(overrideImage, hasDiff, newAlgorithm);
+        const version = await this._versioning(hasDiff, buildId, newAlgorithm);
         if (version) {
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
         }
@@ -203,7 +203,7 @@ class AlgorithmStore {
         if (oldAlgorithm && !overrideImage) {
             algorithmImage = oldAlgorithm.algorithmImage;
         }
-        newAlgorithm = merge({}, newAlgorithm, { algorithmImage });
+        newAlgorithm = merge({}, newAlgorithm, { algorithmImage }, { versionId: version });
 
         const hasVersion = version || buildId;
         // has version, but explicitly requested to override
@@ -223,7 +223,7 @@ class AlgorithmStore {
         if (!oldAlgorithm) {
             return true;
         }
-        return isEqual(oldAlgorithm, newAlgorithm);
+        return !isEqual(oldAlgorithm, newAlgorithm);
     }
 
     async _createBuildFromGit(payload, newAlgorithm, oldAlgorithm, messages) {
@@ -272,13 +272,13 @@ class AlgorithmStore {
         return oldAlgorithm;
     }
 
-    async _versioning(overrideImage, hasDiff, algorithm) {
-        let version = false;
-        if (hasDiff && !overrideImage && !algorithm.options.debug) {
-            version = true;
-            await versionsService.createVersion(algorithm);
+    async _versioning(hasDiff, buildId, algorithm) {
+        let versionId;
+        // should we create versions also for: new build, debug ?
+        if (hasDiff && !buildId && !algorithm.options.debug) {
+            versionId = await versionsService.createVersion(algorithm);
         }
-        return version;
+        return versionId;
     }
 }
 
