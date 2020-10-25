@@ -31,59 +31,76 @@ const createDataSource = ({
     return request(options);
 };
 
+// a valid mongo ObjectID;
+const nonExistingId = '5f953d50dd38c8291924a0a3';
+
 describe.only('Datasource', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/datasource`;
     });
-    describe.skip('/datasource/:id GET', () => {
+    describe('/datasource/:id GET', () => {
         it('should throw error datasource not found', async () => {
             const options = {
-                uri: restPath + '/not_exists',
+                uri: `${restPath}/${nonExistingId}`,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal('algorithm not_exists Not Found');
+            expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
         });
         it('should return specific datasource', async () => {
-            const body = {
-                name: "test-alg",
-                algorithmImage: "hkube/algorithm-example",
-                cpu: 1,
-                mem: "5000Ki"
-            };
-            const options = {
-                uri: restPath,
-                body
-            };
-            await request(options);
-
+            const name = uuid();
+            const { response } = await createDataSource({ body: { name } });
+            const createId = response.body.id;
             const getOptions = {
-                uri: restPath + '/test-alg',
+                uri: `${restPath}/${createId}`,
                 method: 'GET'
             };
-            const response = await request(getOptions);
-            expect(response.body).to.deep.equal({
-                ...defaultProps,
-                ...body
-            });
+            const { response: getResponse } = await request(getOptions);
+            expect(getResponse.body).to.have.property('dataSource');
+            const { dataSource } = getResponse.body;
+            expect(dataSource).to.have.property('id');
+            expect(dataSource.id).to.be.string;
+            expect(dataSource).to.have.property('name');
+            expect(dataSource.name).to.eq(name);
         });
     });
-    describe.skip('/datasource/:id DELETE', () => {
-        it('should throw error algorithm not found', async () => {
-            const algorithmName = `delete-${uuid()}`;
+    describe('/datasource/:id DELETE', () => {
+        it('should delete a datasource given an id', async () => {
+            const name = uuid();
+            const { response } = await createDataSource({ body: { name } });
+            const { id } = response.body;
             const options = {
-                uri: `${restPath}/${algorithmName}`,
+                uri: `${restPath}/${id}`,
+                method: 'DELETE'
+            };
+            const { response: deleteResponse } = await request(options);
+            expect(deleteResponse.statusCode).to.eq(HttpStatus.OK);
+        });
+        it('should return status 400 if invalid id was provided', async () => {
+            const dataSourceId = 'non-12-bytes-string-of-hex-characters';
+            const options = {
+                uri: `${restPath}/${dataSourceId}`,
                 method: 'DELETE'
             };
             const response = await request(options);
             expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal(`algorithm ${algorithmName} Not Found`);
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`you provided an invalid id ${dataSourceId}`);
         });
-        it('should throw error on related data', async () => {
+        it('should return 404 if dataSource is not found', async () => {
+            const options = {
+                uri: `${restPath}/${nonExistingId}`,
+                method: 'DELETE'
+            };
+            const { response } = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
+            expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
+        });
+        it.skip('should throw error on related data', async () => {
             const algorithmName = `delete-${uuid()}`;
             const algorithm = {
                 uri: restPath,
@@ -129,7 +146,7 @@ describe.only('Datasource', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.contain('you must first delete all related data');
         });
-        it('should delete datasource with related data with force', async () => {
+        it.skip('should delete datasource with related data with force', async () => {
             const algorithmName = `my-alg-${uuid()}`;
             const algorithmImage = `${algorithmName}-image`;
             const formData = {
@@ -170,7 +187,7 @@ describe.only('Datasource', () => {
             expect(response.body).to.have.property('message');
             expect(response.body.message).to.contain('related data deleted');
         });
-        it('should delete specific datasource without related data', async () => {
+        it.skip('should delete specific datasource without related data', async () => {
             const optionsInsert = {
                 uri: restPath,
                 body: {
@@ -282,7 +299,7 @@ describe.only('Datasource', () => {
             it("should create a new dataSource and return it's newly created id", async () => {
                 const name = uuid();
                 const { response } = await createDataSource({ body: { name } });
-                expect(response.statusCode).to.eql(201);
+                expect(response.statusCode).to.eql(HttpStatus.CREATED);
                 expect(response.body).to.have.property('id');
                 expect(response.body).to.have.property('name');
                 expect(response.body.id).to.be.string;
@@ -291,9 +308,9 @@ describe.only('Datasource', () => {
             it('should throw conflict error', async () => {
                 const name = uuid();
                 const firstResponse = await createDataSource({ body: { name } });
-                expect(firstResponse.response.statusCode).to.eql(201);
+                expect(firstResponse.response.statusCode).to.eql(HttpStatus.CREATED);
                 const secondResponse = await createDataSource({ body: { name } });
-                expect(secondResponse.response.statusCode).to.equal(409);
+                expect(secondResponse.response.statusCode).to.equal(HttpStatus.CONFLICT);
                 expect(secondResponse.body).to.have.property('error');
                 expect(secondResponse.body.error.message).to.contain('already exists');
             });

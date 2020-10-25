@@ -1,10 +1,23 @@
+const { isDBError, errorTypes } = require('@hkube/db/lib/errors');
 const { Router } = require('express');
 const { lchown } = require('fs-extra');
 const multer = require('multer');
+const { ResourceNotFoundError } = require('../../../../lib/errors');
+const InvalidDataError = require('../../../../lib/errors/InvalidDataError');
 const upload = multer({ dest: 'uploads/datasource/' });
 // consider replacing multer with busboy to handle the stream without saving to disk
 const dataSource = require('../../../../lib/service/dataSource');
 const validation = require('../../../../lib/validation');
+
+const errorsMiddleware = (error, req, res, next) => {
+    if (isDBError(error)) {
+        if (error.type === errorTypes.NOT_FOUND) {
+            throw new ResourceNotFoundError('dataSource', error.metaData.id);
+        }
+        throw new InvalidDataError(error.message);
+    }
+    return next(error);
+};
 
 const routes = () => {
     const router = Router();
@@ -33,8 +46,11 @@ const routes = () => {
         .put(upload.single('file'), async (req, res) => {
             const { id } = req.params;
             const fileName = await dataSource.uploadFile(id, req.file);
-            console.log({ fileName });
-            return res.sendStatus(201);
+            return res.json({ id, fileName });
+        }).delete(async (req, res) => {
+            const { id } = req.params;
+            const deletedId = await dataSource.delete(id);
+            return res.json({ deleted: deletedId });
         });
 
     router.get('/:id/:fileName', (req, res) => {
@@ -43,6 +59,7 @@ const routes = () => {
         // fetch file from the storage
         return res.sendStatus(501);
     });
+    router.use(errorsMiddleware);
     return router;
 };
 

@@ -44,10 +44,9 @@ class DataSource {
 
     /** @param {string} id */
     async fetchDataSource(id) {
-        console.log({ id });
-        // fetch the dataSource from the db
-        // list all the files from the storage
-        return id;
+        const db = dbConnection.connection;
+        // TODO: list all the files from the storage
+        return db.dataSources.fetch({ id });
     }
 
     /**
@@ -57,6 +56,11 @@ class DataSource {
     async fetchFile(dataSourceId, fileName) {
         console.log({ dataSourceId, fileName });
         return "";
+    }
+
+    async delete(id) {
+        const db = dbConnection.connection;
+        return db.dataSources.delete(id);
     }
 }
 
