@@ -62,8 +62,13 @@ const routes = () => {
         })
         .put(upload.single('file'), async (req, res) => {
             const { id } = req.params;
-            const fileName = await dataSource.uploadFile(id, req.file);
-            return res.json({ id, fileName });
+            const file = await dataSource.uploadFile(id, req.file);
+            return res.json({
+                file: {
+                    href: `/datasource/${id}/${file.fileName}`,
+                    name: file.fileName
+                }
+            });
         }).delete(async (req, res) => {
             const { id } = req.params;
             const deletedId = await dataSource.delete(id);

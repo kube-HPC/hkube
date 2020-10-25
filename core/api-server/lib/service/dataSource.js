@@ -6,9 +6,14 @@ const validator = require('../validation/api-validator');
 const { InvalidDataError, ResourceExistsError } = require('../errors');
 
 /** @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem */
+/** @typedef {import('express')} Express */
 
 class DataSource {
-    /** @param {Express.Multer.File} file */
+    /**
+     * @param {string} dataSourceID
+     * @param {Express.Multer.File} file
+     * @returns {Promise<{ createdPath: string, fileName: string }>}
+     */
     async uploadFile(dataSourceID, file) {
         const createdPath = await storage.hkubeDataSource.putStream({
             dataSource: dataSourceID,
@@ -39,10 +44,6 @@ class DataSource {
         return createdDataSource;
     }
 
-    async list() {
-        return [];
-    }
-
     /** @type { (id: string) => Promise<DataSourceItem & {files: string[] }> } */
     async fetchDataSource(id) {
         const db = dbConnection.connection;
@@ -55,17 +56,20 @@ class DataSource {
         return { ...dataSource, files: files.map(file => file.path) };
     }
 
-    /**
-     * @param {string} dataSourceId
-     * @param {string} fileName
-     * */
+    /** @type {(dataSourceId: string, fileName: string) => Promise<string>} */
     async fetchFile(dataSourceId, fileName) {
         return storage.hkubeDataSource.getStream({ dataSource: dataSourceId, fileName });
     }
 
+    /** @param {string} id */
     async delete(id) {
         const db = dbConnection.connection;
         return db.dataSources.delete(id);
+    }
+
+    async list() {
+        const db = dbConnection.connection;
+        return db.dataSources.fetchAll();
     }
 }
 

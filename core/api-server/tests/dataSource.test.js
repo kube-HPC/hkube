@@ -4,21 +4,14 @@ const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
-const { MESSAGES } = require('../lib/consts/builds');
-const { request, delay, defaultProps } = require('./utils');
+const { request, defaultProps } = require('./utils');
 let restUrl, restPath;
 
 // a valid mongo ObjectID;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
 const fileName = 'README-1.md';
 
-/** @type {(props?: {
- * body?: {
- *      name?:string
- * }, 
- * withFile?:boolean,
- * uri?: string
- * }) => Promise<any>} */
+/** @type {(props?: { body?: { name?:string }, withFile?:boolean, uri?: string }) => Promise<any>} */
 const createDataSource = ({
     body = {},
     withFile = true,
@@ -33,6 +26,26 @@ const createDataSource = ({
         formData
     };
     return request(options);
+};
+
+const uploadFile = (dataSourceId, fileName) => {
+    const formData = {
+        file: fse.createReadStream(`tests/mocks/${fileName}`)
+    };
+    const options = {
+        uri: `${restPath}/${dataSourceId}`,
+        method: 'PUT',
+        formData
+    };
+    return request(options);
+};
+
+const fetchDataSource = (dataSourceId) => {
+    const getOptions = {
+        uri: `${restPath}/${dataSourceId}`,
+        method: 'GET'
+    };
+    return request(getOptions);
 };
 
 describe.only('Datasource', () => {
@@ -54,12 +67,8 @@ describe.only('Datasource', () => {
         it('should return specific datasource', async () => {
             const name = uuid();
             const { response } = await createDataSource({ body: { name } });
-            const createId = response.body.id;
-            const getOptions = {
-                uri: `${restPath}/${createId}`,
-                method: 'GET'
-            };
-            const { response: getResponse } = await request(getOptions);
+            const { id: createId } = response.body;
+            const { response: getResponse } = await fetchDataSource(createId);
             expect(getResponse.body).to.have.property('dataSource');
             const { dataSource } = getResponse.body;
             expect(dataSource).to.have.property('id');
@@ -249,13 +258,24 @@ describe.only('Datasource', () => {
         });
     });
     describe('/datasource GET', () => {
-        it('should success to get list of datasources', async () => {
+        it('should success to get list of dataSources', async () => {
+            const names = new Array(3).map(() => uuid());
+            await Promise.all(
+                names.map(name => createDataSource({ body: { name } }))
+            );
             const options = {
                 uri: restPath,
                 method: 'GET'
             };
             const response = await request(options);
             expect(response.body).to.be.an('array');
+            response.body.forEach(entry => {
+                expect(entry).to.have.property('id');
+                expect(entry).to.have.property('name');
+                expect(entry).not.to.have.property('files');
+            });
+            const fetchedNames = response.body.map(item => item.name);
+            names.forEach(name => expect(fetchedNames).to.contain(name));
         });
     });
     describe('/datasource POST', () => {
@@ -358,51 +378,20 @@ describe.only('Datasource', () => {
             });
         });
     });
-    describe.skip('/datasource/:id PUT', () => {
-        it('should throw validation error of memory min 4 Mi', async () => {
-            const body = Object.assign({}, algorithms[0]);
-            body.mem = '3900Ki';
-            const options = {
-                method: 'PUT',
-                uri: restPath,
-                body
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('memory must be at least 4 Mi');
-        });
-        it('should succeed to update algorithm', async () => {
-            const body = { ...algorithms[0] };
-            const options = {
-                uri: restPath,
-                method: 'PUT',
-                body
-            };
-            const response = await request(options);
-            expect(response.body).to.eql({ ...defaultProps, ...body });
-        });
-        it('should failed to update algorithm', async () => {
-            const body = { ...algorithms[0], algorithmImage: '' };
-            const options = {
-                uri: restPath,
-                method: 'PUT',
-                body
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
-        });
-        it('should succeed to update algorithm', async () => {
-            const body = { ...algorithms[0], algorithmImage: 'new-image' };
-            const options = {
-                uri: restPath,
-                method: 'PUT',
-                body
-            };
-            const response = await request(options);
-            expect(response.body).to.eql({ ...defaultProps, ...body });
+    describe('/datasource/:id PUT', () => {
+        it('should upload a new file to the dataSource', async () => {
+            const name = uuid();
+            const { response: createResponse } = await createDataSource({ body: { name } });
+            const { id: createdId } = createResponse.body;
+            const secondFileName = 'README-2.md';
+            const { response: putResponse } = await uploadFile(createdId, secondFileName);
+            expect(putResponse.body).to.have.property('file');
+            const { file } = putResponse.body;
+            expect(file).to.have.property('name');
+            expect(file).to.have.property('href');
+            const { response: fetchDataSourceResponse } = await fetchDataSource(createdId);
+            const { dataSource } = fetchDataSourceResponse.body;
+            expect(dataSource.files).to.have.lengthOf(2);
         });
     });
 });
