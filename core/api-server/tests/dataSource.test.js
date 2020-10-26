@@ -275,7 +275,7 @@ describe.only('Datasource', () => {
     });
     describe('/datasource GET', () => {
         it('should success to get list of dataSources', async () => {
-            const names = new Array(3).map(() => uuid());
+            const names = new Array(3).fill(0).map(() => uuid());
             await Promise.all(
                 names.map(name => createDataSource({ body: { name } }))
             );
