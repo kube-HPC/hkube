@@ -68,11 +68,11 @@ describe.only('Datasource', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
         });
-        it('should return specific datasource', async () => {
+        it.only('should return specific datasource', async () => {
             const name = uuid();
             const { response } = await createDataSource({ body: { name } });
-            const { id: createId } = response.body;
-            const { response: getResponse } = await fetchDataSource(createId);
+            const { id: createdId } = response.body;
+            const { response: getResponse } = await fetchDataSource(createdId);
             expect(getResponse.body).to.have.property('dataSource');
             const { dataSource } = getResponse.body;
             expect(dataSource).to.have.property('id');
