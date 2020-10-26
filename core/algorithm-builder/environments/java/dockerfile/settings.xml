@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings
-    xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-    <pluginGroups></pluginGroups>
-    <proxies></proxies>
+        xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
     <servers>
         <server>
             <id>private_repo</id>
@@ -12,36 +10,37 @@
             <password>${PACKAGES_TOKEN}</password>
         </server>
     </servers>
-    <mirrors></mirrors>
-    <profiles>
+     <profiles>
         <profile>
             <id>customer</id>
             <repositories>
                 <repository>
                     <id>central</id>
-                    <name>Customer internal repository/name>
-                        <url>${PACKAGES_REGISTRY}</url>
-                        <layout>default</layout>
-                        <snapshotPolicy>always</snapshotPolicy>
-                    </repository>
-                </repositories>
-                <pluginRepositories>
-                    <pluginRepository>
-                        <id>central</id>
-                        <name>Maven Plugin Repository</name>
-                        <url>${PACKAGES_REGISTRY}</url>
-                        <layout>default</layout>
-                        <snapshots>
-                            <enabled>false</enabled>
-                        </snapshots>
-                        <releases>
-                            <updatePolicy>never</updatePolicy>
-                        </releases>
-                    </pluginRepository>
-                </pluginRepositories>
-            </profile>
-        </profiles>
-        <activeProfiles>
-            <activeProfile>customer</activeProfile>
-        </activeProfiles>
-    </settings>
+                    <name>Customer internal repository</name>
+                    <url>${PACKAGES_REGISTRY}</url>
+                    <layout>default</layout>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>central</id>
+                    <name>Maven Plugin Repository</name>
+                    <url>${PACKAGES_REGISTRY}</url>
+                    <layout>default</layout>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                    <releases>
+                        <updatePolicy>never</updatePolicy>
+                    </releases>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>customer</activeProfile>
+    </activeProfiles>
+</settings>
