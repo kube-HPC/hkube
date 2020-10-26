@@ -2,9 +2,12 @@ const { expect } = require('chai');
 const fse = require('fs-extra');
 const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
+const sinon = require('sinon');
 const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
 const { request } = require('./utils');
+const dbConnection = require('../lib/db');
+const storage = require('@hkube/storage-manager');
 let restUrl, restPath;
 
 // a valid mongo ObjectID;
@@ -53,6 +56,7 @@ describe.only('Datasource', () => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/datasource`;
     });
+    afterEach(() => sinon.restore());
     describe('/datasource/:id GET', () => {
         it('should throw error datasource not found', async () => {
             const options = {
@@ -96,6 +100,18 @@ describe.only('Datasource', () => {
             expect(fetchFileResponse.body).to.be.string;
             const fileContent = fse.readFileSync(`tests/mocks/${fileName}`).toString();
             expect(fileContent).to.eq(fetchFileResponse.body);
+        });
+        it('should fail fetching a file', async () => {
+            const name = uuid();
+            const { response: createResponse } = await createDataSource({ body: { name } });
+            const options = {
+                uri: `${restPath}/${createResponse.body.id}/${fileName}`,
+                method: 'GET'
+            };
+            sinon.stub(storage.hkubeDataSource, 'getStream').rejects('reject message');
+            const { response: fetchFileResponse } = await request(options);
+            expect(fetchFileResponse.body.error.message).to.match(/could not fetch the file/i);
+            expect(fetchFileResponse.statusCode).to.eq(HttpStatus.INTERNAL_SERVER_ERROR);
         });
         it('invalid dataSource id', async () => {
             const options = {
@@ -375,6 +391,19 @@ describe.only('Datasource', () => {
                 expect(secondResponse.response.statusCode).to.equal(HttpStatus.CONFLICT);
                 expect(secondResponse.body).to.have.property('error');
                 expect(secondResponse.body.error.message).to.contain('already exists');
+            });
+            it('should roll back the creating of the dataSource on errors', async () => {
+                const deleteDataSourceSpy = sinon.stub(dbConnection.connection.dataSources, "delete");
+                sinon.stub(storage.hkubeDataSource, "putStream").rejects('i should reject');
+                const name = uuid();
+                const { response } = await createDataSource({ body: { name } });
+                // console.log(response);
+                expect(response.statusCode).to.eql(HttpStatus.INTERNAL_SERVER_ERROR);
+                const spyCalls = deleteDataSourceSpy.getCalls();
+                expect(spyCalls).to.have.length(1);
+                const [deleteCall] = spyCalls;
+                expect(deleteCall.firstArg).to.be.string;
+                expect(deleteCall.lastArg).to.eql({ allowNotFound: true });
             });
         });
     });

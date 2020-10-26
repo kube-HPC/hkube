@@ -49,10 +49,7 @@ class DataSource {
     async fetchDataSource(id) {
         const db = dbConnection.connection;
         const dataSource = await db.dataSources.fetch({ id });
-        /**
-         * @typedef {{path: string}} responseFile
-         * @type {responseFile[]}
-         * */
+        /** @type {{path: string}[]} */
         const files = await storage.hkubeDataSource.list({ dataSource: dataSource.id.toString() });
         return { ...dataSource, files: files.map(file => file.path) };
     }

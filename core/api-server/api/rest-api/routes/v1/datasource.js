@@ -86,7 +86,7 @@ const routes = () => {
             if (error.code === 'ENOENT') {
                 throw new ResourceNotFoundError('dataSource/file', `${id}/${fileName}`);
             }
-            throw new InvalidDataError(error.message);
+            throw new Error(`could not fetch the file ${fileName}`);
         }
     });
     router.use(errorsMiddleware);
