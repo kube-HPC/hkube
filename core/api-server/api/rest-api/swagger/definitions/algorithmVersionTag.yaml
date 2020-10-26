@@ -2,7 +2,7 @@ type: object
 properties:
   name:
     $ref: "#/components/schemas/algorithmName"
-  id:
+  version:
     $ref: "#/components/schemas/algorithmVersionId"
   pinned:
     type: boolean
@@ -15,4 +15,4 @@ properties:
       $ref: "#/components/schemas/tag"
 required:
   - name
-  - id
+  - version

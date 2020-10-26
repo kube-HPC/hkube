@@ -99,7 +99,7 @@
 # versions
 /versions/algorithms/{name}:
   $ref: ./versions/version.yaml
-/versions/algorithms/{name}/{id}:
+/versions/algorithms/{name}/{version}:
   $ref: ./versions/version_id.yaml
 /versions/algorithms/apply:
   $ref: ./versions/apply.yaml

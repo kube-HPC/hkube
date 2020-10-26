@@ -16,9 +16,8 @@ const routes = (options) => {
         res.json(response);
         next();
     });
-    router.get('/algorithms/:name/:id', logger(), async (req, res, next) => {
-        const { id, name } = req.params;
-        const response = await versionsService.getVersion({ id, name });
+    router.get('/algorithms/:name/:version', logger(), async (req, res, next) => {
+        const response = await versionsService.getVersion(req.params);
         res.json(response);
         next();
     });
@@ -32,9 +31,8 @@ const routes = (options) => {
         res.status(HttpStatus.CREATED).json(response);
         next();
     });
-    router.delete('/algorithms/:name/:id', logger(), async (req, res, next) => {
-        const { id, name } = req.params;
-        const response = await versionsService.deleteVersion({ id, name });
+    router.delete('/algorithms/:name/:version', logger(), async (req, res, next) => {
+        const response = await versionsService.deleteVersion(req.params);
         res.json(response);
         next();
     });

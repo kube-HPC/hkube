@@ -24,10 +24,10 @@ describe('Versions/Algorithms', () => {
             const algorithmImage = 'test-algorithmImage';
             const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name, algorithmImage }) } };
             const res1 = await request(applyReq);
-            const versionId = res1.body.algorithm.versionId;
-            const versionReq = { uri: `${restPath}/${name}/${versionId}`, method: 'GET' };
+            const version = res1.body.algorithm.version;
+            const versionReq = { uri: `${restPath}/${name}/${version}`, method: 'GET' };
             const res2 = await request(versionReq);
-            expect(res2.body.id).to.eql(versionId);
+            expect(res2.body.version).to.eql(version);
         });
         it('should succeed to get versions', async () => {
             const name = `my-alg-${uuid()}`;
@@ -47,17 +47,17 @@ describe('Versions/Algorithms', () => {
             const name = `my-alg-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage-21';
             const algorithmImage2 = 'test-algorithmImage-2';
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
 
             const res1 = await request(applyReq1);
             await request(applyReq2);
 
-            const versionId = res1.body.algorithm.versionId;
-            const versionReq1 = { uri: `${restPath}/apply`, body: { id: versionId, name } };
+            const version = res1.body.algorithm.version;
+            const versionReq1 = { uri: `${restPath}/apply`, body: { version, name } };
 
             await request(versionReq1);
-            const deleteReq = { uri: `${restPath}/${name}/${versionId}`, method: 'DELETE' };
+            const deleteReq = { uri: `${restPath}/${name}/${version}`, method: 'DELETE' };
             const res = await request(deleteReq);
 
             expect(res.body).to.have.property('error');
@@ -69,15 +69,15 @@ describe('Versions/Algorithms', () => {
             const algorithmImage2 = 'test-algorithmImage-2';
             const algorithmImage3 = 'test-algorithmImage-3';
             const name = `my-alg-${uuid()}`;
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
             const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
 
             await request(applyReq1);
             const res = await request(applyReq2);
-            const versionId = res.body.algorithm.versionId;
-            const deleteReq = { uri: `${restPath}/${name}/${versionId}`, method: 'DELETE' };
+            const version = res.body.algorithm.version;
+            const deleteReq = { uri: `${restPath}/${name}/${version}`, method: 'DELETE' };
             await request(applyReq3);
 
             const res1 = await request(versionReq);
@@ -99,7 +99,7 @@ describe('Versions/Algorithms', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal("data should have required property 'name'");
         });
-        it('should throw validation error of required property id', async () => {
+        it('should throw validation error of required property version', async () => {
             const body = {
                 name: `my-alg-${uuid()}`
             };
@@ -107,7 +107,7 @@ describe('Versions/Algorithms', () => {
             const res = await request(req);
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("data should have required property 'id'");
+            expect(res.body.error.message).to.equal("data should have required property 'version'");
         });
         it('should throw validation error of data.name should be string', async () => {
             const body = {
@@ -119,21 +119,21 @@ describe('Versions/Algorithms', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('data.name should be string');
         });
-        it('should throw validation error of data.id should be string', async () => {
+        it('should throw validation error of data.version should be string', async () => {
             const body = {
                 name: `my-alg-${uuid()}`,
-                id: {}
+                version: {}
             };
             const req = { uri: `${restPath}/apply`, body };
             const res = await request(req)
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal('data.id should be string');
+            expect(res.body.error.message).to.equal('data.version should be string');
         });
         it('should throw validation error of algorithm Not Found', async () => {
             const body = {
                 name: 'no-such',
-                id: 'no-such'
+                version: 'no-such'
             };
             const req = { uri: `${restPath}/apply`, body };
             const res = await request(req)
@@ -163,8 +163,8 @@ describe('Versions/Algorithms', () => {
             const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
             const res1 = await request(applyReq1);
             await request(applyReq2);
-            const versionId = res1.body.algorithm.versionId;
-            const versionReq = { uri: `${restPath}/apply`, body: { id: versionId, name, force: false } };
+            const version = res1.body.algorithm.version;
+            const versionReq = { uri: `${restPath}/apply`, body: { version, name, force: false } };
             await request(exeRawPayload);
             const res2 = await request(versionReq);
             expect(res2.body).to.have.property('error');
@@ -193,20 +193,20 @@ describe('Versions/Algorithms', () => {
             const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
             const res1 = await request(applyReq1);
             await request(applyReq2);
-            const versionId = res1.body.algorithm.versionId;
-            const versionReq = { uri: `${restPath}/apply`, body: { id: versionId, name, force: true } };
+            const version = res1.body.algorithm.version;
+            const versionReq = { uri: `${restPath}/apply`, body: { version, name, force: true } };
             await request(exeRawPayload);
             const res2 = await request(versionReq);
             expect(res1.body.algorithm).to.eql(res2.body.algorithm);
         });
-        it('should succeed to overrideImage', async () => {
+        it('should succeed to setAsCurrent', async () => {
             const name = `my-alg-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';
             const algorithmImage3 = 'test-algorithmImage-3';
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ overrideImage: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
 
             const res1 = await request(applyReq1);
             const res2 = await request(applyReq2);
@@ -217,9 +217,9 @@ describe('Versions/Algorithms', () => {
             const res4 = await request(versionReq);
             const res5 = await request(algorithmReq);
 
-            expect(res1.body.algorithm).to.have.property('versionId');
-            expect(res2.body.algorithm).to.have.property('versionId');
-            expect(res3.body.algorithm).to.have.property('versionId');
+            expect(res1.body.algorithm).to.have.property('version');
+            expect(res2.body.algorithm).to.have.property('version');
+            expect(res3.body.algorithm).to.have.property('version');
 
             expect(res4.body).to.have.lengthOf(3);
             expect(res5.body.algorithmImage).to.eql(algorithmImage3)
@@ -241,7 +241,7 @@ describe('Versions/Algorithms', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal("data should have required property 'name'");
         });
-        it('should throw validation error of required property id', async () => {
+        it('should throw validation error of required property version', async () => {
             const body = {
                 name: `my-alg-${uuid()}`
             };
@@ -249,7 +249,7 @@ describe('Versions/Algorithms', () => {
             const res = await request(req);
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("data should have required property 'id'");
+            expect(res.body.error.message).to.equal("data should have required property 'version'");
         });
         it('should throw validation error of data.name should be string', async () => {
             const body = {
@@ -261,21 +261,21 @@ describe('Versions/Algorithms', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal('data.name should be string');
         });
-        it('should throw validation error of data.id should be string', async () => {
+        it('should throw validation error of data.version should be string', async () => {
             const body = {
                 name: `my-alg-${uuid()}`,
-                id: {}
+                version: {}
             };
             const req = { uri, body };
             const res = await request(req)
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal('data.id should be string');
+            expect(res.body.error.message).to.equal('data.version should be string');
         });
         it('should throw validation error of algorithm Not Found', async () => {
             const body = {
                 name: `my-alg-${uuid()}`,
-                id: 'no-such'
+                version: 'no-such'
             };
             const req = { uri, body };
             const res = await request(req)
@@ -287,7 +287,7 @@ describe('Versions/Algorithms', () => {
             const name = `my-alg-${uuid()}`;
             const algorithmImage = 'test-algorithmImage-1';
             await request({ uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify({ name, algorithmImage }) } });
-            const res = await request({ uri, body: { id: 'no-such', name } })
+            const res = await request({ uri, body: { version: 'no-such', name } })
             expect(res.body).to.have.property('error');
             expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res.body.error.message).to.equal(`version no-such Not Found`);
@@ -301,10 +301,10 @@ describe('Versions/Algorithms', () => {
             }
             const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload) } };
             const res1 = await request(applyReq);
-            const versionId = res1.body.algorithm.versionId;
-            const body = { id: versionId, name, pinned: true, tags: ['fast', 'good'] };
+            const version = res1.body.algorithm.version;
+            const body = { version, name, pinned: true, tags: ['fast', 'good'] };
             await request({ uri, body });
-            const res2 = await request({ uri: `${restPath}/${name}/${versionId}`, method: 'GET' });
+            const res2 = await request({ uri: `${restPath}/${name}/${version}`, method: 'GET' });
             expect(res2.body.pinned).to.eql(body.pinned);
             expect(res2.body.tags).to.eql(body.tags);
         });

@@ -180,10 +180,10 @@ class Builds {
     }
 
     _formatDiff(algorithm) {
-        const { fileInfo, env, gitRepository } = algorithm;
+        const { fileInfo, env, baseImage, gitRepository } = algorithm;
         const checksum = fileInfo && fileInfo.checksum;
         const commit = gitRepository && gitRepository.commit && gitRepository.commit.id;
-        return { checksum, env, commit };
+        return { checksum, env, commit, baseImage };
     }
 
     _createBuildID(algorithmName) {

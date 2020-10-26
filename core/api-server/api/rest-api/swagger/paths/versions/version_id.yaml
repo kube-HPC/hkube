@@ -10,9 +10,9 @@ get:
       required: true
       schema:
         $ref: "#/components/schemas/algorithmName"
-    - name: id
+    - name: version
       in: path
-      description: algorithm version id
+      description: algorithm version
       required: true
       schema:
         type: string
@@ -55,9 +55,9 @@ delete:
       required: true
       schema:
         $ref: "#/components/schemas/algorithmName"
-    - name: id
+    - name: version
       in: path
-      description: algorithm version id
+      description: algorithm version
       required: true
       schema:
         type: string

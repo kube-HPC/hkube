@@ -44,6 +44,10 @@ properties:
         type: boolean
         description: should algorithm support XGL context creation (mount X socket)
     default: {}
+  version:
+    type: string
+    description: Hkube's auto increment semantic versioning
+    readOnly: true
   mounts:
     type: array
     description: a list of volumes to mount into the algorithm

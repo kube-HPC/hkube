@@ -8,7 +8,8 @@ const defaultProps = {
     options: {
         debug: false,
         pending: false
-    }
+    },
+    version: '1.0.0'
 }
 
 const delay = d => new Promise(r => setTimeout(r, d));

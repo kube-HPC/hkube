@@ -2,7 +2,7 @@ type: object
 properties:
   name:
     $ref: "#/components/schemas/algorithmName"
-  id:
+  version:
     $ref: "#/components/schemas/algorithmVersionId"
   force:
     type: boolean
@@ -10,4 +10,4 @@ properties:
     default: false
 required:
   - name
-  - id
+  - version
