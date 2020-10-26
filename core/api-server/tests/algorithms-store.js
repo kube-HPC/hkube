@@ -1662,8 +1662,8 @@ describe('Store/Algorithms', () => {
                 const res2 = await request(req2);
                 const res3 = await request(req3);
                 const res4 = await request(req4);
-                const versions1 = res4.body.map(v => v.version).sort();
-                const versions2 = [res1.body.algorithm.version, res2.body.algorithm.version, res3.body.algorithm.version].sort();
+                const versions1 = res4.body.map(v => v.version)
+                const versions2 = [res3.body.algorithm.version, res2.body.algorithm.version, res1.body.algorithm.version];
                 expect(versions1).to.eql(versions2);
             });
         });

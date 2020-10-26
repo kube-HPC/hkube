@@ -27,7 +27,9 @@ class AlgorithmVersions {
         const { name, version, pinned, tags } = options;
         validator.algorithms.validateAlgorithmTag(options);
         const ver = await this.getVersion({ name, version });
-        await this.updateVersion({ version, name, pinned, tags });
+        await stateManager.algorithms.versions.update({ version, name, pinned, tags }, (oldItem) => {
+            return { ...oldItem, ...options };
+        });
         return ver;
     }
 
@@ -77,10 +79,6 @@ class AlgorithmVersions {
         };
         await stateManager.algorithms.versions.create(newVersion);
         return version;
-    }
-
-    async updateVersion(options) {
-        return stateManager.algorithms.versions.update(options);
     }
 
     async _getLatestVersion({ name }) {

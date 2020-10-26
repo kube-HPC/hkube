@@ -292,7 +292,7 @@ describe('Versions/Algorithms', () => {
             expect(res.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(res.body.error.message).to.equal(`version no-such Not Found`);
         });
-        it('should succeed to tag version', async () => {
+        it('should succeed to add tags to version', async () => {
             const name = `my-alg-${uuid()}`;
             const algorithmImage = 'test-algorithmImage-1';
             const applyPayload = {
@@ -307,6 +307,27 @@ describe('Versions/Algorithms', () => {
             const res2 = await request({ uri: `${restPath}/${name}/${version}`, method: 'GET' });
             expect(res2.body.pinned).to.eql(body.pinned);
             expect(res2.body.tags).to.eql(body.tags);
+        });
+        it('should succeed to delete tags from version', async () => {
+            const name = `my-alg-${uuid()}`;
+            const algorithmImage = 'test-algorithmImage-1';
+            const applyPayload = {
+                name,
+                algorithmImage,
+            }
+            const applyReq = { uri: `${restUrl}/store/algorithms/apply`, formData: { payload: JSON.stringify(applyPayload) } };
+            const res1 = await request(applyReq);
+            const version = res1.body.algorithm.version;
+            const body2 = { version, name, pinned: true, tags: ['fast', 'good'] };
+            await request({ uri, body: body2 });
+            const res2 = await request({ uri: `${restPath}/${name}/${version}`, method: 'GET' });
+            const body3 = { version, name, pinned: false, tags: [] };
+            await request({ uri, body: body3 });
+            const res3 = await request({ uri: `${restPath}/${name}/${version}`, method: 'GET' });
+            expect(res2.body.pinned).to.eql(body2.pinned);
+            expect(res2.body.tags).to.eql(body2.tags);
+            expect(res3.body.pinned).to.eql(body3.pinned);
+            expect(res3.body.tags).to.eql(body3.tags);
         });
     });
 });
