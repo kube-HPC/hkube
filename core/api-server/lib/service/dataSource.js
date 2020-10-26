@@ -33,14 +33,15 @@ class DataSource {
         let createdDataSource = null;
         try {
             createdDataSource = await db.dataSources.create(name);
+            await this.uploadFile(createdDataSource.id, file);
         }
         catch (error) {
             if (error.type === errorTypes.CONFLICT) {
                 throw new ResourceExistsError('dataSource', name);
             }
+            await db.dataSources.delete(createdDataSource.id, { allowNotFound: true }); // rollback
             throw error;
         }
-        await this.uploadFile(createdDataSource.id, file);
         return createdDataSource;
     }
 
@@ -64,7 +65,10 @@ class DataSource {
     /** @param {string} id */
     async delete(id) {
         const db = dbConnection.connection;
-        return db.dataSources.delete(id);
+        return Promise.all([
+            db.dataSources.delete(id),
+            storage.hkubeDataSource.delete({ dataSource: id })
+        ]);
     }
 
     async list() {

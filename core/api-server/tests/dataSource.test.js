@@ -4,7 +4,7 @@ const HttpStatus = require('http-status-codes');
 const { uid: uuid } = require('@hkube/uid');
 const stateManager = require('../lib/state/state-manager');
 const validationMessages = require('../lib/consts/validationMessages.js');
-const { request, defaultProps } = require('./utils');
+const { request } = require('./utils');
 let restUrl, restPath;
 
 // a valid mongo ObjectID;
