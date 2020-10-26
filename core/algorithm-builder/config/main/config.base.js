@@ -51,10 +51,10 @@ config.packagesRepo = {
         wrapperVersion: process.env.PYTHON_WRAPPER_VERSION || ''
     },
     java: {
-        registry: process.env.MAVEN_REGISTRY || 'https://oss.sonatype.org/content/repositories/snapshots',
+        registry: process.env.MAVEN_REGISTRY || 'https://repo1.maven.org/maven2',
         token: process.env.MAVEN_TOKEN || '_',
         user: process.env.MAVEN_USER || '_',
-        defaultBaseImage: process.env.JAVA_DEFAULT_BASE_IMAGE || 'adoptopenjdk/openjdk11:jre-11.0.8_10-ubuntu'
+        defaultBaseImage: process.env.JAVA_DEFAULT_BASE_IMAGE || 'hkube/openjdk11:jre-11.0.8_10-ubuntu'
     }
 
 };
