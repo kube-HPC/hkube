@@ -11,7 +11,8 @@ RUN mvn -q install:install-file -Dfile=/hkube/algorithm-runner/algorithm-deploym
 COPY algorithm_unique_folder/ /hkube/algorithm-runner/algorithm_unique_folder/
 COPY ./runJava.sh /hkube/algorithm-runner/
 WORKDIR /hkube/algorithm-runner/algorithm_unique_folder/
-RUN mvn -q  package -DremoteRepositories=${packagesRegistry}
+RUN cat /root/.m2/settings.xml
+RUN mvn -X -q  package -DremoteRepositories=${packagesRegistry}
 FROM ${baseImage} 
 RUN mkdir -p /hkube/algorithm-runner
 RUN mkdir -p /hkube/debs
