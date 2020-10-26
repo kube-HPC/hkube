@@ -1,6 +1,6 @@
 const merge = require('lodash.merge');
-const format = require('string-template');
 const isEqual = require('lodash.isequal');
+const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
 const { buildTypes, buildStatuses } = require('@hkube/consts');
 const executionService = require('./execution');
@@ -24,8 +24,8 @@ class AlgorithmStore {
             }
             /**
              * this code runs after a successful build.
-             * if there are no versions, we update the current algorithm with the new build image.
-             * finally we create a new version
+             * first, we create a new version, then if there are no versions,
+             * we update the current algorithm with the new build image.
              */
             const { algorithm, algorithmName: name, algorithmImage } = build;
             const algorithmVersion = await stateManager.algorithms.versions.list({ name });
@@ -164,7 +164,7 @@ class AlgorithmStore {
      * This method is responsible for create builds, versions, debug data and update algorithm.
      * This method update algorithm if one of the following conditions is valid:
      * 1. The update include new algorithm which is not exists in store.
-     * 2. The update didn't trigger any new build.
+     * 2. The update didn't trigger any new version or build.
      * 3. The update explicitly include to override current image.
      *
      */
@@ -195,7 +195,7 @@ class AlgorithmStore {
             newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
         }
 
-        const version = await this._versioning(hasDiff, buildId, newAlgorithm);
+        const version = await this._versioning(hasDiff, newAlgorithm);
         if (version) {
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
         }
@@ -272,10 +272,10 @@ class AlgorithmStore {
         return oldAlgorithm;
     }
 
-    async _versioning(hasDiff, buildId, algorithm) {
+    async _versioning(hasDiff, algorithm) {
         let versionId;
-        // should we create versions also for: new build, debug ?
-        if (hasDiff && !buildId && !algorithm.options.debug) {
+        // should we create versions also for debug ?
+        if (hasDiff && algorithm.algorithmImage && !algorithm.options.debug) {
             versionId = await versionsService.createVersion(algorithm);
         }
         return versionId;

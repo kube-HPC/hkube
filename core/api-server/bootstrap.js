@@ -8,8 +8,8 @@ const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
 const modules = [
-    require('./lib/state/state-manager'),
     require('./api/rest-api/app-server'),
+    require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
     require('./lib/examples/pipelines-updater'),
     require('./lib/webhook/webhooks-handler'),
