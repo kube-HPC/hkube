@@ -173,7 +173,7 @@ class AlgorithmStore {
         let buildId;
         const messages = [];
         const { setAsCurrent } = data.options || {};
-        const { payload } = data;
+        const { version, ...payload } = data.payload;
         validator.algorithms.validateApplyAlgorithm(payload);
         const oldAlgorithm = await this._getAlgorithm(payload);
         let newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
@@ -195,17 +195,17 @@ class AlgorithmStore {
             newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
         }
 
-        const version = await this._versioning(hasDiff, newAlgorithm);
-        if (version) {
+        const newVersion = await this._versioning(hasDiff, newAlgorithm);
+        if (newVersion) {
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
         }
         let { algorithmImage } = payload;
         if (oldAlgorithm && !setAsCurrent) {
             algorithmImage = oldAlgorithm.algorithmImage;
         }
-        newAlgorithm = merge({}, newAlgorithm, { algorithmImage }, { version });
+        newAlgorithm = merge({}, newAlgorithm, { algorithmImage }, { version: newVersion });
 
-        const hasVersion = version || buildId;
+        const hasVersion = newVersion || buildId;
         // has version, but explicitly requested to override
         const shouldStoreOverride = (setAsCurrent && hasVersion);
         // no build and no version
