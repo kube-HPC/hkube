@@ -3,7 +3,7 @@ const groupBy = require('lodash.groupby');
 const parse = require('@hkube/units-converter');
 const objectPath = require('object-path');
 const { gpuVendors } = require('../consts');
-const { setWorkerImage, setAlgorithmImage } = require('./createOptions');
+const { setWorkerImage } = require('./createOptions');
 const { settings: globalSettings } = require('../helpers/settings');
 /**
  * normalizes the worker info from discovery
