@@ -5,6 +5,7 @@ const Regex = {
     EXPERIMENT_NAME_REGEX: /^[:\-_.A-Za-z0-9]+$/i,
     ALGORITHM_NAME_REGEX: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,
     DATASOURCE_NAME_REGEX: /^[:\-_.A-Za-z0-9]+$/i,
+    BINARY_FILE_NAME: /^[\w,\s-]+\.[A-Za-z]+$/i,
     PVC_NAME_REGEX: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,
     ALGORITHM_IMAGE_REGEX: /^\S*$/,
     BOARD_ID: /^[a-z0-9][-a-z0-9\\.]*[a-z0-9]$/,

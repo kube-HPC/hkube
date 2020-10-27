@@ -36,12 +36,13 @@ class ApiValidator {
         formatMessages.set('pipeline-name', validationMessages.PIPELINE_NAME_FORMAT);
         formatMessages.set('algorithm-name', validationMessages.ALGORITHM_NAME_FORMAT);
         formatMessages.set('dataSource-name', validationMessages.DATASOURCE_NAME_FORMAT);
+        formatMessages.set('binary', validationMessages.BINARY_FILE_NAME);
         formatMessages.set('algorithm-image', validationMessages.ALGORITHM_IMAGE_FORMAT);
         formatMessages.set('experiment-name', validationMessages.EXPERIMENT_NAME_FORMAT);
     }
 
     _validateBinary(file) {
-        return file.originalName;
+        return regex.BINARY_FILE_NAME.test(file);
     }
 
     _validateUrl(url) {

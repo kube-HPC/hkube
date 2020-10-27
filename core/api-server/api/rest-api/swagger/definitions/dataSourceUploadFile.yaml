@@ -2,3 +2,5 @@ type: object
 properties:
   file:
     $ref: "#/components/schemas/dataSourceFile"
+required:
+  - file

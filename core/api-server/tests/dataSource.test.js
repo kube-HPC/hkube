@@ -68,7 +68,7 @@ describe('Datasource', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
         });
-        it.only('should return specific datasource', async () => {
+        it('should return specific datasource', async () => {
             const name = uuid();
             const { response } = await createDataSource({ body: { name } });
             const { id: createdId } = response.body;
@@ -334,7 +334,7 @@ describe('Datasource', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal('no file was submitted');
+                expect(response.body.error.message).to.equal("data should have required property 'file'");
             });
             const invalidChars = ['/', '*', '#', '"', '%'];
             invalidChars.forEach((v) => {
@@ -401,7 +401,7 @@ describe('Datasource', () => {
                 const { id: createdId } = createResponse.body;
                 const { response: putResponse } = await uploadFile(createdId);
                 expect(putResponse.body).to.have.property('error');
-                expect(putResponse.body.error.message).to.match(/no file/i);
+                expect(putResponse.body.error.message).to.equal("data should have required property 'file'");
             });
             it('should upload a new file to the dataSource', async () => {
                 const name = uuid();
