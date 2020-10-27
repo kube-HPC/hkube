@@ -8,7 +8,6 @@ const dataSource = require('../../../../lib/service/dataSource');
 const { promisifyStream } = require('../../../../lib/stream');
 // consider replacing multer with busboy to handle the stream without saving to disk
 const upload = multer({ dest: 'uploads/datasource/' });
-const validator = require('../../../../lib/validation/api-validator');
 
 const errorsMiddleware = (error, req, res, next) => {
     if (isDBError(error)) {
@@ -41,7 +40,6 @@ const routes = () => {
         })
         .post(upload.single('file'), async (req, res, next) => {
             const { name } = req.body;
-            validator.dataSource.validateCreate({ name, file: req.file });
             const response = await dataSource.createDataSource(name, req.file);
             res.status(HttpStatus.CREATED).json(response);
             next();
@@ -62,8 +60,7 @@ const routes = () => {
         })
         .put(upload.single('file'), async (req, res, next) => {
             const { id } = req.params;
-            validator.dataSource.validateUploadFile({ file: req.file });
-            const file = await dataSource.uploadFile(id, req.file);
+            const file = await dataSource.updateDataSource(id, req.file);
             res.json({
                 href: `/datasource/${id}/${file.fileName}`,
                 name: file.fileName

@@ -3,27 +3,37 @@ const { errorTypes } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
 const dbConnection = require('../db');
 const { ResourceExistsError } = require('../errors');
+const validator = require('../validation/api-validator');
 
-/** @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem */
-/** @typedef {import('express')} Express */
+/**
+ *  @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
+ *  @typedef {import('express')} Express;
+ *  @typedef {{createdPath: string, fileName: string}} uploadFileResponse
+ * */
 
 class DataSource {
     /**
-     * @param {string} dataSourceID
+     * @param {string} dataSourceId
      * @param {Express.Multer.File} file
-     * @returns {Promise<{ createdPath: string, fileName: string }>}
      */
-    async uploadFile(dataSourceID, file) {
+    async updateDataSource(dataSourceId, file) {
+        validator.dataSource.validateUploadFile({ file });
+        return this.uploadFile(dataSourceId, file);
+    }
+
+    /** @type {(dataSourceId: string, file: Express.Multer.File) => Promise<uploadFileResponse>} */
+    async uploadFile(dataSourceId, file) {
         const createdPath = await storage.hkubeDataSource.putStream({
-            dataSource: dataSourceID,
+            dataSource: dataSourceId,
             data: fse.createReadStream(file.path),
             fileName: file.originalname
         });
         return { createdPath, fileName: file.originalname };
     }
 
-    /** @type {(name: string, file: Express.Multer.File) => Promise<DataSourceItem> } */
+    /** @type {(name: string, file: Express.Multer.File) => Promise<DataSourceItem>} */
     async createDataSource(name, file) {
+        validator.dataSource.validateCreate({ name, file });
         const db = dbConnection.connection;
         let createdDataSource = null;
         try {
