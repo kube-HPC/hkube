@@ -51,7 +51,7 @@ const fetchDataSource = (dataSourceId) => {
     return request(getOptions);
 };
 
-describe.only('Datasource', () => {
+describe('Datasource', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/datasource`;
@@ -68,7 +68,7 @@ describe.only('Datasource', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
         });
-        it.only('should return specific datasource', async () => {
+        it('should return specific datasource', async () => {
             const name = uuid();
             const { response } = await createDataSource({ body: { name } });
             const { id: createdId } = response.body;
