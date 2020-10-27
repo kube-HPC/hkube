@@ -32,9 +32,9 @@ const createDataSource = ({
 };
 
 const uploadFile = (dataSourceId, fileName) => {
-    const formData = {
+    const formData = fileName ? {
         file: fse.createReadStream(`tests/mocks/${fileName}`)
-    };
+    } : {};
     const options = {
         uri: `${restPath}/${dataSourceId}`,
         method: 'PUT',
@@ -68,13 +68,12 @@ describe('Datasource', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
         });
-        it('should return specific datasource', async () => {
+        it.only('should return specific datasource', async () => {
             const name = uuid();
             const { response } = await createDataSource({ body: { name } });
             const { id: createdId } = response.body;
             const { response: getResponse } = await fetchDataSource(createdId);
-            expect(getResponse.body).to.have.property('dataSource');
-            const { dataSource } = getResponse.body;
+            const { body: dataSource } = getResponse;
             expect(dataSource).to.have.property('id');
             expect(dataSource.id).to.be.string;
             expect(dataSource).to.have.property('name');
@@ -313,25 +312,14 @@ describe('Datasource', () => {
                 expect(response.body.error.message).to.equal("data.name should NOT be longer than 32 characters");
             });
             it('should throw validation error of data.name should be string', async () => {
-                const options = {
-                    uri: restPath,
-                    body: {
-                        name: {}
-                    }
-                };
-                const response = await request(options);
+                // @ts-expect-error
+                const response = await createDataSource({ body: { name: [1, 2] } });
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('data.name should be string');
             });
             it('should throw validation error of name should NOT be shorter than 1 characters"', async () => {
-                const options = {
-                    uri: restPath,
-                    body: {
-                        name: ''
-                    }
-                };
-                const response = await request(options);
+                const response = await createDataSource({ body: { name: '' } });
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal('data.name should NOT be shorter than 1 characters');
@@ -397,30 +385,37 @@ describe('Datasource', () => {
                 sinon.stub(storage.hkubeDataSource, "putStream").rejects('i should reject');
                 const name = uuid();
                 const { response } = await createDataSource({ body: { name } });
-                // console.log(response);
                 expect(response.statusCode).to.eql(HttpStatus.INTERNAL_SERVER_ERROR);
                 const spyCalls = deleteDataSourceSpy.getCalls();
                 expect(spyCalls).to.have.length(1);
                 const [deleteCall] = spyCalls;
                 expect(deleteCall.firstArg).to.be.string;
                 expect(deleteCall.lastArg).to.eql({ allowNotFound: true });
+            }); describe('/datasource/:id PUT', () => {
             });
         });
-    });
-    describe('/datasource/:id PUT', () => {
-        it('should upload a new file to the dataSource', async () => {
-            const name = uuid();
-            const { response: createResponse } = await createDataSource({ body: { name } });
-            const { id: createdId } = createResponse.body;
-            const secondFileName = 'README-2.md';
-            const { response: putResponse } = await uploadFile(createdId, secondFileName);
-            expect(putResponse.body).to.have.property('file');
-            const { file } = putResponse.body;
-            expect(file).to.have.property('name');
-            expect(file).to.have.property('href');
-            const { response: fetchDataSourceResponse } = await fetchDataSource(createdId);
-            const { dataSource } = fetchDataSourceResponse.body;
-            expect(dataSource.files).to.have.lengthOf(2);
+        describe('/datasource/:id PUT', () => {
+            it('should throw missing file error', async () => {
+                const name = uuid();
+                const { response: createResponse } = await createDataSource({ body: { name } });
+                const { id: createdId } = createResponse.body;
+                const { response: putResponse } = await uploadFile(createdId);
+                expect(putResponse.body).to.have.property('error');
+                expect(putResponse.body.error.message).to.match(/no file/i);
+            });
+            it('should upload a new file to the dataSource', async () => {
+                const name = uuid();
+                const { response: createResponse } = await createDataSource({ body: { name } });
+                const { id: createdId } = createResponse.body;
+                const secondFileName = 'README-2.md';
+                const { response: putResponse } = await uploadFile(createdId, secondFileName);
+                const { body: file } = putResponse;
+                expect(file).to.have.property('name');
+                expect(file).to.have.property('href');
+                const { response: fetchDataSourceResponse } = await fetchDataSource(createdId);
+                const { body: dataSource } = fetchDataSourceResponse;
+                expect(dataSource.files).to.have.lengthOf(2);
+            });
         });
     });
 });

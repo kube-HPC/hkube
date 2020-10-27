@@ -3,7 +3,7 @@ const { errorTypes } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
 const dbConnection = require('../db');
 const validator = require('../validation/api-validator');
-const { InvalidDataError, ResourceExistsError } = require('../errors');
+const { ResourceExistsError } = require('../errors');
 
 /** @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem */
 /** @typedef {import('express')} Express */
@@ -15,6 +15,7 @@ class DataSource {
      * @returns {Promise<{ createdPath: string, fileName: string }>}
      */
     async uploadFile(dataSourceID, file) {
+        validator.dataSource.validateUploadFile({ file });
         const createdPath = await storage.hkubeDataSource.putStream({
             dataSource: dataSourceID,
             data: fse.createReadStream(file.path),
@@ -25,10 +26,7 @@ class DataSource {
 
     /** @type {(name: string, file: Express.Multer.File) => Promise<DataSourceItem> } */
     async createDataSource(name, file) {
-        validator.dataSource.validateCreate({ name });
-        if (!file) {
-            throw new InvalidDataError('no file was submitted');
-        }
+        validator.dataSource.validateCreate({ name, file });
         const db = dbConnection.connection;
         let createdDataSource = null;
         try {

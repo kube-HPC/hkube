@@ -19,14 +19,7 @@ post:
     content:
       multipart/form-data:
         schema:
-          type: object
-          properties:
-            name:
-              $ref: "#/components/schemas/dataSourceCreate"
-            file:
-              type: string
-              format: binary
-              description: "Data file (file types: csv | txt)"
+          $ref: "#/components/schemas/dataSourceCreate"
     description: DataSource name and file to upload
     required: true
   responses:

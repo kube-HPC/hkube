@@ -1,0 +1,4 @@
+type: string
+description: "Data file (file types: *)"
+# required: true
+format: binary

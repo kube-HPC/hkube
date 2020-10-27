@@ -25,6 +25,7 @@ class ApiValidator {
         validatorInstance.addFormat('dataSource-name', this._validateDataSourceName);
         validatorInstance.addFormat('memory', this._validateMemory);
         validatorInstance.addFormat('path', this._validatePath);
+        validatorInstance.addFormat('binary', this._validateBinary);
 
         Object.entries(definitions).forEach(([k, v]) => {
             validatorInstance.addSchema(v, `#/components/schemas/${k}`);
@@ -37,6 +38,10 @@ class ApiValidator {
         formatMessages.set('dataSource-name', validationMessages.DATASOURCE_NAME_FORMAT);
         formatMessages.set('algorithm-image', validationMessages.ALGORITHM_IMAGE_FORMAT);
         formatMessages.set('experiment-name', validationMessages.EXPERIMENT_NAME_FORMAT);
+    }
+
+    _validateBinary(file) {
+        return file.originalName;
     }
 
     _validateUrl(url) {

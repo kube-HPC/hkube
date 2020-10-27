@@ -33,49 +33,53 @@ const routes = () => {
     const router = Router();
     router
         .route('/')
-        .get(async (req, res) => {
+        .get(async (req, res, next) => {
             const dataSources = await dataSource.list();
             res.json(dataSources);
+            next();
         })
-        .post(upload.single('file'), async (req, res) => {
+        .post(upload.single('file'), async (req, res, next) => {
             const { name } = req.body;
+            if (!req.file) {
+                throw new InvalidDataError('no file was submitted');
+            }
             const response = await dataSource.createDataSource(name, req.file);
-            // // create the data source on the db
-            // // upload file to storage
-            // console.log({ name, fileName });
-            return res.status(HttpStatus.CREATED).json(response);
+            res.status(HttpStatus.CREATED).json(response);
+            next();
         });
 
     router
         .route('/:id')
-        .get(async (req, res) => {
+        .get(async (req, res, next) => {
             const { id } = req.params;
             const dataSourceEntry = await dataSource.fetchDataSource(id);
             const { files, ...rest } = dataSourceEntry;
-            return res.json({
-                dataSource: {
-                    ...rest,
-                    href: `datasource/${id}`,
-                    files: files.map(extractFileMeta(id))
-                }
+            res.json({
+                ...rest,
+                href: `datasource/${id}`,
+                files: files.map(extractFileMeta(id))
             });
+            next();
         })
-        .put(upload.single('file'), async (req, res) => {
+        .put(upload.single('file'), async (req, res, next) => {
             const { id } = req.params;
+            if (!req.file) {
+                throw new InvalidDataError('no file was submitted');
+            }
             const file = await dataSource.uploadFile(id, req.file);
-            return res.json({
-                file: {
-                    href: `/datasource/${id}/${file.fileName}`,
-                    name: file.fileName
-                }
+            res.json({
+                href: `/datasource/${id}/${file.fileName}`,
+                name: file.fileName
             });
-        }).delete(async (req, res) => {
+            next();
+        }).delete(async (req, res, next) => {
             const { id } = req.params;
             const deletedId = await dataSource.delete(id);
-            return res.json({ deleted: deletedId });
+            res.status(HttpStatus.OK).json({ deleted: deletedId });
+            next();
         });
 
-    router.get('/:id/:fileName', async (req, res) => {
+    router.get('/:id/:fileName', async (req, res, next) => {
         const { id, fileName } = req.params;
         // const stream = await dataSource.fetchFile(id, fileName);
         try {
@@ -88,6 +92,7 @@ const routes = () => {
             }
             throw new Error(`could not fetch the file ${fileName}`);
         }
+        next();
     });
     router.use(errorsMiddleware);
     return router;

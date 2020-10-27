@@ -38,12 +38,7 @@ put:
     content:
       multipart/form-data:
         schema:
-          type: object
-          properties:
-            file:
-              type: string
-              format: binary
-              description: "Data file (file types: csv | txt)"
+          $ref: "#/components/schemas/dataSourceUploadFile"
     description: DataSource name and file to upload
     required: true
   responses:
@@ -53,3 +48,25 @@ put:
         application/json:
           schema:
             $ref: "#/components/schemas/defaultResponseWithName"
+delete:
+  tags:
+    - DataSource
+  summary: delete a datasource by id
+  parameters:
+    - name: id
+      in: path
+      description: A dataSource id
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: successfully deleted the datasource
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: string
+                description: a delete acknowledgement

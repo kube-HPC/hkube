@@ -36,14 +36,16 @@ cronRequest:
   $ref: ./cronRequest.yaml
 dataSource:
   $ref: ./dataSource.yaml
+dataSourceUploadFile:
+  $ref: ./dataSourceUploadFile.yaml
 dataSourceCreate:
   $ref: ./dataSourceCreate.yaml
 dataSourceName:
   $ref: ./dataSourceName.yaml
+dataSourceFile:
+  $ref: ./dataSourceFile.yaml
 dataSourceFileMeta:
   $ref: ./dataSourceFileMeta.yaml
-dataSourceFileExt:
-  $ref: ./dataSourceFileExt.yaml
 defaultResponse:
   $ref: ./defaultResponse.yaml
 defaultResponseWithName:

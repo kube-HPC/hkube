@@ -11,11 +11,11 @@
         "@hkube/etcd": "^5.0.37",
         "@hkube/logger": "^1.0.25",
         "@hkube/metrics": "^1.0.39",
-        "@hkube/parsers": "^2.0.6",
+        "@hkube/parsers": "^2.1.2",
         "@hkube/producer-consumer": "^1.0.46",
         "@hkube/redis-utils": "^1.0.3",
         "@hkube/rest-server": "^1.0.12",
-        "@hkube/storage-manager": "^2.0.28",
+        "@hkube/storage-manager": "^2.0.29",
         "@hkube/uid": "^1.0.4",
         "@hkube/units-converter": "^1.0.15",
         "@octokit/rest": "^18.0.0",
@@ -47,7 +47,7 @@
         "swagger-parser": "^9.0.1"
     },
     "devDependencies": {
-        "@hkube/encoding": "^1.0.11",
+        "@hkube/encoding": "^1.0.17",
         "body-parser": "^1.19.0",
         "chai": "^4.2.0",
         "clone": "^2.1.2",
