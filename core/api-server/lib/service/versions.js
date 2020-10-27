@@ -83,7 +83,7 @@ class AlgorithmVersions {
 
     async _getLatestVersion({ name }) {
         const versions = await stateManager.algorithms.versions.list({ name, order: 'Create', sort: 'desc', limit: 1 });
-        return versions && versions[0] && versions[0].version;
+        return versions?.[0]?.version;
     }
 
     _version(oldVersion) {
