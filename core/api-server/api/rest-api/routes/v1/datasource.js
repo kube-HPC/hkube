@@ -2,10 +2,10 @@ const path = require('path');
 const { isDBError, errorTypes } = require('@hkube/db/lib/errors');
 const { Router } = require('express');
 const multer = require('multer');
+const HttpStatus = require('http-status-codes');
 const { ResourceNotFoundError, InvalidDataError } = require('../../../../lib/errors');
 const dataSource = require('../../../../lib/service/dataSource');
 const { promisifyStream } = require('../../../../lib/stream');
-
 // consider replacing multer with busboy to handle the stream without saving to disk
 const upload = multer({ dest: 'uploads/datasource/' });
 
@@ -43,7 +43,7 @@ const routes = () => {
             // // create the data source on the db
             // // upload file to storage
             // console.log({ name, fileName });
-            return res.status(201).json(response);
+            return res.status(HttpStatus.CREATED).json(response);
         });
 
     router
