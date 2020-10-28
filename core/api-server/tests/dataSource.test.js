@@ -107,10 +107,10 @@ describe('Datasource', () => {
                 uri: `${restPath}/${createResponse.body.id}/${fileName}`,
                 method: 'GET'
             };
-            sinon.stub(storage.hkubeDataSource, 'getStream').rejects('reject message');
+            sinon.stub(storage.hkubeDataSource, 'getStream').rejects({ message: 'failed on purpose' });
             const { response: fetchFileResponse } = await request(options);
-            expect(fetchFileResponse.body.error.message).to.match(/could not fetch the file/i);
-            expect(fetchFileResponse.statusCode).to.eq(HttpStatus.INTERNAL_SERVER_ERROR);
+            expect(fetchFileResponse.body.error.message).to.match(/failed on purpose/i);
+            expect(fetchFileResponse.statusCode).to.eq(HttpStatus.BAD_REQUEST);
         });
         it('invalid dataSource id', async () => {
             const options = {
@@ -118,7 +118,7 @@ describe('Datasource', () => {
                 method: 'GET'
             };
             const { response: fetchFileResponse } = await request(options);
-            expect(fetchFileResponse.body).to.have.property('error');
+            expect(fetchFileResponse.body.error.message).to.match(/Not Found/i);
             expect(fetchFileResponse.statusCode).to.eq(404);
         });
         it('invalid file name', async () => {
@@ -129,7 +129,7 @@ describe('Datasource', () => {
                 method: 'GET'
             };
             const { response: fetchFileResponse } = await request(options);
-            expect(fetchFileResponse.body).to.have.property('error');
+            expect(fetchFileResponse.body.error.message).to.match(/Not Found/i);
             expect(fetchFileResponse.statusCode).to.eq(404);
         });
     });

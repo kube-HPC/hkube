@@ -5,7 +5,7 @@ const multer = require('multer');
 const HttpStatus = require('http-status-codes');
 const { ResourceNotFoundError, InvalidDataError } = require('../../../../lib/errors');
 const dataSource = require('../../../../lib/service/dataSource');
-const { promisifyStream } = require('../../../../lib/stream');
+const { promisifyStream, handleStorageError } = require('../../../../lib/stream');
 // consider replacing multer with busboy to handle the stream without saving to disk
 const upload = multer({ dest: 'uploads/datasource/' });
 
@@ -75,16 +75,12 @@ const routes = () => {
 
     router.get('/:id/:fileName', async (req, res, next) => {
         const { id, fileName } = req.params;
-        // const stream = await dataSource.fetchFile(id, fileName);
         try {
             const stream = await dataSource.fetchFile(id, fileName);
             await promisifyStream(res, stream);
         }
         catch (error) {
-            if (error.code === 'ENOENT') {
-                throw new ResourceNotFoundError('dataSource/file', `${id}/${fileName}`);
-            }
-            throw new Error(`could not fetch the file ${fileName}`);
+            return next(handleStorageError(error, 'getFile', error.path));
         }
         next();
     });
