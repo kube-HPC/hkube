@@ -1,6 +1,6 @@
 type: object
 properties:
-  href:
+  path:
     type: string
     example: "/datasource/my-datasource"
   name:

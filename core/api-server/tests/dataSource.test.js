@@ -80,7 +80,7 @@ describe('Datasource', () => {
             expect(dataSource.name).to.eq(name);
             expect(dataSource).to.have.property('files');
             dataSource.files.forEach(file => {
-                expect(file).to.have.property('href');
+                expect(file).to.have.property('path');
                 expect(file).to.have.property('name');
                 expect(file).to.have.property('type');
             });
@@ -411,7 +411,7 @@ describe('Datasource', () => {
                 const { response: putResponse } = await uploadFile(createdId, secondFileName);
                 const { body: file } = putResponse;
                 expect(file).to.have.property('name');
-                expect(file).to.have.property('href');
+                expect(file).to.have.property('path');
                 const { response: fetchDataSourceResponse } = await fetchDataSource(createdId);
                 const { body: dataSource } = fetchDataSourceResponse;
                 expect(dataSource.files).to.have.lengthOf(2);

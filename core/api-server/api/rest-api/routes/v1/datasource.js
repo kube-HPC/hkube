@@ -25,7 +25,7 @@ const extractFileMeta = (dataSourceId) => (filePath) => {
     return {
         type: parsed.ext,
         name: parsed.base,
-        href: `datasource/${dataSourceId}/${parsed.base}`
+        path: `datasource/${dataSourceId}/${parsed.base}`
     };
 };
 
@@ -53,7 +53,7 @@ const routes = () => {
             const { files, ...rest } = dataSourceEntry;
             res.json({
                 ...rest,
-                href: `datasource/${id}`,
+                path: `datasource/${id}`,
                 files: files.map(extractFileMeta(id))
             });
             next();
@@ -62,7 +62,7 @@ const routes = () => {
             const { id } = req.params;
             const file = await dataSource.updateDataSource(id, req.file);
             res.json({
-                href: `/datasource/${id}/${file.fileName}`,
+                path: `/datasource/${id}/${file.fileName}`,
                 name: file.fileName
             });
             next();
