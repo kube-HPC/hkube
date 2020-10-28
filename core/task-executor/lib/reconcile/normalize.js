@@ -3,7 +3,7 @@ const groupBy = require('lodash.groupby');
 const parse = require('@hkube/units-converter');
 const objectPath = require('object-path');
 const { gpuVendors } = require('../consts');
-const { setWorkerImage, setAlgorithmImage } = require('./createOptions');
+const { setWorkerImage } = require('./createOptions');
 const { settings: globalSettings } = require('../helpers/settings');
 /**
  * normalizes the worker info from discovery
@@ -50,7 +50,8 @@ const normalizeWorkers = (workers) => {
             hotWorker: w.hotWorker,
             podName: w.podName,
             workerImage: w.workerImage,
-            algorithmImage: w.algorithmImage
+            algorithmImage: w.algorithmImage,
+            algorithmVersion: w.algorithmVersion
         };
     });
     return workersArray;
@@ -73,14 +74,13 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
         }
 
         const workerImage = setWorkerImage({ workerImage: algorithm.workerImage }, versions, registry);
-        const algorithmImage = setAlgorithmImage({ algorithmImage: algorithm.algorithmImage }, versions, registry);
 
         let message;
         if (workerImage !== w.workerImage) {
             message = 'worker image changed';
         }
-        if (algorithmImage !== w.algorithmImage) {
-            message = 'algorithm image changed';
+        if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
+            message = 'algorithm version changed';
         }
         if (message) {
             workers.push({ ...w, message });

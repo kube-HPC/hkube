@@ -226,7 +226,7 @@ const getJavaMaxMem = (memory) => {
     const javaValue = Math.round(val * 0.8);
     return javaValue;
 };
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, algorithmOptions,
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, algorithmOptions,
     nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
@@ -249,6 +249,7 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     }
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_IMAGE: algorithmImage });
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_VERSION: algorithmVersion });
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
     if (settings.applyResources) {

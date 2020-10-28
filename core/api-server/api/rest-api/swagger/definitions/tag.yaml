@@ -1,4 +1,4 @@
 type: string
-description: Unique identifier representing a specific algorithm
+description: Unique identifier representing a specific tag
 minLength: 1
 maxLength: 32

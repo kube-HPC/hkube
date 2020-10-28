@@ -212,7 +212,7 @@ describe('Store/Pipelines', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.equal('data.triggers.pipelines[0] should NOT be shorter than 1 characters');
         });
-        it.skip('should throw validation error of required property nodes.algorithmName', async () => {
+        it('should throw validation error of required property nodes.algorithmName', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -225,7 +225,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.nodes[0] should have required property '.algorithmName'");
+            expect(response.body.error.message).to.contain("please provide algorithmName or pipelineName");
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {
