@@ -1,4 +1,3 @@
-const path = require('path');
 const { isDBError, errorTypes } = require('@hkube/db/lib/errors');
 const { Router } = require('express');
 const multer = require('multer');
@@ -17,16 +16,6 @@ const errorsMiddleware = (error, req, res, next) => {
         throw new InvalidDataError(error.message);
     }
     return next(error);
-};
-
-/** @type {(dataSourceId: string ) => (filePath: string) => {type: string, name: string, href: string}} */
-const extractFileMeta = (dataSourceId) => (filePath) => {
-    const parsed = path.parse(filePath);
-    return {
-        type: parsed.ext,
-        name: parsed.base,
-        path: `datasource/${dataSourceId}/${parsed.base}`
-    };
 };
 
 const routes = () => {
@@ -54,7 +43,7 @@ const routes = () => {
             res.json({
                 ...rest,
                 path: `datasource/${id}`,
-                files: files.map(extractFileMeta(id))
+                files
             });
             next();
         })

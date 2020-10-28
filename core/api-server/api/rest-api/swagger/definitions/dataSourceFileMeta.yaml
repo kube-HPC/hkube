@@ -3,9 +3,8 @@ properties:
   path:
     type: string
     example: "/datasource/my-datasource/data.csv"
-  name:
+  size:
+    type: number
+  mtime:
     type: string
-    example: "data.csv"
-  type:
-    type: string
-    example: "csv"
+    example: "2020-10-28T17:45:03.372Z"

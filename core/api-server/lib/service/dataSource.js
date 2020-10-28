@@ -9,6 +9,7 @@ const validator = require('../validation/api-validator');
  *  @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
  *  @typedef {import('express')} Express;
  *  @typedef {{createdPath: string, fileName: string}} uploadFileResponse
+ *  @typedef {import('@hkube/storage-manager/lib/storage/storage-base').EntryWithMetaData} EntryWithMetaData
  * */
 
 class DataSource {
@@ -55,12 +56,11 @@ class DataSource {
         return createdDataSource;
     }
 
-    /** @type { (id: string) => Promise<DataSourceItem & {files: string[] }> } */
+    /** @type { (id: string) => Promise<DataSourceItem & {files: EntryWithMetaData[] }> } */
     async fetchDataSource(id) {
         const dataSource = await db.dataSources.fetch({ id });
-        /** @type {{path: string}[]} */
-        const files = await storage.hkubeDataSource.list({ dataSource: dataSource.id.toString() });
-        return { ...dataSource, files: files.map(file => file.path) };
+        const files = await this.listWithStats({ dataSource: dataSource.id.toString() });
+        return { ...dataSource, files };
     }
 
     /** @type {(dataSourceId: string, fileName: string) => Promise<string>} */
@@ -79,6 +79,10 @@ class DataSource {
 
     async list() {
         return db.dataSources.fetchAll();
+    }
+
+    async listWithStats({ dataSource }) {
+        return storage.hkubeDataSource.listWithStats({ dataSource });
     }
 }
 

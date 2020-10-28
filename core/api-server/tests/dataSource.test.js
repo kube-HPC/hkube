@@ -81,8 +81,8 @@ describe('Datasource', () => {
             expect(dataSource).to.have.property('files');
             dataSource.files.forEach(file => {
                 expect(file).to.have.property('path');
-                expect(file).to.have.property('name');
-                expect(file).to.have.property('type');
+                expect(file).to.have.property('size');
+                expect(file).to.have.property('mtime');
             });
         });
     });
