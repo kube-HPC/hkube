@@ -52,6 +52,9 @@ class ApiValidator {
         const links = [];
 
         pipeline.nodes.forEach((node) => {
+            if (!node.algorithmName && !node.pipelineName) {
+                throw new InvalidDataError('please provide algorithmName or pipelineName');
+            }
             if (graph.node(node.nodeName)) {
                 throw new InvalidDataError(`found duplicate node ${node.nodeName}`);
             }

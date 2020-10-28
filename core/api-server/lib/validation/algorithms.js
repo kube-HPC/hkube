@@ -26,7 +26,11 @@ class ApiValidator {
     }
 
     validateAlgorithmVersion(algorithm) {
-        this._validator.validate(this._validator.definitions.algorithmVersion, algorithm, false);
+        this._validator.validate(this._validator.definitions.applyAlgorithmVersion, algorithm, false);
+    }
+
+    validateAlgorithmTag(algorithm) {
+        this._validator.validate(this._validator.definitions.algorithmVersionTag, algorithm, false);
     }
 
     validateAlgorithmDelete(algorithm) {

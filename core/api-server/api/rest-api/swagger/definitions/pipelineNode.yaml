@@ -6,6 +6,8 @@ properties:
     minLength: 1
   algorithmName:
     $ref: "#/components/schemas/algorithmName"
+  pipelineName:
+    $ref: "#/components/schemas/pipelineName"
   input:
     type: array
     description: The input for the algorithm

@@ -66,7 +66,7 @@ class AppServer {
             afterRoutesMiddlewares: [...afterRoutesMiddlewares, afterRequest(routeLogBlacklist)]
         };
         const data = await rest.start(opt);
-        log.info(data.message, { component });
+        log.info(`🚀 ${data.message}`, { component });
     }
 }
 
