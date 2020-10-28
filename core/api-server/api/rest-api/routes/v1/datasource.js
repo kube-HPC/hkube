@@ -69,7 +69,7 @@ const routes = () => {
         }).delete(async (req, res, next) => {
             const { id } = req.params;
             const deletedId = await dataSource.delete(id);
-            res.status(HttpStatus.OK).json({ deleted: deletedId });
+            res.json({ deleted: deletedId });
             next();
         });
 
