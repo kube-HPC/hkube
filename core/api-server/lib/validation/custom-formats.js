@@ -42,7 +42,7 @@ class ApiValidator {
     }
 
     _validateBinary(file) {
-        return regex.BINARY_FILE_NAME.test(file);
+        return file !== undefined;
     }
 
     _validateUrl(url) {
