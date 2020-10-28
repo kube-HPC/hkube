@@ -64,10 +64,11 @@ class DataSource {
 
     /** @param {string} id */
     async delete(id) {
-        return Promise.all([
+        const [deletedId] = await Promise.all([
             db.dataSources.delete(id),
             storage.hkubeDataSource.delete({ dataSource: id })
         ]);
+        return deletedId;
     }
 
     async list() {
