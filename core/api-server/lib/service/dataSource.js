@@ -23,11 +23,17 @@ class DataSource {
 
     /** @type {(dataSourceId: string, file: Express.Multer.File) => Promise<uploadFileResponse>} */
     async uploadFile(dataSourceId, file) {
-        const createdPath = await storage.hkubeDataSource.putStream({
-            dataSource: dataSourceId,
-            data: fse.createReadStream(file.path),
-            fileName: file.originalname
-        });
+        let createdPath = null;
+        try {
+            createdPath = await storage.hkubeDataSource.putStream({
+                dataSource: dataSourceId,
+                data: fse.createReadStream(file.path),
+                fileName: file.originalname
+            });
+        }
+        finally {
+            await fse.remove(file.path);
+        }
         return { createdPath, fileName: file.originalname };
     }
 
