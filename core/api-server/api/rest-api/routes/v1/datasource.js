@@ -82,7 +82,7 @@ const routes = () => {
         catch (error) {
             return next(handleStorageError(error, 'getFile', error.path));
         }
-        next();
+        return next();
     });
     router.use(errorsMiddleware);
     return router;

@@ -8,6 +8,7 @@ const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
 const modules = [
+    require('./lib/db'),
     require('./api/rest-api/app-server'),
     require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
@@ -17,7 +18,6 @@ const modules = [
     require('./lib/service/algorithms'),
     require('./lib/service/caching'),
     require('./lib/service/storage'),
-    require('./lib/db')
 ];
 
 class Bootstrap {

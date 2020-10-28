@@ -1,7 +1,7 @@
 const storage = require('@hkube/storage-manager');
 const { errorTypes } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
-const dbConnection = require('../db');
+const { connection: db } = require('../db');
 const { ResourceExistsError } = require('../errors');
 const validator = require('../validation/api-validator');
 
@@ -34,7 +34,6 @@ class DataSource {
     /** @type {(name: string, file: Express.Multer.File) => Promise<DataSourceItem>} */
     async createDataSource(name, file) {
         validator.dataSource.validateCreate({ name, file });
-        const db = dbConnection.connection;
         let createdDataSource = null;
         try {
             createdDataSource = await db.dataSources.create(name);
@@ -52,7 +51,6 @@ class DataSource {
 
     /** @type { (id: string) => Promise<DataSourceItem & {files: string[] }> } */
     async fetchDataSource(id) {
-        const db = dbConnection.connection;
         const dataSource = await db.dataSources.fetch({ id });
         /** @type {{path: string}[]} */
         const files = await storage.hkubeDataSource.list({ dataSource: dataSource.id.toString() });
@@ -66,7 +64,6 @@ class DataSource {
 
     /** @param {string} id */
     async delete(id) {
-        const db = dbConnection.connection;
         return Promise.all([
             db.dataSources.delete(id),
             storage.hkubeDataSource.delete({ dataSource: id })
@@ -74,7 +71,6 @@ class DataSource {
     }
 
     async list() {
-        const db = dbConnection.connection;
         return db.dataSources.fetchAll();
     }
 }
