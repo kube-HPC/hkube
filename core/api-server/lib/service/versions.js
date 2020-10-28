@@ -5,11 +5,14 @@ const stateManager = require('../state/state-manager');
 const algorithmStore = require('./algorithms-store');
 const { ResourceNotFoundError, ActionNotAllowed } = require('../errors');
 
-const VERSIONS = {
-    FIRST: '1.0.0',
-    MAX_PATCH: 500,
-    MAX_MINOR: 500,
-    MAX_MAJOR: 500,
+const SETTINGS = {
+    SEMVER: {
+        FIRST: '1.0.0',
+        MAX_PATCH: 500,
+        MAX_MINOR: 500,
+        MAX_MAJOR: 500,
+        MAX_LOCK_ATTEMPTS: 5
+    },
     VERSION_LENGTH: 10
 };
 
@@ -90,7 +93,7 @@ class AlgorithmVersions {
      */
     async createVersion(algorithm) {
         const { name } = algorithm;
-        const version = uid({ length: VERSIONS.VERSION_LENGTH });
+        const version = uid({ length: SETTINGS.VERSION_LENGTH });
         const latestSemver = await this._getLatestSemver({ name });
         let semver = await this._incSemver(latestSemver);
 
@@ -119,7 +122,7 @@ class AlgorithmVersions {
         let attempts = 0;
         let success = false;
         let semVersion = semver;
-        while (!success && attempts < 3) {
+        while (!success && attempts < SETTINGS.SEMVER.MAX_LOCK_ATTEMPTS) {
             const lock = await stateManager.algorithms.versions.acquireLock({ name, version: semVersion }); // eslint-disable-line
             success = lock.success;
             if (!success) {
@@ -139,7 +142,7 @@ class AlgorithmVersions {
         let version;
 
         if (!oldVersion) {
-            version = VERSIONS.FIRST;
+            version = SETTINGS.SEMVER.FIRST;
         }
         else {
             const ver = semverLib.valid(oldVersion);
@@ -148,13 +151,13 @@ class AlgorithmVersions {
             }
             else {
                 const { patch, minor, major } = semverLib.parse(oldVersion);
-                if (patch < VERSIONS.MAX_PATCH) {
+                if (patch < SETTINGS.SEMVER.MAX_PATCH) {
                     version = semverLib.inc(oldVersion, 'patch');
                 }
-                else if (minor < VERSIONS.MAX_MINOR) {
+                else if (minor < SETTINGS.SEMVER.MAX_MINOR) {
                     version = semverLib.inc(oldVersion, 'minor');
                 }
-                else if (major < VERSIONS.MAX_MAJOR) {
+                else if (major < SETTINGS.SEMVER.MAX_MAJOR) {
                     version = semverLib.inc(oldVersion, 'major');
                 }
             }

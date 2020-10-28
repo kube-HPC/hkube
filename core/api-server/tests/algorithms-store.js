@@ -1693,18 +1693,23 @@ describe('Store/Algorithms', () => {
                     ...apply1,
                     cpu: 4
                 }
+                const apply5 = {
+                    ...apply1,
+                    cpu: 5
+                }
                 const req1 = { uri: applyPath, formData: { payload: JSON.stringify(apply1) } };
                 const req2 = { uri: applyPath, formData: { payload: JSON.stringify(apply2) } };
                 const req3 = { uri: applyPath, formData: { payload: JSON.stringify(apply3) } };
                 const req4 = { uri: applyPath, formData: { payload: JSON.stringify(apply4) } };
-                const req5 = { uri: `${versionsPath}/${apply1.name}`, method: 'GET' };
-                const response = await Promise.all([request(req1), request(req2), request(req3), request(req4)]);
-                const versionsRes = await request(req5);
+                const req5 = { uri: applyPath, formData: { payload: JSON.stringify(apply5) } };
+                const req6 = { uri: `${versionsPath}/${apply1.name}`, method: 'GET' };
+                const response = await Promise.all([request(req1), request(req2), request(req3), request(req4), request(req5)]);
+                const versionsRes = await request(req6);
                 const versions1 = response.map(v => v.body.algorithm.version).sort(); // sort because Promise.all order
                 const versions2 = versionsRes.body.map(v => v.version).sort();
                 const semver = versionsRes.body.map(v => v.semver);
                 expect(versions1).to.eql(versions2);
-                expect(semver).to.eql(['1.0.3', '1.0.2', '1.0.1', '1.0.0']);
+                expect(semver).to.eql(['1.0.4', '1.0.3', '1.0.2', '1.0.1', '1.0.0']);
             });
         });
     });
