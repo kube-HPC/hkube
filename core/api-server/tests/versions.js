@@ -40,6 +40,8 @@ describe('Versions/Algorithms', () => {
             await request(applyReq2);
             const res = await request(versionReq);
             expect(res.body).to.have.lengthOf(2);
+            const semver = res.body.map(v => v.semver);
+            expect(semver).to.eql(['1.0.1', '1.0.0']);
         });
     });
     describe('delete', () => {
