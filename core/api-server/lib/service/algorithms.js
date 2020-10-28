@@ -1,4 +1,5 @@
 const merge = require('lodash.merge');
+const isEqual = require('lodash.isequal');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
 const { buildTypes, buildStatuses } = require('@hkube/consts');
@@ -6,6 +7,8 @@ const executionService = require('./execution');
 const pipelineService = require('./pipelines');
 const stateManager = require('../state/state-manager');
 const buildsService = require('./builds');
+const versionsService = require('./versions');
+const algorithmStore = require('./algorithms-store');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
@@ -21,17 +24,17 @@ class AlgorithmStore {
             }
             /**
              * this code runs after a successful build.
-             * if there are no versions, we update the current algorithm with the new build image.
-             * finally we create a new version
+             * first, we create a new version, then if there are no versions,
+             * we update the current algorithm with the new build image.
              */
-            const { algorithm, algorithmName, algorithmImage } = build;
-            const algorithmVersion = await stateManager.algorithms.versions.list({ name: algorithmName });
+            const { algorithm, algorithmName: name, algorithmImage } = build;
+            const versions = await stateManager.algorithms.versions.list({ name });
             const newAlgorithm = merge({}, algorithm, { algorithmImage, options: { pending: false } });
+            const version = await versionsService.createVersion(newAlgorithm);
 
-            if (algorithmVersion.length === 0) {
-                await this.storeAlgorithm(newAlgorithm);
+            if (versions.length === 0) {
+                await algorithmStore.storeAlgorithm({ ...newAlgorithm, version });
             }
-            await stateManager.algorithms.versions.set(newAlgorithm);
         });
     }
 
@@ -41,7 +44,7 @@ class AlgorithmStore {
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        const { algorithm } = await this.applyAlgorithm({ payload: options, options: { overrideImage: true } });
+        const { algorithm } = await this.applyAlgorithm({ payload: options, options: { setAsCurrent: true } });
         return algorithm;
     }
 
@@ -143,11 +146,6 @@ class AlgorithmStore {
         return stateManager.algorithms.store.list({ ...options, limit: limit || 1000 });
     }
 
-    async storeAlgorithm(options) {
-        await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
-        await stateManager.algorithms.store.set(options);
-    }
-
     async insertAlgorithm(options) {
         validator.algorithms.validateAlgorithmName(options);
         const alg = await stateManager.algorithms.store.get(options);
@@ -166,20 +164,21 @@ class AlgorithmStore {
      * This method is responsible for create builds, versions, debug data and update algorithm.
      * This method update algorithm if one of the following conditions is valid:
      * 1. The update include new algorithm which is not exists in store.
-     * 2. The update didn't trigger any new build.
+     * 2. The update didn't trigger any new version or build.
      * 3. The update explicitly include to override current image.
      *
      */
     async applyAlgorithm(data) {
-        const { payload, options } = data;
         const file = data.file || {};
         let buildId;
         const messages = [];
-        const { overrideImage } = options || {};
+        const { setAsCurrent } = data.options || {};
+        const { version, ...payload } = data.payload;
         validator.algorithms.validateApplyAlgorithm(payload);
         const oldAlgorithm = await this._getAlgorithm(payload);
         let newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
         await this._validateAlgorithm(newAlgorithm);
+        const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
 
         if (payload.type === buildTypes.CODE && file.path) {
             buildId = await this._createBuildFromCode(payload, file, newAlgorithm, oldAlgorithm, messages);
@@ -196,28 +195,35 @@ class AlgorithmStore {
             newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
         }
 
-        const version = await this._versioning(overrideImage, oldAlgorithm, newAlgorithm, payload);
-        if (version) {
+        const newVersion = await this._versioning(hasDiff, newAlgorithm);
+        if (newVersion) {
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
         }
         let { algorithmImage } = payload;
-        if (oldAlgorithm && !overrideImage) {
+        if (oldAlgorithm && !setAsCurrent) {
             algorithmImage = oldAlgorithm.algorithmImage;
         }
-        newAlgorithm = merge({}, newAlgorithm, { algorithmImage });
+        newAlgorithm = merge({}, newAlgorithm, { algorithmImage }, { version: newVersion });
 
-        const hasVersion = version || buildId;
+        const hasVersion = newVersion || buildId;
         // has version, but explicitly requested to override
-        const shouldStoreOverride = (overrideImage && hasVersion);
+        const shouldStoreOverride = (setAsCurrent && hasVersion);
         // no build and no version
         const shouldStoreNoVersionBuild = !hasVersion;
         // new algorithm that is not in the store
         const shouldStoreFirstApply = !oldAlgorithm;
         if (shouldStoreOverride || shouldStoreNoVersionBuild || shouldStoreFirstApply) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
-            await this.storeAlgorithm(newAlgorithm);
+            await algorithmStore.storeAlgorithm(newAlgorithm);
         }
         return { buildId, messages, algorithm: newAlgorithm };
+    }
+
+    _compareAlgorithms(oldAlgorithm, newAlgorithm) {
+        if (!oldAlgorithm) {
+            return true;
+        }
+        return !isEqual(oldAlgorithm, newAlgorithm);
     }
 
     async _createBuildFromGit(payload, newAlgorithm, oldAlgorithm, messages) {
@@ -266,20 +272,11 @@ class AlgorithmStore {
         return oldAlgorithm;
     }
 
-    async _versioning(overrideImage, oldAlgorithm, newAlgorithm, payload) {
-        let version = false;
-        if (!oldAlgorithm && newAlgorithm.algorithmImage) {
-            await stateManager.algorithms.versions.set(newAlgorithm);
-            version = true;
-        }
-        else if (oldAlgorithm && oldAlgorithm.algorithmImage && payload.algorithmImage && oldAlgorithm.algorithmImage !== payload.algorithmImage) {
-            version = true;
-            if (overrideImage) {
-                await stateManager.algorithms.versions.set(oldAlgorithm);
-            }
-            else {
-                await stateManager.algorithms.versions.set(newAlgorithm);
-            }
+    async _versioning(hasDiff, algorithm) {
+        let version;
+        // should we create versions also for debug ?
+        if (hasDiff && algorithm.algorithmImage && !algorithm.options.debug) {
+            version = await versionsService.createVersion(algorithm);
         }
         return version;
     }
