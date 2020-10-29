@@ -13,8 +13,8 @@ class ThroughputCollector extends EventEmitter {
         log = Logger.GetLogFromContainer();
         this._options = options;
         this._getThroughput = getThroughput;
-        this._currentThroughput = Object.create(null);
-        this._lastThroughput = Object.create(null);
+        this._currentThroughput = [];
+        this._lastThroughput = [];
         this._start();
     }
 
@@ -30,17 +30,8 @@ class ThroughputCollector extends EventEmitter {
     }
 
     _checkThroughput() {
-        const throughput = this._getThroughput();
-        throughput.forEach(p => {
-            this._update(p.throughput);
-        });
+        this._currentThroughput = this._getThroughput();
         return this._check();
-    }
-
-    _update(data) {
-        Object.entries(data).forEach(([k, v]) => {
-            this._currentThroughput[k] = v;
-        });
     }
 
     _check() {

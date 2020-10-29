@@ -20,7 +20,7 @@ class ProgressManager {
         };
         this._calcProgress = this._progressTypes[type];
         this._getGraphNodes = options.getGraphNodes;
-        this._getGraphAllNodes = options.getGraphAllNodes;
+        this._getGraphEdges = options.getGraphEdges;
         this._sendProgress = options.sendProgress;
         this._throttleProgress = throttle(this._queueProgress.bind(this), 1000, { trailing: true, leading: true });
 
@@ -99,11 +99,10 @@ class ProgressManager {
     }
 
     _calcProgressStream(options) {
-        const nodes = this._getGraphNodes();
+        const edges = this._getGraphEdges();
         const { reduceStates, textStates } = options;
-        const throughput = nodes.filter(n => n.throughput).map(n => n.throughput);
-        const val = median(throughput);
-        const progress = parseFloat((val * 100).toFixed(2));
+        const throughput = edges.filter(n => n.value.throughput).map(n => n.value.throughput);
+        const progress = median(throughput);
         const states = reduceStates;
         const details = textStates;
         return { progress, states, details };
@@ -115,7 +114,7 @@ class ProgressManager {
             states: {},
             details: ''
         };
-        const nodes = this._getGraphAllNodes();
+        const nodes = this._getGraphNodes();
         if (nodes.length === 0) {
             return calc;
         }

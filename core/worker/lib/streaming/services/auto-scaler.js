@@ -2,7 +2,7 @@ const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
-const { Statistics, Throughput, PendingScale, Metrics } = require('../core');
+const { Statistics, PendingScale, Metrics } = require('../core');
 const ScaleReasons = require('../core/scale-reasons');
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
@@ -28,7 +28,7 @@ class AutoScaler {
         this._metrics = [];
         this._idles = Object.create(null);
         this._statsPrint = Object.create(null);
-        this._throughput = new Throughput();
+        this._throughput = 0;
         this._statistics = new Statistics(this._config);
         this._pendingScale = new PendingScale(this._config);
     }
@@ -38,7 +38,7 @@ class AutoScaler {
     }
 
     getThroughput() {
-        return this._throughput.data;
+        return this._throughput;
     }
 
     getMetrics() {
@@ -168,13 +168,13 @@ class AutoScaler {
     }
 
     _updateThroughput(metric) {
-        const { source, reqRate, resRate } = metric;
+        const { reqRate, resRate } = metric;
         if (reqRate && resRate) {
-            const throughput = parseFloat((resRate / reqRate).toFixed(2));
-            this._throughput.update(source, throughput);
+            const throughput = parseFloat(((resRate / reqRate) * 100).toFixed(2));
+            this._throughput = throughput;
         }
         else {
-            this._throughput.update(source, 0);
+            this._throughput = 0;
         }
     }
 

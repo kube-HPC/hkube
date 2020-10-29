@@ -103,7 +103,7 @@ class TaskRunner extends EventEmitter {
                 this._onTaskComplete(task);
                 break;
             case taskStatuses.THROUGHPUT:
-                this._onProgress(task);
+                this._onStreamingThroughput(task);
                 break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -217,8 +217,8 @@ class TaskRunner extends EventEmitter {
         });
         this._progress = new Progress({
             type: this.pipeline.kind,
-            getGraphNodes: (...args) => this._nodes.getAllNodes(...args),
-            getGraphAllNodes: (...args) => this._nodes._getNodesAsFlat(...args),
+            getGraphNodes: (...args) => this._nodes._getNodesAsFlat(...args),
+            getGraphEdges: (...args) => this._nodes.getEdges(...args),
             sendProgress: (...args) => this._stateManager.setJobStatus(...args)
         });
 
@@ -642,16 +642,12 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _onProgress(task) {
+    _onStreamingThroughput(task) {
         if (!this._active) {
             return;
         }
-        const { throughput } = task;
-        Object.entries(throughput).forEach(([k, v]) => {
-            const node = this._nodes.getNode(k);
-            if (node) {
-                node.throughput = v;
-            }
+        task.throughput.forEach((t) => {
+            this._nodes.updateEdge(t.source, t.target, { throughput: t.throughput });
         });
         this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
     }
