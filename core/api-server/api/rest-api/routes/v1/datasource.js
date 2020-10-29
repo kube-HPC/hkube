@@ -18,13 +18,6 @@ const errorsMiddleware = (error, req, res, next) => {
     return next(error);
 };
 
-// const getIdMiddleware = async (req, res, next) => {
-//     const { name } = req.params;
-//     const entry = await dataSource.fetchDataSource(name);
-//     req.dataSource = entry;
-//     next();
-// };
-
 const routes = () => {
     const router = Router();
     router

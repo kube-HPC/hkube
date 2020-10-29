@@ -57,12 +57,10 @@ config.jobs = {
 config.db = {
     provider: 'mongo',
     mongo: {
-        ...(process.env.MONGODB_SERVICE_USER_NAME && process.env.MONGODB_SERVICE_PASSWORD ? {
-            auth: {
-                user: process.env.MONGODB_SERVICE_USER_NAME,
-                password: process.env.MONGODB_SERVICE_PASSWORD,
-            },
-        } : {}),
+        auth: {
+            user: process.env.MONGODB_SERVICE_USER_NAME,
+            password: process.env.MONGODB_SERVICE_PASSWORD,
+        },
         host: process.env.MONGODB_SERVICE_HOST || 'localhost',
         port: formatter.parseInt(process.env.MONGODB_SERVICE_PORT, 27017),
         dbName: process.env.MONGODB_SERVICE_NAME || 'hkube',
