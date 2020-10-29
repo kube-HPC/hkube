@@ -338,13 +338,8 @@ const calcRatio = (totalRequests, capacity) => {
         if (capacity) {
             const ratio = requestTypes.algorithms[k].count / requestTypes.total;
             const required = ratio * capacity;
-            // const minRequisiteAmount = (algorithmTemplates && algorithmTemplates[k]?.minRequisiteAmount) || 0;
-
-            // in case that algorithm has `minRequisiteAmount`,
-            // we don't want to take less than `minRequisiteAmount` value.
             requestTypes.algorithms[k].ratio = ratio;
             requestTypes.algorithms[k].required = required;
-            // requestTypes.algorithms[k].required = Math.max(required, minRequisiteAmount);
         }
     });
     return requestTypes;
@@ -395,8 +390,6 @@ const _workersToMap = (requests) => {
 };
 
 const _mergeRequisiteRequests = (requests, requisites) => {
-    const ratioSum = requisites.totalRequired;
-
     /**
     *
     * requisites:
@@ -413,6 +406,9 @@ const _mergeRequisiteRequests = (requests, requisites) => {
     *   [g,g,g,g,y,y,y,b]
     *
     */
+
+    const ratioSum = requisites.totalRequired;
+
     while (requisites.totalRequired > 0) {
         Object.values(requisites.algorithms).forEach((v) => {
             const ratio = (v.required.length / ratioSum);
@@ -437,21 +433,18 @@ const _createRequisitesRequests = (normRequests, algorithmTemplates, idleWorkers
 
     normRequests.forEach((r, i) => {
         const { algorithmName } = r;
-        const minRequisiteAmount = algorithmTemplates[algorithmName]?.minRequisiteAmount;
-        if (minRequisiteAmount && !visited[algorithmName]) {
+        const quotaGuarantee = algorithmTemplates[algorithmName]?.quotaGuarantee;
+        if (quotaGuarantee && !visited[algorithmName]) {
             visited[algorithmName] = true;
             const running = runningWorkersMap[algorithmName] || 0;
-            const diff = minRequisiteAmount - running;
+            const diff = quotaGuarantee - running;
             if (diff > 0) {
-                const algorithms = normRequests
+                const required = normRequests
                     .map((a, j) => ({ index: j, alg: a }))
-                    .filter(n => n.alg.algorithmName === algorithmName);
-                const required = algorithms.slice(0, diff);
-                // requests.unshift(...list);
+                    .filter(n => n.alg.algorithmName === algorithmName)
+                    .slice(0, diff);
                 requisites.algorithms[algorithmName] = requisites.algorithms[algorithmName] || {};
-                requisites.algorithms[algorithmName].minRequisite = minRequisiteAmount;
                 requisites.algorithms[algorithmName].required = required.map(a => a.alg);
-                requisites.algorithms[algorithmName].count = algorithms.length;
                 requisites.totalRequired += required.length;
                 required.forEach((alg) => {
                     indices[alg.index] = true; // save the indices so we will ignore them next iteration.
@@ -469,7 +462,7 @@ const _createRequisitesRequests = (normRequests, algorithmTemplates, idleWorkers
 };
 
 const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
-    const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.minRequisiteAmount);
+    const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.quotaGuarantee);
     let currentRequests = normRequests;
 
     if (hasRequisiteAlgorithms) {
@@ -486,14 +479,14 @@ const _createWindow = (currentRequests) => {
 
 /**
  * This method does two things: 
- *    1. prioritizing algorithms that have `minRequisiteAmount`.
+ *    1. prioritizing algorithms that have `quotaGuarantee`.
  *    2. creating a subset (window) from the requests.
  * The algorithm is as follows:
- *    1. If there is any algorithm with `minRequisiteAmount`.
+ *    1. If there is any algorithm with `quotaGuarantee`.
  *      a. Iterate all requests.
- *      b. If encountered an algorithm with `minRequisiteAmount` that didn't handle.
+ *      b. If encountered an algorithm with `quotaGuarantee` that didn't handle.
  *         b1. Mark the algorithm as visited.
- *         b2. Calculate missing algorithms by `minRequisiteAmount - running`.
+ *         b2. Calculate missing algorithms by `quotaGuarantee - running`.
  *         b3. If there are a missing algorithms, move these algorithms to the top of our window.
  *         b4. Save the indices of these algorithms to ignore them next iteration.
  *         b5. If there are no missing algorithms, just add it to the window.

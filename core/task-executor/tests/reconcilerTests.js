@@ -841,8 +841,8 @@ describe('reconciler', () => {
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
         });
     });
-    describe.skip('reconcile algorithms minRequisiteAmount', () => {
-        it('should work with algorithm with no minRequisiteAmount', async () => {
+    describe('reconcile algorithms quotaGuarantee', () => {
+        it('should work with algorithm with no quotaGuarantee', async () => {
             const algorithm1 = 'no-requisite-x';
             const algorithm2 = 'no-requisite-y';
             const algorithm3 = 'requisite-1';
@@ -851,28 +851,28 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm1] = {
                 name: algorithm1,
                 algorithmImage,
-                minRequisiteAmount: 0,
+                quotaGuarantee: 0,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm2] = {
                 name: algorithm2,
                 algorithmImage,
-                minRequisiteAmount: 0,
+                quotaGuarantee: 0,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm3] = {
                 name: algorithm3,
                 algorithmImage,
-                minRequisiteAmount: 0,
+                quotaGuarantee: 0,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm4] = {
                 name: algorithm4,
                 algorithmImage,
-                minRequisiteAmount: 0,
+                quotaGuarantee: 0,
                 cpu: 0.1,
                 mem: 100
             };
@@ -897,10 +897,10 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res[algorithm1]).to.eql({ idle: 0, required: 34, paused: 0, created: 34, skipped: 0, resumed: 0 });
-            expect(res[algorithm2]).to.eql({ idle: 0, required: 12, paused: 0, created: 12, skipped: 0, resumed: 0 });
+            expect(res[algorithm1].required).to.eql(res[algorithm1].created);
+            expect(res[algorithm2].required).to.eql(res[algorithm2].created);
         });
-        it('should create minRequisiteAmount as example doc', async () => {
+        it('should create quotaGuarantee as example doc', async () => {
             const algorithm1 = 'green';
             const algorithm2 = 'yellow';
             const algorithm3 = 'black';
@@ -910,21 +910,21 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm1] = {
                 name: algorithm1,
                 algorithmImage,
-                minRequisiteAmount: 80,
+                quotaGuarantee: 80,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm2] = {
                 name: algorithm2,
                 algorithmImage,
-                minRequisiteAmount: 20,
+                quotaGuarantee: 20,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm3] = {
                 name: algorithm3,
                 algorithmImage,
-                minRequisiteAmount: 10,
+                quotaGuarantee: 10,
                 cpu: 0.1,
                 mem: 100
             };
@@ -953,11 +953,11 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res[algorithm1]).to.eql({ idle: 0, required: 10, paused: 0, created: 10, skipped: 0, resumed: 0 });
-            expect(res[algorithm3]).to.eql({ idle: 0, required: 8, paused: 0, created: 8, skipped: 0, resumed: 0 });
-            expect(res[algorithm4]).to.eql({ idle: 0, required: 5, paused: 0, created: 5, skipped: 0, resumed: 0 });
+            expect(res[algorithm1].required).to.eql(res[algorithm1].created);
+            expect(res[algorithm2].required).to.eql(res[algorithm2].created);
+            expect(res[algorithm3].required).to.eql(res[algorithm3].created);
         });
-        it('should work with algorithm with small minRequisiteAmount', async () => {
+        it('should work with algorithm with small quotaGuarantee', async () => {
             const algorithm1 = 'no-requisite-x';
             const algorithm2 = 'no-requisite-y';
             const algorithm3 = 'requisite-1';
@@ -968,28 +968,28 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm1] = {
                 name: algorithm1,
                 algorithmImage,
-                minRequisiteAmount: 0,
+                quotaGuarantee: 0,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm2] = {
                 name: algorithm2,
                 algorithmImage,
-                minRequisiteAmount: 0,
+                quotaGuarantee: 0,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm3] = {
                 name: algorithm3,
                 algorithmImage,
-                minRequisiteAmount: 20,
+                quotaGuarantee: 20,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm4] = {
                 name: algorithm4,
                 algorithmImage,
-                minRequisiteAmount: 10,
+                quotaGuarantee: 10,
                 cpu: 0.1,
                 mem: 100
             };
@@ -1022,11 +1022,10 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res[algorithm1]).to.eql({ idle: 0, required: 23, paused: 0, created: 23, skipped: 0, resumed: 0 });
-            expect(res[algorithm3]).to.eql({ idle: 0, required: 14, paused: 0, created: 14, skipped: 0, resumed: 0 });
-            expect(res[algorithm4]).to.eql({ idle: 0, required: 9, paused: 0, created: 9, skipped: 0, resumed: 0 });
+            expect(res[algorithm3].required).to.eql(res[algorithm3].created);
+            expect(res[algorithm4].required).to.eql(res[algorithm4].created);
         });
-        it('should prioritizing minRequisiteAmount', async () => {
+        it('should prioritizing quotaGuarantee', async () => {
             const algorithm1 = 'no-requisite-x';
             const algorithm2 = 'no-requisite-y';
             const algorithm3 = 'requisite-1';
@@ -1035,28 +1034,28 @@ describe('reconciler', () => {
             algorithmTemplates[algorithm1] = {
                 name: algorithm1,
                 algorithmImage,
-                minRequisiteAmount: 0,
+                quotaGuarantee: 0,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm2] = {
                 name: algorithm2,
                 algorithmImage,
-                minRequisiteAmount: 0,
+                quotaGuarantee: 0,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm3] = {
                 name: algorithm3,
                 algorithmImage,
-                minRequisiteAmount: 90,
+                quotaGuarantee: 90,
                 cpu: 0.1,
                 mem: 100
             };
             algorithmTemplates[algorithm4] = {
                 name: algorithm4,
                 algorithmImage,
-                minRequisiteAmount: 90,
+                quotaGuarantee: 90,
                 cpu: 0.1,
                 mem: 100
             };
@@ -1080,8 +1079,8 @@ describe('reconciler', () => {
                 }
             });
             expect(res).to.exist;
-            expect(res[algorithm1]).to.eql({ idle: 0, required: 23, paused: 0, created: 23, skipped: 0, resumed: 0 });
-            expect(res[algorithm2]).to.eql({ idle: 0, required: 14, paused: 0, created: 14, skipped: 0, resumed: 0 });
+            expect(res[algorithm3].required).to.eql(res[algorithm3].created);
+            expect(res[algorithm4].required).to.eql(res[algorithm4].created);
         });
     });
     describe('reconcile algorithms scheduling tests', () => {
