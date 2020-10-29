@@ -533,7 +533,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
 
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
-    const requestTypes = calcRatio(totalRequests, totalCapacityNow, algorithmTemplates);
+    const requestTypes = calcRatio(totalRequests, totalCapacityNow);
     // const workerTypes = calcRatio(mergedWorkers);
     // log.info(`worker = ${JSON.stringify(Object.entries(workerTypes.algorithms).map(([k, v]) => ({ name: k, ratio: v.ratio })), null, 2)}`);
     // log.info(`requests = ${JSON.stringify(Object.entries(requestTypes.algorithms).map(([k, v]) => ({ name: k, count: v.count, req: v.required })), null, 2)}`);
