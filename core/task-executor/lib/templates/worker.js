@@ -91,6 +91,15 @@ const workerTemplate = {
                                 }
                             },
                             {
+                                name: 'ALGORITHM_DISCONNECTED_TIMEOUT_MS',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'ALGORITHM_DISCONNECTED_TIMEOUT_MS'
+                                    }
+                                }
+                            },
+                            {
                                 name: 'STORAGE_ENCODING',
                                 valueFrom: {
                                     configMapKeyRef: {
@@ -132,6 +141,15 @@ const workerTemplate = {
                                     configMapKeyRef: {
                                         name: 'task-executor-configmap',
                                         key: 'DISCOVERY_MAX_CACHE_SIZE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'STORAGE_MAX_CACHE_SIZE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'STORAGE_MAX_CACHE_SIZE'
                                     }
                                 }
                             },
@@ -241,6 +259,15 @@ const workerTemplate = {
                                     configMapKeyRef: {
                                         name: 'task-executor-configmap',
                                         key: 'DISCOVERY_MAX_CACHE_SIZE'
+                                    }
+                                }
+                            },
+                            {
+                                name: 'STORAGE_MAX_CACHE_SIZE',
+                                valueFrom: {
+                                    configMapKeyRef: {
+                                        name: 'task-executor-configmap',
+                                        key: 'STORAGE_MAX_CACHE_SIZE'
                                     }
                                 }
                             },

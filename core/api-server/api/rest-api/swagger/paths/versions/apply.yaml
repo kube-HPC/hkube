@@ -2,12 +2,12 @@ post:
   tags:
     - Versions
   summary: Apply algorithm version
-  description: Apply algorithm version will change the current algorithm image
+  description: Change the current algorithm version
   requestBody:
     content:
       application/json:
         schema:
-          $ref: "#/components/schemas/algorithmVersion"
+          $ref: "#/components/schemas/applyAlgorithmVersion"
     description: an object representing all information needed for stored pipeline execution
     required: true
   responses:

@@ -1,6 +1,6 @@
 type: object
 properties:
-  overrideImage:
+  setAsCurrent:
     type: boolean
-    description: should replace the current image with this image
+    description: should set the newly created version as current
     default: false

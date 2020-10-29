@@ -17,15 +17,18 @@ const handleStreamError = (err, path, res, next) => {
     next(handleStorageError(err, 'stream', path));
 };
 
-const streamApi = (res, stream, path, next) => {
-    stream.on('error', err => handleStreamError(err, path, res, next));
-    stream.pipe(res);
+const streamApi = (res, stream) => {
+    return new Promise((resolve, reject) => {
+        stream.on('close', () => resolve());
+        stream.on('error', e => reject(e));
+        stream.pipe(res);
+    });
 };
 
-const downloadApi = (res, stream, path, next) => {
-    res.setHeader('Content-disposition', 'attachment; filename=hkubeResult');
+const downloadApi = async (res, stream, ext) => {
+    res.setHeader('Content-disposition', `attachment; filename=hkube-result${ext ? `.${ext}` : ''}`);
     res.setHeader('Content-type', 'application/octet-stream');
-    streamApi(res, stream, path, next);
+    await streamApi(res, stream);
 };
 
 const routes = (options) => {
@@ -110,31 +113,53 @@ const routes = (options) => {
         const path = req.params[0];
         try {
             const stream = await storage.getCustomStream({ path });
-            streamApi(res, stream, path, next);
+            await streamApi(res, stream);
         }
         catch (e) {
-            next(handleStorageError(e, 'stream', path));
+            handleStreamError(e, path, res, next);
         }
     });
     router.get('/stream/*', logger(), async (req, res, next) => {
         const path = req.params[0];
-        const stream = await storage.getStream({ path });
-        streamApi(res, stream, path, next);
+        try {
+            const stream = await storage.getStream({ path });
+            await streamApi(res, stream);
+        }
+        catch (e) {
+            handleStreamError(e, path, res, next);
+        }
     });
     router.get('/download/custom/*', logger(), async (req, res, next) => {
         const path = req.params[0];
+        const { ext } = req.query;
         try {
             const stream = await storage.getCustomStream({ path });
-            downloadApi(res, stream, path, next);
+            await downloadApi(res, stream, ext);
         }
         catch (e) {
-            next(handleStorageError(e, 'value', path));
+            handleStreamError(e, path, res, next);
+        }
+    });
+    router.get('/download/pipeline/result/*', logger(), async (req, res, next) => {
+        const jobId = req.params[0];
+        try {
+            const stream = await storage.getPipelineResult({ jobId });
+            await downloadApi(res, stream, 'zip');
+        }
+        catch (e) {
+            handleStreamError(e, 'path', res, next);
         }
     });
     router.get('/download/*', logger(), async (req, res, next) => {
         const path = req.params[0];
-        const stream = await storage.getStream({ path });
-        downloadApi(res, stream, path, next);
+        const { ext } = req.query;
+        try {
+            const stream = await storage.getStream({ path });
+            await downloadApi(res, stream, ext);
+        }
+        catch (e) {
+            handleStreamError(e, path, res, next);
+        }
     });
 
     return router;

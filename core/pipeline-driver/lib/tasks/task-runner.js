@@ -12,6 +12,7 @@ const commands = require('../consts/commands');
 const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
+const cachePipeline = require('./cache-pipeline');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 const { Node, Batch } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
@@ -150,7 +151,7 @@ class TaskRunner extends EventEmitter {
         }
         catch (e) {
             log.error(e.message, { component, jobId: this._jobId }, e);
-            const shouldStop = e.status === null;
+            const shouldStop = e.status === undefined;
             await this.stop({ error: e, shouldStop });
         }
         return result;
@@ -206,6 +207,7 @@ class TaskRunner extends EventEmitter {
         }
 
         await this._progressStatus({ status: DriverStates.ACTIVE });
+        this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
         this.pipeline = pipeline;
         this._isStreaming = pipeline.kind === pipelineKind.Stream;
@@ -481,7 +483,9 @@ class TaskRunner extends EventEmitter {
                 storage: result.storage
             };
 
-            this._uniqueDiscovery(result.storage);
+            if (!this._isCachedPipeline) {
+                this._uniqueDiscovery(result.storage);
+            }
 
             if (result.batch) {
                 await this._runNodeBatch(options);
@@ -679,11 +683,11 @@ class TaskRunner extends EventEmitter {
 
     _checkTaskErrors(task) {
         let err;
-        const { error, nodeName, reason, batchIndex, execId } = task;
+        const { error, nodeName, isImagePullErr, batchIndex, execId } = task;
         if (error && !execId) {
             // in case off image pull error, we want to fail the pipeline.
-            if (reason === 'ImagePullBackOff' || reason === 'ErrImagePull') {
-                err = new Error(`${reason}. ${error}`);
+            if (isImagePullErr) {
+                err = new Error(error);
             }
             else if (batchIndex) {
                 const { batchTolerance } = this.pipeline.options;

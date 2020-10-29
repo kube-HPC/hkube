@@ -3,8 +3,11 @@ const { randomString } = require('@hkube/uid');
 const log = require('@hkube/logger').GetLogFromContainer();
 const objectPath = require('object-path');
 const { applyResourceRequests, applyEnvToContainer, applyNodeSelector, applyImage,
-    applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation } = require('@hkube/kubernetes-client').utils;
+    applyStorage, applyPrivileged, applyVolumes, applyVolumeMounts, applyAnnotation,
+    applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
+const parse = require('@hkube/units-converter');
 const { components, containers, gpuVendors } = require('../consts');
+const { JAVA } = require('../consts/envs');
 const component = components.K8S;
 const { workerTemplate, logVolumes, logVolumeMounts, pipelineDriverTemplate, sharedVolumeMounts, algoMetricVolume } = require('../templates');
 const { settings } = require('../helpers/settings');
@@ -53,7 +56,7 @@ const applyAlgorithmName = (inputSpec, algorithmName) => {
 
 const applyName = (inputSpec, algorithmName) => {
     const spec = clonedeep(inputSpec);
-    const name = `${algorithmName}-${randomString({ length: 30 })}`;
+    const name = `${algorithmName}-${randomString({ length: 5 })}`;
     spec.metadata.name = name;
     return spec;
 };
@@ -170,6 +173,19 @@ const applyDevMode = (inputSpec, { algorithmOptions = {}, algorithmName, cluster
     });
     return spec;
 };
+
+const applyCacheParamsToContainer = (inputSpec, reservedMemory) => {
+    let spec = clonedeep(inputSpec);
+    const envOptions = {};
+
+    if (reservedMemory) {
+        envOptions.DISCOVERY_MAX_CACHE_SIZE = parse.getMemoryInMi(reservedMemory);
+    }
+
+    spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, envOptions);
+    return spec;
+};
+
 const applyLogging = (inputSpec, options) => {
     let spec = clonedeep(inputSpec);
     const { isPrivileged } = options.kubernetes;
@@ -205,8 +221,13 @@ const applyLogging = (inputSpec, options) => {
     });
     return spec;
 };
-const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, workerEnv, algorithmEnv, algorithmOptions,
-    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node }) => {
+const getJavaMaxMem = (memory) => {
+    const val = parse.getMemoryInMi(memory);
+    const javaValue = Math.round(val * 0.8);
+    return javaValue;
+};
+const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithmImage, algorithmVersion, workerEnv, algorithmEnv, algorithmOptions,
+    nodeSelector, entryPoint, hotWorker, clusterOptions, options, workerResourceRequests, mounts, node, reservedMemory, env }) => {
     if (!algorithmName) {
         const msg = 'Unable to create job spec. algorithmName is required';
         log.error(msg, { component });
@@ -223,24 +244,30 @@ const createJobSpec = ({ algorithmName, resourceRequests, workerImage, algorithm
     spec = applyAlgorithmImage(spec, algorithmImage);
     spec = applyWorkerImage(spec, workerImage);
     spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, algorithmEnv);
+    if (env === JAVA) {
+        spec = applyEnvToContainer(spec, CONTAINERS.ALGORITHM, { JAVA_DERIVED_MEMORY: getJavaMaxMem(resourceRequests.limits.memory) });
+    }
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, workerEnv);
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_IMAGE: algorithmImage });
+    spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { ALGORITHM_VERSION: algorithmVersion });
     spec = applyEnvToContainer(spec, CONTAINERS.WORKER, { WORKER_IMAGE: workerImage });
     spec = applyAlgorithmResourceRequests(spec, resourceRequests, node);
     if (settings.applyResources) {
         spec = applyWorkerResourceRequests(spec, workerResourceRequests);
     }
-    spec = applyNodeSelector(spec, nodeSelector, clusterOptions);
+    spec = applyNodeSelector(spec, nodeSelector);
     spec = applyHotWorker(spec, hotWorker);
     spec = applyEntryPoint(spec, entryPoint);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.WORKER, 'task-executor-configmap');
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.ALGORITHM, 'task-executor-configmap');
+    spec = applyCacheParamsToContainer(spec, reservedMemory);
     spec = applyLogging(spec, options);
     spec = applyOpengl(spec, options, algorithmOptions);
     spec = applyJaeger(spec, CONTAINERS.WORKER, options);
     spec = applyJaeger(spec, CONTAINERS.ALGORITHM, options);
     spec = applyDevMode(spec, { options, algorithmOptions, clusterOptions, algorithmName });
     spec = applyMounts(spec, mounts);
+    spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
     return spec;
 };
@@ -255,10 +282,12 @@ const createDriverJobSpec = ({ resourceRequests, image, inputEnv, clusterOptions
     spec = applyName(spec, CONTAINERS.PIPELINE_DRIVER);
     spec = applyPipelineDriverImage(spec, image);
     spec = applyEnvToContainer(spec, CONTAINERS.PIPELINE_DRIVER, inputEnv);
-    spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
-    spec = applyNodeSelector(spec, null, clusterOptions);
+    if (settings.applyResources) {
+        spec = applyPipelineDriverResourceRequests(spec, resourceRequests);
+    }
     spec = applyJaeger(spec, CONTAINERS.PIPELINE_DRIVER, options);
     spec = applyStorage(spec, options.defaultStorage, CONTAINERS.PIPELINE_DRIVER, 'task-executor-configmap');
+    spec = applyImagePullSecret(spec, clusterOptions?.imagePullSecretName);
 
     return spec;
 };
@@ -275,4 +304,5 @@ module.exports = {
     applyWorkerResourceRequests,
     applyHotWorker,
     applyEnvToContainerFromSecretOrConfigMap,
+    applyCacheParamsToContainer
 };

@@ -10,6 +10,7 @@ const { applyPipelineDriverImage, createDriverJobSpec, applyNodeSelector,
 const { setPipelineDriverImage } = require('../lib/reconcile/createOptions');
 const template = require('../lib/templates').pipelineDriverTemplate;
 const CONTAINERS = require('../lib/consts/containers');
+const { settings: globalSettings } = require('../lib/helpers/settings');
 
 describe('PipelineDriverJobCreator', () => {
     describe('applyImageName', () => {
@@ -144,6 +145,9 @@ describe('PipelineDriverJobCreator', () => {
         });
     });
     describe('createDriverJobSpec', () => {
+        beforeEach(() => {
+            globalSettings.applyResources = false;
+        });
         it('should throw if no image name', () => {
             expect(() => createDriverJobSpec({ options })).to.throw('Unable to create job spec. image is required');
         });
@@ -157,7 +161,8 @@ describe('PipelineDriverJobCreator', () => {
             expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'myImage1' });
             expect(res.metadata.name).to.include(CONTAINERS.PIPELINE_DRIVER);
         });
-        it('should apply with worker and resources', () => {
+        it('should apply resources', () => {
+            globalSettings.applyResources = true;
             const res = createDriverJobSpec({
                 ...{ options },
                 image: 'myImage1',
@@ -186,6 +191,16 @@ describe('PipelineDriverJobCreator', () => {
                 }
             });
         });
+        it('should not apply resources', () => {
+            const res = createDriverJobSpec({
+                ...{ options },
+                image: 'myImage1',
+                resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } }
+            });
+            expect(res).to.nested.include({ 'spec.template.spec.containers[0].image': 'myImage1' });
+            expect(res.metadata.name).to.include(CONTAINERS.PIPELINE_DRIVER);
+            expect(res.spec.template.spec.containers[0].resources).to.not.exist;
+        });
         it('should apply jaeger with privileged mode', () => {
             const res = createDriverJobSpec({
                 ...{ options: { ...options, kubernetes: { isPrivileged: true } } },
@@ -209,6 +224,11 @@ describe('PipelineDriverJobCreator', () => {
                 resourceRequests: { requests: { cpu: '200m' }, limits: { cpu: '500m', memory: '200M' } }
             });
             expect(res.spec.template.spec.containers[0].env.find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST').value).to.eql('foo.bar');
+        });
+        it('should apply imagePullSecrets', () => {
+            const res = createDriverJobSpec({ ...{ options }, image: 'myImage1', clusterOptions: { imagePullSecretName: 'my-secret' } });
+            expect(res.spec.template.spec.imagePullSecrets).to.exist;
+            expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({ name: 'my-secret' });
         });
     });
 });

@@ -254,7 +254,7 @@ const _createDockerCredentials = (pullRegistry, pushRegistry) => {
     if (pullRegistry) {
         const auth = _dockerCredentialsHelper(pullRegistry.registry, pullRegistry.user, pullRegistry.pass);
         if (auth) {
-            creds.auths[auth.registry] = auth.auth;
+            creds.auths[auth.registry] = { auth: auth.auth };
         }
     }
     if (pushRegistry) {
@@ -301,6 +301,7 @@ const _createURL = (options) => {
 const _createDockerCredsConfig = (envs, docker, packages) => {
     const pullRegistry = _createURL(docker.pull);
     const pushRegistry = _createURL(docker.push);
+    _envsHelper(envs, 'DOCKER_PULL_REGISTRY_USER', docker.pull.registry);
     _envsHelper(envs, 'DOCKER_PULL_REGISTRY', pullRegistry);
     _envsHelper(envs, 'DOCKER_PULL_USER', docker.pull.user);
     _envsHelper(envs, 'DOCKER_PULL_PASS', docker.pull.pass);
@@ -312,6 +313,7 @@ const _createDockerCredsConfig = (envs, docker, packages) => {
     _envsHelper(envs, 'PACKAGES_REGISTRY', packages.registry);
     _envsHelper(envs, 'PACKAGES_REGISTRY_USER', packages.user);
     _envsHelper(envs, 'PACKAGES_TOKEN', packages.token);
+    _envsHelper(envs, 'PACKAGES_AUTH', Buffer.from(packages.auth || '').toString('base64'));
 }
 
 const _createKanikoConfigs = async (envs, tmpFolder, docker) => {
@@ -376,9 +378,9 @@ const _overrideVersion = async (env, buildPath, version) => {
     }
 }
 
-const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
+const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
     const pushRegistry = _createURL(docker.push);
-    const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
+    const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${imageTag}`;
     const packages = packagesRepo[env];
     const wrapperVersion = await _getWrapperVersion(env, packages.wrapperVersion);
     await _overrideVersion(env, buildPath, wrapperVersion)
@@ -470,7 +472,7 @@ const runBuild = async (options) => {
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
 
         const overwrite = true;
-        const { env, version, fileExt, baseImage, type, gitRepository } = build;
+        const { env, imageTag, fileExt, baseImage, type, gitRepository } = build;
         const { docker, buildDirs, tmpFolder, packagesRepo } = options;
         buildMode = options.buildMode;
         algorithmName = build.algorithmName;
@@ -478,7 +480,7 @@ const runBuild = async (options) => {
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
         buildPath = `builds/${env}/${algorithmName}`;
 
-        log.info(`starting build for algorithm=${algorithmName}, version=${version}, env=${env} -> ${buildId}`, { component });
+        log.info(`starting build for algorithm=${algorithmName}, imageTag=${imageTag}, env=${env} -> ${buildId}`, { component });
 
         await _ensureDirs(buildDirs);
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
@@ -490,7 +492,7 @@ const runBuild = async (options) => {
         }
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, version, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo, buildId });
+        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo, buildId });
     }
     catch (e) {
         error = e.message;

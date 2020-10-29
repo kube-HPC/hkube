@@ -33,9 +33,13 @@ class ExecutionService {
         if (error) {
             throw new InvalidDataError(error.message);
         }
-        const { jobId, flowInputMetadata, startTime, lastRunResult, types, ...restPipeline } = pipeline;
+        let { rootJobId } = pipeline;
+        if (!rootJobId) {
+            rootJobId = pipeline.jobId;
+        }
+        const { jobId, startTime, lastRunResult, types, ...restPipeline } = pipeline;
         const newTypes = this._mergeTypes(types, [pipelineTypes.NODE]);
-        return this._run({ pipeline: restPipeline, options: { alreadyExecuted: true, validateNodes: false }, types: newTypes });
+        return this._run({ pipeline: restPipeline, rootJobId, options: { validateNodes: false }, types: newTypes });
     }
 
     async runAlgorithm(options) {
@@ -63,9 +67,10 @@ class ExecutionService {
     }
 
     async _run(payload) {
-        let { jobId, pipeline, types } = payload;
+        let { jobId, types } = payload;
+        let { flowInputMetadata, ...pipeline } = payload.pipeline;
         const { rootJobId } = payload;
-        const { alreadyExecuted, validateNodes, parentSpan } = payload.options || {};
+        const { validateNodes, parentSpan } = payload.options || {};
 
         validator.executions.addPipelineDefaults(pipeline);
         validator.executions.validatePipeline(pipeline, { validateNodes });
@@ -82,13 +87,13 @@ class ExecutionService {
             const maxExceeded = await validator.executions.validateConcurrentPipelines(pipeline, jobId);
             types = this._addTypesByAlgorithms(algorithms, types);
 
-            if (pipeline.flowInput && !alreadyExecuted) {
+            if (pipeline.flowInput && !flowInputMetadata) {
                 const metadata = parser.replaceFlowInput(pipeline);
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
-                pipeline.flowInputMetadata = { metadata, storageInfo };
+                flowInputMetadata = { metadata, storageInfo };
             }
             const lastRunResult = await this._getLastPipeline(jobId);
-            const pipelineObject = { ...pipeline, jobId, rootJobId, startTime: Date.now(), lastRunResult, types };
+            const pipelineObject = { ...pipeline, jobId, rootJobId, flowInputMetadata, startTime: Date.now(), lastRunResult, types };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
             await storageManager.hkubeExecutions.put({ jobId, data: pipelineObject }, tracer.startSpan.bind(tracer, { name: 'storage-put-executions', parent: span.context() }));
             await stateManager.executions.stored.set(pipelineObject);

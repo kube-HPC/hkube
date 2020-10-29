@@ -1,0 +1,37 @@
+post:
+  tags:
+    - Versions
+  summary: Tag algorithm version
+  description: Tag algorithm version with pinned and tags
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/algorithmVersionTag"
+    description: an object representing all information needed for stored pipeline execution
+    required: true
+  responses:
+    "200":
+      description: the OK string
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: jobId Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

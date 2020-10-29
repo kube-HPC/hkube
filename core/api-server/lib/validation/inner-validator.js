@@ -54,6 +54,8 @@ class ApiValidator {
         pipeline.nodes.forEach((node) => {
             if (node.stateType === stateType.Stateful && pipeline.kind === pipelineKind.Batch) {
                 throw new InvalidDataError(`${stateType.Stateful} node "${node.nodeName}" is not allowed on ${pipeline.kind} pipeline`);
+            if (!node.algorithmName && !node.pipelineName) {
+                throw new InvalidDataError('please provide algorithmName or pipelineName');
             }
             if (graph.node(node.nodeName)) {
                 throw new InvalidDataError(`found duplicate node ${node.nodeName}`);

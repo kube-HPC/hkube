@@ -1,82 +1,53 @@
-const cloneDeep = require('lodash.clonedeep');
-const { Persistency } = require('@hkube/dag');
-const log = require('@hkube/logger').GetLogFromContainer();
+const { NodesMap } = require('@hkube/dag');
 const Etcd = require('@hkube/etcd');
-const { componentName } = require('./consts/index');
-const { splitInputToNodes, validateType } = require('./input-parser');
-const NodesMap = require('./create-graph');
+const { parser, consts } = require('@hkube/parsers');
+const { relations } = consts;
 
 class Runner {
     async init(options) {
         this._options = options;
         this._etcd = new Etcd(options.etcd);
         await this._etcd.jobs.status.watch({ jobId: 'hookWatch' });
-        this._graphPersistency = new Persistency({ connection: options.redis });
     }
 
     async parse(jobId, nodeName) {
         const pipeline = await this._getStoredExecution(jobId);
-        validateType(pipeline.nodes);
-        const { successors, predecessors } = this._findRelations(pipeline, nodeName);
-        const subPipeline = this._createSubPipeline(successors, pipeline);
-        const predecessorsResult = await this._getResultFromPredecessors(jobId, predecessors);
-        const mergedPipeline = this._mergeSubPipelineWithMetadata(subPipeline, predecessors, predecessorsResult);
-        log.debug(`new pipeline sent for running: ${JSON.stringify(mergedPipeline)}`);
-        return mergedPipeline;
-    }
-
-    _mergeSubPipelineWithMetadata(subPipeline, flattenPredecessors, metadataFromSuccessors) {
-        subPipeline.nodes.forEach((n) => {
-            const nodes = splitInputToNodes(n.input, flattenPredecessors);
-            // finish adding caching
-            n.parentOutput = []; //eslint-disable-line
-            nodes.forEach((dn) => {
-                const metadata = metadataFromSuccessors.find(ms => ms.id === dn.nodeName);
-                if (metadata) {
-                    metadata.metadata.type = dn.type;
-                    n.parentOutput.push(metadata.metadata);
-                }
-                else {
-                    log.error(`couldn't find any matched caching object for node dependency ${dn}`, { componentName: componentName.RUNNER });
-                }
-            });
-            if (n.parentOutput.length === 0) {
-                n.parentOutput = null;//eslint-disable-line
-            }
-        });
+        this._validateType(pipeline.nodes);
+        const { successors } = this._findRelations(pipeline, nodeName);
+        const subPipeline = this._createSubPipeline(pipeline, nodeName, successors);
         return subPipeline;
     }
 
-    _createSubPipeline(flattenSuccessors, pipeline) {
-        const newPipeline = cloneDeep(pipeline);
-        newPipeline.nodes = pipeline.nodes.filter(n => flattenSuccessors.includes(n.nodeName));
-        return newPipeline;
+    _validateType(nodes) {
+        const node = nodes.find(n => parser.findNodeRelation(n.input, relations.WAIT_ANY));
+        if (node) {
+            throw new Error(`relation ${relations.WAIT_ANY} for node ${node.nodeName} is not allowed`);
+        }
     }
 
-    _flattenSuccessors(parentSuccessors, nodeName) {
-        const flatten = new Set();
-        flatten.add(nodeName);
-        if (parentSuccessors) {
-            parentSuccessors.forEach(s => s.successors.forEach((childSuccessor) => {
-                if (!flatten.has(childSuccessor)) {
-                    flatten.add(childSuccessor);
-                }
-            }));
-        }
-        return [...flatten];
+    _createSubPipeline(pipeline, nodeName, successors) {
+        const nodes = [];
+        pipeline.nodes.forEach((n) => {
+            if (n.nodeName === nodeName) {
+                n.cacheJobId = pipeline.rootJobId || pipeline.jobId; //eslint-disable-line
+            }
+            if (successors.includes(n.nodeName)) {
+                nodes.push(n);
+            }
+        });
+        return { ...pipeline, nodes };
     }
 
-    _flattenPredecessors(parentPredecessors, nodeName) {
+    _flatten(nodes, nodeName) {
         const flatten = new Set();
         flatten.add(nodeName);
-        if (parentPredecessors) {
-            parentPredecessors.forEach(p => p.predecessors.forEach((childPredecessor) => {
-                if (!flatten.has(childPredecessor)) {
-                    flatten.add(childPredecessor);
+        if (nodes) {
+            nodes.forEach((n) => {
+                if (!flatten.has(n)) {
+                    flatten.add(n);
                 }
-            }));
+            });
         }
-
         return [...flatten];
     }
 
@@ -89,41 +60,23 @@ class Runner {
     }
 
     _findRelations(pipeline, nodeName) {
-        const builtGraph = new NodesMap(pipeline.nodes);
-        const successorsMap = builtGraph.getAllSuccessors(nodeName);
-        const predecessorsMap = builtGraph.getAllPredecessors(nodeName);
-        const successors = this._flattenSuccessors(successorsMap, nodeName);
-        const predecessors = this._flattenPredecessors(predecessorsMap, nodeName);
-        return { successors, predecessors };
+        const graph = new NodesMap({ nodes: pipeline.nodes });
+        const successorsMap = this._getSuccessors(graph, nodeName);
+        const successors = this._flatten(successorsMap, nodeName);
+        return { successors };
     }
 
-    async _getResultFromPredecessors(jobId, flattenPredecessors) {
-        const jsonGraph = await this._graphPersistency.getGraph({ jobId });
-        const graph = JSON.parse(jsonGraph);
-        const metadata = await Promise.all(flattenPredecessors.map(async p => ({
-            id: p,
-            metadata: await this._getNodeResult(graph, p)
-        })));
-        return metadata;
-    }
-
-    async _getNodeResult(graph, nodeName) {
-        let result;
-        const node = graph.nodes.find(n => n.nodeName === nodeName);
-
-        if (node.batch && node.batch.length > 0) {
-            result = {
-                node: nodeName,
-                result: node.batch.map(b => b.output)
-            };
+    _getSuccessors(graph, nodeName, res = []) {
+        const successors = graph._childs(nodeName);
+        if (!successors) {
+            throw new Error(`cant find relations for ${nodeName}`);
         }
-        else {
-            result = {
-                node: nodeName,
-                result: node.output
-            };
+        if (successors.length === 0) {
+            return null;
         }
-        return result;
+        res.push(...successors);
+        successors.forEach(p => this._getSuccessors(graph, p, res));
+        return res;
     }
 }
 

@@ -212,13 +212,13 @@ class JobConsumer extends EventEmitter {
         const workerStatus = state;
         let status = state === jobStatus.WORKING ? taskStatuses.ACTIVE : state;
         let error = null;
-        let reason = null;
+        let isImagePullErr = false;
         const shouldCompleteJob = this._shouldNormalExit(results);
 
         if (results != null) {
             error = results.error && results.error.message;
-            reason = results.error && results.error.reason;
             status = error ? taskStatuses.FAILED : taskStatuses.SUCCEED;
+            isImagePullErr = results.error && results.error.isImagePullErr;
         }
         if (isTtlExpired) {
             error = logMessages.algorithmTtlExpired;
@@ -229,7 +229,7 @@ class JobConsumer extends EventEmitter {
             workerStatus,
             status,
             error,
-            reason,
+            isImagePullErr,
             resultData,
             shouldCompleteJob
         };
@@ -255,8 +255,11 @@ class JobConsumer extends EventEmitter {
             return;
         }
         await this._unwatchJob();
-
-        const { resultData, status, error, reason, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
+        await stateAdapter.unwatch({ jobId: this._jobId });
+        if (this._execId) {
+            await stateAdapter.unwatchAlgorithmExecutions({ jobId: this._jobId, taskId: this._taskId });
+        }
+        const { resultData, status, error, isImagePullErr, shouldCompleteJob } = this._getStatus({ ...data, isTtlExpired });
 
         if (shouldCompleteJob) {
             let storageResult;
@@ -268,7 +271,7 @@ class JobConsumer extends EventEmitter {
             const resData = {
                 status,
                 error,
-                reason,
+                isImagePullErr,
                 endTime: Date.now(),
                 metricsPath,
                 ...storageResult,

@@ -1,6 +1,6 @@
 const clonedeep = require('lodash.clonedeep');
 const log = require('@hkube/logger').GetLogFromContainer();
-const { applyEnvToContainer, applyStorage } = require('@hkube/kubernetes-client').utils;
+const { applyEnvToContainer, applyStorage, applyImagePullSecret } = require('@hkube/kubernetes-client').utils;
 const { applyImage } = require('../helpers/kubernetes-utils');
 const component = require('../consts/componentNames').K8S;
 const { deploymentBoardTemplate, boardIngress, boardService } = require('../templates/tensorboard');
@@ -26,6 +26,8 @@ const createKindsSpec = ({ boardReference, logDir, versions, registry, clusterOp
     deploymentSpec = applyEnvToContainer(deploymentSpec, CONTAINERS.TENSORBOARD, { logDir });
     deploymentSpec = applyImage(deploymentSpec, CONTAINERS.TENSORBOARD, versions, registry);
     deploymentSpec = applyStorage(deploymentSpec, options.defaultStorage, CONTAINERS.TENSORBOARD, 'algorithm-operator-configmap');
+    deploymentSpec = applyImagePullSecret(deploymentSpec, clusterOptions?.imagePullSecretName);
+
     const ingressSpec = boardIngress(boardReference, clusterOptions);
     const serviceSpec = boardService(boardReference);
     return {

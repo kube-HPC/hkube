@@ -8,6 +8,18 @@ const pipelines = require('./mocks/pipelines.json');
 const { cachingError } = require('./mocks/http-response.json');
 let restUrl, jobId, config;
 
+const flowInputMetadata = {
+    metadata: {
+        'flowInput.files.link': {
+            "type": "string"
+        },
+        'storageInfo': {
+            "path": "local-hkube/main:3b"
+
+        }
+    }
+}
+
 describe('Executions', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
@@ -28,7 +40,7 @@ describe('Executions', () => {
             const { protocol, host, port, prefix } = config.cachingServer;
             const cachingServiceURI = `${protocol}://${host}:${port}`;
             let pathToJob = `/${prefix}?jobId=${jobId}&nodeName=black-alg`;
-            nock(cachingServiceURI).persist().get(pathToJob).reply(200, pipeline);
+            nock(cachingServiceURI).persist().get(pathToJob).reply(200, { ...pipeline, jobId, rootJobId: jobId, flowInputMetadata });
             pathToJob = `/${prefix}?jobId=stam-job&nodeName=stam-alg`;
             nock(cachingServiceURI).persist().get(pathToJob).reply(400, cachingError);
 
@@ -99,6 +111,40 @@ describe('Executions', () => {
             };
             const res2 = await request(optionsGET);
             expect(res2.body.types).to.eql([pipelineTypes.NODE]);
+        });
+        it('should succeed to execute with right flowInputMetadata', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId,
+                    nodeName: 'black-alg'
+                }
+            };
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.flowInputMetadata).to.eql(flowInputMetadata);
+        });
+        it('should succeed to save the rootJobId', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    jobId,
+                    nodeName: 'black-alg'
+                }
+            };
+            await request(options);
+            await request(options);
+            const res1 = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res1.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.rootJobId).to.eql(jobId);
         });
     });
     describe('/exec/raw', () => {
@@ -172,7 +218,7 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.eql("data.nodes[0] should have required property 'nodeName'");
         });
-        it.skip('should throw validation error of required property nodes.algorithmName', async () => {
+        it('should throw validation error of required property nodes.algorithmName', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -185,7 +231,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.nodes[0] should have required property '.algorithmName'");
+            expect(response.body.error.message).to.contain("please provide algorithmName or pipelineName");
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {

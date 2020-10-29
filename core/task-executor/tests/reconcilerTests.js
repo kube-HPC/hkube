@@ -384,6 +384,41 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'myAlgoEnv', value: 'myAlgoValue' });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+        it('setting java memory barrier as env in spec', async () => {
+            const algorithm = 'black-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                env: "java",
+                mem: "2048",
+                workerEnv: {
+                    myEnv: 'myValue'
+                },
+                algorithmEnv: {
+                    myAlgoEnv: 'myAlgoValue'
+                }
+            };
+            await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '3277' });
+        });
+
         it('should add mounts', async () => {
             const algorithm = 'green-alg';
             const mounts = [
@@ -478,7 +513,7 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(logVolumes[1]);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].securityContext.privileged).to.be.true;
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].env
-            .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
+                .find(e => e.name === 'JAEGER_AGENT_SERVICE_HOST')).to.have.property('valueFrom')
         })
         it('should not add Privileged flag if configured', async () => {
             const algorithm = 'green-alg';
@@ -611,6 +646,44 @@ describe('reconciler', () => {
             expect(callCount('createJob').length).to.eql(1);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].volumeMounts).to.deep.include(fsVolumeMounts);
             expect(callCount('createJob')[0][0].spec.spec.template.spec.volumes).to.deep.include(fsVolumes);
+        });
+        it('should set env for reservedMemory', async () => {
+            const algorithm = 'green-alg';
+            algorithmTemplates[algorithm] = {
+                algorithmImage: 'hkube/algorithm-example',
+                workerEnv: {
+                    myEnv: 'myValue'
+                },
+                algorithmEnv: {
+                    myAlgoEnv: 'myAlgoValue'
+                },
+                reservedMemory: '256Mi'
+            };
+
+            const testOptions = { ...options, defaultStorage: 'fs' };
+            const res = await reconciler.reconcile({
+                options: testOptions,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{
+                    data: [
+                        {
+                            name: algorithm
+                        }
+                    ]
+                }],
+                jobs: {
+                    body: {
+                        items: [
+
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+            expect(callCount('createJob').length).to.eql(1);
+            expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'DISCOVERY_MAX_CACHE_SIZE', value: '256' });
         });
         it('should add env param if s3 is defaultStorage', async () => {
             const algorithm = 'green-alg';

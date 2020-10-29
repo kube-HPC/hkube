@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.3.20",
+    "version": "1.3.37",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -3169,6 +3169,12 @@
                       "default": "256Mi",
                       "example": "512Mi"
                     },
+                    "reservedMemory": {
+                      "type": "string",
+                      "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                      "format": "memory",
+                      "example": "512Mi"
+                    },
                     "options": {
                       "type": "object",
                       "properties": {
@@ -3315,6 +3321,10 @@
                         "Image"
                       ],
                       "default": "Image"
+                    },
+                    "downloadFileExt": {
+                      "type": "string",
+                      "description": "the extension name that will be attached to a file when downloading algorithm result"
                     }
                   },
                   "required": [
@@ -3749,781 +3759,10 @@
                         "default": "256Mi",
                         "example": "512Mi"
                       },
-                      "options": {
-                        "type": "object",
-                        "properties": {
-                          "debug": {
-                            "type": "boolean",
-                            "description": "debug algorithm locally",
-                            "default": false
-                          },
-                          "devMode": {
-                            "type": "boolean",
-                            "description": "runs algorithm with mounted sources to allow rapid development cycles"
-                          },
-                          "pending": {
-                            "type": "boolean",
-                            "description": "pending algorithm",
-                            "default": false
-                          },
-                          "opengl": {
-                            "type": "boolean",
-                            "description": "should algorithm support XGL context creation (mount X socket)"
-                          }
-                        },
-                        "default": {}
-                      },
-                      "mounts": {
-                        "type": "array",
-                        "description": "a list of volumes to mount into the algorithm",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "pvcName": {
-                              "type": "string",
-                              "format": "algorithm-mount-pvc",
-                              "minLength": 1,
-                              "description": "name of an existing kubernetes pvc (persistent volume claim)"
-                            },
-                            "path": {
-                              "type": "string",
-                              "format": "path",
-                              "minLength": 1,
-                              "description": "the mount path in the algorithm container"
-                            }
-                          },
-                          "required": [
-                            "pvcName",
-                            "path"
-                          ]
-                        },
-                        "uniqueItems": true,
-                        "example": []
-                      },
-                      "gitRepository": {
-                        "type": "object",
-                        "properties": {
-                          "url": {
-                            "type": "string",
-                            "description": "a url for the git repository",
-                            "format": "url"
-                          },
-                          "commit": {
-                            "type": "object",
-                            "description": "commit details",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "description": "commit id"
-                              },
-                              "timestamp": {
-                                "type": "string",
-                                "description": "commit time"
-                              },
-                              "message": {
-                                "type": "string",
-                                "description": "commit message"
-                              }
-                            },
-                            "required": [
-                              "id"
-                            ]
-                          },
-                          "branchName": {
-                            "type": "string",
-                            "default": "master",
-                            "description": "the branch name you wish to create a build from"
-                          },
-                          "tag": {
-                            "type": "string",
-                            "description": "a specific tag which will trigger the build"
-                          },
-                          "token": {
-                            "type": "string",
-                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                          },
-                          "gitKind": {
-                            "type": "string",
-                            "enum": [
-                              "github",
-                              "gitlab"
-                            ],
-                            "default": "github"
-                          }
-                        },
-                        "required": [
-                          "url"
-                        ]
-                      },
-                      "entryPoint": {
-                        "type": "string"
-                      },
-                      "baseImage": {
+                      "reservedMemory": {
                         "type": "string",
-                        "description": "Custom docker image to be used as base to the newly built algorithm image"
-                      },
-                      "version": {
-                        "type": "string"
-                      },
-                      "minHotWorkers": {
-                        "type": "integer",
-                        "description": "how many live algorithm instances will always run",
-                        "minimum": 0,
-                        "default": 0
-                      },
-                      "algorithmEnv": {
-                        "type": "object",
-                        "description": "key value environment variables for algorithm"
-                      },
-                      "workerEnv": {
-                        "type": "object",
-                        "description": "key value environment variables for worker"
-                      },
-                      "nodeSelector": {
-                        "type": "object",
-                        "description": "key value labels for nodes constraint",
-                        "additionalProperties": {
-                          "type": "string"
-                        }
-                      },
-                      "type": {
-                        "type": "string",
-                        "description": "type of algorithm code resource",
-                        "enum": [
-                          "Git",
-                          "Code",
-                          "Image"
-                        ],
-                        "default": "Image"
-                      }
-                    },
-                    "required": [
-                      "name"
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "StoreAlgorithms"
-        ],
-        "summary": "Insert algorithm",
-        "description": "Insert new algorithm to store if not exists",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Unique identifier representing a specific algorithm",
-                    "minLength": 1,
-                    "maxLength": 32,
-                    "format": "algorithm-name"
-                  },
-                  "env": {
-                    "type": "string",
-                    "enum": [
-                      "nodejs",
-                      "python",
-                      "java"
-                    ]
-                  },
-                  "algorithmImage": {
-                    "type": "string",
-                    "description": "image name as in the docker registry",
-                    "format": "algorithm-image"
-                  },
-                  "cpu": {
-                    "type": "number",
-                    "default": 0.1,
-                    "minimum": 0,
-                    "description": "algorithm cpu"
-                  },
-                  "gpu": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "algorithm gpu"
-                  },
-                  "mem": {
-                    "type": "string",
-                    "description": "algorithm memory",
-                    "format": "algorithm-memory",
-                    "default": "256Mi",
-                    "example": "512Mi"
-                  },
-                  "options": {
-                    "type": "object",
-                    "properties": {
-                      "debug": {
-                        "type": "boolean",
-                        "description": "debug algorithm locally",
-                        "default": false
-                      },
-                      "devMode": {
-                        "type": "boolean",
-                        "description": "runs algorithm with mounted sources to allow rapid development cycles"
-                      },
-                      "pending": {
-                        "type": "boolean",
-                        "description": "pending algorithm",
-                        "default": false
-                      },
-                      "opengl": {
-                        "type": "boolean",
-                        "description": "should algorithm support XGL context creation (mount X socket)"
-                      }
-                    },
-                    "default": {}
-                  },
-                  "mounts": {
-                    "type": "array",
-                    "description": "a list of volumes to mount into the algorithm",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "pvcName": {
-                          "type": "string",
-                          "format": "algorithm-mount-pvc",
-                          "minLength": 1,
-                          "description": "name of an existing kubernetes pvc (persistent volume claim)"
-                        },
-                        "path": {
-                          "type": "string",
-                          "format": "path",
-                          "minLength": 1,
-                          "description": "the mount path in the algorithm container"
-                        }
-                      },
-                      "required": [
-                        "pvcName",
-                        "path"
-                      ]
-                    },
-                    "uniqueItems": true,
-                    "example": []
-                  },
-                  "gitRepository": {
-                    "type": "object",
-                    "properties": {
-                      "url": {
-                        "type": "string",
-                        "description": "a url for the git repository",
-                        "format": "url"
-                      },
-                      "commit": {
-                        "type": "object",
-                        "description": "commit details",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "description": "commit id"
-                          },
-                          "timestamp": {
-                            "type": "string",
-                            "description": "commit time"
-                          },
-                          "message": {
-                            "type": "string",
-                            "description": "commit message"
-                          }
-                        },
-                        "required": [
-                          "id"
-                        ]
-                      },
-                      "branchName": {
-                        "type": "string",
-                        "default": "master",
-                        "description": "the branch name you wish to create a build from"
-                      },
-                      "tag": {
-                        "type": "string",
-                        "description": "a specific tag which will trigger the build"
-                      },
-                      "token": {
-                        "type": "string",
-                        "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                      },
-                      "gitKind": {
-                        "type": "string",
-                        "enum": [
-                          "github",
-                          "gitlab"
-                        ],
-                        "default": "github"
-                      }
-                    },
-                    "required": [
-                      "url"
-                    ]
-                  },
-                  "entryPoint": {
-                    "type": "string"
-                  },
-                  "baseImage": {
-                    "type": "string",
-                    "description": "Custom docker image to be used as base to the newly built algorithm image"
-                  },
-                  "version": {
-                    "type": "string"
-                  },
-                  "minHotWorkers": {
-                    "type": "integer",
-                    "description": "how many live algorithm instances will always run",
-                    "minimum": 0,
-                    "default": 0
-                  },
-                  "algorithmEnv": {
-                    "type": "object",
-                    "description": "key value environment variables for algorithm"
-                  },
-                  "workerEnv": {
-                    "type": "object",
-                    "description": "key value environment variables for worker"
-                  },
-                  "nodeSelector": {
-                    "type": "object",
-                    "description": "key value labels for nodes constraint",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  },
-                  "type": {
-                    "type": "string",
-                    "description": "type of algorithm code resource",
-                    "enum": [
-                      "Git",
-                      "Code",
-                      "Image"
-                    ],
-                    "default": "Image"
-                  }
-                },
-                "required": [
-                  "name"
-                ]
-              }
-            }
-          },
-          "description": "algorithm descriptor to be added to the store",
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "algorithm created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "pipeline conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "StoreAlgorithms"
-        ],
-        "summary": "Update algorithm",
-        "description": "Update existing algorithm",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Unique identifier representing a specific algorithm",
-                    "minLength": 1,
-                    "maxLength": 32,
-                    "format": "algorithm-name"
-                  },
-                  "env": {
-                    "type": "string",
-                    "enum": [
-                      "nodejs",
-                      "python",
-                      "java"
-                    ]
-                  },
-                  "algorithmImage": {
-                    "type": "string",
-                    "description": "image name as in the docker registry",
-                    "format": "algorithm-image"
-                  },
-                  "cpu": {
-                    "type": "number",
-                    "default": 0.1,
-                    "minimum": 0,
-                    "description": "algorithm cpu"
-                  },
-                  "gpu": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "algorithm gpu"
-                  },
-                  "mem": {
-                    "type": "string",
-                    "description": "algorithm memory",
-                    "format": "algorithm-memory",
-                    "default": "256Mi",
-                    "example": "512Mi"
-                  },
-                  "options": {
-                    "type": "object",
-                    "properties": {
-                      "debug": {
-                        "type": "boolean",
-                        "description": "debug algorithm locally",
-                        "default": false
-                      },
-                      "devMode": {
-                        "type": "boolean",
-                        "description": "runs algorithm with mounted sources to allow rapid development cycles"
-                      },
-                      "pending": {
-                        "type": "boolean",
-                        "description": "pending algorithm",
-                        "default": false
-                      },
-                      "opengl": {
-                        "type": "boolean",
-                        "description": "should algorithm support XGL context creation (mount X socket)"
-                      }
-                    },
-                    "default": {}
-                  },
-                  "mounts": {
-                    "type": "array",
-                    "description": "a list of volumes to mount into the algorithm",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "pvcName": {
-                          "type": "string",
-                          "format": "algorithm-mount-pvc",
-                          "minLength": 1,
-                          "description": "name of an existing kubernetes pvc (persistent volume claim)"
-                        },
-                        "path": {
-                          "type": "string",
-                          "format": "path",
-                          "minLength": 1,
-                          "description": "the mount path in the algorithm container"
-                        }
-                      },
-                      "required": [
-                        "pvcName",
-                        "path"
-                      ]
-                    },
-                    "uniqueItems": true,
-                    "example": []
-                  },
-                  "gitRepository": {
-                    "type": "object",
-                    "properties": {
-                      "url": {
-                        "type": "string",
-                        "description": "a url for the git repository",
-                        "format": "url"
-                      },
-                      "commit": {
-                        "type": "object",
-                        "description": "commit details",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "description": "commit id"
-                          },
-                          "timestamp": {
-                            "type": "string",
-                            "description": "commit time"
-                          },
-                          "message": {
-                            "type": "string",
-                            "description": "commit message"
-                          }
-                        },
-                        "required": [
-                          "id"
-                        ]
-                      },
-                      "branchName": {
-                        "type": "string",
-                        "default": "master",
-                        "description": "the branch name you wish to create a build from"
-                      },
-                      "tag": {
-                        "type": "string",
-                        "description": "a specific tag which will trigger the build"
-                      },
-                      "token": {
-                        "type": "string",
-                        "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
-                      },
-                      "gitKind": {
-                        "type": "string",
-                        "enum": [
-                          "github",
-                          "gitlab"
-                        ],
-                        "default": "github"
-                      }
-                    },
-                    "required": [
-                      "url"
-                    ]
-                  },
-                  "entryPoint": {
-                    "type": "string"
-                  },
-                  "baseImage": {
-                    "type": "string",
-                    "description": "Custom docker image to be used as base to the newly built algorithm image"
-                  },
-                  "version": {
-                    "type": "string"
-                  },
-                  "minHotWorkers": {
-                    "type": "integer",
-                    "description": "how many live algorithm instances will always run",
-                    "minimum": 0,
-                    "default": 0
-                  },
-                  "algorithmEnv": {
-                    "type": "object",
-                    "description": "key value environment variables for algorithm"
-                  },
-                  "workerEnv": {
-                    "type": "object",
-                    "description": "key value environment variables for worker"
-                  },
-                  "nodeSelector": {
-                    "type": "object",
-                    "description": "key value labels for nodes constraint",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  },
-                  "type": {
-                    "type": "string",
-                    "description": "type of algorithm code resource",
-                    "enum": [
-                      "Git",
-                      "Code",
-                      "Image"
-                    ],
-                    "default": "Image"
-                  }
-                },
-                "required": [
-                  "name"
-                ]
-              }
-            }
-          },
-          "description": "algorithm descriptor to be added to the store",
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "action summery",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "algorithm Not Found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "format": "int32"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/store/algorithms/apply": {
-      "post": {
-        "tags": [
-          "StoreAlgorithms"
-        ],
-        "summary": "Apply algorithm",
-        "description": "create or update algorithm, build id will be returned if build was triggered",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "payload": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "description": "Unique identifier representing a specific algorithm",
-                        "minLength": 1,
-                        "maxLength": 32,
-                        "format": "algorithm-name"
-                      },
-                      "env": {
-                        "type": "string",
-                        "enum": [
-                          "nodejs",
-                          "python",
-                          "java"
-                        ]
-                      },
-                      "algorithmImage": {
-                        "type": "string",
-                        "description": "image name as in the docker registry",
-                        "format": "algorithm-image"
-                      },
-                      "cpu": {
-                        "type": "number",
-                        "default": 0.1,
-                        "minimum": 0,
-                        "description": "algorithm cpu"
-                      },
-                      "gpu": {
-                        "type": "number",
-                        "minimum": 0,
-                        "description": "algorithm gpu"
-                      },
-                      "mem": {
-                        "type": "string",
-                        "description": "algorithm memory",
-                        "format": "algorithm-memory",
-                        "default": "256Mi",
+                        "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                        "format": "memory",
                         "example": "512Mi"
                       },
                       "options": {
@@ -4672,6 +3911,817 @@
                           "Image"
                         ],
                         "default": "Image"
+                      },
+                      "downloadFileExt": {
+                        "type": "string",
+                        "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "StoreAlgorithms"
+        ],
+        "summary": "Insert algorithm",
+        "description": "Insert new algorithm to store if not exists",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific algorithm",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "algorithm-name"
+                  },
+                  "env": {
+                    "type": "string",
+                    "enum": [
+                      "nodejs",
+                      "python",
+                      "java"
+                    ]
+                  },
+                  "algorithmImage": {
+                    "type": "string",
+                    "description": "image name as in the docker registry",
+                    "format": "algorithm-image"
+                  },
+                  "cpu": {
+                    "type": "number",
+                    "default": 0.1,
+                    "minimum": 0,
+                    "description": "algorithm cpu"
+                  },
+                  "gpu": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "algorithm gpu"
+                  },
+                  "mem": {
+                    "type": "string",
+                    "description": "algorithm memory",
+                    "format": "algorithm-memory",
+                    "default": "256Mi",
+                    "example": "512Mi"
+                  },
+                  "reservedMemory": {
+                    "type": "string",
+                    "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                    "format": "memory",
+                    "example": "512Mi"
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "debug": {
+                        "type": "boolean",
+                        "description": "debug algorithm locally",
+                        "default": false
+                      },
+                      "devMode": {
+                        "type": "boolean",
+                        "description": "runs algorithm with mounted sources to allow rapid development cycles"
+                      },
+                      "pending": {
+                        "type": "boolean",
+                        "description": "pending algorithm",
+                        "default": false
+                      },
+                      "opengl": {
+                        "type": "boolean",
+                        "description": "should algorithm support XGL context creation (mount X socket)"
+                      }
+                    },
+                    "default": {}
+                  },
+                  "mounts": {
+                    "type": "array",
+                    "description": "a list of volumes to mount into the algorithm",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "pvcName": {
+                          "type": "string",
+                          "format": "algorithm-mount-pvc",
+                          "minLength": 1,
+                          "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                        },
+                        "path": {
+                          "type": "string",
+                          "format": "path",
+                          "minLength": 1,
+                          "description": "the mount path in the algorithm container"
+                        }
+                      },
+                      "required": [
+                        "pvcName",
+                        "path"
+                      ]
+                    },
+                    "uniqueItems": true,
+                    "example": []
+                  },
+                  "gitRepository": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "description": "a url for the git repository",
+                        "format": "url"
+                      },
+                      "commit": {
+                        "type": "object",
+                        "description": "commit details",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "commit id"
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "description": "commit time"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "commit message"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "branchName": {
+                        "type": "string",
+                        "default": "master",
+                        "description": "the branch name you wish to create a build from"
+                      },
+                      "tag": {
+                        "type": "string",
+                        "description": "a specific tag which will trigger the build"
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                      },
+                      "gitKind": {
+                        "type": "string",
+                        "enum": [
+                          "github",
+                          "gitlab"
+                        ],
+                        "default": "github"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  },
+                  "entryPoint": {
+                    "type": "string"
+                  },
+                  "baseImage": {
+                    "type": "string",
+                    "description": "Custom docker image to be used as base to the newly built algorithm image"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "minHotWorkers": {
+                    "type": "integer",
+                    "description": "how many live algorithm instances will always run",
+                    "minimum": 0,
+                    "default": 0
+                  },
+                  "algorithmEnv": {
+                    "type": "object",
+                    "description": "key value environment variables for algorithm"
+                  },
+                  "workerEnv": {
+                    "type": "object",
+                    "description": "key value environment variables for worker"
+                  },
+                  "nodeSelector": {
+                    "type": "object",
+                    "description": "key value labels for nodes constraint",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "type of algorithm code resource",
+                    "enum": [
+                      "Git",
+                      "Code",
+                      "Image"
+                    ],
+                    "default": "Image"
+                  },
+                  "downloadFileExt": {
+                    "type": "string",
+                    "description": "the extension name that will be attached to a file when downloading algorithm result"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          },
+          "description": "algorithm descriptor to be added to the store",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "algorithm created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "pipeline conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "StoreAlgorithms"
+        ],
+        "summary": "Update algorithm",
+        "description": "Update existing algorithm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific algorithm",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "algorithm-name"
+                  },
+                  "env": {
+                    "type": "string",
+                    "enum": [
+                      "nodejs",
+                      "python",
+                      "java"
+                    ]
+                  },
+                  "algorithmImage": {
+                    "type": "string",
+                    "description": "image name as in the docker registry",
+                    "format": "algorithm-image"
+                  },
+                  "cpu": {
+                    "type": "number",
+                    "default": 0.1,
+                    "minimum": 0,
+                    "description": "algorithm cpu"
+                  },
+                  "gpu": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "algorithm gpu"
+                  },
+                  "mem": {
+                    "type": "string",
+                    "description": "algorithm memory",
+                    "format": "algorithm-memory",
+                    "default": "256Mi",
+                    "example": "512Mi"
+                  },
+                  "reservedMemory": {
+                    "type": "string",
+                    "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                    "format": "memory",
+                    "example": "512Mi"
+                  },
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "debug": {
+                        "type": "boolean",
+                        "description": "debug algorithm locally",
+                        "default": false
+                      },
+                      "devMode": {
+                        "type": "boolean",
+                        "description": "runs algorithm with mounted sources to allow rapid development cycles"
+                      },
+                      "pending": {
+                        "type": "boolean",
+                        "description": "pending algorithm",
+                        "default": false
+                      },
+                      "opengl": {
+                        "type": "boolean",
+                        "description": "should algorithm support XGL context creation (mount X socket)"
+                      }
+                    },
+                    "default": {}
+                  },
+                  "mounts": {
+                    "type": "array",
+                    "description": "a list of volumes to mount into the algorithm",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "pvcName": {
+                          "type": "string",
+                          "format": "algorithm-mount-pvc",
+                          "minLength": 1,
+                          "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                        },
+                        "path": {
+                          "type": "string",
+                          "format": "path",
+                          "minLength": 1,
+                          "description": "the mount path in the algorithm container"
+                        }
+                      },
+                      "required": [
+                        "pvcName",
+                        "path"
+                      ]
+                    },
+                    "uniqueItems": true,
+                    "example": []
+                  },
+                  "gitRepository": {
+                    "type": "object",
+                    "properties": {
+                      "url": {
+                        "type": "string",
+                        "description": "a url for the git repository",
+                        "format": "url"
+                      },
+                      "commit": {
+                        "type": "object",
+                        "description": "commit details",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "commit id"
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "description": "commit time"
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "commit message"
+                          }
+                        },
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "branchName": {
+                        "type": "string",
+                        "default": "master",
+                        "description": "the branch name you wish to create a build from"
+                      },
+                      "tag": {
+                        "type": "string",
+                        "description": "a specific tag which will trigger the build"
+                      },
+                      "token": {
+                        "type": "string",
+                        "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                      },
+                      "gitKind": {
+                        "type": "string",
+                        "enum": [
+                          "github",
+                          "gitlab"
+                        ],
+                        "default": "github"
+                      }
+                    },
+                    "required": [
+                      "url"
+                    ]
+                  },
+                  "entryPoint": {
+                    "type": "string"
+                  },
+                  "baseImage": {
+                    "type": "string",
+                    "description": "Custom docker image to be used as base to the newly built algorithm image"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "minHotWorkers": {
+                    "type": "integer",
+                    "description": "how many live algorithm instances will always run",
+                    "minimum": 0,
+                    "default": 0
+                  },
+                  "algorithmEnv": {
+                    "type": "object",
+                    "description": "key value environment variables for algorithm"
+                  },
+                  "workerEnv": {
+                    "type": "object",
+                    "description": "key value environment variables for worker"
+                  },
+                  "nodeSelector": {
+                    "type": "object",
+                    "description": "key value labels for nodes constraint",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "type of algorithm code resource",
+                    "enum": [
+                      "Git",
+                      "Code",
+                      "Image"
+                    ],
+                    "default": "Image"
+                  },
+                  "downloadFileExt": {
+                    "type": "string",
+                    "description": "the extension name that will be attached to a file when downloading algorithm result"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          },
+          "description": "algorithm descriptor to be added to the store",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "algorithm Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/store/algorithms/apply": {
+      "post": {
+        "tags": [
+          "StoreAlgorithms"
+        ],
+        "summary": "Apply algorithm",
+        "description": "create or update algorithm, build id will be returned if build was triggered",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "format": "algorithm-name"
+                      },
+                      "env": {
+                        "type": "string",
+                        "enum": [
+                          "nodejs",
+                          "python",
+                          "java"
+                        ]
+                      },
+                      "algorithmImage": {
+                        "type": "string",
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
+                      },
+                      "cpu": {
+                        "type": "number",
+                        "default": 0.1,
+                        "minimum": 0,
+                        "description": "algorithm cpu"
+                      },
+                      "gpu": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "algorithm gpu"
+                      },
+                      "mem": {
+                        "type": "string",
+                        "description": "algorithm memory",
+                        "format": "algorithm-memory",
+                        "default": "256Mi",
+                        "example": "512Mi"
+                      },
+                      "reservedMemory": {
+                        "type": "string",
+                        "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                        "format": "memory",
+                        "example": "512Mi"
+                      },
+                      "options": {
+                        "type": "object",
+                        "properties": {
+                          "debug": {
+                            "type": "boolean",
+                            "description": "debug algorithm locally",
+                            "default": false
+                          },
+                          "devMode": {
+                            "type": "boolean",
+                            "description": "runs algorithm with mounted sources to allow rapid development cycles"
+                          },
+                          "pending": {
+                            "type": "boolean",
+                            "description": "pending algorithm",
+                            "default": false
+                          },
+                          "opengl": {
+                            "type": "boolean",
+                            "description": "should algorithm support XGL context creation (mount X socket)"
+                          }
+                        },
+                        "default": {}
+                      },
+                      "mounts": {
+                        "type": "array",
+                        "description": "a list of volumes to mount into the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "pvcName": {
+                              "type": "string",
+                              "format": "algorithm-mount-pvc",
+                              "minLength": 1,
+                              "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                            },
+                            "path": {
+                              "type": "string",
+                              "format": "path",
+                              "minLength": 1,
+                              "description": "the mount path in the algorithm container"
+                            }
+                          },
+                          "required": [
+                            "pvcName",
+                            "path"
+                          ]
+                        },
+                        "uniqueItems": true,
+                        "example": []
+                      },
+                      "gitRepository": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "a url for the git repository",
+                            "format": "url"
+                          },
+                          "commit": {
+                            "type": "object",
+                            "description": "commit details",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "commit id"
+                              },
+                              "timestamp": {
+                                "type": "string",
+                                "description": "commit time"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "commit message"
+                              }
+                            },
+                            "required": [
+                              "id"
+                            ]
+                          },
+                          "branchName": {
+                            "type": "string",
+                            "default": "master",
+                            "description": "the branch name you wish to create a build from"
+                          },
+                          "tag": {
+                            "type": "string",
+                            "description": "a specific tag which will trigger the build"
+                          },
+                          "token": {
+                            "type": "string",
+                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                          },
+                          "gitKind": {
+                            "type": "string",
+                            "enum": [
+                              "github",
+                              "gitlab"
+                            ],
+                            "default": "github"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "entryPoint": {
+                        "type": "string"
+                      },
+                      "baseImage": {
+                        "type": "string",
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "minHotWorkers": {
+                        "type": "integer",
+                        "description": "how many live algorithm instances will always run",
+                        "minimum": 0,
+                        "default": 0
+                      },
+                      "algorithmEnv": {
+                        "type": "object",
+                        "description": "key value environment variables for algorithm"
+                      },
+                      "workerEnv": {
+                        "type": "object",
+                        "description": "key value environment variables for worker"
+                      },
+                      "nodeSelector": {
+                        "type": "object",
+                        "description": "key value labels for nodes constraint",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "type of algorithm code resource",
+                        "enum": [
+                          "Git",
+                          "Code",
+                          "Image"
+                        ],
+                        "default": "Image"
+                      },
+                      "downloadFileExt": {
+                        "type": "string",
+                        "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
                     "required": [
@@ -4751,6 +4801,12 @@
                           "description": "algorithm memory",
                           "format": "algorithm-memory",
                           "default": "256Mi",
+                          "example": "512Mi"
+                        },
+                        "reservedMemory": {
+                          "type": "string",
+                          "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                          "format": "memory",
                           "example": "512Mi"
                         },
                         "options": {
@@ -4899,6 +4955,10 @@
                             "Image"
                           ],
                           "default": "Image"
+                        },
+                        "downloadFileExt": {
+                          "type": "string",
+                          "description": "the extension name that will be attached to a file when downloading algorithm result"
                         }
                       },
                       "required": [
@@ -8807,6 +8867,12 @@
                         "default": "256Mi",
                         "example": "512Mi"
                       },
+                      "reservedMemory": {
+                        "type": "string",
+                        "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                        "format": "memory",
+                        "example": "512Mi"
+                      },
                       "options": {
                         "type": "object",
                         "properties": {
@@ -8953,6 +9019,10 @@
                           "Image"
                         ],
                         "default": "Image"
+                      },
+                      "downloadFileExt": {
+                        "type": "string",
+                        "description": "the extension name that will be attached to a file when downloading algorithm result"
                       }
                     },
                     "required": [
@@ -10721,6 +10791,100 @@
           }
         }
       }
+    },
+    "/storage/download/pipeline/result/{jobId}": {
+      "get": {
+        "tags": [
+          "Storage"
+        ],
+        "summary": "stream data to file",
+        "description": "download data as file according to path",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "the pipeline jobId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "storage response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "path Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10764,6 +10928,12 @@
             "description": "algorithm memory",
             "format": "algorithm-memory",
             "default": "256Mi",
+            "example": "512Mi"
+          },
+          "reservedMemory": {
+            "type": "string",
+            "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+            "format": "memory",
             "example": "512Mi"
           },
           "options": {
@@ -10912,6 +11082,10 @@
               "Image"
             ],
             "default": "Image"
+          },
+          "downloadFileExt": {
+            "type": "string",
+            "description": "the extension name that will be attached to a file when downloading algorithm result"
           }
         },
         "required": [
@@ -11065,6 +11239,12 @@
                 "default": "256Mi",
                 "example": "512Mi"
               },
+              "reservedMemory": {
+                "type": "string",
+                "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                "format": "memory",
+                "example": "512Mi"
+              },
               "options": {
                 "type": "object",
                 "properties": {
@@ -11211,6 +11391,10 @@
                   "Image"
                 ],
                 "default": "Image"
+              },
+              "downloadFileExt": {
+                "type": "string",
+                "description": "the extension name that will be attached to a file when downloading algorithm result"
               }
             },
             "required": [

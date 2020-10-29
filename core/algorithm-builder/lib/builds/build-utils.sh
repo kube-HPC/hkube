@@ -91,6 +91,7 @@ dockerBuildKaniko() {
   export packagesRegistry=${PACKAGES_REGISTRY}
   export packagesRegistryUser=${PACKAGES_REGISTRY_USER}
   export packagesToken=${PACKAGES_TOKEN}
+  export packagesAuth=${PACKAGES_AUTH}
   export insecure=${INSECURE}
   export insecure_pull=${INSECURE_PULL}
   export skip_tls_verify=${SKIP_TLS_VERIFY}

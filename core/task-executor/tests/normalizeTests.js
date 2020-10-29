@@ -84,7 +84,8 @@ describe('normalize', () => {
                 workerPaused: false,
                 podName: undefined,
                 workerImage: undefined,
-                algorithmImage: undefined
+                algorithmImage: undefined,
+                algorithmVersion: undefined
             });
             expect(res).to.deep.include({
                 id: 'id2',
@@ -94,7 +95,8 @@ describe('normalize', () => {
                 workerPaused: false,
                 podName: undefined,
                 workerImage: undefined,
-                algorithmImage: undefined
+                algorithmImage: undefined,
+                algorithmVersion: undefined
             });
             expect(res).to.deep.include({
                 id: 'id3',
@@ -104,7 +106,8 @@ describe('normalize', () => {
                 workerPaused: false,
                 podName: undefined,
                 workerImage: undefined,
-                algorithmImage: undefined
+                algorithmImage: undefined,
+                algorithmVersion: undefined
             });
         });
     });

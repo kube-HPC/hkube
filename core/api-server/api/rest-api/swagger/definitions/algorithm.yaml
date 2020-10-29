@@ -21,6 +21,11 @@ properties:
     format: algorithm-memory
     default: 256Mi
     example: 512Mi
+  reservedMemory:
+    type: string
+    description: Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory
+    format: memory
+    example: 512Mi
   options:
     type: object
     properties:
@@ -39,6 +44,10 @@ properties:
         type: boolean
         description: should algorithm support XGL context creation (mount X socket)
     default: {}
+  version:
+    type: string
+    description: Hkube's auto increment semantic versioning
+    readOnly: true
   mounts:
     type: array
     description: a list of volumes to mount into the algorithm
@@ -91,8 +100,6 @@ properties:
   baseImage:
     type: string
     description: Custom docker image to be used as base to the newly built algorithm image
-  version:
-    type: string
   minHotWorkers:
     type: integer
     description: how many live algorithm instances will always run
@@ -117,5 +124,8 @@ properties:
       - Code
       - Image
     default: Image
+  downloadFileExt:
+    type: string
+    description: the extension name that will be attached to a file when downloading algorithm result
 required:
   - name

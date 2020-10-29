@@ -15,14 +15,14 @@ const _createBuildJob = async (jobDetails) => {
     await kubernetes.createJob({ spec });
 };
 
-const reconcile = async ({ builds, jobs, secret, versions, registry, options }) => {
+const reconcile = async ({ builds, jobs, secret, versions, registry, options, clusterOptions }) => {
     const normJobs = normalizeBuildJobs(jobs, j => !j.status.succeeded);
     const normSecret = normalizeSecret(secret);
     const pending = builds.filter(b => b.status === STATUS.PENDING);
     const stopped = builds.filter(b => b.status === STATUS.STOPPED);
     const added = pending.filter(a => !normJobs.find(d => d.buildId === a.buildId));
     const removed = normJobs.filter(a => stopped.find(d => d.buildId === a.buildId));
-    await Promise.all(added.map(a => _createBuildJob({ buildId: a.buildId, secret: normSecret, versions, registry, options })));
+    await Promise.all(added.map(a => _createBuildJob({ buildId: a.buildId, secret: normSecret, versions, registry, options, clusterOptions })));
     await Promise.all(removed.map(a => kubernetes.deleteJob(a.name)));
 };
 

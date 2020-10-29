@@ -68,6 +68,12 @@ describe('deploymentCreator', () => {
         expect(res).to.nested.include({ 'metadata.labels.algorithm-name': 'myAlgoStam' });
     });
 
+    it('should add imagePullSecret', () => {
+        const res = createDeploymentSpec({ algorithmName: 'myAlgoStam', options: { kubernetes: {} }, clusterOptions: {imagePullSecretName: 'my-secret'} });
+        expect(res.spec.template.spec.imagePullSecrets).to.exist;
+        expect(res.spec.template.spec.imagePullSecrets[0]).to.eql({name: 'my-secret'});
+    });
+
     it('should apply resources', () => {
         settings.applyResourceLimits = true;
         const resources = {
