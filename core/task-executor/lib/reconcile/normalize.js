@@ -89,6 +89,10 @@ const normalizeWorkerImages = (normWorkers, algorithmTemplates, versions, regist
     return workers;
 };
 
+/**
+ * This method tries to fill the missing `minHotWorkers` 
+ * for each algorithm request
+ */
 const normalizeHotRequests = (algorithmRequests, algorithmTemplateStore) => {
     const normRequests = algorithmRequests || [];
     const algorithmTemplates = algorithmTemplateStore || {};
