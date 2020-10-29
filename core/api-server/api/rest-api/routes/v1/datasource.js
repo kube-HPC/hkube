@@ -2,12 +2,12 @@ const { isDBError, errorTypes } = require('@hkube/db/lib/errors');
 const { Router } = require('express');
 const multer = require('multer');
 const HttpStatus = require('http-status-codes');
+const fse = require('fs-extra');
 const { ResourceNotFoundError, InvalidDataError } = require('../../../../lib/errors');
 const dataSource = require('../../../../lib/service/dataSource');
 const { promisifyStream, handleStorageError } = require('../../../../lib/stream');
 // consider replacing multer with busboy to handle the stream without saving to disk
 const upload = multer({ dest: 'uploads/datasource/' });
-
 const errorsMiddleware = (error, req, res, next) => {
     if (isDBError(error)) {
         if (error.type === errorTypes.NOT_FOUND) {
@@ -17,6 +17,13 @@ const errorsMiddleware = (error, req, res, next) => {
     }
     return next(error);
 };
+
+// const getIdMiddleware = async (req, res, next) => {
+//     const { name } = req.params;
+//     const entry = await dataSource.fetchDataSource(name);
+//     req.dataSource = entry;
+//     next();
+// };
 
 const routes = () => {
     const router = Router();
@@ -29,43 +36,56 @@ const routes = () => {
         })
         .post(upload.single('file'), async (req, res, next) => {
             const { name } = req.body;
-            const response = await dataSource.createDataSource(name, req.file);
-            res.status(HttpStatus.CREATED).json(response);
+            try {
+                const response = await dataSource.createDataSource(name, req.file);
+                res.status(HttpStatus.CREATED).json(response);
+            }
+            finally {
+                req.file && await fse.remove(req.file.path);
+            }
             next();
         });
 
     router
-        .route('/:id')
+        .route('/:name')
         .get(async (req, res, next) => {
-            const { id } = req.params;
-            const dataSourceEntry = await dataSource.fetchDataSource(id);
+            const { name } = req.params;
+            const dataSourceEntry = await dataSource.fetchDataSource(name);
             const { files, ...rest } = dataSourceEntry;
             res.json({
                 ...rest,
-                path: `datasource/${id}`,
+                path: `datasource/${name}`,
                 files
             });
             next();
         })
         .put(upload.single('file'), async (req, res, next) => {
-            const { id } = req.params;
-            const file = await dataSource.updateDataSource(id, req.file);
-            res.json({
-                path: `/datasource/${id}/${file.fileName}`,
-                name: file.fileName
-            });
+            const { name } = req.params;
+            try {
+                const file = await dataSource.updateDataSource(name, req.file);
+                res.json({
+                    path: `/datasource/${name}/${file.fileName}`,
+                    name: file.fileName
+                });
+            }
+            finally {
+                req.file && await fse.remove(req.file.path);
+            }
             next();
         }).delete(async (req, res, next) => {
-            const { id } = req.params;
-            const deletedId = await dataSource.delete(id);
+            const { name } = req.params;
+            const deletedId = await dataSource.delete(name);
             res.json({ deleted: deletedId });
             next();
         });
 
-    router.get('/:id/:fileName', async (req, res, next) => {
-        const { id, fileName } = req.params;
+    router.get('/:name/:fileName', async (req, res, next) => {
+        // TODO:: the stream need to handle both id and name instead of just getting a dataSource filed
+        // consider splitting it to dataSource: {id: string} | {name: string}
+        // this name or id should be a type it is common all over the system
+        const { name, fileName } = req.params;
         try {
-            const stream = await dataSource.fetchFile(id, fileName);
+            const stream = await dataSource.fetchFile(name, fileName);
             await promisifyStream(res, stream);
         }
         catch (error) {

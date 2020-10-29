@@ -3,7 +3,7 @@ get:
     - DataSource
   summary: Fetch a single file by id
   parameters:
-    - name: id
+    - name: name
       in: path
       description: A dataSource id
       required: true

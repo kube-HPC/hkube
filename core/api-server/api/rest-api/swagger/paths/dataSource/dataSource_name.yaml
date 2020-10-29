@@ -1,11 +1,11 @@
 get:
   tags:
     - DataSource
-  summary: Fetch a single dataSource by id
+  summary: Fetch a single dataSource by name
   parameters:
-    - name: id
+    - name: name
       in: path
-      description: A dataSource id
+      description: A dataSource name
       required: true
       schema:
         type: string
@@ -28,9 +28,9 @@ put:
     - DataSource
   summary: upload a new file to a given datasource
   parameters:
-    - name: id
+    - name: name
       in: path
-      description: A dataSource id
+      description: A dataSource name
       required: true
       schema:
         type: string
@@ -51,11 +51,11 @@ put:
 delete:
   tags:
     - DataSource
-  summary: delete a datasource by id
+  summary: delete a datasource by name
   parameters:
-    - name: id
+    - name: name
       in: path
-      description: A dataSource id
+      description: A dataSource name
       required: true
       schema:
         type: string

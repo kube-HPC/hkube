@@ -51,13 +51,13 @@ const fetchDataSource = (dataSourceId) => {
     return request(getOptions);
 };
 
-describe('Datasource', () => {
+describe.only('Datasource', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/datasource`;
     });
     afterEach(() => sinon.restore());
-    describe('/datasource/:id GET', () => {
+    describe('/datasource/:name GET', () => {
         it('should throw error datasource not found', async () => {
             const options = {
                 uri: `${restPath}/${nonExistingId}`,
@@ -66,13 +66,13 @@ describe('Datasource', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
-            expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
+            expect(response.body.error.message).to.match(/Not Found/i);
         });
         it('should return specific datasource', async () => {
             const name = uuid();
-            const { response } = await createDataSource({ body: { name } });
-            const { id: createdId } = response.body;
-            const { response: getResponse } = await fetchDataSource(createdId);
+            await createDataSource({ body: { name } });
+            const { response: getResponse } = await fetchDataSource(name);
+            console.log(getResponse.body);
             const { body: dataSource } = getResponse;
             expect(dataSource).to.have.property('id');
             expect(dataSource.id).to.be.string;
@@ -86,12 +86,12 @@ describe('Datasource', () => {
             });
         });
     });
-    describe('datasource/:id/:fileName GET', () => {
+    describe('datasource/:name/:fileName GET', () => {
         it('should fetch a file', async () => {
             const name = uuid();
-            const { response: createResponse } = await createDataSource({ body: { name } });
+            await createDataSource({ body: { name } });
             const options = {
-                uri: `${restPath}/${createResponse.body.id}/${fileName}`,
+                uri: `${restPath}/${name}/${fileName}`,
                 method: 'GET'
             };
             const { response: fetchFileResponse } = await request(options);
@@ -102,9 +102,9 @@ describe('Datasource', () => {
         });
         it('should fail fetching a file', async () => {
             const name = uuid();
-            const { response: createResponse } = await createDataSource({ body: { name } });
+            await createDataSource({ body: { name } });
             const options = {
-                uri: `${restPath}/${createResponse.body.id}/${fileName}`,
+                uri: `${restPath}/${name}/${fileName}`,
                 method: 'GET'
             };
             sinon.stub(storage.hkubeDataSource, 'getStream').rejects({ message: 'failed on purpose' });
@@ -112,7 +112,7 @@ describe('Datasource', () => {
             expect(fetchFileResponse.body.error.message).to.match(/failed on purpose/i);
             expect(fetchFileResponse.statusCode).to.eq(HttpStatus.BAD_REQUEST);
         });
-        it('invalid dataSource id', async () => {
+        it('non-existing dataSource id', async () => {
             const options = {
                 uri: `${restPath}/${nonExistingId}/${fileName}`,
                 method: 'GET'
@@ -123,9 +123,9 @@ describe('Datasource', () => {
         });
         it('invalid file name', async () => {
             const name = uuid();
-            const { response: createResponse } = await createDataSource({ body: { name } });
+            await createDataSource({ body: { name } });
             const options = {
-                uri: `${restPath}/${createResponse.body.id}/wrong-file-name`,
+                uri: `${restPath}/${name}/wrong-file-name`,
                 method: 'GET'
             };
             const { response: fetchFileResponse } = await request(options);
@@ -133,28 +133,16 @@ describe('Datasource', () => {
             expect(fetchFileResponse.statusCode).to.eq(404);
         });
     });
-    describe('/datasource/:id DELETE', () => {
+    describe('/datasource/:name DELETE', () => {
         it('should delete a datasource given an id', async () => {
             const name = uuid();
-            const { response } = await createDataSource({ body: { name } });
-            const { id } = response.body;
+            await createDataSource({ body: { name } });
             const options = {
-                uri: `${restPath}/${id}`,
+                uri: `${restPath}/${name}`,
                 method: 'DELETE'
             };
             const { response: deleteResponse } = await request(options);
             expect(deleteResponse.statusCode).to.eq(HttpStatus.OK);
-        });
-        it('should return status 400 if invalid id was provided', async () => {
-            const dataSourceId = 'non-12-bytes-string-of-hex-characters';
-            const options = {
-                uri: `${restPath}/${dataSourceId}`,
-                method: 'DELETE'
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`you provided an invalid id ${dataSourceId}`);
         });
         it('should return 404 if dataSource is not found', async () => {
             const options = {
@@ -165,6 +153,17 @@ describe('Datasource', () => {
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
+        });
+        it.skip('should return status 400 if invalid id was provided', async () => {
+            const dataSourceId = 'non-12-bytes-string-of-hex-characters';
+            const options = {
+                uri: `${restPath}/${dataSourceId}`,
+                method: 'DELETE'
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(response.body.error.message).to.equal(`you provided an invalid id ${dataSourceId}`);
         });
         it.skip('should throw error on related data', async () => {
             const algorithmName = `delete-${uuid()}`;
@@ -391,31 +390,29 @@ describe('Datasource', () => {
                 const [deleteCall] = spyCalls;
                 expect(deleteCall.firstArg).to.be.string;
                 expect(deleteCall.lastArg).to.eql({ allowNotFound: true });
-            }); describe('/datasource/:id PUT', () => {
+            }); describe('/datasource/:name PUT', () => {
             });
         });
-        describe('/datasource/:id PUT', () => {
-            it('should throw missing file error', async () => {
-                const name = uuid();
-                const { response: createResponse } = await createDataSource({ body: { name } });
-                const { id: createdId } = createResponse.body;
-                const { response: putResponse } = await uploadFile(createdId);
-                expect(putResponse.body).to.have.property('error');
-                expect(putResponse.body.error.message).to.equal("data should have required property 'file'");
-            });
-            it('should upload a new file to the dataSource', async () => {
-                const name = uuid();
-                const { response: createResponse } = await createDataSource({ body: { name } });
-                const { id: createdId } = createResponse.body;
-                const secondFileName = 'README-2.md';
-                const { response: putResponse } = await uploadFile(createdId, secondFileName);
-                const { body: file } = putResponse;
-                expect(file).to.have.property('name');
-                expect(file).to.have.property('path');
-                const { response: fetchDataSourceResponse } = await fetchDataSource(createdId);
-                const { body: dataSource } = fetchDataSourceResponse;
-                expect(dataSource.files).to.have.lengthOf(2);
-            });
+    });
+    describe('/datasource/:name PUT', () => {
+        it('should throw missing file error', async () => {
+            const name = uuid();
+            await createDataSource({ body: { name } });
+            const { response: putResponse } = await uploadFile(name);
+            expect(putResponse.body).to.have.property('error');
+            expect(putResponse.body.error.message).to.equal("data should have required property 'file'");
+        });
+        it('should upload a new file to the dataSource', async () => {
+            const name = uuid();
+            await createDataSource({ body: { name } });
+            const secondFileName = 'README-2.md';
+            const { response: putResponse } = await uploadFile(name, secondFileName);
+            const { body: file } = putResponse;
+            expect(file).to.have.property('name');
+            expect(file).to.have.property('path');
+            const { response: fetchDataSourceResponse } = await fetchDataSource(name);
+            const { body: dataSource } = fetchDataSourceResponse;
+            expect(dataSource.files).to.have.lengthOf(2);
         });
     });
 });
