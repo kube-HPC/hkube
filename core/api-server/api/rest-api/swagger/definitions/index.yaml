@@ -12,8 +12,12 @@ algorithmEnv:
   $ref: ./algorithmEnv.yaml
 algorithmFileExt:
   $ref: ./algorithmFileExt.yaml
-algorithmVersion:
-  $ref: ./algorithmVersion.yaml
+algorithmVersionId:
+  $ref: ./algorithmVersionId.yaml
+applyAlgorithmVersion:
+  $ref: ./applyAlgorithmVersion.yaml
+algorithmVersionTag:
+  $ref: ./algorithmVersionTag.yaml
 algorithmApplyOptions:
   $ref: ./algorithmApplyOptions.yaml
 algorithmApplyResponse:

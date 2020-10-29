@@ -1,7 +1,7 @@
 get:
   tags:
     - Versions
-  summary: Get algorithm specific version
+  summary: Get algorithm versions
   description: returns list of algorithm versions.
   parameters:
     - name: name
@@ -10,11 +10,6 @@ get:
       required: true
       schema:
         $ref: "#/components/schemas/algorithmName"
-    - name: image
-      in: query
-      description: algorithm image
-      schema:
-        type: string
     - name: sort
       in: query
       description: sort by asc or desc
@@ -39,48 +34,6 @@ get:
             type: array
             items:
               $ref: "#/components/schemas/algorithm"
-    "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    "404":
-      description: algorithm Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-delete:
-  tags:
-    - Versions
-  summary: Delete algorithm specific version
-  description: Delete existing algorithm version.
-  parameters:
-    - name: name
-      in: path
-      description: algorithm name
-      required: true
-      schema:
-        $ref: "#/components/schemas/algorithmName"
-    - name: image
-      in: query
-      description: algorithm image
-      schema:
-        type: string
-  responses:
-    "200":
-      description: action summery
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
     "400":
       description: bad request
       content:

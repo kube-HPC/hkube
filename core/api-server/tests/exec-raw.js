@@ -218,7 +218,7 @@ describe('Executions', () => {
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(response.body.error.message).to.eql("data.nodes[0] should have required property 'nodeName'");
         });
-        it.skip('should throw validation error of required property nodes.algorithmName', async () => {
+        it('should throw validation error of required property nodes.algorithmName', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -231,7 +231,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain("data.nodes[0] should have required property '.algorithmName'");
+            expect(response.body.error.message).to.contain("please provide algorithmName or pipelineName");
         });
         it('should throw validation error of nodes.input should be array', async () => {
             const options = {

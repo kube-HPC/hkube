@@ -378,9 +378,9 @@ const _overrideVersion = async (env, buildPath, version) => {
     }
 }
 
-const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, version, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
+const buildAlgorithmImage = async ({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi, baseImage, tmpFolder, packagesRepo, buildId }) => {
     const pushRegistry = _createURL(docker.push);
-    const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${version}`;
+    const algorithmImage = `${path.join(pushRegistry, algorithmName)}:v${imageTag}`;
     const packages = packagesRepo[env];
     const wrapperVersion = await _getWrapperVersion(env, packages.wrapperVersion);
     await _overrideVersion(env, buildPath, wrapperVersion)
@@ -472,7 +472,7 @@ const runBuild = async (options) => {
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
 
         const overwrite = true;
-        const { env, version, fileExt, baseImage, type, gitRepository } = build;
+        const { env, imageTag, fileExt, baseImage, type, gitRepository } = build;
         const { docker, buildDirs, tmpFolder, packagesRepo } = options;
         buildMode = options.buildMode;
         algorithmName = build.algorithmName;
@@ -480,7 +480,7 @@ const runBuild = async (options) => {
         const dest = `${buildDirs.UNZIP}/${algorithmName}`;
         buildPath = `builds/${env}/${algorithmName}`;
 
-        log.info(`starting build for algorithm=${algorithmName}, version=${version}, env=${env} -> ${buildId}`, { component });
+        log.info(`starting build for algorithm=${algorithmName}, imageTag=${imageTag}, env=${env} -> ${buildId}`, { component });
 
         await _ensureDirs(buildDirs);
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
@@ -492,7 +492,7 @@ const runBuild = async (options) => {
         }
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
-        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, version, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo, buildId });
+        result = await buildAlgorithmImage({ buildMode, env, docker, algorithmName, imageTag, buildPath, rmi: 'True', baseImage, tmpFolder, packagesRepo, buildId });
     }
     catch (e) {
         error = e.message;
