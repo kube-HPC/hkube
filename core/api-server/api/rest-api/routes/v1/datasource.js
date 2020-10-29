@@ -59,11 +59,13 @@ const routes = () => {
             });
             next();
         })
-        .put(upload.single('file'), async (req, res, next) => {
+        .post(upload.single('file'), async (req, res, next) => {
             const { name } = req.params;
+            // validates the data source exists
+            await dataSource.fetchDataSource(name);
             try {
                 const file = await dataSource.updateDataSource(name, req.file);
-                res.json({
+                res.status(HttpStatus.CREATED).json({
                     path: `/datasource/${name}/${file.fileName}`,
                     name: file.fileName
                 });

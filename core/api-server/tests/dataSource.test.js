@@ -37,7 +37,6 @@ const uploadFile = (dataSourceId, fileName) => {
     } : {};
     const options = {
         uri: `${restPath}/${dataSourceId}`,
-        method: 'PUT',
         formData
     };
     return request(options);
@@ -404,25 +403,34 @@ describe('Datasource', () => {
             });
         });
     });
-    describe('/datasource/:name PUT', () => {
+    describe('/datasource/:name POST', () => {
         it('should throw missing file error', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
-            const { response: putResponse } = await uploadFile(name);
-            expect(putResponse.body).to.have.property('error');
-            expect(putResponse.body.error.message).to.equal("data should have required property 'file'");
+            const { response: uploadResponse } = await uploadFile(name);
+            expect(uploadResponse.body).to.have.property('error');
+            expect(uploadResponse.body.error.message).to.equal("data should have required property 'file'");
+        });
+        it('should fail uploading a file to a non existing dataSource', async () => {
+            const name = uuid();
+            await createDataSource({ body: { name } });
+            const { response: uploadResponse } = await uploadFile('non-existing', 'README-2.md');
+            expect(uploadResponse.body).to.have.property('error');
+            expect(uploadResponse.body.error.message).to.match(/not found/i);
+            expect(uploadResponse.statusCode).to.eql(HttpStatus.NOT_FOUND);
         });
         it('should upload a new file to the dataSource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const secondFileName = 'README-2.md';
-            const { response: putResponse } = await uploadFile(name, secondFileName);
-            const { body: file } = putResponse;
+            const { response: uploadResponse } = await uploadFile(name, secondFileName);
+            const { body: file } = uploadResponse;
             expect(file).to.have.property('name');
             expect(file).to.have.property('path');
             const { response: fetchDataSourceResponse } = await fetchDataSource(name);
             const { body: dataSource } = fetchDataSourceResponse;
             expect(dataSource.files).to.have.lengthOf(2);
+            expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
         });
     });
 });
