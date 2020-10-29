@@ -11,6 +11,8 @@ describe('Progress', function () {
     beforeEach(() => {
         progress = new Progress({
             getGraphStats: () => [],
+            getGraphNodes: () => [],
+            getGraphAllNodes: () => [],
             sendProgress: async () => null
         });
     })
