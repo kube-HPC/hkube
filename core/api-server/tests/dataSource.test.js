@@ -51,7 +51,7 @@ const fetchDataSource = (dataSourceId) => {
     return request(getOptions);
 };
 
-describe.only('Datasource', () => {
+describe('Datasource', () => {
     before(() => {
         restUrl = global.testParams.restUrl;
         restPath = `${restUrl}/datasource`;
@@ -68,11 +68,21 @@ describe.only('Datasource', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.match(/Not Found/i);
         });
+        it('should fail fetching dataSource', async () => {
+            const options = {
+                uri: `${restPath}/${nonExistingId}`,
+                method: 'GET'
+            };
+            sinon.stub(dbConnection.connection.dataSources, "fetch").rejects({ message: 'i should throw' });
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(HttpStatus.INTERNAL_SERVER_ERROR);
+            expect(response.body.error.message).to.eq('i should throw');
+        });
         it('should return specific datasource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const { response: getResponse } = await fetchDataSource(name);
-            console.log(getResponse.body);
             const { body: dataSource } = getResponse;
             expect(dataSource).to.have.property('id');
             expect(dataSource.id).to.be.string;

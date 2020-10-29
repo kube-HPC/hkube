@@ -44,7 +44,7 @@ class DataSource {
             if (error.type === errorTypes.CONFLICT) {
                 throw new ResourceExistsError('dataSource', name);
             }
-            await db.dataSources.delete(name, { allowNotFound: true }); // rollback
+            await db.dataSources.delete({ name }, { allowNotFound: true }); // rollback
             throw error;
         }
         return createdDataSource;
