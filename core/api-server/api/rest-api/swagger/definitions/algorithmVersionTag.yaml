@@ -1,0 +1,18 @@
+type: object
+properties:
+  name:
+    $ref: "#/components/schemas/algorithmName"
+  version:
+    $ref: "#/components/schemas/algorithmVersionId"
+  pinned:
+    type: boolean
+    description: Should set the version as pinned
+    default: false
+  tags:
+    type: array
+    description: Array of tags
+    items:
+      $ref: "#/components/schemas/tag"
+required:
+  - name
+  - version

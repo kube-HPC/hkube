@@ -1,0 +1,88 @@
+get:
+  tags:
+    - Versions
+  summary: Get version
+  description: returns algorithm version
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name
+      required: true
+      schema:
+        $ref: "#/components/schemas/algorithmName"
+    - name: version
+      in: path
+      description: algorithm version
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/algorithm"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: algorithm Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+delete:
+  tags:
+    - Versions
+  summary: Delete version
+  description: Delete existing algorithm version.
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name
+      required: true
+      schema:
+        $ref: "#/components/schemas/algorithmName"
+    - name: version
+      in: path
+      description: algorithm version
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/defaultResponse"
+    "400":
+      description: bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    "404":
+      description: algorithm Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

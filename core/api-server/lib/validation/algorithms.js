@@ -26,7 +26,11 @@ class ApiValidator {
     }
 
     validateAlgorithmVersion(algorithm) {
-        this._validator.validate(this._validator.definitions.algorithmVersion, algorithm, false);
+        this._validator.validate(this._validator.definitions.applyAlgorithmVersion, algorithm, false);
+    }
+
+    validateAlgorithmTag(algorithm) {
+        this._validator.validate(this._validator.definitions.algorithmVersionTag, algorithm, false);
     }
 
     validateAlgorithmDelete(algorithm) {
@@ -107,10 +111,7 @@ class ApiValidator {
             }
             else if (this._isObject(v)) {
                 const key = Object.keys(v)[0];
-                const valid = this._validator.validate(this._validator.definitionsInternal.kubernetesValueFrom, key);
-                if (!valid) {
-                    throw new InvalidDataError(`${key} is invalid, only ${this._validator.definitionsInternal.kubernetesValueFrom.enum.join(',')}`);
-                }
+                this._validator.validate(this._validator.definitionsInternal.kubernetesValueFrom, key);
             }
         });
     }
