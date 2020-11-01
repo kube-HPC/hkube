@@ -1,9 +1,9 @@
 const async = require('async');
+const { median } = require('@hkube/stats');
 const logger = require('@hkube/logger');
 const throttle = require('lodash.throttle');
 const levels = require('@hkube/logger').Levels;
 const groupBy = require('../helpers/group-by');
-const { median } = require('../helpers/median');
 let log;
 
 class ProgressManager {

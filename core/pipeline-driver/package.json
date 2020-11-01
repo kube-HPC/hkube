@@ -18,6 +18,7 @@
     "@hkube/producer-consumer": "^1.0.46",
     "@hkube/redis-utils": "^1.0.3",
     "@hkube/rest-server": "^1.0.12",
+    "@hkube/stats": "^1.0.1",
     "@hkube/storage-manager": "^2.0.26",
     "async": "^3.2.0",
     "clone": "^2.1.2",

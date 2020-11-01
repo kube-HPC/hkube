@@ -63,7 +63,7 @@ class AutoScaler {
         for (const stat of this._statistics) {
             const { source, data } = stat;
             currentSize = data.currentSize || discovery.countInstances(target);
-            const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.CalcRates(stat.data, this._config);
+            const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.calcRates(stat.data, this._config);
 
             const metric = { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
             this._metrics.push(metric);

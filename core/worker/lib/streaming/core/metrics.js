@@ -1,20 +1,4 @@
-const Median = (array) => {
-    if (!array || array.length === 0) {
-        return 0;
-    }
-    array.sort((a, b) => a - b);
-    const half = Math.floor(array.length / 2);
-    const median = array.length % 2 ? array[half] : (array[half - 1] + array[half]) / 2.0;
-    return median;
-};
-
-function Avg(array) {
-    if (!array || array.length === 0) {
-        return 0;
-    }
-    const total = array.reduce((acc, c) => acc + c, 0);
-    return total / array.length;
-}
+const { median } = require('@hkube/stats');
 
 const _calcRate = (list) => {
     let first = list[0];
@@ -42,23 +26,20 @@ const _totalCount = (list) => {
 * If the ratio is 0.5 we need to scale down.
 * The desired ratio is approximately 1 (0.8 <= desired <= 1.2)
 */
-const CalcRates = (data) => {
+const calcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
     const resRate = _calcRate(data.responses.items);
-    const durMedian = Median(data.durations.items);
+    const durMedian = median(data.durations.items);
     const totalRequests = _totalCount(data.requests.items);
     const totalResponses = _totalCount(data.responses.items);
     let durationsRate = 0;
 
     if (durMedian) {
-        const median = 1 / (durMedian / 1000);
-        durationsRate = median; // (msg per ~sec)
+        durationsRate = 1 / (durMedian / 1000); // (msg per ~sec)
     }
     return { reqRate, resRate, durationsRate, totalRequests, totalResponses };
 };
 
 module.exports = {
-    CalcRates,
-    Median,
-    Avg
+    calcRates
 };
