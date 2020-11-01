@@ -7,6 +7,9 @@ class Cache {
         if (node) {
             const jobId = node.cacheJobId;
             const graph = await graphStore.getGraph({ jobId });
+            if (!graph) {
+                throw new Error(`unable to find graph for job ${jobId}`);
+            }
             nodes.forEach((n) => {
                 this._getResultFromPredecessors(graph, n);
             });
