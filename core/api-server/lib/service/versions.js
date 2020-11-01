@@ -95,7 +95,7 @@ class AlgorithmVersions {
         const { name } = algorithm;
         const version = uid({ length: SETTINGS.VERSION_LENGTH });
         const latestSemver = await this._getLatestSemver({ name });
-        let semver = await this._incSemver(latestSemver);
+        let semver = this._incSemver(latestSemver);
 
         try {
             semver = await this._lockSemver(name, semver);
