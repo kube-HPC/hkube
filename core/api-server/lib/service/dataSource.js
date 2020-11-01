@@ -15,15 +15,17 @@ const validator = require('../validation/api-validator');
 
 class DataSource {
     /**
-     * @param {Express.Multer.File} file
+     * @param {object} props
+     * @param {Express.Multer.File} props.file
+     * @param {string} props.name
      */
-    async updateDataSource(name, file) {
+    async updateDataSource({ name, file }) {
         validator.dataSource.validateUploadFile({ file });
-        return this.uploadFile(name, file);
+        return this.uploadFile({ name, file });
     }
 
-    /** @type {(name: string, file: Express.Multer.File) => Promise<uploadFileResponse>} */
-    async uploadFile(name, file) {
+    /** @type {(props: {name: string, file: Express.Multer.File}) => Promise<uploadFileResponse>} */
+    async uploadFile({ name, file }) {
         const createdPath = await storage.hkubeDataSource.putStream({
             dataSource: name,
             data: fse.createReadStream(file.path),
@@ -32,13 +34,13 @@ class DataSource {
         return { createdPath, fileName: file.originalname };
     }
 
-    /** @type {(name: string, file: Express.Multer.File) => Promise<DataSourceItem>} */
-    async createDataSource(name, file) {
+    /** @type {(props: {name: string, file: Express.Multer.File}) => Promise<DataSourceItem>} */
+    async createDataSource({ name, file }) {
         validator.dataSource.validateCreate({ name, file });
         let createdDataSource = null;
         try {
             createdDataSource = await db.dataSources.create(name);
-            await this.uploadFile(name, file);
+            await this.uploadFile({ name, file });
         }
         catch (error) {
             if (error.type === errorTypes.CONFLICT) {
@@ -50,8 +52,8 @@ class DataSource {
         return createdDataSource;
     }
 
-    /** @type { (name: string) => Promise<DataSourceItem & {files: EntryWithMetaData[] }> } */
-    async fetchDataSource(name) {
+    /** @type { (query: {name: string}) => Promise<DataSourceItem & {files: EntryWithMetaData[] }> } */
+    async fetchDataSource({ name }) {
         let dataSource = null;
         try {
             dataSource = await db.dataSources.fetch({ name });
@@ -62,17 +64,17 @@ class DataSource {
             }
             throw error;
         }
-        const files = await this.listWithStats(name);
+        const files = await this.listWithStats({ name });
         return { ...dataSource, files };
     }
 
-    /** @type {(dataSourceId: string, fileName: string) => Promise<string>} */
-    async fetchFile(dataSourceId, fileName) {
+    /** @type {(query: {dataSourceId: string, fileName: string}) => Promise<string>} */
+    async fetchFile({ dataSourceId, fileName }) {
         return storage.hkubeDataSource.getStream({ dataSource: dataSourceId, fileName });
     }
 
-    /** @param {string} name */
-    async delete(name) {
+    /** @param {{name: string}} query */
+    async delete({ name }) {
         const [deletedId] = await Promise.all([
             db.dataSources.delete({ name }),
             storage.hkubeDataSource.delete({ dataSource: name })
@@ -84,8 +86,8 @@ class DataSource {
         return db.dataSources.fetchAll();
     }
 
-    /** @param {string} name */
-    async listWithStats(name) {
+    /** @param {{name: string}} query */
+    async listWithStats({ name }) {
         return storage.hkubeDataSource.listWithStats({ dataSource: name });
     }
 }

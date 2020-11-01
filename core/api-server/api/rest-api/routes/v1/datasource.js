@@ -30,7 +30,7 @@ const routes = () => {
         .post(upload.single('file'), async (req, res, next) => {
             const { name } = req.body;
             try {
-                const response = await dataSource.createDataSource(name, req.file);
+                const response = await dataSource.createDataSource({ name, file: req.file });
                 res.status(HttpStatus.CREATED).json(response);
             }
             finally {
@@ -43,7 +43,7 @@ const routes = () => {
         .route('/:name')
         .get(async (req, res, next) => {
             const { name } = req.params;
-            const dataSourceEntry = await dataSource.fetchDataSource(name);
+            const dataSourceEntry = await dataSource.fetchDataSource({ name });
             const { files, ...rest } = dataSourceEntry;
             res.json({
                 ...rest,
@@ -55,9 +55,9 @@ const routes = () => {
         .post(upload.single('file'), async (req, res, next) => {
             const { name } = req.params;
             // validates the data source exists
-            await dataSource.fetchDataSource(name);
+            await dataSource.fetchDataSource({ name });
             try {
-                const file = await dataSource.updateDataSource(name, req.file);
+                const file = await dataSource.updateDataSource({ name, file: req.file });
                 res.status(HttpStatus.CREATED).json({
                     path: `/datasource/${name}/${file.fileName}`,
                     name: file.fileName
@@ -69,7 +69,7 @@ const routes = () => {
             next();
         }).delete(async (req, res, next) => {
             const { name } = req.params;
-            const deletedId = await dataSource.delete(name);
+            const deletedId = await dataSource.delete({ name });
             res.json({ deleted: deletedId });
             next();
         });
@@ -80,7 +80,7 @@ const routes = () => {
         // this name or id should be a type it is common all over the system
         const { name, fileName } = req.params;
         try {
-            const stream = await dataSource.fetchFile(name, fileName);
+            const stream = await dataSource.fetchFile({ dataSourceId: name, fileName });
             await promisifyStream(res, stream);
         }
         catch (error) {
