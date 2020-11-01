@@ -1757,8 +1757,8 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, ...algorithm } = response.body;
-            expect(algorithm).to.eql({ ...defaultProps, ...body });
+            expect(response.body.version).to.be.exist;
+            expect(response.body.algorithmImage).to.not.eql(body.algorithmImage);
         });
     });
 });
