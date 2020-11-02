@@ -18,13 +18,17 @@ const _totalCount = (list) => {
 };
 
 /**
-* Ratio example:
-* ratio = (req msgPer sec / res msgPer sec)
-* (300 / 120) = 2.5
-* If the response is 2.5 times slower than request
-* So we need to scale up current replicas * 2.5
-* If the ratio is 0.5 we need to scale down.
-* The desired ratio is approximately 1 (0.8 <= desired <= 1.2)
+ * This method calculates the rates and totals by looking at
+ * statistics inside the fixed window.
+ * rates are actually msg per sec.
+ * - reqRate: Δ count / Δ time
+ * - resRate: Δ count / Δ time
+ * - durationsRate: 1 / durations median
+ * - Δ = last item in window - first item in window
+ *
+ * totals:
+ * - totalRequests: last item in requests window.
+ * - totalResponses: last item in responses window.
 */
 const calcRates = (data) => {
     const reqRate = _calcRate(data.requests.items);
@@ -35,7 +39,7 @@ const calcRates = (data) => {
     let durationsRate = 0;
 
     if (durMedian) {
-        durationsRate = 1 / (durMedian / 1000); // (msg per ~sec)
+        durationsRate = 1 / (durMedian / 1000);
     }
     return { reqRate, resRate, durationsRate, totalRequests, totalResponses };
 };

@@ -6,14 +6,8 @@ const streamHandler = require('../lib/streaming/services/stream-handler');
 const streamService = require('../lib/streaming/services/stream-service');
 const discovery = require('../lib/streaming/services/service-discovery');
 const SlaveAdapter = require('../lib/streaming/adapters/slave-adapter');
-const scaleReasons = require('../lib/streaming/core/scale-reasons');
+const { ScaleReasonsCodes, ScaleReasonsMessages } = require('../lib/streaming/core/scale-reasons');
 
-const ScaleReasons = {
-    REQ_RES: scaleReasons.REQ_RES(),
-    REQ_ONLY: scaleReasons.REQ_ONLY(),
-    IDLE_TIME: scaleReasons.IDLE_TIME(),
-    DUR_RATIO: scaleReasons.DUR_RATIO()
-};
 
 const pipeline = {
     name: "stream",
@@ -133,7 +127,7 @@ const checkThroughput = () => {
     return streamService._throughput._checkThroughput();
 }
 
-describe('Streaming', () => {
+describe.only('Streaming', () => {
     before(async () => {
         await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
         await streamHandler.start(job);
@@ -166,7 +160,7 @@ describe('Streaming', () => {
             await scale(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_ONLY);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(scaleDown).to.be.null;
         });
         it('should not scale if currentSize is fixed', async () => {
@@ -193,14 +187,14 @@ describe('Streaming', () => {
             const jobs4 = autoScale();
             const jobs5 = autoScale();
             expect(jobs1.scaleUp.replicas).to.eql(1);
-            expect(jobs1.scaleUp.reason.code).to.eql(ScaleReasons.REQ_ONLY);
+            expect(jobs1.scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(jobs1.scaleDown).to.be.null;
             expect(jobs2.scaleUp).to.be.null;
             expect(jobs2.scaleDown).to.be.null;
             expect(jobs3.scaleUp).to.be.null;
             expect(jobs3.scaleDown).to.be.null;
             expect(jobs4.scaleUp.replicas).to.eql(5);
-            expect(jobs4.scaleUp.reason.code).to.eql(ScaleReasons.REQ_ONLY);
+            expect(jobs4.scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(jobs4.scaleDown).to.be.null;
             expect(jobs5.scaleUp).to.be.null;
             expect(jobs5.scaleDown).to.be.null;
@@ -217,7 +211,7 @@ describe('Streaming', () => {
             await scale(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_ONLY);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(scaleDown).to.be.null;
         });
         it('should scale based on queueSize and responses only', async () => {
@@ -232,7 +226,7 @@ describe('Streaming', () => {
             await scale(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleUp.replicas).to.eql(5);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_RES);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(scaleDown).to.be.null;
         });
         it('should scale up based on high req/res rate', async () => {
@@ -255,7 +249,7 @@ describe('Streaming', () => {
             await requests(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleUp.replicas).to.eql(5);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_ONLY);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(scaleDown).to.be.null;
         });
         it('should scale based on request rate', async () => {
@@ -273,7 +267,7 @@ describe('Streaming', () => {
             await scale(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_ONLY);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(scaleDown).to.be.null;
         });
         it('should scale based on durations', async () => {
@@ -294,7 +288,7 @@ describe('Streaming', () => {
             await scale(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleUp.replicas).to.eql(4);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_RES);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(scaleDown).to.be.null;
         });
         it('should scale based on durations', async () => {
@@ -315,7 +309,7 @@ describe('Streaming', () => {
             await scale(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleUp.replicas).to.eql(1);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_ONLY);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(scaleDown).to.be.null;
         });
         it('should scale only up based on req/res rate', async () => {
@@ -351,7 +345,7 @@ describe('Streaming', () => {
             const jobs5 = autoScale();
             const jobs6 = autoScale();
             expect(jobs1.scaleUp.replicas).to.eql(4);
-            expect(jobs1.scaleUp.reason.code).to.eql(ScaleReasons.REQ_RES);
+            expect(jobs1.scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(jobs2.scaleUp).to.be.null;
             expect(jobs3.scaleUp).to.be.null;
             expect(jobs4.scaleUp).to.be.null;
@@ -402,7 +396,7 @@ describe('Streaming', () => {
             expect(jobs2.scaleUp).to.be.null;
             expect(jobs3.scaleUp).to.be.null;
             expect(jobs3.scaleDown.replicas).to.eql(1);
-            expect(jobs3.scaleDown.reason.code).to.eql(ScaleReasons.DUR_RATIO);
+            expect(jobs3.scaleDown.reason.code).to.eql(ScaleReasonsCodes.DUR_RATIO);
             expect(jobs4.scaleUp).to.be.null;
             expect(jobs4.scaleDown).to.be.null;
         });
@@ -426,7 +420,7 @@ describe('Streaming', () => {
             await requestsUp(list);
             const { scaleUp, scaleDown } = autoScale();
             expect(scaleDown.replicas).to.eql(1);
-            expect(scaleDown.reason.code).to.eql(ScaleReasons.IDLE_TIME);
+            expect(scaleDown.reason.code).to.eql(ScaleReasonsCodes.IDLE_TIME);
             expect(scaleDown.reason.message).to.eql('based on no requests and no responses for 0 sec');
             expect(scaleUp).to.be.null;
         });
@@ -449,7 +443,7 @@ describe('Streaming', () => {
             await requests(list);
             await requests(list);
             const { scaleUp, scaleDown } = autoScale();
-            expect(scaleDown.reason.code).to.eql(ScaleReasons.IDLE_TIME);
+            expect(scaleDown.reason.code).to.eql(ScaleReasonsCodes.IDLE_TIME);
             expect(scaleDown.reason.message).to.eql('based on no requests and no responses for 0 sec');
             expect(scaleUp).to.be.null;
         });
@@ -515,7 +509,7 @@ describe('Streaming', () => {
             expect(scaleUp.currentSize).to.eql(currentSize);
             expect(scaleUp.replicas).to.eql(10);
             expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_RES);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(scaleUp.reason.message).to.eql('based on req/res ratio of 5.00 (min is 1.2)');
             expect(scaleDown).to.be.null;
         });
@@ -546,7 +540,7 @@ describe('Streaming', () => {
             expect(scaleUp.source).to.eql('A');
             expect(scaleUp.replicas).to.eql(nodes[0]);
             expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
-            expect(scaleUp.reason.code).to.eql(ScaleReasons.REQ_RES);
+            expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(scaleUp.reason.message).to.eql(`based on req/res ratio of ${ratio} (min is 1.2)`);
             expect(scaleDown).to.be.null;
         });

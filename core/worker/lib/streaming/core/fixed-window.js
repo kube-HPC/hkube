@@ -1,3 +1,8 @@
+/**
+ * Fixed window is just an array with fixed configurable size.
+ * It used to holds some of the streaming statistics data
+ * that need to be examined in a limited window.
+ */
 class FixedWindow {
     constructor(maxSize) {
         this._array = [];

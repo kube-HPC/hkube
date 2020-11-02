@@ -3,7 +3,7 @@ const Logger = require('@hkube/logger');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
 const { Statistics, PendingScale, Metrics } = require('../core');
-const ScaleReasons = require('../core/scale-reasons');
+const { ScaleReasonsCodes, ScaleReasonsMessages } = require('../core/scale-reasons');
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -11,8 +11,36 @@ const component = Components.AUTO_SCALER;
 let log;
 
 /**
- * The AutoScaler is the class that responsible
- * for scale up/down, this class used by the master adapter.
+ * The AutoScaler used by the master adapter
+ * in order to scale up/down stateless algorithms.
+ * Each tick, it looks at statistics data and then
+ * calculating ratios and rates (see: metrics.calcRates).
+ *
+ * The ratios are:
+ *  - reqResRatio: reqRate / resRate
+ *  - durationsRatio: reqRate / durationsRate
+ *
+ * Scale-Up:
+ * There are two conditions for scale-up:
+ *   1. reqResRatio >= minRatioToScaleUp --> (default: 1.2)
+ *   2. !resRate && reqRate > 0 --> only requests, no responses.
+ * Example for reqResRatio:
+ * ratio = (reqRate 300 / resRate 120) = 2.5
+ * The response rate is 2.5 times slower than request rate.
+ * In this case, the first condition is kicked in.
+ * so, it will scale-up current replicas * 2.5.
+ * If there were no responses (second condition).
+ * it will scale-up current replicas * 1.
+ * Scaling up is done by sending jobs to the Algorithm-Queue
+ * and then do not scale-up until desired replicas are fulfilled.
+ *
+ * Scale-Down:
+ * There are two conditions for scale-down:
+ *   1. !reqRate && !resRate  --> no requests, no responses.
+ *   2. durationsRatio <= minRatioToScaleDown --> (default: 0.8)
+ *
+ * If the ratio is 0.5 we need to scale down.
+ * The desired ratio to not scale at all is ~1 (0.8 <= desired <= 1.2)
  */
 class AutoScaler {
     constructor(options) {
@@ -63,7 +91,7 @@ class AutoScaler {
         for (const stat of this._statistics) {
             const { source, data } = stat;
             currentSize = data.currentSize || discovery.countInstances(target);
-            const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.calcRates(stat.data, this._config);
+            const { reqRate, resRate, durationsRate, totalRequests, totalResponses } = Metrics.calcRates(data);
 
             const metric = { source, target, currentSize, reqRate, resRate, durationsRate, totalRequests, totalResponses };
             this._metrics.push(metric);
@@ -183,7 +211,7 @@ class AutoScaler {
         const reqResRatio = this._calcRatio(reqRate, resRate);
         const durationsRatio = this._calcRatio(reqRate, durationsRate);
         const scaleUp = this._shouldScaleUp({ reqResRatio, reqRate, resRate });
-        const scaleDown = this._shouldScaleDown({ source, durationsRatio, currentSize, reqRate, resRate });
+        const scaleDown = this._shouldScaleDown({ source, durationsRatio, reqRate, resRate });
 
         if (scaleUp.scale) {
             const scaleSize = this._calcSize(currentSize, reqResRatio);
@@ -193,11 +221,11 @@ class AutoScaler {
         }
         else if (scaleDown.scale) {
             let scaleSize;
-            if (scaleDown.reason.code === ScaleReasons.DUR_RATIO()) {
+            if (scaleDown.reason.code === ScaleReasonsCodes.DUR_RATIO) {
                 scaleSize = this._calcSize(currentSize, durationsRatio);
                 scaleSize = scaleSize >= currentSize ? currentSize - 1 : scaleSize;
             }
-            else if (scaleDown.reason.code === ScaleReasons.IDLE_TIME()) {
+            else if (scaleDown.reason.code === ScaleReasonsCodes.IDLE_TIME) {
                 scaleSize = currentSize;
             }
             const replicas = Math.min(scaleSize, currentSize);
@@ -222,32 +250,32 @@ class AutoScaler {
         let scale = false;
         if (reqResRatio >= this._config.minRatioToScaleUp) {
             scale = true;
-            reason = ScaleReasons.REQ_RES({ reqResRatio: reqResRatio.toFixed(2), minRatioToScaleUp: this._config.minRatioToScaleUp });
+            reason = ScaleReasonsMessages.REQ_RES({ reqResRatio: reqResRatio.toFixed(2), minRatioToScaleUp: this._config.minRatioToScaleUp });
         }
         else if (!resRate && reqRate > 0) {
             scale = true;
-            reason = ScaleReasons.REQ_ONLY({ reqRate: reqRate.toFixed(2) });
+            reason = ScaleReasonsMessages.REQ_ONLY({ reqRate: reqRate.toFixed(2) });
         }
         return { scale, reason };
     }
 
     _shouldScaleDown({ source, durationsRatio, reqRate, resRate }) {
-        let result = this._getIdleReason(reqRate, resRate, source);
+        let result = this._getIdleReason({ reqRate, resRate, source });
         if (!result.scale) {
-            result = this._getDurationsReason(durationsRatio, source);
+            result = this._getDurationsReason({ durationsRatio, source });
         }
         return result;
     }
 
-    _getDurationsReason(durationsRatio, source) {
+    _getDurationsReason({ durationsRatio, source }) {
         let reason;
         let scale = false;
-        const code = ScaleReasons.DUR_RATIO();
+        const code = ScaleReasonsCodes.DUR_RATIO;
         if (durationsRatio <= this._config.minRatioToScaleDown) {
             const { result, time } = this._markIdleTime({ source, code });
             if (result) {
                 scale = true;
-                reason = ScaleReasons.DUR_RATIO({ time, durationsRatio: durationsRatio.toFixed(2) });
+                reason = ScaleReasonsMessages.DUR_RATIO({ time, durationsRatio: durationsRatio.toFixed(2) });
             }
         }
         else {
@@ -256,15 +284,15 @@ class AutoScaler {
         return { scale, reason };
     }
 
-    _getIdleReason(reqRate, resRate, source) {
+    _getIdleReason({ reqRate, resRate, source }) {
         let reason;
         let scale = false;
-        const code = ScaleReasons.IDLE_TIME();
+        const code = ScaleReasonsCodes.IDLE_TIME;
         if (!reqRate && !resRate) {
             const { result, time } = this._markIdleTime({ source, code });
             if (result) {
                 scale = true;
-                reason = ScaleReasons.IDLE_TIME({ time });
+                reason = ScaleReasonsMessages.IDLE_TIME({ time });
             }
         }
         else {

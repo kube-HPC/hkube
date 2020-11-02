@@ -1,14 +1,15 @@
 const FixedWindow = require('./fixed-window');
 
 /**
- * The stats holds a structure of <Target, <Source, Stats>>
- * This class expose generator that implements custom iterator,
- * so it will be easy to iterate over this structure.
+ * This class holds statistics in a structure of <Target, <Source, Stats>>
  * For instance, nodes A,B,C stream data to node D.
- * Example:
- * "D": {"A": Stats} (slave)
- *      {"B": Stats} (slave)
- *      {"C": Stats} (master)
+ * so the structure will look like:
+ * "D" -> "A": <Stats> (slave)
+ *        "B": <Stats> (slave)
+ *        "C": <Stats> (master)
+ *
+ * This class also expose generator that implements custom iterator,
+ * so it will be easy to iterate over this structure.
  */
 class Statistics {
     constructor(options) {
@@ -18,11 +19,7 @@ class Statistics {
 
     report(data) {
         const { nodeName, source, currentSize } = data;
-        let { queueSize, sent, responses, durations } = data;
-        queueSize = queueSize || 0;
-        sent = sent || 0;
-        responses = responses || 0;
-        durations = durations || [];
+        const { queueSize = 0, sent = 0, responses = 0, durations = [] } = data;
         const requests = queueSize + sent;
         this._data[nodeName] = this._data[nodeName] || {};
         const stats = this._data[nodeName][source] || this._createStatData({ maxSize: this._maxSize });

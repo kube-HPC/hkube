@@ -1,3 +1,6 @@
+/**
+ * The Adapter is a base class for master and slave adapters
+ */
 class Adapter {
     constructor(options) {
         this.isMaster = options.isMaster;
