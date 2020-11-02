@@ -1,4 +1,4 @@
-const { db } = require('../db');
+const { db } = require('../db/new');
 
 class ApiValidator {
     constructor(validator) {
@@ -23,6 +23,9 @@ class ApiValidator {
      */
     async validateDataSourceExists(metadata) {
         // temp solution, the parser will also return list of dataSources.
+        if (!metadata) {
+            return;
+        }
         const rgx = /(^\w+)(\.)(\w+)(\/)(\w+)/; //
         const map = Object.keys(metadata).map(m => m.match(rgx)[3]);
         const dataSources = [...new Set(map)];
