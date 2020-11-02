@@ -362,6 +362,9 @@ const _createOpenshiftConfigs = async (envs, tmpFolder, docker, buildId, algorit
             strategy: {
                 dockerStrategy: {
                     dockerfilePath: './dockerfile/Dockerfile',
+                    pullSecret: {
+                        name: 'build-registry-secret'
+                    }
                 },
                 type: 'Docker'
             }
