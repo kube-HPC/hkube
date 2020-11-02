@@ -92,7 +92,8 @@ class ExecutionService {
                 const storageInfo = await storageManager.hkube.put({ jobId, taskId: jobId, data: pipeline.flowInput }, tracer.startSpan.bind(tracer, { name: 'storage-put-input', parent: span.context() }));
                 flowInputMetadata = { metadata, storageInfo };
             }
-            const dataSourceMetadata = parser.extractDataSourceMetaData({ pipeline, storagePrefix: storageManager.hkubeDataSource.prefix });
+            const dataSourceMetadata = this._extractDataSourceMetaData(pipeline);
+            await validator.dataSource.validateDataSourceExists(dataSourceMetadata);
             const lastRunResult = await this._getLastPipeline(jobId);
             const pipelineObject = { ...pipeline, jobId, rootJobId, flowInputMetadata, dataSourceMetadata, startTime: Date.now(), lastRunResult, types };
             await storageManager.hkubeIndex.put({ jobId }, tracer.startSpan.bind(tracer, { name: 'storage-put-index', parent: span.context() }));
@@ -107,6 +108,18 @@ class ExecutionService {
         catch (error) {
             span.finish(error);
             throw error;
+        }
+    }
+
+    _extractDataSourceMetaData(pipeline) {
+        try {
+            // we need to change the parser to also return list of dataSources...
+            const metadata = parser.extractDataSourceMetaData({ pipeline, storagePrefix: storageManager.hkubeDataSource.prefix });
+            const result = Object.keys(metadata).length > 0 ? metadata : null;
+            return result;
+        }
+        catch (e) {
+            throw new InvalidDataError(e.message);
         }
     }
 
