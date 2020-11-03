@@ -9,6 +9,7 @@ const log = new Logger(main.serviceName, logger);
 
 const modules = [
     require('./lib/db'),
+    require('./lib/db/new'),
     require('./api/rest-api/app-server'),
     require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
