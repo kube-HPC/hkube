@@ -18,9 +18,10 @@ let log;
  */
 
 class Election {
-    constructor(options, addAdapter) {
+    constructor(options, addAdapter, getMasters) {
         this._options = options;
         this._addAdapter = addAdapter;
+        this._getMasters = getMasters;
         log = Logger.GetLogFromContainer();
     }
 
@@ -33,8 +34,9 @@ class Election {
             .start();
     }
 
-    stop() {
+    async stop() {
         this._electInterval.stop();
+        await this._unElectNodes();
     }
 
     async _election(nodes) {
@@ -46,9 +48,9 @@ class Election {
         this._addAdapter({ isMaster: lock.success, ...options });
     }
 
-    async _unElectNode(options) {
-        const { jobId, nodeName } = options;
-        await stateAdapter.releaseStreamingLock({ jobId, nodeName });
+    async _unElectNodes() {
+        const masters = this._getMasters();
+        await Promise.all(masters.map(m => stateAdapter.releaseStreamingLock({ jobId: m.jobId, nodeName: m.nodeName })));
     }
 }
 

@@ -42,8 +42,8 @@ class AdaptersManager {
         this._adapters[nodeName] = new SlaveAdapter(options);
     }
 
-    stop() {
-        return Object.values(this._adapters).map(a => a.finish());
+    async stop() {
+        return Promise.all(Object.values(this._adapters).map(a => a.finish()));
     }
 
     report(options) {
@@ -52,12 +52,12 @@ class AdaptersManager {
     }
 
     scale() {
-        const masters = this._getMasters();
+        const masters = this.getMasters();
         return masters.map(m => m.scale());
     }
 
     throughput() {
-        const masters = this._getMasters();
+        const masters = this.getMasters();
         const result = [];
         masters.forEach(m => {
             const target = m.nodeName;
@@ -69,7 +69,7 @@ class AdaptersManager {
         return result;
     }
 
-    _getMasters() {
+    getMasters() {
         return Object.values(this._adapters).filter(a => a.isMaster);
     }
 }

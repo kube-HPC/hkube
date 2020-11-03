@@ -24,7 +24,7 @@ class StreamService extends EventEmitter {
         this._jobData = jobData;
         const nodes = await this._createNodesForElection(jobData);
         this._adapters = new AdaptersProxy();
-        this._election = new Election(this._options, (a) => this._adapters.addAdapter(a));
+        this._election = new Election(this._options, (a) => this._adapters.addAdapter(a), () => this._adapters.getMasters(),);
         await this._election.start(nodes);
         this._throughput = new ThroughputCollector(this._options, () => this._adapters.throughput());
         this._throughput.on(streamingEvents.THROUGHPUT_CHANGED, (changes) => {
@@ -64,8 +64,8 @@ class StreamService extends EventEmitter {
         this._jobData = null;
         this._scalerService.stop();
         this._throughput.stop();
-        this._election.stop();
-        this._adapters.stop();
+        await this._election.stop();
+        await this._adapters.stop();
         this._scalerService = null;
         this._throughput = null;
         this._election = null;

@@ -100,6 +100,10 @@ const deleteDiscovery = async ({ instanceId }) => {
     await stateAdapter._etcd.discovery.delete({ instanceId });
 };
 
+const getMasters = () => {
+    return streamService._adapters.getMasters();
+}
+
 const jobId = uid();
 
 const createJob = (jobId) => {
@@ -119,7 +123,7 @@ const createJob = (jobId) => {
 const job = createJob(jobId);
 
 const autoScale = () => {
-    const masters = streamService._adapters._getMasters();
+    const masters = getMasters();
     return masters[0].scale();
 }
 
@@ -127,13 +131,13 @@ const checkThroughput = () => {
     return streamService._throughput._checkThroughput();
 }
 
-describe.only('Streaming', () => {
+describe('Streaming', () => {
     before(async () => {
         await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
         await streamHandler.start(job);
     });
     beforeEach(() => {
-        const masters = streamService._adapters._getMasters();
+        const masters = getMasters();
         masters.map(m => m.reset());
     })
     describe('scale-up', () => {
@@ -574,7 +578,7 @@ describe.only('Streaming', () => {
             streamService.reportStats(data);
             streamService.reportStats(data);
             streamService.reportStats(data);
-            const masters = streamService._adapters._getMasters();
+            const masters = getMasters();
             const stats = masters[0]._autoScaler._statistics._data[nodeName]['C'];
             const { requests, responses, durations } = stats;
             const maxSizeWindow = testParams.config.streaming.autoScaler.maxSizeWindow;
@@ -621,7 +625,7 @@ describe.only('Streaming', () => {
             await slave1.report(list1);
             await slave2.report(list2);
             await delay(500);
-            const masters = streamService._adapters._getMasters();
+            const masters = getMasters();
             const slaves = masters[0].slaves();
             expect(slaves.sort()).to.deep.equal(['A', 'B'])
         });
@@ -653,7 +657,6 @@ describe.only('Streaming', () => {
             expect(scaleDown).to.be.null;
         });
         it('should start and finish correctly', async () => {
-            await streamService.start(job);
             expect(streamService._jobData).to.be.not.null;
             expect(streamService._election).to.be.not.null;
             expect(streamService._adapters).to.be.not.null;
