@@ -38,13 +38,37 @@ class AlgorithmStore {
         });
     }
 
+    async getAlgorithm(options) {
+        validator.jobs.validateName(options);
+        const algorithm = await stateManager.algorithms.store.get(options);
+        if (!algorithm) {
+            throw new ResourceNotFoundError('algorithm', options.name);
+        }
+        return algorithm;
+    }
+
+    async getAlgorithms(options) {
+        const { limit } = options || {};
+        return stateManager.algorithms.store.list({ ...options, limit: limit || 1000 });
+    }
+
+    async insertAlgorithm(options) {
+        validator.algorithms.validateAlgorithmName(options);
+        const alg = await stateManager.algorithms.store.get(options);
+        if (alg) {
+            throw new ResourceExistsError('algorithm', options.name);
+        }
+        const { algorithm } = await this.applyAlgorithm({ payload: options });
+        return algorithm;
+    }
+
     async updateAlgorithm(options) {
         validator.algorithms.validateAlgorithmName(options);
         const alg = await stateManager.algorithms.store.get(options);
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        const { algorithm } = await this.applyAlgorithm({ payload: options, options: { setAsCurrent: true } });
+        const { algorithm } = await this.applyAlgorithm({ payload: options });
         return algorithm;
     }
 
@@ -130,30 +154,6 @@ class AlgorithmStore {
 
     _findAlgorithmInNodes(algorithmName) {
         return (l => l.nodes && l.nodes.some(n => n.algorithmName === algorithmName));
-    }
-
-    async getAlgorithm(options) {
-        validator.jobs.validateName(options);
-        const algorithm = await stateManager.algorithms.store.get(options);
-        if (!algorithm) {
-            throw new ResourceNotFoundError('algorithm', options.name);
-        }
-        return algorithm;
-    }
-
-    async getAlgorithms(options) {
-        const { limit } = options || {};
-        return stateManager.algorithms.store.list({ ...options, limit: limit || 1000 });
-    }
-
-    async insertAlgorithm(options) {
-        validator.algorithms.validateAlgorithmName(options);
-        const alg = await stateManager.algorithms.store.get(options);
-        if (alg) {
-            throw new ResourceExistsError('algorithm', options.name);
-        }
-        const { algorithm } = await this.applyAlgorithm({ payload: options });
-        return algorithm;
     }
 
     async getAlgorithmsQueueList() {
@@ -274,8 +274,7 @@ class AlgorithmStore {
 
     async _versioning(hasDiff, algorithm) {
         let version;
-        // should we create versions also for debug ?
-        if (hasDiff && algorithm.algorithmImage && !algorithm.options.debug) {
+        if (hasDiff && algorithm.algorithmImage) {
             version = await versionsService.createVersion(algorithm);
         }
         return version;

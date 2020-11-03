@@ -85,7 +85,6 @@ class Builds {
             const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
             merge(newAlgorithm, { fileInfo: { path: putStream.path } });
             const { env, name, fileInfo, type, baseImage } = newAlgorithm;
-            await this._removeFile(file.path);
             await this.startBuild({ buildId, algorithm: newAlgorithm, algorithmName: name, env, imageTag, fileExt: fileInfo.fileExt, type, baseImage });
         }
         return { buildId, messages };
@@ -116,12 +115,6 @@ class Builds {
         const env = this._resolveEnv(oldAlgorithm, newAlgorithm);
         validator.builds.validateAlgorithmBuild({ fileExt: fileInfo.fileExt, env });
         return { ...newAlgorithm, fileInfo, env };
-    }
-
-    async _removeFile(file) {
-        if (file) {
-            await fse.remove(file);
-        }
     }
 
     async _fileInfo(file) {
