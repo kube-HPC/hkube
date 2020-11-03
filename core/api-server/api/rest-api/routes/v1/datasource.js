@@ -55,7 +55,7 @@ const routes = () => {
         .post(upload.single('file'), async (req, res, next) => {
             const { name } = req.params;
             // validates the data source exists
-            await dataSource.fetchDataSource({ name });
+            await dataSource.fetchDataSourceMetaData({ name });
             try {
                 const file = await dataSource.updateDataSource({ name, file: req.file });
                 res.status(HttpStatus.CREATED).json({

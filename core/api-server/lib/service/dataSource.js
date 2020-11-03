@@ -24,7 +24,11 @@ class DataSource {
         return this.uploadFile({ name, file });
     }
 
-    /** @type {(props: {name: string, file: Express.Multer.File}) => Promise<uploadFileResponse>} */
+    /**
+      * @param {object} query
+      * @param {string} query.name
+      * @param {Express.Multer.File} query.file
+      */
     async uploadFile({ name, file }) {
         const createdPath = await storage.hkubeDataSource.putStream({
             dataSource: name,
@@ -34,7 +38,11 @@ class DataSource {
         return { createdPath, fileName: file.originalname };
     }
 
-    /** @type {(props: {name: string, file: Express.Multer.File}) => Promise<DataSourceItem>} */
+    /**
+      * @param {object} query
+      * @param {string} query.name
+      * @param {Express.Multer.File} query.file
+      */
     async createDataSource({ name, file }) {
         validator.dataSource.validateCreate({ name, file });
         let createdDataSource = null;
@@ -52,8 +60,11 @@ class DataSource {
         return createdDataSource;
     }
 
-    /** @type { (query: {name: string}) => Promise<DataSourceItem & {files: EntryWithMetaData[] }> } */
-    async fetchDataSource({ name }) {
+    /**
+     * @param {object} query
+     * @param {string} query.name
+     */
+    async fetchDataSourceMetaData({ name }) {
         let dataSource = null;
         try {
             dataSource = await db.dataSources.fetch({ name });
@@ -64,9 +75,19 @@ class DataSource {
             }
             throw error;
         }
+        return dataSource;
+    }
+
+    /**
+     * @param {object} query
+     * @param {string} query.name
+     */
+    async fetchDataSource({ name }) {
+        const dataSource = await this.fetchDataSourceMetaData({ name });
         const files = await this.listWithStats({ name });
         return { ...dataSource, files };
     }
+
 
     /** @type {(query: {dataSourceId: string, fileName: string}) => Promise<string>} */
     async fetchFile({ dataSourceId, fileName }) {
