@@ -2,8 +2,8 @@ const { parser } = require('@hkube/parsers');
 const Logger = require('@hkube/logger');
 const { stateType } = require('@hkube/consts');
 const stateAdapter = require('../../states/stateAdapter');
-const { Statistics, PendingScale, Metrics } = require('../core');
-const { ScaleReasonsCodes, ScaleReasonsMessages } = require('../core/scale-reasons');
+const { Statistics, PendingScale, Throughput, ScaleReasons, Metrics, IdleMarker } = require('../core');
+const { ScaleReasonsCodes, ScaleReasonsMessages } = ScaleReasons;
 const producer = require('../../producer/producer');
 const discovery = require('./service-discovery');
 const { Components } = require('../../consts');
@@ -20,27 +20,35 @@ let log;
  *  - reqResRatio: reqRate / resRate
  *  - durationsRatio: reqRate / durationsRate
  *
- * Scale-Up:
+ * --Scale-Up--
  * There are two conditions for scale-up:
- *   1. reqResRatio >= minRatioToScaleUp --> (default: 1.2)
- *   2. !resRate && reqRate > 0 --> only requests, no responses.
- * Example for reqResRatio:
- * ratio = (reqRate 300 / resRate 120) = 2.5
- * The response rate is 2.5 times slower than request rate.
- * In this case, the first condition is kicked in.
- * so, it will scale-up current replicas * 2.5.
- * If there were no responses (second condition).
- * it will scale-up current replicas * 1.
- * Scaling up is done by sending jobs to the Algorithm-Queue
- * and then do not scale-up until desired replicas are fulfilled.
+ * 1. reqResRatio >= minRatioToScaleUp --> (default: 1.2)
+ * 2. !resRate && reqRate > 0
  *
- * Scale-Down:
+ * Example:
+ * 1. reqResRatio = (reqRate 300 / resRate 120) = 2.5
+ *    The response rate is 2.5 times slower than request rate.
+ *    In this case, the first condition is kicked in.
+ *    so, it will scale-up current replicas * 2.5.
+ * 2. If there were only requests and no responses,
+ *    it will scale-up current replicas * 1.
+ *    Scaling up is done by sending jobs to the Algorithm-Queue
+ *    and then do not scale-up until desired replicas are fulfilled.
+ *
+ * --Scale-Down--
  * There are two conditions for scale-down:
- *   1. !reqRate && !resRate  --> no requests, no responses.
- *   2. durationsRatio <= minRatioToScaleDown --> (default: 0.8)
+ * 1. !reqRate && !resRate
+ * 2. durationsRatio <= minRatioToScaleDown --> (default: 0.8)
  *
- * If the ratio is 0.5 we need to scale down.
+ * Example:
+ * 1. If there are no requests and no responses for x time,
+ *    it will scale-down the current size to zero.
+ * 2. If the durationsRatio is 0.5 for x time,
+ *    it will scale-down current replicas * 0.5.
+ *
  * The desired ratio to not scale at all is ~1 (0.8 <= desired <= 1.2)
+ * Scaling down is done by sending commands to the workers.
+ *
  */
 class AutoScaler {
     constructor(options) {
@@ -54,9 +62,9 @@ class AutoScaler {
 
     reset() {
         this._metrics = [];
-        this._idles = Object.create(null);
+        this._throughput = new Throughput();
+        this._idles = new IdleMarker(this._config);
         this._statsPrint = Object.create(null);
-        this._throughput = 0;
         this._statistics = new Statistics(this._config);
         this._pendingScale = new PendingScale(this._config);
     }
@@ -66,7 +74,7 @@ class AutoScaler {
     }
 
     getThroughput() {
-        return this._throughput;
+        return this._throughput.data;
     }
 
     getMetrics() {
@@ -196,13 +204,13 @@ class AutoScaler {
     }
 
     _updateThroughput(metric) {
-        const { reqRate, resRate } = metric;
+        const { source, reqRate, resRate } = metric;
         if (reqRate && resRate) {
             const throughput = parseFloat(((resRate / reqRate) * 100).toFixed(2));
-            this._throughput = throughput;
+            this._throughput.update(source, throughput);
         }
         else {
-            this._throughput = 0;
+            this._throughput.update(source, 0);
         }
     }
 
@@ -260,66 +268,11 @@ class AutoScaler {
     }
 
     _shouldScaleDown({ source, durationsRatio, reqRate, resRate }) {
-        let result = this._getIdleReason({ reqRate, resRate, source });
+        let result = this._idles.checkIdleReason({ reqRate, resRate, source });
         if (!result.scale) {
-            result = this._getDurationsReason({ durationsRatio, source });
+            result = this._idles.checkDurationsReason({ durationsRatio, source });
         }
         return result;
-    }
-
-    _getDurationsReason({ durationsRatio, source }) {
-        let reason;
-        let scale = false;
-        const code = ScaleReasonsCodes.DUR_RATIO;
-        if (durationsRatio <= this._config.minRatioToScaleDown) {
-            const { result, time } = this._markIdleTime({ source, code });
-            if (result) {
-                scale = true;
-                reason = ScaleReasonsMessages.DUR_RATIO({ time, durationsRatio: durationsRatio.toFixed(2) });
-            }
-        }
-        else {
-            this._unMarkIdleTime({ source, code });
-        }
-        return { scale, reason };
-    }
-
-    _getIdleReason({ reqRate, resRate, source }) {
-        let reason;
-        let scale = false;
-        const code = ScaleReasonsCodes.IDLE_TIME;
-        if (!reqRate && !resRate) {
-            const { result, time } = this._markIdleTime({ source, code });
-            if (result) {
-                scale = true;
-                reason = ScaleReasonsMessages.IDLE_TIME({ time });
-            }
-        }
-        else {
-            this._unMarkIdleTime({ source, code });
-        }
-        return { scale, reason };
-    }
-
-    _markIdleTime({ source, code }) {
-        let result = false;
-        if (!this._idles[source]) {
-            this._idles[source] = {};
-        }
-        if (!this._idles[source][code]) {
-            this._idles[source][code] = { time: Date.now() };
-        }
-        const diff = Date.now() - this._idles[source][code].time;
-        if (diff >= this._config.maxTimeIdleBeforeReplicaDown) {
-            result = true;
-        }
-        return { result, time: diff / 1000 };
-    }
-
-    _unMarkIdleTime({ source, code }) {
-        if (this._idles[source] && this._idles[source][code]) {
-            delete this._idles[source][code];
-        }
     }
 
     _scaleUp(scale) {

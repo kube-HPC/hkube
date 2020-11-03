@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const { NodesMap } = require('@hkube/dag');
+const { NodesMap: DAG } = require('@hkube/dag');
 const stateAdapter = require('../../states/stateAdapter');
 const Election = require('./election');
 const AdaptersProxy = require('../adapters/adapters-proxy');
@@ -37,7 +37,7 @@ class StreamService extends EventEmitter {
     async _createNodesForElection(jobData) {
         const { childs, jobId, nodeName } = jobData;
         const pipeline = await stateAdapter.getExecution({ jobId });
-        const dag = new NodesMap(pipeline);
+        const dag = new DAG(pipeline);
         const nodesMap = pipeline.nodes.reduce((acc, cur) => {
             acc[cur.nodeName] = cur;
             return acc;
@@ -56,7 +56,7 @@ class StreamService extends EventEmitter {
         return nodes;
     }
 
-    finish() {
+    async finish() {
         if (!this._active) {
             return;
         }

@@ -45,6 +45,11 @@ class Election {
         const lock = await stateAdapter.acquireStreamingLock(options);
         this._addAdapter({ isMaster: lock.success, ...options });
     }
+
+    async _unElectNode(options) {
+        const { jobId, nodeName } = options;
+        await stateAdapter.releaseStreamingLock({ jobId, nodeName });
+    }
 }
 
 module.exports = Election;

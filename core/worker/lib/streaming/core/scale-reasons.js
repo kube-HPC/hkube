@@ -1,10 +1,16 @@
 const format = require('string-template');
 
+/**
+ * These constants represents the scaling reasons.
+ * Each decision to scale up or scale down has a reason.
+ * reason has code and message.
+ */
+
 const Codes = {
-    REQ_RES: 'REQ_RES',
-    REQ_ONLY: 'REQ_ONLY',
-    IDLE_TIME: 'IDLE_TIME',
-    DUR_RATIO: 'DUR_RATIO'
+    REQ_RES: 'REQ_RES', // scale-up
+    REQ_ONLY: 'REQ_ONLY', // scale-up
+    IDLE_TIME: 'IDLE_TIME', // scale-down
+    DUR_RATIO: 'DUR_RATIO' // scale-down
 };
 
 const Messages = {

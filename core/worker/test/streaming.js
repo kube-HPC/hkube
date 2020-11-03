@@ -586,21 +586,23 @@ describe.only('Streaming', () => {
     describe('throughput', () => {
         it('should scale and update throughput', async () => {
             const nodeName = 'D';
-            const scale = async (data) => {
-                streamService.reportStats(data);
+            const scale = async (stats) => {
+                streamService.reportStats(stats);
                 await delay(100);
             }
-            const list = [{
+            const stat = {
                 nodeName,
                 queueSize: 5,
                 responses: 4
-            }];
-            await scale(list);
-            const { scaleUp, scaleDown } = autoScale();
-            const throughputMap = checkThroughput();
-            expect(throughputMap['C']).to.eql(0.8);
-            expect(scaleDown).to.be.null;
-            expect(scaleUp.replicas).to.eql(2);
+            }
+            const percent = stat.responses / stat.queueSize * 100
+            const stats = [stat];
+            await scale(stats);
+            autoScale();
+            const throughput = checkThroughput()[0];
+            expect(throughput.source).to.eql('C');
+            expect(throughput.target).to.eql('D');
+            expect(throughput.throughput).to.eql(percent);
         });
     });
     describe('master-slaves', () => {
@@ -642,7 +644,8 @@ describe.only('Streaming', () => {
             const { scaleUp, scaleDown } = autoScale();
             const throughput = checkThroughput();
 
-            expect(Object.keys(throughput).sort()).to.deep.equal(['A', 'B', 'C'])
+            expect(throughput.map(t => t.source).sort()).to.eql(['A', 'B', 'C']);
+            expect(throughput).to.have.lengthOf(3);
             expect(scaleUp.currentSize).to.eql(currentSize);
             expect(scaleUp.nodes).to.have.lengthOf(3);
             expect(scaleUp.replicas).to.eql(10);

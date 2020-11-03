@@ -10,7 +10,7 @@ class SlaveAdapter extends Adapter {
         stateAdapter.reportStreamingStats({ ...data, jobId: this.jobId, source: this.source });
     }
 
-    finish() {
+    async finish() {
         return null;
     }
 }

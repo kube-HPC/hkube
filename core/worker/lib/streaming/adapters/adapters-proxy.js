@@ -58,7 +58,15 @@ class AdaptersManager {
 
     throughput() {
         const masters = this._getMasters();
-        return masters.map(m => ({ source: m.source, target: m.nodeName, throughput: m.getThroughput() }));
+        const result = [];
+        masters.forEach(m => {
+            const target = m.nodeName;
+            const sources = m.getThroughput();
+            Object.entries(sources).forEach(([k, v]) => {
+                result.push({ source: k, target, throughput: v });
+            });
+        });
+        return result;
     }
 
     _getMasters() {

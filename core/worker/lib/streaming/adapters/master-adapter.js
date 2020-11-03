@@ -45,10 +45,8 @@ class MasterAdapter extends Adapter {
         return this._autoScaler.report(data);
     }
 
-    finish() {
-        const { jobId, nodeName } = this._options;
-        stateAdapter.releaseStreamingLock({ jobId, nodeName });
-        stateAdapter.unWatchStreamingStats({ jobId, nodeName });
+    async finish() {
+        await stateAdapter.unWatchStreamingStats({ jobId: this.jobId, nodeName: this.nodeName });
     }
 
     getThroughput() {
