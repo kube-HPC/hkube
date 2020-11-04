@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set -xeo pipefail
 echo running ./scripts/test.sh
 ./scripts/test.sh
 echo ./scripts/test.sh exited with code $?
