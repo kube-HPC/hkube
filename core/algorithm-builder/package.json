@@ -1,6 +1,6 @@
 {
   "name": "algorithm-builder",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "build algorithm with hkube worker connectivity",
   "author": "Hkube",
   "license": "ISC",
