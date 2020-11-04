@@ -58,10 +58,8 @@ const routes = () => {
         })
         .post(upload.single('file'), async (req, res, next) => {
             const { name } = req.params;
-            // validates the data source exists
-            await dataSource.fetchDataSourceMetaData({ name });
             try {
-                const file = await dataSource.updateDataSource({ name, file: req.file });
+                const file = await dataSource.updateDataSource({ dataSourceName: name, file: req.file });
                 res.status(HttpStatus.CREATED).json({
                     path: `/datasource/${name}/${file.fileName}`,
                     name: file.fileName
@@ -84,7 +82,7 @@ const routes = () => {
         // this name or id should be a type it is common all over the system
         const { name, fileName } = req.params;
         try {
-            const stream = await dataSource.fetchFile({ dataSourceId: name, fileName });
+            const stream = await dataSource.fetchFile({ dataSourceName: name, fileName });
             await promisifyStream(res, stream);
         }
         catch (error) {

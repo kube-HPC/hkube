@@ -16,22 +16,24 @@ const validator = require('../validation/api-validator');
 class DataSource {
     /**
      * @param {object} props
+     * @param {string} props.dataSourceName
      * @param {Express.Multer.File} props.file
-     * @param {string} props.name
      */
-    async updateDataSource({ name, file }) {
+    async updateDataSource({ dataSourceName, file }) {
         validator.dataSource.validateUploadFile({ file });
-        return this.uploadFile({ name, file });
+        // validates the data source exists
+        await this.fetchDataSourceMetaData({ name: dataSourceName });
+        return this.uploadFile({ dataSourceName, file });
     }
 
     /**
       * @param {object} query
-      * @param {string} query.name
+      * @param {string} query.dataSourceName
       * @param {Express.Multer.File} query.file
       */
-    async uploadFile({ name, file }) {
+    async uploadFile({ dataSourceName, file }) {
         const createdPath = await storage.hkubeDataSource.putStream({
-            dataSource: name,
+            dataSource: dataSourceName,
             data: fse.createReadStream(file.path),
             fileName: file.originalname
         });
@@ -48,7 +50,7 @@ class DataSource {
         let createdDataSource = null;
         try {
             createdDataSource = await db.dataSources.create(name);
-            await this.uploadFile({ name, file });
+            await this.uploadFile({ dataSourceName: name, file });
         }
         catch (error) {
             if (error.type === errorTypes.CONFLICT) {
@@ -88,9 +90,9 @@ class DataSource {
         return { ...dataSource, files };
     }
 
-    /** @type {(query: {dataSourceId: string, fileName: string}) => Promise<string>} */
-    async fetchFile({ dataSourceId, fileName }) {
-        return storage.hkubeDataSource.getStream({ dataSource: dataSourceId, fileName });
+    /** @type {(query: {dataSourceName: string, fileName: string}) => Promise<string>} */
+    async fetchFile({ dataSourceName, fileName }) {
+        return storage.hkubeDataSource.getStream({ dataSource: dataSourceName, fileName });
     }
 
     /** @param {{name: string}} query */
