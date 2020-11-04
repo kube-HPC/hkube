@@ -88,7 +88,6 @@ class DataSource {
         return { ...dataSource, files };
     }
 
-
     /** @type {(query: {dataSourceId: string, fileName: string}) => Promise<string>} */
     async fetchFile({ dataSourceId, fileName }) {
         return storage.hkubeDataSource.getStream({ dataSource: dataSourceId, fileName });

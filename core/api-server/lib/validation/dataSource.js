@@ -1,4 +1,6 @@
-const { db } = require('../db/new');
+const dbConnect = require('../db');
+const { ResourceNotFoundError } = require('../errors');
+/** @typedef {import('express')} Express */
 
 class ApiValidator {
     constructor(validator) {
@@ -15,30 +17,17 @@ class ApiValidator {
         this._validator.validate(this._validator.definitions.dataSourceUploadFile, { ...props, file: props.file?.originalname });
     }
 
-    /**
-     * we can check all dataSources exists in mongoDB by:
-     * 1. multiple requests - Promise.all     - (N requests) - not good
-     * 2. serial requests   - async generator - (1...N requests) - nice.
-     * 3. single request    - bulk operation  - (1 request) - very good.
-     */
-    async validateDataSourceExists(metadata) {
-        // temp solution, the parser will also return list of dataSources.
-        if (!metadata) {
+    /** @param {string[]} dataSources */
+    async validateDataSourceExists(dataSources) {
+        const db = dbConnect.connection;
+        if (dataSources.length === 0) {
             return;
         }
-        const rgx = /(^\w+)(\.)(\w+)(\/)(\w+)/; //
-        const map = Object.keys(metadata).map(m => m.match(rgx)[3]);
-        const dataSources = [...new Set(map)];
-
-        for await (let ds of this._dataSourceFetcher(dataSources)) {
-            console.log(ds);
-        }
-    }
-
-    async* _dataSourceFetcher(dataSources) {
-        for (const name of dataSources) {
-            const dataSource = await db.dataSources.fetch({ name });
-            yield dataSource;
+        const entries = await db.dataSources.fetchMany({ names: dataSources });
+        const namesSet = new Set(entries.map(entry => entry.name));
+        const intersections = dataSources.filter(entry => !namesSet.has(entry));
+        if (intersections.length > 0) {
+            throw new ResourceNotFoundError('dataSource', intersections.join(', '));
         }
     }
 }
