@@ -23,7 +23,8 @@ const { CPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE } = consts;
 
 let createdJobsList = [];
 const MIN_AGE_FOR_STOP = 10 * 1000;
-let totalCapacityNow = 10;
+let totalCapacityNow = 10; // how much pods are running now
+const WINDOW_SIZE_FACTOR = 3;
 const unscheduledAlgorithms = {};
 
 const _updateCapacity = (algorithmCount) => {
@@ -335,9 +336,11 @@ const calcRatio = (totalRequests, capacity) => {
         return prev;
     }, { total: 0, algorithms: {} });
     Object.keys(requestTypes.algorithms).forEach(k => {
-        requestTypes.algorithms[k].ratio = requestTypes.algorithms[k].count / requestTypes.total;
         if (capacity) {
-            requestTypes.algorithms[k].required = requestTypes.algorithms[k].ratio * capacity;
+            const ratio = requestTypes.algorithms[k].count / requestTypes.total;
+            const required = ratio * capacity;
+            requestTypes.algorithms[k].ratio = ratio;
+            requestTypes.algorithms[k].required = required;
         }
     });
     return requestTypes;
@@ -353,7 +356,7 @@ const calcRatio = (totalRequests, capacity) => {
  * 3) if we found such an algorithm, we delete it from map.
  * 4) each iteration we update the discovery with the current map.
  */
-const _checkUnscheduled = async (created, skipped, requests, algorithms, algorithmTemplates) => {
+const _checkUnscheduled = (created, skipped, requests, algorithms, algorithmTemplates) => {
     skipped.forEach((s) => {
         if (!algorithms[s.algorithmName]) {
             algorithms[s.algorithmName] = s.warning;
@@ -375,6 +378,126 @@ const _checkUnscheduled = async (created, skipped, requests, algorithms, algorit
         });
     }
     return algorithms;
+};
+
+const _workersToMap = (requests) => {
+    return requests.reduce((prev, cur) => {
+        if (!prev[cur.algorithmName]) {
+            prev[cur.algorithmName] = 0;
+        }
+        prev[cur.algorithmName] += 1;
+        return prev;
+    }, {});
+};
+
+const _mergeRequisiteRequests = (requests, requisites) => {
+    /**
+    *
+    * requisites:
+    *     alg  | count | req  | diff
+    *   green  |  800  |  80  |  10
+    *   yellow |  200  |  20  |  8
+    *   black  |  100  |  10  |  5
+    *   total  |  1100 |  110 |  23
+    * 
+    * ratios:
+    *   green:  (10 / 23) * 10 = ~4
+    *   yellow: (08 / 23) * 8  = ~3
+    *   black:  (05 / 23) * 5  = ~1
+    *   [g,g,g,g,y,y,y,b]
+    *
+    */
+
+    const ratioSum = requisites.totalRequired;
+
+    while (requisites.totalRequired > 0) {
+        Object.values(requisites.algorithms).forEach((v) => {
+            const ratio = (v.required.length / ratioSum);
+            const required = Math.round(v.required.length * ratio) || 1;
+            const diff = requisites.totalRequired - required;
+            const total = diff < 0 ? requisites.totalRequired : required;
+            const arr = v.required.slice(0, total);
+            requisites.totalRequired -= arr.length;
+            requests.unshift(...arr);
+        });
+    }
+    return requests;
+};
+
+const _createRequisitesRequests = (normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+    const requests = [];
+    const visited = {};
+    const indices = {};
+    const requisites = { algorithms: {}, totalRequired: 0 };
+    const runningWorkersList = [...idleWorkers, ...activeWorkers, ...pausedWorkers, ...pendingWorkers];
+    const runningWorkersMap = _workersToMap(runningWorkersList);
+
+    normRequests.forEach((r, i) => {
+        const { algorithmName } = r;
+        const quotaGuarantee = algorithmTemplates[algorithmName]?.quotaGuarantee;
+        if (quotaGuarantee && !visited[algorithmName]) {
+            visited[algorithmName] = true;
+            const running = runningWorkersMap[algorithmName] || 0;
+            const diff = quotaGuarantee - running;
+            if (diff > 0) {
+                const required = normRequests
+                    .map((a, j) => ({ index: j, alg: a }))
+                    .filter(n => n.alg.algorithmName === algorithmName)
+                    .slice(0, diff);
+                requisites.algorithms[algorithmName] = requisites.algorithms[algorithmName] || {};
+                requisites.algorithms[algorithmName].required = required.map(a => a.alg);
+                requisites.totalRequired += required.length;
+                required.forEach((alg) => {
+                    indices[alg.index] = true; // save the indices so we will ignore them next iteration.
+                });
+            }
+            else {
+                requests.push(r);
+            }
+        }
+        else if (!indices[i]) {
+            requests.push(r);
+        }
+    });
+    return { requests, requisites };
+};
+
+const _createRequisite = (normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+    const hasRequisiteAlgorithms = normRequests.some(r => algorithmTemplates[r.algorithmName]?.quotaGuarantee);
+    let currentRequests = normRequests;
+
+    if (hasRequisiteAlgorithms) {
+        const { requests, requisites } = _createRequisitesRequests(normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+        currentRequests = _mergeRequisiteRequests(requests, requisites);
+    }
+    return currentRequests;
+};
+
+const _createWindow = (currentRequests) => {
+    const windowSize = Math.round(totalCapacityNow * WINDOW_SIZE_FACTOR);
+    return currentRequests.slice(0, windowSize);
+};
+
+/**
+ * This method does two things: 
+ *    1. prioritizing algorithms that have `quotaGuarantee`.
+ *    2. creating a subset (window) from the requests.
+ * The algorithm is as follows:
+ *    1. If there is any algorithm with `quotaGuarantee`.
+ *      a. Iterate all requests.
+ *      b. If encountered an algorithm with `quotaGuarantee` that didn't handle.
+ *         b1. Mark the algorithm as visited.
+ *         b2. Calculate missing algorithms by `quotaGuarantee - running`.
+ *         b3. If there are a missing algorithms, move these algorithms to the top of our window.
+ *         b4. Save the indices of these algorithms to ignore them next iteration.
+ *         b5. If there are no missing algorithms, just add it to the window.
+ *      c. If already moved this algorithm to the top, ignore it, else add it to the window.
+ *    2. creating new window from the requests
+ */
+const _createRequestsWindow = (algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers) => {
+    const currentRequests = _createRequisite(normRequests, algorithmTemplates, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+    const requestsWindow = _createWindow(currentRequests);
+    return requestsWindow;
 };
 
 const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, pods, versions, normResources, registry, options, clusterOptions, workerResources } = {}) => {
@@ -405,11 +528,11 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     const pendingWorkers = clonedeep(merged.extraJobs);
     const jobsCreated = clonedeep(createdJobsList);
 
-    _updateCapacity(idleWorkers.length + activeWorkers.length + createdJobsList.length + jobsCreated.length);
+    _updateCapacity(idleWorkers.length + activeWorkers.length + jobsCreated.length);
 
-    // get stats
+    const requestsWindow = _createRequestsWindow(algorithmTemplates, normRequests, idleWorkers, activeWorkers, pausedWorkers, pendingWorkers);
+    const totalRequests = normalizeHotRequests(requestsWindow, algorithmTemplates);
 
-    const totalRequests = normalizeHotRequests(normRequests.slice(0, Math.round(totalCapacityNow * 3)), algorithmTemplates);
     // log.info(`capacity = ${totalCapacityNow}, totalRequests = ${totalRequests.length} `);
     const requestTypes = calcRatio(totalRequests, totalCapacityNow);
     // const workerTypes = calcRatio(mergedWorkers);
@@ -420,7 +543,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     totalRequests.forEach(r => {
         const ratios = calcRatio(cutRequests, totalCapacityNow);
         const { required } = requestTypes.algorithms[r.algorithmName];
-        if (!ratios.algorithms[r.algorithmName] || ratios.algorithms[r.algorithmName].count < required) {
+        const algorithm = ratios.algorithms[r.algorithmName];
+        if (!algorithm || algorithm.count < required) {
             cutRequests.push(r);
         }
     });
@@ -441,7 +565,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
         createdJobsList.push(j);
     });
 
-    const unScheduledAlgorithms = await _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates);
+    const unScheduledAlgorithms = _checkUnscheduled(created, skipped, normRequests, unscheduledAlgorithms, algorithmTemplates);
 
     // if couldn't create all, try to stop some workers
     const stopDetails = [];
