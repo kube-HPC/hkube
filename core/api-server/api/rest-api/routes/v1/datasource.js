@@ -18,6 +18,10 @@ const errorsMiddleware = (error, req, res, next) => {
     return next(error);
 };
 
+const cleanTmpFile = async file => {
+    file && await fse.remove(file.path);
+};
+
 const routes = () => {
     const router = Router();
     router
@@ -34,7 +38,7 @@ const routes = () => {
                 res.status(HttpStatus.CREATED).json(response);
             }
             finally {
-                req.file && await fse.remove(req.file.path);
+                await cleanTmpFile(req.file);
             }
             next();
         });
@@ -64,7 +68,7 @@ const routes = () => {
                 });
             }
             finally {
-                req.file && await fse.remove(req.file.path);
+                await cleanTmpFile(req.file);
             }
             next();
         }).delete(async (req, res, next) => {
