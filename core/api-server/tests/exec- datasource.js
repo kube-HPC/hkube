@@ -41,7 +41,9 @@ const runRaw = ({ nodes, name = pipelineName }) => {
 
 describe('Executions', () => {
     before(() => {
+        // @ts-ignore
         restPath = global.testParams.restUrl;
+        // @ts-ignore
         config = global.testParams.config;
     });
     describe('/exec/raw', () => {
