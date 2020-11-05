@@ -5,18 +5,22 @@ class Cache {
     async _checkCachePipeline(nodes) {
         const node = nodes.find(n => n.cacheJobId);
         if (node) {
-            await this._getResultFromPredecessors(node);
+            const jobId = node.cacheJobId;
+            const graph = await graphStore.getGraph({ jobId });
+            if (!graph) {
+                throw new Error(`unable to find graph for job ${jobId}`);
+            }
+            nodes.forEach((n) => {
+                this._getResultFromPredecessors(graph, n);
+            });
             return true;
         }
         return false;
     }
 
-    async _getResultFromPredecessors(node) {
-        const jobId = node.cacheJobId;
-        const graph = await graphStore.getGraph({ jobId });
+    _getResultFromPredecessors(graph, node) {
         const nodes = this._splitInputToNodes(node.input);
         const parentOutput = [];
-
         nodes.forEach((n) => {
             const data = this._getNodeResult(graph, n.nodeName);
             if (data) {

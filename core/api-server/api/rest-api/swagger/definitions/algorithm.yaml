@@ -105,6 +105,10 @@ properties:
     description: how many live algorithm instances will always run
     minimum: 0
     default: 0
+  quotaGuarantee:
+    type: integer
+    description: The amount of algorithms required to be scheduled first in a case of cluster pressure
+    minimum: 0
   algorithmEnv:
     type: object
     description: key value environment variables for algorithm

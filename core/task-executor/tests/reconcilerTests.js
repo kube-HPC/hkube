@@ -26,6 +26,14 @@ const prepareDriversData = (options) => {
 }
 const settings = prepareDriversData(options);
 
+const shuffle = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(0.5 * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 describe('reconciler', () => {
     before(async () => {
         reconciler = require('../lib/reconcile/reconciler');
@@ -418,7 +426,6 @@ describe('reconciler', () => {
             });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'JAVA_DERIVED_MEMORY', value: '3277' });
         });
-
         it('should add mounts', async () => {
             const algorithm = 'green-alg';
             const mounts = [
@@ -832,6 +839,248 @@ describe('reconciler', () => {
                 .to.deep.include({ limits: { cpu: 0.5, memory: '512Mi' } });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[0].resources)
                 .to.deep.include({ requests: { cpu: 0.5, memory: '512Mi' } });
+        });
+    });
+    describe('reconcile algorithms quotaGuarantee', () => {
+        it('should work with algorithm with no quotaGuarantee', async () => {
+            const algorithm1 = 'no-requisite-x';
+            const algorithm2 = 'no-requisite-y';
+            const algorithm3 = 'requisite-1';
+            const algorithm4 = 'requisite-2';
+            const algorithmImage = 'hkube/algorithm-example';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                quotaGuarantee: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm2] = {
+                name: algorithm2,
+                algorithmImage,
+                quotaGuarantee: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm3] = {
+                name: algorithm3,
+                algorithmImage,
+                quotaGuarantee: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm4] = {
+                name: algorithm4,
+                algorithmImage,
+                quotaGuarantee: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            const amount = 100;
+            const array = [
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm1 })),
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm2 })),
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm3 })),
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm4 }))
+            ]
+            const data = array;
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{ data }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res[algorithm1].required).to.eql(res[algorithm1].created);
+            expect(res[algorithm2].required).to.eql(res[algorithm2].created);
+        });
+        it('should create quotaGuarantee as example doc', async () => {
+            const algorithm1 = 'green';
+            const algorithm2 = 'yellow';
+            const algorithm3 = 'black';
+            const algorithmImage = 'hkube/algorithm-example';
+            const workerImage = 'hkube/worker';
+            const workerStatus = 'ready';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                quotaGuarantee: 80,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm2] = {
+                name: algorithm2,
+                algorithmImage,
+                quotaGuarantee: 20,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm3] = {
+                name: algorithm3,
+                algorithmImage,
+                quotaGuarantee: 10,
+                cpu: 0.1,
+                mem: 100
+            };
+            const requests = [
+                ...Array.from(Array(800).keys()).map(() => ({ name: algorithm1 })),
+                ...Array.from(Array(200).keys()).map(() => ({ name: algorithm2 })),
+                ...Array.from(Array(100).keys()).map(() => ({ name: algorithm3 })),
+            ]
+            const workers = [
+                ...Array.from(Array(70).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus })),
+                ...Array.from(Array(12).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm2, workerStatus })),
+                ...Array.from(Array(5).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus })),
+            ];
+            const data = shuffle(requests);
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{ data }],
+                workers,
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res[algorithm1].required).to.eql(res[algorithm1].created);
+            expect(res[algorithm2].required).to.eql(res[algorithm2].created);
+            expect(res[algorithm3].required).to.eql(res[algorithm3].created);
+        });
+        it('should work with algorithm with small quotaGuarantee', async () => {
+            const algorithm1 = 'no-requisite-x';
+            const algorithm2 = 'no-requisite-y';
+            const algorithm3 = 'requisite-1';
+            const algorithm4 = 'requisite-2';
+            const algorithmImage = 'hkube/algorithm-example';
+            const workerImage = 'hkube/worker';
+            const workerStatus = 'ready';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                quotaGuarantee: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm2] = {
+                name: algorithm2,
+                algorithmImage,
+                quotaGuarantee: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm3] = {
+                name: algorithm3,
+                algorithmImage,
+                quotaGuarantee: 20,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm4] = {
+                name: algorithm4,
+                algorithmImage,
+                quotaGuarantee: 10,
+                cpu: 0.1,
+                mem: 100
+            };
+            const requestsAmount = 100;
+            const workersAmount = 5;
+            const requests = [
+                ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm1 })),
+                ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm2 })),
+                ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm3 })),
+                ...Array.from(Array(requestsAmount).keys()).map(() => ({ name: algorithm4 }))
+            ]
+            const workers = [
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm1, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm2, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm3, workerStatus })),
+                ...Array.from(Array(workersAmount).keys()).map((k) => ({ workerId: `${algorithm1}-${k}`, workerImage, algorithmImage, algorithmName: algorithm4, workerStatus }))
+            ];
+            const data = shuffle(requests);
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{ data }],
+                workers,
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res[algorithm3].required).to.eql(res[algorithm3].created);
+            expect(res[algorithm4].required).to.eql(res[algorithm4].created);
+        });
+        it('should prioritizing quotaGuarantee', async () => {
+            const algorithm1 = 'no-requisite-x';
+            const algorithm2 = 'no-requisite-y';
+            const algorithm3 = 'requisite-1';
+            const algorithm4 = 'requisite-2';
+            const algorithmImage = 'hkube/algorithm-example';
+            algorithmTemplates[algorithm1] = {
+                name: algorithm1,
+                algorithmImage,
+                quotaGuarantee: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm2] = {
+                name: algorithm2,
+                algorithmImage,
+                quotaGuarantee: 0,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm3] = {
+                name: algorithm3,
+                algorithmImage,
+                quotaGuarantee: 90,
+                cpu: 0.1,
+                mem: 100
+            };
+            algorithmTemplates[algorithm4] = {
+                name: algorithm4,
+                algorithmImage,
+                quotaGuarantee: 90,
+                cpu: 0.1,
+                mem: 100
+            };
+            const amount = 100;
+            const data = [
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm1 })),
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm2 })),
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm3 })),
+                ...Array.from(Array(amount).keys()).map(() => ({ name: algorithm4 }))
+            ]
+            const res = await reconciler.reconcile({
+                options,
+                normResources,
+                algorithmTemplates,
+                algorithmRequests: [{ data }],
+                jobs: {
+                    body: {
+                        items: [
+                        ]
+                    }
+                }
+            });
+            expect(res).to.exist;
+            expect(res[algorithm3].required).to.eql(res[algorithm3].created);
+            expect(res[algorithm4].required).to.eql(res[algorithm4].created);
         });
     });
     describe('reconcile algorithms scheduling tests', () => {

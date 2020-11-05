@@ -96,6 +96,14 @@ class ApiValidator {
         return algorithms;
     }
 
+    validateAlgorithmImage(algorithms) {
+        algorithms.forEach((a) => {
+            if (!a.algorithmImage && !a.options?.debug) {
+                throw new InvalidDataError(`missing image for algorithm ${a.name}`);
+            }
+        });
+    }
+
     _validateAlgorithmEnvVar(algorithm) {
         this._validateEnvVar(algorithm.algorithmEnv);
         this._validateEnvVar(algorithm.workerEnv);

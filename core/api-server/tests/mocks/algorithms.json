@@ -13,6 +13,7 @@
     },
     {
         "name": "deep-green-alg",
+        "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
         "mem": "6000Mi",
         "minHotWorkers": 0,
@@ -31,6 +32,7 @@
     },
     {
         "name": "green-alg",
+        "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
         "mem": "6000Mi",
         "minHotWorkers": 0,
@@ -79,6 +81,28 @@
             "debug": true,
             "pending": false,
             "devMode": true
+        }
+    },
+    {
+        "name": "no-image-alg",
+        "cpu": 1.5,
+        "mem": "50Mi",
+        "type": "Image",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": false,
+            "pending": false
+        }
+    },
+    {
+        "name": "no-image-alg-debug",
+        "cpu": 1.5,
+        "mem": "50Mi",
+        "type": "Image",
+        "minHotWorkers": 0,
+        "options": {
+            "debug": true,
+            "pending": false
         }
     }
 ]
