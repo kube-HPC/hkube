@@ -9,9 +9,10 @@ const stateAdapter = require('./states/stateAdapter');
 const { stateEvents, workerStates, workerCommands, Components } = require('./consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
+const streamHandler = require('./streaming/services/stream-handler');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
-const { logMessages } = require('./consts');
+const { logMessages, streamingEvents } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -40,6 +41,7 @@ class Worker {
         this._registerToCommunicationEvents();
         this._registerToStateEvents();
         this._registerToEtcdEvents();
+        this._registerToAutoScalerChangesEvents();
         this._stopTimeoutMs = options.timeouts.stop || DEFAULT_STOP_TIMEOUT;
         this._setInactiveTimeout();
         this._isInit = true;
@@ -48,7 +50,6 @@ class Worker {
 
     _initAlgorithmSettings() {
         const { storage: algorithmStorage, encoding: algorithmEncoding } = this._algorithmSettings;
-
         const storage = (!this._debugMode && algorithmStorage) || this._options.defaultStorageProtocol;
         const encoding = algorithmEncoding || this._options.defaultWorkerAlgorithmEncoding;
         storageHelper.setStorageType(storage);
@@ -57,6 +58,7 @@ class Worker {
         algoRunnerCommunication.setEncodingType(encoding);
 
         let message = 'algorithm protocols: none';
+
         if (algorithmStorage && algorithmEncoding) {
             message = `algorithm protocols: ${this._formatProtocol({ storage: algorithmStorage, encoding: algorithmEncoding })}`;
         }
@@ -135,6 +137,19 @@ class Worker {
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
                 this._setInactiveTimeout();
             }
+        });
+    }
+
+    _registerToAutoScalerChangesEvents() {
+        streamHandler.on(streamingEvents.DISCOVERY_CHANGED, (changes) => {
+            log.info(`discovery detected ${changes.length} changes`, { component });
+            algoRunnerCommunication.send({
+                command: messages.outgoing.serviceDiscoveryUpdate,
+                data: changes
+            });
+        });
+        streamHandler.on(streamingEvents.THROUGHPUT_CHANGED, (throughput) => {
+            jobConsumer.updateThroughput(throughput);
         });
     }
 
@@ -232,6 +247,9 @@ class Worker {
         });
         algoRunnerCommunication.on(messages.incomming.storing, (message) => {
             jobConsumer.setStoringStatus(message.data);
+        });
+        algoRunnerCommunication.on(messages.incomming.streamingStatistics, (message) => {
+            streamHandler.reportStats(message.data);
         });
         algoRunnerCommunication.on(messages.incomming.done, (message) => {
             stateManager.done(message);
@@ -495,7 +513,6 @@ class Worker {
                     const { error, data } = await storageHelper.extractData(job.data);
                     if (!error) {
                         const spanId = tracing.getTopSpan(jobConsumer.taskId) || jobConsumer._job.data.spanId;
-
                         algoRunnerCommunication.send({
                             command: messages.outgoing.initialize,
                             data: { ...data, spanId }

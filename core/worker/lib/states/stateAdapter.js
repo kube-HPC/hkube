@@ -3,7 +3,7 @@ const asyncQueue = require('async.queue');
 const Etcd = require('@hkube/etcd');
 const Logger = require('@hkube/logger');
 const { cacheResults } = require('../utils');
-const { EventMessages, Components, jobStatus } = require('../consts');
+const { EventMessages, Components, jobStatus, workerCommands } = require('../consts');
 const component = Components.ETCD;
 let log;
 
@@ -30,6 +30,7 @@ class StateAdapter extends EventEmitter {
             podName: options.kubernetes.pod_name,
             workerImage: options.workerImage,
             algorithmImage: options.algorithmImage,
+            streamingDiscovery: options.streaming.serviceDiscovery.address,
             algorithmVersion: options.algorithmVersion
         };
         this._tasksQueue = asyncQueue((task, callback) => {
@@ -43,8 +44,6 @@ class StateAdapter extends EventEmitter {
             log.info(`got worker state change ${JSON.stringify(res)}`, { component });
             this.emit(res.status.command, res);
         });
-        this.watch({ jobId: 'hookWatch' });
-
         this._etcd.jobs.status.on('change', (res) => {
             this.emit(res.status, res);
         });
@@ -57,10 +56,41 @@ class StateAdapter extends EventEmitter {
         this._etcd.jobs.results.on('change', (result) => {
             this._onJobResult(result);
         });
+        this._etcd.streaming.statistics.on('change', (data) => {
+            this.emit(`streaming-statistics-${data.nodeName}`, data);
+        });
+    }
+
+    acquireStreamingLock(key) {
+        return this._etcd.streaming.statistics.acquireLock(key);
+    }
+
+    releaseStreamingLock(key) {
+        return this._etcd.streaming.statistics.releaseLock(key);
+    }
+
+    reportStreamingStats(options) {
+        return this._etcd.streaming.statistics.set(options);
+    }
+
+    watchStreamingStats(options) {
+        return this._etcd.streaming.statistics.watch(options);
+    }
+
+    unWatchStreamingStats(options) {
+        return this._etcd.streaming.statistics.unwatch(options);
     }
 
     _onJobResult(result) {
         this.emit(`${EventMessages.JOB_RESULT}-${result.status}`, result);
+    }
+
+    getExecution(options) {
+        return this._etcd.executions.running.get(options);
+    }
+
+    stopWorker(workerId) {
+        return this._etcd.workers.set({ workerId, status: { command: workerCommands.stopProcessing }, timestamp: Date.now() });
     }
 
     async stopAlgorithmExecution(options) {
@@ -156,6 +186,10 @@ class StateAdapter extends EventEmitter {
         catch (error) {
             log.warning(`got error unwatching ${JSON.stringify(options)}. Error: ${error.message}`, { component }, error);
         }
+    }
+
+    async getDiscovery(filter) {
+        return this._etcd.discovery.list({ serviceName: 'worker' }, filter);
     }
 }
 

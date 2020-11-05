@@ -39,14 +39,35 @@ class WorkerCommunication extends EventEmitter {
         }
         log.info(`Creating communication object of type: ${options.adapterName}`, { component });
         this.adapter = new AdapterClass();
+        this._printThrottleMessages = {
+            [messages.incomming.streamingStatistics]: { delay: 30000, lastPrint: null }
+        };
         Object.entries({ ...messages.incomming, connection: 'connection', disconnect: 'disconnect' }).forEach(([, topic]) => {
             log.debug(`registering for topic ${topic}`, { component });
             this.adapter.on(topic, (message) => {
-                log.info(`got message on topic ${topic}, command: ${message && message.command}`, { component });
+                this._printThrottle(topic, message);
                 this.emit(topic, message);
             });
         });
         await this.adapter.init(options);
+    }
+
+    _printThrottle(topic, message) {
+        const setting = this._printThrottleMessages[topic];
+        let shouldPrint = true;
+        if (setting) {
+            const { delay, lastPrint } = setting;
+            if (lastPrint === null || Date.now() - lastPrint > delay) {
+                shouldPrint = true;
+                setting.lastPrint = Date.now();
+            }
+            else {
+                shouldPrint = false;
+            }
+        }
+        if (shouldPrint) {
+            log.info(`got message on topic ${topic}, command: ${message && message.command}`, { component });
+        }
     }
 
     setEncodingType(type) {

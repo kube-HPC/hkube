@@ -5,6 +5,24 @@ config.workerCommunication = {
     adapterName: 'loopback'
 };
 
+config.streaming = {
+    autoScaler: {
+        interval: 60000,
+        minTimeWaitForReplicaUp: 0,
+        maxSizeWindow: 4,
+        maxTimeIdleBeforeReplicaDown: 0
+    },
+    serviceDiscovery: {
+        interval: 60000
+    },
+    election: {
+        interval: 60000
+    },
+    throughput: {
+        interval: 60000
+    }
+};
+
 config.jobConsumer = {
     job: {
         type: 'test-type'

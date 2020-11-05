@@ -2,6 +2,13 @@ type: object
 properties:
   name:
     $ref: "#/components/schemas/pipelineName"
+  kind:
+    type: string
+    default: batch
+    example: batch
+    enum:
+      - batch
+      - stream
   experimentName:
     $ref: "#/components/schemas/experimentName"
   description:

@@ -22,6 +22,32 @@ config.algorithmVersion = process.env.ALGORITHM_VERSION;
 config.pollingInterval = process.env.POLLING_INTERVAL || 100;
 config.servingReportInterval = formatters.parseInt(process.env.DISCOVERY_SERVING_REPORT_INTERVAL, 5000);
 
+config.streaming = {
+    autoScaler: {
+        interval: formatters.parseInt(process.env.AUTO_SCALER_INTERVAL, 2000),
+        logStatsInterval: formatters.parseInt(process.env.AUTO_SCALER_STATS_INTERVAL, 20000),
+        maxSizeWindow: formatters.parseInt(process.env.AUTO_SCALER_WINDOW_SIZE, 10),
+        minRatioToScaleUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_UP, 1.2),
+        minRatioToScaleDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_RATIO_SCALE_DOWN, 0.8),
+        maxScaleUpReplicas: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS, 10),
+        minTimeWaitForReplicaUp: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 10000),
+        maxTimeIdleBeforeReplicaDown: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_WAIT_REPLICA_UP, 10000)
+    },
+    election: {
+        interval: formatters.parseInt(process.env.ELECTION_INTERVAL, 10000),
+    },
+    throughput: {
+        interval: formatters.parseInt(process.env.STREAMING_THROUGHPUT_INTERVAL, 10000),
+    },
+    serviceDiscovery: {
+        interval: process.env.SERVICE_DISCOVERY_INTERVAL || 5000,
+        address: {
+            host: process.env.POD_IP || '127.0.0.1',
+            port: process.env.STREAMING_DISCOVERY_PORT || 9022
+        }
+    }
+};
+
 config.redis = {
     host: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_HOST : process.env.REDIS_SERVICE_HOST || 'localhost',
     port: useSentinel ? process.env.REDIS_SENTINEL_SERVICE_PORT : process.env.REDIS_SERVICE_PORT || 6379,

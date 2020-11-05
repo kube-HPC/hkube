@@ -18,15 +18,6 @@ describe('Producer', function () {
         stateManager = new StateManager(config);
     });
     describe('CreateJob', function () {
-        it('should create job and return job id', function (done) {
-            const options = {
-                type: 'test-job'
-            }
-            producer.createJob(options).then((jobId) => {
-                expect(jobId).to.be.a('string');
-                done();
-            });
-        });
         it('should create job and handle active status', async function () {
             const jobId = `jobid-active-event-${uuidv4()}`;
             const job = {
