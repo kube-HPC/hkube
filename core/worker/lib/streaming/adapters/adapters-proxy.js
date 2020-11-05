@@ -7,7 +7,7 @@ let log;
  * The adapters proxy is responsible to communicate
  * with the adapters (master/slave)
  */
-class AdaptersManager {
+class AdaptersProxy {
     constructor() {
         log = Logger.GetLogFromContainer();
         this._adapters = Object.create(null);
@@ -74,4 +74,4 @@ class AdaptersManager {
     }
 }
 
-module.exports = AdaptersManager;
+module.exports = AdaptersProxy;

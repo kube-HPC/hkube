@@ -44,8 +44,6 @@ class StateAdapter extends EventEmitter {
             log.info(`got worker state change ${JSON.stringify(res)}`, { component });
             this.emit(res.status.command, res);
         });
-        this.watch({ jobId: 'hookWatch' }); // should we really need it (we do watchWorkerStates)
-
         this._etcd.jobs.status.on('change', (res) => {
             this.emit(res.status, res);
         });

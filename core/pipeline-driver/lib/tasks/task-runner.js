@@ -13,6 +13,7 @@ const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const cachePipeline = require('./cache-pipeline');
+const uniqueDiscovery = require('../helpers/discovery');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 const { Node, Batch } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
@@ -408,7 +409,7 @@ class TaskRunner extends EventEmitter {
     async setPaused() {
         this._paused = true;
         this._jobStatus = DriverStates.PAUSED;
-        await this._stateManager.updateDiscovery();
+        await this._updateDiscovery();
     }
 
     _getDiscoveryData() {
@@ -484,7 +485,7 @@ class TaskRunner extends EventEmitter {
             };
 
             if (!this._isCachedPipeline) {
-                this._uniqueDiscovery(result.storage);
+                uniqueDiscovery(result.storage);
             }
 
             if (result.batch) {
@@ -500,31 +501,6 @@ class TaskRunner extends EventEmitter {
         catch (error) {
             this.stop({ error, nodeName });
         }
-    }
-
-    _uniqueDiscovery(storage) {
-        Object.entries(storage).forEach(([k, v]) => {
-            if (!Array.isArray(v)) {
-                return;
-            }
-            const discoveryList = v.filter(i => i.discovery);
-            if (discoveryList.length === 0) {
-                return;
-            }
-            const uniqueList = [];
-            discoveryList.forEach((item) => {
-                const { taskId, storageInfo, ...rest } = item;
-                const { host, port } = item.discovery;
-                let uniqueItem = uniqueList.find(x => x.discovery.host === host && x.discovery.port === port);
-
-                if (!uniqueItem) {
-                    uniqueItem = { ...rest, tasks: [] };
-                    uniqueList.push(uniqueItem);
-                }
-                uniqueItem.tasks.push(taskId);
-            });
-            storage[k] = uniqueList;
-        });
     }
 
     async _checkPreSchedule(nodeName) {
@@ -728,39 +704,8 @@ class TaskRunner extends EventEmitter {
         this._nodes.updateTaskState(taskId, state);
     }
 
-    _createJob(options, batch) {
-        let tasks = [];
-        if (batch) {
-            tasks = batch.map(b => ({ taskId: b.taskId, status: b.status, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
-        }
-        else {
-            tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });
-        }
-        const jobOptions = {
-            type: options.node.algorithmName,
-            data: {
-                tasks,
-                jobId: this._jobId,
-                nodeName: options.node.nodeName,
-                metrics: options.node.metrics,
-                ttl: options.node.ttl,
-                retry: options.node.retry,
-                pipelineName: this.pipeline.name,
-                stateType: options.node.stateType,
-                priority: this.pipeline.priority,
-                kind: this.pipeline.kind,
-                algorithmName: options.node.algorithmName,
-                parents: options.parents,
-                childs: options.childs,
-                info: {
-                    extraData: options.node.extraData,
-                    savePaths: options.paths,
-                    lastRunResult: this.pipeline.lastRunResult,
-                    rootJobId: this.pipeline.rootJobId
-                }
-            }
-        };
-        return producer.createJob(jobOptions);
+    async _createJob(options, batch) {
+        return producer.createJob({ jobId: this._jobId, pipeline: this.pipeline, options, batch });
     }
 }
 

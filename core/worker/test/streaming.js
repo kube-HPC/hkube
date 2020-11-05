@@ -77,7 +77,7 @@ const pipeline = {
 
 const streamingDiscovery = {
     host: process.env.POD_IP || '127.0.0.1',
-    port: process.env.STREAMING_DISCOVERY_PORT || 9021
+    port: process.env.STREAMING_DISCOVERY_PORT || 9022
 };
 
 const addDiscovery = async ({ jobId, nodeName, port }) => {
@@ -197,8 +197,7 @@ describe('Streaming', () => {
             expect(jobs2.scaleDown).to.be.null;
             expect(jobs3.scaleUp).to.be.null;
             expect(jobs3.scaleDown).to.be.null;
-            expect(jobs4.scaleUp.replicas).to.eql(5);
-            expect(jobs4.scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
+            expect(jobs4.scaleUp).to.be.null;
             expect(jobs4.scaleDown).to.be.null;
             expect(jobs5.scaleUp).to.be.null;
             expect(jobs5.scaleDown).to.be.null;
@@ -236,7 +235,7 @@ describe('Streaming', () => {
         it('should scale up based on high req/res rate', async () => {
             const nodeName = 'D';
             const requests = async (data) => {
-                data[0].currentSize = 5;
+                data[0].currentSize = 0;
                 data[0].queueSize += 100;
                 data[0].responses = 100;
                 streamService.reportStats(data);
@@ -252,7 +251,7 @@ describe('Streaming', () => {
             await requests(list);
             await requests(list);
             const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(5);
+            expect(scaleUp.replicas).to.eql(1);
             expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_ONLY);
             expect(scaleDown).to.be.null;
         });
@@ -381,7 +380,7 @@ describe('Streaming', () => {
             }
             const list = [{
                 nodeName,
-                currentSize: 1,
+                currentSize: 0,
                 sent: 0,
                 queueSize: 0,
                 responses: 0,

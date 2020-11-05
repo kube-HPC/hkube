@@ -222,7 +222,13 @@ class AutoScaler {
         const scaleDown = this._shouldScaleDown({ source, durationsRatio, reqRate, resRate });
 
         if (scaleUp.scale) {
-            const scaleSize = this._calcSize(currentSize, reqResRatio);
+            let scaleSize;
+            if (scaleUp.reason.code === ScaleReasonsCodes.REQ_ONLY && currentSize > 0) {
+                scaleSize = 0;
+            }
+            else {
+                scaleSize = this._calcSize(currentSize, reqResRatio);
+            }
             const replicas = Math.min(scaleSize, this._config.maxScaleUpReplicas);
             result.up = replicas;
             result.reason = scaleUp.reason;
