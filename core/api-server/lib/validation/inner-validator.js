@@ -96,7 +96,7 @@ class ApiValidator {
         if (pipeline.kind === pipelineKind.Stream && statelessNodes.length > 0) {
             throw new InvalidDataError(`entry node "${statelessNodes[0].nodeName}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
         }
-        if (!alg.isAcyclic(graph)) {
+        if (!alg.isAcyclic(graph) && pipeline.kind !== pipelineKind.Stream) {
             throw new InvalidDataError(`pipeline ${pipeline.name} has cyclic nodes`);
         }
     }

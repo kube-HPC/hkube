@@ -43,7 +43,9 @@ class Producers {
                 parents: options.parents,
                 childs: options.childs,
                 info: options.info,
-                isScaled: options.isScaled
+                isScaled: options.isScaled,
+                isCustomFlow: options.isCustomFlow,
+                customFlows: options.customFlows
             }
         };
         return jobOptions;

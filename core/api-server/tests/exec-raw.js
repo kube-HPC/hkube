@@ -478,4 +478,183 @@ describe('Executions', () => {
             expect(res2.body.types).to.eql([pipelineTypes.RAW]);
         });
     });
+    describe('/exec/raw/streaming', () => {
+        let restPath = null;
+        before(() => {
+            restPath = `${restUrl}/exec/raw`;
+        });
+        it('should throw invalid node in custom flow', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: "stream",
+                    nodes: [
+                        {
+                            "nodeName": "A",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateful"
+                        },
+                        {
+                            "nodeName": "B",
+                            "algorithmName": "green-alg",
+                            "input": []
+                        }
+                    ],
+                    streaming: {
+                        customFlow: {
+                            "analyze": "A >> Z"
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal("invalid node Z in custom flow analyze");
+        });
+        it('should throw invalid custom flow', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: "stream",
+                    nodes: [
+                        {
+                            "nodeName": "A",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateful"
+                        },
+                        {
+                            "nodeName": "B",
+                            "algorithmName": "green-alg",
+                            "input": []
+                        }
+                    ],
+                    streaming: {
+                        customFlow: {
+                            "analyze": null
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal("invalid custom flow analyze");
+        });
+        it('should succeed to execute with custom flow', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: "stream",
+                    nodes: [
+                        {
+                            "nodeName": "A",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateful"
+                        },
+                        {
+                            "nodeName": "B",
+                            "algorithmName": "green-alg",
+                            "input": []
+                        }
+                    ],
+                    streaming: {
+                        customFlow: {
+                            "analyze": "A"
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal("custom flow analyze should have valid flow, example: A >> B");
+        });
+        it('should succeed to execute with custom flow', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: "stream",
+                    nodes: [
+                        {
+                            "nodeName": "A",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateful"
+                        },
+                        {
+                            "nodeName": "B",
+                            "algorithmName": "green-alg",
+                            "input": []
+                        }
+                    ],
+                    streaming: {
+                        customFlow: {
+                            "analyze": "A --> B"
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal("custom flow analyze should have valid flow, example: A >> B");
+        });
+        it.skip('should succeed to execute with custom flow', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: "stream",
+                    nodes: [
+                        {
+                            "nodeName": "A",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateful"
+                        },
+                        {
+                            "nodeName": "B",
+                            "algorithmName": "green-alg",
+                            "input": []
+                        },
+                        {
+                            "nodeName": "C",
+                            "algorithmName": "green-alg",
+                            "input": []
+                        },
+                        {
+                            "nodeName": "D",
+                            "algorithmName": "green-alg",
+                            "input": []
+                        },
+                        {
+                            "nodeName": "E",
+                            "algorithmName": "green-alg",
+                            "input": []
+                        }
+                    ],
+                    streaming: {
+                        customFlow: {
+                            "analyze0": "A >> B >> C >> D >> B >> A",
+                            "analyze1": "A >> B&C , C >> D",
+                            "analyze4": "A >> B&C >> D",
+                            "analyze2": "A >> B >> C >> D >> A",
+                            "analyze3": "A >> B&C&D >> E"
+                        }
+                    }
+                }
+            };
+            const res = await request(options);
+            const optionsGET = {
+                uri: `${restUrl}/exec/pipelines/${res.body.jobId}`,
+                method: 'GET'
+            };
+            const res2 = await request(optionsGET);
+            expect(res2.body.edges).to.have.lengthOf(10);
+        });
+    });
 });
