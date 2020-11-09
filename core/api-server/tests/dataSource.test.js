@@ -56,6 +56,24 @@ describe('Datasource', () => {
         restPath = `${restUrl}/datasource`;
     });
     afterEach(() => sinon.restore());
+    describe('/datasource/exec/raw', () => {
+        it('should succeed and return job id', async () => {
+            const dataSourceName = uuid();
+            const ds = `dataSource.${dataSourceName}/${fileName}`;
+            await createDataSource({ body: { name: dataSourceName } });
+            const pipeline = {
+                name: uuid(),
+                nodes: [{
+                    nodeName: 'node1',
+                    algorithmName: 'green-alg',
+                    input: [`@${ds}`]
+                }]
+            }
+            const res = await request({ uri: `${restUrl}/exec/raw`, body: pipeline });
+            const response = await request({ method: 'GET', uri: `${restUrl}/exec/pipelines/${res.body.jobId}` });
+            expect(response.body.dataSourceMetadata).to.have.property(ds);
+        });
+    });
     describe('/datasource/:name GET', () => {
         it('should throw error datasource not found', async () => {
             const options = {

@@ -1,31 +1,8 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
-const fse = require('fs-extra');
-const { pipelineTypes } = require('@hkube/consts');
 const { request } = require('./utils');
-const { uid } = require('@hkube/uid');
 let restPath = null;
-let config = null;
-const fileName = 'README-1.md';
 const pipelineName = 'exec_raw';
-
-/** @type {(props?: { body?: { name?:string }, withFile?:boolean, uri?: string }) => Promise<any>} */
-const createDataSource = ({
-    body = {},
-    withFile = true,
-    uri = `${restPath}/datasource`,
-} = {}) => {
-    console.log({ uri });
-    const formData = {
-        ...body,
-        file: withFile ? fse.createReadStream(`tests/mocks/${fileName}`) : undefined
-    };
-    const options = {
-        uri,
-        formData
-    };
-    return request(options);
-};
 
 /** @type {(props: {nodes: {nodeName: string, algorithmName: string, input: any[]}[], name?:string}  ) => Promise<any> }*/
 const runRaw = ({ nodes, name = pipelineName }) => {
@@ -41,24 +18,10 @@ const runRaw = ({ nodes, name = pipelineName }) => {
 
 describe('Executions', () => {
     before(() => {
-        // @ts-ignore
-        restPath = global.testParams.restUrl;
-        // @ts-ignore
-        config = global.testParams.config;
+        restPath = testParams.restUrl;
+        config = testParams.config;
     });
     describe('/exec/raw', () => {
-        it('should succeed and return job id', async () => {
-            const dataSourceName = uid();
-            const createResponse = await createDataSource({ body: { name: dataSourceName } });
-            const response = await runRaw({
-                nodes: [{
-                    nodeName: 'node1',
-                    algorithmName: 'green-alg',
-                    input: [`@dataSource.${dataSourceName}/${fileName}`]
-                }]
-            });
-            expect(response.body).to.have.property('jobId');
-        });
         it('should throw invalid reserved name dataSource', async () => {
             const response = await runRaw({
                 nodes: [{
