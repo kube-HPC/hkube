@@ -223,14 +223,6 @@ class StateManager extends EventEmitter {
     _watchDrivers() {
         return this._etcd.drivers.watch({ driverId: this._driverId });
     }
-
-    _getTracer(jobId, name) {
-        const parent = tracer.topSpan(jobId);
-        if (parent) {
-            return tracer.startSpan.bind(tracer, { name, parent: parent.context() });
-        }
-        return null;
-    }
 }
 
 module.exports = StateManager;

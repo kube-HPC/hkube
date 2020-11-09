@@ -9,6 +9,17 @@ class Boards {
     }
 
     async putAlgoMetrics(jobData, jobCurrentTime) {
+        let metricsPath;
+        if (!(jobData.metrics && jobData.metrics.tensorboard === false)) {
+            const tensorboard = await this._putAlgoMetrics(jobData, jobCurrentTime);
+            if (tensorboard.path || tensorboard.error) {
+                metricsPath = { tensorboard };
+            }
+        }
+        return metricsPath;
+    }
+
+    async _putAlgoMetrics(jobData, jobCurrentTime) {
         let path = null;
         let error;
         try {
@@ -28,13 +39,10 @@ class Boards {
         catch (err) {
             error = err.message;
         }
-        finally {
-            // eslint-disable-next-line no-unsafe-finally
-            return {
-                path,
-                error
-            };
-        }
+        return {
+            path,
+            error
+        };
     }
 }
 

@@ -91,7 +91,8 @@ class GraphStore {
         const edge = {
             from: e.v,
             to: e.w,
-            edges: e.value
+            edges: e.value.types,
+            throughput: e.value.throughput
         };
         return edge;
     }

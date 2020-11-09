@@ -13,6 +13,7 @@ module.exports = {
         finishSpan: 'finishSpan',
         startAlgorithmExecution: 'startAlgorithmExecution',
         stopAlgorithmExecution: 'stopAlgorithmExecution',
+        streamingStatistics: 'streamingStatistics',
         storing: 'storing',
         done: 'done'
     },
@@ -22,6 +23,7 @@ module.exports = {
         cleanup: 'cleanup',
         stop: 'stop',
         exit: 'exit',
+        serviceDiscoveryUpdate: 'serviceDiscoveryUpdate',
         subPipelineStarted: 'subPipelineStarted',
         subPipelineError: 'subPipelineError',
         subPipelineDone: 'subPipelineDone',

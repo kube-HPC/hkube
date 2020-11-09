@@ -1,5 +1,6 @@
 const { dataAdapter } = require('@hkube/worker-data-adapter');
 const { tracer } = require('@hkube/metrics');
+const { pipelineKind } = require('@hkube/consts');
 const jobConsumer = require('../consumer/JobConsumer');
 const tracing = require('../tracing/tracing.js');
 
@@ -8,6 +9,17 @@ class Storage {
         return (args) => {
             return func.call(tracer, { ...argsBound, tags: { ...argsBound.tags, ...args } });
         };
+    }
+
+    async start(options) {
+        const { kind } = options;
+        if (kind === pipelineKind.Stream) {
+            throw new Error(`${kind} is not supported in this algorithm`);
+        }
+    }
+
+    async finish() {
+        return null;
     }
 
     async getResultFromStorage(options) {

@@ -1,6 +1,7 @@
 const Validator = require('ajv');
 const { Graph, alg } = require('graphlib');
 const { parser } = require('@hkube/parsers');
+const { pipelineKind, stateType } = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 const customFormats = require('./custom-formats');
 const validator = new Validator({ useDefaults: false, coerceTypes: true, nullable: true });
@@ -52,6 +53,9 @@ class ApiValidator {
         const links = [];
 
         pipeline.nodes.forEach((node) => {
+            if (node.stateType === stateType.Stateful && pipeline.kind === pipelineKind.Batch) {
+                throw new InvalidDataError(`${stateType.Stateful} node "${node.nodeName}" is not allowed on ${pipeline.kind} pipeline`);
+            }
             if (!node.algorithmName && !node.pipelineName) {
                 throw new InvalidDataError('please provide algorithmName or pipelineName');
             }
@@ -71,7 +75,6 @@ class ApiValidator {
                             throw new InvalidDataError(e.message);
                         }
                     }
-
                     const nodesNames = parser.extractNodesFromInput(inp);
                     nodesNames.forEach((n) => {
                         const nd = pipeline.nodes.find(f => f.nodeName === n.nodeName);
@@ -86,11 +89,14 @@ class ApiValidator {
             }
             graph.setNode(node.nodeName, node);
         });
-
         links.forEach((link) => {
             graph.setEdge(link.source, link.target);
         });
 
+        const statelessNodes = graph.sources().map(s => graph.node(s)).filter(s => s.stateType === stateType.Stateless);
+        if (pipeline.kind === pipelineKind.Stream && statelessNodes.length > 0) {
+            throw new InvalidDataError(`entry node "${statelessNodes[0].nodeName}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
+        }
         if (!alg.isAcyclic(graph)) {
             throw new InvalidDataError(`pipeline ${pipeline.name} has cyclic nodes`);
         }

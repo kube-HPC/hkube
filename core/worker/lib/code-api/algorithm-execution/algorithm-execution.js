@@ -1,27 +1,24 @@
-const { uid } = require('@hkube/uid');
 const Validator = require('ajv');
 const Logger = require('@hkube/logger');
 const { tracer } = require('@hkube/metrics');
-const { Producer } = require('@hkube/producer-consumer');
 const algoRunnerCommunication = require('../../algorithm-communication/workerCommunication');
 const stateAdapter = require('../../states/stateAdapter');
 const messages = require('../../algorithm-communication/messages');
 const { taskEvents, Components } = require('../../consts');
 const jobConsumer = require('../../consumer/JobConsumer');
-const { producerSchema, startAlgorithmSchema, stopAlgorithmSchema } = require('./schema');
+const producer = require('../../producer/producer');
+const { startAlgorithmSchema, stopAlgorithmSchema } = require('./schema');
 const validator = new Validator({ useDefaults: true, coerceTypes: false });
 const component = Components.ALGORITHM_EXECUTION;
 let log;
 
 class AlgorithmExecution {
-    init(options) {
+    init() {
         log = Logger.GetLogFromContainer();
         this._watching = false;
         this._executions = new Map();
-        this._producerSchema = validator.compile(producerSchema);
         this._startAlgorithmSchema = validator.compile(startAlgorithmSchema);
         this._stopAlgorithmSchema = validator.compile(stopAlgorithmSchema);
-        this._initProducer(options);
         this._registerToEtcdEvents();
         this._registerToAlgorithmEvents();
     }
@@ -56,18 +53,6 @@ class AlgorithmExecution {
         stateAdapter.on(taskEvents.STORING, (task) => {
             this._onStoring(task);
         });
-    }
-
-    _initProducer(options) {
-        const setting = {
-            redis: options.redis,
-            tracer
-        };
-        const valid = this._producerSchema(setting);
-        if (!valid) {
-            throw new Error(validator.errorsText(this._producerSchema.errors));
-        }
-        this._producer = new Producer({ setting });
     }
 
     _registerToAlgorithmEvents() {
@@ -220,11 +205,22 @@ class AlgorithmExecution {
             if (!algos.find(algo => algo.name === algorithmName)) {
                 throw new Error(`Algorithm named '${algorithmName}' does not exist`);
             }
-            const taskId = this._createTaskID();
+            const taskId = producer.createTaskID();
             this._executions.set(taskId, { taskId, execId, includeResult });
             const newInput = await this._setStorage({ input, storage, jobId, storageInput });
-            const task = { execId, taskId, input: newInput, storage };
-            const job = this._createJobData({ nodeName, algorithmName, task, jobData });
+            const tasks = [{ execId, taskId, input: newInput, storage }];
+            const job = {
+                ...jobData,
+                jobId,
+                tasks,
+                algorithmName,
+                nodeName: `${nodeName}:${algorithmName}`,
+                parentNodeName: nodeName,
+                info: {
+                    ...jobData.info,
+                    extraData: undefined
+                }
+            };
             this._startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName);
             await this._watchTasks({ jobId });
             await this._createJob(job, taskId);
@@ -234,18 +230,18 @@ class AlgorithmExecution {
         }
     }
 
-    _createJob(job, taskId) {
+    _createJob(jobData, taskId) {
         const topSpan = tracer.topSpan(taskId);
         let tracing;
         if (topSpan) {
             tracing = {
                 parent: topSpan.context(),
                 tags: {
-                    jobId: job.data.jobId
+                    jobId: jobData.jobId
                 }
             };
         }
-        return this._producer.createJob({ job, tracing });
+        return producer.createJob({ jobData, tracing });
     }
 
     _startExecAlgoSpan(jobId, taskId, algorithmName, parentAlgName, nodeName) {
@@ -255,7 +251,6 @@ class AlgorithmExecution {
                 name,
                 id: taskId,
                 tags: {
-
                     jobId,
                     taskId
                 }
@@ -281,30 +276,6 @@ class AlgorithmExecution {
         if (topSpan) {
             topSpan.finish();
         }
-    }
-
-    _createJobData({ nodeName, algorithmName, task, jobData }) {
-        const jobOptions = {
-            type: algorithmName,
-            data: {
-                tasks: [task],
-                jobId: jobData.jobId,
-                algorithmName,
-                parentNodeName: nodeName,
-                nodeName: `${nodeName}:${algorithmName}`,
-                pipelineName: jobData.pipelineName,
-                priority: jobData.priority,
-                info: {
-                    ...jobData.info,
-                    extraData: undefined
-                }
-            }
-        };
-        return jobOptions;
-    }
-
-    _createTaskID() {
-        return uid({ length: 8 });
     }
 
     _isPrimitive(val) {

@@ -16,12 +16,14 @@ const modules = [
     require('./lib/states/stateAdapter.js'),
     require('./lib/algorithm-communication/workerCommunication.js'),
     require('./lib/consumer/JobConsumer.js'),
+    require('./lib/producer/producer.js'),
     require('./lib/helpers/kubernetes.js'),
     require('./lib/algorithm-logging/logging-proxy.js'),
     require('./lib/helpers/api-server-client.js'),
     require('./lib/code-api/subpipeline/subpipeline.js'),
     require('./lib/code-api/algorithm-execution/algorithm-execution.js'),
-    require('./lib/storage/storage.js')
+    require('./lib/storage/storage.js'),
+    require('./lib/streaming/services/stream-handler.js'),
 ];
 
 class Bootstrap {

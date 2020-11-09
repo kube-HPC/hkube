@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const { parser } = require('@hkube/parsers');
-const { pipelineStatuses, taskStatuses } = require('@hkube/consts');
+const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
 const pipelineMetrics = require('../metrics/pipeline-metrics');
@@ -13,6 +13,7 @@ const Boards = require('../boards/boards');
 const component = require('../consts/componentNames').TASK_RUNNER;
 const graphStore = require('../datastore/graph-store');
 const cachePipeline = require('./cache-pipeline');
+const uniqueDiscovery = require('../helpers/discovery');
 const { PipelineReprocess, PipelineNotFound } = require('../errors');
 const { Node, Batch } = NodeTypes;
 const shouldRunTaskStates = [taskStatuses.CREATING, taskStatuses.PRESCHEDULE, taskStatuses.FAILED_SCHEDULING];
@@ -33,6 +34,7 @@ class TaskRunner extends EventEmitter {
         this._error = null;
         this.pipeline = null;
         this._paused = false;
+        this._isStreaming = false;
         this._schedulingWarningTimeoutMs = options.unScheduledAlgorithms.warningTimeoutMs;
         this._init(options);
     }
@@ -100,6 +102,9 @@ class TaskRunner extends EventEmitter {
             case taskStatuses.SUCCEED:
                 this._setTaskState(task);
                 this._onTaskComplete(task);
+                break;
+            case taskStatuses.THROUGHPUT:
+                this._onStreamingThroughput(task);
                 break;
             default:
                 log.warning(`invalid task status ${task.status}`, { component, jobId: this._jobId });
@@ -206,12 +211,15 @@ class TaskRunner extends EventEmitter {
         this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
         this.pipeline = pipeline;
+        this._isStreaming = pipeline.kind === pipelineKind.Stream;
         this._nodes = new NodesMap(this.pipeline);
         this._nodes.on('node-ready', (node) => {
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
         this._progress = new Progress({
-            getGraphStats: (...args) => this._nodes._getNodesAsFlat(...args),
+            type: this.pipeline.kind,
+            getGraphNodes: (...args) => this._nodes._getNodesAsFlat(...args),
+            getGraphEdges: (...args) => this._nodes.getEdges(...args),
             sendProgress: (...args) => this._stateManager.setJobStatus(...args)
         });
 
@@ -321,11 +329,17 @@ class TaskRunner extends EventEmitter {
     }
 
     _runEntryNodes() {
-        const entryNodes = this._nodes.findEntryNodes();
+        const entryNodes = this._findEntryNodes();
         if (entryNodes.length === 0) {
             throw new Error('unable to find entry nodes');
         }
         entryNodes.forEach(n => this._runNode(n));
+    }
+
+    _findEntryNodes() {
+        const sourceNodes = this._nodes.getSources();
+        const statefulNodes = this._nodes.getAllNodes().filter(n => n.stateType === stateType.Stateful).map(n => n.nodeName);
+        return [...new Set([...sourceNodes, ...statefulNodes])];
     }
 
     get _currentProgress() {
@@ -395,7 +409,7 @@ class TaskRunner extends EventEmitter {
     async setPaused() {
         this._paused = true;
         this._jobStatus = DriverStates.PAUSED;
-        await this._stateManager.updateDiscovery();
+        await this._updateDiscovery();
     }
 
     _getDiscoveryData() {
@@ -427,6 +441,7 @@ class TaskRunner extends EventEmitter {
         this._driverStatus = null;
         this._jobStatus = null;
         this._nodeRuns = new Set();
+        this._preScheduledNodes = new Set();
     }
 
     async _runNode(nodeName, parentOutput, index) {
@@ -444,7 +459,7 @@ class TaskRunner extends EventEmitter {
             this._nodeRuns.add(nodeName);
 
             log.info(`node ${nodeName} is ready to run`, { component });
-            this._checkPreschedule(nodeName);
+            this._checkPreSchedule(nodeName);
 
             const parse = {
                 flowInputMetadata: this.pipeline.flowInputMetadata,
@@ -452,21 +467,26 @@ class TaskRunner extends EventEmitter {
                 nodeInput: node.input,
                 parentOutput: node.parentOutput || parentOutput,
                 batchOperation: node.batchOperation,
+                ignoreParentResult: node.stateType === stateType.Stateful,
                 index
             };
             const result = parser.parse(parse);
             const paths = this._nodes.extractPaths(nodeName);
+            const parents = this._nodes._parents(nodeName);
+            const childs = this._nodes._childs(nodeName);
 
             const options = {
                 node,
                 index,
                 paths,
+                parents,
+                childs,
                 input: result.input,
                 storage: result.storage
             };
 
             if (!this._isCachedPipeline) {
-                this._uniqueDiscovery(result.storage);
+                uniqueDiscovery(result.storage);
             }
 
             if (result.batch) {
@@ -484,37 +504,16 @@ class TaskRunner extends EventEmitter {
         }
     }
 
-    _uniqueDiscovery(storage) {
-        Object.entries(storage).forEach(([k, v]) => {
-            if (!Array.isArray(v)) {
-                return;
-            }
-            const discoveryList = v.filter(i => i.discovery);
-            if (discoveryList.length === 0) {
-                return;
-            }
-            const uniqueList = [];
-            discoveryList.forEach((item) => {
-                const { taskId, storageInfo, ...rest } = item;
-                const { host, port } = item.discovery;
-                let uniqueItem = uniqueList.find(x => x.discovery.host === host && x.discovery.port === port);
-
-                if (!uniqueItem) {
-                    uniqueItem = { ...rest, tasks: [] };
-                    uniqueList.push(uniqueItem);
-                }
-                uniqueItem.tasks.push(taskId);
-            });
-            storage[k] = uniqueList;
-        });
-    }
-
-    async _checkPreschedule(nodeName) {
+    async _checkPreSchedule(nodeName) {
         const childs = this._nodes._childs(nodeName);
-        await Promise.all(childs.map(c => this._sendPreschedule(c)));
+        await Promise.all(childs.map(c => this._sendPreSchedule(c)));
     }
 
-    async _sendPreschedule(nodeName) {
+    async _sendPreSchedule(nodeName) {
+        if (this._preScheduledNodes.has(nodeName)) {
+            return;
+        }
+        this._preScheduledNodes.add(nodeName);
         const graphNode = this._nodes.getNode(nodeName);
         const node = new Node({ ...graphNode, status: taskStatuses.PRESCHEDULE });
         const options = { node };
@@ -620,20 +619,39 @@ class TaskRunner extends EventEmitter {
         }
     }
 
+    _onStreamingThroughput(task) {
+        if (!this._active) {
+            return;
+        }
+        task.throughput.forEach((t) => {
+            this._nodes.updateEdge(t.source, t.target, { throughput: t.throughput });
+        });
+        this._progress.debug({ jobId: this._jobId, pipeline: this.pipeline.name, status: DriverStates.ACTIVE });
+    }
+
     _onStoring(task) {
         if (!this._active) {
             return;
         }
-        this._nodes.updateCompletedTask(task);
+        if (!this._isStreaming) {
+            this._nodes.updateCompletedTask(task);
+        }
     }
 
-    _onTaskComplete() {
+    _onTaskComplete(task) {
         if (!this._active) {
             return;
         }
-        if (this._nodes.isAllNodesCompleted()) {
+        if (this._isStreamingDone(task)) {
             this.stop();
         }
+        else if (this._nodes.isAllNodesCompleted()) {
+            this.stop();
+        }
+    }
+
+    _isStreamingDone(task) {
+        return this._isStreaming && task.isStateful;
     }
 
     _checkTaskErrors(task) {
@@ -665,9 +683,12 @@ class TaskRunner extends EventEmitter {
         if (!this._active) {
             return;
         }
-        const { taskId, execId, status, error } = task;
+        const { taskId, execId, isScaled, status, error } = task;
         if (execId) {
             this._nodes.updateAlgorithmExecution(task);
+        }
+        else if (isScaled) {
+            this._nodes.addTaskToBatch(task);
         }
 
         this._updateTaskState(taskId, task);
@@ -684,35 +705,8 @@ class TaskRunner extends EventEmitter {
         this._nodes.updateTaskState(taskId, state);
     }
 
-    _createJob(options, batch) {
-        let tasks = [];
-        if (batch) {
-            tasks = batch.map(b => ({ taskId: b.taskId, status: b.status, input: b.input, batchIndex: b.batchIndex, storage: b.storage }));
-        }
-        else {
-            tasks.push({ taskId: options.node.taskId, status: options.node.status, input: options.node.input, storage: options.storage });
-        }
-        const jobOptions = {
-            type: options.node.algorithmName,
-            data: {
-                tasks,
-                jobId: this._jobId,
-                nodeName: options.node.nodeName,
-                metrics: options.node.metrics,
-                ttl: options.node.ttl,
-                retry: options.node.retry,
-                pipelineName: this.pipeline.name,
-                priority: this.pipeline.priority,
-                algorithmName: options.node.algorithmName,
-                info: {
-                    extraData: options.node.extraData,
-                    savePaths: options.paths,
-                    lastRunResult: this.pipeline.lastRunResult,
-                    rootJobId: this.pipeline.rootJobId
-                }
-            }
-        };
-        return producer.createJob(jobOptions);
+    async _createJob(options, batch) {
+        return producer.createJob({ jobId: this._jobId, pipeline: this.pipeline, options, batch });
     }
 }
 

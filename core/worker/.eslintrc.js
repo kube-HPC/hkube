@@ -13,7 +13,7 @@ module.exports = {
         "ecmaVersion": 2020
     },
     "rules": {
-        "no-param-reassign": "error",
+        "no-param-reassign": ["error", { "props": false }],
         "prefer-template": "error",
         "no-trailing-spaces": "error",
         "no-console": "error",
@@ -21,7 +21,7 @@ module.exports = {
         "object-curly-spacing": "error",
         "no-var": "error",
         "import/newline-after-import": "off",
-        "max-len": ["error", 200],
+        "max-len": ["error", 300],
         "brace-style": ["error", "stroustrup"],
         "comma-dangle": "off",
         "no-underscore-dangle": "off",
@@ -32,6 +32,8 @@ module.exports = {
         "class-methods-use-this": "off",
         "no-unused-expressions": 0,
         "indent": ["warn", 4, { "SwitchCase": 1 }],
-        "arrow-parens": "off"
+        "arrow-parens": "off",
+        "generator-star-spacing": "off",
+        "no-restricted-syntax": ["error", "WithStatement", "BinaryExpression[operator='in']"]
     }
 };

@@ -14,7 +14,13 @@ const Components = {
     SUB_PIPELINE: 'SubPipeline',
     JOB_PROVIDER: 'JobProvider',
     K8S: 'k8s',
-    STORAGE: 'Storage'
+    STORAGE: 'Storage',
+    AUTO_SCALER: 'Auto-Scaler',
+    ELECTION: 'Election',
+    MASTER_ADAPTER: 'Master-Adapter',
+    SLAVE_ADAPTER: 'Slave-Adapter',
+    STREAM_SERVICE: 'Stream-Service',
+    SERVICE_DISCOVERY: 'Service-Discovery'
 };
 
 module.exports = Components;
