@@ -309,9 +309,6 @@ class TaskRunner extends EventEmitter {
                 const tasksGraph = this._nodes._getNodesAsFlat();
                 tasksGraph.forEach((gTask) => {
                     const sTask = tasks.get(gTask.taskId);
-                    if (!sTask) {
-
-                    }
                     if (sTask && sTask.status !== gTask.status) {
                         const task = {
                             ...gTask,
