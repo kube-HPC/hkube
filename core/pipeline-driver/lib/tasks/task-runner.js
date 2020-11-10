@@ -281,7 +281,7 @@ class TaskRunner extends EventEmitter {
 
     _recoverGraph(graph) {
         graph.edges.forEach((e) => {
-            this._nodes._graph.setEdge(e.from, e.to, e.edges);
+            this._nodes.setEdge(e.from, e.to, e.value);
         });
         graph.nodes.forEach((n) => {
             const pNode = this.pipeline.nodes.find(p => p.nodeName === n.nodeName);
@@ -309,6 +309,9 @@ class TaskRunner extends EventEmitter {
                 const tasksGraph = this._nodes._getNodesAsFlat();
                 tasksGraph.forEach((gTask) => {
                     const sTask = tasks.get(gTask.taskId);
+                    if (!sTask) {
+
+                    }
                     if (sTask && sTask.status !== gTask.status) {
                         const task = {
                             ...gTask,
