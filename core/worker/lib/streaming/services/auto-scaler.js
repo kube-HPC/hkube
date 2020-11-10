@@ -304,7 +304,7 @@ class AutoScaler {
             jobId: this._options.jobId,
             tasks,
             isScaled: true,
-            customFlows: this._options.pipeline.streaming?.customFlows,
+            parsedFlow: this._options.pipeline.streaming?.parsedFlow,
             pipelineName: this._options.pipeline.name,
             priority: this._options.pipeline.priority,
             kind: this._options.pipeline.kind,

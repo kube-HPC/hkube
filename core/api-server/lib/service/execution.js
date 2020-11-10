@@ -73,7 +73,6 @@ class ExecutionService {
         const { validateNodes, parentSpan } = payload.options || {};
 
         validator.executions.addPipelineDefaults(pipeline);
-        validator.executions.validatePipeline(pipeline, { validateNodes });
 
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
@@ -83,6 +82,7 @@ class ExecutionService {
         try {
             pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
             pipeline = await pipelineCreator.buildStreamingCustomFlow(pipeline);
+            validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);

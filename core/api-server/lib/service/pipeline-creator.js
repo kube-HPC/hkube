@@ -1,8 +1,15 @@
 const mergeWith = require('lodash.mergewith');
-const { NodesMap } = require('@hkube/dag');
+const { NodesMap: DAG } = require('@hkube/dag');
 const { parser } = require('@hkube/parsers');
+const { pipelineKind } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
+
+const SEPARATORS = {
+    EXPRESSION: ',',
+    RELATION: '>>',
+    AND: '&'
+};
 
 class PipelineCreator {
     async buildPipelineOfPipelines(pipeline) {
@@ -22,6 +29,7 @@ class PipelineCreator {
 
             const nodes = [];
             const edges = [];
+            const validateNodesRelations = false;
 
             pipeline.nodes.forEach(node => {
                 if (node.input.length > 0) {
@@ -38,11 +46,11 @@ class PipelineCreator {
 
                                 nodes.push(...sourceNodes, ...targetNodes);
 
-                                const sourceGraph = new NodesMap({ nodes: sourceNodes });
-                                const targetGraph = new NodesMap({ nodes: targetNodes });
+                                const sourceGraph = new DAG({ nodes: sourceNodes }, { validateNodesRelations });
+                                const targetGraph = new DAG({ nodes: targetNodes }, { validateNodesRelations });
 
-                                const sinks = sourceGraph._graph.sinks();
-                                const sources = targetGraph._graph.sources();
+                                const sinks = sourceGraph.getSinks();
+                                const sources = targetGraph.getSources();
 
                                 sinks.forEach(s => {
                                     sources.forEach(t => {
@@ -73,12 +81,38 @@ class PipelineCreator {
         return newPipeline;
     }
 
+    /**
+     * This method accept pipeline and check if it is streaming with customFlow.
+     * If it has customFlow, it creates edges and parsed flow.
+     * @example
+     * input
+     *   streaming: {
+     *        customFlow: {
+     *           analyze: "A >> B&C , C >> D"
+     *        }}
+     *
+     * output
+     *   edges: [{"source":"A","target":"B"},
+     *           {"source":"A","target":"C"},
+     *           {"source":"C","target":"D"}]
+     *
+     *   streaming: {
+     *        parsedFlow: {
+     *           analyze: [{ source: "A", next: ["B", "C"]}
+     *                     { source: "C", next: ["D"]}]
+     *        }}
+     * ------------------------------------------
+     *
+     */
     async buildStreamingCustomFlow(pipeline) {
         const customFlow = pipeline?.streaming?.customFlow;
         if (!customFlow) {
             return pipeline;
         }
-        const customFlows = {};
+        if (pipeline.kind === pipelineKind.Batch) {
+            throw new InvalidDataError(`streaming custom flow is only allowed in ${pipelineKind.Stream} pipeline`);
+        }
+        const parsedFlow = {};
         const edges = [];
 
         Object.entries(customFlow).forEach(([k, v]) => {
@@ -86,17 +120,17 @@ class PipelineCreator {
                 throw new InvalidDataError(`invalid custom flow ${k}`);
             }
             const flow = [];
-            const expressions = v.replace(/\s/g, '').split(',');
+            const expressions = v.replace(/\s/g, '').split(SEPARATORS.EXPRESSION);
             expressions.forEach((e) => {
-                const parts = e.split('>>');
+                const parts = e.split(SEPARATORS.RELATION);
                 if (parts.length === 1) {
                     throw new InvalidDataError(`custom flow ${k} should have valid flow, example: A >> B`);
                 }
                 parts.forEach((p, i) => {
                     const source = p;
                     const target = parts[i + 1];
-                    const sources = source.split('&');
-                    const targets = target?.split('&');
+                    const sources = source.split(SEPARATORS.AND);
+                    const targets = target?.split(SEPARATORS.AND);
                     sources.forEach((s) => {
                         const node = pipeline.nodes.find(n => n.nodeName === s);
                         if (!node) {
@@ -117,14 +151,14 @@ class PipelineCreator {
                     });
                 });
             });
-            customFlows[k] = flow;
+            parsedFlow[k] = flow;
         });
         return {
             ...pipeline,
             edges,
             streaming: {
                 ...pipeline.streaming,
-                customFlows
+                parsedFlow
             }
         };
     }
@@ -144,6 +178,7 @@ class PipelineCreator {
             const node = {
                 ...n,
                 nodeName: `${nodeName}-${n.nodeName}`,
+                origName: nodeName,
                 input
             };
             return node;

@@ -1,7 +1,6 @@
 const Validator = require('ajv');
-const { Graph, alg } = require('graphlib');
-const { parser } = require('@hkube/parsers');
-const { pipelineKind, stateType } = require('@hkube/consts');
+const merge = require('lodash.merge');
+const { NodesMap: DAG } = require('@hkube/dag');
 const { InvalidDataError } = require('../errors');
 const customFormats = require('./custom-formats');
 const validator = new Validator({ useDefaults: false, coerceTypes: true, nullable: true });
@@ -27,7 +26,7 @@ class ApiValidator {
         }
     }
 
-    _validateInner(validatorInstance, schema, obj, options = { checkFlowInput: false, validateNodes: true }) {
+    _validateInner(validatorInstance, schema, obj, options = {}) {
         const object = obj || {};
         const valid = validatorInstance.validate(schema, object);
         if (!valid) {
@@ -41,63 +40,18 @@ class ApiValidator {
             }
             throw new InvalidDataError(error);
         }
-        if (object.nodes && options.validateNodes !== false) {
-            this._validateNodes(object, options);
+        const config = merge({}, { validateNodes: true }, options);
+        if (object.nodes && config.validateNodes) {
+            this._validateNodes(object, config);
         }
     }
 
-    _validateNodes(pipeline, opt) {
-        const options = opt || {};
-        const graph = new Graph();
-        const links = [];
-
-        pipeline.nodes.forEach((node) => {
-            if (node.stateType === stateType.Stateful && pipeline.kind === pipelineKind.Batch) {
-                throw new InvalidDataError(`${stateType.Stateful} node "${node.nodeName}" is not allowed on ${pipeline.kind} pipeline`);
-            }
-            if (!node.algorithmName && !node.pipelineName) {
-                throw new InvalidDataError('please provide algorithmName or pipelineName');
-            }
-            if (graph.node(node.nodeName)) {
-                throw new InvalidDataError(`found duplicate node ${node.nodeName}`);
-            }
-            if (node.nodeName === 'flowInput') {
-                throw new InvalidDataError(`pipeline ${pipeline.name} has invalid reserved name flowInput`);
-            }
-            if (node.input) {
-                node.input.forEach((inp) => {
-                    if (options.checkFlowInput) {
-                        try {
-                            parser.checkFlowInput({ flowInput: pipeline.flowInput, nodeInput: inp });
-                        }
-                        catch (e) {
-                            throw new InvalidDataError(e.message);
-                        }
-                    }
-                    const nodesNames = parser.extractNodesFromInput(inp);
-                    nodesNames.forEach((n) => {
-                        const nd = pipeline.nodes.find(f => f.nodeName === n.nodeName);
-                        if (nd) {
-                            links.push({ source: nd.nodeName, target: node.nodeName });
-                        }
-                        else {
-                            throw new InvalidDataError(`node ${node.nodeName} is depend on ${n.nodeName} which is not exists`);
-                        }
-                    });
-                });
-            }
-            graph.setNode(node.nodeName, node);
-        });
-        links.forEach((link) => {
-            graph.setEdge(link.source, link.target);
-        });
-
-        const statelessNodes = graph.sources().map(s => graph.node(s)).filter(s => s.stateType === stateType.Stateless);
-        if (pipeline.kind === pipelineKind.Stream && statelessNodes.length > 0) {
-            throw new InvalidDataError(`entry node "${statelessNodes[0].nodeName}" cannot be ${stateType.Stateless} on ${pipeline.kind} pipeline`);
+    _validateNodes(pipeline, options) {
+        try {
+            new DAG(pipeline, options);  // eslint-disable-line
         }
-        if (!alg.isAcyclic(graph) && pipeline.kind !== pipelineKind.Stream) {
-            throw new InvalidDataError(`pipeline ${pipeline.name} has cyclic nodes`);
+        catch (e) {
+            throw new InvalidDataError(e.message);
         }
     }
 }

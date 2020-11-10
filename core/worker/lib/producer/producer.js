@@ -45,7 +45,7 @@ class Producers {
                 info: options.info,
                 isScaled: options.isScaled,
                 isCustomFlow: options.isCustomFlow,
-                customFlows: options.customFlows
+                parsedFlow: options.parsedFlow
             }
         };
         return jobOptions;

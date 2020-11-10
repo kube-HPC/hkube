@@ -4,7 +4,7 @@ class ApiValidator {
     }
 
     validateUpdatePipeline(pipeline) {
-        this._validator.validate(this._validator.definitions.pipeline, pipeline, true);
+        this._validator.validate(this._validator.definitions.pipeline, pipeline, true, { validateStateType: false });
     }
 
     validatePipelineName(name) {
