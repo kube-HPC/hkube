@@ -814,7 +814,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`Git Repository is empty (${url})`);
             });
-            it('should throw error of both image and git is not allowed', async () => {
+            it.skip('should throw error of both image and git is not allowed', async () => {
                 const url = 'https://github.com/hkube.gits/my.git.foo.bar';
                 const body = {
                     name: uuid(),
@@ -1100,6 +1100,43 @@ describe('Store/Algorithms', () => {
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.have.property('buildId');
                 expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
+            });
+            it('should succeed to apply algorithm with buildId due to change in env', async () => {
+                const body1 = {
+                    name: `my-alg-${uuid()}`,
+                    env: 'nodejs',
+                    baseImage: 'python:2.7',
+                    type: 'Code'
+                }
+                const body2 = {
+                    ...body1,
+                    baseImage: 'python:3.7'
+                }
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2),
+                    file: ''
+                };
+                const uri = applyPath;
+                const options1 = {
+                    uri,
+                    formData: formData1
+                };
+                const options2 = {
+                    uri,
+                    formData: formData2
+                };
+
+                // apply algorithm
+                const response1 = await request(options1)
+
+                // apply algorithm again
+                const response2 = await request(options2);
+                expect(response1.body).to.have.property('buildId')
+                expect(response2.body).to.have.property('buildId');
             });
             it('should succeed to apply algorithm without buildId in response', async () => {
                 const body = {

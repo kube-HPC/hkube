@@ -94,8 +94,6 @@ graphResponse:
   $ref: ./graphResponse.yaml
 algorithmBuild:
   $ref: ./algorithmBuild.yaml
-algorithmBuildGit:
-  $ref: ./algorithmBuildGit.yaml
 execAlgorithmRequest:
   $ref: ./execAlgorithmRequest.yaml
 pipelineTriggersNode:

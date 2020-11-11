@@ -6,13 +6,14 @@ const fse = require('fs-extra');
 const { diff } = require('deep-diff');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
-const { uid } = require('@hkube/uid');
 const { buildStatuses } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
+const Build = require('./build');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
+const gitDataAdapter = require('./githooks/git-data-adapter');
 const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatuses.ACTIVE];
 const minimumBytes = 4100;
 
@@ -71,50 +72,66 @@ class Builds {
         await this.startBuild(build);
     }
 
-    async createBuild(file, oldAlgorithm, newAlgorithm, payload) {
-        const messages = [];
-        let buildId;
-        const algorithm = await this._newAlgorithm(file, oldAlgorithm, payload);
-        const result = this._shouldBuild(oldAlgorithm, algorithm);
-        messages.push(...result.messages);
-        merge(newAlgorithm, algorithm);
-
-        if (result.shouldBuild) {
-            const imageTag = this._generateImageTag();
-            buildId = this._createBuildID(algorithm.name);
-            const putStream = await storageManager.hkubeBuilds.putStream({ buildId, data: fse.createReadStream(file.path) });
-            merge(newAlgorithm, { fileInfo: { path: putStream.path } });
-            const { env, name, fileInfo, type, baseImage } = newAlgorithm;
-            await this.startBuild({ buildId, algorithm: newAlgorithm, algorithmName: name, env, imageTag, fileExt: fileInfo.fileExt, type, baseImage });
+    async createBuildFromCode(build) {
+        if (build.uploadPath) {
+            await storageManager.hkubeBuilds.putStream({ buildId: build.buildId, data: fse.createReadStream(build.uploadPath) });
         }
-        return { buildId, messages };
+        await this.startBuild(build);
+    }
+
+    async createBuildFromGitRepository(build) {
+        await this.startBuild(build);
     }
 
     isActiveState(state) {
         return ActiveStates.includes(state);
     }
 
-    async createBuildFromGitRepository(oldAlgorithm, newAlgorithm) {
-        const messages = [];
-        let buildId;
-        const result = this._shouldBuild(oldAlgorithm, newAlgorithm);
-        messages.push(...result.messages);
-
-        if (result.shouldBuild) {
-            const imageTag = this._generateImageTag();
-            buildId = this._createBuildID(newAlgorithm.name);
-            const { env, name, gitRepository, type, baseImage } = newAlgorithm;
-            validator.builds.validateAlgorithmBuildFromGit({ env });
-            await this.startBuild({ buildId, algorithm: newAlgorithm, imageTag, env, algorithmName: name, gitRepository, type, baseImage });
-        }
-        return { buildId, messages };
-    }
-
-    async _newAlgorithm(file, oldAlgorithm, newAlgorithm) {
-        const fileInfo = await this._fileInfo(file);
+    async shouldBuild(oldAlgorithm, newAlgorithm, file) {
+        let fileInfo;
+        let gitRepository;
+        let build;
+        const buildId = Build.createBuildID(newAlgorithm.name);
         const env = this._resolveEnv(oldAlgorithm, newAlgorithm);
-        validator.builds.validateAlgorithmBuild({ fileExt: fileInfo.fileExt, env });
-        return { ...newAlgorithm, fileInfo, env };
+
+        if (file?.path) {
+            fileInfo = await this._fileInfo(file);
+            validator.builds.validateAlgorithmBuild({ fileExt: fileInfo?.fileExt, env });
+            const buildPath = storageManager.hkubeBuilds.createPath({ buildId });
+            merge(fileInfo, { path: buildPath });
+        }
+        else if (newAlgorithm.fileInfo) {
+            fileInfo = newAlgorithm.fileInfo;
+        }
+        else if (newAlgorithm.gitRepository) {
+            gitRepository = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
+        }
+
+        if (fileInfo || gitRepository) {
+            merge(newAlgorithm, { fileInfo, gitRepository });
+            const { messages, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm);
+            if (shouldBuild) {
+                build = new Build({
+                    buildId,
+                    env,
+                    algorithm: newAlgorithm,
+                    fileExt: fileInfo?.fileExt,
+                    filePath: fileInfo?.path,
+                    uploadPath: file?.path,
+                    algorithmName: newAlgorithm.name,
+                    gitRepository: newAlgorithm.gitRepository,
+                    type: newAlgorithm.type,
+                    baseImage: newAlgorithm.baseImage
+                });
+            }
+            return {
+                build,
+                messages
+            };
+        }
+        return {
+            build
+        };
     }
 
     async _fileInfo(file) {
@@ -177,14 +194,6 @@ class Builds {
         const checksum = fileInfo && fileInfo.checksum;
         const commit = gitRepository && gitRepository.commit && gitRepository.commit.id;
         return { checksum, env, commit, baseImage };
-    }
-
-    _createBuildID(algorithmName) {
-        return [algorithmName, uid({ length: 6 })].join('-');
-    }
-
-    _generateImageTag() {
-        return uid({ length: 8 });
     }
 
     _resolveEnv(oldAlgorithm, newAlgorithm) {

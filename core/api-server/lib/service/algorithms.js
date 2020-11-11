@@ -170,21 +170,27 @@ class AlgorithmStore {
      */
     async applyAlgorithm(data) {
         const file = data.file || {};
-        let buildId;
         const messages = [];
         const { setAsCurrent } = data.options || {};
         const { version, ...payload } = data.payload;
+
         validator.algorithms.validateApplyAlgorithm(payload);
         const oldAlgorithm = await this._getAlgorithm(payload);
         let newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
 
-        if (payload.type === buildTypes.CODE && file.path) {
-            buildId = await this._createBuildFromCode(payload, file, newAlgorithm, oldAlgorithm, messages);
+        const buildInfo = await buildsService.shouldBuild(oldAlgorithm, newAlgorithm, file);
+
+        if (payload.type === buildTypes.CODE && buildInfo.build) {
+            await this._createBuildFromCode(newAlgorithm, buildInfo.build);
         }
-        else if (payload.type === buildTypes.GIT && payload.gitRepository) {
-            buildId = await this._createBuildFromGit(payload, newAlgorithm, oldAlgorithm, messages);
+        else if (payload.type === buildTypes.GIT && buildInfo.build) {
+            await this._createBuildFromGit(newAlgorithm, buildInfo.build);
+        }
+        const buildId = buildInfo.build?.buildId;
+        if (buildInfo.messages) {
+            messages.push(...buildInfo.messages);
         }
 
         this._validateApplyParams(newAlgorithm);
@@ -226,26 +232,18 @@ class AlgorithmStore {
         return !isEqual(oldAlgorithm, newAlgorithm);
     }
 
-    async _createBuildFromGit(payload, newAlgorithm, oldAlgorithm, messages) {
-        if (payload.algorithmImage && !payload.gitRepository.webUrl) {
+    async _createBuildFromGit(newAlgorithm, build) {
+        if (newAlgorithm.algorithmImage && !newAlgorithm.gitRepository.webUrl) {
             throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
         }
-        const gitRepository = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
-        merge(newAlgorithm, { gitRepository });
-        const result = await buildsService.createBuildFromGitRepository(oldAlgorithm, newAlgorithm);
-        const { buildId } = result;
-        messages.push(...result.messages);
-        return buildId;
+        await buildsService.createBuildFromGitRepository(build);
     }
 
-    async _createBuildFromCode(payload, file, newAlgorithm, oldAlgorithm, messages) {
-        if (payload.algorithmImage) {
+    async _createBuildFromCode(newAlgorithm, build) {
+        if (newAlgorithm.algorithmImage) {
             throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
         }
-        const result = await buildsService.createBuild(file, oldAlgorithm, newAlgorithm, payload);
-        const { buildId } = result;
-        messages.push(...result.messages);
-        return buildId;
+        await buildsService.createBuildFromCode(build);
     }
 
     _validateApplyParams(newAlgorithm) {

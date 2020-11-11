@@ -10,10 +10,6 @@ class ApiValidator {
     validateAlgorithmBuild(algorithm) {
         this._validator.validate(this._validator.definitions.algorithmBuild, algorithm);
     }
-
-    validateAlgorithmBuildFromGit(algorithm) {
-        this._validator.validate(this._validator.definitions.algorithmBuildGit, algorithm);
-    }
 }
 
 module.exports = ApiValidator;
