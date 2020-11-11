@@ -29,7 +29,7 @@ const pipeline = {
                 "@flowInput.arraySize",
                 "@flowInput.bufferSize"
             ],
-            stateType: "stateless"
+            stateType: "stateful"
         },
         {
             nodeName: "C",
@@ -38,7 +38,7 @@ const pipeline = {
                 "@flowInput.arraySize",
                 "@flowInput.bufferSize"
             ],
-            stateType: "stateless"
+            stateType: "stateful"
         },
         {
             nodeName: "D",

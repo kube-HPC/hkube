@@ -2,7 +2,6 @@ const mergeWith = require('lodash.mergewith');
 const { tracer } = require('@hkube/metrics');
 const { parser } = require('@hkube/parsers');
 const { uid } = require('@hkube/uid');
-const { NodesMap } = require('@hkube/dag');
 const { pipelineTypes, pipelineStatuses } = require('@hkube/consts');
 const levels = require('@hkube/logger').Levels;
 const storageManager = require('@hkube/storage-manager');
@@ -10,6 +9,7 @@ const cachingService = require('./caching');
 const producer = require('../producer/jobs-producer');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
+const pipelineCreator = require('./pipeline-creator');
 const WebhookTypes = require('../webhook/States').Types;
 const regex = require('../consts/regex');
 const { ResourceNotFoundError, InvalidDataError, } = require('../errors');
@@ -73,7 +73,6 @@ class ExecutionService {
         const { validateNodes, parentSpan } = payload.options || {};
 
         validator.executions.addPipelineDefaults(pipeline);
-        validator.executions.validatePipeline(pipeline, { validateNodes });
 
         if (!jobId) {
             jobId = this._createJobID({ name: pipeline.name, experimentName: pipeline.experimentName });
@@ -81,7 +80,9 @@ class ExecutionService {
 
         const span = tracer.startSpan({ name: 'run pipeline', tags: { jobId, name: pipeline.name }, parent: parentSpan });
         try {
-            pipeline = await this._buildPipelineOfPipelines(pipeline);
+            pipeline = await pipelineCreator.buildPipelineOfPipelines(pipeline);
+            pipeline = await pipelineCreator.buildStreamingCustomFlow(pipeline);
+            validator.executions.validatePipeline(pipeline, { validateNodes });
             await validator.experiments.validateExperimentExists(pipeline);
             const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
             validator.algorithms.validateAlgorithmImage(algorithms);
@@ -129,95 +130,6 @@ class ExecutionService {
             newTypes = [...newTypes, ...array || []];
         });
         return [...new Set([...newTypes])];
-    }
-
-    async _buildPipelineOfPipelines(pipeline) {
-        let newPipeline = pipeline;
-        const pipelinesNodes = pipeline.nodes.filter(p => p.pipelineName);
-        if (pipelinesNodes.length > 0) {
-            const pipelines = await stateManager.pipelines.list();
-            const flowInput = pipeline.flowInput || {};
-
-            pipelinesNodes.forEach(n => {
-                const storedPipeline = pipelines.find(p => p.name === n.pipelineName);
-                if (!storedPipeline) {
-                    throw new ResourceNotFoundError('pipeline', n.pipelineName);
-                }
-                mergeWith(flowInput, storedPipeline.flowInput);
-            });
-
-            const nodes = [];
-            const edges = [];
-
-            pipeline.nodes.forEach(node => {
-                if (node.input.length > 0) {
-                    node.input.forEach((i) => {
-                        const results = parser.extractNodesFromInput(i);
-                        if (results.length > 0) {
-                            results.forEach(r => {
-                                const nd = pipeline.nodes.find(n => n.nodeName === r.nodeName);
-                                const source = nd;
-                                const target = node;
-
-                                const sourceNodes = this._mapNodes(source, pipelines);
-                                const targetNodes = this._mapNodes(target, pipelines);
-
-                                nodes.push(...sourceNodes, ...targetNodes);
-
-                                const sourceGraph = new NodesMap({ nodes: sourceNodes });
-                                const targetGraph = new NodesMap({ nodes: targetNodes });
-
-                                const sinks = sourceGraph._graph.sinks();
-                                const sources = targetGraph._graph.sources();
-
-                                sinks.forEach(s => {
-                                    sources.forEach(t => {
-                                        edges.push({ source: s, target: t });
-                                    });
-                                });
-                            });
-                        }
-                        else {
-                            const mapNodes = this._mapNodes(node, pipelines);
-                            nodes.push(...mapNodes);
-                        }
-                    });
-                }
-                else {
-                    const mapNodes = this._mapNodes(node, pipelines);
-                    nodes.push(...mapNodes);
-                }
-            });
-            const nodesList = nodes.filter((n, i, s) => i === s.findIndex((t) => t.nodeName === n.nodeName));
-            newPipeline = {
-                ...pipeline,
-                flowInput,
-                nodes: nodesList,
-                edges
-            };
-        }
-        return newPipeline;
-    }
-
-    _mapNodes(node, pipelines) {
-        if (node.pipelineName) {
-            const pipeline = pipelines.find(p => p.name === node.pipelineName);
-            const nodes = this._mapInput(pipeline.nodes, node.nodeName);
-            return nodes;
-        }
-        return [node];
-    }
-
-    _mapInput(nodes, nodeName) {
-        return nodes.map(n => {
-            const input = parser.replaceNodeInput(n.input, nodeName);
-            const node = {
-                ...n,
-                nodeName: `${nodeName}-${n.nodeName}`,
-                input
-            };
-            return node;
-        });
     }
 
     isActiveState(state) {

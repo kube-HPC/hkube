@@ -300,10 +300,15 @@ class AutoScaler {
             tasks.push(task);
         }
         const job = {
-            ...this._options.jobData,
             ...this._options.node,
+            jobId: this._options.jobId,
             tasks,
-            isScaled: true
+            isScaled: true,
+            parsedFlow: this._options.pipeline.streaming?.parsedFlow,
+            pipelineName: this._options.pipeline.name,
+            priority: this._options.pipeline.priority,
+            kind: this._options.pipeline.kind,
+            info: this._options.jobData.info,
         };
         return producer.createJob({ jobData: job });
     }

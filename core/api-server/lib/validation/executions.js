@@ -8,7 +8,7 @@ class ApiValidator {
     }
 
     validateRunRawPipeline(pipeline) {
-        this._validator.validate(this._validator.definitions.pipeline, pipeline, false, { checkFlowInput: true });
+        this._validator.validate(this._validator.definitions.pipeline, pipeline, false, { validateNodes: false, checkFlowInput: true, validateStateType: false });
     }
 
     validateRunStoredPipeline(pipeline) {
