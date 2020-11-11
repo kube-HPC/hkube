@@ -303,7 +303,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('found duplicate node dup');
+            expect(response.body.error.message).to.equal('found duplicate node "dup"');
         });
         it('should throw validation error of invalid reserved name flowInput', async () => {
             const options = {
@@ -322,7 +322,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('pipeline reservedName has invalid reserved name flowInput');
+            expect(response.body.error.message).to.equal('pipeline "reservedName" has invalid reserved name "flowInput"');
         });
         it('should throw validation error of node depend on not exists node', async () => {
             const pipeline = pipelines.find(p => p.name === 'NodeNotExists');
@@ -333,7 +333,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('node B is depend on C which is not exists');
+            expect(response.body.error.message).to.equal('node "B" is depend on node "C" which is not exists');
         });
         it('should throw validation error of cyclic nodes', async () => {
             const pipeline = pipelines.find(p => p.name === 'cyclicNodes');
@@ -344,7 +344,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('pipeline cyclicNodes has cyclic nodes');
+            expect(response.body.error.message).to.equal('cyclic nodes are not allowed on batch pipeline');
         });
         it('should throw validation error of flowInput not exist', async () => {
             const options = {
@@ -412,12 +412,59 @@ describe('Store/Pipelines', () => {
             expect(response.body.options.batchTolerance).to.equal(80);
             expect(response.body.options.progressVerbosityLevel).to.equal('info');
         });
-        it('should succeed to store pipeline', async () => {
-            const pipeline = clone(pipelines[2]);
-            pipeline.name = uuid();
-            pipeline.kind = 'stream';
-            pipeline.description = 'my description';
-            pipeline.tags = ['bla', 'hot'];
+        it('should succeed to store customFlow streaming pipeline', async () => {
+            const pipeline = {
+                name: 'streaming-flow',
+                experimentName: "main",
+                kind: "stream",
+                nodes: [
+                    {
+                        "nodeName": "A",
+                        "algorithmName": "green-alg",
+                        "input": [],
+                        "stateType": "stateful"
+                    },
+                    {
+                        "nodeName": "B",
+                        "algorithmName": "green-alg",
+                        "input": [],
+                        "stateType": "stateless"
+                    },
+                    {
+                        "nodeName": "C",
+                        "algorithmName": "green-alg",
+                        "input": [],
+                        "stateType": "stateless"
+                    },
+                    {
+                        "nodeName": "D",
+                        "algorithmName": "green-alg",
+                        "input": [],
+                        "stateType": "stateless"
+                    },
+                    {
+                        "nodeName": "E",
+                        "algorithmName": "green-alg",
+                        "input": [],
+                        "stateType": "stateless"
+                    }
+                ],
+                streaming: {
+                    customFlow: {
+                        "analyze0": "A >> B >> C >> D >> B >> A",
+                        "analyze1": "A >> B&C , C >> D",
+                        "analyze2": "A >> B&C >> D",
+                        "analyze3": "A >> B >> C >> D >> A",
+                        "analyze4": "A >> B&C&D >> E"
+                    }
+                },
+                priority: 3,
+                options: {
+                    batchTolerance: 80,
+                    progressVerbosityLevel: "info",
+                    ttl: 3600
+                }
+            }
             const options = {
                 uri: restPath,
                 body: pipeline
