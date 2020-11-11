@@ -46,8 +46,8 @@ dataSourceCreate:
   $ref: ./dataSourceCreate.yaml
 dataSourceName:
   $ref: ./dataSourceName.yaml
-dataSourceFile:
-  $ref: ./dataSourceFile.yaml
+dataSourceFiles:
+  $ref: ./dataSourceFiles.yaml
 dataSourceFileMeta:
   $ref: ./dataSourceFileMeta.yaml
 defaultResponse:

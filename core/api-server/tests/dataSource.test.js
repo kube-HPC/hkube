@@ -14,15 +14,16 @@ let restUrl, restPath;
 const nonExistingId = '5f953d50dd38c8291924a0a3';
 const fileName = 'README-1.md';
 
-/** @type {(props?: { body?: { name?:string }, withFile?:boolean, uri?: string }) => Promise<any>} */
+/** @type {(props?: { body?: { name?:string }, withFile?:boolean, uri?: string, fileNames?: string[] }) => Promise<any>} */
 const createDataSource = ({
     body = {},
     withFile = true,
+    fileNames = [fileName],
     uri = restPath,
 } = {}) => {
     const formData = {
         ...body,
-        file: withFile ? fse.createReadStream(`tests/mocks/${fileName}`) : undefined
+        files: withFile ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`)) : undefined
     };
     const options = {
         uri,
@@ -31,10 +32,11 @@ const createDataSource = ({
     return request(options);
 };
 
-const uploadFile = (dataSourceId, fileName) => {
-    const formData = fileName ? {
-        file: fse.createReadStream(`tests/mocks/${fileName}`)
-    } : {};
+const uploadFile = (dataSourceId, fileNames = [], versionDescription = 'new-version') => {
+    const formData = fileNames.length > 0 ? {
+        versionDescription,
+        filesAdded: fileNames.length > 0 ? fileNames.map(fileName => fse.createReadStream(`tests/mocks/${fileName}`)) : undefined
+    } : { versionDescription };
     const options = {
         uri: `${restPath}/${dataSourceId}`,
         formData
@@ -360,7 +362,7 @@ describe('Datasource', () => {
                 const response = await request(options);
                 expect(response.body).to.have.property('error');
                 expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal("data should have required property 'file'");
+                expect(response.body.error.message).to.equal("data should have required property 'files'");
             });
             const invalidChars = ['/', '*', '#', '"', '%'];
             invalidChars.forEach((v) => {
@@ -397,6 +399,15 @@ describe('Datasource', () => {
                 expect(response.body.id).to.be.string;
                 expect(response.body.name).to.eq(name);
             });
+            it("should create a new dataSource and return it's newly created id", async () => {
+                const name = uuid();
+                const { response } = await createDataSource({ body: { name } });
+                expect(response.statusCode).to.eql(HttpStatus.CREATED);
+                expect(response.body).to.have.property('id');
+                expect(response.body).to.have.property('name');
+                expect(response.body.id).to.be.string;
+                expect(response.body.name).to.eq(name);
+            });
             it('should throw conflict error', async () => {
                 const name = uuid();
                 const firstResponse = await createDataSource({ body: { name } });
@@ -422,32 +433,56 @@ describe('Datasource', () => {
         });
     });
     describe('/datasource/:name POST', () => {
-        it('should throw missing file error', async () => {
+        it('should throw missing filesAdded and filesDropped error', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const { response: uploadResponse } = await uploadFile(name);
             expect(uploadResponse.body).to.have.property('error');
-            expect(uploadResponse.body.error.message).to.equal("data should have required property 'file'");
+            expect(uploadResponse.body.error.message).to.match(/data should have required property '.filesAdded'/i);
+            expect(uploadResponse.body.error.message).to.match(/data should have required property '.filesDropped'/i);
         });
         it('should fail uploading a file to a non existing dataSource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
-            const { response: uploadResponse } = await uploadFile('non-existing', 'README-2.md');
+            const { response: uploadResponse } = await uploadFile('non-existing', ['README-2.md']);
             expect(uploadResponse.body).to.have.property('error');
             expect(uploadResponse.body.error.message).to.match(/not found/i);
             expect(uploadResponse.statusCode).to.eql(HttpStatus.NOT_FOUND);
         });
-        it('should upload a new file to the dataSource', async () => {
+        it('should upload a new file to the dataSource and get a new version', async () => {
             const name = uuid();
-            await createDataSource({ body: { name } });
+            const { body: firstVersion } = await createDataSource({ body: { name } });
             const secondFileName = 'README-2.md';
-            const { response: uploadResponse } = await uploadFile(name, secondFileName);
-            const { body: file } = uploadResponse;
-            expect(file).to.have.property('name');
-            expect(file).to.have.property('path');
+            const { response: uploadResponse } = await uploadFile(name, [secondFileName]);
+            const { body: updatedVersion } = uploadResponse;
+            expect(firstVersion.id).not.to.eq(updatedVersion.id);
+            expect(firstVersion.name).to.eq(updatedVersion.name);
+            const { files } = updatedVersion;
+            expect(files).to.have.lengthOf(1);
+            files.forEach(file => {
+                expect(file).to.have.property('name');
+                expect(file).to.have.property('path');
+                expect(file).to.have.property('size');
+                expect(file).to.have.property('type');
+            });
             const { response: fetchDataSourceResponse } = await fetchDataSource(name);
             const { body: dataSource } = fetchDataSourceResponse;
             expect(dataSource.files).to.have.lengthOf(2);
+            expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
+        });
+        it('should upload multiple files to the dataSource', async () => {
+            const name = uuid();
+            await createDataSource({ body: { name } });
+            const fileNames = ['README-2.md', 'algorithms.json'];
+            const { response: uploadResponse } = await uploadFile(name, fileNames);
+            const { body: { files } } = uploadResponse;
+            files.forEach(file => {
+                expect(file).to.have.property('name');
+                expect(file).to.have.property('path');
+            });
+            const { response: fetchDataSourceResponse } = await fetchDataSource(name);
+            const { body: dataSource } = fetchDataSourceResponse;
+            expect(dataSource.files).to.have.lengthOf(3);
             expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
         });
     });

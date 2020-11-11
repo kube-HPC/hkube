@@ -31,10 +31,10 @@ const routes = () => {
             res.json(dataSources);
             next();
         })
-        .post(upload.single('file'), async (req, res, next) => {
+        .post(upload.array('files'), async (req, res, next) => {
             const { name } = req.body;
             try {
-                const response = await dataSource.createDataSource({ name, file: req.file });
+                const response = await dataSource.createDataSource({ name, files: req.files });
                 res.status(HttpStatus.CREATED).json(response);
             }
             finally {
@@ -56,14 +56,18 @@ const routes = () => {
             });
             next();
         })
-        .post(upload.single('file'), async (req, res, next) => {
+        .post(upload.array('filesAdded'), async (req, res, next) => {
             const { name } = req.params;
+            const { versionDescription, filesDropped } = req.body;
             try {
-                const file = await dataSource.updateDataSource({ dataSourceName: name, file: req.file });
-                res.status(HttpStatus.CREATED).json({
-                    path: `/datasource/${name}/${file.fileName}`,
-                    name: file.fileName
+                const createdVersion = await dataSource.updateDataSource({
+                    name,
+                    versionDescription,
+                    // @ts-ignore
+                    filesAdded: req.files,
+                    filesDropped
                 });
+                res.status(HttpStatus.CREATED).json(createdVersion);
             }
             finally {
                 await cleanTmpFile(req.file);

@@ -43,11 +43,11 @@ post:
     required: true
   responses:
     "201":
-      description: created dataSource
+      description: new datasource version
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/defaultResponseWithName"
+            $ref: "#/components/schemas/dataSource"
 delete:
   tags:
     - DataSource

@@ -1,9 +1,11 @@
 const storage = require('@hkube/storage-manager');
 const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
+const semverLib = require('semver');
 const { connection: db } = require('../db');
 const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
 const validator = require('../validation/api-validator');
+const { resetHistory } = require('sinon');
 
 /**
  *  @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
@@ -13,50 +15,71 @@ const validator = require('../validation/api-validator');
  *  @typedef {{name?: string; id?: string;}} NameOrId
  * */
 
+const SETTINGS = {
+    SEMVER: {
+        FIRST: '1.0.0',
+        MAX_PATCH: 500,
+        MAX_MINOR: 500,
+        MAX_MAJOR: 500,
+        MAX_LOCK_ATTEMPTS: 5
+    },
+    VERSION_LENGTH: 10
+};
+
 class DataSource {
     /**
      * @param {object} props
-     * @param {string} props.dataSourceName
-     * @param {Express.Multer.File} props.file
+     * @param {string} props.name
+     * @param {string} props.versionDescription
+     * @param {Express.Multer.File[]} props.filesAdded
+     * @param {string[]} props.filesDropped
      */
-    async updateDataSource({ dataSourceName, file }) {
-        validator.dataSource.validateUploadFile({ file });
-        // validates the data source exists
-        await this.fetchDataSourceMetaData({ name: dataSourceName });
-        return this.uploadFile({ dataSourceName, file });
+    async updateDataSource({ name, filesAdded, filesDropped, versionDescription }) {
+        validator.dataSource.validateUploadFile({ filesAdded, versionDescription, filesDropped });
+        await db.dataSources.updateVersion({ name, versionDescription });
+        const filesAddedMeta = await this.uploadFiles({ dataSourceName: name, files: filesAdded });
+        const updatedDataSource = await db.dataSources.uploadFiles({ name, filesAdded: filesAddedMeta, filesDropped });
+        return updatedDataSource;
     }
 
     /**
       * @param {object} query
       * @param {string} query.dataSourceName
-      * @param {Express.Multer.File} query.file
+      * @param {Express.Multer.File[]} query.files
       */
-    async uploadFile({ dataSourceName, file }) {
-        const createdPath = await storage.hkubeDataSource.putStream({
-            dataSource: dataSourceName,
-            data: fse.createReadStream(file.path),
-            fileName: file.originalname
-        });
-        return { createdPath, fileName: file.originalname };
+    async uploadFiles({ dataSourceName, files }) {
+        const createdPaths = await Promise.all(
+            files.map(file => storage.hkubeDataSource.putStream({
+                dataSource: dataSourceName,
+                data: fse.createReadStream(file.path),
+                fileName: file.originalname,
+            }))
+        );
+        return files.map((file, ii) => ({ name: file.originalname, size: file.size, path: createdPaths[ii].path, type: file.mimetype }));
     }
 
     /**
       * @param {object} query
       * @param {string} query.name
-      * @param {Express.Multer.File} query.file
+      * @param {Express.Multer.File[]} query.files
       */
-    async createDataSource({ name, file }) {
-        validator.dataSource.validateCreate({ name, file });
+    async createDataSource({ name, files }) {
+        validator.dataSource.validateCreate({ name, files });
         let createdDataSource = null;
         try {
-            createdDataSource = await db.dataSources.create(name);
-            await this.uploadFile({ dataSourceName: name, file });
+            createdDataSource = await db.dataSources.create({ name });
         }
         catch (error) {
             if (error.type === errorTypes.CONFLICT) {
                 throw new ResourceExistsError('dataSource', name);
             }
+        }
+        try {
+            await this.uploadFiles({ dataSourceName: name, files });
+        }
+        catch (error) {
             await db.dataSources.delete({ name }, { allowNotFound: true }); // rollback
+            // delete all the files
             throw error;
         }
         return createdDataSource;

@@ -7,14 +7,16 @@ class ApiValidator {
         this._validator = validator;
     }
 
-    /** @param {{ name: string; file: Express.Multer.File}} props */
+    /** @param {{ name: string; files: Express.Multer.File[]}} props */
     validateCreate(props) {
-        this._validator.validate(this._validator.definitions.dataSourceCreate, { ...props, file: props.file?.originalname });
+        const files = props.files?.length > 0 ? props.files.map(file => file.originalname) : undefined;
+        this._validator.validate(this._validator.definitions.dataSourceCreate, { ...props, files });
     }
 
-    /** @param {{ file: Express.Multer.File; }} props */
+    /** @param {{ filesAdded: Express.Multer.File[]; versionDescription: string, filesDropped: string[] }} props */
     validateUploadFile(props) {
-        this._validator.validate(this._validator.definitions.dataSourceUploadFile, { ...props, file: props.file?.originalname });
+        const filesAdded = props.filesAdded?.length > 0 ? props.filesAdded.map(file => file.originalname) : undefined;
+        this._validator.validate(this._validator.definitions.dataSourceUploadFile, { ...props, filesAdded });
     }
 
     /** @param {string[]} dataSources */

@@ -32,7 +32,7 @@ describe('Executions', () => {
             });
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`pipeline ${pipelineName} has invalid reserved name dataSource`);
+            expect(response.body.error.message).to.equal(`pipeline "${pipelineName}" has invalid reserved name "dataSource"`);
         });
         it('should throw invalid input syntax for input @dataSource', async () => {
             const response = await runRaw({
