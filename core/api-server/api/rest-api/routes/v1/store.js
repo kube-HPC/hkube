@@ -2,7 +2,6 @@ const express = require('express');
 const fse = require('fs-extra');
 const multer = require('multer');
 const HttpStatus = require('http-status-codes');
-const { buildTypes } = require('@hkube/consts');
 const pipelineStore = require('../../../../lib/service/pipelines');
 const algorithmStore = require('../../../../lib/service/algorithms');
 const logger = require('../../middlewares/logger');
