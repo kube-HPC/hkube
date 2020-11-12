@@ -2,6 +2,8 @@ type: object
 properties:
   name:
     $ref: "#/components/schemas/pipelineName"
+  kind:
+    $ref: "#/components/schemas/pipelineKind"
   experimentName:
     $ref: "#/components/schemas/experimentName"
     default: main
