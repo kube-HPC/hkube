@@ -50,7 +50,7 @@ describe('Store/Algorithms', () => {
             };
             await request({ uri: restPath, body });
             const response = await request({ uri: `${restPath}/test-alg`, method: 'GET' });
-            const { version, ...algorithm } = response.body;
+            const { version, created, modified, ...algorithm } = response.body;
             expect(algorithm).to.eql({ ...defaultProps, ...body });
         });
     });
@@ -386,7 +386,7 @@ describe('Store/Algorithms', () => {
                 }
             };
             const response = await request(options);
-            const { version, ...algorithm } = response.body;
+            const { version, created, modified, ...algorithm } = response.body;
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...options.body });
         });
@@ -402,7 +402,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, ...algorithm } = response.body;
+            const { version, created, modified, ...algorithm } = response.body;
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...body });
         });
@@ -420,7 +420,7 @@ describe('Store/Algorithms', () => {
             const result = await Promise.all(algorithms.map(a => request({ uri: restPath, body: a })));
 
             result.forEach((r, i) => {
-                const { version, ...algorithm } = r.body;
+                const { version, created, modified, ...algorithm } = r.body;
                 expect(algorithm).to.eql(algorithms[i]);
             });
 
@@ -445,7 +445,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, ...algorithm } = response.body;
+            const { version, created, modified, ...algorithm } = response.body;
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(algorithm).to.eql({ ...defaultProps, ...body });
         });
@@ -465,7 +465,7 @@ describe('Store/Algorithms', () => {
                 body
             };
             const response = await request(options);
-            const { version, ...algorithm } = response.body;
+            const { version, created, modified, ...algorithm } = response.body;
             expect(response.response.statusCode).to.equal(HttpStatus.CREATED);
             expect(algorithm).to.eql(merge({}, defaultProps, body));
         });
@@ -598,27 +598,6 @@ describe('Store/Algorithms', () => {
                 expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
                 expect(response.body.error.message).to.equal(MESSAGES.APPLY_ERROR);
             });
-            it('should throw error of having image and file', async () => {
-                const body = {
-                    name: `my-alg-${uuid()}`,
-                    algorithmImage: 'image',
-                    mem: "50Mi",
-                    cpu: 1,
-                    env: 'python'
-                };
-                const formData = {
-                    payload: JSON.stringify(body),
-                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-                };
-                const options = {
-                    uri: applyPath,
-                    formData
-                };
-
-                const response = await request(options)
-                expect(response.response.statusCode).to.equal(HttpStatus.BAD_REQUEST);
-                expect(response.body.error.message).to.equal(MESSAGES.FILE_AND_IMAGE);
-            });
             it('should not throw error when git repo was not supplied', async () => {
                 const apply = {
                     name: `my-alg-${uuid()}`,
@@ -722,7 +701,7 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.message).to.eql(`maximum capacity exceeded cpu (4 nodes), mem (4 nodes), gpu (4 nodes)`);
             });
         });
-        describe('Github', () => {
+        describe('GitHub', () => {
             it('should throw error of required property url', async () => {
                 const name = uuid();
                 const body = {
@@ -814,26 +793,6 @@ describe('Store/Algorithms', () => {
                 expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
                 expect(res.body.error.message).to.equal(`Git Repository is empty (${url})`);
             });
-            it.skip('should throw error of both image and git is not allowed', async () => {
-                const url = 'https://github.com/hkube.gits/my.git.foo.bar';
-                const body = {
-                    name: uuid(),
-                    algorithmImage: 'my-image',
-                    gitRepository: {
-                        url
-                    },
-                    env: 'nodejs',
-                    type: "Git"
-                }
-                const options = {
-                    uri: applyPath,
-                    body: { payload: JSON.stringify(body) }
-                };
-                const res = await request(options);
-                expect(res.body).to.have.property('error');
-                expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-                expect(res.body.error.message).to.equal(MESSAGES.GIT_AND_IMAGE);
-            });
             it('should apply twice and create one build', async () => {
                 const url = 'https://github.com/hkube/my.git.foo.bar';
                 const name = uuid();
@@ -891,8 +850,7 @@ describe('Store/Algorithms', () => {
                     gitRepository: {
                         url: gitRepo
                     },
-                    env: "nodejs",
-                    type: "Git"
+                    env: "nodejs"
                 }
                 const options = {
                     uri: applyPath,
@@ -903,6 +861,32 @@ describe('Store/Algorithms', () => {
 
                 const res2 = await request(options);
                 expect(res2.body).to.not.have.property('buildId');
+            });
+            it('should succeed to apply with build due to change in baseImage', async () => {
+                const body1 = {
+                    name: `my-alg-${uuid()}`,
+                    env: 'nodejs',
+                    gitRepository: {
+                        url: gitRepo
+                    },
+                    baseImage: 'python:2.7'
+                }
+                const body2 = {
+                    name: body1.name,
+                    baseImage: 'python:3.7'
+                }
+                const options1 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body1) }
+                };
+                const options2 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body2) }
+                };
+                const response1 = await request(options1)
+                const response2 = await request(options2);
+                expect(response1.body).to.have.property('buildId')
+                expect(response2.body).to.have.property('buildId');
             });
             it.skip('should create build from private repo', async () => {
                 const url = 'https://github.com/NassiHarel/build-git';
@@ -926,6 +910,22 @@ describe('Store/Algorithms', () => {
             });
         });
         describe('Code', () => {
+            it('should succeed to apply algorithm with no changes', async () => {
+                const body1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'hkube/image',
+                    env: 'nodejs',
+                }
+                const body2 = {
+                    ...body1
+                }
+                const uri = applyPath;
+                const options1 = { uri, formData: { payload: JSON.stringify(body1), file: '' } };
+                const options2 = { uri, formData: { payload: JSON.stringify(body2), file: '' } };
+                const response1 = await request(options1)
+                const response2 = await request(options2);
+                expect(response1.body.algorithm).to.eql(response2.body.algorithm)
+            });
             it('should succeed to apply algorithm with first build', async () => {
                 const payload = {
                     name: `my-alg-${uuid()}`,
@@ -990,10 +990,10 @@ describe('Store/Algorithms', () => {
                     formData: formData2
                 };
 
-                // apply algorithm
+
                 await request(options1)
 
-                // apply algorithm again
+
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
@@ -1035,10 +1035,10 @@ describe('Store/Algorithms', () => {
                     formData: formData2
                 };
 
-                // apply algorithm
+
                 const res1 = await request(options1)
 
-                // apply algorithm again
+
                 const res2 = await request(options2);
                 const optionsGet = {
                     uri: `${restPath}/${body.name}`,
@@ -1092,21 +1092,20 @@ describe('Store/Algorithms', () => {
                 // insert algorithm
                 await request(options);
 
-                // apply algorithm
+
                 await request(options1)
 
-                // apply algorithm again
+
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.have.property('buildId');
                 expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
             });
-            it('should succeed to apply algorithm with buildId due to change in env', async () => {
+            it('should succeed to apply with build due to change in baseImage', async () => {
                 const body1 = {
                     name: `my-alg-${uuid()}`,
                     env: 'nodejs',
-                    baseImage: 'python:2.7',
-                    type: 'Code'
+                    baseImage: 'python:2.7'
                 }
                 const body2 = {
                     ...body1,
@@ -1130,10 +1129,7 @@ describe('Store/Algorithms', () => {
                     formData: formData2
                 };
 
-                // apply algorithm
                 const response1 = await request(options1)
-
-                // apply algorithm again
                 const response2 = await request(options2);
                 expect(response1.body).to.have.property('buildId')
                 expect(response2.body).to.have.property('buildId');
@@ -1171,10 +1167,10 @@ describe('Store/Algorithms', () => {
                     formData: formData2
                 };
 
-                // apply algorithm
+
                 await request(options1)
 
-                // apply algorithm again
+
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
@@ -1190,10 +1186,9 @@ describe('Store/Algorithms', () => {
                 await stateManager.algorithms.builds.set({ buildId: res1.body.buildId, algorithm: res1.body.algorithm, algorithmName, algorithmImage, status: 'completed' });
                 await delay(2000);
 
-                const { options, ...restProps } = res1.body.algorithm;
-
+                const { options, created: c1, modified: c2, ...restProps } = res1.body.algorithm;
                 const res2 = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
-                const { version, ...algorithm } = res2.body[0].algorithm;
+                const { version, created, modified, ...algorithm } = res2.body[0].algorithm;
                 expect(algorithm).to.eql({ ...defaultProps, ...restProps, algorithmImage });
             });
             it('should succeed to update algorithm only after completed build', async function () {
@@ -1239,10 +1234,9 @@ describe('Store/Algorithms', () => {
                 expect(get3.body.options.pending).to.eql(false);
                 expect(get4.body.cpu).to.eql(1);
                 expect(get4.body.options.pending).to.eql(false);
-
             });
         })
-        describe('Gitlab', () => {
+        describe('GitLab', () => {
             // this test is actually perform an HTTP request
             it.skip('should create build with last commit data', async () => {
                 const url = 'https://gitlab.com/nassih/build-git.git';
@@ -1288,10 +1282,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1299,7 +1290,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
             it('should take affect on algorithmImage change', async () => {
@@ -1323,10 +1314,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1334,7 +1322,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...apply1, ...apply2 });
             });
             it('should not apply changes to current when algorithmImage changes', async () => {
@@ -1355,10 +1343,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: false }), payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1366,7 +1351,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
             it('should apply changes to current when algorithmImage changes with setAsCurrent', async () => {
@@ -1387,10 +1372,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1398,7 +1380,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to apply algorithm with just cpu change', async () => {
@@ -1418,10 +1400,10 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
+
                 await request(request1)
 
-                // apply algorithm again
+
                 await request(request2);
 
                 const request3 = {
@@ -1429,7 +1411,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to apply algorithm with just gpu change', async () => {
@@ -1449,10 +1431,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1460,7 +1439,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
             it('should succeed to apply algorithm with just mem change', async () => {
@@ -1484,10 +1463,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1495,7 +1471,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to apply algorithm with just minHotWorkers change', async () => {
@@ -1519,10 +1495,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1530,7 +1503,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to apply algorithm with just algorithmEnv change', async () => {
@@ -1559,10 +1532,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1570,7 +1540,7 @@ describe('Store/Algorithms', () => {
                     method: 'GET'
                 };
                 const response3 = await request(request3);
-                const { version, ...algorithm } = response3.body;
+                const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1, ...apply2 });
             });
             it('should succeed to add and delete algorithmEnv', async () => {
@@ -1592,10 +1562,7 @@ describe('Store/Algorithms', () => {
                 const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
                 const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
 
-                // apply algorithm
                 await request(request1)
-
-                // apply algorithm again
                 await request(request2);
 
                 const request3 = {
@@ -1619,7 +1586,6 @@ describe('Store/Algorithms', () => {
                 const uri = restPath + '/apply';
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
 
-                // apply algorithm
                 await request(request1)
 
                 const request3 = {
@@ -1643,7 +1609,7 @@ describe('Store/Algorithms', () => {
                 const uri = restPath + '/apply';
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
 
-                // apply algorithm
+
                 const response1 = await request(request1)
                 expect(response1.body.error.message).to.eql("data should be equal to one of the allowed values (fieldRef,configMapKeyRef,resourceFieldRef,secretKeyRef)");
             });
@@ -1658,6 +1624,39 @@ describe('Store/Algorithms', () => {
                 const req = { uri, formData: { payload: JSON.stringify(apply) } };
                 const res = await request(req);
                 expect(res.body.algorithm.reservedMemory).to.eql(reservedMemory);
+            });
+            it('should succeed to add reservedMemory', async () => {
+                const apply = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                }
+                const req = { uri: applyPath, formData: { payload: JSON.stringify(apply) } };
+                const res = await request(req);
+                expect(res.body.algorithm).to.have.property('created');
+                expect(res.body.algorithm).to.have.property('modified');
+            });
+            it('should succeed to apply baseImage without build', async () => {
+                const body1 = {
+                    name: `my-alg-${uuid()}`,
+                    algorithmImage: 'test-algorithmImage',
+                    baseImage: 'python:2.7'
+                }
+                const body2 = {
+                    ...body1,
+                    baseImage: 'python:3.7'
+                }
+                const options1 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body1) }
+                };
+                const options2 = {
+                    uri: applyPath,
+                    body: { payload: JSON.stringify(body2) }
+                };
+                const response1 = await request(options1)
+                const response2 = await request(options2);
+                expect(response1.body).to.not.have.property('buildId')
+                expect(response2.body).to.not.have.property('buildId');
             });
         });
         describe('Versions', () => {
@@ -1787,11 +1786,11 @@ describe('Store/Algorithms', () => {
             expect(response.body.error.message).to.equal('cannot apply algorithm due to missing image url or build data');
         });
         it('should succeed to update algorithm', async () => {
-            const body = { ...algorithms[0], algorithmImage: 'new-image' };
+            const body = algorithms[0];
             const options = {
                 uri: restPath,
                 method: 'PUT',
-                body
+                body: { ...body, algorithmImage: 'new-image' }
             };
             const response = await request(options);
             expect(response.body.version).to.be.exist;

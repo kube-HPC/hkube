@@ -12,7 +12,6 @@ const algorithmStore = require('./algorithms-store');
 const validator = require('../validation/api-validator');
 const { ResourceNotFoundError, ResourceExistsError, ActionNotAllowed, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
-const gitDataAdapter = require('./githooks/git-data-adapter');
 
 class AlgorithmStore {
     init(config) {
@@ -40,7 +39,7 @@ class AlgorithmStore {
 
     async getAlgorithm(options) {
         validator.jobs.validateName(options);
-        const algorithm = await stateManager.algorithms.store.get(options);
+        const algorithm = await this._getAlgorithm(options);
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
@@ -54,7 +53,7 @@ class AlgorithmStore {
 
     async insertAlgorithm(options) {
         validator.algorithms.validateAlgorithmName(options);
-        const alg = await stateManager.algorithms.store.get(options);
+        const alg = await this._getAlgorithm(options);
         if (alg) {
             throw new ResourceExistsError('algorithm', options.name);
         }
@@ -64,7 +63,7 @@ class AlgorithmStore {
 
     async updateAlgorithm(options) {
         validator.algorithms.validateAlgorithmName(options);
-        const alg = await stateManager.algorithms.store.get(options);
+        const alg = await this._getAlgorithm(options);
         if (!alg) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
@@ -75,7 +74,7 @@ class AlgorithmStore {
     async deleteAlgorithm(options) {
         validator.algorithms.validateAlgorithmDelete(options);
         const { name, force } = options;
-        const algorithm = await stateManager.algorithms.store.get({ name });
+        const algorithm = await this._getAlgorithm({ name });
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', name);
         }
@@ -164,34 +163,31 @@ class AlgorithmStore {
      * This method is responsible for create builds, versions, debug data and update algorithm.
      * This method update algorithm if one of the following conditions is valid:
      * 1. The update include new algorithm which is not exists in store.
-     * 2. The update didn't trigger any new version or build.
-     * 3. The update explicitly include to override current image.
+     * 2. The update explicitly include to override current image.
      *
      */
     async applyAlgorithm(data) {
-        const file = data.file || {};
         const messages = [];
         const { setAsCurrent } = data.options || {};
-        const { version, ...payload } = data.payload;
+        const { version, created, modified, ...payload } = data.payload;
+        const file = { path: data.file?.path, name: data.file?.originalname };
 
         validator.algorithms.validateApplyAlgorithm(payload);
         const oldAlgorithm = await this._getAlgorithm(payload);
-        let newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
+        const newAlgorithm = this._mergeAlgorithm(oldAlgorithm, payload);
+
+        if (!newAlgorithm.type) {
+            newAlgorithm.type = this._resolveType(newAlgorithm, file.path);
+        }
+
+        // this is useless...
+        if (oldAlgorithm && oldAlgorithm.type !== newAlgorithm.type) {
+            throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${newAlgorithm.type}"`);
+        }
+
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
-
-        const buildInfo = await buildsService.shouldBuild(oldAlgorithm, newAlgorithm, file);
-
-        if (payload.type === buildTypes.CODE && buildInfo.build) {
-            await this._createBuildFromCode(newAlgorithm, buildInfo.build);
-        }
-        else if (payload.type === buildTypes.GIT && buildInfo.build) {
-            await this._createBuildFromGit(newAlgorithm, buildInfo.build);
-        }
-        const buildId = buildInfo.build?.buildId;
-        if (buildInfo.messages) {
-            messages.push(...buildInfo.messages);
-        }
+        const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, messages);
 
         this._validateApplyParams(newAlgorithm);
         if (!newAlgorithm.algorithmImage && buildId && !oldAlgorithm) {
@@ -203,22 +199,15 @@ class AlgorithmStore {
 
         const newVersion = await this._versioning(hasDiff, newAlgorithm);
         if (newVersion) {
+            newAlgorithm.version = newVersion;
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
         }
-        let { algorithmImage } = payload;
-        if (oldAlgorithm && !setAsCurrent) {
-            algorithmImage = oldAlgorithm.algorithmImage;
-        }
-        newAlgorithm = merge({}, newAlgorithm, { algorithmImage }, { version: newVersion });
 
-        const hasVersion = newVersion || buildId;
-        // has version, but explicitly requested to override
-        const shouldStoreOverride = (setAsCurrent && hasVersion);
-        // no build and no version
-        const shouldStoreNoVersionBuild = !hasVersion;
-        // new algorithm that is not in the store
-        const shouldStoreFirstApply = !oldAlgorithm;
-        if (shouldStoreOverride || shouldStoreNoVersionBuild || shouldStoreFirstApply) {
+        const hasVersion = !!newVersion || buildId;
+        const shouldStoreOverride = (setAsCurrent && hasVersion); // has version, but explicitly requested to override
+        const shouldStoreFirstApply = !oldAlgorithm; // new algorithm that is not in the store
+
+        if (shouldStoreOverride || shouldStoreFirstApply) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await algorithmStore.storeAlgorithm(newAlgorithm);
         }
@@ -232,18 +221,14 @@ class AlgorithmStore {
         return !isEqual(oldAlgorithm, newAlgorithm);
     }
 
-    async _createBuildFromGit(newAlgorithm, build) {
-        if (newAlgorithm.algorithmImage && !newAlgorithm.gitRepository.webUrl) {
-            throw new InvalidDataError(MESSAGES.GIT_AND_IMAGE);
+    _resolveType(payload, file) {
+        if (file) {
+            return buildTypes.CODE;
         }
-        await buildsService.createBuildFromGitRepository(build);
-    }
-
-    async _createBuildFromCode(newAlgorithm, build) {
-        if (newAlgorithm.algorithmImage) {
-            throw new InvalidDataError(MESSAGES.FILE_AND_IMAGE);
+        if (payload.gitRepository) {
+            return buildTypes.GIT;
         }
-        await buildsService.createBuildFromCode(build);
+        return buildTypes.IMAGE;
     }
 
     _validateApplyParams(newAlgorithm) {
@@ -258,16 +243,11 @@ class AlgorithmStore {
     }
 
     _mergeAlgorithm(oldAlgorithm, payload) {
-        const newAlgorithm = { ...oldAlgorithm, ...payload };
-        return newAlgorithm;
+        return { ...oldAlgorithm, ...payload };
     }
 
     async _getAlgorithm(payload) {
-        const oldAlgorithm = await stateManager.algorithms.store.get(payload);
-        if (oldAlgorithm && oldAlgorithm.type !== payload.type) {
-            throw new InvalidDataError(`algorithm type cannot be changed from "${oldAlgorithm.type}" to "${payload.type}"`);
-        }
-        return oldAlgorithm;
+        return stateManager.algorithms.store.get(payload);
     }
 
     async _versioning(hasDiff, algorithm) {

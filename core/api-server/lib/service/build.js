@@ -2,7 +2,7 @@ const { uid } = require('@hkube/uid');
 
 class Build {
     constructor(options) {
-        this.buildId = options.buildId;
+        this.buildId = this._createBuildID(options.algorithmName);
         this.imageTag = this._generateImageTag();
         this.algorithm = options.algorithm;
         this.env = options.env;
@@ -15,7 +15,7 @@ class Build {
         this.baseImage = options.baseImage;
     }
 
-    static createBuildID(algorithmName) {
+    _createBuildID(algorithmName) {
         return [algorithmName, uid({ length: 6 })].join('-');
     }
 

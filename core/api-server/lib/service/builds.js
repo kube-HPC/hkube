@@ -6,7 +6,7 @@ const fse = require('fs-extra');
 const { diff } = require('deep-diff');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
-const { buildStatuses } = require('@hkube/consts');
+const { buildStatuses, buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
 const validator = require('../validation/api-validator');
@@ -72,14 +72,14 @@ class Builds {
         await this.startBuild(build);
     }
 
-    async createBuildFromCode(build) {
+    async _createBuildFromCode(build) {
         if (build.uploadPath) {
             await storageManager.hkubeBuilds.putStream({ buildId: build.buildId, data: fse.createReadStream(build.uploadPath) });
         }
         await this.startBuild(build);
     }
 
-    async createBuildFromGitRepository(build) {
+    async _createBuildFromGitRepository(build) {
         await this.startBuild(build);
     }
 
@@ -87,33 +87,28 @@ class Builds {
         return ActiveStates.includes(state);
     }
 
-    async shouldBuild(oldAlgorithm, newAlgorithm, file) {
+    async tryToCreateBuild(oldAlgorithm, newAlgorithm, file, messagesInfo) {
         let fileInfo;
         let gitRepository;
-        let build;
-        const buildId = Build.createBuildID(newAlgorithm.name);
-        const env = this._resolveEnv(oldAlgorithm, newAlgorithm);
+        let buildId;
 
         if (file?.path) {
             fileInfo = await this._fileInfo(file);
-            validator.builds.validateAlgorithmBuild({ fileExt: fileInfo?.fileExt, env });
-            const buildPath = storageManager.hkubeBuilds.createPath({ buildId });
-            merge(fileInfo, { path: buildPath });
         }
         else if (newAlgorithm.fileInfo) {
             fileInfo = newAlgorithm.fileInfo;
         }
         else if (newAlgorithm.gitRepository) {
             gitRepository = await gitDataAdapter.getInfoAndAdapt(newAlgorithm);
+            merge(newAlgorithm, { gitRepository });
         }
-
         if (fileInfo || gitRepository) {
-            merge(newAlgorithm, { fileInfo, gitRepository });
+            validator.builds.validateAlgorithmBuild({ fileExt: fileInfo?.fileExt, env: newAlgorithm.env });
             const { messages, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm);
+            messagesInfo.push(...messages);
             if (shouldBuild) {
-                build = new Build({
-                    buildId,
-                    env,
+                const build = new Build({
+                    env: newAlgorithm.env,
                     algorithm: newAlgorithm,
                     fileExt: fileInfo?.fileExt,
                     filePath: fileInfo?.path,
@@ -123,15 +118,26 @@ class Builds {
                     type: newAlgorithm.type,
                     baseImage: newAlgorithm.baseImage
                 });
+                buildId = build.buildId;
+                if (fileInfo && !fileInfo.path) {
+                    const filePath = storageManager.hkubeBuilds.createPath({ buildId: build.buildId });
+                    build.filePath = filePath;
+                    fileInfo.path = filePath;
+                }
+                merge(newAlgorithm, { fileInfo });
+                await this._createBuildByType(newAlgorithm.type, build);
             }
-            return {
-                build,
-                messages
-            };
         }
-        return {
-            build
-        };
+        return buildId;
+    }
+
+    async _createBuildByType(type, build) {
+        if (type === buildTypes.CODE) {
+            await this._createBuildFromCode(build);
+        }
+        else if (type === buildTypes.GIT) {
+            await this._createBuildFromGitRepository(build);
+        }
     }
 
     async _fileInfo(file) {
@@ -191,23 +197,9 @@ class Builds {
 
     _formatDiff(algorithm) {
         const { fileInfo, env, baseImage, gitRepository } = algorithm;
-        const checksum = fileInfo && fileInfo.checksum;
-        const commit = gitRepository && gitRepository.commit && gitRepository.commit.id;
+        const checksum = fileInfo?.checksum;
+        const commit = gitRepository?.commit?.id;
         return { checksum, env, commit, baseImage };
-    }
-
-    _resolveEnv(oldAlgorithm, newAlgorithm) {
-        const oldEnv = oldAlgorithm && oldAlgorithm.env;
-        const newEnv = newAlgorithm.env;
-        let env;
-
-        if (newEnv) {
-            env = newEnv;
-        }
-        else if (oldEnv) {
-            env = oldEnv;
-        }
-        return env;
     }
 }
 

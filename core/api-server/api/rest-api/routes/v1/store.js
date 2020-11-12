@@ -93,19 +93,13 @@ const routes = (option) => {
         next();
     });
     router.post('/algorithms/apply', upload.single('file'), logger(), async (req, res, next) => {
-        let file;
+        const { file } = req;
         try {
             const bodyPayload = (req.body.payload) || '{}';
             const bodyOptions = (req.body.options) || '{}';
             const payload = JSON.parse(bodyPayload);
             const options = JSON.parse(bodyOptions);
-            let { type } = payload;
-            file = req.file || {};
-            if (!type) {
-                // eslint-disable-next-line no-nested-ternary
-                type = req.file ? buildTypes.CODE : (payload.gitRepository ? buildTypes.GIT : buildTypes.IMAGE);
-            }
-            const response = await algorithmStore.applyAlgorithm({ options, payload: { ...payload, type }, file: { path: file.path, name: file.originalname } });
+            const response = await algorithmStore.applyAlgorithm({ options, payload, file });
             res.json(response);
             next();
         }
