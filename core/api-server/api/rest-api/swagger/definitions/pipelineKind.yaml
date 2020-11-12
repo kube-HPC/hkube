@@ -1,0 +1,6 @@
+type: string
+default: batch
+example: batch
+enum:
+  - batch
+  - stream
