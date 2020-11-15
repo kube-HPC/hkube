@@ -1,6 +1,7 @@
 [
     {
         "name": "flow1",
+        "kind": "batch",
         "nodes": [
             {
                 "nodeName": "green",
@@ -45,6 +46,7 @@
     },
     {
         "name": "flow2",
+        "kind": "batch",
         "nodes": [
             {
                 "nodeName": "green",
@@ -88,6 +90,7 @@
     },
     {
         "name": "flow3",
+        "kind": "batch",
         "nodes": [
             {
                 "nodeName": "green",

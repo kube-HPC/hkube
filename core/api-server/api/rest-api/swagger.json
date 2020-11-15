@@ -430,6 +430,15 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "kind": {
+                    "type": "string",
+                    "default": "batch",
+                    "example": "batch",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
+                  },
                   "experimentName": {
                     "default": "main",
                     "type": "string",
@@ -12851,6 +12860,15 @@
         "minLength": 1,
         "format": "pipeline-name"
       },
+      "pipelineKind": {
+        "type": "string",
+        "default": "batch",
+        "example": "batch",
+        "enum": [
+          "batch",
+          "stream"
+        ]
+      },
       "pipelineNode": {
         "type": "object",
         "properties": {
@@ -13029,6 +13047,15 @@
             "description": "Unique identifier representing a specific pipeline",
             "minLength": 1,
             "format": "pipeline-name"
+          },
+          "kind": {
+            "type": "string",
+            "default": "batch",
+            "example": "batch",
+            "enum": [
+              "batch",
+              "stream"
+            ]
           },
           "experimentName": {
             "default": "main",
