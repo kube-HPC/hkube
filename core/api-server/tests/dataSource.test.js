@@ -9,48 +9,13 @@ const { request } = require('./utils');
 const dbConnection = require('../lib/db');
 const storage = require('@hkube/storage-manager');
 let restUrl, restPath;
-
-// a valid mongo ObjectID;
-const nonExistingId = '5f953d50dd38c8291924a0a3';
-const fileName = 'README-1.md';
-
-/** @type {(props?: { body?: { name?:string }, withFile?:boolean, uri?: string, fileNames?: string[] }) => Promise<any>} */
-const createDataSource = ({
-    body = {},
-    withFile = true,
-    fileNames = [fileName],
-    uri = restPath,
-} = {}) => {
-    const formData = {
-        ...body,
-        files: withFile ? fileNames.map(name => fse.createReadStream(`tests/mocks/${name}`)) : undefined
-    };
-    const options = {
-        uri,
-        formData
-    };
-    return request(options);
-};
-
-const uploadFile = (dataSourceId, fileNames = [], versionDescription = 'new-version') => {
-    const formData = fileNames.length > 0 ? {
-        versionDescription,
-        filesAdded: fileNames.length > 0 ? fileNames.map(fileName => fse.createReadStream(`tests/mocks/${fileName}`)) : undefined
-    } : { versionDescription };
-    const options = {
-        uri: `${restPath}/${dataSourceId}`,
-        formData
-    };
-    return request(options);
-};
-
-const fetchDataSource = (dataSourceId) => {
-    const getOptions = {
-        uri: `${restPath}/${dataSourceId}`,
-        method: 'GET'
-    };
-    return request(getOptions);
-};
+const {
+    createDataSource,
+    fetchDataSource,
+    uploadFile,
+    fileName,
+    nonExistingId
+} = require('./datasource.utils');
 
 describe('Datasource', () => {
     before(() => {
@@ -101,7 +66,7 @@ describe('Datasource', () => {
         it('should return specific datasource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
-            const { response: getResponse } = await fetchDataSource(name);
+            const { response: getResponse } = await fetchDataSource({ name });
             const { body: dataSource } = getResponse;
             expect(dataSource).to.have.property('id');
             expect(dataSource.id).to.be.string;
@@ -465,7 +430,7 @@ describe('Datasource', () => {
                 expect(file).to.have.property('size');
                 expect(file).to.have.property('type');
             });
-            const { response: fetchDataSourceResponse } = await fetchDataSource(name);
+            const { response: fetchDataSourceResponse } = await fetchDataSource({ name });
             const { body: dataSource } = fetchDataSourceResponse;
             expect(dataSource.files).to.have.lengthOf(2);
             expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
@@ -480,7 +445,7 @@ describe('Datasource', () => {
                 expect(file).to.have.property('name');
                 expect(file).to.have.property('path');
             });
-            const { response: fetchDataSourceResponse } = await fetchDataSource(name);
+            const { response: fetchDataSourceResponse } = await fetchDataSource({ name });
             const { body: dataSource } = fetchDataSourceResponse;
             expect(dataSource.files).to.have.lengthOf(3);
             expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
