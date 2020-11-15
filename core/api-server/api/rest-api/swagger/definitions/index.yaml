@@ -70,6 +70,8 @@ pipeline:
   $ref: ./pipeline.yaml
 pipelineName:
   $ref: ./pipelineName.yaml
+pipelineKind:
+  $ref: ./pipelineKind.yaml
 pipelineNode:
   $ref: ./pipelineNode.yaml
 metrics:

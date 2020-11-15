@@ -212,7 +212,7 @@ class TaskRunner extends EventEmitter {
 
         this.pipeline = pipeline;
         this._isStreaming = pipeline.kind === pipelineKind.Stream;
-        this._nodes = new NodesMap(this.pipeline);
+        this._nodes = new NodesMap(this.pipeline, { validateNodesRelations: !this._isCachedPipeline });
         this._nodes.on('node-ready', (node) => {
             this._runNode(node.nodeName, node.parentOutput, node.index);
         });
