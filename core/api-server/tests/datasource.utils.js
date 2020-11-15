@@ -24,18 +24,18 @@ const createDataSource = ({
 };
 
 /**
- * @param {string} dataSourceId
+ * @param {string} dataSourceName
  * @param {string} uri
  * @param {string[]} fileNames
  */
-const uploadFile = (dataSourceId, fileNames = [], versionDescription = 'new-version') => {
+const uploadFile = (dataSourceName, fileNames = [], versionDescription = 'new-version') => {
     const uri = `${global.testParams.restUrl}/datasource`;
     const formData = fileNames.length > 0 ? {
         versionDescription,
         filesAdded: fileNames.length > 0 ? fileNames.map(fileName => fse.createReadStream(`tests/mocks/${fileName}`)) : undefined
     } : { versionDescription };
     const options = {
-        uri: `${uri}/${dataSourceId}`,
+        uri: `${uri}/${dataSourceName}`,
         formData
     };
     return request(options);

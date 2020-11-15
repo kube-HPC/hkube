@@ -24,10 +24,28 @@ describe('Datasource', () => {
     });
     afterEach(() => sinon.restore());
     describe('/datasource/exec/raw', () => {
+        it('should throw missing file error', async () => {
+            const dataSourceName = uuid();
+            const ds = `dataSource.${dataSourceName}/${fileName}`;
+            await createDataSource({ body: { name: dataSourceName } });
+            const pipeline = {
+                name: uuid(),
+                nodes: [{
+                    nodeName: 'node1',
+                    algorithmName: 'green-alg',
+                    input: [`@${ds}/non-existing-file.txt`]
+                }]
+            }
+            const res = await request({ uri: `${restUrl}/exec/raw`, body: pipeline });
+            const { error } = res.body;
+            expect(error).to.haveOwnProperty('message');
+            expect(error.message).to.match(/not found/i);
+        });
         it('should succeed and return job id', async () => {
             const dataSourceName = uuid();
             const ds = `dataSource.${dataSourceName}/${fileName}`;
             await createDataSource({ body: { name: dataSourceName } });
+            await uploadFile(dataSourceName, [fileName], 'my testing version');
             const pipeline = {
                 name: uuid(),
                 nodes: [{
@@ -37,6 +55,7 @@ describe('Datasource', () => {
                 }]
             }
             const res = await request({ uri: `${restUrl}/exec/raw`, body: pipeline });
+            console.log(res.body);
             const response = await request({ method: 'GET', uri: `${restUrl}/exec/pipelines/${res.body.jobId}` });
             expect(response.body.dataSourceMetadata).to.have.property(ds);
         });
