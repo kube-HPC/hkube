@@ -49,8 +49,8 @@ describe('Versions/Algorithms', () => {
             const name = `my-alg-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage-21';
             const algorithmImage2 = 'test-algorithmImage-2';
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
 
             const res1 = await request(applyReq1);
             await request(applyReq2);
@@ -71,9 +71,9 @@ describe('Versions/Algorithms', () => {
             const algorithmImage2 = 'test-algorithmImage-2';
             const algorithmImage3 = 'test-algorithmImage-3';
             const name = `my-alg-${uuid()}`;
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
             const versionReq = { uri: `${restPath}/${name}`, method: 'GET' };
 
             await request(applyReq1);
@@ -203,14 +203,14 @@ describe('Versions/Algorithms', () => {
             const { created: c2, modified: m2, ...alg2 } = res2.body.algorithm;
             expect(alg1).to.eql(alg2);
         });
-        it('should succeed to setAsCurrent', async () => {
+        it('should succeed to forceUpdate', async () => {
             const name = `my-alg-${uuid()}`;
             const algorithmImage1 = 'test-algorithmImage-1';
             const algorithmImage2 = 'test-algorithmImage-2';
             const algorithmImage3 = 'test-algorithmImage-3';
-            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
-            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
-            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
+            const applyReq1 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage1 }) } };
+            const applyReq2 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage2 }) } };
+            const applyReq3 = { uri: `${restUrl}/store/algorithms/apply`, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify({ name, algorithmImage: algorithmImage3 }) } };
 
             const res1 = await request(applyReq1);
             const res2 = await request(applyReq2);

@@ -31,6 +31,7 @@
         "http-status-codes": "^1.4.0",
         "js-yaml": "^3.13.1",
         "json-refs": "^3.0.15",
+        "lodash.clonedeep": "^4.5.0",
         "lodash.isequal": "^4.5.0",
         "lodash.merge": "^4.6.2",
         "lodash.mergewith": "^4.6.2",

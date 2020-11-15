@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "1.3.37",
+    "version": "2.0.8",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -87,6 +87,15 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "kind": {
+                    "type": "string",
+                    "default": "batch",
+                    "example": "batch",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
+                  },
                   "experimentName": {
                     "type": "string",
                     "description": "experiment name",
@@ -116,6 +125,12 @@
                           "minLength": 1,
                           "maxLength": 32,
                           "format": "algorithm-name"
+                        },
+                        "pipelineName": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
                         },
                         "input": {
                           "type": "array",
@@ -167,6 +182,13 @@
                           "enum": [
                             "indexed",
                             "cartesian"
+                          ]
+                        },
+                        "stateType": {
+                          "type": "string",
+                          "enum": [
+                            "stateless",
+                            "stateful"
                           ]
                         }
                       },
@@ -292,7 +314,7 @@
                     "description": "Array of tags",
                     "items": {
                       "type": "string",
-                      "description": "Unique identifier representing a specific algorithm",
+                      "description": "Unique identifier representing a specific tag",
                       "minLength": 1,
                       "maxLength": 32
                     }
@@ -300,6 +322,21 @@
                   "rootJobId": {
                     "type": "string",
                     "description": "the root job id of the current tree"
+                  },
+                  "streaming": {
+                    "type": "object",
+                    "description": "streaming options",
+                    "properties": {
+                      "customFlow": {
+                        "type": "object",
+                        "description": "define custom streaming flow in simple syntax",
+                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                      }
+                    }
+                  },
+                  "edges": {
+                    "type": "array",
+                    "description": "edges define relation between nodes"
                   }
                 },
                 "additionalProperties": false,
@@ -487,7 +524,7 @@
                     "description": "Array of tags",
                     "items": {
                       "type": "string",
-                      "description": "Unique identifier representing a specific algorithm",
+                      "description": "Unique identifier representing a specific tag",
                       "minLength": 1,
                       "maxLength": 32
                     }
@@ -1157,6 +1194,15 @@
                       "minLength": 1,
                       "format": "pipeline-name"
                     },
+                    "kind": {
+                      "type": "string",
+                      "default": "batch",
+                      "example": "batch",
+                      "enum": [
+                        "batch",
+                        "stream"
+                      ]
+                    },
                     "experimentName": {
                       "type": "string",
                       "description": "experiment name",
@@ -1186,6 +1232,12 @@
                             "minLength": 1,
                             "maxLength": 32,
                             "format": "algorithm-name"
+                          },
+                          "pipelineName": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific pipeline",
+                            "minLength": 1,
+                            "format": "pipeline-name"
                           },
                           "input": {
                             "type": "array",
@@ -1237,6 +1289,13 @@
                             "enum": [
                               "indexed",
                               "cartesian"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "enum": [
+                              "stateless",
+                              "stateful"
                             ]
                           }
                         },
@@ -1362,7 +1421,7 @@
                       "description": "Array of tags",
                       "items": {
                         "type": "string",
-                        "description": "Unique identifier representing a specific algorithm",
+                        "description": "Unique identifier representing a specific tag",
                         "minLength": 1,
                         "maxLength": 32
                       }
@@ -1370,6 +1429,21 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "streaming": {
+                      "type": "object",
+                      "description": "streaming options",
+                      "properties": {
+                        "customFlow": {
+                          "type": "object",
+                          "description": "define custom streaming flow in simple syntax",
+                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        }
+                      }
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "edges define relation between nodes"
                     }
                   },
                   "additionalProperties": false,
@@ -1462,6 +1536,15 @@
                       "minLength": 1,
                       "format": "pipeline-name"
                     },
+                    "kind": {
+                      "type": "string",
+                      "default": "batch",
+                      "example": "batch",
+                      "enum": [
+                        "batch",
+                        "stream"
+                      ]
+                    },
                     "experimentName": {
                       "type": "string",
                       "description": "experiment name",
@@ -1491,6 +1574,12 @@
                             "minLength": 1,
                             "maxLength": 32,
                             "format": "algorithm-name"
+                          },
+                          "pipelineName": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific pipeline",
+                            "minLength": 1,
+                            "format": "pipeline-name"
                           },
                           "input": {
                             "type": "array",
@@ -1542,6 +1631,13 @@
                             "enum": [
                               "indexed",
                               "cartesian"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "enum": [
+                              "stateless",
+                              "stateful"
                             ]
                           }
                         },
@@ -1667,7 +1763,7 @@
                       "description": "Array of tags",
                       "items": {
                         "type": "string",
-                        "description": "Unique identifier representing a specific algorithm",
+                        "description": "Unique identifier representing a specific tag",
                         "minLength": 1,
                         "maxLength": 32
                       }
@@ -1675,6 +1771,21 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "streaming": {
+                      "type": "object",
+                      "description": "streaming options",
+                      "properties": {
+                        "customFlow": {
+                          "type": "object",
+                          "description": "define custom streaming flow in simple syntax",
+                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        }
+                      }
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "edges define relation between nodes"
                     }
                   },
                   "additionalProperties": false,
@@ -3199,6 +3310,11 @@
                       },
                       "default": {}
                     },
+                    "version": {
+                      "type": "string",
+                      "description": "Hkube's auto increment semantic versioning",
+                      "readOnly": true
+                    },
                     "mounts": {
                       "type": "array",
                       "description": "a list of volumes to mount into the algorithm",
@@ -3288,14 +3404,16 @@
                       "type": "string",
                       "description": "Custom docker image to be used as base to the newly built algorithm image"
                     },
-                    "version": {
-                      "type": "string"
-                    },
                     "minHotWorkers": {
                       "type": "integer",
                       "description": "how many live algorithm instances will always run",
                       "minimum": 0,
                       "default": 0
+                    },
+                    "quotaGuarantee": {
+                      "type": "integer",
+                      "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                      "minimum": 0
                     },
                     "algorithmEnv": {
                       "type": "object",
@@ -3789,6 +3907,11 @@
                         },
                         "default": {}
                       },
+                      "version": {
+                        "type": "string",
+                        "description": "Hkube's auto increment semantic versioning",
+                        "readOnly": true
+                      },
                       "mounts": {
                         "type": "array",
                         "description": "a list of volumes to mount into the algorithm",
@@ -3878,14 +4001,16 @@
                         "type": "string",
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
-                      "version": {
-                        "type": "string"
-                      },
                       "minHotWorkers": {
                         "type": "integer",
                         "description": "how many live algorithm instances will always run",
                         "minimum": 0,
                         "default": 0
+                      },
+                      "quotaGuarantee": {
+                        "type": "integer",
+                        "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                        "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
@@ -4026,6 +4151,11 @@
                     },
                     "default": {}
                   },
+                  "version": {
+                    "type": "string",
+                    "description": "Hkube's auto increment semantic versioning",
+                    "readOnly": true
+                  },
                   "mounts": {
                     "type": "array",
                     "description": "a list of volumes to mount into the algorithm",
@@ -4115,14 +4245,16 @@
                     "type": "string",
                     "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
-                  "version": {
-                    "type": "string"
-                  },
                   "minHotWorkers": {
                     "type": "integer",
                     "description": "how many live algorithm instances will always run",
                     "minimum": 0,
                     "default": 0
+                  },
+                  "quotaGuarantee": {
+                    "type": "integer",
+                    "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                    "minimum": 0
                   },
                   "algorithmEnv": {
                     "type": "object",
@@ -4318,6 +4450,11 @@
                     },
                     "default": {}
                   },
+                  "version": {
+                    "type": "string",
+                    "description": "Hkube's auto increment semantic versioning",
+                    "readOnly": true
+                  },
                   "mounts": {
                     "type": "array",
                     "description": "a list of volumes to mount into the algorithm",
@@ -4407,14 +4544,16 @@
                     "type": "string",
                     "description": "Custom docker image to be used as base to the newly built algorithm image"
                   },
-                  "version": {
-                    "type": "string"
-                  },
                   "minHotWorkers": {
                     "type": "integer",
                     "description": "how many live algorithm instances will always run",
                     "minimum": 0,
                     "default": 0
+                  },
+                  "quotaGuarantee": {
+                    "type": "integer",
+                    "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                    "minimum": 0
                   },
                   "algorithmEnv": {
                     "type": "object",
@@ -4596,6 +4735,11 @@
                         },
                         "default": {}
                       },
+                      "version": {
+                        "type": "string",
+                        "description": "Hkube's auto increment semantic versioning",
+                        "readOnly": true
+                      },
                       "mounts": {
                         "type": "array",
                         "description": "a list of volumes to mount into the algorithm",
@@ -4685,14 +4829,16 @@
                         "type": "string",
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
-                      "version": {
-                        "type": "string"
-                      },
                       "minHotWorkers": {
                         "type": "integer",
                         "description": "how many live algorithm instances will always run",
                         "minimum": 0,
                         "default": 0
+                      },
+                      "quotaGuarantee": {
+                        "type": "integer",
+                        "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                        "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
@@ -4731,9 +4877,9 @@
                   "options": {
                     "type": "object",
                     "properties": {
-                      "overrideImage": {
+                      "setAsCurrent": {
                         "type": "boolean",
-                        "description": "should replace the current image with this image",
+                        "description": "should set the newly created version as current",
                         "default": false
                       }
                     }
@@ -4833,6 +4979,11 @@
                           },
                           "default": {}
                         },
+                        "version": {
+                          "type": "string",
+                          "description": "Hkube's auto increment semantic versioning",
+                          "readOnly": true
+                        },
                         "mounts": {
                           "type": "array",
                           "description": "a list of volumes to mount into the algorithm",
@@ -4922,14 +5073,16 @@
                           "type": "string",
                           "description": "Custom docker image to be used as base to the newly built algorithm image"
                         },
-                        "version": {
-                          "type": "string"
-                        },
                         "minHotWorkers": {
                           "type": "integer",
                           "description": "how many live algorithm instances will always run",
                           "minimum": 0,
                           "default": 0
+                        },
+                        "quotaGuarantee": {
+                          "type": "integer",
+                          "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                          "minimum": 0
                         },
                         "algorithmEnv": {
                           "type": "object",
@@ -5049,6 +5202,15 @@
                       "minLength": 1,
                       "format": "pipeline-name"
                     },
+                    "kind": {
+                      "type": "string",
+                      "default": "batch",
+                      "example": "batch",
+                      "enum": [
+                        "batch",
+                        "stream"
+                      ]
+                    },
                     "experimentName": {
                       "type": "string",
                       "description": "experiment name",
@@ -5078,6 +5240,12 @@
                             "minLength": 1,
                             "maxLength": 32,
                             "format": "algorithm-name"
+                          },
+                          "pipelineName": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific pipeline",
+                            "minLength": 1,
+                            "format": "pipeline-name"
                           },
                           "input": {
                             "type": "array",
@@ -5129,6 +5297,13 @@
                             "enum": [
                               "indexed",
                               "cartesian"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "enum": [
+                              "stateless",
+                              "stateful"
                             ]
                           }
                         },
@@ -5254,7 +5429,7 @@
                       "description": "Array of tags",
                       "items": {
                         "type": "string",
-                        "description": "Unique identifier representing a specific algorithm",
+                        "description": "Unique identifier representing a specific tag",
                         "minLength": 1,
                         "maxLength": 32
                       }
@@ -5262,6 +5437,21 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "streaming": {
+                      "type": "object",
+                      "description": "streaming options",
+                      "properties": {
+                        "customFlow": {
+                          "type": "object",
+                          "description": "define custom streaming flow in simple syntax",
+                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        }
+                      }
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "edges define relation between nodes"
                     }
                   },
                   "additionalProperties": false,
@@ -5457,6 +5647,15 @@
                         "minLength": 1,
                         "format": "pipeline-name"
                       },
+                      "kind": {
+                        "type": "string",
+                        "default": "batch",
+                        "example": "batch",
+                        "enum": [
+                          "batch",
+                          "stream"
+                        ]
+                      },
                       "experimentName": {
                         "type": "string",
                         "description": "experiment name",
@@ -5486,6 +5685,12 @@
                               "minLength": 1,
                               "maxLength": 32,
                               "format": "algorithm-name"
+                            },
+                            "pipelineName": {
+                              "type": "string",
+                              "description": "Unique identifier representing a specific pipeline",
+                              "minLength": 1,
+                              "format": "pipeline-name"
                             },
                             "input": {
                               "type": "array",
@@ -5537,6 +5742,13 @@
                               "enum": [
                                 "indexed",
                                 "cartesian"
+                              ]
+                            },
+                            "stateType": {
+                              "type": "string",
+                              "enum": [
+                                "stateless",
+                                "stateful"
                               ]
                             }
                           },
@@ -5662,7 +5874,7 @@
                         "description": "Array of tags",
                         "items": {
                           "type": "string",
-                          "description": "Unique identifier representing a specific algorithm",
+                          "description": "Unique identifier representing a specific tag",
                           "minLength": 1,
                           "maxLength": 32
                         }
@@ -5670,6 +5882,21 @@
                       "rootJobId": {
                         "type": "string",
                         "description": "the root job id of the current tree"
+                      },
+                      "streaming": {
+                        "type": "object",
+                        "description": "streaming options",
+                        "properties": {
+                          "customFlow": {
+                            "type": "object",
+                            "description": "define custom streaming flow in simple syntax",
+                            "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                          }
+                        }
+                      },
+                      "edges": {
+                        "type": "array",
+                        "description": "edges define relation between nodes"
                       }
                     },
                     "additionalProperties": false,
@@ -5721,6 +5948,15 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "kind": {
+                    "type": "string",
+                    "default": "batch",
+                    "example": "batch",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
+                  },
                   "experimentName": {
                     "type": "string",
                     "description": "experiment name",
@@ -5750,6 +5986,12 @@
                           "minLength": 1,
                           "maxLength": 32,
                           "format": "algorithm-name"
+                        },
+                        "pipelineName": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
                         },
                         "input": {
                           "type": "array",
@@ -5801,6 +6043,13 @@
                           "enum": [
                             "indexed",
                             "cartesian"
+                          ]
+                        },
+                        "stateType": {
+                          "type": "string",
+                          "enum": [
+                            "stateless",
+                            "stateful"
                           ]
                         }
                       },
@@ -5926,7 +6175,7 @@
                     "description": "Array of tags",
                     "items": {
                       "type": "string",
-                      "description": "Unique identifier representing a specific algorithm",
+                      "description": "Unique identifier representing a specific tag",
                       "minLength": 1,
                       "maxLength": 32
                     }
@@ -5934,6 +6183,21 @@
                   "rootJobId": {
                     "type": "string",
                     "description": "the root job id of the current tree"
+                  },
+                  "streaming": {
+                    "type": "object",
+                    "description": "streaming options",
+                    "properties": {
+                      "customFlow": {
+                        "type": "object",
+                        "description": "define custom streaming flow in simple syntax",
+                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                      }
+                    }
+                  },
+                  "edges": {
+                    "type": "array",
+                    "description": "edges define relation between nodes"
                   }
                 },
                 "additionalProperties": false,
@@ -5960,6 +6224,15 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "default": "batch",
+                      "example": "batch",
+                      "enum": [
+                        "batch",
+                        "stream"
+                      ]
                     },
                     "experimentName": {
                       "type": "string",
@@ -5990,6 +6263,12 @@
                             "minLength": 1,
                             "maxLength": 32,
                             "format": "algorithm-name"
+                          },
+                          "pipelineName": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific pipeline",
+                            "minLength": 1,
+                            "format": "pipeline-name"
                           },
                           "input": {
                             "type": "array",
@@ -6041,6 +6320,13 @@
                             "enum": [
                               "indexed",
                               "cartesian"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "enum": [
+                              "stateless",
+                              "stateful"
                             ]
                           }
                         },
@@ -6166,7 +6452,7 @@
                       "description": "Array of tags",
                       "items": {
                         "type": "string",
-                        "description": "Unique identifier representing a specific algorithm",
+                        "description": "Unique identifier representing a specific tag",
                         "minLength": 1,
                         "maxLength": 32
                       }
@@ -6174,6 +6460,21 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "streaming": {
+                      "type": "object",
+                      "description": "streaming options",
+                      "properties": {
+                        "customFlow": {
+                          "type": "object",
+                          "description": "define custom streaming flow in simple syntax",
+                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        }
+                      }
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "edges define relation between nodes"
                     }
                   },
                   "additionalProperties": false,
@@ -6262,6 +6563,15 @@
                     "minLength": 1,
                     "format": "pipeline-name"
                   },
+                  "kind": {
+                    "type": "string",
+                    "default": "batch",
+                    "example": "batch",
+                    "enum": [
+                      "batch",
+                      "stream"
+                    ]
+                  },
                   "experimentName": {
                     "type": "string",
                     "description": "experiment name",
@@ -6291,6 +6601,12 @@
                           "minLength": 1,
                           "maxLength": 32,
                           "format": "algorithm-name"
+                        },
+                        "pipelineName": {
+                          "type": "string",
+                          "description": "Unique identifier representing a specific pipeline",
+                          "minLength": 1,
+                          "format": "pipeline-name"
                         },
                         "input": {
                           "type": "array",
@@ -6342,6 +6658,13 @@
                           "enum": [
                             "indexed",
                             "cartesian"
+                          ]
+                        },
+                        "stateType": {
+                          "type": "string",
+                          "enum": [
+                            "stateless",
+                            "stateful"
                           ]
                         }
                       },
@@ -6467,7 +6790,7 @@
                     "description": "Array of tags",
                     "items": {
                       "type": "string",
-                      "description": "Unique identifier representing a specific algorithm",
+                      "description": "Unique identifier representing a specific tag",
                       "minLength": 1,
                       "maxLength": 32
                     }
@@ -6475,6 +6798,21 @@
                   "rootJobId": {
                     "type": "string",
                     "description": "the root job id of the current tree"
+                  },
+                  "streaming": {
+                    "type": "object",
+                    "description": "streaming options",
+                    "properties": {
+                      "customFlow": {
+                        "type": "object",
+                        "description": "define custom streaming flow in simple syntax",
+                        "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                      }
+                    }
+                  },
+                  "edges": {
+                    "type": "array",
+                    "description": "edges define relation between nodes"
                   }
                 },
                 "additionalProperties": false,
@@ -6501,6 +6839,15 @@
                       "description": "Unique identifier representing a specific pipeline",
                       "minLength": 1,
                       "format": "pipeline-name"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "default": "batch",
+                      "example": "batch",
+                      "enum": [
+                        "batch",
+                        "stream"
+                      ]
                     },
                     "experimentName": {
                       "type": "string",
@@ -6531,6 +6878,12 @@
                             "minLength": 1,
                             "maxLength": 32,
                             "format": "algorithm-name"
+                          },
+                          "pipelineName": {
+                            "type": "string",
+                            "description": "Unique identifier representing a specific pipeline",
+                            "minLength": 1,
+                            "format": "pipeline-name"
                           },
                           "input": {
                             "type": "array",
@@ -6582,6 +6935,13 @@
                             "enum": [
                               "indexed",
                               "cartesian"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "enum": [
+                              "stateless",
+                              "stateful"
                             ]
                           }
                         },
@@ -6707,7 +7067,7 @@
                       "description": "Array of tags",
                       "items": {
                         "type": "string",
-                        "description": "Unique identifier representing a specific algorithm",
+                        "description": "Unique identifier representing a specific tag",
                         "minLength": 1,
                         "maxLength": 32
                       }
@@ -6715,6 +7075,21 @@
                     "rootJobId": {
                       "type": "string",
                       "description": "the root job id of the current tree"
+                    },
+                    "streaming": {
+                      "type": "object",
+                      "description": "streaming options",
+                      "properties": {
+                        "customFlow": {
+                          "type": "object",
+                          "description": "define custom streaming flow in simple syntax",
+                          "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+                        }
+                      }
+                    },
+                    "edges": {
+                      "type": "array",
+                      "description": "edges define relation between nodes"
                     }
                   },
                   "additionalProperties": false,
@@ -8770,7 +9145,7 @@
         "tags": [
           "Versions"
         ],
-        "summary": "Get algorithm specific version",
+        "summary": "Get algorithm versions",
         "description": "returns list of algorithm versions.",
         "parameters": [
           {
@@ -8784,14 +9159,6 @@
               "minLength": 1,
               "maxLength": 32,
               "format": "algorithm-name"
-            }
-          },
-          {
-            "name": "image",
-            "in": "query",
-            "description": "algorithm image",
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -8897,6 +9264,11 @@
                         },
                         "default": {}
                       },
+                      "version": {
+                        "type": "string",
+                        "description": "Hkube's auto increment semantic versioning",
+                        "readOnly": true
+                      },
                       "mounts": {
                         "type": "array",
                         "description": "a list of volumes to mount into the algorithm",
@@ -8986,14 +9358,328 @@
                         "type": "string",
                         "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
+                      "minHotWorkers": {
+                        "type": "integer",
+                        "description": "how many live algorithm instances will always run",
+                        "minimum": 0,
+                        "default": 0
+                      },
+                      "quotaGuarantee": {
+                        "type": "integer",
+                        "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                        "minimum": 0
+                      },
+                      "algorithmEnv": {
+                        "type": "object",
+                        "description": "key value environment variables for algorithm"
+                      },
+                      "workerEnv": {
+                        "type": "object",
+                        "description": "key value environment variables for worker"
+                      },
+                      "nodeSelector": {
+                        "type": "object",
+                        "description": "key value labels for nodes constraint",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "type of algorithm code resource",
+                        "enum": [
+                          "Git",
+                          "Code",
+                          "Image"
+                        ],
+                        "default": "Image"
+                      },
+                      "downloadFileExt": {
+                        "type": "string",
+                        "description": "the extension name that will be attached to a file when downloading algorithm result"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "algorithm Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions/algorithms/{name}/{version}": {
+      "get": {
+        "tags": [
+          "Versions"
+        ],
+        "summary": "Get version",
+        "description": "returns algorithm version",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "algorithm name",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Unique identifier representing a specific algorithm",
+              "minLength": 1,
+              "maxLength": 32,
+              "format": "algorithm-name"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "description": "algorithm version",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Unique identifier representing a specific algorithm",
+                        "minLength": 1,
+                        "maxLength": 32,
+                        "format": "algorithm-name"
+                      },
+                      "env": {
+                        "type": "string",
+                        "enum": [
+                          "nodejs",
+                          "python",
+                          "java"
+                        ]
+                      },
+                      "algorithmImage": {
+                        "type": "string",
+                        "description": "image name as in the docker registry",
+                        "format": "algorithm-image"
+                      },
+                      "cpu": {
+                        "type": "number",
+                        "default": 0.1,
+                        "minimum": 0,
+                        "description": "algorithm cpu"
+                      },
+                      "gpu": {
+                        "type": "number",
+                        "minimum": 0,
+                        "description": "algorithm gpu"
+                      },
+                      "mem": {
+                        "type": "string",
+                        "description": "algorithm memory",
+                        "format": "algorithm-memory",
+                        "default": "256Mi",
+                        "example": "512Mi"
+                      },
+                      "reservedMemory": {
+                        "type": "string",
+                        "description": "Reserved memory for HKube's operations such as in-memory cache, higher value means faster data retrieval and less algorithm memory, lower value means slower data retrieval and more algorithm memory",
+                        "format": "memory",
+                        "example": "512Mi"
+                      },
+                      "options": {
+                        "type": "object",
+                        "properties": {
+                          "debug": {
+                            "type": "boolean",
+                            "description": "debug algorithm locally",
+                            "default": false
+                          },
+                          "devMode": {
+                            "type": "boolean",
+                            "description": "runs algorithm with mounted sources to allow rapid development cycles"
+                          },
+                          "pending": {
+                            "type": "boolean",
+                            "description": "pending algorithm",
+                            "default": false
+                          },
+                          "opengl": {
+                            "type": "boolean",
+                            "description": "should algorithm support XGL context creation (mount X socket)"
+                          }
+                        },
+                        "default": {}
+                      },
                       "version": {
+                        "type": "string",
+                        "description": "Hkube's auto increment semantic versioning",
+                        "readOnly": true
+                      },
+                      "mounts": {
+                        "type": "array",
+                        "description": "a list of volumes to mount into the algorithm",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "pvcName": {
+                              "type": "string",
+                              "format": "algorithm-mount-pvc",
+                              "minLength": 1,
+                              "description": "name of an existing kubernetes pvc (persistent volume claim)"
+                            },
+                            "path": {
+                              "type": "string",
+                              "format": "path",
+                              "minLength": 1,
+                              "description": "the mount path in the algorithm container"
+                            }
+                          },
+                          "required": [
+                            "pvcName",
+                            "path"
+                          ]
+                        },
+                        "uniqueItems": true,
+                        "example": []
+                      },
+                      "gitRepository": {
+                        "type": "object",
+                        "properties": {
+                          "url": {
+                            "type": "string",
+                            "description": "a url for the git repository",
+                            "format": "url"
+                          },
+                          "commit": {
+                            "type": "object",
+                            "description": "commit details",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "commit id"
+                              },
+                              "timestamp": {
+                                "type": "string",
+                                "description": "commit time"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "commit message"
+                              }
+                            },
+                            "required": [
+                              "id"
+                            ]
+                          },
+                          "branchName": {
+                            "type": "string",
+                            "default": "master",
+                            "description": "the branch name you wish to create a build from"
+                          },
+                          "tag": {
+                            "type": "string",
+                            "description": "a specific tag which will trigger the build"
+                          },
+                          "token": {
+                            "type": "string",
+                            "description": "a token which allows hkube's build system to access private repositories more information https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"
+                          },
+                          "gitKind": {
+                            "type": "string",
+                            "enum": [
+                              "github",
+                              "gitlab"
+                            ],
+                            "default": "github"
+                          }
+                        },
+                        "required": [
+                          "url"
+                        ]
+                      },
+                      "entryPoint": {
                         "type": "string"
+                      },
+                      "baseImage": {
+                        "type": "string",
+                        "description": "Custom docker image to be used as base to the newly built algorithm image"
                       },
                       "minHotWorkers": {
                         "type": "integer",
                         "description": "how many live algorithm instances will always run",
                         "minimum": 0,
                         "default": 0
+                      },
+                      "quotaGuarantee": {
+                        "type": "integer",
+                        "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                        "minimum": 0
                       },
                       "algorithmEnv": {
                         "type": "object",
@@ -9096,7 +9782,7 @@
         "tags": [
           "Versions"
         ],
-        "summary": "Delete algorithm specific version",
+        "summary": "Delete version",
         "description": "Delete existing algorithm version.",
         "parameters": [
           {
@@ -9113,9 +9799,10 @@
             }
           },
           {
-            "name": "image",
-            "in": "query",
-            "description": "algorithm image",
+            "name": "version",
+            "in": "path",
+            "description": "algorithm version",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -9203,7 +9890,7 @@
           "Versions"
         ],
         "summary": "Apply algorithm version",
-        "description": "Apply algorithm version will change the current algorithm image",
+        "description": "Change the current algorithm version",
         "requestBody": {
           "content": {
             "application/json": {
@@ -9217,10 +9904,11 @@
                     "maxLength": 32,
                     "format": "algorithm-name"
                   },
-                  "image": {
+                  "version": {
                     "type": "string",
-                    "description": "image name as in the docker registry",
-                    "format": "algorithm-image"
+                    "description": "Unique identifier representing version id",
+                    "minLength": 1,
+                    "maxLength": 10
                   },
                   "force": {
                     "type": "boolean",
@@ -9230,7 +9918,135 @@
                 },
                 "required": [
                   "name",
-                  "image"
+                  "version"
+                ]
+              }
+            }
+          },
+          "description": "an object representing all information needed for stored pipeline execution",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "the OK string",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "jobId Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/versions/algorithms/tag": {
+      "post": {
+        "tags": [
+          "Versions"
+        ],
+        "summary": "Tag algorithm version",
+        "description": "Tag algorithm version with pinned and tags",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Unique identifier representing a specific algorithm",
+                    "minLength": 1,
+                    "maxLength": 32,
+                    "format": "algorithm-name"
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "Unique identifier representing version id",
+                    "minLength": 1,
+                    "maxLength": 10
+                  },
+                  "pinned": {
+                    "type": "boolean",
+                    "description": "Should set the version as pinned",
+                    "default": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "description": "Array of tags",
+                    "items": {
+                      "type": "string",
+                      "description": "Unique identifier representing a specific tag",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "version"
                 ]
               }
             }
@@ -10885,6 +11701,53 @@
           }
         }
       }
+    },
+    "/status/version": {
+      "get": {
+        "tags": [
+          "Status"
+        ],
+        "summary": "Get system status",
+        "description": "Get system status such as version and health",
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -10959,6 +11822,11 @@
               }
             },
             "default": {}
+          },
+          "version": {
+            "type": "string",
+            "description": "Hkube's auto increment semantic versioning",
+            "readOnly": true
           },
           "mounts": {
             "type": "array",
@@ -11049,14 +11917,16 @@
             "type": "string",
             "description": "Custom docker image to be used as base to the newly built algorithm image"
           },
-          "version": {
-            "type": "string"
-          },
           "minHotWorkers": {
             "type": "integer",
             "description": "how many live algorithm instances will always run",
             "minimum": 0,
             "default": 0
+          },
+          "quotaGuarantee": {
+            "type": "integer",
+            "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+            "minimum": 0
           },
           "algorithmEnv": {
             "type": "object",
@@ -11155,7 +12025,13 @@
           "gz"
         ]
       },
-      "algorithmVersion": {
+      "algorithmVersionId": {
+        "type": "string",
+        "description": "Unique identifier representing version id",
+        "minLength": 1,
+        "maxLength": 10
+      },
+      "applyAlgorithmVersion": {
         "type": "object",
         "properties": {
           "name": {
@@ -11165,10 +12041,11 @@
             "maxLength": 32,
             "format": "algorithm-name"
           },
-          "image": {
+          "version": {
             "type": "string",
-            "description": "image name as in the docker registry",
-            "format": "algorithm-image"
+            "description": "Unique identifier representing version id",
+            "minLength": 1,
+            "maxLength": 10
           },
           "force": {
             "type": "boolean",
@@ -11178,15 +12055,52 @@
         },
         "required": [
           "name",
-          "image"
+          "version"
+        ]
+      },
+      "algorithmVersionTag": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier representing a specific algorithm",
+            "minLength": 1,
+            "maxLength": 32,
+            "format": "algorithm-name"
+          },
+          "version": {
+            "type": "string",
+            "description": "Unique identifier representing version id",
+            "minLength": 1,
+            "maxLength": 10
+          },
+          "pinned": {
+            "type": "boolean",
+            "description": "Should set the version as pinned",
+            "default": false
+          },
+          "tags": {
+            "type": "array",
+            "description": "Array of tags",
+            "items": {
+              "type": "string",
+              "description": "Unique identifier representing a specific tag",
+              "minLength": 1,
+              "maxLength": 32
+            }
+          }
+        },
+        "required": [
+          "name",
+          "version"
         ]
       },
       "algorithmApplyOptions": {
         "type": "object",
         "properties": {
-          "overrideImage": {
+          "setAsCurrent": {
             "type": "boolean",
-            "description": "should replace the current image with this image",
+            "description": "should set the newly created version as current",
             "default": false
           }
         }
@@ -11268,6 +12182,11 @@
                   }
                 },
                 "default": {}
+              },
+              "version": {
+                "type": "string",
+                "description": "Hkube's auto increment semantic versioning",
+                "readOnly": true
               },
               "mounts": {
                 "type": "array",
@@ -11358,14 +12277,16 @@
                 "type": "string",
                 "description": "Custom docker image to be used as base to the newly built algorithm image"
               },
-              "version": {
-                "type": "string"
-              },
               "minHotWorkers": {
                 "type": "integer",
                 "description": "how many live algorithm instances will always run",
                 "minimum": 0,
                 "default": 0
+              },
+              "quotaGuarantee": {
+                "type": "integer",
+                "description": "The amount of algorithms required to be scheduled first in a case of cluster pressure",
+                "minimum": 0
               },
               "algorithmEnv": {
                 "type": "object",
@@ -11666,6 +12587,15 @@
             "minLength": 1,
             "format": "pipeline-name"
           },
+          "kind": {
+            "type": "string",
+            "default": "batch",
+            "example": "batch",
+            "enum": [
+              "batch",
+              "stream"
+            ]
+          },
           "experimentName": {
             "type": "string",
             "description": "experiment name",
@@ -11695,6 +12625,12 @@
                   "minLength": 1,
                   "maxLength": 32,
                   "format": "algorithm-name"
+                },
+                "pipelineName": {
+                  "type": "string",
+                  "description": "Unique identifier representing a specific pipeline",
+                  "minLength": 1,
+                  "format": "pipeline-name"
                 },
                 "input": {
                   "type": "array",
@@ -11746,6 +12682,13 @@
                   "enum": [
                     "indexed",
                     "cartesian"
+                  ]
+                },
+                "stateType": {
+                  "type": "string",
+                  "enum": [
+                    "stateless",
+                    "stateful"
                   ]
                 }
               },
@@ -11871,7 +12814,7 @@
             "description": "Array of tags",
             "items": {
               "type": "string",
-              "description": "Unique identifier representing a specific algorithm",
+              "description": "Unique identifier representing a specific tag",
               "minLength": 1,
               "maxLength": 32
             }
@@ -11879,6 +12822,21 @@
           "rootJobId": {
             "type": "string",
             "description": "the root job id of the current tree"
+          },
+          "streaming": {
+            "type": "object",
+            "description": "streaming options",
+            "properties": {
+              "customFlow": {
+                "type": "object",
+                "description": "define custom streaming flow in simple syntax",
+                "example": "node A stream to B and C, node B stream to D will be like \"A >> B&C , B >> D\""
+              }
+            }
+          },
+          "edges": {
+            "type": "array",
+            "description": "edges define relation between nodes"
           }
         },
         "additionalProperties": false,
@@ -11907,6 +12865,12 @@
             "minLength": 1,
             "maxLength": 32,
             "format": "algorithm-name"
+          },
+          "pipelineName": {
+            "type": "string",
+            "description": "Unique identifier representing a specific pipeline",
+            "minLength": 1,
+            "format": "pipeline-name"
           },
           "input": {
             "type": "array",
@@ -11958,6 +12922,13 @@
             "enum": [
               "indexed",
               "cartesian"
+            ]
+          },
+          "stateType": {
+            "type": "string",
+            "enum": [
+              "stateless",
+              "stateful"
             ]
           }
         },
@@ -12153,7 +13124,7 @@
             "description": "Array of tags",
             "items": {
               "type": "string",
-              "description": "Unique identifier representing a specific algorithm",
+              "description": "Unique identifier representing a specific tag",
               "minLength": 1,
               "maxLength": 32
             }
@@ -12291,7 +13262,7 @@
       },
       "tag": {
         "type": "string",
-        "description": "Unique identifier representing a specific algorithm",
+        "description": "Unique identifier representing a specific tag",
         "minLength": 1,
         "maxLength": 32
       },
@@ -12325,23 +13296,6 @@
               "gz"
             ]
           },
-          "env": {
-            "type": "string",
-            "enum": [
-              "nodejs",
-              "python",
-              "java"
-            ]
-          }
-        },
-        "required": [
-          "fileExt",
-          "env"
-        ]
-      },
-      "algorithmBuildGit": {
-        "type": "object",
-        "properties": {
           "env": {
             "type": "string",
             "enum": [

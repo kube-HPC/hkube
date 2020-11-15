@@ -1,5 +1,6 @@
 const merge = require('lodash.merge');
 const isEqual = require('lodash.isequal');
+const cloneDeep = require('lodash.clonedeep');
 const format = require('string-template');
 const storageManager = require('@hkube/storage-manager');
 const { buildTypes, buildStatuses } = require('@hkube/consts');
@@ -16,6 +17,7 @@ const { MESSAGES } = require('../consts/builds');
 class AlgorithmStore {
     init(config) {
         this._debugUrl = config.debugUrl.path;
+        this._apiServerUrl = config.apiServer.url;
 
         stateManager.algorithms.builds.on('change', async (build) => {
             if (build.status !== buildStatuses.COMPLETED) {
@@ -168,7 +170,7 @@ class AlgorithmStore {
      */
     async applyAlgorithm(data) {
         const messages = [];
-        const { setAsCurrent } = data.options || {};
+        const { forceUpdate, forceBuild } = data.options || {};
         const { version, created, modified, ...payload } = data.payload;
         const file = { path: data.file?.path, name: data.file?.originalname };
 
@@ -187,7 +189,7 @@ class AlgorithmStore {
 
         await this._validateAlgorithm(newAlgorithm);
         const hasDiff = this._compareAlgorithms(newAlgorithm, oldAlgorithm);
-        const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, messages);
+        const buildId = await buildsService.tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages);
 
         this._validateApplyParams(newAlgorithm);
         if (!newAlgorithm.algorithmImage && buildId && !oldAlgorithm) {
@@ -204,14 +206,18 @@ class AlgorithmStore {
         }
 
         const hasVersion = !!newVersion || buildId;
-        const shouldStoreOverride = (setAsCurrent && hasVersion); // has version, but explicitly requested to override
+        const shouldStoreOverride = (forceUpdate && hasVersion); // has version, but explicitly requested to override
         const shouldStoreFirstApply = !oldAlgorithm; // new algorithm that is not in the store
 
         if (shouldStoreOverride || shouldStoreFirstApply) {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await algorithmStore.storeAlgorithm(newAlgorithm);
         }
-        return { buildId, messages, algorithm: newAlgorithm };
+        let buildStatusLink;
+        if (buildId) {
+            buildStatusLink = format(MESSAGES.BUILD_STATUS_LINK, { apiServer: this._apiServerUrl, buildId });
+        }
+        return { buildId, buildStatusLink, messages, algorithm: newAlgorithm };
     }
 
     _compareAlgorithms(oldAlgorithm, newAlgorithm) {
@@ -243,7 +249,8 @@ class AlgorithmStore {
     }
 
     _mergeAlgorithm(oldAlgorithm, payload) {
-        return { ...oldAlgorithm, ...payload };
+        const old = cloneDeep(oldAlgorithm);
+        return { ...old, ...payload };
     }
 
     async _getAlgorithm(payload) {

@@ -6,6 +6,7 @@ const fse = require('fs-extra');
 const { diff } = require('deep-diff');
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
+const Logger = require('@hkube/logger');
 const { buildStatuses, buildTypes } = require('@hkube/consts');
 const storageManager = require('@hkube/storage-manager');
 const stateManager = require('../state/state-manager');
@@ -14,10 +15,16 @@ const Build = require('./build');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
 const { MESSAGES } = require('../consts/builds');
 const gitDataAdapter = require('./githooks/git-data-adapter');
+const component = require('../consts/componentNames').BUILDS_SERVICE;
 const ActiveStates = [buildStatuses.PENDING, buildStatuses.CREATING, buildStatuses.ACTIVE];
 const minimumBytes = 4100;
+let log;
 
 class Builds {
+    async init() {
+        log = Logger.GetLogFromContainer();
+    }
+
     async getBuild(options) {
         validator.builds.validateBuildId(options);
         const response = await stateManager.algorithms.builds.get(options);
@@ -87,13 +94,14 @@ class Builds {
         return ActiveStates.includes(state);
     }
 
-    async tryToCreateBuild(oldAlgorithm, newAlgorithm, file, messagesInfo) {
+    async tryToCreateBuild(oldAlgorithm, newAlgorithm, file, forceBuild, messages) {
         let fileInfo;
         let gitRepository;
         let buildId;
 
         if (file?.path) {
             fileInfo = await this._fileInfo(file);
+            merge(newAlgorithm, { fileInfo });
         }
         else if (newAlgorithm.fileInfo) {
             fileInfo = newAlgorithm.fileInfo;
@@ -104,12 +112,12 @@ class Builds {
         }
         if (fileInfo || gitRepository) {
             validator.builds.validateAlgorithmBuild({ fileExt: fileInfo?.fileExt, env: newAlgorithm.env });
-            const { messages, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm);
-            messagesInfo.push(...messages);
-            if (shouldBuild) {
+            const { message, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm);
+            log.info(message, { component });
+            messages.push(message);
+            if (shouldBuild || forceBuild) {
                 const build = new Build({
                     env: newAlgorithm.env,
-                    algorithm: newAlgorithm,
                     fileExt: fileInfo?.fileExt,
                     filePath: fileInfo?.path,
                     uploadPath: file?.path,
@@ -123,8 +131,9 @@ class Builds {
                     const filePath = storageManager.hkubeBuilds.createPath({ buildId: build.buildId });
                     build.filePath = filePath;
                     fileInfo.path = filePath;
+                    merge(newAlgorithm, { fileInfo });
                 }
-                merge(newAlgorithm, { fileInfo });
+                build.algorithm = newAlgorithm;
                 await this._createBuildByType(newAlgorithm.type, build);
             }
         }
@@ -174,10 +183,10 @@ class Builds {
 
     _shouldBuild(oldAlgorithm, newAlgorithm) {
         let shouldBuild = false;
-        const messages = [];
+        let message;
         if (!oldAlgorithm) {
             shouldBuild = true;
-            messages.push(MESSAGES.FIRST_BUILD);
+            message = MESSAGES.FIRST_BUILD;
         }
         else {
             const oldAlg = this._formatDiff(oldAlgorithm);
@@ -185,14 +194,14 @@ class Builds {
             const differences = diff(oldAlg, newAlg);
             if (differences) {
                 const triggers = differences.map(d => `${d.path.join('.')}`).join(',');
-                messages.push(format(MESSAGES.TRIGGER_BUILD, { triggers }));
+                message = format(MESSAGES.TRIGGER_BUILD, { triggers });
                 shouldBuild = true;
             }
             else {
-                messages.push(MESSAGES.NO_TRIGGER_FOR_BUILD);
+                message = MESSAGES.NO_TRIGGER_FOR_BUILD;
             }
         }
-        return { messages, shouldBuild };
+        return { message, shouldBuild };
     }
 
     _formatDiff(algorithm) {

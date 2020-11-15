@@ -1089,17 +1089,38 @@ describe('Store/Algorithms', () => {
                     uri,
                     formData: formData2
                 };
-                // insert algorithm
                 await request(options);
-
-
                 await request(options1)
-
 
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.have.property('buildId');
                 expect(response.body.messages[0]).to.contains('a build was triggered due to change in env');
+            });
+            it('should succeed to apply algorithm with buildId due to change in checksum', async () => {
+                const body1 = {
+                    name: `my-alg-${uuid()}`,
+                    env: 'python'
+                }
+                const body2 = {
+                    ...body1
+                }
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2),
+                    file: fse.createReadStream('tests/mocks/algorithm.zip')
+                };
+                const uri = applyPath;
+                const options1 = { uri, formData: formData1 };
+                const options2 = { uri, formData: formData2 };
+                const response1 = await request(options1);
+                const response2 = await request(options2)
+                expect(response1.body).to.have.property('buildId');
+                expect(response2.body).to.have.property('buildId');
+                expect(response2.body.messages[0]).to.contains('a build was triggered due to change in checksum');
             });
             it('should succeed to apply with build due to change in baseImage', async () => {
                 const body1 = {
@@ -1312,7 +1333,7 @@ describe('Store/Algorithms', () => {
                 }
                 const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
                 await request(request1)
                 await request(request2);
@@ -1341,7 +1362,7 @@ describe('Store/Algorithms', () => {
                 }
                 const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: false }), payload: JSON.stringify(apply2) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: false }), payload: JSON.stringify(apply2) } };
 
                 await request(request1)
                 await request(request2);
@@ -1354,7 +1375,7 @@ describe('Store/Algorithms', () => {
                 const { version, created, modified, ...algorithm } = response3.body;
                 expect(algorithm).to.eql({ ...defaultProps, ...apply1 });
             });
-            it('should apply changes to current when algorithmImage changes with setAsCurrent', async () => {
+            it('should apply changes to current when algorithmImage changes with forceUpdate', async () => {
                 const apply1 = {
                     name: `my-alg-${uuid()}`,
                     algorithmImage: 'test-algorithmImage',
@@ -1370,7 +1391,7 @@ describe('Store/Algorithms', () => {
                 }
                 const uri = applyPath;
                 const request1 = { uri, formData: { payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
                 await request(request1)
                 await request(request2);
@@ -1397,8 +1418,8 @@ describe('Store/Algorithms', () => {
                     cpu: 2
                 }
                 const uri = applyPath;
-                const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
+                const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
 
                 await request(request1)
@@ -1460,8 +1481,8 @@ describe('Store/Algorithms', () => {
                     mem: "1.5Gi"
                 }
                 const uri = applyPath;
-                const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
+                const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
                 await request(request1)
                 await request(request2);
@@ -1492,8 +1513,8 @@ describe('Store/Algorithms', () => {
                     minHotWorkers: 3
                 }
                 const uri = applyPath;
-                const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
+                const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
                 await request(request1)
                 await request(request2);
@@ -1529,8 +1550,8 @@ describe('Store/Algorithms', () => {
                     }
                 }
                 const uri = applyPath;
-                const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
+                const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
                 await request(request1)
                 await request(request2);
@@ -1559,8 +1580,8 @@ describe('Store/Algorithms', () => {
                     }
                 }
                 const uri = applyPath;
-                const request1 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply1) } };
-                const request2 = { uri, formData: { options: JSON.stringify({ setAsCurrent: true }), payload: JSON.stringify(apply2) } };
+                const request1 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply1) } };
+                const request2 = { uri, formData: { options: JSON.stringify({ forceUpdate: true }), payload: JSON.stringify(apply2) } };
 
                 await request(request1)
                 await request(request2);
