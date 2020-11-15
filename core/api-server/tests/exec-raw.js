@@ -632,6 +632,49 @@ describe('Executions', () => {
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
             expect(res.body.error.message).to.equal("streaming custom flow is only allowed in stream pipeline");
         });
+        it('should succeed to execute with customStream edge type', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: "stream",
+                    nodes: [
+                        {
+                            "nodeName": "A",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateful"
+                        },
+                        {
+                            "nodeName": "B",
+                            "algorithmName": "green-alg",
+                            "input": ["@A"],
+                            "stateType": "stateless"
+                        },
+                        {
+                            "nodeName": "C",
+                            "algorithmName": "green-alg",
+                            "input": ["@C"],
+                            "stateType": "stateless"
+                        }
+                    ],
+                    streaming: {
+                        customFlow: {
+                            "analyze": "A >> B >> C"
+                        }
+                    }
+                }
+            };
+            const re = await request(options);
+            const optionsGET = { uri: `${restUrl}/exec/pipelines/${re.body.jobId}`, method: 'GET' };
+            const res = await request(optionsGET);
+            const customFlow = Object.keys(res.body.streaming.customFlow);
+            const parsedFlow = Object.keys(res.body.streaming.parsedFlow);
+            expect(res.body.edges).to.have.lengthOf(2);
+            expect(customFlow).to.eql(parsedFlow);
+            expect(res.body.edges[0].types[0]).to.eql('customStream');
+            expect(res.body.edges[1].types[0]).to.eql('customStream');
+        });
         it('should succeed to execute with custom flow', async () => {
             const options = {
                 uri: restPath,

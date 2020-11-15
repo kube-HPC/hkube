@@ -1,5 +1,6 @@
 const EventEmitter = require('events');
 const { NodesMap: DAG } = require('@hkube/dag');
+const { consts } = require('@hkube/parsers');
 const stateAdapter = require('../../states/stateAdapter');
 const Election = require('./election');
 const AdaptersProxy = require('../adapters/adapters-proxy');
@@ -45,15 +46,22 @@ class StreamService extends EventEmitter {
         const data = { config: this._options.autoScaler, pipeline, jobData, jobId };
         const nodes = childs.map((c) => {
             const nodeMap = nodesMap[c];
+            const streamChilds = this._streamChilds(dag, c.nodeName);
             const node = {
                 ...data,
-                nodeName: c,
+                nodeName: c.nodeName,
                 source: nodeName,
-                node: { ...nodeMap, parents: dag._parents(c), childs: dag._childs(c) }
+                node: { ...nodeMap, parents: dag._parents(c.nodeName), childs: streamChilds }
             };
             return node;
         });
         return nodes;
+    }
+
+    _streamChilds(dag, nodeName) {
+        const child = dag._childs(nodeName);
+        const streamChilds = child.map(c => ({ nodeName: c, isMainFlow: dag.getEdgeTypes(nodeName, c).includes(consts.relations.INPUT) }));
+        return streamChilds;
     }
 
     async finish() {
@@ -62,10 +70,10 @@ class StreamService extends EventEmitter {
         }
         this._active = false;
         this._jobData = null;
-        this._scalerService.stop();
-        this._throughput.stop();
-        await this._election.stop();
-        await this._adapters.stop();
+        this._scalerService?.stop();
+        this._throughput?.stop();
+        await this._election?.stop();
+        await this._adapters?.stop();
         this._scalerService = null;
         this._throughput = null;
         this._election = null;

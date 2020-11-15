@@ -111,11 +111,11 @@ const createJob = (jobId) => {
         jobId,
         kind: 'stream',
         taskId: uid(),
-        nodeName: 'C',
+        nodeName: 'A',
         algorithmName: 'my-alg',
         pipelineName: 'my-pipe',
         parents: [],
-        childs: ['D'],
+        childs: ['A'],
     };
     return job;
 };
@@ -131,7 +131,7 @@ const checkThroughput = () => {
     return streamService._throughput._checkThroughput();
 }
 
-describe('Streaming', () => {
+describe.only('Streaming', () => {
     before(async () => {
         await stateAdapter._etcd.executions.running.set({ ...pipeline, jobId });
         await streamHandler.start(job);
