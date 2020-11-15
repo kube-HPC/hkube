@@ -1,11 +1,9 @@
 const storage = require('@hkube/storage-manager');
 const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
-const semverLib = require('semver');
 const { connection: db } = require('../db');
 const { ResourceExistsError, ResourceNotFoundError } = require('../errors');
 const validator = require('../validation/api-validator');
-const { resetHistory } = require('sinon');
 
 /**
  *  @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
@@ -14,17 +12,6 @@ const { resetHistory } = require('sinon');
  *  @typedef {import('@hkube/storage-manager/lib/storage/storage-base').EntryWithMetaData} EntryWithMetaData
  *  @typedef {{name?: string; id?: string;}} NameOrId
  * */
-
-const SETTINGS = {
-    SEMVER: {
-        FIRST: '1.0.0',
-        MAX_PATCH: 500,
-        MAX_MINOR: 500,
-        MAX_MAJOR: 500,
-        MAX_LOCK_ATTEMPTS: 5
-    },
-    VERSION_LENGTH: 10
-};
 
 class DataSource {
     /**
@@ -111,6 +98,11 @@ class DataSource {
         const dataSource = await this.fetchDataSourceMetaData({ name });
         const files = await this.listWithStats({ name });
         return { ...dataSource, files };
+    }
+
+    /** @type {(query: {names?: string[], ids?:string[]}) => Promise<DataSourceItem[]>} */
+    async fetchDataSources({ names, ids }) {
+        return db.dataSources.fetchMany({ names, ids });
     }
 
     /** @type {(query: {dataSourceName: string, fileName: string}) => Promise<string>} */
