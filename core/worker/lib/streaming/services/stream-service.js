@@ -45,7 +45,7 @@ class StreamService extends EventEmitter {
         }, {});
         const data = { config: this._options.autoScaler, pipeline, jobData, jobId };
         const nodes = childs.map((c) => {
-            const nodeMap = nodesMap[c];
+            const nodeMap = nodesMap[c.nodeName];
             const streamChilds = this._streamChilds(dag, c.nodeName);
             const node = {
                 ...data,
