@@ -1,0 +1,19 @@
+get:
+  tags:
+    - Status
+  summary: Get system status
+  description: Get system status such as version and health
+  responses:
+    "200":
+      description: action summery
+      content:
+        application/json:
+          schema:
+            items:
+              $ref: "#/components/schemas/defaultResponse"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"

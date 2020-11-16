@@ -11710,6 +11710,53 @@
           }
         }
       }
+    },
+    "/status/version": {
+      "get": {
+        "tags": [
+          "Status"
+        ],
+        "summary": "Get system status",
+        "description": "Get system status such as version and health",
+        "responses": {
+          "200": {
+            "description": "action summery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -13276,23 +13323,6 @@
               "gz"
             ]
           },
-          "env": {
-            "type": "string",
-            "enum": [
-              "nodejs",
-              "python",
-              "java"
-            ]
-          }
-        },
-        "required": [
-          "fileExt",
-          "env"
-        ]
-      },
-      "algorithmBuildGit": {
-        "type": "object",
-        "properties": {
           "env": {
             "type": "string",
             "enum": [

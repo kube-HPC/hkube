@@ -3,8 +3,13 @@ const stateManager = require('../state/state-manager');
 
 class AlgorithmStore {
     async storeAlgorithm(options) {
-        await storageManager.hkubeStore.put({ type: 'algorithm', name: options.name, data: options });
-        await stateManager.algorithms.store.set(options);
+        const algorithm = options;
+        if (!algorithm.created) {
+            algorithm.created = Date.now();
+        }
+        algorithm.modified = Date.now();
+        await storageManager.hkubeStore.put({ type: 'algorithm', name: algorithm.name, data: algorithm });
+        await stateManager.algorithms.store.set(algorithm);
     }
 }
 

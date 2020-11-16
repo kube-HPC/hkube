@@ -141,3 +141,7 @@
   $ref: ./storage/download.yaml
 /storage/download/pipeline/result/{jobId}:
   $ref: ./storage/download_pipeline.yaml
+
+# status
+/status/version:
+  $ref: ./status/version.yaml

@@ -93,9 +93,9 @@ const _writeStreamToFile = ({ readStream, src }) => {
     });
 };
 
-const _writeStream = async ({ buildId, src }) => {
+const _writeStream = async ({ buildId, filePath, src }) => {
     log.info(`getStream -> ${buildId}`, { component });
-    const readStream = await storageManager.hkubeBuilds.getStream({ buildId });
+    const readStream = await storageManager.getStream({ path: filePath });
     log.info(`writeStreamToFile -> ${buildId} - ${src}`, { component });
     await _writeStreamToFile({ readStream, src });
 };
@@ -174,8 +174,8 @@ const _watchBuild = async ({ buildId }) => {
     return build;
 };
 
-const _downloadFile = async ({ buildId, src, dest, fileExt, overwrite }) => {
-    await _writeStream({ buildId, src });
+const _downloadFile = async ({ buildId, filePath, src, dest, fileExt, overwrite }) => {
+    await _writeStream({ buildId, filePath, src });
     await _extractFile({ src, dest, fileExt, overwrite });
     await fse.remove(src);
 };
@@ -475,7 +475,7 @@ const runBuild = async (options) => {
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });
 
         const overwrite = true;
-        const { env, imageTag, fileExt, baseImage, type, gitRepository } = build;
+        const { env, imageTag, fileExt, filePath, baseImage, type, gitRepository } = build;
         const { docker, buildDirs, tmpFolder, packagesRepo } = options;
         buildMode = options.buildMode;
         algorithmName = build.algorithmName;
@@ -491,7 +491,7 @@ const runBuild = async (options) => {
             await _downloadFromGit({ dest, gitRepository });
         }
         else {
-            await _downloadFile({ buildId, src, dest, fileExt, overwrite });
+            await _downloadFile({ buildId, filePath, src, dest, fileExt, overwrite });
         }
         await _prepareBuild({ buildPath, env, dest, overwrite });
         await _setBuildStatus({ buildId, progress, status: STATES.ACTIVE });

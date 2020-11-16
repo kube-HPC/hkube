@@ -4,6 +4,7 @@ const formatter = require(process.cwd() + '/lib/utils/formatters');
 
 const config = {};
 config.serviceName = packageJson.name;
+config.systemVersion = process.env.HKUBE_SYSTEM_VERSION;
 
 const secured = !!process.env.API_SERVER_SSL;
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
