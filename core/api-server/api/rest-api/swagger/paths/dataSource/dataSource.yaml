@@ -1,7 +1,7 @@
 get:
   tags:
     - DataSource
-  summary: Fetch all dataSources
+  summary: Fetch all dataSources meta data
   responses:
     "200":
       description: A collection of dataSources
@@ -10,7 +10,7 @@ get:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/dataSource"
+              $ref: "#/components/schemas/dataSourceMeta"
 post:
   tags:
     - DataSource

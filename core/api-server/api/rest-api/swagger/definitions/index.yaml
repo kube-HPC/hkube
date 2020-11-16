@@ -50,6 +50,8 @@ dataSourceFiles:
   $ref: ./dataSourceFiles.yaml
 dataSourceFileMeta:
   $ref: ./dataSourceFileMeta.yaml
+dataSourceMeta:
+  $ref: ./dataSourceMeta.yaml
 defaultResponse:
   $ref: ./defaultResponse.yaml
 defaultResponseWithName:
