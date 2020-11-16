@@ -1,6 +1,6 @@
 const mergeWith = require('lodash.mergewith');
 const { NodesMap: DAG } = require('@hkube/dag');
-const { parser } = require('@hkube/parsers');
+const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
@@ -101,7 +101,6 @@ class PipelineCreator {
      *           analyze: [{ source: "A", next: ["B", "C"]}
      *                     { source: "C", next: ["D"]}]
      *        }}
-     * ------------------------------------------
      *
      */
     async buildStreamingCustomFlow(pipeline) {
@@ -129,6 +128,9 @@ class PipelineCreator {
                 parts.forEach((p, i) => {
                     const source = p;
                     const target = parts[i + 1];
+                    if (target?.length === 0) {
+                        throw new InvalidDataError(`invalid node name after ${source}`);
+                    }
                     const sources = source.split(SEPARATORS.AND);
                     const targets = target?.split(SEPARATORS.AND);
                     sources.forEach((s) => {
@@ -136,14 +138,13 @@ class PipelineCreator {
                         if (!node) {
                             throw new InvalidDataError(`invalid node ${s} in custom flow ${k}`);
                         }
-                        node.isCustomFlow = true;
                         if (targets?.length > 0) {
                             const next = [];
                             targets.forEach((t) => {
                                 next.push(t);
                                 const edge = edges.find(d => d.source === s && d.target === t);
                                 if (!edge) {
-                                    edges.push({ source: s, target: t });
+                                    edges.push({ source: s, target: t, types: [consts.relations.CUSTOM_STREAM] });
                                 }
                             });
                             flow.push({ source: s, next });
