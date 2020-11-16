@@ -1,7 +1,7 @@
 sudo: required
 language: node_js
 node_js:
-  - '14'
+  - "14"
 services:
   - docker
   - redis-server
@@ -19,7 +19,7 @@ install:
   - npm install -g snyk
   - snyk test || true
 script:
-  - npm run lint && npm run test:cov
+  - npm run test:cov
 after_script: "npm run coverage"
 after_success:
   - |

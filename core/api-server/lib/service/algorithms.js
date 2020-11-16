@@ -17,7 +17,6 @@ const { MESSAGES } = require('../consts/builds');
 class AlgorithmStore {
     init(config) {
         this._debugUrl = config.debugUrl.path;
-        this._apiServerUrl = config.apiServer.url;
 
         stateManager.algorithms.builds.on('change', async (build) => {
             if (build.status !== buildStatuses.COMPLETED) {
@@ -213,11 +212,7 @@ class AlgorithmStore {
             messages.push(format(MESSAGES.ALGORITHM_PUSHED, { algorithmName: newAlgorithm.name }));
             await algorithmStore.storeAlgorithm(newAlgorithm);
         }
-        let buildStatusLink;
-        if (buildId) {
-            buildStatusLink = format(MESSAGES.BUILD_STATUS_LINK, { apiServer: this._apiServerUrl, buildId });
-        }
-        return { buildId, buildStatusLink, messages, algorithm: newAlgorithm };
+        return { buildId, messages, algorithm: newAlgorithm };
     }
 
     _compareAlgorithms(oldAlgorithm, newAlgorithm) {

@@ -27,10 +27,6 @@ config.rest = {
     }
 };
 
-config.apiServer = {
-    url: process.env.HKUBE_BASE_URL
-};
-
 config.cachingServer = {
     protocol: 'http',
     host: process.env.CACHING_SERVICE_SERVICE_HOST || 'localhost',
