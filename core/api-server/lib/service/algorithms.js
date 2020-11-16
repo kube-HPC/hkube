@@ -198,7 +198,7 @@ class AlgorithmStore {
             newAlgorithm.data = { ...newAlgorithm.data, path: `${this._debugUrl}/${newAlgorithm.name}` };
         }
 
-        const newVersion = await this._versioning(hasDiff, newAlgorithm);
+        const newVersion = await this._versioning(hasDiff, newAlgorithm, buildId);
         if (newVersion) {
             newAlgorithm.version = newVersion;
             messages.push(format(MESSAGES.VERSION_CREATED, { algorithmName: newAlgorithm.name }));
@@ -252,9 +252,9 @@ class AlgorithmStore {
         return stateManager.algorithms.store.get(payload);
     }
 
-    async _versioning(hasDiff, algorithm) {
+    async _versioning(hasDiff, algorithm, buildId) {
         let version;
-        if (hasDiff && algorithm.algorithmImage) {
+        if (hasDiff && algorithm.algorithmImage && !buildId) {
             version = await versionsService.createVersion(algorithm);
         }
         return version;
