@@ -112,10 +112,10 @@ class Builds {
         }
         if (fileInfo || gitRepository) {
             validator.builds.validateAlgorithmBuild({ fileExt: fileInfo?.fileExt, env: newAlgorithm.env });
-            const { message, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm);
+            const { message, shouldBuild } = this._shouldBuild(oldAlgorithm, newAlgorithm, forceBuild);
             log.info(message, { component });
             messages.push(message);
-            if (shouldBuild || forceBuild) {
+            if (shouldBuild) {
                 const build = new Build({
                     env: newAlgorithm.env,
                     fileExt: fileInfo?.fileExt,
@@ -181,10 +181,14 @@ class Builds {
         });
     }
 
-    _shouldBuild(oldAlgorithm, newAlgorithm) {
+    _shouldBuild(oldAlgorithm, newAlgorithm, forceBuild) {
         let shouldBuild = false;
         let message;
-        if (!oldAlgorithm) {
+        if (forceBuild) {
+            shouldBuild = true;
+            message = MESSAGES.FORCE_BUILD;
+        }
+        else if (!oldAlgorithm) {
             shouldBuild = true;
             message = MESSAGES.FIRST_BUILD;
         }

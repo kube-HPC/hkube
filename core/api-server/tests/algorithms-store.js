@@ -965,7 +965,6 @@ describe('Store/Algorithms', () => {
                 const body1 = {
                     ...body,
                     env: 'nodejs',
-                    type: 'Code'
                 }
                 const body2 = {
                     ...body,
@@ -989,11 +988,7 @@ describe('Store/Algorithms', () => {
                     uri,
                     formData: formData2
                 };
-
-
                 await request(options1)
-
-
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
@@ -1007,7 +1002,6 @@ describe('Store/Algorithms', () => {
                 }
                 const body1 = {
                     ...body,
-                    type: 'Code',
                     env: 'nodejs',
                     entryPoint: 'main.py',
                     cpu: 1
@@ -1034,11 +1028,7 @@ describe('Store/Algorithms', () => {
                     uri: applyPath,
                     formData: formData2
                 };
-
-
                 const res1 = await request(options1)
-
-
                 const res2 = await request(options2);
                 const optionsGet = {
                     uri: `${restPath}/${body.name}`,
@@ -1187,14 +1177,35 @@ describe('Store/Algorithms', () => {
                     uri,
                     formData: formData2
                 };
-
-
                 await request(options1)
-
-
                 const response = await request(options2);
                 expect(response.response.statusCode).to.equal(HttpStatus.OK);
                 expect(response.body).to.not.have.property('buildId');
+            });
+            it('should succeed to apply algorithm with force build', async () => {
+                const body1 = {
+                    name: `my-alg-${uuid()}`,
+                    env: 'nodejs',
+                }
+                const body2 = {
+                    ...body1
+                }
+                const formData1 = {
+                    payload: JSON.stringify(body1),
+                    file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
+                };
+                const formData2 = {
+                    payload: JSON.stringify(body2),
+                    options: JSON.stringify({ forceBuild: true })
+                };
+                const options1 = { uri: applyPath, formData: formData1 };
+                const options2 = { uri: applyPath, formData: formData2 };
+                const res1 = await request(options1)
+                const res2 = await request(options2);
+                expect(res1.body).to.have.property('buildId');
+                expect(res2.body).to.have.property('buildId');
+                expect(res1.body.messages[0]).to.eql(MESSAGES.FIRST_BUILD);
+                expect(res2.body.messages[0]).to.eql(MESSAGES.FORCE_BUILD);
             });
             it('should succeed to watch completed build', async function () {
                 const algorithmName = `my-alg-${uuid()}`;
