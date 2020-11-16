@@ -5,5 +5,4 @@ properties:
   env:
     $ref: "#/components/schemas/algorithmEnv"
 required:
-  - fileExt
   - env
