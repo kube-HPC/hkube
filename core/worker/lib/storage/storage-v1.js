@@ -14,7 +14,7 @@ class Storage {
         try {
             const { jobId, taskId, input, flatInput, useCache, storage, startSpan } = options;
             const tracerStart = startSpan || this._startSpanBound(tracer.startSpan, tracing.getTracer({ name: 'storage-get', jobId, taskId }));
-            const newInput = await dataAdapter.getData({ input, flatInput, useCache, storage, tracerStart });
+            const newInput = await dataAdapter.getData({ input, flatInput, useCache, storage, tracerStart, jobId });
             return { data: { ...options, input: newInput, flatInput: null } };
         }
         catch (error) {
