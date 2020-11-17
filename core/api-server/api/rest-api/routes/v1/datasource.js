@@ -18,8 +18,8 @@ const errorsMiddleware = (error, req, res, next) => {
     return next(error);
 };
 
-const cleanTmpFile = async file => {
-    file && await fse.remove(file.path);
+const cleanTmpFile = async (files = []) => {
+    files.length > 0 && await Promise.all(files.map(file => fse.remove(file.path)));
 };
 
 const routes = () => {
@@ -38,7 +38,7 @@ const routes = () => {
                 res.status(HttpStatus.CREATED).json(response);
             }
             finally {
-                await cleanTmpFile(req.file);
+                await cleanTmpFile(req.files);
             }
             next();
         });

@@ -23,9 +23,26 @@ class DataSource {
      */
     async updateDataSource({ name, filesAdded, filesDropped, versionDescription }) {
         validator.dataSource.validateUploadFile({ filesAdded, versionDescription, filesDropped });
-        await db.dataSources.updateVersion({ name, versionDescription });
-        const filesAddedMeta = await this.uploadFiles({ dataSourceName: name, files: filesAdded });
-        const updatedDataSource = await db.dataSources.uploadFiles({ name, filesAdded: filesAddedMeta, filesDropped });
+        const createdVersion = await db.dataSources.updateVersion({ name, versionDescription });
+        let updatedDataSource;
+        try {
+            const filesAddedMeta = await this.uploadFiles({
+                dataSourceName: name,
+                files: filesAdded
+            });
+            updatedDataSource = await db.dataSources.uploadFiles({
+                name,
+                filesAdded: filesAddedMeta,
+                filesDropped
+            });
+        }
+        catch (error) {
+            await Promise.allSettled([
+                db.dataSources.delete({ id: createdVersion.id }),
+                storage.hkubeDataSource.deleteFiles(filesAdded)
+            ]);
+            throw error;
+        }
         return updatedDataSource;
     }
 
@@ -52,24 +69,28 @@ class DataSource {
       */
     async createDataSource({ name, files }) {
         validator.dataSource.validateCreate({ name, files });
-        let createdDataSource = null;
+        let filesMeta;
         try {
-            createdDataSource = await db.dataSources.create({ name });
+            await db.dataSources.create({ name });
         }
         catch (error) {
             if (error.type === errorTypes.CONFLICT) {
                 throw new ResourceExistsError('dataSource', name);
             }
         }
+        let updatedDataSource;
         try {
-            await this.uploadFiles({ dataSourceName: name, files });
+            filesMeta = await this.uploadFiles({ dataSourceName: name, files });
+            updatedDataSource = await db.dataSources.uploadFiles({ name, filesAdded: filesMeta });
         }
         catch (error) {
-            await db.dataSources.delete({ name }, { allowNotFound: true }); // rollback
-            // delete all the files
+            await Promise.allSettled([
+                db.dataSources.delete({ name }),
+                storage.hkubeDataSource.deleteFiles(filesMeta)
+            ]);
             throw error;
         }
-        return createdDataSource;
+        return updatedDataSource;
     }
 
     /**
@@ -130,3 +151,4 @@ class DataSource {
 }
 
 module.exports = new DataSource();
+

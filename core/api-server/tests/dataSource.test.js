@@ -167,122 +167,6 @@ describe('Datasource', () => {
             expect(response.body.error.code).to.equal(HttpStatus.NOT_FOUND);
             expect(response.body.error.message).to.equal(`dataSource ${nonExistingId} Not Found`);
         });
-        it.skip('should return status 400 if invalid id was provided', async () => {
-            const dataSourceId = 'non-12-bytes-string-of-hex-characters';
-            const options = {
-                uri: `${restPath}/${dataSourceId}`,
-                method: 'DELETE'
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal(`you provided an invalid id ${dataSourceId}`);
-        });
-        it.skip('should throw error on related data', async () => {
-            const algorithmName = `delete-${uuid()}`;
-            const algorithm = {
-                uri: restPath,
-                body: {
-                    name: algorithmName,
-                    algorithmImage: "image"
-                }
-            };
-            const store = {
-                uri: `${restUrl}/store/pipelines`,
-                body: {
-                    name: `delete-${uuid()}`,
-                    nodes: [
-                        {
-                            nodeName: 'green',
-                            algorithmName,
-                            input: []
-                        }
-
-                    ]
-                }
-            };
-            const exec = {
-                uri: `${restUrl}/exec/stored`,
-                body: {
-                    name: store.body.name
-                }
-            };
-
-            const resAlg = await request(algorithm);
-            await request(store);
-            await request(exec);
-            await stateManager.algorithms.versions.set(resAlg.body);
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-1`, algorithmName });
-            await stateManager.algorithms.builds.set({ buildId: `${algorithmName}-2`, algorithmName });
-
-            const optionsDelete = {
-                uri: `${restPath}/${algorithmName}?force=false`,
-                method: 'DELETE'
-            };
-            const response = await request(optionsDelete);
-            expect(response.body).to.have.property('error');
-            expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.contain('you must first delete all related data');
-        });
-        it.skip('should delete datasource with related data with force', async () => {
-            const algorithmName = `my-alg-${uuid()}`;
-            const algorithmImage = `${algorithmName}-image`;
-            const formData = {
-                payload: JSON.stringify({ name: algorithmName, env: 'nodejs' }),
-                file: fse.createReadStream('tests/mocks/algorithm.tar.gz')
-            };
-            const resApply = await request({ uri: `${restPath}/apply`, formData });
-            const storePipeline = {
-                uri: `${restUrl}/store/pipelines`,
-                body: {
-                    name: `delete-${uuid()}`,
-                    nodes: [
-                        {
-                            nodeName: 'green',
-                            algorithmName,
-                            input: []
-                        }
-
-                    ]
-                }
-            };
-            const execPipeline = {
-                uri: `${restUrl}/exec/stored`,
-                body: {
-                    name: storePipeline.body.name
-                }
-            };
-
-            await request(storePipeline);
-            await request(execPipeline);
-            await stateManager.algorithms.versions.set({ ...resApply.body.algorithm, algorithmImage });
-
-            const optionsDelete = {
-                uri: `${restPath}/${algorithmName}?force=true`,
-                method: 'DELETE'
-            };
-            const response = await request(optionsDelete);
-            expect(response.body).to.have.property('message');
-            expect(response.body.message).to.contain('related data deleted');
-        });
-        it.skip('should delete specific datasource without related data', async () => {
-            const optionsInsert = {
-                uri: restPath,
-                body: {
-                    name: 'delete',
-                    algorithmImage: 'image'
-                }
-            };
-            await request(optionsInsert);
-
-            const options = {
-                uri: restPath + '/delete?force=true',
-                method: 'DELETE'
-            };
-            const response = await request(options);
-            expect(response.body).to.have.property('message');
-            expect(response.body.message).to.contain('successfully deleted from store');
-        });
     });
     describe('/datasource GET', () => {
         it('should success to get list of dataSources', async () => {
@@ -303,6 +187,20 @@ describe('Datasource', () => {
             });
             const fetchedNames = response.body.map(item => item.name);
             names.forEach(name => expect(fetchedNames).to.contain(name));
+        });
+        it('should return only unique file types', async () => {
+            const name = uuid();
+            await createDataSource({ body: { name } });
+            const fileNames = ['README-2.md', 'algorithms.json'];
+            await uploadFile(name, fileNames);
+            const options = {
+                uri: restPath,
+                method: 'GET'
+            };
+            const { body } = await request(options);
+            const ds = body.find(item => item.name === name);
+            const { fileTypes } = ds;
+            expect(fileTypes).to.have.lengthOf([...new Set(fileTypes)].length);
         });
     });
     describe('/datasource POST', () => {
@@ -374,23 +272,16 @@ describe('Datasource', () => {
             });
         });
         describe('create', () => {
-            it("should create a new dataSource and return it's newly created id", async () => {
+            it("should create a new dataSource and return it's newly created id and files list", async () => {
                 const name = uuid();
                 const { response } = await createDataSource({ body: { name } });
                 expect(response.statusCode).to.eql(HttpStatus.CREATED);
                 expect(response.body).to.have.property('id');
                 expect(response.body).to.have.property('name');
+                expect(response.body).to.have.property('files');
                 expect(response.body.id).to.be.string;
                 expect(response.body.name).to.eq(name);
-            });
-            it("should create a new dataSource and return it's newly created id", async () => {
-                const name = uuid();
-                const { response } = await createDataSource({ body: { name } });
-                expect(response.statusCode).to.eql(HttpStatus.CREATED);
-                expect(response.body).to.have.property('id');
-                expect(response.body).to.have.property('name');
-                expect(response.body.id).to.be.string;
-                expect(response.body.name).to.eq(name);
+                expect(response.body.files).to.have.lengthOf(1);
             });
             it('should throw conflict error', async () => {
                 const name = uuid();
@@ -402,17 +293,15 @@ describe('Datasource', () => {
                 expect(secondResponse.body.error.message).to.contain('already exists');
             });
             it('should roll back the creating of the dataSource on errors', async () => {
-                const deleteDataSourceSpy = sinon.stub(dbConnection.connection.dataSources, "delete");
                 sinon.stub(storage.hkubeDataSource, "putStream").rejects('i should reject');
                 const name = uuid();
                 const { response } = await createDataSource({ body: { name } });
                 expect(response.statusCode).to.eql(HttpStatus.INTERNAL_SERVER_ERROR);
-                const spyCalls = deleteDataSourceSpy.getCalls();
-                expect(spyCalls).to.have.length(1);
-                const [deleteCall] = spyCalls;
-                expect(deleteCall.firstArg).to.be.string;
-                expect(deleteCall.lastArg).to.eql({ allowNotFound: true });
-            }); describe('/datasource/:name PUT', () => {
+                sinon.restore();
+                const { body: fetchResponse } = await fetchDataSource({ name });
+                expect(fetchResponse.error.code).to.eql(HttpStatus.NOT_FOUND);
+            });
+            describe('/datasource/:name PUT', () => {
             });
         });
     });
@@ -442,7 +331,7 @@ describe('Datasource', () => {
             expect(firstVersion.id).not.to.eq(updatedVersion.id);
             expect(firstVersion.name).to.eq(updatedVersion.name);
             const { files } = updatedVersion;
-            expect(files).to.have.lengthOf(1);
+            expect(files).to.have.lengthOf(2);
             files.forEach(file => {
                 expect(file).to.have.property('name');
                 expect(file).to.have.property('path');
