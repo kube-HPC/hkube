@@ -45,13 +45,13 @@ class StreamService extends EventEmitter {
         }, {});
         const data = { config: this._options.autoScaler, pipeline, jobData, jobId };
         const nodes = childs.map((c) => {
-            const nodeMap = nodesMap[c.nodeName];
-            const streamChilds = this._streamChilds(dag, c.nodeName);
+            const nodeMap = nodesMap[c];
+            // const streamChilds = this._streamChilds(dag, c.nodeName); // for custom flow
             const node = {
                 ...data,
-                nodeName: c.nodeName,
+                nodeName: c,
                 source: nodeName,
-                node: { ...nodeMap, parents: dag._parents(c.nodeName), childs: streamChilds }
+                node: { ...nodeMap, parents: dag._parents(c), childs: dag._childs(c) }
             };
             return node;
         });

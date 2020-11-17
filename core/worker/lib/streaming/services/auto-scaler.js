@@ -29,7 +29,7 @@ let log;
  * 1. reqResRatio = (reqRate 300 / resRate 120) = 2.5
  *    The response rate is 2.5 times slower than request rate.
  *    In this case, the first condition is kicked in.
- *    so, it will scale-up current replicas * 2.5.
+ *    so, it will scale-up current replicas * Math.abs(1 - 2.5).
  * 2. If there were only requests and no responses,
  *    it will scale-up current replicas * 1.
  *    Scaling up is done by sending jobs to the Algorithm-Queue
@@ -216,8 +216,8 @@ class AutoScaler {
 
     _getScaleDetails({ source, reqRate, resRate, durationsRate, currentSize }) {
         const result = { up: 0, down: 0 };
-        const reqResRatio = this._calcRatio(reqRate, resRate);
-        const durationsRatio = this._calcRatio(reqRate, durationsRate);
+        const reqResRatio = Metrics.calcRatio(reqRate, resRate);
+        const durationsRatio = Metrics.calcRatio(reqRate, durationsRate);
         const scaleUp = this._shouldScaleUp({ reqResRatio, reqRate, resRate });
         const scaleDown = this._shouldScaleDown({ source, durationsRatio, reqRate, resRate });
 
@@ -227,7 +227,7 @@ class AutoScaler {
                 scaleSize = 0;
             }
             else {
-                scaleSize = this._calcSize(currentSize, reqResRatio);
+                scaleSize = this._calcSize(currentSize, Math.abs(1 - reqResRatio));
             }
             const replicas = Math.min(scaleSize, this._config.maxScaleUpReplicas);
             result.up = replicas;
@@ -249,13 +249,9 @@ class AutoScaler {
         return result;
     }
 
-    _calcRatio(rate1, rate2) {
-        const ratio = (rate1 && rate2) ? (rate1 / rate2) : 1;
-        return ratio;
-    }
-
-    _calcSize(currentSize, ratio) {
+    _calcSize(currentSize, currentRatio) {
         const size = currentSize || 1;
+        const ratio = currentRatio || 1;
         return Math.ceil(size * ratio);
     }
 
@@ -321,7 +317,7 @@ class AutoScaler {
         const { replicas } = scale;
         const instances = discovery.getInstances(this._nodeName);
         const workers = instances.slice(0, replicas);
-        return Promise.all(workers.map(w => stateAdapter.stopWorker(w.workerId)));
+        return Promise.all(workers.map(w => stateAdapter.stopWorker({ workerId: w.workerId, reason: 'scaleDown' })));
     }
 }
 

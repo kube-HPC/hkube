@@ -12,6 +12,11 @@ const _calcRate = (list) => {
     return rate;
 };
 
+const calcRatio = (rate1, rate2) => {
+    const ratio = (rate1 && rate2) ? (rate1 / rate2) : 1;
+    return ratio;
+};
+
 const _totalCount = (list) => {
     const last = list[list.length - 1];
     return (last && last.count) || 0;
@@ -45,5 +50,6 @@ const calcRates = (data) => {
 };
 
 module.exports = {
-    calcRates
+    calcRates,
+    calcRatio
 };

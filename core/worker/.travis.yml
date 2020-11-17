@@ -1,54 +1,45 @@
 sudo: required
 language: node_js
 node_js:
-- '14'
+  - "14"
 services:
-- docker
-- redis
+  - docker
+  - redis
 branches:
   only:
-  - master
-env:
-  global:
-  - secure: o7IGNE+1KmFDpwQIxFenYrrk9JOVHFhW69dnAb5j6J3UYVmtCITFT2qBgL6yGmINgZkf3Zbuqlhk/9y412C5108pHH6+p0MzJfEmb7KK7L+cNAdNhatWgaKDPNS1dbNQqjixgBv8BImQaLCQzLT2O4r+WQK0PJursXC0fQ6aunJrFMAoGr9hqe0omK5NuEyj59qvV0E+4MMw/rOO/6gI4tT5nM/fbn3Sk29jQlQtE7EuhVEgxF6cw3lzaBKOOKbWzeXSx3tbuSyAnRgPK+CeYENxRgAllbUeBBetXOaxXOVdp0zuveVahqN/yBzICnHOaZriJA6Pvx9qCOrcseazVd1TuQnTZAAwrrPdbuti9dfUlRyeNt8ZfvyQwJSln1RnNFl65G1B+ytBHBrk84EN/XcdRu3x49qlv8xETYf5/UB5BRf6Yc3L6s3aESwuz+wd4kw0aj1/WsJbi5KPmRgcbZ791v9Kx8caKvN9HistqeWaxQqWdYTlkZjnWWaJ7TfvN5EWZgKx5igoe5e3waBP1Xq4pkFXO2Ntz18h8lG2QWqRBDv6m0jkr7LyO78smosHTP+Zd5AaZIT+uaZNrKyGjz12j8vbcBboueOBJ1YXjiF4C5jrqJFZm0pF0DLyNN94rEzgs8MqNBXro6FZQF7eGQm8vcAkYd5ucd5RY9R/GTw=
-  - secure: QRLtdfoBl2ORjBnDDzMcI+RaSkEFdLArpCfXPatf3KUaNvzBo3WGsWlhCUqvR8ifPUvWTz1Odei5geqfsJGsiHxueIPxehijmyEiEVjHyi5MYryc7MBf1Svy2KkkaJnt8zP2ICcB9SmrqLHWdU6sGucOVa+w/MoS0lPjwJ6Ypv5KMybLYQGqKlE0qWj7lJWs/P7ewk0zhYZc5M2jUhEZX+ugbC7EbX3LrD+Zcb9GLrjch9pS4mvwnyPZEYyNAvRu0RSMlpnl69CFXd9ueSyrHzEiiNISEDrbO+bdO4OuXPLUQFQMy+Hy+D5gYDgcRvy2KOId6D+OPFRwNik+3CIJIYroQVCQs5ngNRq3O1X/Jx6mcW774D9nCy1PeaeTo8N0depg9r/kBPfdqeE5Q2ve/EiXqf0swGg0iWD8wJt/xqAF26lHJgdlVZgv900xaRyY62e4BSd5M9akdrlCl/zFRt0hTbB+THBGW5pDufLDD716AgCeH4lub7+JWdS9RJe6mkM1VwZlsTL3Ky01WWlHim2NFR3dAik+bZhppcNA3z975+GoQxldLqvmD98+peIrt7duvp+XQU2Dms4YJDjuPuYi0Pa3dWC2mHm7IuSaXA2NXt+zWZDb+QZIqu2ukEvZVRtzgEh4ROARkJhUQVbDY1VutRUVciL+ysW+fXCOzDc=
+    - master
 before_install:
-- docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:latest /usr/local/bin/etcd
-  --data-dir=data.etcd --name "my-etcd" --cors='*' --initial-advertise-peer-urls http://0.0.0.0:2380
-  --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:4001
-  --listen-client-urls http://0.0.0.0:4001     --initial-cluster-state new
-- docker run -d -p 9000:9000 --name minio1 -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE" -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" minio/minio server /data
+  - docker run -d --name etcd -p 2380:2380 -p 4001:4001 quay.io/coreos/etcd:latest /usr/local/bin/etcd
+    --data-dir=data.etcd --name "my-etcd" --cors='*' --initial-advertise-peer-urls http://0.0.0.0:2380
+    --listen-peer-urls http://0.0.0.0:2380 --advertise-client-urls http://0.0.0.0:4001
+    --listen-client-urls http://0.0.0.0:4001     --initial-cluster-state new
+  - docker run -d -p 9000:9000 --name minio1 -e "MINIO_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE" -e "MINIO_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" minio/minio server /data
 install:
-- npm  install
-- npm install -g snyk
-- snyk test || true
+  - npm ci
+  - npm install -g snyk
+  - snyk test || true
 script:
-- npm run lint && npm run test:cov
+  - npm run test:cov
 after_script: "npm run coverage"
 after_success:
-- |
-  if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
-    git config --global user.email "travis@travis-ci.org"
-    git config --global user.name "Travis CI"
-    git remote set-url --push origin "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git"
-    git remote -v
-    git checkout -f -b version-branch
-    npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
-    git push origin version-branch:master --follow-tags
-    docker login --username yehiyam --password ${DOCKER_HUB_PASS}
-    PRIVATE_REGISTRY=docker.io/hkube npm run build
-    curl -X POST -H 'accept:application/json'  -H "authorization:token ${TRAVIS_API_TOKEN}" -H 'content-type:application/json' -H 'travis-api-version:3' -d "{\"request\":{\"branch\":\"master\",\"message\":\"triggered by ${TRAVIS_REPO_SLUG}\"}}" "https://api.travis-ci.org/repo/kube-HPC%2Frelease-manager/requests"
-  else
-    echo "version skiped!"
-    docker login --username yehiyam --password ${DOCKER_HUB_PASS}
-    PRIVATE_REGISTRY=docker.io/hkube npm run build
-  fi
-# - snyk monitor 
-# deploy:
-#   skip_cleanup: true
-#   provider: script
-#   script: PRIVATE_REGISTRY=docker.io/hkube npm run build
-#   # on:
-#   #   branch: master
-# after_deploy:
-  # - curl -X POST -H 'accept:application/json'  -H "authorization:token ${TRAVIS_API_TOKEN}" -H 'content-type:application/json' -H 'travis-api-version:3' -d "{\"request\":{\"branch\":\"master\",\"message\":\"triggered by ${TRAVIS_REPO_SLUG}\"}}" "https://api.travis-ci.org/repo/kube-HPC%2Frelease-manager/requests"
+  - |
+    if ([ "$TRAVIS_BRANCH" == "master" ] || [ ! -z "$TRAVIS_TAG" ]) && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+      git config --global user.email "travis@travis-ci.org"
+      git config --global user.name "Travis CI"
+      git remote set-url --push origin "https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git"
+      git remote -v
+      git checkout -f -b version-branch
+      npm version patch -m "$(git log -1 --pretty=%B) .... bump version [skip ci]"
+      git push origin version-branch:master --follow-tags
+      docker login --username yehiyam --password ${DOCKER_HUB_PASS}
+    else
+      echo "version skiped!"
+    fi
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: PRIVATE_REGISTRY=docker.io/hkube npm run build
+  on:
+    branch: master
+after_deploy:
+  - curl -X POST -H 'accept:application/json'  -H "authorization:token ${TRAVIS_API_TOKEN}" -H 'content-type:application/json' -H 'travis-api-version:3' -d "{\"request\":{\"branch\":\"master\",\"message\":\"triggered by ${TRAVIS_REPO_SLUG}\"}}" "https://api.travis-ci.org/repo/kube-HPC%2Frelease-manager/requests"

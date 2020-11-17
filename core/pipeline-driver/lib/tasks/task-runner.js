@@ -472,7 +472,8 @@ class TaskRunner extends EventEmitter {
             const result = parser.parse(parse);
             const paths = this._nodes.extractPaths(nodeName);
             const parents = this._nodes._parents(nodeName);
-            const childs = this._streamChilds(this._nodes, nodeName);
+            // const childs = this._streamChilds(this._nodes, nodeName); // for custom flow
+            const childs = this._nodes._childs(nodeName);
 
             const options = {
                 node,
@@ -652,6 +653,9 @@ class TaskRunner extends EventEmitter {
         }
         else if (this._nodes.isAllNodesCompleted()) {
             this.stop();
+        }
+        else if (task.isScaled) {
+            this._nodes.removeTaskFromBatch(task);
         }
     }
 

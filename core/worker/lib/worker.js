@@ -69,14 +69,14 @@ class Worker {
         return Object.keys(protocols).length > 0 ? Object.entries(protocols).map(([k, v]) => `${k}:${v}`).join(',') : '';
     }
 
-    _setInactiveTimeout() {
+    _setInactiveTimeout(shouldExitAndCompleteJob) {
         if (jobConsumer.isConsumerPaused) {
             this._inactiveTimeoutMs = this._options.timeouts.inactivePaused || 0;
         }
         else {
             this._inactiveTimeoutMs = this._options.timeouts.inactive || 0;
         }
-        this._handleTimeout(stateManager.state);
+        this._handleTimeout(stateManager.state, shouldExitAndCompleteJob);
     }
 
     _registerToEtcdEvents() {
@@ -101,19 +101,22 @@ class Worker {
             await jobConsumer.updateDiscovery({ state: stateManager.state });
             this._setInactiveTimeout();
         });
-        stateAdapter.on(workerCommands.stopProcessing, async () => {
+        stateAdapter.on(workerCommands.stopProcessing, async (data) => {
             const isPaused = jobConsumer.isConsumerPaused;
             const isServing = this._isAlgorithmServing();
             const shouldStop = !isPaused && !isServing;
             const paused = isPaused ? 'paused' : 'not paused';
             const serving = isServing ? 'serving' : 'not serving';
             const stop = shouldStop ? 'stop' : 'not stop';
-            log.info(`got stop processing, worker is ${paused} and ${serving} and therefore will ${stop}`, { component });
+            const reason = data.reason || '';
+            log.info(`got stop processing, ${reason || ''} worker is ${paused} and ${serving} and therefore will ${stop}`, { component });
 
             if (shouldStop) {
                 await jobConsumer.pause();
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
-                this._setInactiveTimeout();
+                // if the reason to pause is scale-down we want to force exit and update the driver we finished.
+                const shouldExitAndCompleteJob = reason === 'scaleDown';
+                this._setInactiveTimeout(shouldExitAndCompleteJob);
             }
         });
         stateAdapter.on(workerCommands.exit, async (event) => {
@@ -454,18 +457,18 @@ class Worker {
         }
     }
 
-    _handleTimeout(state) {
+    _handleTimeout(state, shouldExitAndCompleteJob = false) {
         if (this._debugMode) {
             return;
         }
-        if (state === workerStates.ready) {
+        if (state === workerStates.ready || shouldExitAndCompleteJob) {
             this._clearInactiveTimeout();
             if (!jobConsumer.hotWorker && this._inactiveTimeoutMs != 0) { // eslint-disable-line
                 log.info(`starting inactive timeout for worker ${this._inactiveTimeoutMs / 1000} seconds`, { component });
                 this._inactiveTimer = setTimeout(() => {
                     if (!this._inTerminationMode) {
                         log.info(`worker is inactive for more than ${this._inactiveTimeoutMs / 1000} seconds.`, { component });
-                        stateManager.exit({ shouldCompleteJob: false });
+                        stateManager.exit({ shouldCompleteJob: shouldExitAndCompleteJob });
                     }
                 }, this._inactiveTimeoutMs);
             }
