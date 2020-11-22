@@ -301,6 +301,7 @@ class AutoScaler {
             tasks,
             isScaled: true,
             parsedFlow: this._options.pipeline.streaming?.parsedFlow,
+            defaultFlow: this._options.pipeline.streaming?.defaultFlow,
             pipelineName: this._options.pipeline.name,
             priority: this._options.pipeline.priority,
             kind: this._options.pipeline.kind,

@@ -483,7 +483,7 @@ describe('Executions', () => {
         before(() => {
             restPath = `${restUrl}/exec/raw`;
         });
-        it('should throw invalid node in custom flow', async () => {
+        it('should throw invalid node in stream flow', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -503,7 +503,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        customFlow: {
+                        streamFlow: {
                             "analyze": "A >> Z"
                         }
                     }
@@ -511,9 +511,9 @@ describe('Executions', () => {
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("invalid node Z in custom flow analyze");
+            expect(res.body.error.message).to.equal("invalid node Z in stream flow analyze");
         });
-        it('should throw invalid custom flow', async () => {
+        it('should throw invalid stream flow', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -533,7 +533,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        customFlow: {
+                        streamFlow: {
                             "analyze": null
                         }
                     }
@@ -541,7 +541,7 @@ describe('Executions', () => {
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("invalid custom flow analyze");
+            expect(res.body.error.message).to.equal("invalid stream flow analyze");
         });
         it('should throw not valid flow', async () => {
             const options = {
@@ -563,7 +563,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        customFlow: {
+                        streamFlow: {
                             "analyze": "A"
                         }
                     }
@@ -571,7 +571,7 @@ describe('Executions', () => {
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("custom flow analyze should have valid flow, example: A >> B");
+            expect(res.body.error.message).to.equal("stream flow analyze should have valid flow, example: A >> B");
         });
         it('should throw not valid flow format', async () => {
             const options = {
@@ -593,7 +593,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        customFlow: {
+                        streamFlow: {
                             "analyze": "A --> B"
                         }
                     }
@@ -601,9 +601,9 @@ describe('Executions', () => {
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("custom flow analyze should have valid flow, example: A >> B");
+            expect(res.body.error.message).to.equal("stream flow analyze should have valid flow, example: A >> B");
         });
-        it('should throw custom flow only allowed in stream pipeline', async () => {
+        it('should throw stream flow only allowed in stream pipeline', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -622,7 +622,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        customFlow: {
+                        streamFlow: {
                             "analyze": "A --> B"
                         }
                     }
@@ -630,7 +630,7 @@ describe('Executions', () => {
             };
             const res = await request(options);
             expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(res.body.error.message).to.equal("streaming custom flow is only allowed in stream pipeline");
+            expect(res.body.error.message).to.equal("streaming flow is only allowed in stream pipeline");
         });
         it('should succeed to execute with customStream edge type', async () => {
             const options = {
@@ -659,7 +659,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        customFlow: {
+                        streamFlow: {
                             "analyze": "A >> B >> C"
                         }
                     }
@@ -668,14 +668,14 @@ describe('Executions', () => {
             const re = await request(options);
             const optionsGET = { uri: `${restUrl}/exec/pipelines/${re.body.jobId}`, method: 'GET' };
             const res = await request(optionsGET);
-            const customFlow = Object.keys(res.body.streaming.customFlow);
+            const streamFlow = Object.keys(res.body.streaming.streamFlow);
             const parsedFlow = Object.keys(res.body.streaming.parsedFlow);
             expect(res.body.edges).to.have.lengthOf(2);
-            expect(customFlow).to.eql(parsedFlow);
+            expect(streamFlow).to.eql(parsedFlow);
             expect(res.body.edges[0].types[0]).to.eql('customStream');
             expect(res.body.edges[1].types[0]).to.eql('customStream');
         });
-        it('should succeed to execute with custom flow', async () => {
+        it('should succeed to execute with stream flow', async () => {
             const options = {
                 uri: restPath,
                 body: {
@@ -714,7 +714,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        customFlow: {
+                        streamFlow: {
                             "analyze0": "A >> B >> C >> D >> B >> A",
                             "analyze1": "A >> B&C , C >> D",
                             "analyze2": "A >> B&C >> D",
@@ -724,13 +724,67 @@ describe('Executions', () => {
                     }
                 }
             };
+            const res = await request(options);
+            expect(res.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
+            expect(res.body.error.message).to.equal("please specify a default stream flow");
+        });
+        it('should succeed to execute with stream flow', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    name: 'streaming-flow',
+                    kind: "stream",
+                    nodes: [
+                        {
+                            "nodeName": "A",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateful"
+                        },
+                        {
+                            "nodeName": "B",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateless"
+                        },
+                        {
+                            "nodeName": "C",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateless"
+                        },
+                        {
+                            "nodeName": "D",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateless"
+                        },
+                        {
+                            "nodeName": "E",
+                            "algorithmName": "green-alg",
+                            "input": [],
+                            "stateType": "stateless"
+                        }
+                    ],
+                    streaming: {
+                        streamFlow: {
+                            "analyze0": "A >> B >> C >> D >> B >> A",
+                            "analyze1": "A >> B&C , C >> D",
+                            "analyze2": "A >> B&C >> D",
+                            "analyze3": "A >> B >> C >> D >> A",
+                            "analyze4": "A >> B&C&D >> E"
+                        },
+                        defaultFlow: "analyze3"
+                    }
+                }
+            };
             const re = await request(options);
             const optionsGET = { uri: `${restUrl}/exec/pipelines/${re.body.jobId}`, method: 'GET' };
             const res = await request(optionsGET);
-            const customFlow = Object.keys(res.body.streaming.customFlow);
+            const streamFlow = Object.keys(res.body.streaming.streamFlow);
             const parsedFlow = Object.keys(res.body.streaming.parsedFlow);
             expect(res.body.edges).to.have.lengthOf(12);
-            expect(customFlow).to.eql(parsedFlow);
+            expect(streamFlow).to.eql(parsedFlow);
         });
     });
 });
