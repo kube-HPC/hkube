@@ -104,8 +104,8 @@ class PipelineCreator {
      *
      */
     async buildStreamingFlow(pipeline) {
-        const streamFlow = pipeline?.streaming?.streamFlow;
-        let defaultFlow = pipeline?.streaming?.defaultFlow;
+        const streamFlow = pipeline.streaming?.streamFlow;
+        let defaultFlow = pipeline.streaming?.defaultFlow;
         if (pipeline.kind === pipelineKind.Batch) {
             if (streamFlow) {
                 throw new InvalidDataError(`streaming flow is only allowed in ${pipelineKind.Stream} pipeline`);
