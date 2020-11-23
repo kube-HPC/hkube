@@ -44,6 +44,7 @@ class JobProducer extends EventEmitter {
                 parents: options.parents,
                 childs: options.childs,
                 parsedFlow: pipeline.streaming?.parsedFlow,
+                defaultFlow: pipeline.streaming?.defaultFlow,
                 info: {
                     extraData: options.node.extraData,
                     savePaths: options.paths,

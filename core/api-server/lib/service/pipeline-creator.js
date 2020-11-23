@@ -82,12 +82,12 @@ class PipelineCreator {
     }
 
     /**
-     * This method accept pipeline and check if it is streaming with customFlow.
-     * If it has customFlow, it creates edges and parsed flow.
+     * This method accept pipeline and check if it is streaming with flows.
+     * If it has flows, it creates edges and parsed flow.
      * @example
      * input
      *   streaming: {
-     *        customFlow: {
+     *        flows: {
      *           analyze: "A >> B&C , C >> D"
      *        }}
      *
@@ -103,27 +103,39 @@ class PipelineCreator {
      *        }}
      *
      */
-    async buildStreamingCustomFlow(pipeline) {
-        const customFlow = pipeline?.streaming?.customFlow;
-        if (!customFlow) {
+    async buildStreamingFlow(pipeline) {
+        const flows = pipeline.streaming?.flows;
+        let defaultFlow = pipeline.streaming?.defaultFlow;
+        if (pipeline.kind === pipelineKind.Batch) {
+            if (flows) {
+                throw new InvalidDataError(`streaming flow is only allowed in ${pipelineKind.Stream} pipeline`);
+            }
             return pipeline;
         }
-        if (pipeline.kind === pipelineKind.Batch) {
-            throw new InvalidDataError(`streaming custom flow is only allowed in ${pipelineKind.Stream} pipeline`);
+        if (pipeline.kind === pipelineKind.Stream) {
+            if (!flows) {
+                throw new InvalidDataError('please specify a stream flow');
+            }
+            if (!defaultFlow) {
+                if (Object.keys(flows).length > 1) {
+                    throw new InvalidDataError('please specify a default stream flow');
+                }
+                [defaultFlow] = Object.keys(flows);
+            }
         }
         const parsedFlow = {};
         const edges = [];
 
-        Object.entries(customFlow).forEach(([k, v]) => {
+        Object.entries(flows).forEach(([k, v]) => {
             if (!v) {
-                throw new InvalidDataError(`invalid custom flow ${k}`);
+                throw new InvalidDataError(`invalid stream flow ${k}`);
             }
             const flow = [];
             const expressions = v.replace(/\s/g, '').split(SEPARATORS.EXPRESSION);
             expressions.forEach((e) => {
                 const parts = e.split(SEPARATORS.RELATION);
                 if (parts.length === 1) {
-                    throw new InvalidDataError(`custom flow ${k} should have valid flow, example: A >> B`);
+                    throw new InvalidDataError(`stream flow ${k} should have valid flow, example: A >> B`);
                 }
                 parts.forEach((p, i) => {
                     const source = p;
@@ -136,7 +148,7 @@ class PipelineCreator {
                     sources.forEach((s) => {
                         const node = pipeline.nodes.find(n => n.nodeName === s);
                         if (!node) {
-                            throw new InvalidDataError(`invalid node ${s} in custom flow ${k}`);
+                            throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
                         }
                         if (targets?.length > 0) {
                             const next = [];
@@ -159,7 +171,8 @@ class PipelineCreator {
             edges,
             streaming: {
                 ...pipeline.streaming,
-                parsedFlow
+                parsedFlow,
+                defaultFlow
             }
         };
     }

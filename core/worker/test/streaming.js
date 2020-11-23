@@ -115,7 +115,7 @@ const createJob = (jobId) => {
         algorithmName: 'my-alg',
         pipelineName: 'my-pipe',
         parents: [],
-        childs: [{ nodeName: 'D', isMainFlow: true }],
+        childs: [{ nodeName: 'D', isMainFlow: true }], // for custom flow
     };
     return job;
 };
@@ -228,7 +228,7 @@ describe('Streaming', () => {
             }];
             await scale(list);
             const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(5);
+            expect(scaleUp.replicas).to.eql(4);
             expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(scaleDown).to.be.null;
         });
@@ -290,7 +290,7 @@ describe('Streaming', () => {
             await scale(list);
             await scale(list);
             const { scaleUp, scaleDown } = autoScale();
-            expect(scaleUp.replicas).to.eql(4);
+            expect(scaleUp.replicas).to.eql(3);
             expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(scaleDown).to.be.null;
         });
@@ -347,7 +347,7 @@ describe('Streaming', () => {
             const jobs4 = autoScale();
             const jobs5 = autoScale();
             const jobs6 = autoScale();
-            expect(jobs1.scaleUp.replicas).to.eql(4);
+            expect(jobs1.scaleUp.replicas).to.eql(3);
             expect(jobs1.scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(jobs2.scaleUp).to.be.null;
             expect(jobs3.scaleUp).to.be.null;
@@ -510,7 +510,7 @@ describe('Streaming', () => {
             const { scaleUp, scaleDown } = autoScale();
 
             expect(scaleUp.currentSize).to.eql(currentSize);
-            expect(scaleUp.replicas).to.eql(10);
+            expect(scaleUp.replicas).to.eql(8);
             expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
             expect(scaleUp.reason.code).to.eql(ScaleReasonsCodes.REQ_RES);
             expect(scaleUp.reason.message).to.eql('based on req/res ratio of 5.00 (min is 1.2)');
@@ -651,7 +651,7 @@ describe('Streaming', () => {
             expect(throughput).to.have.lengthOf(3);
             expect(scaleUp.currentSize).to.eql(currentSize);
             expect(scaleUp.nodes).to.have.lengthOf(3);
-            expect(scaleUp.replicas).to.eql(10);
+            expect(scaleUp.replicas).to.eql(8);
             expect(scaleUp.scaleTo).to.eql(scaleUp.replicas + currentSize);
             expect(scaleDown).to.be.null;
         });
