@@ -39,9 +39,12 @@ properties:
     type: object
     description: streaming options
     properties:
-      customFlow:
+      defaultFlow:
+        type: string
+        description: the name of the default stream flow
+      flows:
         type: object
-        description: define custom streaming flow in simple syntax
+        description: define streaming flow in simple syntax
         example: node A stream to B and C, node B stream to D will be like "A >> B&C , B >> D"
   edges:
     type: array

@@ -113,7 +113,7 @@ describe('Executions', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(HttpStatus.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('entry node "one" cannot be stateless on stream pipeline');
+            expect(response.body.error.message).to.equal('entry node "A" cannot be stateless on stream pipeline');
         });
         it('should throw stateful node is not allowed on batch pipeline', async () => {
             const options = {
