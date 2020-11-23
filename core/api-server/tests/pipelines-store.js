@@ -412,7 +412,7 @@ describe('Store/Pipelines', () => {
             expect(response.body.options.batchTolerance).to.equal(80);
             expect(response.body.options.progressVerbosityLevel).to.equal('info');
         });
-        it('should succeed to store streamFlow streaming pipeline', async () => {
+        it('should succeed to store flows streaming pipeline', async () => {
             const pipeline = {
                 name: 'streaming-flow',
                 experimentName: "main",
@@ -450,7 +450,7 @@ describe('Store/Pipelines', () => {
                     }
                 ],
                 streaming: {
-                    streamFlow: {
+                    flows: {
                         "analyze0": "A >> B >> C >> D >> B >> A",
                         "analyze1": "A >> B&C , C >> D",
                         "analyze2": "A >> B&C >> D",

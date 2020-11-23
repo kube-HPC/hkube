@@ -503,7 +503,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        streamFlow: {
+                        flows: {
                             "analyze": "A >> Z"
                         }
                     }
@@ -533,7 +533,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        streamFlow: {
+                        flows: {
                             "analyze": null
                         }
                     }
@@ -563,7 +563,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        streamFlow: {
+                        flows: {
                             "analyze": "A"
                         }
                     }
@@ -593,7 +593,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        streamFlow: {
+                        flows: {
                             "analyze": "A --> B"
                         }
                     }
@@ -622,7 +622,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        streamFlow: {
+                        flows: {
                             "analyze": "A --> B"
                         }
                     }
@@ -659,7 +659,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        streamFlow: {
+                        flows: {
                             "analyze": "A >> B >> C"
                         }
                     }
@@ -668,10 +668,10 @@ describe('Executions', () => {
             const re = await request(options);
             const optionsGET = { uri: `${restUrl}/exec/pipelines/${re.body.jobId}`, method: 'GET' };
             const res = await request(optionsGET);
-            const streamFlow = Object.keys(res.body.streaming.streamFlow);
+            const flows = Object.keys(res.body.streaming.flows);
             const parsedFlow = Object.keys(res.body.streaming.parsedFlow);
             expect(res.body.edges).to.have.lengthOf(2);
-            expect(streamFlow).to.eql(parsedFlow);
+            expect(flows).to.eql(parsedFlow);
             expect(res.body.edges[0].types[0]).to.eql('customStream');
             expect(res.body.edges[1].types[0]).to.eql('customStream');
         });
@@ -714,7 +714,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        streamFlow: {
+                        flows: {
                             "analyze0": "A >> B >> C >> D >> B >> A",
                             "analyze1": "A >> B&C , C >> D",
                             "analyze2": "A >> B&C >> D",
@@ -767,7 +767,7 @@ describe('Executions', () => {
                         }
                     ],
                     streaming: {
-                        streamFlow: {
+                        flows: {
                             "analyze0": "A >> B >> C >> D >> B >> A",
                             "analyze1": "A >> B&C , C >> D",
                             "analyze2": "A >> B&C >> D",
@@ -781,10 +781,10 @@ describe('Executions', () => {
             const re = await request(options);
             const optionsGET = { uri: `${restUrl}/exec/pipelines/${re.body.jobId}`, method: 'GET' };
             const res = await request(optionsGET);
-            const streamFlow = Object.keys(res.body.streaming.streamFlow);
+            const flows = Object.keys(res.body.streaming.flows);
             const parsedFlow = Object.keys(res.body.streaming.parsedFlow);
             expect(res.body.edges).to.have.lengthOf(12);
-            expect(streamFlow).to.eql(parsedFlow);
+            expect(flows).to.eql(parsedFlow);
         });
     });
 });

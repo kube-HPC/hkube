@@ -6,13 +6,12 @@ const jobConsumer = require('./consumer/JobConsumer');
 const storageHelper = require('./storage/storage');
 const algoRunnerCommunication = require('./algorithm-communication/workerCommunication');
 const stateAdapter = require('./states/stateAdapter');
-const { stateEvents, workerStates, workerCommands, Components } = require('./consts');
+const { stateEvents, workerStates, workerCommands, logMessages, streamingEvents, Components } = require('./consts');
 const kubernetes = require('./helpers/kubernetes');
 const messages = require('./algorithm-communication/messages');
 const streamHandler = require('./streaming/services/stream-handler');
 const subPipeline = require('./code-api/subpipeline/subpipeline');
 const execAlgorithms = require('./code-api/algorithm-execution/algorithm-execution');
-const { logMessages, streamingEvents } = require('./consts');
 const ALGORITHM_CONTAINER = 'algorunner';
 const component = Components.WORKER;
 const DEFAULT_STOP_TIMEOUT = 5000;
@@ -115,7 +114,7 @@ class Worker {
                 await jobConsumer.pause();
                 await jobConsumer.updateDiscovery({ state: stateManager.state });
                 // if the reason to pause is scale-down we want to force exit and update the driver we finished.
-                const shouldExitAndCompleteJob = reason === 'scaleDown';
+                const shouldExitAndCompleteJob = reason === streamingEvents.SCALE_DOWN;
                 this._setInactiveTimeout(shouldExitAndCompleteJob);
             }
         });

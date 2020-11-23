@@ -606,7 +606,7 @@
             "delay": 0.01
         },
         "streaming": {
-            "streamFlow": {
+            "flows": {
                 "analyze": "A >> Z"
             }
         }

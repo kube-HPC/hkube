@@ -82,12 +82,12 @@ class PipelineCreator {
     }
 
     /**
-     * This method accept pipeline and check if it is streaming with streamFlow.
-     * If it has streamFlow, it creates edges and parsed flow.
+     * This method accept pipeline and check if it is streaming with flows.
+     * If it has flows, it creates edges and parsed flow.
      * @example
      * input
      *   streaming: {
-     *        streamFlow: {
+     *        flows: {
      *           analyze: "A >> B&C , C >> D"
      *        }}
      *
@@ -104,29 +104,29 @@ class PipelineCreator {
      *
      */
     async buildStreamingFlow(pipeline) {
-        const streamFlow = pipeline.streaming?.streamFlow;
+        const flows = pipeline.streaming?.flows;
         let defaultFlow = pipeline.streaming?.defaultFlow;
         if (pipeline.kind === pipelineKind.Batch) {
-            if (streamFlow) {
+            if (flows) {
                 throw new InvalidDataError(`streaming flow is only allowed in ${pipelineKind.Stream} pipeline`);
             }
             return pipeline;
         }
         if (pipeline.kind === pipelineKind.Stream) {
-            if (!streamFlow) {
+            if (!flows) {
                 throw new InvalidDataError('please specify a stream flow');
             }
             if (!defaultFlow) {
-                if (Object.keys(streamFlow).length > 1) {
+                if (Object.keys(flows).length > 1) {
                     throw new InvalidDataError('please specify a default stream flow');
                 }
-                [defaultFlow] = Object.keys(streamFlow);
+                [defaultFlow] = Object.keys(flows);
             }
         }
         const parsedFlow = {};
         const edges = [];
 
-        Object.entries(streamFlow).forEach(([k, v]) => {
+        Object.entries(flows).forEach(([k, v]) => {
             if (!v) {
                 throw new InvalidDataError(`invalid stream flow ${k}`);
             }
