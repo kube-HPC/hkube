@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
 const { NodesMap: DAG } = require('@hkube/dag');
-const { consts } = require('@hkube/parsers');
 const stateAdapter = require('../../states/stateAdapter');
 const Election = require('./election');
 const AdaptersProxy = require('../adapters/adapters-proxy');

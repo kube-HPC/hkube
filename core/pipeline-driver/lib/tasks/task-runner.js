@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const { parser, consts } = require('@hkube/parsers');
+const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
