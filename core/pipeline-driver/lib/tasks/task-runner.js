@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const { parser, consts } = require('@hkube/parsers');
+const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses, stateType, pipelineKind } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
@@ -472,7 +472,7 @@ class TaskRunner extends EventEmitter {
             const result = parser.parse(parse);
             const paths = this._nodes.extractPaths(nodeName);
             const parents = this._nodes._parents(nodeName);
-            const childs = this._streamChilds(this._nodes, nodeName);
+            const childs = this._nodes._childs(nodeName);
 
             const options = {
                 node,
@@ -501,12 +501,6 @@ class TaskRunner extends EventEmitter {
         catch (error) {
             this.stop({ error, nodeName });
         }
-    }
-
-    _streamChilds(dag, nodeName) {
-        const child = dag._childs(nodeName);
-        const streamChilds = child.map(c => ({ nodeName: c, isMainFlow: dag.getEdgeTypes(nodeName, c).includes(consts.relations.INPUT) }));
-        return streamChilds;
     }
 
     async _checkPreSchedule(nodeName) {

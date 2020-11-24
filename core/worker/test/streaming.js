@@ -115,7 +115,7 @@ const createJob = (jobId) => {
         algorithmName: 'my-alg',
         pipelineName: 'my-pipe',
         parents: [],
-        childs: [{ nodeName: 'D', isMainFlow: true }], // for custom flow
+        childs: ['D'],
     };
     return job;
 };

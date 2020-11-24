@@ -1,6 +1,5 @@
 const EventEmitter = require('events');
 const { NodesMap: DAG } = require('@hkube/dag');
-const { consts } = require('@hkube/parsers');
 const stateAdapter = require('../../states/stateAdapter');
 const Election = require('./election');
 const AdaptersProxy = require('../adapters/adapters-proxy');
@@ -45,23 +44,16 @@ class StreamService extends EventEmitter {
         }, {});
         const data = { config: this._options.autoScaler, pipeline, jobData, jobId };
         const nodes = childs.map((c) => {
-            const nodeMap = nodesMap[c.nodeName];
-            const streamChilds = this._streamChilds(dag, c.nodeName);
+            const nodeMap = nodesMap[c];
             const node = {
                 ...data,
-                nodeName: c.nodeName,
+                nodeName: c,
                 source: nodeName,
-                node: { ...nodeMap, parents: dag._parents(c.nodeName), childs: streamChilds }
+                node: { ...nodeMap, parents: dag._parents(c), childs: dag._childs(c) }
             };
             return node;
         });
         return nodes;
-    }
-
-    _streamChilds(dag, nodeName) {
-        const child = dag._childs(nodeName);
-        const streamChilds = child.map(c => ({ nodeName: c, isMainFlow: dag.getEdgeTypes(nodeName, c).includes(consts.relations.INPUT) }));
-        return streamChilds;
     }
 
     async finish() {
