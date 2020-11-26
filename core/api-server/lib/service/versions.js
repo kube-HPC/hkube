@@ -80,6 +80,8 @@ class AlgorithmVersions {
 
     /**
      * This method creates new algorithm version.
+     * Version is created for any change in algorithm or after successful build.
+     * If the version created after build, a buildId will attached to version.
      * The version has a two important properties that automatically generated.
      *  1. version: <string> (10 length uid).
      *  2. semver:  <string> (major, minor, patch).
@@ -91,7 +93,7 @@ class AlgorithmVersions {
      * 5) if lock was unsuccessful, try to increment the semver again.
      * 6) create the version.
      */
-    async createVersion(algorithm) {
+    async createVersion(algorithm, buildId) {
         const { name } = algorithm;
         const version = uid({ length: SETTINGS.VERSION_LENGTH });
         const latestSemver = await this._getLatestSemver({ name });
@@ -102,6 +104,7 @@ class AlgorithmVersions {
             const newVersion = {
                 version,
                 semver,
+                buildId,
                 created: Date.now(),
                 name,
                 algorithm: { ...algorithm, version }

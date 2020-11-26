@@ -27,10 +27,10 @@ class AlgorithmStore {
              * first, we create a new version, then if there are no versions,
              * we update the current algorithm with the new build image.
              */
-            const { algorithm, algorithmName: name, algorithmImage } = build;
+            const { buildId, algorithm, algorithmName: name, algorithmImage } = build;
             const versions = await stateManager.algorithms.versions.list({ name });
             const newAlgorithm = merge({}, algorithm, { algorithmImage, options: { pending: false } });
-            const version = await versionsService.createVersion(newAlgorithm);
+            const version = await versionsService.createVersion(newAlgorithm, buildId);
 
             if (versions.length === 0) {
                 await algorithmStore.storeAlgorithm({ ...newAlgorithm, version });
