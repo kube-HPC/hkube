@@ -149,3 +149,7 @@
   $ref: ./dataSource/dataSource_name.yaml
 /datasource/{name}/{fileName}:
   $ref: ./dataSource/dataSource_file.yaml
+
+# status
+/status/version:
+  $ref: ./status/version.yaml

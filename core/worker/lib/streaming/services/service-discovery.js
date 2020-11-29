@@ -31,7 +31,7 @@ class ServiceDiscovery extends EventEmitter {
     }
 
     finish() {
-        this._interval.stop();
+        this._interval?.stop();
     }
 
     async _discoveryInterval({ jobId, taskId, parents }) {

@@ -62,10 +62,10 @@ class StreamService extends EventEmitter {
         }
         this._active = false;
         this._jobData = null;
-        this._scalerService.stop();
-        this._throughput.stop();
-        await this._election.stop();
-        await this._adapters.stop();
+        this._scalerService?.stop();
+        this._throughput?.stop();
+        await this._election?.stop();
+        await this._adapters?.stop();
         this._scalerService = null;
         this._throughput = null;
         this._election = null;

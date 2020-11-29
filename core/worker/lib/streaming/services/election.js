@@ -35,7 +35,7 @@ class Election {
     }
 
     async stop() {
-        this._electInterval.stop();
+        this._electInterval?.stop();
         await this._unElectNodes();
     }
 

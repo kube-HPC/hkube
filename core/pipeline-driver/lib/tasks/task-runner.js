@@ -648,6 +648,9 @@ class TaskRunner extends EventEmitter {
         else if (this._nodes.isAllNodesCompleted()) {
             this.stop();
         }
+        else if (task.isScaled) {
+            this._nodes.removeTaskFromBatch(task);
+        }
     }
 
     _isStreamingDone(task) {

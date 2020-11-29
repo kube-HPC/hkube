@@ -1,6 +1,6 @@
 const mergeWith = require('lodash.mergewith');
 const { NodesMap: DAG } = require('@hkube/dag');
-const { parser } = require('@hkube/parsers');
+const { parser, consts } = require('@hkube/parsers');
 const { pipelineKind } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
 const { ResourceNotFoundError, InvalidDataError } = require('../errors');
@@ -82,12 +82,12 @@ class PipelineCreator {
     }
 
     /**
-     * This method accept pipeline and check if it is streaming with customFlow.
-     * If it has customFlow, it creates edges and parsed flow.
+     * This method accept pipeline and check if it is streaming with flows.
+     * If it has flows, it creates edges and parsed flow.
      * @example
      * input
      *   streaming: {
-     *        customFlow: {
+     *        flows: {
      *           analyze: "A >> B&C , C >> D"
      *        }}
      *
@@ -101,49 +101,62 @@ class PipelineCreator {
      *           analyze: [{ source: "A", next: ["B", "C"]}
      *                     { source: "C", next: ["D"]}]
      *        }}
-     * ------------------------------------------
      *
      */
-    async buildStreamingCustomFlow(pipeline) {
-        const customFlow = pipeline?.streaming?.customFlow;
-        if (!customFlow) {
+    async buildStreamingFlow(pipeline) {
+        const flows = pipeline.streaming?.flows;
+        let defaultFlow = pipeline.streaming?.defaultFlow;
+        if (pipeline.kind === pipelineKind.Batch) {
+            if (flows) {
+                throw new InvalidDataError(`streaming flow is only allowed in ${pipelineKind.Stream} pipeline`);
+            }
             return pipeline;
         }
-        if (pipeline.kind === pipelineKind.Batch) {
-            throw new InvalidDataError(`streaming custom flow is only allowed in ${pipelineKind.Stream} pipeline`);
+        if (pipeline.kind === pipelineKind.Stream) {
+            if (!flows) {
+                throw new InvalidDataError('please specify a stream flow');
+            }
+            if (!defaultFlow) {
+                if (Object.keys(flows).length > 1) {
+                    throw new InvalidDataError('please specify a default stream flow');
+                }
+                [defaultFlow] = Object.keys(flows);
+            }
         }
         const parsedFlow = {};
         const edges = [];
 
-        Object.entries(customFlow).forEach(([k, v]) => {
+        Object.entries(flows).forEach(([k, v]) => {
             if (!v) {
-                throw new InvalidDataError(`invalid custom flow ${k}`);
+                throw new InvalidDataError(`invalid stream flow ${k}`);
             }
             const flow = [];
             const expressions = v.replace(/\s/g, '').split(SEPARATORS.EXPRESSION);
             expressions.forEach((e) => {
                 const parts = e.split(SEPARATORS.RELATION);
                 if (parts.length === 1) {
-                    throw new InvalidDataError(`custom flow ${k} should have valid flow, example: A >> B`);
+                    throw new InvalidDataError(`stream flow ${k} should have valid flow, example: A >> B`);
                 }
                 parts.forEach((p, i) => {
                     const source = p;
                     const target = parts[i + 1];
+                    if (target?.length === 0) {
+                        throw new InvalidDataError(`invalid node name after ${source}`);
+                    }
                     const sources = source.split(SEPARATORS.AND);
                     const targets = target?.split(SEPARATORS.AND);
                     sources.forEach((s) => {
                         const node = pipeline.nodes.find(n => n.nodeName === s);
                         if (!node) {
-                            throw new InvalidDataError(`invalid node ${s} in custom flow ${k}`);
+                            throw new InvalidDataError(`invalid node ${s} in stream flow ${k}`);
                         }
-                        node.isCustomFlow = true;
                         if (targets?.length > 0) {
                             const next = [];
                             targets.forEach((t) => {
                                 next.push(t);
                                 const edge = edges.find(d => d.source === s && d.target === t);
                                 if (!edge) {
-                                    edges.push({ source: s, target: t });
+                                    edges.push({ source: s, target: t, types: [consts.relations.CUSTOM_STREAM] });
                                 }
                             });
                             flow.push({ source: s, next });
@@ -158,7 +171,8 @@ class PipelineCreator {
             edges,
             streaming: {
                 ...pipeline.streaming,
-                parsedFlow
+                parsedFlow,
+                defaultFlow
             }
         };
     }
