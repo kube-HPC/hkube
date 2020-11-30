@@ -41,14 +41,14 @@ jobs:
       - run: |
           npm ci
           echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
-      - name: bootsrap
+      - name: bootstrap
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)
           echo ${CHANGED}
           # export CHANGED=${CHANGED:-$(lerna list)}
           # echo ${CHANGED}
-          # lerna bootstrap
-          # echo ${CHANGED} >> $GITHUB_ENV
+          lerna bootstrap
+          echo "$CHANGED" >> $GITHUB_ENV
       - name: test
         run: |
           echo $CHANGED
