@@ -37,7 +37,9 @@ jobs:
         with:
           node-version: 14.x
       - run: ./scripts/beforeInstall.sh
-      - run: npm ci
+      - run: |
+          npm ci
+          echo "$PWD/node_modules/.bin" >> $GITHUB_PATH
       - name: bootsrap
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)
