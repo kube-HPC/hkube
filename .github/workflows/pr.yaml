@@ -32,10 +32,10 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - run: ./scripts/beforeInstall.sh
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
+      - run: ./scripts/beforeInstall.sh
       - run: npm ci
       - run: NODE_ENV=test npm run-script test-travis
