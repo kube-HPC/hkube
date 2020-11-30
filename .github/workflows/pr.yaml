@@ -47,7 +47,7 @@ jobs:
           echo ${CHANGED}
           # export CHANGED=${CHANGED:-$(lerna list)}
           # echo ${CHANGED}
-          echo ${CHANGED} | xargs -n 1 -I {} lerna exec npm ci --scope {}
+          echo ${CHANGED} | xargs -n 1 -d ' ' -I {} lerna exec npm ci --scope {}
           echo "CHANGED=$CHANGED" >> $GITHUB_ENV
       - name: test
         run: |
