@@ -47,7 +47,7 @@ jobs:
           echo ${CHANGED}
           # export CHANGED=${CHANGED:-$(lerna list)}
           # echo ${CHANGED}
-          # lerna bootstrap
+          lerna bootstrap
           echo "CHANGED=$CHANGED" >> $GITHUB_ENV
       - name: test
         run: |
