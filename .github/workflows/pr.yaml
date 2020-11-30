@@ -33,6 +33,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
       - uses: actions/setup-node@v1
         with:
           node-version: 14.x
@@ -44,10 +45,10 @@ jobs:
         run: |
           export CHANGED=$(lerna changed --includeMergedTags)
           echo ${CHANGED}
-          export CHANGED=${CHANGED:-$(lerna list)}
-          echo ${CHANGED}
-          lerna bootstrap
-          echo ${CHANGED} >> $GITHUB_ENV
+          # export CHANGED=${CHANGED:-$(lerna list)}
+          # echo ${CHANGED}
+          # lerna bootstrap
+          # echo ${CHANGED} >> $GITHUB_ENV
       - name: test
         run: |
           echo $CHANGED
