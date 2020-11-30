@@ -38,4 +38,21 @@ jobs:
           node-version: 14.x
       - run: ./scripts/beforeInstall.sh
       - run: npm ci
-      - run: NODE_ENV=test npm run-script test-travis
+      - name: bootsrap
+        run: |
+          export CHANGED=$(lerna changed --includeMergedTags)
+          echo ${CHANGED}
+          export CHANGED=${CHANGED:-$(lerna list)}
+          echo ${CHANGED}
+          lerna bootstrap
+          echo ${CHANGED} >> $GITHUB_ENV
+      - name: test
+        run: |
+          echo $CHANGED
+          if [ -z $CHANGED ]; 
+          then 
+            echo nothing changed
+          else 
+            ./scripts/runTestAndBuild.sh
+          fi
+
