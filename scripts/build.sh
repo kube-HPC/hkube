@@ -1,6 +1,6 @@
 #!/bin/bash
 set -xo pipefail
-echo ${DOCKER_BUILD_PUSH_PASSWORD} | docker login --username yehiyam --password-stdin
+echo ${DOCKER_PASSWORD} | docker login --username yehiyam --password-stdin
 echo ${CHANGED}
 for REPO in ${CHANGED}
 do

@@ -64,7 +64,7 @@ jobs:
             scripts/runTestAndBuild.sh
           fi
         env: 
-          DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       - name: trigger
         if: env.CHANGED
         id: trigger
