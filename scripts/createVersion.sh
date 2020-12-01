@@ -1,8 +1,8 @@
 #!/bin/bash
 set -evo pipefail
 MESSAGE="$(git log -1 --pretty=%B) .... bump version [skip ci]"
-git remote set-url origin "https://${GH_TOKEN}@github.com/${REPO_SLUG}.git"
-git remote set-url --push origin "https://${GH_TOKEN}@github.com/${REPO_SLUG}.git"
+# git remote set-url origin "https://${GH_TOKEN}@github.com/${REPO_SLUG}.git"
+# git remote set-url --push origin "https://${GH_TOKEN}@github.com/${REPO_SLUG}.git"
 git remote -v
 git status
 git checkout -f -b version-branch
