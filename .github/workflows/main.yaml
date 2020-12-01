@@ -64,8 +64,7 @@ jobs:
             scripts/runTestAndBuild.sh
           fi
         env: 
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          REPO_SLUG: ${{ github.repository }}
+          DOCKER_BUILD_PUSH_PASSWORD: ${{ secrets.DOCKER_BUILD_PUSH_PASSWORD }}
       - name: trigger
         if: env.CHANGED
         id: trigger
