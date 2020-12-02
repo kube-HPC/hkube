@@ -5,6 +5,7 @@ const { InvalidDataError } = require('../errors');
 const customFormats = require('./custom-formats');
 const validator = new Validator({ useDefaults: false, coerceTypes: true, nullable: true });
 const defaulter = new Validator({ useDefaults: true, coerceTypes: true, nullable: true });
+const RESERVED_NODE_NAMES = ['dataSource', 'flowInput'];
 
 class ApiValidator {
     init(schemas, schemasInternal) {
@@ -45,7 +46,7 @@ class ApiValidator {
             this._validateNodes(object, config);
         }
     }
-
+  
     _validateNodes(pipeline, options) {
         try {
             new DAG(pipeline, options);  // eslint-disable-line

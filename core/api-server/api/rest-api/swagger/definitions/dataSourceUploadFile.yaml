@@ -1,0 +1,18 @@
+type: object
+properties:
+  versionDescription:
+    type: string
+  filesAdded:
+    $ref: "#/components/schemas/dataSourceFiles"
+  filesDropped:
+    type: array
+    items:
+      type: string
+    minItems: 1
+anyOf:
+  - required:
+      - versionDescription
+      - filesDropped
+  - required:
+      - versionDescription
+      - filesAdded

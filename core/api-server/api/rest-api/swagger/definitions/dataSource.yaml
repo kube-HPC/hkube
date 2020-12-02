@@ -1,0 +1,18 @@
+type: object
+properties:
+  path:
+    type: string
+    example: "/datasource/my-datasource"
+  name:
+    $ref: "#/components/schemas/dataSourceName"
+  id:
+    type: string
+  files:
+    type: array
+    items:
+      $ref: "#/components/schemas/dataSourceFileMeta"
+  versionDescription:
+    type: string
+required:
+  - name
+  - id

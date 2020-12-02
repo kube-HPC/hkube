@@ -142,6 +142,14 @@
 /storage/download/pipeline/result/{jobId}:
   $ref: ./storage/download_pipeline.yaml
 
+# dataSource
+/datasource:
+  $ref: ./dataSource/dataSource.yaml
+/datasource/{name}:
+  $ref: ./dataSource/dataSource_name.yaml
+/datasource/{name}/{fileName}:
+  $ref: ./dataSource/dataSource_file.yaml
+
 # status
 /status/version:
   $ref: ./status/version.yaml

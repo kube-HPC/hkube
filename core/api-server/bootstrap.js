@@ -8,6 +8,7 @@ const { main, logger } = configIt.load();
 const log = new Logger(main.serviceName, logger);
 
 const modules = [
+    require('./lib/db'),
     require('./api/rest-api/app-server'),
     require('./lib/state/state-manager'),
     require('./lib/producer/jobs-producer'),
@@ -17,7 +18,7 @@ const modules = [
     require('./lib/service/builds'),
     require('./lib/service/algorithms'),
     require('./lib/service/caching'),
-    require('./lib/service/storage')
+    require('./lib/service/storage'),
 ];
 
 class Bootstrap {
@@ -34,10 +35,7 @@ class Bootstrap {
             });
             await monitor.check(main.redis);
             await metrics.init(main.metrics);
-            const res = await storageManager.init(main, log, true);
-            if (res) {
-                log.info(`${res.messgae}`, { component });
-            }
+            await storageManager.init(main, log, true);
             if (main.tracer) {
                 await tracer.init(main.tracer);
             }

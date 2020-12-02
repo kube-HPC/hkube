@@ -13,7 +13,6 @@ before(async function () {
     const baseUrl = `${config.swagger.protocol}://${config.swagger.host}:${config.swagger.port}`;
     const restUrl = `${baseUrl}/${config.rest.prefix}/v1`;
     const internalUrl = `${baseUrl}/internal/v1`;
-
     global.testParams = {
         restUrl,
         internalUrl,
