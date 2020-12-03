@@ -3,56 +3,17 @@ const { errorTypes, isDBError } = require('@hkube/db/lib/errors');
 const fse = require('fs-extra');
 const { default: simpleGit } = require('simple-git');
 const childProcess = require('child_process');
+const { parse: parsePath } = require('path');
 const { connection: db } = require('../db');
+const { NotModified } = require('../errors');
 const {
     ResourceExistsError,
     ResourceNotFoundError
 } = require('../errors');
 const validator = require('../validation/api-validator');
-const { fileName } = require('../../tests/datasource.utils');
 
 const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
 /** @typedef {import('@hkube/db/lib/DataSource').FileMeta} FileMeta */
-
-/**
- * * assume the repo has no remote, do not pull or push
- * it is assumed to be always there and always up to date
- * dvc workflow:
- * + constructor should create a git cached dir if not exists
- * get the repo path and name from the db
- * git dir exists?
- *      git pull
- * else:
- *      clone
- *
- * insert new files:
- *      - validate the subDirs needed
- *      - move the files from the multer tmp
- *        directory to their respective git repo in the relevant subDirs
- *        (defaults to the root/data dir)
- *      - clear tmp dir
- *      - run 'dvc add' on all the files
- * move and delete files:
- *      - prepare all the required subDirs (mandatory)
- *      - generate the source list
- *          - fetch the current files list
- *          - diff the current map from the existing one (this can be combined with the move to avoid multiple iterations)
- *      - use 'dvc move' to move the files(auto updates the gitignore):
- *      - use 'dvc remove' on the .dvc files to delete the files(auto updates the gitignore):
- *
- * cleanups:
- *      - drop empty directories and empty git ignore files
- *        make sure the directory is really empty and has no subDirs!
- *
- * update dvc:
- *      dvc push
- * update the git repo
- *      git commit - return the commit hash
- * list all the .dvc files with their respective paths
- * write the commit hash and the files list to the db
- *
- * future: clear the git directory it is not needed anymore
- */
 
 /**
  *  @typedef {import('@hkube/db/lib/DataSource').DataSource} DataSourceItem;
@@ -61,11 +22,30 @@ const DATASOURCE_GIT_REPOS_DIR = 'temp/datasource-git-repositories';
  *  @typedef {import('@hkube/storage-manager/lib/storage/storage-base').EntryWithMetaData} EntryWithMetaData
  *  @typedef {{name?: string; id?: string;}} NameOrId
  * */
+
 /**
  * @param {object[]} collection
  * @param {string=} id
+ * @param {function=} mapper
  * */
-const normalize = (collection, id = 'id') => collection.reduce((acc, item) => ({ ...acc, [item[id]]: item }), {});
+const normalize = (collection, id = 'id', mapper) => collection
+    .reduce((acc, item) => ({
+        ...acc,
+        [item[id]]: mapper ? mapper(item) : item
+    }), {});
+
+/** @type {(to: string) => (file: {path: string}) => { path: string } } */
+const convertWhiteSpace = (to) => file => ({
+    ...file,
+    path: file.path.split(' ').join(to)
+});
+
+/** @param {{name: string, path: string}} File */
+const getFilePath = ({ name, path }) => {
+    return path === '/'
+        ? `data/${name}`
+        : `data/${path.replace(/^\//, '')}/${name}`;
+};
 
 class DataSource {
     constructor() {
@@ -74,16 +54,22 @@ class DataSource {
         fse.ensureDirSync(this.rootDir);
     }
 
+    /** @param {string} name */
+    async setupDvcRepository(name) {
+        await this._execute(name, 'dvc init');
+        // update dvc config file - add remote and bucket name
+    }
+
     async createRepo(name) {
         await fse.ensureDir(`${this.rootDir}/${name}`);
         await fse.ensureDir(`${this.rootDir}/${name}/data`);
         const git = simpleGit({ baseDir: `${this.rootDir}/${name}` });
-        // handle fail
         await git.init();
-        await this._execute(name, 'dvc init');
+        await this.setupDvcRepository(name);
         await git.add('.');
         const response = await git.commit('initialized');
-        // add remote
+        // git.addRemote()
+        // git.push()
         return response;
     }
 
@@ -108,7 +94,7 @@ class DataSource {
      *  mapping: {[fileID: string]: FileMeta};
      * }}
      */
-    syncFilesMapping(normalizedMapping, files) {
+    _syncFilesMapping(normalizedMapping, files) {
         return files.reduce((acc, file) => {
             const tmpFileName = file.originalname;
             // the file has an id for a name
@@ -148,24 +134,41 @@ class DataSource {
      * @param {Express.Multer.File[]} props.files.added
      * @param {FileMeta[]=} props.files.mapping
      * @param {string[]=} props.files.dropped
+     * @param {FileMeta[]=} props.currentFiles
      * */
-    async commitChange({ repositoryName, commitMessage, files: { added, dropped = [], mapping: _mapping = [] } }) {
+    async commitChange({
+        repositoryName,
+        commitMessage,
+        files: {
+            added,
+            dropped = [],
+            mapping: _mapping = []
+        },
+        currentFiles = []
+    }) {
         const baseDir = `${this.rootDir}/${repositoryName}`;
         const dataDir = `${baseDir}/data`;
+        /**
+        * assume the repo has no remote, do not pull or push
+        * it is assumed to be always there and always up to date
+        */
+        const git = simpleGit({ baseDir });
+        const normalizedCurrentFiles = normalize(currentFiles);
 
         // fileName is an id!!
         // originalName is the actual name
-        const normalizedMapping = normalize(_mapping);
+        const normalizedMapping = normalize(_mapping, 'id', convertWhiteSpace('-'));
 
-        // some files in the files added are mapped to an id
-        // some are not
-        // rename and re-set all the ids to match on
-        // both the mapping and the files
         const normalizedFilesAdded = normalize(added, 'filename');
-        const { files, mapping } = this.syncFilesMapping(normalizedMapping, added);
 
-        // fill in the missing files to default to '/'
-        const updatedMapping = files.reduce((acc, { filename: id, ...file }) => ({
+        // some files in the files added list are renamed
+        // to an id (they should appear in the mapping with that same id)
+        // some are not - they should be in the mapping list
+        // rename and re-set all the ids to match on both the mapping and the files list
+        const { files, mapping } = this._syncFilesMapping(normalizedMapping, added);
+
+        /** @type {{ [fileId: string]: FileMeta }} */
+        const filesAddedMapping = files.reduce((acc, { filename: id, ...file }) => ({
             ...acc,
             [id]: {
                 id,
@@ -173,22 +176,16 @@ class DataSource {
                 path: mapping[id]?.path ?? '/',
                 size: file.size,
                 type: file.mimetype,
-                description: ''
+                description: '',
+                uploadedAt: new Date().getTime()
             }
         }), mapping);
-        /** @type {FileMeta[]} */
-        const filesMap = Object.values(updatedMapping);
-        /**
-        * assume the repo has no remote, do not pull or push
-        * it is assumed to be always there and always up to date
-        */
-        const git = simpleGit({ baseDir });
+
+        const filesMap = Object.values(filesAddedMapping);
 
         const addedFilesMap = filesMap
             .filter(file => normalizedFilesAdded[file.id] !== undefined);
 
-        // insert new files:
-        // validate the subDirs needed
         const pathNameRegex = /(.*\/)/;
         await Promise.all(
             addedFilesMap.map(file => fse.ensureDir(file.path.match(pathNameRegex)[0]))
@@ -197,36 +194,54 @@ class DataSource {
         await Promise.all(
             addedFilesMap.map(file => fse.move(
                 normalizedFilesAdded[file.id].path,
-                `${dataDir}/${file.path}/${file.name}`
+                `${dataDir}/${file.path}/${file.name}`, { overwrite: true }
             ))
         );
 
-        const filePaths = addedFilesMap.map(file => (
-            file.path === '/'
-                ? `data/${file.name}`
-                : `data/${file.path.replace(/^\//, '')}/${file.name}`
-        ));
+        const filePaths = addedFilesMap.map(getFilePath);
         // creates .dvc files and update/create the relevant gitignore files
         await this._execute(repositoryName, `dvc add ${filePaths.join(' ')}`);
-        // fetch the previous version from the db to delete and update the existing files
+
+        // ---- move files ---- //
+        const movedFiles = currentFiles.filter(file => filesAddedMapping[file.id]);
+
+        // fill in missing details from the previous version of the file
+        const filesMovedMapping = movedFiles.reduce((acc, file) => ({
+            ...acc,
+            [file.id]: {
+                ...normalizedCurrentFiles[file.id],
+                ...file
+            }
+        }), filesAddedMapping);
+
+        await Promise.all(movedFiles.map(async file => {
+            const src = getFilePath(file);
+            const target = getFilePath(filesMovedMapping[file.id]);
+            await fse.ensureDir(parsePath(target).dir);
+            // moves .dvc files and updates gitignore
+            return this._execute(repositoryName, `dvc move ${src} ${target}`);
+        }));
+
+        // delete dropped files
+        await Promise.all(dropped.map(async id => {
+            const path = getFilePath(normalizedCurrentFiles[id]);
+            // drops the dvc file and updates gitignore
+            return this._execute(repositoryName, `dvc remove ${path}.dvc`);
+        }));
+
         /**
-        * move and delete files:
-        *   - prepare all the required subDirs (mandatory)
-        *   - generate the source list
-        *       - fetch the current files list
-        *       - diff the current map from the existing one (this can be combined with the move to avoid multiple iterations)
-        *   - use 'dvc move' to move the files(auto updates the gitignore):
-        *   - use 'dvc remove' on the .dvc files to delete the files(auto updates the gitignore):
-        *
         * cleanups:
         *   - drop empty directories and empty git ignore files
         *     make sure the directory is really empty and has no subDirs!
-        *
         * update dvc:
         *      dvc push
         */
 
+        // await this._execute(repositoryName, `dvc push`);
+
         git.add('.');
+
+        // await git.push()
         const { commit } = await git.commit(commitMessage);
         // commit is either '(root-commit) <hash>' || <hash>
         // the length of the hash is 7 chars
@@ -253,14 +268,25 @@ class DataSource {
     async updateDataSource({ name, files: _files, versionDescription }) {
         // add ajv validation here
         // also acts validates the datasource exists
-        await db.dataSources.createVersion({
+        // can be used to tag the dataSource as locked while updating
+        // add fetch dataSource a flag to take the lock into account
+        const createdVersion = await db.dataSources.createVersion({
             name, versionDescription
         });
+
         const { commitHash, files } = await this.commitChange({
             repositoryName: name,
             files: _files,
-            commitMessage: versionDescription
+            commitMessage: versionDescription,
+            currentFiles: createdVersion.files
         });
+
+        if (!commitHash) {
+            await db.dataSources.delete({ id: createdVersion.id });
+            throw new NotModified('no changes were made, did not create a new version');
+        }
+
+        // release the lock
         return db.dataSources.uploadFiles({
             name,
             files,
@@ -410,3 +436,43 @@ module.exports = new DataSource();
 //     }))
 // );
 // return files.map((file, ii) => ({ name: file.originalname, size: file.size, path: createdPaths[ii].path, type: file.mimetype }));
+
+/**
+ * * assume the repo has no remote, do not pull or push
+ * it is assumed to be always there and always up to date
+ * dvc workflow:
+ * + constructor should create a git cached dir if not exists
+ * get the repo path and name from the db
+ * git dir exists?
+ *      git pull
+ * else:
+ *      clone
+ *
+ * insert new files:
+ *      - validate the subDirs needed
+ *      - move the files from the multer tmp
+ *        directory to their respective git repo in the relevant subDirs
+ *        (defaults to the root/data dir)
+ *      - clear tmp dir
+ *      - run 'dvc add' on all the files
+ * move and delete files:
+ *      - prepare all the required subDirs (mandatory)
+ *      - generate the source list
+ *          - fetch the current files list
+ *          - diff the current map from the existing one (this can be combined with the move to avoid multiple iterations)
+ *      - use 'dvc move' to move the files(auto updates the gitignore):
+ *      - use 'dvc remove' on the .dvc files to delete the files(auto updates the gitignore):
+ *
+ * cleanups:
+ *      - drop empty directories and empty git ignore files
+ *        make sure the directory is really empty and has no subDirs!
+ *
+ * update dvc:
+ *      dvc push
+ * update the git repo
+ *      git commit - return the commit hash
+ * list all the .dvc files with their respective paths
+ * write the commit hash and the files list to the db
+ *
+ * future: clear the git directory it is not needed anymore
+ */

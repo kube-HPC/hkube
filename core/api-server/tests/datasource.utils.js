@@ -37,6 +37,7 @@ const createDataSource = ({
  * @param {string[]=} props.fileNames - provide file names to be uploaded instead of a complete array of file objects
  * @param {{id: string, name: string}[]=} props.files
  * @param {MappingFile[]=} props.mapping
+ * @param {string[]=} props.droppedFileIds
  */
 const updateVersion = async ({
     dataSourceName,
@@ -44,6 +45,7 @@ const updateVersion = async ({
     fileNames = [],
     files: _files = [],
     mapping: _mapping = [],
+    droppedFileIds: _droppedFileIds = []
 }) => {
     const uri = `${global.testParams.restUrl}/datasource`;
     const normalizedMapping = _mapping.reduce((acc, item) => ({ ...acc, [item.id]: item }), {})
@@ -62,10 +64,15 @@ const updateVersion = async ({
         ? JSON.stringify(_mapping)
         : [];
 
+    const droppedFileIds = _droppedFileIds.length > 0
+        ? JSON.stringify(_droppedFileIds)
+        : []
+
     const formData = {
         versionDescription,
         files,
         mapping,
+        droppedFileIds
     };
     const options = {
         uri: `${uri}/${dataSourceName}`,
@@ -76,8 +83,7 @@ const updateVersion = async ({
 
 
 /** 
- * @param {object} que
- * ry 
+ * @param {object} query
  * @param {string} query.name 
  * */
 const fetchDataSource = ({ name }) => {

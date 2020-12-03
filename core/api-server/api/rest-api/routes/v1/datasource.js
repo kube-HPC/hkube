@@ -61,7 +61,7 @@ const routes = () => {
         })
         .post(upload.array('files'), async (req, res, next) => {
             const { name } = req.params;
-            const { versionDescription, filesDropped, mapping } = req.body;
+            const { versionDescription, droppedFileIds, mapping } = req.body;
             try {
                 const createdVersion = await dataSource.updateDataSource({
                     name,
@@ -69,7 +69,7 @@ const routes = () => {
                     files: {
                         // @ts-ignore
                         added: req.files,
-                        dropped: filesDropped,
+                        dropped: droppedFileIds ? JSON.parse(droppedFileIds) : undefined,
                         mapping: mapping ? JSON.parse(mapping) : undefined
                     }
                 });

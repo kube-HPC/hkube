@@ -314,7 +314,7 @@ describe.only('Datasource', () => {
         });
     });
     describe('/datasource/:name POST', () => {
-        // update after adding adv validation on the service
+        // update after adding ajv validation on the service
         it.skip('should throw missing filesAdded and filesDropped error', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
@@ -352,7 +352,7 @@ describe.only('Datasource', () => {
             expect(dataSource.files).to.have.lengthOf(2);
             expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
         });
-        it('should upload multiple files to the dataSource', async () => {
+        it.only('should upload multiple files to the dataSource', async () => {
             const name = uuid();
             await createDataSource({ body: { name } });
             const { response: uploadResponse } = await updateVersion({
@@ -363,6 +363,7 @@ describe.only('Datasource', () => {
                 ]
             });
             const { body: { files } } = uploadResponse;
+            console.log({ files });
             files.forEach(file => {
                 expect(file).to.have.property('name');
                 expect(file).to.have.property('path');
@@ -376,5 +377,73 @@ describe.only('Datasource', () => {
             expect(dataSource.files).to.have.lengthOf(3);
             expect(uploadResponse.statusCode).to.eql(HttpStatus.CREATED);
         });
+        it('should move a file', async () => {
+            const name = uuid();
+            const { body: dataSource } = await createDataSource({ body: { name } });
+            const [existingFile] = dataSource.files;
+            const { response: uploadResponse } = await updateVersion({
+                dataSourceName: name,
+                files: [{ name: 'algorithms.json', id: uuid() }, { name: 'README-2.md', id: 'someID' }],
+                mapping: [
+                    { id: 'someID', name: 'README-2.md', path: '/someSubDir' },
+                    { id: existingFile.id, name: existingFile.name, path: '/a new directory' }
+                ]
+            });
+            const { body: { files } } = uploadResponse;
+            const updatedFile = files.find(file => file.id === existingFile.id);
+            expect(updatedFile).to.exist;
+            expect(updatedFile.path).to.equal('/a-new-directory');
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/a-new-directory/${existingFile.name}`));
+        });
+        it('delete a file', async () => {
+            const name = uuid();
+            const { body: dataSource } = await createDataSource({ body: { name } });
+            const [existingFile] = dataSource.files;
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.true;
+
+            await updateVersion({
+                dataSourceName: name,
+                fileNames: ['algorithms.json'],
+                droppedFileIds: [existingFile.id]
+            });
+
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json`)).to.be.true;
+            // the data file is not deleted only the .dvc file
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`)).to.be.true;
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.false;
+        });
+        it.only('should fail if not real change was made', async () => {
+            const name = uuid();
+            const { body: dataSource } = await createDataSource({ body: { name } });
+            const [existingFile] = dataSource.files;
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.true;
+
+            const uploadResponse = await updateVersion({
+                dataSourceName: name,
+                fileNames: [existingFile.name],
+                mapping: [existingFile]
+            });
+
+            expect(uploadResponse.response.statusCode).to.eq(HttpStatus.NOT_MODIFIED);
+        });
+        it.skip('should update a file', async () => {
+            const name = uuid();
+            const { body: dataSource } = await createDataSource({ body: { name } });
+            const [existingFile] = dataSource.files;
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.true;
+
+            const { body: uploadResponse } = await updateVersion({
+                dataSourceName: name,
+                fileNames: [existingFile.name],
+                mapping: [existingFile]
+            });
+            console.log(dataSource);
+            console.log(uploadResponse);
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/algorithms.json`)).to.be.true;
+            // the data file is not deleted only the .dvc file
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}`)).to.be.true;
+            expect(await fse.pathExists(`${DATASOURCE_GIT_REPOS_DIR}/${name}/data/${existingFile.name}.dvc`)).to.be.false;
+        });
+        it.skip('should update and move a file', async () => { });
     });
 });
